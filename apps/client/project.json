@@ -13,7 +13,7 @@
         "outputPath": "dist/apps/client",
         "index": "apps/client/src/index.html",
         "browser": "apps/client/src/main.ts",
-        "polyfills": ["zone.js"],
+        "polyfills": [],
         "tsConfig": "apps/client/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
