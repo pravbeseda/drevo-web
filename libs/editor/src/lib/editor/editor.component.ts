@@ -7,9 +7,17 @@ import {
     ViewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
-import { EditorView } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
-import { basicSetup } from 'codemirror';
+import { EditorView } from 'codemirror';
+import { drawSelection, dropCursor, highlightSpecialChars, keymap } from '@codemirror/view';
+import {
+    defaultHighlightStyle,
+    indentOnInput,
+    bracketMatching,
+    syntaxHighlighting,
+} from '@codemirror/language';
+import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
+import { closeBrackets } from '@codemirror/autocomplete';
 
 @Component({
     selector: 'lib-editor',
@@ -35,9 +43,23 @@ export class EditorComponent implements AfterViewInit {
         const editor = new EditorView({
             state: EditorState.create({
                 doc: 'Text...',
-                extensions: [basicSetup],
+                extensions: [
+                    highlightSpecialChars(),
+                    drawSelection(),
+                    dropCursor(),
+                    syntaxHighlighting(defaultHighlightStyle),
+                    indentOnInput(),
+                    EditorView.lineWrapping,
+                    history(),
+                    keymap.of([...defaultKeymap, ...historyKeymap]),
+                    closeBrackets(),
+                    bracketMatching(),
+                ],
             }),
             parent: this.editorContainer.nativeElement,
         });
+
+        editor.contentDOM.setAttribute('spellcheck', 'true');
+        editor.contentDOM.setAttribute('autocorrect', 'on');
     }
 }
