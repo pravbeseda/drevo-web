@@ -9,3 +9,20 @@
     height: 100%;
     width: 100%;
 }
+
+.cm-editor {
+    height: auto;
+    border: 1px solid #ddd;
+    font-family: monospace;
+}
+
+/* Стили для подсветки синтаксиса */
+.cm-footnote {
+    background-color: #888686;
+    color: #000000;
+}
+
+.cm-link {
+    background-color: #58c5d4;
+    color: #007acc;
+}
