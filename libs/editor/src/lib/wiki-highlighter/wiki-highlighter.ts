@@ -10,6 +10,9 @@ interface Match {
     className: string;
 }
 
+const links: string[] = [];
+const matches: Match[] = [];
+
 export const wikiTheme = EditorView.theme({
     '.cm-footnote': {
         backgroundColor: '#f0f0f0',
@@ -47,10 +50,11 @@ export const wikiHighlighter = StateField.define<DecorationSet>({
 
 function createDecorations(text: string): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
-    const matches: Match[] = [];
+    matches.length = 0;
 
-    collectMatches(text, footnoteRegex, 'cm-footnote', matches);
-    collectMatches(text, linkRegex, 'cm-link', matches, true);
+    collectMatches(text, footnoteRegex, 'cm-footnote');
+    collectMatches(text, linkRegex, 'cm-link', true);
+    collectLinksMatches(text);
 
     matches.sort((a, b) => a.from - b.from);
 
@@ -65,7 +69,6 @@ export function collectMatches(
     text: string,
     regex: RegExp,
     className: string,
-    matches: Match[],
     isBalancedCorrectionNeeded = false
 ): void {
     let match;
@@ -80,6 +83,19 @@ export function collectMatches(
             to: match.index + matchedText.length,
             className,
         });
+    }
+}
+
+function collectLinksMatches(text: string) {
+    let match;
+    while ((match = linkRegex.exec(text)) !== null) {
+        const matchedText = match[1];
+        matches.push({
+            from: match.index + 2,
+            to: match.index + matchedText.length + 2,
+            className: 'cm-link-pending',
+        });
+        links.push(match[1]); // Собираем текст ссылок
     }
 }
 
