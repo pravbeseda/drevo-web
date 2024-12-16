@@ -23,25 +23,51 @@ function createDecorations(doc: string): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
     const matches: Match[] = [];
 
-    const collectMatches = (regex: RegExp, className: string) => {
+    const collectMatches = (
+        regex: RegExp,
+        className: string,
+        isBalancedCorrectionNeeded?: boolean
+    ) => {
         let match;
         while ((match = regex.exec(doc)) !== null) {
+            let matchedText = match[0];
+            if (isBalancedCorrectionNeeded) {
+                matchedText = trimToBalanced(matchedText);
+            }
+
             matches.push({
                 from: match.index,
-                to: match.index + match[0].length,
+                to: match.index + matchedText.length,
                 className,
             });
         }
     };
 
-    // Собираем все совпадения для каждого регулярного выражения
-    collectMatches(footnoteRegex, 'cm-footnote');
-    collectMatches(linkRegex, 'cm-link');
+    const trimToBalanced = (text: string): string => {
+        let stack = 0;
+        let endIndex = 0;
 
-    // Сортируем совпадения по позиции 'from'
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '(') {
+                stack++;
+            } else if (char === ')') {
+                stack--;
+            }
+            if (stack < 0) {
+                break;
+            }
+            endIndex = i + 1;
+        }
+
+        return stack === 0 ? text.slice(0, endIndex) : text.slice(0, endIndex);
+    };
+
+    collectMatches(footnoteRegex, 'cm-footnote');
+    collectMatches(linkRegex, 'cm-link', true);
+
     matches.sort((a, b) => a.from - b.from);
 
-    // Добавляем отсортированные диапазоны в builder
     for (const { from, to, className } of matches) {
         builder.add(from, to, Decoration.mark({ class: className }));
     }
@@ -49,7 +75,6 @@ function createDecorations(doc: string): DecorationSet {
     return builder.finish();
 }
 
-// Поле состояния для хранения декораций
 export const wikiHighlighter = StateField.define<DecorationSet>({
     create(state) {
         return createDecorations(state.doc.toString());
