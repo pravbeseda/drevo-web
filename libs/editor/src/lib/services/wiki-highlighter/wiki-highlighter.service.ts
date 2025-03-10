@@ -14,6 +14,10 @@ export class WikiHighlighterService {
     private footnoteRegex = /\[\[([\s\S]*?)\]\]/g;
     private linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
 
+    private text = '';
+    private matches: Match[] = [];
+    private links: string[] = [];
+
     constructor(private linksStateService: LinksStateService) {}
 
     public wikiTheme = EditorView.theme({
@@ -49,40 +53,49 @@ export class WikiHighlighterService {
         provide: f => EditorView.decorations.from(f),
     });
 
+    private reset(text: string): void {
+        this.text = text;
+        this.matches = [];
+        this.links = [];
+    }
+
     private createDecorations(text: string): DecorationSet {
+        console.log('createDecorations', { text });
+        this.reset(text);
+
+        this.collectMatches(this.footnoteRegex, 'cm-footnote');
+        this.collectMatches(this.linkRegex, 'cm-link', true);
+        this.collectLinksMatches();
+
+        this.matches.sort((a, b) => a.from - b.from);
+
+        this.updateLinkStatuses();
+
+        return this.buildText();
+    }
+
+    private buildText(): DecorationSet {
         const builder = new RangeSetBuilder<Decoration>();
-        const matches: Match[] = [];
-        const links: string[] = [];
 
-        this.collectMatches(text, this.footnoteRegex, 'cm-footnote', matches);
-        this.collectMatches(text, this.linkRegex, 'cm-link', matches, true);
-        this.collectLinksMatches(text, matches, links);
-
-        matches.sort((a, b) => a.from - b.from);
-
-        for (const { from, to, className } of matches) {
+        for (const { from, to, className } of this.matches) {
             builder.add(from, to, Decoration.mark({ class: className }));
         }
-
-        this.updateLinkStatuses(links, matches);
 
         return builder.finish();
     }
 
     private collectMatches(
-        text: string,
         regex: RegExp,
         className: string,
-        matches: Match[],
         isBalancedCorrectionNeeded = false
     ): void {
         let match;
-        while ((match = regex.exec(text)) !== null) {
+        while ((match = regex.exec(this.text)) !== null) {
             let matchedText = match[0];
             if (isBalancedCorrectionNeeded) {
                 matchedText = this.trimToBalanced(matchedText);
             }
-            matches.push({
+            this.matches.push({
                 from: match.index,
                 to: match.index + matchedText.length,
                 className,
@@ -90,32 +103,34 @@ export class WikiHighlighterService {
         }
     }
 
-    private collectLinksMatches(text: string, matches: Match[], links: string[]): void {
+    private collectLinksMatches(): void {
         let match;
-        while ((match = this.linkRegex.exec(text)) !== null) {
+        while ((match = this.linkRegex.exec(this.text)) !== null) {
             const matchedText = this.trimToBalanced(match[1]);
             const start = match.index + 2; // Skip the opening brackets
-            matches.push({
+            this.matches.push({
                 from: start,
                 to: start + matchedText.length,
                 className: 'cm-link-pending',
             });
             if (this.linksStateService.getLinkStatus(matchedText) === undefined) {
-                links.push(matchedText);
+                this.links.push(matchedText);
             }
         }
     }
 
-    private async updateLinkStatuses(links: string[], matches: Match[]): Promise<void> {
-        if (links.length === 0) return;
+    private async updateLinkStatuses(): Promise<void> {
+        if (this.links.length) {
+            await this.linksStateService.fetchLinkStatuses(this.links);
+        }
 
-        await this.linksStateService.fetchLinkStatuses(links);
-
-        for (const match of matches) {
+        for (const match of this.matches) {
             if (match.className === 'cm-link-pending') {
-                const linkText = this.extractLinkText(match);
+                const linkText = this.extractLinkText(this.text, match);
+                console.log('cm-link-pending', { linkText });
                 if (linkText) {
                     const status = this.linksStateService.getLinkStatus(linkText);
+                    console.log('getLinkStatus', { linkText, status });
                     if (status === true) {
                         match.className = 'cm-link-exists';
                     } else if (status === false) {
@@ -126,9 +141,8 @@ export class WikiHighlighterService {
         }
     }
 
-    private extractLinkText(match: Match): string | null {
-        const linkMatch = this.linkRegex.exec(match.className);
-        return linkMatch ? linkMatch[1] : null;
+    private extractLinkText(doc: string, match: Match): string {
+        return doc.slice(match.from, match.to);
     }
 
     private trimToBalanced(text: string): string {

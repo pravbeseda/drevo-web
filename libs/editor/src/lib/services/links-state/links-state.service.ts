@@ -9,24 +9,30 @@ export class LinksStateService {
 
         if (uncachedLinks.length === 0) return;
 
-        try {
-            const response = await fetch('/api/check-links', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ links: uncachedLinks }),
-            });
+        // try {
+        //     const response = await fetch('/api/check-links', {
+        //         method: 'POST',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify({ links: uncachedLinks }),
+        //     });
+        //
+        //     if (!response.ok) {
+        //         throw new Error('Failed to fetch link statuses');
+        //     }
+        //
+        //     const statuses = await response.json();
+        //     for (const link of Object.keys(statuses)) {
+        //         this.linkStatusCache[link] = statuses[link];
+        //     }
+        // } catch (error) {
+        //     console.error('Failed to fetch link statuses:', error);
+        // }
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch link statuses');
-            }
-
-            const statuses = await response.json();
-            for (const link of Object.keys(statuses)) {
-                this.linkStatusCache[link] = statuses[link];
-            }
-        } catch (error) {
-            console.error('Failed to fetch link statuses:', error);
+        for (let i = 0; i < uncachedLinks.length; i++) {
+            this.linkStatusCache[uncachedLinks[i]] = i % 2 === 0;
         }
+
+        console.log('fetchLinkStatuses!!!', { links, linkStatusCache: this.linkStatusCache });
     }
 
     getLinkStatus(link: string): boolean | 'pending' | undefined {

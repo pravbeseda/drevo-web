@@ -73,18 +73,24 @@ describe('WikiHighlighterService', () => {
     });
 
     it('should update link statuses based on API response', async () => {
-        // jest.spyOn(linksStateService, 'getLinkStatus').mockImplementation((link: string) =>
-        //     link === 'ссылка' ? true : link === 'неизвестная' ? false : 'pending'
-        // );
-
         linksStateService.getLinkStatus.mockReturnValue(undefined);
         linksStateService.fetchLinkStatuses.mockResolvedValue();
 
-        const view = getView('[[Пример сноски]] и ((ссылка)) и ((неизвестная))');
+        getView('[[Пример сноски]] и ((ссылка)) и ((неизвестная))');
 
         await linksStateService.fetchLinkStatuses.mock.results[0].value;
 
         expect(linksStateService.fetchLinkStatuses).toHaveBeenCalledWith(['ссылка', 'неизвестная']);
+    });
+
+    it('should show links as exists and missing', async () => {
+        jest.spyOn(linksStateService, 'getLinkStatus').mockImplementation((link: string) =>
+            link === 'ссылка' ? true : link === 'неизвестная' ? false : 'pending'
+        );
+
+        linksStateService.fetchLinkStatuses.mockResolvedValue();
+
+        const view = getView('[[Пример сноски]] и ((ссылка)) и ((неизвестная))');
 
         const existsElement = view.dom.querySelector(existsSelector);
         const missingElement = view.dom.querySelector(missingSelector);
