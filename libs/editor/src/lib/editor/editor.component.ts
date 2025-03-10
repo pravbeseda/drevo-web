@@ -21,7 +21,10 @@ import { closeBrackets } from '@codemirror/autocomplete';
 import { WikiHighlighterService } from '../services/wiki-highlighter/wiki-highlighter.service';
 import { LinksStateService } from '../services/links-state/links-state.service';
 import { article1 } from '../mocks/articles';
+import { linksUpdatedEffect } from '../constants/editor-effects';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
+@UntilDestroy()
 @Component({
     selector: 'lib-editor',
     imports: [CommonModule],
@@ -66,6 +69,10 @@ export class EditorComponent implements AfterViewInit {
                 ],
             }),
             parent: this.editorContainer.nativeElement,
+        });
+
+        this.wikiHighlighterService.linksUpdated$.pipe(untilDestroyed(this)).subscribe(() => {
+            editor.dispatch({ effects: linksUpdatedEffect.of(undefined) });
         });
 
         editor.contentDOM.setAttribute('spellcheck', 'true');

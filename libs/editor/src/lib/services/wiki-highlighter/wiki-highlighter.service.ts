@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
 import { RangeSetBuilder, StateField } from '@codemirror/state';
 import { LinksStateService } from '../links-state/links-state.service';
+import { Subject } from 'rxjs';
+import { linksUpdatedEffect } from '../../constants/editor-effects';
 
 interface Match {
     from: number;
@@ -17,6 +19,9 @@ export class WikiHighlighterService {
     private text = '';
     private matches: Match[] = [];
     private links: string[] = [];
+
+    private readonly linksUpdatedSubject = new Subject<void>();
+    readonly linksUpdated$ = this.linksUpdatedSubject.asObservable();
 
     constructor(private linksStateService: LinksStateService) {}
 
@@ -45,7 +50,10 @@ export class WikiHighlighterService {
     public wikiHighlighter = StateField.define<DecorationSet>({
         create: state => this.createDecorations(state.doc.toString()),
         update: (decorations, transaction) => {
-            if (transaction.docChanged) {
+            if (
+                transaction.docChanged ||
+                transaction.effects.some(eff => eff.is(linksUpdatedEffect))
+            ) {
                 return this.createDecorations(transaction.newDoc.toString());
             }
             return decorations;
@@ -60,16 +68,20 @@ export class WikiHighlighterService {
     }
 
     private createDecorations(text: string): DecorationSet {
-        console.log('createDecorations', { text });
-        this.reset(text);
+        const textChanged = this.text !== text;
+        if (textChanged) {
+            this.reset(text);
+            this.collectMatches(this.footnoteRegex, 'cm-footnote');
+            this.collectMatches(this.linkRegex, 'cm-link', true);
+            this.collectLinksMatches();
+            this.matches.sort((a, b) => a.from - b.from);
+        }
 
-        this.collectMatches(this.footnoteRegex, 'cm-footnote');
-        this.collectMatches(this.linkRegex, 'cm-link', true);
-        this.collectLinksMatches();
-
-        this.matches.sort((a, b) => a.from - b.from);
-
-        this.updateLinkStatuses();
+        this.updateLinkStatuses().then(changed => {
+            if (changed) {
+                this.linksUpdatedSubject.next();
+            }
+        });
 
         return this.buildText();
     }
@@ -119,7 +131,8 @@ export class WikiHighlighterService {
         }
     }
 
-    private async updateLinkStatuses(): Promise<void> {
+    private async updateLinkStatuses(): Promise<boolean> {
+        let changed = false;
         if (this.links.length) {
             await this.linksStateService.fetchLinkStatuses(this.links);
         }
@@ -130,15 +143,23 @@ export class WikiHighlighterService {
                 console.log('cm-link-pending', { linkText });
                 if (linkText) {
                     const status = this.linksStateService.getLinkStatus(linkText);
+                    let newClass: string | undefined;
                     console.log('getLinkStatus', { linkText, status });
                     if (status === true) {
-                        match.className = 'cm-link-exists';
+                        newClass = 'cm-link-exists';
                     } else if (status === false) {
-                        match.className = 'cm-link-missing';
+                        newClass = 'cm-link-missing';
+                    }
+
+                    if (newClass && newClass !== match.className) {
+                        match.className = newClass;
+                        changed = true;
                     }
                 }
             }
         }
+
+        return changed;
     }
 
     private extractLinkText(doc: string, match: Match): string {
