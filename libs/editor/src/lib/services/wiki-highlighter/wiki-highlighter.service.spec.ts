@@ -105,7 +105,7 @@ describe('WikiHighlighterService', () => {
     function getView(text: string) {
         const state = EditorState.create({
             doc: text,
-            extensions: [spectator.service.wikiHighlighter, spectator.service.wikiTheme],
+            extensions: [spectator.service.wikiHighlighter],
         });
         return new EditorView({ state });
     }
