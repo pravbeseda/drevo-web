@@ -96,10 +96,10 @@ describe('WikiHighlighterService', () => {
         const missingElement = view.dom.querySelector(missingSelector);
 
         expect(existsElement).not.toBeNull();
-        expect(existsElement?.textContent).toBe('((ссылка))');
+        expect(existsElement?.textContent).toBe('ссылка');
 
         expect(missingElement).not.toBeNull();
-        expect(missingElement?.textContent).toBe('((неизвестная))');
+        expect(missingElement?.textContent).toBe('неизвестная');
     });
 
     function getView(text: string) {
