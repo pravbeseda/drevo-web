@@ -30,7 +30,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
     imports: [CommonModule],
     providers: [WikiHighlighterService, LinksStateService],
     templateUrl: './editor.component.html',
-    styleUrl: './editor.component.scss',
+    styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
 })
 export class EditorComponent implements AfterViewInit {
     @ViewChild('editorContainer')
@@ -65,7 +65,6 @@ export class EditorComponent implements AfterViewInit {
                     closeBrackets(),
                     bracketMatching(),
                     this.wikiHighlighterService.wikiHighlighter,
-                    this.wikiHighlighterService.wikiTheme,
                 ],
             }),
             parent: this.editorContainer.nativeElement,

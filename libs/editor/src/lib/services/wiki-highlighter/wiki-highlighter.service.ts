@@ -25,28 +25,6 @@ export class WikiHighlighterService {
 
     constructor(private linksStateService: LinksStateService) {}
 
-    public wikiTheme = EditorView.theme({
-        '.cm-footnote': {
-            backgroundColor: '#f0f0f0',
-            color: '#888',
-        },
-        '.cm-link': {
-            backgroundColor: '#e0f7fa',
-            color: '#007acc',
-        },
-        '.cm-link-pending': {
-            backgroundColor: 'yellow',
-        },
-        '.cm-link-exists': {
-            backgroundColor: 'green',
-            color: '#fff',
-        },
-        '.cm-link-missing': {
-            backgroundColor: 'red',
-            color: '#fff',
-        },
-    });
-
     public wikiHighlighter = StateField.define<DecorationSet>({
         create: state => this.createDecorations(state.doc.toString()),
         update: (decorations, transaction) => {
