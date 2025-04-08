@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
+import { article1 } from '../../../mocks/articles';
 
 @Component({
     selector: 'app-article-edit',
@@ -8,4 +9,6 @@ import { EditorComponent } from '@drevo-web/editor';
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent {}
+export class ArticleEditComponent {
+    public readonly text = article1;
+}
