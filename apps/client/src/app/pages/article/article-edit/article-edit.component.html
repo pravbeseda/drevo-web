@@ -1,1 +1,3 @@
-<lib-editor [text]="text"></lib-editor>
+@if (article$ | async; as article) {
+<lib-editor [article]="article"></lib-editor>
+}

@@ -4,9 +4,7 @@ import {
     ElementRef,
     Inject,
     Input,
-    OnChanges,
     PLATFORM_ID,
-    SimpleChanges,
     ViewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
@@ -25,6 +23,7 @@ import { WikiHighlighterService } from '../services/wiki-highlighter/wiki-highli
 import { LinksStateService } from '../services/links-state/links-state.service';
 import { linksUpdatedEffect } from '../constants/editor-effects';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Article } from '@drevo-web/shared';
 
 @UntilDestroy()
 @Component({
@@ -34,12 +33,12 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
 })
-export class EditorComponent implements AfterViewInit, OnChanges {
+export class EditorComponent implements AfterViewInit {
     @ViewChild('editorContainer')
     editorContainer?: ElementRef;
 
-    @Input()
-    text = '';
+    @Input({ required: true })
+    article!: Article;
 
     private editor?: EditorView;
 
@@ -59,7 +58,7 @@ export class EditorComponent implements AfterViewInit, OnChanges {
 
         this.editor = new EditorView({
             state: EditorState.create({
-                doc: this.text,
+                doc: this.article.content,
                 extensions: [
                     highlightSpecialChars(),
                     drawSelection(),
@@ -83,19 +82,5 @@ export class EditorComponent implements AfterViewInit, OnChanges {
 
         this.editor.contentDOM.setAttribute('spellcheck', 'true');
         this.editor.contentDOM.setAttribute('autocorrect', 'on');
-    }
-
-    ngOnChanges(changes: SimpleChanges): void {
-        if (this.editor && changes['text'] && !changes['text'].firstChange) {
-            const newText = changes['text'].currentValue;
-            const transaction = this.editor.state.update({
-                changes: {
-                    from: 0,
-                    to: this.editor.state.doc.length,
-                    insert: newText,
-                },
-            });
-            this.editor.dispatch(transaction);
-        }
     }
 }
