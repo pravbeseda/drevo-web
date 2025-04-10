@@ -1,18 +1,14 @@
 import { Injectable } from '@angular/core';
 import { ArticleApi } from '../../models/apis/article.api';
-import { Observable, of } from 'rxjs';
-import { article1 } from '../../mocks/articles';
+import { Observable } from 'rxjs';
 import { Article } from '@drevo-web/shared';
+import { IframeService } from '../iframe/iframe.service';
 
 @Injectable()
 export class ArticleService implements ArticleApi {
+    constructor(private readonly iframeService: IframeService) {}
+
     getVersion(id: number): Observable<Article> {
-        const article: Article = {
-            articleId: 1,
-            versionId: 1,
-            title: 'Article 1',
-            content: article1,
-        };
-        return of(article);
+        return this.iframeService.article$;
     }
 }

@@ -4,11 +4,12 @@ import { ArticleService } from '../../../services/article/article.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { Article } from '@drevo-web/shared';
+import { IframeService } from '../../../services/iframe/iframe.service';
 
 @Component({
     selector: 'app-article-edit',
     imports: [EditorComponent, AsyncPipe],
-    providers: [ArticleService],
+    providers: [ArticleService, IframeService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

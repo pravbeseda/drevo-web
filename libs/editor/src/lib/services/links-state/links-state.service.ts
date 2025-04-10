@@ -31,8 +31,6 @@ export class LinksStateService {
         for (let i = 0; i < uncachedLinks.length; i++) {
             this.linkStatusCache[uncachedLinks[i]] = i % 2 === 0;
         }
-
-        console.log('fetchLinkStatuses!!!', { links, linkStatusCache: this.linkStatusCache });
     }
 
     getLinkStatus(link: string): boolean | 'pending' | undefined {
