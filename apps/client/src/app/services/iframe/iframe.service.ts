@@ -3,6 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { Observable, ReplaySubject } from 'rxjs';
 import { Article } from '@drevo-web/shared';
 
+const allowedOrigins = ['http://drevo-local.ru', 'https://drevo-info.ru'];
+
 @Injectable()
 export class IframeService implements OnDestroy {
     private readonly messageHandler = (event: MessageEvent): void => this.onMessage(event);
@@ -25,6 +27,9 @@ export class IframeService implements OnDestroy {
     }
 
     private onMessage(event: MessageEvent): void {
+        if (!allowedOrigins.includes(event.origin)) {
+            return;
+        }
         if (!event.data || typeof event.data.article === 'undefined') {
             return;
         }

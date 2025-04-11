@@ -2,7 +2,9 @@
     "name": "@drevo-web/source",
     "version": "0.0.0",
     "license": "MIT",
-    "scripts": {},
+    "scripts": {
+      "test": "nx run-many --target=test --all --parallel"
+    },
     "private": true,
     "dependencies": {
         "@angular/animations": "~19.2.0",

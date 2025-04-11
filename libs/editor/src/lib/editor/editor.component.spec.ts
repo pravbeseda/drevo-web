@@ -1,21 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { EditorComponent } from './editor.component';
+import { Article } from '@drevo-web/shared';
+
+const mockArticle: Article = {} as Article;
 
 describe('EditorComponent', () => {
-    let component: EditorComponent;
-    let fixture: ComponentFixture<EditorComponent>;
+    let spectator: Spectator<EditorComponent>;
+    const createComponent = createComponentFactory(EditorComponent);
 
-    beforeEach(async () => {
-        await TestBed.configureTestingModule({
-            imports: [EditorComponent],
-        }).compileComponents();
-
-        fixture = TestBed.createComponent(EditorComponent);
-        component = fixture.componentInstance;
-        fixture.detectChanges();
+    beforeEach(() => {
+        spectator = createComponent({ props: { article: mockArticle } });
     });
 
     it('should create', () => {
-        expect(component).toBeTruthy();
+        expect(spectator.component).toBeTruthy();
     });
 });
