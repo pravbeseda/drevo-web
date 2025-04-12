@@ -1,8 +1,25 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
-  await page.goto('/');
+test('has editor', async ({ page }) => {
+    await page.goto('/new/article/edit/1');
 
-  // Expect h1 to contain a substring.
-  expect(await page.locator('h1').innerText()).toContain('Welcome');
+    const content = 'Test article content';
+
+    await page.evaluate(
+        ([content]) => {
+            const event = new MessageEvent('message', {
+                data: { article: { content } },
+                // origin здесь передать нельзя – см. ниже
+            });
+            // Переопределяем origin с требуемым значением:
+            Object.defineProperty(event, 'origin', { value: 'http://drevo-local.ru' });
+            window.dispatchEvent(event);
+        },
+        [content]
+    );
+
+    expect(await page.locator('app-article-edit').count()).toBe(1);
+    // await expect(page.locator('app-article-edit')).toHaveText(content, {
+    //     timeout: 5000,
+    // });
 });

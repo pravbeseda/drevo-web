@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Observable, ReplaySubject } from 'rxjs';
 import { Article } from '@drevo-web/shared';
 
-const allowedOrigins = ['http://drevo-local.ru', 'https://drevo-info.ru'];
+const allowedOrigins = ['http://drevo-local.ru', 'https://drevo-info.ru', 'http://localhost'];
 
 @Injectable()
 export class IframeService implements OnDestroy {
