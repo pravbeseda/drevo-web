@@ -32,7 +32,10 @@ describe('IframeService - Browser Platform', () => {
     });
 
     it('should add message event listener on creation', () => {
-        expect(window.addEventListener).toHaveBeenCalledWith('message', expect.any(Function));
+        expect(window.addEventListener).toHaveBeenCalledWith(
+            'message',
+            expect.any(Function)
+        );
     });
 
     it('should emit article when receiving valid message', done => {
@@ -45,7 +48,7 @@ describe('IframeService - Browser Platform', () => {
 
         window.dispatchEvent(
             new MessageEvent('message', {
-                data: { article: testArticle },
+                data: { action: 'loadArticle', article: testArticle },
                 origin: allowedOrigin,
             })
         );
@@ -90,7 +93,10 @@ describe('IframeService - Browser Platform', () => {
     it('should remove event listener on destroy', () => {
         spectator.service.ngOnDestroy();
         // При уничтожении сервиса должен удаляться обработчик события "message"
-        expect(window.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
+        expect(window.removeEventListener).toHaveBeenCalledWith(
+            'message',
+            expect.any(Function)
+        );
     });
 });
 
