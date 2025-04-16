@@ -9,6 +9,6 @@ export class ArticleService implements ArticleApi {
     constructor(private readonly iframeService: IframeService) {}
 
     getVersion(id: number): Observable<Article> {
-        return this.iframeService.article$;
+        return this.iframeService.article$.pipe();
     }
 }

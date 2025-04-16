@@ -2,8 +2,11 @@ import {
     AfterViewInit,
     Component,
     ElementRef,
+    EventEmitter,
     Inject,
     Input,
+    OnInit,
+    Output,
     PLATFORM_ID,
     ViewChild,
 } from '@angular/core';
@@ -20,25 +23,44 @@ import {
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { WikiHighlighterService } from '../services/wiki-highlighter/wiki-highlighter.service';
-import { LinksStateService } from '../services/links-state/links-state.service';
 import { linksUpdatedEffect } from '../constants/editor-effects';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Article } from '@drevo-web/shared';
+import { BehaviorSubject, filter } from 'rxjs';
 
 @UntilDestroy()
 @Component({
     selector: 'lib-editor',
     imports: [CommonModule],
-    providers: [WikiHighlighterService, LinksStateService],
+    providers: [WikiHighlighterService],
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
 })
-export class EditorComponent implements AfterViewInit {
+export class EditorComponent implements OnInit, AfterViewInit {
+    private linksSubject = new BehaviorSubject<Record<string, boolean>>({});
+
     @ViewChild('editorContainer')
     editorContainer?: ElementRef;
 
     @Input({ required: true })
     article!: Article;
+
+    @Output()
+    readonly updateLinksEvent = new EventEmitter<string[]>();
+
+    @Input()
+    set linksStatus(links: Record<string, boolean>) {
+        this.linksSubject.next(links);
+
+        this.wikiHighlighterService.updateLinksState(links).then(changed => {
+            if (changed && this.editor) {
+                this.editor.dispatch({ effects: linksUpdatedEffect.of(undefined) });
+            }
+        });
+    }
+    get linksStatus(): Record<string, boolean> {
+        return this.linksSubject.getValue();
+    }
 
     private editor?: EditorView;
 
@@ -46,6 +68,17 @@ export class EditorComponent implements AfterViewInit {
         @Inject(PLATFORM_ID) private readonly platformId: object,
         private readonly wikiHighlighterService: WikiHighlighterService
     ) {}
+
+    ngOnInit() {
+        this.wikiHighlighterService.updateLinks$
+            .pipe(
+                filter(links => links.length > 0),
+                untilDestroyed(this)
+            )
+            .subscribe(links => {
+                this.updateLinksEvent.emit(links);
+            });
+    }
 
     ngAfterViewInit(): void {
         if (isPlatformServer(this.platformId)) {
@@ -74,10 +107,6 @@ export class EditorComponent implements AfterViewInit {
                 ],
             }),
             parent: this.editorContainer.nativeElement,
-        });
-
-        this.wikiHighlighterService.linksUpdated$.pipe(untilDestroyed(this)).subscribe(() => {
-            this.editor?.dispatch({ effects: linksUpdatedEffect.of(undefined) });
         });
 
         this.editor.contentDOM.setAttribute('spellcheck', 'true');

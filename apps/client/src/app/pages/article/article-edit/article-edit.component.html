@@ -1,3 +1,6 @@
 @if (article$ | async; as article) {
-    <lib-editor [article]="article"></lib-editor>
+    <lib-editor
+        [article]="article"
+        [linksStatus]="(updateLinksState$ | async) ?? {}"
+        (updateLinksEvent)="updateLinks($event)"></lib-editor>
 }

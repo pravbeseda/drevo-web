@@ -1,9 +1,9 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator';
-import { LinksStateService } from './links-state.service';
+import { LinksService } from './links.service';
 
 describe('LinksStateService', () => {
-    let spectator: SpectatorService<LinksStateService>;
-    const createService = createServiceFactory(LinksStateService);
+    let spectator: SpectatorService<LinksService>;
+    const createService = createServiceFactory(LinksService);
 
     beforeEach(() => (spectator = createService()));
 

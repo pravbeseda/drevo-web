@@ -9,9 +9,7 @@ test('has editor', async ({ page }) => {
         ([content]) => {
             const event = new MessageEvent('message', {
                 data: { article: { content } },
-                // origin здесь передать нельзя – см. ниже
             });
-            // Переопределяем origin с требуемым значением:
             Object.defineProperty(event, 'origin', { value: 'http://drevo-local.ru' });
             window.dispatchEvent(event);
         },

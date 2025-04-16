@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
 import { RangeSetBuilder, StateField } from '@codemirror/state';
-import { LinksStateService } from '../links-state/links-state.service';
-import { Subject } from 'rxjs';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
+import { Subject } from 'rxjs';
 
 interface Match {
     from: number;
@@ -17,13 +16,12 @@ export class WikiHighlighterService {
     private linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
 
     private text = '';
-    private matches: Match[] = [];
-    private links: string[] = [];
+    private readonly matches: Match[] = [];
+    private linksState: Record<string, boolean> = {};
+    private readonly pendingLinks: string[] = [];
+    private readonly updateLinksSubject = new Subject<string[]>();
 
-    private readonly linksUpdatedSubject = new Subject<void>();
-    readonly linksUpdated$ = this.linksUpdatedSubject.asObservable();
-
-    constructor(private linksStateService: LinksStateService) {}
+    public readonly updateLinks$ = this.updateLinksSubject.asObservable();
 
     public wikiHighlighter = StateField.define<DecorationSet>({
         create: state => this.createDecorations(state.doc.toString()),
@@ -39,10 +37,58 @@ export class WikiHighlighterService {
         provide: f => EditorView.decorations.from(f),
     });
 
+    public async updateLinksState(updateLinksState: Record<string, boolean>): Promise<boolean> {
+        let changed = false;
+        this.linksState = { ...this.linksState, ...updateLinksState };
+        if (this.text.length === 0) {
+            return Promise.resolve(true);
+        }
+        for (const match of this.matches) {
+            if (
+                match.className === 'cm-link-pending' ||
+                match.className === 'cm-link-exists' ||
+                match.className === 'cm-link-missing'
+            ) {
+                const linkText = this.extractLinkText(this.text, match);
+                if (linkText) {
+                    const status: boolean | undefined =
+                        this.linksState[linkText.trim().toUpperCase()];
+                    let newClass: string | undefined;
+                    if (status === true) {
+                        newClass = 'cm-link-exists';
+                    } else if (status === false) {
+                        newClass = 'cm-link-missing';
+                    } else {
+                        newClass = 'cm-link-pending';
+                        this.pendingLinks.push(linkText);
+                    }
+                    if (newClass && newClass !== match.className) {
+                        match.className = newClass;
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        this.requestLinksStatus(this.pendingLinks);
+
+        return changed;
+    }
+
+    private requestLinksStatus(links: string[]): void {
+        if (!links.length) {
+            return;
+        }
+
+        this.updateLinksSubject.next(
+            Array.from(new Set(links.map(link => link.trim().toUpperCase())))
+        );
+    }
+
     private reset(text: string): void {
         this.text = text;
-        this.matches = [];
-        this.links = [];
+        this.matches.length = 0;
+        this.pendingLinks.length = 0;
     }
 
     private createDecorations(text: string): DecorationSet {
@@ -53,13 +99,8 @@ export class WikiHighlighterService {
             this.collectMatches(this.linkRegex, 'cm-link', true);
             this.collectLinksMatches();
             this.matches.sort((a, b) => a.from - b.from);
+            this.updateLinksState(this.linksState);
         }
-
-        this.updateLinkStatuses().then(changed => {
-            if (changed) {
-                this.linksUpdatedSubject.next();
-            }
-        });
 
         return this.buildText();
     }
@@ -103,41 +144,7 @@ export class WikiHighlighterService {
                 to: start + matchedText.length,
                 className: 'cm-link-pending',
             });
-            if (this.linksStateService.getLinkStatus(matchedText) === undefined) {
-                this.links.push(matchedText);
-            }
         }
-    }
-
-    private async updateLinkStatuses(): Promise<boolean> {
-        let changed = false;
-        if (this.links.length) {
-            await this.linksStateService.fetchLinkStatuses(this.links);
-        }
-
-        for (const match of this.matches) {
-            if (match.className === 'cm-link-pending') {
-                const linkText = this.extractLinkText(this.text, match);
-                console.log('cm-link-pending', { linkText });
-                if (linkText) {
-                    const status = this.linksStateService.getLinkStatus(linkText);
-                    let newClass: string | undefined;
-                    console.log('getLinkStatus', { linkText, status });
-                    if (status === true) {
-                        newClass = 'cm-link-exists';
-                    } else if (status === false) {
-                        newClass = 'cm-link-missing';
-                    }
-
-                    if (newClass && newClass !== match.className) {
-                        match.className = newClass;
-                        changed = true;
-                    }
-                }
-            }
-        }
-
-        return changed;
     }
 
     private extractLinkText(doc: string, match: Match): string {
