@@ -5,7 +5,14 @@ import {
 } from '@angular/core';
 import { provideRouter, RouterModule } from '@angular/router';
 import { appRoutes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import {
+    provideClientHydration,
+    withEventReplay,
+} from '@angular/platform-browser';
+import {
+    provideHttpClient,
+    withInterceptorsFromDi,
+} from '@angular/common/http';
 
 const routesTracing = false;
 
@@ -14,6 +21,9 @@ export const appConfig: ApplicationConfig = {
         provideClientHydration(withEventReplay()),
         provideExperimentalZonelessChangeDetection(),
         provideRouter(appRoutes),
-        importProvidersFrom(RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })),
+        provideHttpClient(withInterceptorsFromDi()),
+        importProvidersFrom(
+            RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
+        ),
     ],
 };

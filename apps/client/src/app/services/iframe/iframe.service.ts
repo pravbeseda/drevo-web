@@ -1,20 +1,31 @@
 import { Inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { Article } from '@drevo-web/shared';
 
-const allowedOrigins = ['http://drevo-local.ru', 'https://drevo-info.ru', 'http://localhost'];
+const allowedOrigins = [
+    'http://drevo-local.ru',
+    'https://drevo-info.ru',
+    'http://localhost',
+];
 
 @Injectable()
 export class IframeService implements OnDestroy {
-    private readonly messageHandler = (event: MessageEvent): void => this.onMessage(event);
+    private readonly messageHandler = (event: MessageEvent): void =>
+        this.onMessage(event);
     private isBrowser = false;
     private readonly articleSubject = new ReplaySubject<Article>(1);
     private readonly linksStateSubject = new Subject<Record<string, boolean>>();
+    private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(
+        undefined
+    );
 
-    public readonly article$: Observable<Article> = this.articleSubject.asObservable();
+    public readonly article$: Observable<Article> =
+        this.articleSubject.asObservable();
     public readonly linksState$: Observable<Record<string, boolean>> =
         this.linksStateSubject.asObservable();
+    public readonly csrfToken$: Observable<string | undefined> =
+        this.csrfTokenSubject.asObservable();
 
     constructor(@Inject(PLATFORM_ID) private platformId: object) {
         this.isBrowser = isPlatformBrowser(this.platformId);
@@ -46,6 +57,7 @@ export class IframeService implements OnDestroy {
         switch (event.data.action) {
             case 'loadArticle':
                 this.articleSubject.next(event.data.article);
+                this.csrfTokenSubject.next(event.data.csrf);
                 break;
             case 'updateLinks':
                 this.linksStateSubject.next(event.data.links);
