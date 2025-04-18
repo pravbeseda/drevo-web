@@ -3,4 +3,6 @@
         [article]="article"
         [linksStatus]="(updateLinksState$ | async) ?? {}"
         (updateLinksEvent)="updateLinks($event)"></lib-editor>
+} @else {
+    Загрузка...
 }

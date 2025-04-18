@@ -8,7 +8,7 @@ import { IframeService } from '../iframe/iframe.service';
 export class ArticleService implements ArticleApi {
     constructor(private readonly iframeService: IframeService) {}
 
-    getVersion(id: number): Observable<Article> {
-        return this.iframeService.article$.pipe();
+    getArticle(): Observable<Article> {
+        return this.iframeService.article$;
     }
 }

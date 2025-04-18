@@ -1,4 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+    AfterViewInit,
+    ChangeDetectionStrategy,
+    Component,
+} from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleService } from '../../../services/article/article.service';
 import { BehaviorSubject, first, Observable } from 'rxjs';
@@ -16,7 +20,7 @@ import { HttpClient } from '@angular/common/http';
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent {
+export class ArticleEditComponent implements AfterViewInit {
     private readonly updateLinksStateSubject = new BehaviorSubject<
         Record<string, boolean>
     >({});
@@ -26,9 +30,14 @@ export class ArticleEditComponent {
 
     constructor(
         private readonly articleService: ArticleService,
-        private readonly linkService: LinksService
+        private readonly linkService: LinksService,
+        private readonly iframeService: IframeService
     ) {
-        this.article$ = this.articleService.getVersion(1);
+        this.article$ = this.articleService.getArticle();
+    }
+
+    ngAfterViewInit(): void {
+        this.iframeService.sendMessage({ action: 'editorReady' });
     }
 
     updateLinks(links: string[]): void {

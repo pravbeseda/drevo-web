@@ -15,15 +15,12 @@ export class IframeService implements OnDestroy {
         this.onMessage(event);
     private isBrowser = false;
     private readonly articleSubject = new ReplaySubject<Article>(1);
-    private readonly linksStateSubject = new Subject<Record<string, boolean>>();
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(
         undefined
     );
 
     public readonly article$: Observable<Article> =
         this.articleSubject.asObservable();
-    public readonly linksState$: Observable<Record<string, boolean>> =
-        this.linksStateSubject.asObservable();
     public readonly csrfToken$: Observable<string | undefined> =
         this.csrfTokenSubject.asObservable();
 
@@ -42,11 +39,13 @@ export class IframeService implements OnDestroy {
 
     sendMessage(message: unknown): void {
         if (this.isBrowser) {
+            console.log('send message!!!', message);
             window.parent.postMessage(message);
         }
     }
 
     private onMessage(event: MessageEvent): void {
+        console.log('message!!!', event.data);
         if (!allowedOrigins.includes(event.origin)) {
             return;
         }
@@ -56,11 +55,9 @@ export class IframeService implements OnDestroy {
 
         switch (event.data.action) {
             case 'loadArticle':
+                console.log('loadArticle!!!', event.data.article);
                 this.articleSubject.next(event.data.article);
                 this.csrfTokenSubject.next(event.data.csrf);
-                break;
-            case 'updateLinks':
-                this.linksStateSubject.next(event.data.links);
                 break;
             default:
                 break;
