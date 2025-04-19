@@ -13,7 +13,13 @@ import {
 import { CommonModule, isPlatformServer } from '@angular/common';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from 'codemirror';
-import { drawSelection, dropCursor, highlightSpecialChars, keymap } from '@codemirror/view';
+import {
+    drawSelection,
+    dropCursor,
+    highlightSpecialChars,
+    keymap,
+    ViewUpdate,
+} from '@codemirror/view';
 import {
     defaultHighlightStyle,
     indentOnInput,
@@ -48,13 +54,18 @@ export class EditorComponent implements OnInit, AfterViewInit {
     @Output()
     readonly updateLinksEvent = new EventEmitter<string[]>();
 
+    @Output()
+    readonly contentChanged = new EventEmitter<string>();
+
     @Input()
     set linksStatus(links: Record<string, boolean>) {
         this.linksSubject.next(links);
 
         this.wikiHighlighterService.updateLinksState(links).then(changed => {
             if (changed && this.editor) {
-                this.editor.dispatch({ effects: linksUpdatedEffect.of(undefined) });
+                this.editor.dispatch({
+                    effects: linksUpdatedEffect.of(undefined),
+                });
             }
         });
     }
@@ -104,6 +115,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
                     closeBrackets(),
                     bracketMatching(),
                     this.wikiHighlighterService.wikiHighlighter,
+                    EditorView.updateListener.of((v: ViewUpdate) => {
+                        if (v.docChanged) {
+                            this.contentChanged.emit(v.state.doc.toString());
+                        }
+                    }),
                 ],
             }),
             parent: this.editorContainer.nativeElement,

@@ -24,6 +24,7 @@ export class ArticleEditComponent implements AfterViewInit {
     private readonly updateLinksStateSubject = new BehaviorSubject<
         Record<string, boolean>
     >({});
+    private content = '';
 
     readonly article$: Observable<Article>;
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
@@ -47,5 +48,16 @@ export class ArticleEditComponent implements AfterViewInit {
             .subscribe(linksState => {
                 this.updateLinksStateSubject.next(linksState);
             });
+    }
+
+    contentChanged(content: string) {
+        this.content = content;
+    }
+
+    saveArticle() {
+        this.iframeService.sendMessage({
+            action: 'saveArticle',
+            content: this.content,
+        });
     }
 }

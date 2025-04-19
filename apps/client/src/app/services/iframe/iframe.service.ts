@@ -39,13 +39,11 @@ export class IframeService implements OnDestroy {
 
     sendMessage(message: unknown): void {
         if (this.isBrowser) {
-            console.log('send message!!!', message);
             window.parent.postMessage(message);
         }
     }
 
     private onMessage(event: MessageEvent): void {
-        console.log('message!!!', event.data);
         if (!allowedOrigins.includes(event.origin)) {
             return;
         }
@@ -55,7 +53,6 @@ export class IframeService implements OnDestroy {
 
         switch (event.data.action) {
             case 'loadArticle':
-                console.log('loadArticle!!!', event.data.article);
                 this.articleSubject.next(event.data.article);
                 this.csrfTokenSubject.next(event.data.csrf);
                 break;
