@@ -4,12 +4,22 @@ import {
     Component,
 } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
-import { BehaviorSubject, first, Observable } from 'rxjs';
+import {
+    BehaviorSubject,
+    first,
+    Observable,
+    Subject,
+    throttleTime,
+} from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
+const throttleTimeContentUpdateInMs = 300;
+
+@UntilDestroy()
 @Component({
     selector: 'app-shared-editor',
     imports: [EditorComponent, AsyncPipe],
@@ -22,7 +32,7 @@ export class SharedEditorComponent implements AfterViewInit {
     private readonly updateLinksStateSubject = new BehaviorSubject<
         Record<string, boolean>
     >({});
-    // private content = '';
+    private readonly contentUpdateSubject = new Subject<string>();
 
     readonly content$: Observable<string>;
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
@@ -36,6 +46,18 @@ export class SharedEditorComponent implements AfterViewInit {
 
     ngAfterViewInit(): void {
         this.iframeService.sendMessage({ action: 'editorReady' });
+
+        this.contentUpdateSubject
+            .pipe(
+                untilDestroyed(this),
+                throttleTime(throttleTimeContentUpdateInMs)
+            )
+            .subscribe(content => {
+                this.iframeService.sendMessage({
+                    action: 'contentChanged',
+                    content,
+                });
+            });
     }
 
     updateLinks(links: string[]): void {
@@ -48,6 +70,6 @@ export class SharedEditorComponent implements AfterViewInit {
     }
 
     contentChanged(content: string) {
-        // this.content = content;
+        this.contentUpdateSubject.next(content);
     }
 }
