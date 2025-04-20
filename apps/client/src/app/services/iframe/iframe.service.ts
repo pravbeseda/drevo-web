@@ -1,7 +1,6 @@
 import { Inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import { Article } from '@drevo-web/shared';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 
 const allowedOrigins = [
     'http://drevo-local.ru',
@@ -14,13 +13,13 @@ export class IframeService implements OnDestroy {
     private readonly messageHandler = (event: MessageEvent): void =>
         this.onMessage(event);
     private isBrowser = false;
-    private readonly articleSubject = new ReplaySubject<Article>(1);
+    private readonly contentSubject = new ReplaySubject<string>(1);
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(
         undefined
     );
 
-    public readonly article$: Observable<Article> =
-        this.articleSubject.asObservable();
+    public readonly content$: Observable<string> =
+        this.contentSubject.asObservable();
     public readonly csrfToken$: Observable<string | undefined> =
         this.csrfTokenSubject.asObservable();
 
@@ -52,8 +51,8 @@ export class IframeService implements OnDestroy {
         }
 
         switch (event.data.action) {
-            case 'loadArticle':
-                this.articleSubject.next(event.data.article);
+            case 'loadContent':
+                this.contentSubject.next(event.data.content);
                 this.csrfTokenSubject.next(event.data.csrf);
                 break;
             default:

@@ -1,30 +1,36 @@
 :host ::ng-deep {
-  .cm-footnote {
-    background-color: #f0f0f0;
-    color: #888;
-  }
+    .cm-editor {
+        height: auto;
+        border: 1px solid #ddd;
+        font-family: monospace;
+        background-color: white;
+    }
 
-  .cm-link {
-    background-color: #e0f7fa;
-    color: #007acc;
-  }
+    .cm-footnote {
+        background-color: #f0f0f0;
+        color: #888;
+    }
 
-  .cm-content ::selection {
-    background-color: rgba(0, 0, 0, 0.1) !important;
-  }
+    .cm-link {
+        background-color: #e0f7fa;
+        color: #007acc;
+    }
 
-  .cm-link-pending {
-    background-color: yellow;
-  }
+    .cm-content ::selection {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
 
-  .cm-link-exists {
-    background-color: green;
-    color: #fff;
-  }
+    .cm-link-pending {
+        background-color: yellow;
+    }
 
-  .cm-link-missing {
-    background-color: red;
-    color: #fff;
-  }
+    .cm-link-exists {
+        background-color: green;
+        color: #fff;
+    }
 
+    .cm-link-missing {
+        background-color: red;
+        color: #fff;
+    }
 }

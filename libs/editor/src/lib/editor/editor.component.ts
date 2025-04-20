@@ -31,7 +31,6 @@ import { closeBrackets } from '@codemirror/autocomplete';
 import { WikiHighlighterService } from '../services/wiki-highlighter/wiki-highlighter.service';
 import { linksUpdatedEffect } from '../constants/editor-effects';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { Article } from '@drevo-web/shared';
 import { BehaviorSubject, filter } from 'rxjs';
 
 @UntilDestroy()
@@ -49,7 +48,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     editorContainer?: ElementRef;
 
     @Input({ required: true })
-    article!: Article;
+    content!: string;
 
     @Output()
     readonly updateLinksEvent = new EventEmitter<string[]>();
@@ -102,7 +101,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         this.editor = new EditorView({
             state: EditorState.create({
-                doc: this.article.content,
+                doc: this.content,
                 extensions: [
                     highlightSpecialChars(),
                     drawSelection(),

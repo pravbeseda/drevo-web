@@ -2,10 +2,10 @@ import { Route } from '@angular/router';
 
 export const appRoutes: Route[] = [
     {
-        path: 'article/edit/:id',
+        path: 'editor',
         loadComponent: () =>
-            import('./pages/article/article-edit/article-edit.component').then(
-                m => m.ArticleEditComponent
+            import('./pages/shared-editor/shared-editor.component').then(
+                m => m.SharedEditorComponent
             ),
     },
     // {

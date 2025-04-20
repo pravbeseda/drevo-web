@@ -1,14 +1,11 @@
-@if (article$ | async; as article) {
+@if (content$ | async; as content) {
     <div class="container">
         <div class="content">
             <lib-editor
-                [article]="article"
+                [content]="content"
                 [linksStatus]="(updateLinksState$ | async) ?? {}"
                 (updateLinksEvent)="updateLinks($event)"
                 (contentChanged)="contentChanged($event)"></lib-editor>
-        </div>
-        <div class="buttons">
-            <button (click)="saveArticle()">Сохранить</button>
         </div>
     </div>
 } @else {

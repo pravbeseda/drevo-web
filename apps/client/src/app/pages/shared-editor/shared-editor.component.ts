@@ -4,37 +4,34 @@ import {
     Component,
 } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
-import { ArticleService } from '../../../services/article/article.service';
 import { BehaviorSubject, first, Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { Article } from '@drevo-web/shared';
-import { IframeService } from '../../../services/iframe/iframe.service';
-import { LinksService } from '../../../services/links/links.service';
+import { IframeService } from '../../services/iframe/iframe.service';
+import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-    selector: 'app-article-edit',
+    selector: 'app-shared-editor',
     imports: [EditorComponent, AsyncPipe],
-    providers: [HttpClient, ArticleService, IframeService, LinksService],
-    templateUrl: './article-edit.component.html',
-    styleUrl: './article-edit.component.scss',
+    providers: [HttpClient, IframeService, LinksService],
+    templateUrl: './shared-editor.component.html',
+    styleUrl: './shared-editor.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent implements AfterViewInit {
+export class SharedEditorComponent implements AfterViewInit {
     private readonly updateLinksStateSubject = new BehaviorSubject<
         Record<string, boolean>
     >({});
-    private content = '';
+    // private content = '';
 
-    readonly article$: Observable<Article>;
+    readonly content$: Observable<string>;
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
     constructor(
-        private readonly articleService: ArticleService,
         private readonly linkService: LinksService,
         private readonly iframeService: IframeService
     ) {
-        this.article$ = this.articleService.getArticle();
+        this.content$ = this.iframeService.content$;
     }
 
     ngAfterViewInit(): void {
@@ -51,13 +48,6 @@ export class ArticleEditComponent implements AfterViewInit {
     }
 
     contentChanged(content: string) {
-        this.content = content;
-    }
-
-    saveArticle() {
-        this.iframeService.sendMessage({
-            action: 'saveArticle',
-            content: this.content,
-        });
+        // this.content = content;
     }
 }

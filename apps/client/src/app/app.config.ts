@@ -11,6 +11,7 @@ import {
 } from '@angular/platform-browser';
 import {
     provideHttpClient,
+    withFetch,
     withInterceptorsFromDi,
 } from '@angular/common/http';
 
@@ -21,7 +22,7 @@ export const appConfig: ApplicationConfig = {
         provideClientHydration(withEventReplay()),
         provideExperimentalZonelessChangeDetection(),
         provideRouter(appRoutes),
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withFetch(), withInterceptorsFromDi()),
         importProvidersFrom(
             RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
         ),
