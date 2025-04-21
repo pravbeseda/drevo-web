@@ -4,6 +4,7 @@
             <lib-editor
                 [content]="content"
                 [linksStatus]="(updateLinksState$ | async) ?? {}"
+                [insertTagCommand]="insertTagCommand$ | async"
                 (updateLinksEvent)="updateLinks($event)"
                 (contentChanged)="contentChanged($event)"></lib-editor>
         </div>

@@ -32,6 +32,7 @@ import { WikiHighlighterService } from '../services/wiki-highlighter/wiki-highli
 import { linksUpdatedEffect } from '../constants/editor-effects';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject, filter } from 'rxjs';
+import { InsertTagCommand } from '@drevo-web/shared';
 
 @UntilDestroy()
 @Component({
@@ -49,6 +50,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     @Input({ required: true })
     content!: string;
+
+    @Input()
+    set insertTagCommand(command: InsertTagCommand | null) {
+        if (!command) {
+            return;
+        }
+        this.insertTag(command);
+    }
 
     @Output()
     readonly updateLinksEvent = new EventEmitter<string[]>();
@@ -126,5 +135,30 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         this.editor.contentDOM.setAttribute('spellcheck', 'true');
         this.editor.contentDOM.setAttribute('autocorrect', 'on');
+    }
+
+    private insertTag(command: InsertTagCommand): void {
+        if (!this.editor) {
+            return;
+        }
+
+        const view = this.editor;
+        const { state } = view;
+        const { from, to } = state.selection.main;
+
+        const selectedText =
+            from === to ? command.sampleText : state.doc.sliceString(from, to);
+
+        const taggedText = `${command.tagOpen}${selectedText}${command.tagClose}`;
+
+        view.dispatch({
+            changes: { from, to, insert: taggedText },
+            selection: {
+                anchor: from + command.tagOpen.length,
+                head: from + command.tagOpen.length + selectedText.length,
+            },
+        });
+
+        view.focus();
     }
 }

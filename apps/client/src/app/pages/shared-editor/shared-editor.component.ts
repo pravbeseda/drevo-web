@@ -16,6 +16,7 @@ import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { InsertTagCommand } from '@drevo-web/shared';
 
 const throttleTimeContentUpdateInMs = 300;
 
@@ -35,6 +36,7 @@ export class SharedEditorComponent implements AfterViewInit {
     private readonly contentUpdateSubject = new Subject<string>();
 
     readonly content$: Observable<string>;
+    readonly insertTagCommand$: Observable<InsertTagCommand>;
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
     constructor(
@@ -42,6 +44,7 @@ export class SharedEditorComponent implements AfterViewInit {
         private readonly iframeService: IframeService
     ) {
         this.content$ = this.iframeService.content$;
+        this.insertTagCommand$ = this.iframeService.insertTag$;
     }
 
     ngAfterViewInit(): void {

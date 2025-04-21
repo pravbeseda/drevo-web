@@ -1,6 +1,7 @@
 import { Inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
+import { InsertTagCommand } from '@drevo-web/shared';
 
 const allowedOrigins = [
     'http://drevo-local.ru',
@@ -17,11 +18,13 @@ export class IframeService implements OnDestroy {
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(
         undefined
     );
+    private readonly insertTagSubject = new Subject<InsertTagCommand>();
 
     public readonly content$: Observable<string> =
         this.contentSubject.asObservable();
     public readonly csrfToken$: Observable<string | undefined> =
         this.csrfTokenSubject.asObservable();
+    public readonly insertTag$ = this.insertTagSubject.asObservable();
 
     constructor(@Inject(PLATFORM_ID) private platformId: object) {
         this.isBrowser = isPlatformBrowser(this.platformId);
@@ -54,6 +57,9 @@ export class IframeService implements OnDestroy {
             case 'loadContent':
                 this.contentSubject.next(event.data.content);
                 this.csrfTokenSubject.next(event.data.csrf);
+                break;
+            case 'insertTag':
+                this.insertTagSubject.next(event.data.content);
                 break;
             default:
                 break;
