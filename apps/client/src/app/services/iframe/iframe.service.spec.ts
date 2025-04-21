@@ -1,7 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { IframeService } from './iframe.service';
-import { Article } from '@drevo-web/shared';
 
 const allowedOrigin = 'http://drevo-local.ru';
 
@@ -39,16 +38,16 @@ describe('IframeService - Browser Platform', () => {
     });
 
     it('should emit article when receiving valid message', done => {
-        const testArticle: Article = { content: 'Test content' } as Article;
+        const testContent = 'Test content';
 
-        spectator.service.article$.subscribe(article => {
-            expect(article).toEqual(testArticle);
+        spectator.service.content$.subscribe(content => {
+            expect(content).toEqual(testContent);
             done();
         });
 
         window.dispatchEvent(
             new MessageEvent('message', {
-                data: { action: 'loadArticle', article: testArticle },
+                data: { action: 'loadContent', content: testContent },
                 origin: allowedOrigin,
             })
         );
@@ -56,7 +55,7 @@ describe('IframeService - Browser Platform', () => {
 
     it('should not emit article if origin is not allowed', done => {
         const spy = jest.fn();
-        spectator.service.article$.subscribe(spy);
+        spectator.service.content$.subscribe(spy);
 
         window.dispatchEvent(
             new MessageEvent('message', {
@@ -74,7 +73,7 @@ describe('IframeService - Browser Platform', () => {
 
     it('should not emit article if event data is invalid', done => {
         const spy = jest.fn();
-        spectator.service.article$.subscribe(spy);
+        spectator.service.content$.subscribe(spy);
 
         // Отправляем событие без свойства article в data
         window.dispatchEvent(

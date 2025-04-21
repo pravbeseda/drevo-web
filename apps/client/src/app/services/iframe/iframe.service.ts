@@ -41,7 +41,7 @@ export class IframeService implements OnDestroy {
 
     sendMessage(message: unknown): void {
         if (this.isBrowser) {
-            window.parent.postMessage(message);
+            window.parent.postMessage(message, '*');
         }
     }
 
