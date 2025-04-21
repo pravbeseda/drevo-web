@@ -1,19 +1,26 @@
+@use 'colors';
+
 :host ::ng-deep {
     .cm-editor {
         height: auto;
         border: 1px solid #ddd;
-        font-family: monospace;
         background-color: white;
     }
 
+    //.cm-editor .cm-content {
+    //    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    //    font-size: 14px;
+    //}
+
     .cm-footnote {
-        background-color: #f0f0f0;
-        color: #888;
+        background-color: colors.$md-blue-grey-100;
+        color: black;
+        opacity: 0.7 !important;
     }
 
     .cm-link {
-        background-color: #e0f7fa;
-        color: #007acc;
+        background-color: colors.$md-blue-50;
+        color: colors.$md-blue-900;
     }
 
     .cm-content ::selection {
@@ -21,16 +28,18 @@
     }
 
     .cm-link-pending {
-        background-color: yellow;
+        background-color: colors.$md-yellow-100;
+        color: black;
     }
 
     .cm-link-exists {
-        background-color: green;
-        color: #fff;
+        // background-color: colors.$link-green;
+        background-color: colors.$md-green-A100;
+        color: black;
     }
 
     .cm-link-missing {
-        background-color: red;
-        color: #fff;
+        background-color: colors.$md-red-100;
+        color: black;
     }
 }

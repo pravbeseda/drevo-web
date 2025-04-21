@@ -18,7 +18,12 @@
         "@angular-devkit/build-angular:application": {
             "cache": true,
             "dependsOn": ["^build"],
-            "inputs": ["production", "^production"]
+            "inputs": ["production", "^production"],
+            "options": {
+                "stylePreprocessorOptions": {
+                    "includePaths": ["libs/shared/src/lib/ui"]
+                }
+            }
         },
         "@nx/eslint:lint": {
             "cache": true,
@@ -31,7 +36,11 @@
         },
         "@nx/jest:jest": {
             "cache": true,
-            "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
+            "inputs": [
+                "default",
+                "^production",
+                "{workspaceRoot}/jest.preset.js"
+            ],
             "options": {
                 "passWithNoTests": true
             },
