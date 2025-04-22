@@ -12,8 +12,9 @@ interface Match {
 
 @Injectable()
 export class WikiHighlighterService {
-    private footnoteRegex = /\[\[([\s\S]*?)\]\]/g;
-    private linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
+    private readonly footnoteRegex = /\[\[([\s\S]*?)\]\]/g;
+    private readonly linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
+    private readonly mapPointRegex = /\{\{Метка:(.+?)\}\}/g;
 
     private text = '';
     private readonly matches: Match[] = [];
@@ -99,6 +100,7 @@ export class WikiHighlighterService {
         if (textChanged) {
             this.reset(text);
             this.collectMatches(this.footnoteRegex, 'cm-footnote');
+            this.collectMapPointMatches();
             this.collectMatches(this.linkRegex, 'cm-link', true);
             this.collectLinksMatches();
             this.matches.sort((a, b) => a.from - b.from);
@@ -142,10 +144,25 @@ export class WikiHighlighterService {
         while ((match = this.linkRegex.exec(this.text)) !== null) {
             const matchedText = this.trimToBalanced(match[1]);
             const start = match.index + 2; // Skip the opening brackets
+            const isMap = matchedText.startsWith('Карты:');
             this.matches.push({
                 from: start,
                 to: start + matchedText.length,
-                className: 'cm-link-pending',
+                className: isMap ? 'cm-map' : 'cm-link-pending',
+            });
+        }
+    }
+
+    private collectMapPointMatches(): void {
+        let match: RegExpExecArray | null;
+        while ((match = this.mapPointRegex.exec(this.text)) !== null) {
+            const fullMatch = match[0];
+            const start = match.index;
+            const end = start + fullMatch.length;
+            this.matches.push({
+                from: start,
+                to: end,
+                className: 'cm-map-point',
             });
         }
     }

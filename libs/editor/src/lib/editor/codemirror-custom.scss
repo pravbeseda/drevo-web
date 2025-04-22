@@ -7,6 +7,10 @@
         background-color: white;
     }
 
+    .cm-content ::selection {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
+
     //.cm-editor .cm-content {
     //    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     //    font-size: 14px;
@@ -23,8 +27,14 @@
         color: colors.$md-blue-900;
     }
 
-    .cm-content ::selection {
-        background-color: rgba(0, 0, 0, 0.1) !important;
+    .cm-map {
+        background-color: colors.$md-cyan-50;
+        color: colors.$md-cyan-900;
+    }
+
+    .cm-map-point {
+        background-color: colors.$md-cyan-50;
+        color: colors.$md-cyan-900;
     }
 
     .cm-link-pending {
