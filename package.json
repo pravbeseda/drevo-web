@@ -3,7 +3,9 @@
     "version": "0.0.0",
     "license": "MIT",
     "scripts": {
-      "test": "nx run-many --target=test --all --parallel"
+      "test": "nx run-many --target=test --all --parallel",
+      "build": "npx nx build client --configuration=production --base-href=/new/",
+      "start:prod": "NODE_ENV=production node dist/apps/client/server/server.mjs"
     },
     "private": true,
     "dependencies": {
