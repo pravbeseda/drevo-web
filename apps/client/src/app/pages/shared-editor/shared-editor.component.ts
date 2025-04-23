@@ -10,8 +10,9 @@ import {
     Observable,
     Subject,
     throttleTime,
+    map,
 } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
@@ -20,10 +21,14 @@ import { InsertTagCommand } from '@drevo-web/shared';
 
 const throttleTimeContentUpdateInMs = 300;
 
+interface EditorConfig {
+    content: string;
+}
+
 @UntilDestroy()
 @Component({
     selector: 'app-shared-editor',
-    imports: [EditorComponent, AsyncPipe],
+    imports: [EditorComponent, AsyncPipe, NgIf],
     providers: [HttpClient, IframeService, LinksService],
     templateUrl: './shared-editor.component.html',
     styleUrl: './shared-editor.component.scss',
@@ -35,7 +40,7 @@ export class SharedEditorComponent implements AfterViewInit {
     >({});
     private readonly contentUpdateSubject = new Subject<string>();
 
-    readonly content$: Observable<string>;
+    readonly editorConfig$: Observable<EditorConfig>;
     readonly insertTagCommand$: Observable<InsertTagCommand>;
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
@@ -43,7 +48,11 @@ export class SharedEditorComponent implements AfterViewInit {
         private readonly linkService: LinksService,
         private readonly iframeService: IframeService
     ) {
-        this.content$ = this.iframeService.content$;
+        this.editorConfig$ = this.iframeService.content$.pipe(
+            map(content => ({
+                content,
+            }))
+        );
         this.insertTagCommand$ = this.iframeService.insertTag$;
     }
 

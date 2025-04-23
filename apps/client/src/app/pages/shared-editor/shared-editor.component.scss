@@ -1,15 +1,43 @@
+@use 'colors';
+
+$skeleton-color: white;
+$skeleton-offset: colors.$md-blue-50;
+
 .container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .content {
-  flex: 1 1 auto;
-  overflow: auto;
+    flex: 1 1 auto;
+    overflow: auto;
 }
 
 .buttons {
-  flex: 0 0 auto;
-  margin: 16px;
+    flex: 0 0 auto;
+    margin: 16px;
+}
+
+.skeleton-textarea {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(
+        90deg,
+        $skeleton-color 0%,
+        $skeleton-offset 50%,
+        $skeleton-color 100%
+    );
+    background-size: 200% 100%;
+    animation: smoothShimmer 2s ease-in-out infinite;
+}
+
+@keyframes smoothShimmer {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 100% 0;
+    }
 }

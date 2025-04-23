@@ -1,14 +1,18 @@
-@if (content$ | async; as content) {
-    <div class="container">
+<ng-container *ngIf="editorConfig$ | async as editorConfig; else skeleton">
+    <div
+        *ngIf="editorConfig.content !== null; else skeleton"
+        class="container">
         <div class="content">
             <lib-editor
-                [content]="content"
+                [content]="editorConfig.content"
                 [linksStatus]="(updateLinksState$ | async) ?? {}"
                 [insertTagCommand]="insertTagCommand$ | async"
                 (updateLinksEvent)="updateLinks($event)"
                 (contentChanged)="contentChanged($event)"></lib-editor>
         </div>
     </div>
-} @else {
-    Загрузка...
-}
+</ng-container>
+
+<ng-template #skeleton>
+    <div class="skeleton-textarea"></div>
+</ng-template>
