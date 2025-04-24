@@ -12,8 +12,8 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
 import { EditorState } from '@codemirror/state';
-import { EditorView } from 'codemirror';
 import {
+    EditorView,
     drawSelection,
     dropCursor,
     highlightSpecialChars,
@@ -33,6 +33,7 @@ import { linksUpdatedEffect } from '../constants/editor-effects';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject, filter } from 'rxjs';
 import { InsertTagCommand } from '@drevo-web/shared';
+import { search, searchKeymap, openSearchPanel } from '@codemirror/search';
 
 @UntilDestroy()
 @Component({
@@ -119,7 +120,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
                     indentOnInput(),
                     EditorView.lineWrapping,
                     history(),
-                    keymap.of([...defaultKeymap, ...historyKeymap]),
                     closeBrackets(),
                     bracketMatching(),
                     this.wikiHighlighterService.wikiHighlighter,
@@ -127,6 +127,19 @@ export class EditorComponent implements OnInit, AfterViewInit {
                         if (v.docChanged) {
                             this.contentChanged.emit(v.state.doc.toString());
                         }
+                    }),
+                    keymap.of([
+                        ...defaultKeymap,
+                        ...historyKeymap,
+                        ...searchKeymap,
+                        { key: 'Mod-f', run: openSearchPanel },
+                    ]),
+                    search({
+                        scrollToMatch: ({ from }) =>
+                            EditorView.scrollIntoView(from, {
+                                y: 'start',
+                                x: 'nearest',
+                            }),
                     }),
                 ],
             }),

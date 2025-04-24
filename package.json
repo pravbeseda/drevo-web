@@ -3,9 +3,9 @@
     "version": "0.0.0",
     "license": "MIT",
     "scripts": {
-      "test": "nx run-many --target=test --all --parallel",
-      "build": "npx nx build client --configuration=production --base-href=/new/",
-      "start:prod": "NODE_ENV=production node dist/apps/client/server/server.mjs"
+        "test": "nx run-many --target=test --all --parallel",
+        "build": "npx nx build client --configuration=production --base-href=/new/",
+        "start:prod": "NODE_ENV=production node dist/apps/client/server/server.mjs"
     },
     "private": true,
     "dependencies": {
@@ -19,11 +19,11 @@
         "@angular/platform-server": "~19.2.0",
         "@angular/router": "~19.2.0",
         "@angular/ssr": "~19.2.0",
-        "@codemirror/autocomplete": "^6.18.3",
-        "@codemirror/commands": "^6.7.1",
-        "@codemirror/language": "^6.10.6",
-        "@codemirror/state": "^6.5.0",
-        "@codemirror/view": "^6.35.3",
+        "@codemirror/autocomplete": "^6.18.6",
+        "@codemirror/commands": "^6.8.1",
+        "@codemirror/language": "^6.11.0",
+        "@codemirror/state": "^6.5.2",
+        "@codemirror/view": "^6.36.5",
         "@ngneat/until-destroy": "^10.0.0",
         "codemirror": "^6.0.1",
         "express": "^4.21.2",

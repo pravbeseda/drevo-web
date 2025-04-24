@@ -52,4 +52,10 @@
         background-color: colors.$md-red-100;
         color: black;
     }
+
+    .cm-searchMatch {
+        .cm-wikiHighlight {
+            background-color: transparent !important;
+        }
+    }
 }

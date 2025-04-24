@@ -10,6 +10,9 @@ interface Match {
     className: string;
 }
 
+const commonClassName = 'cm-wikiHighlight';
+const LINK_STATE_RE = /\bcm-link-(pending|exists|missing)\b/;
+
 @Injectable()
 export class WikiHighlighterService {
     private readonly footnoteRegex = /\[\[([\s\S]*?)\]\]/g;
@@ -48,22 +51,18 @@ export class WikiHighlighterService {
             return Promise.resolve(true);
         }
         for (const match of this.matches) {
-            if (
-                match.className === 'cm-link-pending' ||
-                match.className === 'cm-link-exists' ||
-                match.className === 'cm-link-missing'
-            ) {
+            if (LINK_STATE_RE.test(match.className)) {
                 const linkText = this.extractLinkText(this.text, match);
                 if (linkText) {
                     const status: boolean | undefined =
                         this.linksState[linkText.trim().toUpperCase()];
                     let newClass: string | undefined;
                     if (status === true) {
-                        newClass = 'cm-link-exists';
+                        newClass = `${commonClassName} cm-link-exists`;
                     } else if (status === false) {
-                        newClass = 'cm-link-missing';
+                        newClass = `${commonClassName} cm-link-missing`;
                     } else {
-                        newClass = 'cm-link-pending';
+                        newClass = `${commonClassName} cm-link-pending`;
                         this.pendingLinks.push(linkText);
                     }
                     if (newClass && newClass !== match.className) {
@@ -134,7 +133,7 @@ export class WikiHighlighterService {
             this.matches.push({
                 from: match.index,
                 to: match.index + matchedText.length,
-                className,
+                className: `${commonClassName} ${className}`,
             });
         }
     }
@@ -145,10 +144,11 @@ export class WikiHighlighterService {
             const matchedText = this.trimToBalanced(match[1]);
             const start = match.index + 2; // Skip the opening brackets
             const isMap = matchedText.startsWith('Карты:');
+            const specificClass = isMap ? 'cm-map' : 'cm-link-pending';
             this.matches.push({
                 from: start,
                 to: start + matchedText.length,
-                className: isMap ? 'cm-map' : 'cm-link-pending',
+                className: `${commonClassName} ${specificClass}`,
             });
         }
     }
@@ -162,7 +162,7 @@ export class WikiHighlighterService {
             this.matches.push({
                 from: start,
                 to: end,
-                className: 'cm-map-point',
+                className: `${commonClassName} cm-map-point`,
             });
         }
     }
