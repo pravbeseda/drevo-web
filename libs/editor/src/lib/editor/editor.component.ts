@@ -35,6 +35,18 @@ import { BehaviorSubject, filter } from 'rxjs';
 import { InsertTagCommand } from '@drevo-web/shared';
 import { search, searchKeymap, openSearchPanel } from '@codemirror/search';
 
+const russianPhrases = {
+    Find: 'Найти',
+    Replace: 'Заменить',
+    next: 'Следующее',
+    previous: 'Предыдущее',
+    replace: 'Заменить',
+    'replace all': 'Заменить все',
+    'by word': 'искать по словам',
+    'match case': 'учитывать регистр',
+    Close: 'Закрыть',
+};
+
 @UntilDestroy()
 @Component({
     selector: 'lib-editor',
@@ -113,6 +125,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
             state: EditorState.create({
                 doc: this.content,
                 extensions: [
+                    EditorState.phrases.of(russianPhrases),
                     highlightSpecialChars(),
                     drawSelection(),
                     dropCursor(),

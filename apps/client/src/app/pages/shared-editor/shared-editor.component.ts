@@ -4,22 +4,13 @@ import {
     Component,
 } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
-import {
-    BehaviorSubject,
-    first,
-    Observable,
-    Subject,
-    throttleTime,
-    map,
-} from 'rxjs';
+import { BehaviorSubject, first, Observable, Subject, map } from 'rxjs';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { InsertTagCommand } from '@drevo-web/shared';
-
-const throttleTimeContentUpdateInMs = 300;
 
 interface EditorConfig {
     content: string;
@@ -60,10 +51,7 @@ export class SharedEditorComponent implements AfterViewInit {
         this.iframeService.sendMessage({ action: 'editorReady' });
 
         this.contentUpdateSubject
-            .pipe(
-                untilDestroyed(this),
-                throttleTime(throttleTimeContentUpdateInMs)
-            )
+            .pipe(untilDestroyed(this))
             .subscribe(content => {
                 this.iframeService.sendMessage({
                     action: 'contentChanged',

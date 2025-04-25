@@ -54,8 +54,21 @@
     }
 
     .cm-searchMatch {
+        background-color: colors.$md-yellow-400;
+
+        &.cm-searchMatch-selected {
+            background-color: colors.$md-orange-300;
+        }
+
         .cm-wikiHighlight {
             background-color: transparent !important;
+        }
+    }
+
+    .cm-search {
+        label:has(input[name='re']),
+        button[name='select'] {
+            display: none !important;
         }
     }
 }
