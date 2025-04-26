@@ -1,0 +1,46 @@
+---
+# infra/roles/common/tasks/main.yml
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Upgrade all packages to the latest version
+  ansible.builtin.apt:
+    upgrade: dist
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Create deploy user with sudo privileges
+  ansible.builtin.user:
+    name: "{{ common_deploy_user }}"
+    shell: /bin/bash
+    create_home: true
+    groups: sudo
+    state: present
+
+- name: Ensure .ssh directory exists for deploy user
+  ansible.builtin.file:
+    path: "/home/{{ common_deploy_user }}/.ssh"
+    state: directory
+    owner: "{{ common_deploy_user }}"
+    group: "{{ common_deploy_user }}"
+    mode: "0700"
+
+- name: Copy public key to authorized_keys
+  ansible.builtin.copy:
+    src: "{{ common_deploy_user_key }}"          # путь на control-node
+    dest: "/home/{{ common_deploy_user }}/.ssh/authorized_keys"
+    owner: "{{ common_deploy_user }}"
+    group: "{{ common_deploy_user }}"
+    mode: "0600"
+
+- name: Ensure UFW is enabled and allow SSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+    state: enabled

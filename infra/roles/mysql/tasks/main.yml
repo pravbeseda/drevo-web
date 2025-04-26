@@ -1,0 +1,53 @@
+---
+# Install and configure MariaDB (MySQL)
+
+- name: Install MariaDB server and client
+  ansible.builtin.apt:
+    name:
+      - mariadb-server
+      - mariadb-client
+      - python3-mysqldb        # Python driver for Ansible modules
+    state: present
+    update_cache: yes
+
+- name: Ensure MariaDB is started and enabled
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Set root password and keep anonymous root login disabled
+  ansible.builtin.command: >
+    mariadb-secure-installation --use-default --password "{{ mysql_root_password }}"
+  args:
+    creates: /var/lib/mysql/.mysql_secure_installation_done
+  register: secure_output
+  changed_when: secure_output.rc == 0
+  notify: Restart MariaDB
+
+- name: Touch flag file so the secure step is not re-run
+  ansible.builtin.file:
+    path: /var/lib/mysql/.mysql_secure_installation_done
+    state: touch
+    owner: mysql
+    group: mysql
+    mode: "0600"
+
+- name: Create databases
+  ansible.builtin.mysql_db:
+    name: "{{ item.name }}"
+    encoding: "{{ item.encoding | default('utf8mb4') }}"
+    collation: "{{ item.collation | default('utf8mb4_unicode_ci') }}"
+    state: present
+  loop: "{{ mysql_databases }}"
+  when: mysql_databases | length > 0
+
+- name: Create or update users and privileges
+  ansible.builtin.mysql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.pass }}"
+    priv: "{{ item.priv }}"
+    host: "%"
+    state: present
+  loop: "{{ mysql_users }}"
+  when: mysql_users | length > 0

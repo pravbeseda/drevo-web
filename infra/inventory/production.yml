@@ -1,0 +1,7 @@
+all:
+  hosts:
+    deb12:
+      ansible_host: 127.0.0.1           # IP address or hostname to connect to
+      ansible_port: 2222                # SSH port on the target machine
+      ansible_user: root                # SSH user
+      ansible_private_key_file: ~/.ssh/id_ed25519  # path to your private SSH key

@@ -1,0 +1,17 @@
+---
+# Default variables for common role
+# You can override these in group_vars or host_vars
+
+# List of packages to install on all hosts
+common_packages:
+  - sudo
+  - mc
+  - curl
+  - git
+  - ufw
+
+# Name of the non-root user to create
+common_deploy_user: deploy
+
+# SSH public key for the deploy user (path on control node)
+common_deploy_user_key: "~/.ssh/id_ed25519.pub"

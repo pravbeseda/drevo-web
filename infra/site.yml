@@ -1,0 +1,11 @@
+# Main playbook that applies all roles to hosts in 'all'
+- name: Deploy web stack on all servers
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - common     # basic system setup: users, firewall, packages
+    - mysql      # install and configure MySQL server
+   # - php        # install PHP-FPM and required extensions
+   # - nginx      # install and configure Nginx web server
+   # - frontend   # deploy and serve the Angular application

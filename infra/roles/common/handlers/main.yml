@@ -1,0 +1,6 @@
+---
+# Handlers for common role
+
+- name: Reload UFW
+  community.general.ufw:
+    state: reloaded
