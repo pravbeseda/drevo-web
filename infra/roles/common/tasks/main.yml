@@ -15,28 +15,20 @@
     name: "{{ common_packages }}"
     state: present
 
-- name: Create deploy user with sudo privileges
-  ansible.builtin.user:
-    name: "{{ common_deploy_user }}"
-    shell: /bin/bash
-    create_home: true
-    groups: sudo
-    state: present
-
-- name: Ensure .ssh directory exists for deploy user
+- name: Ensure .ssh directory exists for root
   ansible.builtin.file:
-    path: "/home/{{ common_deploy_user }}/.ssh"
+    path: "/root/.ssh"
     state: directory
-    owner: "{{ common_deploy_user }}"
-    group: "{{ common_deploy_user }}"
+    owner: root
+    group: root
     mode: "0700"
 
-- name: Copy public key to authorized_keys
+- name: Copy public key to authorized_keys for root
   ansible.builtin.copy:
-    src: "{{ common_deploy_user_key }}"          # путь на control-node
-    dest: "/home/{{ common_deploy_user }}/.ssh/authorized_keys"
-    owner: "{{ common_deploy_user }}"
-    group: "{{ common_deploy_user }}"
+    src: "{{ common_deploy_user_key }}"
+    dest: "/root/.ssh/authorized_keys"
+    owner: root
+    group: root
     mode: "0600"
 
 - name: Ensure UFW is enabled and allow SSH

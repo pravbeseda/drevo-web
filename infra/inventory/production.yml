@@ -1,7 +1,7 @@
+# Production environment inventory
 all:
   hosts:
-    deb12:
-      ansible_host: 127.0.0.1           # IP address or hostname to connect to
-      ansible_port: 2222                # SSH port on the target machine
-      ansible_user: root                # SSH user
-      ansible_private_key_file: ~/.ssh/id_ed25519  # path to your private SSH key
+    production-server:  # replace with your production host alias
+      ansible_host: 89.110.120.142  # replace with real IP or hostname
+      ansible_user: root  # используем root для первоначального подключения
+      ansible_private_key_file: ~/.ssh/id_ed25519  # path to your SSH private key

@@ -38,6 +38,22 @@
   ansible.builtin.debug:
     var: node_version_output.stdout
 
+- name: Install serve package globally
+  ansible.builtin.command: npm install -g serve@latest
+  args:
+    creates: /usr/bin/serve
+  register: serve_install
+  changed_when: serve_install.rc == 0
+
+- name: Get serve binary location
+  ansible.builtin.command: which serve
+  register: serve_path
+  changed_when: false
+
+- name: Debug serve path
+  ansible.builtin.debug:
+    var: serve_path.stdout
+
 - name: Install PM2 globally
   ansible.builtin.command: npm install -g pm2@{{ frontend_pm2_version }}
   args:
@@ -108,6 +124,14 @@
     group: "{{ frontend_app_group }}"
     mode: "0755"
 
+- name: Ensure PM2 home directory exists
+  ansible.builtin.file:
+    path: "{{ frontend_app_dir }}/.pm2"
+    state: directory
+    owner: "{{ frontend_app_user }}"
+    group: "{{ frontend_app_group }}"
+    mode: "0755"
+
 - name: Copy PM2 ecosystem configuration
   ansible.builtin.template:
     src: ecosystem.config.js.j2
@@ -125,11 +149,47 @@
     group: root
     mode: "0644"
   when: ansible_service_mgr == 'systemd'
-  notify: Reload systemd
+
+- name: Reload systemd for PM2 service
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'
 
 - name: Start and enable PM2 service
   ansible.builtin.service:
     name: "pm2-{{ frontend_app_name }}"
     state: started
     enabled: true
+  register: pm2_service_result
   when: ansible_service_mgr == 'systemd'
+  ignore_errors: true
+
+- name: Get PM2 service status on failure
+  ansible.builtin.command: systemctl status pm2-{{ frontend_app_name }}
+  register: pm2_status
+  when: 
+    - ansible_service_mgr == 'systemd'
+    - pm2_service_result is defined 
+    - pm2_service_result.failed is defined
+    - pm2_service_result.failed
+  ignore_errors: true
+
+- name: Get PM2 service journal logs on failure
+  ansible.builtin.command: journalctl -xeu pm2-{{ frontend_app_name }} -n 50
+  register: pm2_journal
+  when: 
+    - ansible_service_mgr == 'systemd'
+    - pm2_service_result is defined 
+    - pm2_service_result.failed is defined
+    - pm2_service_result.failed
+  ignore_errors: true
+
+- name: Show PM2 service status on failure
+  ansible.builtin.debug:
+    var: pm2_status.stdout_lines
+  when: pm2_status is defined and pm2_status.stdout_lines is defined
+
+- name: Show PM2 service journal logs on failure
+  ansible.builtin.debug:
+    var: pm2_journal.stdout_lines
+  when: pm2_journal is defined and pm2_journal.stdout_lines is defined

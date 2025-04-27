@@ -22,3 +22,8 @@
   ansible.builtin.command: pm2 restart {{ frontend_app_name }}
   changed_when: true
   when: ansible_service_mgr != 'systemd'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'

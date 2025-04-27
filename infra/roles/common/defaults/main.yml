@@ -10,8 +10,5 @@ common_packages:
   - git
   - ufw
 
-# Name of the non-root user to create
-common_deploy_user: deploy
-
-# SSH public key for the deploy user (path on control node)
+# SSH public key for root (path on control node)
 common_deploy_user_key: "~/.ssh/id_ed25519.pub"

@@ -1,0 +1,4 @@
+# Development requirements for Testinfra and pytest
+pytest>=6.2
+pytest-testinfra>=10.2.2
+paramiko>=2.11.0 

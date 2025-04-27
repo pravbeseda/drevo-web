@@ -7,11 +7,12 @@ Type=forking
 User={{ frontend_app_user }}
 Group={{ frontend_app_group }}
 WorkingDirectory={{ frontend_app_dir }}
-ExecStart=/usr/bin/pm2 start ecosystem.config.js
-ExecReload=/usr/bin/pm2 reload {{ frontend_app_name }}
-ExecStop=/usr/bin/pm2 stop {{ frontend_app_name }}
+ExecStartPre=/usr/bin/mkdir -p {{ frontend_app_dir }}/.pm2
+ExecStartPre=/usr/bin/chown -R {{ frontend_app_user }}:{{ frontend_app_group }} {{ frontend_app_dir }}/.pm2
+ExecStart=/usr/bin/env PM2_HOME={{ frontend_app_dir }}/.pm2 NODE_ENV=production /usr/bin/pm2 start ecosystem.config.js
+ExecReload=/usr/bin/env PM2_HOME={{ frontend_app_dir }}/.pm2 /usr/bin/pm2 reload {{ frontend_app_name }}
+ExecStop=/usr/bin/env PM2_HOME={{ frontend_app_dir }}/.pm2 /usr/bin/pm2 stop {{ frontend_app_name }}
 Restart=always
-Environment=NODE_ENV=production
 
 [Install]
 WantedBy=multi-user.target 
