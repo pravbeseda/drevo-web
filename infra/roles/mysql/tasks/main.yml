@@ -8,22 +8,95 @@
       - mariadb-client
       - python3-mysqldb        # Python driver for Ansible modules
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Ensure MariaDB is started and enabled
   ansible.builtin.service:
-    name: mariadb
+    name: mysql
     state: started
-    enabled: yes
+    enabled: true
+  when: ansible_service_mgr == 'systemd'
 
-- name: Set root password and keep anonymous root login disabled
-  ansible.builtin.command: >
-    mariadb-secure-installation --use-default --password "{{ mysql_root_password }}"
+- name: Ensure MariaDB socket directory exists in non-systemd environment
+  ansible.builtin.file:
+    path: /var/run/mysqld
+    state: directory
+    owner: mysql
+    group: mysql
+    mode: "0755"
+  when: ansible_service_mgr != 'systemd'
+
+- name: Start MariaDB manually in non-systemd environment
+  ansible.builtin.shell: |
+    nohup sudo -u mysql /usr/sbin/mariadbd \
+      --socket=/var/run/mysqld/mysqld.sock \
+      --bind-address=127.0.0.1 \
+      --port=3306 \
+      > /var/log/mariadb-manual.log 2>&1 &
   args:
-    creates: /var/lib/mysql/.mysql_secure_installation_done
-  register: secure_output
-  changed_when: secure_output.rc == 0
+    creates: /var/run/mysqld/mysqld.sock
+  async: 10
+  poll: 0
+  when: ansible_service_mgr != 'systemd'
+
+- name: Wait until MariaDB socket is available
+  ansible.builtin.wait_for:
+    path: /var/run/mysqld/mysqld.sock
+    state: present
+    timeout: 30
+  when: ansible_service_mgr != 'systemd'
+
+- name: Wait until MariaDB listens on TCP port 3306
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 3306
+    state: started
+    timeout: 30
+  when: ansible_service_mgr == 'systemd'
+
+- name: Check if MySQL has been secured
+  ansible.builtin.stat:
+    path: /var/lib/mysql/.mysql_secure_installation_done
+  register: mysql_secure_file
+
+- name: Set root password using mysqladmin
+  ansible.builtin.shell: |
+    if ! mysqladmin -u root -p"{{ mysql_root_password }}" status 2>/dev/null; then
+      if mysqladmin -u root status 2>/dev/null; then
+        mysqladmin -u root password "{{ mysql_root_password }}"
+      else
+        echo "Trying with --defaults-file"
+        touch /root/.my.cnf
+        chmod 600 /root/.my.cnf
+        echo "[client]\nuser=root\npassword={{ mysql_root_password }}" > /root/.my.cnf
+      fi
+    fi
+  args:
+    executable: /bin/bash
+  register: root_password_result
+  changed_when: "'password updated' in root_password_result.stdout | default('')"
   notify: Restart MariaDB
+  when: not mysql_secure_file.stat.exists
+
+- name: Remove anonymous users
+  community.mysql.mysql_user:
+    name: ''
+    host: localhost
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: mysql_secure_file.stat.exists
+
+- name: Remove remote root login
+  community.mysql.mysql_user:
+    name: root
+    host: '%'
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: mysql_secure_file.stat.exists
 
 - name: Touch flag file so the secure step is not re-run
   ansible.builtin.file:
@@ -32,22 +105,29 @@
     owner: mysql
     group: mysql
     mode: "0600"
+  when: not mysql_secure_file.stat.exists
 
 - name: Create databases
-  ansible.builtin.mysql_db:
+  community.mysql.mysql_db:
     name: "{{ item.name }}"
     encoding: "{{ item.encoding | default('utf8mb4') }}"
     collation: "{{ item.collation | default('utf8mb4_unicode_ci') }}"
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
   loop: "{{ mysql_databases }}"
   when: mysql_databases | length > 0
 
 - name: Create or update users and privileges
-  ansible.builtin.mysql_user:
+  community.mysql.mysql_user:
     name: "{{ item.name }}"
     password: "{{ item.pass }}"
     priv: "{{ item.priv }}"
     host: "%"
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
   loop: "{{ mysql_users }}"
   when: mysql_users | length > 0

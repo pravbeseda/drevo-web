@@ -1,4 +1,5 @@
-
 collections:
   - name: community.general
     version: ">=8.0.0"
+  - name: community.mysql
+    version: "3.10.0"

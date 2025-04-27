@@ -1,10 +1,11 @@
 ---
 galaxy_info:
   author: "Alexander Ivanov"
-  description: "Install and configure MariaDB (MySQL) on Debian 12"
+  description: "Install and configure MariaDB (MySQL) on Debian"
   license: MIT
   min_ansible_version: "2.9"
   platforms:
     - name: Debian
-      versions: [ "12" ]
+      versions:
+        - all
 dependencies: []
