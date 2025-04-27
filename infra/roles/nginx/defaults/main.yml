@@ -1,0 +1,23 @@
+---
+# Default variables for Nginx role
+
+# Nginx configuration
+nginx_worker_processes: "auto"
+nginx_worker_connections: "768"
+nginx_rate_limit: "10r/s"
+
+# Performance tuning
+nginx_client_max_body_size: "64m"
+nginx_client_body_buffer_size: "128k"
+nginx_client_header_buffer_size: "1k"
+nginx_large_client_header_buffers: "4 4k"
+nginx_open_file_cache_max: "1000"
+nginx_open_file_cache_inactive: "20s"
+nginx_open_file_cache_valid: "30s"
+nginx_open_file_cache_min_uses: "2"
+
+# Site configuration
+nginx_site_name: "default"
+nginx_server_name: "{{ inventory_hostname }}"
+nginx_web_root: "/var/www/html"
+nginx_create_test_page: true

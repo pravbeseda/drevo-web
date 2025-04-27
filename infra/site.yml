@@ -11,5 +11,6 @@
       tags: mysql
     - role: php
       tags: php
-   # - nginx      # install and configure Nginx web server
+    - role: nginx
+      tags: nginx
    # - frontend   # deploy and serve the Angular application
