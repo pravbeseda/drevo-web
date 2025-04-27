@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: "Alexander Ivanov"
+  description: "Install and configure PHP-FPM on Debian"
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - php
+    - fpm
+    - web
+    - debian
+
+dependencies: []

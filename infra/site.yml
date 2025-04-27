@@ -2,10 +2,14 @@
 - name: Deploy web stack on all servers
   hosts: all
   gather_facts: true
+  become: true
 
   roles:
-    - common     # basic system setup: users, firewall, packages
-    - mysql      # install and configure MySQL server
-   # - php        # install PHP-FPM and required extensions
+    - role: common
+      tags: common
+    - role: mysql
+      tags: mysql
+    - role: php
+      tags: php
    # - nginx      # install and configure Nginx web server
    # - frontend   # deploy and serve the Angular application

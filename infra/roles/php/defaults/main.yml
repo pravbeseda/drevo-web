@@ -1,0 +1,19 @@
+---
+# Default variables for PHP role
+
+# PHP.ini settings
+php_memory_limit: "256M"
+php_max_execution_time: "30"
+php_upload_max_filesize: "64M"
+php_post_max_size: "128M"
+php_timezone: "UTC"
+php_session_cookie_secure: "0"  # Set to 1 if using HTTPS
+
+# PHP-FPM settings
+php_fpm_max_children: "50"
+php_fpm_start_servers: "5"
+php_fpm_min_spare_servers: "5"
+php_fpm_max_spare_servers: "35"
+php_fpm_max_requests: "500"
+php_fpm_request_terminate_timeout: "300"
+php_fpm_request_slowlog_timeout: "10s"
