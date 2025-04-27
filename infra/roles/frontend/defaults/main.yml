@@ -1,0 +1,53 @@
+---
+# Frontend role defaults
+
+# Node.js version
+frontend_nodejs_version: "22.x"
+
+# Frontend application settings
+frontend_app_name: "frontend"
+frontend_app_dir: "/var/www/frontend"
+frontend_app_port: 3000
+frontend_app_path: "/"
+frontend_app_user: "www-data"
+frontend_app_group: "www-data"
+frontend_domain: "localhost"
+frontend_log_dir: "/var/log/frontend"
+frontend_app_files_exist: false
+
+# Node.js performance settings
+frontend_nodejs_max_old_space_size: "4096"
+frontend_nodejs_optimize_for_size: false
+frontend_nodejs_gc_interval: 100
+frontend_nodejs_max_semi_space_size: "128"
+frontend_nodejs_max_executable_size: "512"
+
+# PM2 settings
+frontend_pm2_instances: 1
+frontend_pm2_exec_mode: "fork"
+frontend_pm2_watch: false
+frontend_pm2_max_memory_restart: "1G"
+frontend_pm2_node_args: "--max-old-space-size=1024"
+frontend_pm2_log_date_format: "YYYY-MM-DD HH:mm:ss"
+frontend_pm2_log_rotate: true
+frontend_pm2_log_max_size: "10M"
+frontend_pm2_log_retain: 10
+frontend_pm2_metrics_port: 9090
+frontend_pm2_metrics_interval: 1000
+frontend_pm2_version: "latest"
+frontend_pm2_state: "present"
+
+# Nginx settings
+frontend_nginx_proxy_timeout: "60s"
+frontend_nginx_proxy_buffer_size: "128k"
+frontend_nginx_port: 80
+frontend_nginx_server_name: "localhost"
+frontend_nginx_gzip_comp_level: 6
+frontend_nginx_gzip_min_length: 256
+frontend_nginx_cache_expires: "30d"
+
+# Node.js settings
+frontend_node_version: "22.x"
+frontend_node_install_npm: true
+frontend_nodejs_state: "present"
+frontend_nodejs_cache_valid_time: 3600

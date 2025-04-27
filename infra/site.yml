@@ -13,4 +13,6 @@
       tags: php
     - role: nginx
       tags: nginx
+    - role: frontend
+      tags: frontend
    # - frontend   # deploy and serve the Angular application

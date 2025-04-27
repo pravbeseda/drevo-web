@@ -1,0 +1,20 @@
+module.exports = {
+  apps: [{
+    name: "{{ frontend_app_name }}",
+    script: "serve",
+    args: "-s {{ frontend_app_dir }} -p {{ frontend_app_port }}",
+    env: {
+      NODE_ENV: "production",
+      PORT: "{{ frontend_app_port }}"
+    },
+    instances: "{{ frontend_pm2_instances | default('max') }}",
+    exec_mode: "cluster",
+    watch: false,
+    max_memory_restart: "{{ frontend_pm2_max_memory | default('1G') }}",
+    error_file: "{{ frontend_log_dir }}/error.log",
+    out_file: "{{ frontend_log_dir }}/output.log",
+    log_date_format: "YYYY-MM-DD HH:mm:ss",
+    merge_logs: true,
+    time: true
+  }]
+} 
