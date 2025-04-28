@@ -11,4 +11,4 @@ common_packages:
   - ufw
 
 # SSH public key for root (path on control node)
-common_deploy_user_key: "~/.ssh/id_ed25519.pub"
+common_deploy_user_key: "~/.ssh/id_drevo.pub"

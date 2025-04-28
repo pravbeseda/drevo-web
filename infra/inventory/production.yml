@@ -4,4 +4,4 @@ all:
     production-server:  # replace with your production host alias
       ansible_host: 89.110.120.142  # replace with real IP or hostname
       ansible_user: root  # используем root для первоначального подключения
-      ansible_private_key_file: ~/.ssh/id_ed25519  # path to your SSH private key
+      ansible_private_key_file: ~/.ssh/id_drevo  # path to your SSH private key
