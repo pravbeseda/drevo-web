@@ -15,25 +15,6 @@
     name: "{{ common_packages }}"
     state: present
 
-- name: Check current SSH port
-  ansible.builtin.shell: grep -E '^Port ' /etc/ssh/sshd_config || echo "Port 22"
-  register: current_ssh_port
-  changed_when: false
-
-- name: Configure SSH port
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^#?Port '
-    line: 'Port {{ ssh_port }}'
-    state: present
-  notify: restart sshd
-
-- name: Update connection_port in production.cfg
-  ansible.builtin.shell: |
-    sed -i '' "s/^connection_port:.*/connection_port: {{ ssh_port }}/" "{{ playbook_dir }}/inventory/production.cfg"
-  delegate_to: localhost
-  become: false
-
 - name: Ensure .ssh directory exists for root
   ansible.builtin.file:
     path: "/root/.ssh"
@@ -50,6 +31,25 @@
     group: root
     mode: "0600"
 
+- name: Extract current SSH port
+  ansible.builtin.shell: grep -E '^Port ' /etc/ssh/sshd_config | awk '{print $2}' || echo "22"
+  register: current_ssh_port
+  changed_when: false
+
+- name: Configure SSH port
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port '
+    line: 'Port {{ ssh_port }}'
+    state: present
+  register: ssh_config_updated
+  when: current_ssh_port.stdout != ssh_port | string
+
+- name: Ensure UFW is installed
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
 - name: Ensure UFW is enabled and allow SSH on custom port
   community.general.ufw:
     rule: allow
@@ -61,9 +61,24 @@
   ansible.builtin.service:
     name: ssh
     state: restarted
-  when: current_ssh_port.stdout != "Port {{ ssh_port }}"
 
 - name: Wait for SSH to be available
   ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
     port: "{{ ssh_port }}"
     timeout: 30
+    state: started
+
+- name: Verify SSH connection on new port
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ ssh_port }}"
+    timeout: 10
+    state: started
+    search_regex: OpenSSH
+
+- name: Update connection_port in production.cfg
+  ansible.builtin.shell: |
+    sed -i '' "s/^connection_port:.*/connection_port: {{ ssh_port }}/" "{{ playbook_dir }}/inventory/production.cfg"
+  delegate_to: localhost
+  become: false

@@ -3,6 +3,8 @@
 # Bash wrapper for Ansible deploy
 # Uses inventory and host from inventory file to decide if SSH key works
 
+set -x  # Enable debug output
+
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -54,14 +56,26 @@ if ! ssh-add -l | grep -q "${SSH_KEY_NAME}"; then
     ssh-add ~/.ssh/${SSH_KEY_NAME}
 fi
 
-# Common SSH options
-SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/${SSH_KEY_NAME}"
+# Common SSH options for both direct SSH and Ansible
+SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o BatchMode=yes"
 
 # Try to connect using the key
-if ssh -p "${CONNECTION_PORT}" ${SSH_OPTS} "root@${PRODUCTION_SERVER_IP}" exit 0 &>/dev/null; then
+echo "Testing SSH connection..."
+TEST_RESULT=0
+ANSIBLE_HOST_KEY_CHECKING=False ssh ${SSH_OPTS} -i ~/.ssh/${SSH_KEY_NAME} -p "${CONNECTION_PORT}" "root@${PRODUCTION_SERVER_IP}" exit 0 || TEST_RESULT=$?
+
+echo "SSH test result: $TEST_RESULT"
+
+if [ $TEST_RESULT -eq 0 ]; then
     echo "Connecting with SSH key..."
-    ansible-playbook "$PLAYBOOK" -i "$INVENTORY" --ssh-extra-args="${SSH_OPTS}"
+    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" --ssh-extra-args="${SSH_OPTS} -i ~/.ssh/${SSH_KEY_NAME}"
 else
-    echo "SSH key failed, falling back to password prompt..."
-    ansible-playbook "$PLAYBOOK" -i "$INVENTORY" -k -K --ssh-extra-args="${SSH_OPTS}"
+    echo "SSH key authentication failed (exit code: $TEST_RESULT), using password..."
+    # Remove key from agent to force password authentication
+    ssh-add -d ~/.ssh/${SSH_KEY_NAME} 2>/dev/null
+    # Remove BatchMode for password authentication
+    SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" -k --ssh-extra-args="${SSH_OPTS}"
 fi
+
+set +x  # Disable debug output
