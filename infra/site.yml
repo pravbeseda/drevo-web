@@ -1,17 +1,17 @@
-# Main playbook that applies all roles to hosts in 'all'
+# Main playbook for deploying web stack
+
 - name: Deploy web stack on all servers
   hosts: all
-  gather_facts: true
-  become: true
+  vars_files:
+    - inventory/production.cfg
 
   roles:
-    - role: common
-      tags: common
-    - role: mysql
-      tags: mysql
-    - role: php
-      tags: php
-    - role: nginx
-      tags: nginx
+    - common
+    # - role: mysql
+    #   tags: mysql
+    # - role: php
+    #   tags: php
+    # - role: nginx
+    #   tags: nginx
     # - role: frontend
     #   tags: frontend

@@ -1,0 +1,5 @@
+# Include production configuration
+production_server_ip: "{{ lookup('file', '../production.cfg') | from_yaml | json_query('production_server_ip') }}"
+connection_port: "{{ lookup('file', '../production.cfg') | from_yaml | json_query('connection_port') }}"
+ssh_port: "{{ lookup('file', '../production.cfg') | from_yaml | json_query('ssh_port') }}"
+ssh_key_name: "{{ lookup('file', '../production.cfg') | from_yaml | json_query('ssh_key_name') }}" 

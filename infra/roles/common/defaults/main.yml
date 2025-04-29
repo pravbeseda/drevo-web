@@ -5,6 +5,7 @@
 # List of packages to install on all hosts
 common_packages:
   - sudo
+  - net-tools
   - mc
   - curl
   - git
@@ -12,3 +13,6 @@ common_packages:
 
 # SSH public key for root (path on control node)
 common_deploy_user_key: "~/.ssh/id_drevo.pub"
+
+# Default SSH port
+ssh_port: 22

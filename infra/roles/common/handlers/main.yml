@@ -4,3 +4,8 @@
 - name: Reload UFW
   community.general.ufw:
     state: reloaded
+
+- name: restart sshd
+  ansible.builtin.service:
+    name: sshd
+    state: restarted

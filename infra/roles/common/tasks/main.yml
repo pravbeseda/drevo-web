@@ -15,6 +15,25 @@
     name: "{{ common_packages }}"
     state: present
 
+- name: Check current SSH port
+  ansible.builtin.shell: grep -E '^Port ' /etc/ssh/sshd_config || echo "Port 22"
+  register: current_ssh_port
+  changed_when: false
+
+- name: Configure SSH port
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port '
+    line: 'Port {{ ssh_port }}'
+    state: present
+  notify: restart sshd
+
+- name: Update connection_port in production.cfg
+  ansible.builtin.shell: |
+    sed -i '' "s/^connection_port:.*/connection_port: {{ ssh_port }}/" "{{ playbook_dir }}/inventory/production.cfg"
+  delegate_to: localhost
+  become: false
+
 - name: Ensure .ssh directory exists for root
   ansible.builtin.file:
     path: "/root/.ssh"
@@ -25,14 +44,26 @@
 
 - name: Copy public key to authorized_keys for root
   ansible.builtin.copy:
-    src: "{{ common_deploy_user_key }}"
+    src: "~/.ssh/{{ ssh_key_name }}.pub"
     dest: "/root/.ssh/authorized_keys"
     owner: root
     group: root
     mode: "0600"
 
-- name: Ensure UFW is enabled and allow SSH
+- name: Ensure UFW is enabled and allow SSH on custom port
   community.general.ufw:
     rule: allow
-    name: OpenSSH
+    port: "{{ ssh_port }}"
+    proto: tcp
     state: enabled
+
+- name: Restart SSH service
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+  when: current_ssh_port.stdout != "Port {{ ssh_port }}"
+
+- name: Wait for SSH to be available
+  ansible.builtin.wait_for:
+    port: "{{ ssh_port }}"
+    timeout: 30
