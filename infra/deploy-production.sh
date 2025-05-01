@@ -3,8 +3,6 @@
 # Bash wrapper for Ansible deploy
 # Uses inventory and host from inventory file to decide if SSH key works
 
-set -x  # Enable debug output
-
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -78,4 +76,3 @@ else
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" -k --ssh-extra-args="${SSH_OPTS}"
 fi
 
-set +x  # Disable debug output

@@ -31,6 +31,28 @@
     group: root
     mode: "0600"
 
+- name: Create backup of sshd_config if not exists
+  ansible.builtin.copy:
+    src: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config.orig
+    remote_src: yes
+    force: no
+
+- name: Configure SSH security settings
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    backrefs: yes
+  loop:
+    - { regexp: '^#?PasswordAuthentication.*', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?PubkeyAuthentication.*', line: 'PubkeyAuthentication yes' }
+    - { regexp: '^#?PermitRootLogin.*', line: 'PermitRootLogin prohibit-password' }
+    - { regexp: '^#?X11Forwarding.*', line: 'X11Forwarding no' }
+    - { regexp: '^#?PrintMotd.*', line: 'PrintMotd no' }
+  register: ssh_config
+
 - name: Extract current SSH port
   ansible.builtin.shell: grep -E '^Port ' /etc/ssh/sshd_config | awk '{print $2}' || echo "22"
   register: current_ssh_port
@@ -45,6 +67,16 @@
   register: ssh_config_updated
   when: current_ssh_port.stdout != ssh_port | string
 
+- name: Test SSH configuration
+  ansible.builtin.command: sshd -t
+  when: ssh_config is changed
+
+- name: Restart SSH service
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+  when: ssh_config is changed
+
 - name: Ensure UFW is installed
   ansible.builtin.apt:
     name: ufw
@@ -56,11 +88,6 @@
     port: "{{ ssh_port }}"
     proto: tcp
     state: enabled
-
-- name: Restart SSH service
-  ansible.builtin.service:
-    name: ssh
-    state: restarted
 
 - name: Wait for SSH to be available
   ansible.builtin.wait_for:
