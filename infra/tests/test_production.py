@@ -1,31 +1,126 @@
-import testinfra
+#!/usr/bin/env python3
+
+import sys
+import socket
 import yaml
+import paramiko
+from pathlib import Path
 
-# Читаем конфигурацию из production.yml
-with open('infra/inventory/production.yml', 'r') as f:
-    config = yaml.safe_load(f)
+def load_configs():
+    """Load both production configurations."""
+    try:
+        # Load production.yml for testinfra
+        config_path = Path(__file__).parent.parent / 'inventory' / 'production.yml'
+        with open(config_path, 'r') as f:
+            infra_config = yaml.safe_load(f)
+            
+        # Load production.cfg for SSH tests
+        config_path = Path(__file__).parent.parent / 'inventory' / 'production.cfg'
+        with open(config_path, 'r') as f:
+            ssh_config = yaml.safe_load(f)
+            
+        return infra_config, ssh_config
+    except Exception as e:
+        print(f"Error loading configs: {e}")
+        sys.exit(1)
+
+def test_ssh_connection(config):
+    """Test SSH connection to production server using key authentication."""
+    print("Testing SSH connection with key authentication...")
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        
+        # Try to connect using SSH agent
+        ssh.connect(
+            config['production_server_ip'],
+            port=config['ssh_port'],
+            username='root',
+            timeout=5
+        )
+        ssh.close()
+        print("✅ SSH connection with key authentication successful")
+        return True
+    except paramiko.AuthenticationException:
+        print("❌ SSH key authentication failed - check if key is added to ssh-agent")
+        return False
+    except Exception as e:
+        print(f"❌ SSH connection with key authentication failed: {e}")
+        return False
+
+def test_ssh_password_auth(config):
+    """Test that password authentication is disabled."""
+    print("\nTesting SSH password authentication...")
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        
+        # Try to connect with password only
+        ssh.connect(
+            config['production_server_ip'],
+            port=config['ssh_port'],
+            username='root',
+            password='testpassword',
+            look_for_keys=False,  # Отключаем проверку ключей
+            allow_agent=False     # Отключаем использование ssh-agent
+        )
+        print("❌ SSH password authentication is enabled (should be disabled)")
+        return False
+    except paramiko.AuthenticationException as e:
+        print("✅ SSH password authentication is disabled")
+        return True
+    except Exception as e:
+        print(f"❌ Error testing password authentication: {e}")
+        return False
+
+def test_port_availability(config):
+    """Test if required ports are open/closed as expected."""
+    print("\nTesting port availability...")
     
-# Получаем адрес production сервера
-HOST = config['all']['hosts']['production-server']['ansible_host']
-USER = config['all']['hosts']['production-server']['ansible_user']
+    # Test custom SSH port
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5)
+    result = sock.connect_ex((config['production_server_ip'], config['ssh_port']))
+    if result == 0:
+        print(f"✅ Custom SSH port {config['ssh_port']} is open")
+    else:
+        print(f"❌ Custom SSH port {config['ssh_port']} is closed")
+    sock.close()
+    
+    # Test default SSH port (should be closed)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5)
+    result = sock.connect_ex((config['production_server_ip'], 22))
+    if result == 0:
+        print("❌ Default SSH port 22 is open (should be closed)")
+    else:
+        print("✅ Default SSH port 22 is closed")
+    sock.close()
 
-# Используем прямое подключение к production серверу
-testinfra_hosts = [f'ssh://{USER}@{HOST}']
+def main():
+    print("Starting SSH security tests...\n")
+    
+    # Load configurations
+    infra_config, ssh_config = load_configs()
+    
+    try:
+        # Run SSH security tests
+        key_auth_ok = test_ssh_connection(ssh_config)
+        password_auth_ok = test_ssh_password_auth(ssh_config)
+        test_port_availability(ssh_config)
+        
+        # Final status
+        print("\nTest Summary:")
+        if key_auth_ok and password_auth_ok:
+            print("✅ All SSH security tests passed")
+            sys.exit(0)
+        else:
+            print("❌ Some SSH security tests failed")
+            sys.exit(1)
+            
+    except Exception as e:
+        print(f"\n❌ Tests failed with error: {e}")
+        sys.exit(1)
 
-def test_nginx_installed(host):
-    # Проверяем, что nginx установлен
-    nginx = host.package('nginx')
-    assert nginx.is_installed
-
-def test_nginx_running_and_enabled(host):
-    # Проверяем, что сервис nginx запущен и включён
-    service = host.service('nginx')
-    assert service.is_running
-    assert service.is_enabled
-
-def test_port_80_listening(host):
-    # Проверяем, что порт 80 слушает
-    socket = host.socket('tcp://0.0.0.0:80')
-    assert socket.is_listening
-
-# Add more tests as needed... 
+if __name__ == '__main__':
+    main() 

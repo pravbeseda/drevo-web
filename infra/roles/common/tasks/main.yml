@@ -51,6 +51,10 @@
     - { regexp: '^#?PermitRootLogin.*', line: 'PermitRootLogin prohibit-password' }
     - { regexp: '^#?X11Forwarding.*', line: 'X11Forwarding no' }
     - { regexp: '^#?PrintMotd.*', line: 'PrintMotd no' }
+    - { regexp: '^#?UsePAM.*', line: 'UsePAM no' }
+    - { regexp: '^#?AuthenticationMethods.*', line: 'AuthenticationMethods publickey' }
+    - { regexp: '^#?KbdInteractiveAuthentication.*', line: 'KbdInteractiveAuthentication no' }
+    - { regexp: '^#?ChallengeResponseAuthentication.*', line: 'ChallengeResponseAuthentication no' }
   register: ssh_config
 
 - name: Extract current SSH port
@@ -109,3 +113,7 @@
     sed -i '' "s/^connection_port:.*/connection_port: {{ ssh_port }}/" "{{ playbook_dir }}/inventory/production.cfg"
   delegate_to: localhost
   become: false
+
+- name: Import SSH agent configuration tasks
+  import_tasks: ssh_agent.yml
+  tags: ['ssh', 'security']

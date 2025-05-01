@@ -1,0 +1,34 @@
+---
+# Настройка SSH agent для локальной системы
+- name: Ensure SSH agent is running
+  ansible.builtin.shell: |
+    eval $(ssh-agent)
+  delegate_to: localhost
+  become: no
+  changed_when: false
+
+- name: Add SSH key to agent
+  ansible.builtin.shell: |
+    ssh-add ~/.ssh/{{ ssh_key_name }}
+  delegate_to: localhost
+  become: no
+  changed_when: false
+  register: ssh_add_result
+  failed_when: false  # Do not treat it as an error if the key is already added
+  vars:
+    ssh_key_name: "{{ lookup('file', playbook_dir + '/inventory/production.cfg') | from_yaml | json_query('ssh_key_name') }}"
+
+- name: Configure SSH agent autostart in shell profile
+  ansible.builtin.blockinfile:
+    path: "{{ lookup('env', 'HOME') }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED SSH AGENT CONFIGURATION"
+    block: |
+      # Start SSH agent if not running
+      if [ -z "$SSH_AUTH_SOCK" ]; then
+         eval $(ssh-agent -s)
+         ssh-add ~/.ssh/{{ ssh_key_name }}
+      fi
+  delegate_to: localhost
+  become: no
+  vars:
+    ssh_key_name: "{{ lookup('file', playbook_dir + '/inventory/production.cfg') | from_yaml | json_query('ssh_key_name') }}"
