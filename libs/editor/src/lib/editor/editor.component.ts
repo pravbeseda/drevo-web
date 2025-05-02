@@ -11,7 +11,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Transaction } from '@codemirror/state';
 import {
     EditorView,
     drawSelection,
@@ -142,6 +142,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
                         }
                     }),
                     keymap.of([
+                        { key: 'Enter', run: continueLists },
                         ...defaultKeymap,
                         ...historyKeymap,
                         ...searchKeymap,
@@ -187,4 +188,87 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         view.focus();
     }
+}
+
+function continueLists(view: EditorView): boolean {
+    const { state } = view;
+    const { doc } = state;
+    const { head } = state.selection.main;
+
+    // Get the current line
+    const line = doc.lineAt(head);
+    const lineContent = line.text;
+
+    // Check if the line starts with a quote character ">"
+    const quoteMatch = lineContent.match(/^>\s*/);
+
+    if (quoteMatch) {
+        // Special handling for quote character ">"
+        const prefix = quoteMatch[0];
+        const remainingContent = lineContent.substring(head - line.from);
+        const isCursorAtEndOfLine = head === line.to;
+
+        let insertText;
+        const cursorPos = head + 2; // Position after first \n\n
+
+        if (isCursorAtEndOfLine) {
+            // If cursor is at the end of line, just insert two lines
+            // One empty line and one for cursor
+            insertText = '\n\n';
+        } else {
+            // Format: Empty line + cursor line + empty lines + (optional) remaining text with prefix
+            insertText = '\n\n\n\n'; // Four lines: before cursor, cursor line, two empty lines after
+
+            // Add remaining text with prefix
+            if (remainingContent.trim().length > 0) {
+                insertText += prefix + remainingContent;
+            }
+        }
+
+        view.dispatch({
+            changes: {
+                from: head,
+                to: head,
+                insert: insertText,
+            },
+            selection: { anchor: cursorPos }, // Place cursor on the second line
+        });
+        return true;
+    }
+
+    // Handling for lists (* and #)
+    const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
+
+    if (listPrefixMatch) {
+        const symbolPrefix = listPrefixMatch[1]; // Only * and # symbols
+
+        // Form the correct prefix with a guaranteed space
+        const correctPrefix = symbolPrefix + ' ';
+
+        // If the line contains only prefix and whitespace, remove the prefix
+        if (lineContent.trim() === symbolPrefix.trim()) {
+            // Remove prefix and insert a new line
+            view.dispatch({
+                changes: {
+                    from: line.from,
+                    to: line.to,
+                    insert: '',
+                },
+            });
+            return true;
+        }
+
+        // Insert a new line with the full prefix (guarantee a space)
+        view.dispatch({
+            changes: {
+                from: head,
+                to: head,
+                insert: '\n' + correctPrefix,
+            },
+            selection: { anchor: head + 1 + correctPrefix.length },
+        });
+        return true;
+    }
+
+    return false;
 }
