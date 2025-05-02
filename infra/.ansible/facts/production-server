@@ -31,17 +31,17 @@
     "ansible_date_time": {
         "date": "2025-05-02",
         "day": "02",
-        "epoch": "1746152781",
-        "epoch_int": "1746152781",
+        "epoch": "1746154083",
+        "epoch_int": "1746154083",
         "hour": "05",
-        "iso8601": "2025-05-02T02:26:21Z",
-        "iso8601_basic": "20250502T052621144602",
-        "iso8601_basic_short": "20250502T052621",
-        "iso8601_micro": "2025-05-02T02:26:21.144602Z",
-        "minute": "26",
+        "iso8601": "2025-05-02T02:48:03Z",
+        "iso8601_basic": "20250502T054803587989",
+        "iso8601_basic_short": "20250502T054803",
+        "iso8601_micro": "2025-05-02T02:48:03.587989Z",
+        "minute": "48",
         "month": "05",
-        "second": "21",
-        "time": "05:26:21",
+        "second": "03",
+        "time": "05:48:03",
         "tz": "MSK",
         "tz_dst": "MSK",
         "tz_offset": "+0300",
@@ -351,16 +351,15 @@
     "ansible_env": {
         "HOME": "/root",
         "LANG": "en_US.UTF-8",
-        "LC_CTYPE": "C.UTF-8",
         "LOGNAME": "root",
         "MAIL": "/var/mail/root",
         "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "PWD": "/root",
         "SHELL": "/bin/bash",
         "SHLVL": "0",
-        "SSH_CLIENT": "195.26.224.185 48752 53812",
-        "SSH_CONNECTION": "195.26.224.185 48752 89.110.120.142 53812",
-        "SSH_TTY": "/dev/pts/1",
+        "SSH_CLIENT": "195.26.224.185 36796 53813",
+        "SSH_CONNECTION": "195.26.224.185 36796 89.110.120.142 53813",
+        "SSH_TTY": "/dev/pts/0",
         "TERM": "xterm-256color",
         "USER": "root",
         "_": "/bin/sh"
@@ -464,9 +463,9 @@
         "type": "loopback"
     },
     "ansible_loadavg": {
-        "15m": 0.00048828125,
-        "1m": 0.03271484375,
-        "5m": 0.0224609375
+        "15m": 0.0751953125,
+        "1m": 0.0576171875,
+        "5m": 0.0908203125
     },
     "ansible_local": {},
     "ansible_locally_reachable_ips": {
@@ -490,16 +489,16 @@
     "ansible_lvm": "N/A",
     "ansible_machine": "x86_64",
     "ansible_machine_id": "e73cdc50ca3a484ba7968a2d64ec14ac",
-    "ansible_memfree_mb": 136,
+    "ansible_memfree_mb": 269,
     "ansible_memory_mb": {
         "nocache": {
-            "free": 1544,
-            "used": 423
+            "free": 1641,
+            "used": 326
         },
         "real": {
-            "free": 136,
+            "free": 269,
             "total": 1967,
-            "used": 1831
+            "used": 1698
         },
         "swap": {
             "cached": 0,
@@ -511,20 +510,20 @@
     "ansible_memtotal_mb": 1967,
     "ansible_mounts": [
         {
-            "block_available": 9273796,
+            "block_available": 9274151,
             "block_size": 4096,
             "block_total": 10296948,
-            "block_used": 1023152,
+            "block_used": 1022797,
             "device": "/dev/vda1",
             "dump": 0,
             "fstype": "ext4",
-            "inode_available": 2577358,
+            "inode_available": 2577367,
             "inode_total": 2621440,
-            "inode_used": 44082,
+            "inode_used": 44073,
             "mount": "/",
             "options": "rw,relatime,errors=remount-ro",
             "passno": 0,
-            "size_available": 37985468416,
+            "size_available": 37986922496,
             "size_total": 42176299008,
             "uuid": "57623a4f-2728-4020-88e3-437fa6be11b2"
         }
@@ -579,11 +578,11 @@
     },
     "ansible_selinux_python_present": true,
     "ansible_service_mgr": "systemd",
-    "ansible_ssh_host_key_ecdsa_public": "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBO7I4vrgNI3Nfb/YClWIDZhOWDGhXsTcDrb8NwRRNqKSBO2zf2+gDYQATJu8cFpT+iZTd7677mfsyb5vPb9H/ns=",
+    "ansible_ssh_host_key_ecdsa_public": "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDjt1gXHyH+UfVUzTu+FBKSli3po2aXj6XAdBcR+bOj6a3saTr/2qq3PNZAoKoDHyxzCN1MFjl5nzeHaO75/oG8=",
     "ansible_ssh_host_key_ecdsa_public_keytype": "ecdsa-sha2-nistp256",
-    "ansible_ssh_host_key_ed25519_public": "AAAAC3NzaC1lZDI1NTE5AAAAIBNvi8FBbxvUlsVx1PysC84oHCoppP12qI7OphB2Jaoj",
+    "ansible_ssh_host_key_ed25519_public": "AAAAC3NzaC1lZDI1NTE5AAAAIPESfr12HZAgwb4Z2STZwG4a/TpgmA/+XK2NOX+YeeN5",
     "ansible_ssh_host_key_ed25519_public_keytype": "ssh-ed25519",
-    "ansible_ssh_host_key_rsa_public": "AAAAB3NzaC1yc2EAAAADAQABAAABgQCJknZNFPAe469j7vLIe/wOE/IEUDpRC0chOxq1pFYqCazNKg+G2td2LH4PzTMxlci9nMiiPxLfBRMzsYo1RWTbGA2Hm5xvK0izWVCQoTIUrNmo4WdnfzH845EQ95U3P9aL7X7dCcBfD7uFs+6jd0la97+cEIqvEnxHTGNLOSn/VKNJrzNuyJnRFWvyNfbw03oGm66JbI0wnSla/3FvmJVjjK+jNLwV8qvVoc9rzTRe8vB1r839Vr/CtF/whuvFr29SHfDDs9YrWWqRyykA5mkf8dPaHyLlRVe0l9zvFoHRt7x01QmkBVVBQuTEZR4cnPsLNRiWCysijz8vqLB/L0+P85ir1ehT1avcmgljFZb/08hRUmcSbMICbfFmTSiwLpxAZi89XLXCbEBIatwUnShLeiLvzqDMoakNuGuKU/pzuzUvdsicGrry68LCzo5dkFZH185a7EYCeJ9U2FvKIRTwfng9ywgzXITFD+XOfFwSMbha9h+XoA44uyeuKzFYCIc=",
+    "ansible_ssh_host_key_rsa_public": "AAAAB3NzaC1yc2EAAAADAQABAAABgQDsK6o16nKUqN+ccYiTlknGIJ793Hdsyr2qwY7TsFtlZCOOPM6u0h84woUu7ywdOxhRVtCXI4RiiRX5TjmQMLbs5ogVM8nQN1/w7173gpT2HSLDMmR8nmVEEQGYaW0b/nqXMMcER1ChExAKxACYlRjoVZP45JqpfA5d17tCxF66pWMvIIo5P91BR10pcno8eDMIHz/FxrqncV2E7p0XlWGMwHCS3AnySjUCvsycoRe4pGBlCGk3Q/nGNIsYx+kowwr0ZwV0MyUjpG8GyiJI50X4K7YfCh0ncC9M8wqDfa3jD0jfuDK+JumcVLdeVClqhTKGuOl0r1xbpMAtaWsa2ztSeId7jEutgn7FFtyia9Kf3zQlPNoDa0aJ9ZGhsmWZVR8ps14JVTqHTcAtpwb6/KeafHgUBOAd54yx5l819LiYLbe9JszIajdfN4XNN9/2wLoTWSesBMwq7dK3N+4BoIKrXnu/50kx5YxFTY8fpNcXEbfTJ+18EvrH5bmIzVCP7Lk=",
     "ansible_ssh_host_key_rsa_public_keytype": "ssh-rsa",
     "ansible_swapfree_mb": 0,
     "ansible_swaptotal_mb": 0,
@@ -595,7 +594,7 @@
         "features": "+PAM +AUDIT +SELINUX +APPARMOR +IMA +SMACK +SECCOMP +GCRYPT -GNUTLS +OPENSSL +ACL +BLKID +CURL +ELFUTILS +FIDO2 +IDN2 -IDN +IPTC +KMOD +LIBCRYPTSETUP +LIBFDISK +PCRE2 -PWQUALITY +P11KIT +QRENCODE +TPM2 +BZIP2 +LZ4 +XZ +ZLIB +ZSTD -BPF_FRAMEWORK -XKBCOMMON +UTMP +SYSVINIT default-hierarchy=unified",
         "version": 252
     },
-    "ansible_uptime_seconds": 86946,
+    "ansible_uptime_seconds": 1090,
     "ansible_user_dir": "/root",
     "ansible_user_gecos": "root",
     "ansible_user_gid": 0,

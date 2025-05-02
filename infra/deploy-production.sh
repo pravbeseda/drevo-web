@@ -10,6 +10,27 @@ INVENTORY="${SCRIPT_DIR}/inventory/production.yml"
 PLAYBOOK="${SCRIPT_DIR}/site.yml"
 CONFIG="${SCRIPT_DIR}/inventory/production.cfg"
 
+# Check if required Python packages are installed
+check_and_install_dependencies() {
+    echo "Checking required dependencies..."
+    if ! python3 -c "import yaml" 2>/dev/null; then
+        echo "Installing PyYAML package..."
+        pip install PyYAML || {
+            echo "Failed to install PyYAML using pip. Trying with pip3..."
+            pip3 install PyYAML || {
+                echo "Failed to install PyYAML. Please install it manually: pip install PyYAML"
+                exit 1
+            }
+        }
+        echo "PyYAML installed successfully."
+    else
+        echo "PyYAML already installed."
+    fi
+}
+
+# Run dependency check
+check_and_install_dependencies
+
 # Check if config file exists
 if [ ! -f "$CONFIG" ]; then
     echo "Configuration file not found"
