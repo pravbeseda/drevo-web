@@ -29,24 +29,24 @@
         "root": "UUID=57623a4f-2728-4020-88e3-437fa6be11b2"
     },
     "ansible_date_time": {
-        "date": "2025-05-01",
-        "day": "01",
-        "epoch": "1746066433",
-        "epoch_int": "1746066433",
+        "date": "2025-05-02",
+        "day": "02",
+        "epoch": "1746152781",
+        "epoch_int": "1746152781",
         "hour": "05",
-        "iso8601": "2025-05-01T02:27:13Z",
-        "iso8601_basic": "20250501T052713035201",
-        "iso8601_basic_short": "20250501T052713",
-        "iso8601_micro": "2025-05-01T02:27:13.035201Z",
-        "minute": "27",
+        "iso8601": "2025-05-02T02:26:21Z",
+        "iso8601_basic": "20250502T052621144602",
+        "iso8601_basic_short": "20250502T052621",
+        "iso8601_micro": "2025-05-02T02:26:21.144602Z",
+        "minute": "26",
         "month": "05",
-        "second": "13",
-        "time": "05:27:13",
+        "second": "21",
+        "time": "05:26:21",
         "tz": "MSK",
         "tz_dst": "MSK",
         "tz_offset": "+0300",
-        "weekday": "Thursday",
-        "weekday_number": "4",
+        "weekday": "Friday",
+        "weekday_number": "5",
         "weeknumber": "17",
         "year": "2025"
     },
@@ -349,24 +349,20 @@
         "type": "ether"
     },
     "ansible_env": {
-        "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/0/bus",
         "HOME": "/root",
         "LANG": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
         "LOGNAME": "root",
-        "MOTD_SHOWN": "pam",
+        "MAIL": "/var/mail/root",
         "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "PWD": "/root",
         "SHELL": "/bin/bash",
         "SHLVL": "0",
-        "SSH_CLIENT": "213.211.96.5 61816 22",
-        "SSH_CONNECTION": "213.211.96.5 61816 89.110.120.142 22",
-        "SSH_TTY": "/dev/pts/0",
+        "SSH_CLIENT": "195.26.224.185 48752 53812",
+        "SSH_CONNECTION": "195.26.224.185 48752 89.110.120.142 53812",
+        "SSH_TTY": "/dev/pts/1",
         "TERM": "xterm-256color",
         "USER": "root",
-        "XDG_RUNTIME_DIR": "/run/user/0",
-        "XDG_SESSION_CLASS": "user",
-        "XDG_SESSION_ID": "1",
-        "XDG_SESSION_TYPE": "tty",
         "_": "/bin/sh"
     },
     "ansible_fibre_channel_wwn": [],
@@ -468,9 +464,9 @@
         "type": "loopback"
     },
     "ansible_loadavg": {
-        "15m": 0.0,
-        "1m": 0.0,
-        "5m": 0.0
+        "15m": 0.00048828125,
+        "1m": 0.03271484375,
+        "5m": 0.0224609375
     },
     "ansible_local": {},
     "ansible_locally_reachable_ips": {
@@ -494,16 +490,16 @@
     "ansible_lvm": "N/A",
     "ansible_machine": "x86_64",
     "ansible_machine_id": "e73cdc50ca3a484ba7968a2d64ec14ac",
-    "ansible_memfree_mb": 1776,
+    "ansible_memfree_mb": 136,
     "ansible_memory_mb": {
         "nocache": {
-            "free": 1845,
-            "used": 122
+            "free": 1544,
+            "used": 423
         },
         "real": {
-            "free": 1776,
+            "free": 136,
             "total": 1967,
-            "used": 191
+            "used": 1831
         },
         "swap": {
             "cached": 0,
@@ -515,20 +511,20 @@
     "ansible_memtotal_mb": 1967,
     "ansible_mounts": [
         {
-            "block_available": 9531011,
+            "block_available": 9273796,
             "block_size": 4096,
             "block_total": 10296948,
-            "block_used": 765937,
+            "block_used": 1023152,
             "device": "/dev/vda1",
             "dump": 0,
             "fstype": "ext4",
-            "inode_available": 2586148,
+            "inode_available": 2577358,
             "inode_total": 2621440,
-            "inode_used": 35292,
+            "inode_used": 44082,
             "mount": "/",
             "options": "rw,relatime,errors=remount-ro",
             "passno": 0,
-            "size_available": 39039021056,
+            "size_available": 37985468416,
             "size_total": 42176299008,
             "uuid": "57623a4f-2728-4020-88e3-437fa6be11b2"
         }
@@ -599,7 +595,7 @@
         "features": "+PAM +AUDIT +SELINUX +APPARMOR +IMA +SMACK +SECCOMP +GCRYPT -GNUTLS +OPENSSL +ACL +BLKID +CURL +ELFUTILS +FIDO2 +IDN2 -IDN +IPTC +KMOD +LIBCRYPTSETUP +LIBFDISK +PCRE2 -PWQUALITY +P11KIT +QRENCODE +TPM2 +BZIP2 +LZ4 +XZ +ZLIB +ZSTD -BPF_FRAMEWORK -XKBCOMMON +UTMP +SYSVINIT default-hierarchy=unified",
         "version": 252
     },
-    "ansible_uptime_seconds": 598,
+    "ansible_uptime_seconds": 86946,
     "ansible_user_dir": "/root",
     "ansible_user_gecos": "root",
     "ansible_user_gid": 0,

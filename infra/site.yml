@@ -15,3 +15,14 @@
     #   tags: nginx
     # - role: frontend
     #   tags: frontend
+
+- name: Install Netdata only on production servers
+  hosts: all
+  vars_files:
+    - inventory/production.cfg
+  tasks:
+    - name: Include netdata role
+      include_role:
+        name: netdata
+      when: inventory_file is search('production') or inventory_hostname is search('production')
+      tags: netdata
