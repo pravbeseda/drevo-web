@@ -247,13 +247,14 @@ function continueLists(view: EditorView): boolean {
 
         // If the line contains only prefix and whitespace, remove the prefix
         if (lineContent.trim() === symbolPrefix.trim()) {
-            // Remove prefix and insert a new line
+            // Remove prefix and insert an empty line before cursor
             view.dispatch({
                 changes: {
                     from: line.from,
                     to: line.to,
-                    insert: '',
+                    insert: '\n'
                 },
+                selection: { anchor: line.from + 1 } // Position cursor after the empty line
             });
             return true;
         }
