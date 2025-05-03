@@ -92,13 +92,11 @@
 
 - name: Test SSH configuration
   ansible.builtin.command: sshd -t
-  when: ssh_config is changed
 
 - name: Restart SSH service
   ansible.builtin.service:
     name: ssh
     state: restarted
-  when: ssh_config is changed
 
 - name: Wait for SSH to be available
   ansible.builtin.wait_for:
@@ -114,6 +112,18 @@
     timeout: 10
     state: started
     search_regex: OpenSSH
+
+- name: Update connection_port in production.cfg
+  ansible.builtin.shell: |
+    sed -i '' "s/^connection_port:.*/connection_port: {{ ssh_port }}/" "{{ playbook_dir }}/inventory/production.cfg"
+  delegate_to: localhost
+  become: false
+
+- name: Update ansible_port to match new SSH port
+  set_fact:
+    ansible_port: "{{ ssh_port }}"
+  delegate_to: "{{ inventory_hostname }}"
+  delegate_facts: true
 
 - name: Import SSH agent configuration tasks
   import_tasks: ssh_agent.yml
