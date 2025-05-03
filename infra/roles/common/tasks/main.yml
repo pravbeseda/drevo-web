@@ -127,4 +127,8 @@
 
 - name: Import SSH agent configuration tasks
   import_tasks: ssh_agent.yml
-  tags: ['ssh', 'security']
+  tags: ['ssh']
+
+- name: Import ZSH configuration tasks
+  import_tasks: zsh.yml
+  tags: ['zsh', 'shell']

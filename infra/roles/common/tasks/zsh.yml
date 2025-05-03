@@ -1,0 +1,78 @@
+---
+# Tasks for installing and configuring ZSH
+
+- name: Install ZSH and related packages
+  ansible.builtin.apt:
+    name:
+      - zsh
+      - peco
+      - zsh-syntax-highlighting
+    state: present
+    update_cache: yes
+
+- name: Set ZSH as default shell for root
+  ansible.builtin.user:
+    name: root
+    shell: /usr/bin/zsh
+  become: yes
+
+- name: Check if Oh My ZSH is already installed
+  ansible.builtin.stat:
+    path: ~/.oh-my-zsh
+  register: oh_my_zsh_installed
+  become: yes
+
+- name: Install Oh My ZSH
+  ansible.builtin.shell: |
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  args:
+    creates: ~/.oh-my-zsh
+  when: not oh_my_zsh_installed.stat.exists
+  become: yes
+
+- name: Check if zsh-peco-history plugin exists
+  ansible.builtin.stat:
+    path: ~/.oh-my-zsh/custom/plugins/zsh-peco-history
+  register: peco_plugin_exists
+  become: yes
+
+- name: Clone zsh-peco-history plugin
+  ansible.builtin.git:
+    repo: https://github.com/jimeh/zsh-peco-history.git
+    dest: ~/.oh-my-zsh/custom/plugins/zsh-peco-history
+  when: not peco_plugin_exists.stat.exists
+  become: yes
+  
+- name: Check if zsh-autosuggestions plugin exists
+  ansible.builtin.stat:
+    path: ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+  register: autosuggestions_plugin_exists
+  become: yes
+
+- name: Clone zsh-autosuggestions plugin
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-autosuggestions
+    dest: ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+  when: not autosuggestions_plugin_exists.stat.exists
+  become: yes
+
+- name: Add zsh-syntax-highlighting to .zshrc
+  ansible.builtin.lineinfile:
+    path: ~/.zshrc
+    line: 'source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh'
+    state: present
+  become: yes
+
+- name: Replace plugins configuration in .zshrc
+  ansible.builtin.replace:
+    path: ~/.zshrc
+    regexp: '^plugins=\(.*\)'
+    replace: 'plugins=(git node npm zsh-syntax-highlighting zsh-autosuggestions zsh-peco-history)'
+  become: yes
+
+- name: Replace theme configuration in .zshrc
+  ansible.builtin.replace:
+    path: ~/.zshrc
+    regexp: '^ZSH_THEME=.*'
+    replace: 'ZSH_THEME="jonathan"'
+  become: yes 
