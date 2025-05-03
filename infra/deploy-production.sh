@@ -10,6 +10,25 @@ INVENTORY="${SCRIPT_DIR}/inventory/production.yml"
 PLAYBOOK="${SCRIPT_DIR}/site.yml"
 CONFIG="${SCRIPT_DIR}/inventory/production.cfg"
 
+# Add cleanup function and trap
+cleanup() {
+    # Kill ssh-agent if we started it
+    if [ -n "$SSH_AGENT_PID" ]; then
+        ssh-agent -k > /dev/null 2>&1
+    fi
+
+    # Remove temporary password file if it exists
+    if [ -f "$PASSWORD_FILE" ]; then
+        rm -f "$PASSWORD_FILE"
+    fi
+
+    echo -e "\nCleanup completed. Exiting."
+    exit
+}
+
+# Trap for clean exit
+trap cleanup INT TERM EXIT
+
 # Check if required Python packages are installed
 check_and_install_dependencies() {
     echo "Checking required dependencies..."
@@ -85,15 +104,36 @@ ANSIBLE_HOST_KEY_CHECKING=False ssh ${SSH_OPTS} -i ~/.ssh/${SSH_KEY_NAME} -p "${
 
 echo "SSH test result: $TEST_RESULT"
 
+# Prompt for root password change
+echo -n "Enter new root password or just press Enter to leave current one: "
+read -s ROOT_PASSWORD
+echo ""
+
+# Create a temporary password file if needed
+PASSWORD_FILE=""
+EXTRA_VARS=""
+
+if [ ! -z "$ROOT_PASSWORD" ]; then
+    # Create a temporary file with restrictive permissions
+    PASSWORD_FILE=$(mktemp)
+    chmod 600 "$PASSWORD_FILE"
+    echo "new_root_password: '$ROOT_PASSWORD'" > "$PASSWORD_FILE"
+
+    EXTRA_VARS="-e @$PASSWORD_FILE"
+    echo "Root password will be updated"
+else
+    echo "Root password will not be changed"
+fi
+
 if [ $TEST_RESULT -eq 0 ]; then
     echo "Connecting with SSH key..."
-    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" --ssh-extra-args="${SSH_OPTS} -i ~/.ssh/${SSH_KEY_NAME}"
+    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" -e "@$CONFIG" --ssh-extra-args="${SSH_OPTS} -i ~/.ssh/${SSH_KEY_NAME}" $EXTRA_VARS
 else
     echo "SSH key authentication failed (exit code: $TEST_RESULT), using password..."
     # Remove key from agent to force password authentication
     ssh-add -d ~/.ssh/${SSH_KEY_NAME} 2>/dev/null
     # Remove BatchMode for password authentication
     SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" -k --ssh-extra-args="${SSH_OPTS}"
+    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook "$PLAYBOOK" -i "$INVENTORY" -e "@$CONFIG" -k --ssh-extra-args="${SSH_OPTS}" $EXTRA_VARS
 fi
 

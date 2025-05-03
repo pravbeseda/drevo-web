@@ -27,17 +27,3 @@
     state: started
     enabled: yes
 
-- name: Connect Netdata to cloud
-  shell: |
-    wget -O /tmp/netdata-claim.sh https://get.netdata.cloud/kickstart.sh && \
-    sh /tmp/netdata-claim.sh \
-    --stable-channel \
-    --claim-token KB7oUWx-0-gLKBva91Bf9PKm_GiTD_8kuuo7Iwj9vyHP_5j0p5FDZrrRIjVNK50pc0IdOaYoUWCcUbH3po37ARWIa9DGvvhcW6A_HSCSDN-UhD_3rJh2Quh9Yd56IdIBJn83lXs \
-    --claim-rooms fcd21f06-462a-4eff-bc19-5f1cd143c2f4 \
-    --claim-url https://app.netdata.cloud
-  become: yes
-  register: claim_result
-  changed_when: "'Claim succeeded!' in claim_result.stdout"
-  failed_when: 
-    - claim_result.rc != 0 
-    - "'already claimed' not in claim_result.stderr"

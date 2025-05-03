@@ -1,6 +1,14 @@
 ---
 # infra/roles/common/tasks/main.yml
 
+- name: Change root password
+  ansible.builtin.user:
+    name: root
+    password: "{{ new_root_password | password_hash('sha512') }}"
+    update_password: always
+  when: new_root_password is defined
+  tags: ['security', 'password']
+
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: true
