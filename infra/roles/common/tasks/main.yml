@@ -71,6 +71,17 @@
   register: ssh_config_updated
   when: current_ssh_port.stdout != ssh_port | string
 
+- name: Check if UFW is installed
+  ansible.builtin.shell: command -v ufw || echo "not_installed"
+  register: ufw_check
+  changed_when: false
+
+- name: Reset UFW rules if SSH port changed and UFW is installed
+  ansible.builtin.shell: ufw --force reset
+  when:
+    - ssh_config_updated is changed
+    - ufw_check.stdout != "not_installed"
+
 - name: Test SSH configuration
   ansible.builtin.command: sshd -t
   when: ssh_config is changed
@@ -80,18 +91,6 @@
     name: ssh
     state: restarted
   when: ssh_config is changed
-
-- name: Ensure UFW is installed
-  ansible.builtin.apt:
-    name: ufw
-    state: present
-
-- name: Ensure UFW is enabled and allow SSH on custom port
-  community.general.ufw:
-    rule: allow
-    port: "{{ ssh_port }}"
-    proto: tcp
-    state: enabled
 
 - name: Wait for SSH to be available
   ansible.builtin.wait_for:

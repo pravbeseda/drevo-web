@@ -1,0 +1,11 @@
+---
+# Handlers for security role
+
+- name: Reload UFW
+  community.general.ufw:
+    state: reloaded
+
+- name: Restart Fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted 

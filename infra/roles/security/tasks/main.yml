@@ -1,0 +1,12 @@
+---
+# Main security tasks
+
+# Import UFW configuration tasks
+- name: Import UFW tasks
+  import_tasks: ufw.yml
+  tags: ['ufw', 'firewall']
+
+# Import Fail2ban configuration tasks
+- name: Import Fail2ban tasks
+  import_tasks: fail2ban.yml
+  tags: ['fail2ban', 'intrusion'] 

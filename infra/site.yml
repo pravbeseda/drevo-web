@@ -16,13 +16,24 @@
     # - role: frontend
     #   tags: frontend
 
-- name: Install Netdata only on production servers
+- name: Apply security configurations only on production servers
   hosts: all
   vars_files:
     - inventory/production.cfg
   tasks:
-    - name: Include netdata role
+    - name: Include security role
       include_role:
-        name: netdata
+        name: security
       when: inventory_file is search('production') or inventory_hostname is search('production')
-      tags: netdata
+      tags: security
+
+- name: Install Monitoring only on production servers
+  hosts: all
+  vars_files:
+    - inventory/production.cfg
+  tasks:
+    - name: Include monitoring role
+      include_role:
+        name: monitoring
+      when: inventory_file is search('production') or inventory_hostname is search('production')
+      tags: monitoring

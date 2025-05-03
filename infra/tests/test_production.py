@@ -61,6 +61,7 @@ def test_ssh_password_auth(config):
             port=config['ssh_port'],
             username='root',
             password='testpassword',
+            timeout=5,
             look_for_keys=False,  # Отключаем проверку ключей
             allow_agent=False     # Отключаем использование ssh-agent
         )
