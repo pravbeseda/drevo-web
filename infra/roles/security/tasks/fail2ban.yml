@@ -12,6 +12,15 @@
     state: directory
     mode: '0755'
 
+- name: Ensure SSH log file exists
+  ansible.builtin.file:
+    path: /var/log/auth.log
+    state: touch
+    mode: '0644'
+    owner: root
+    group: adm
+  changed_when: false
+
 - name: Configure Fail2ban SSH settings
   ansible.builtin.template:
     src: ssh-jail.conf.j2
@@ -25,4 +34,21 @@
   ansible.builtin.service:
     name: fail2ban
     state: started
-    enabled: yes 
+    enabled: yes
+
+- name: Check if Fail2ban is running correctly
+  ansible.builtin.shell: systemctl status fail2ban | grep "Active:" | grep -q "active (running)"
+  register: fail2ban_status
+  failed_when: fail2ban_status.rc != 0
+  changed_when: false
+
+- name: Get Fail2ban error logs if service failed
+  ansible.builtin.shell: journalctl -u fail2ban -n 20
+  register: fail2ban_logs
+  when: fail2ban_status is failed
+  changed_when: false
+
+- name: Display Fail2ban error logs
+  ansible.builtin.debug:
+    var: fail2ban_logs.stdout_lines
+  when: fail2ban_status is failed
