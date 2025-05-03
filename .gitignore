@@ -45,6 +45,7 @@ Thumbs.db
 
 # Ansible
 infra/inventory/production.cfg
+infra/.ansible/facts/
 
 # Python
 __pycache__/

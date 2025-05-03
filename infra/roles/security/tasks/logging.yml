@@ -1,0 +1,27 @@
+---
+# Logging configuration tasks
+
+- name: Install rsyslog
+  ansible.builtin.apt:
+    name: rsyslog
+    state: present
+
+- name: Enable and start rsyslog service
+  ansible.builtin.systemd:
+    name: rsyslog
+    enabled: yes
+    state: started
+
+- name: Configure journald to forward logs to syslog
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: '^#?ForwardToSyslog='
+    line: 'ForwardToSyslog=yes'
+    state: present
+  register: journald_config
+
+- name: Restart journald service
+  ansible.builtin.systemd:
+    name: systemd-journald
+    state: restarted
+  when: journald_config is changed 

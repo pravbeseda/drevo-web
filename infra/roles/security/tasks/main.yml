@@ -6,7 +6,12 @@
   import_tasks: ufw.yml
   tags: ['ufw', 'firewall']
 
+# Import Logging configuration tasks
+- name: Import Logging tasks
+  import_tasks: logging.yml
+  tags: [ 'logging', 'monitoring' ]
+
 # Import Fail2ban configuration tasks
 - name: Import Fail2ban tasks
   import_tasks: fail2ban.yml
-  tags: ['fail2ban', 'intrusion'] 
+  tags: ['fail2ban', 'intrusion']

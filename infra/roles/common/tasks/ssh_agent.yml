@@ -1,5 +1,4 @@
 ---
-# Настройка SSH agent для локальной системы
 - name: Ensure SSH agent is running
   ansible.builtin.shell: |
     eval $(ssh-agent)
