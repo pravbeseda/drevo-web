@@ -115,12 +115,6 @@
     state: started
     search_regex: OpenSSH
 
-- name: Update connection_port in production.cfg
-  ansible.builtin.shell: |
-    sed -i '' "s/^connection_port:.*/connection_port: {{ ssh_port }}/" "{{ playbook_dir }}/inventory/production.cfg"
-  delegate_to: localhost
-  become: false
-
 - name: Import SSH agent configuration tasks
   import_tasks: ssh_agent.yml
   tags: ['ssh', 'security']
