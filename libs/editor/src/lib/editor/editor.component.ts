@@ -11,7 +11,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
-import { EditorState, Transaction } from '@codemirror/state';
+import { EditorState } from '@codemirror/state';
 import {
     EditorView,
     drawSelection,
@@ -136,6 +136,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
                     closeBrackets(),
                     bracketMatching(),
                     this.wikiHighlighterService.wikiHighlighter,
+                    this.wikiHighlighterService.urlTooltips,
                     EditorView.updateListener.of((v: ViewUpdate) => {
                         if (v.docChanged) {
                             this.contentChanged.emit(v.state.doc.toString());
@@ -252,9 +253,9 @@ function continueLists(view: EditorView): boolean {
                 changes: {
                     from: line.from,
                     to: line.to,
-                    insert: '\n'
+                    insert: '\n',
                 },
-                selection: { anchor: line.from + 1 } // Position cursor after the empty line
+                selection: { anchor: line.from + 1 }, // Position cursor after the empty line
             });
             return true;
         }

@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
+import {
+    Decoration,
+    DecorationSet,
+    EditorView,
+    hoverTooltip,
+} from '@codemirror/view';
 import { RangeSetBuilder, StateField } from '@codemirror/state';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { Subject } from 'rxjs';
@@ -8,6 +13,7 @@ interface Match {
     from: number;
     to: number;
     className: string;
+    url?: string;
 }
 
 const commonClassName = 'cm-wikiHighlight';
@@ -19,6 +25,7 @@ export class WikiHighlighterService {
     private readonly linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
     private readonly mapPointRegex = /\{\{Метка:(.+?)\}\}/g;
     private readonly quoteRegex = /^>.*$/gm;
+    private readonly urlRegex = /(https?:\/\/[^\s<>)"]+)/g;
 
     private text = '';
     private readonly matches: Match[] = [];
@@ -40,6 +47,49 @@ export class WikiHighlighterService {
             return decorations;
         },
         provide: f => EditorView.decorations.from(f),
+    });
+
+    // Создаем тултип для URL
+    public urlTooltips = hoverTooltip((view, pos) => {
+        // Находим URL декорацию под курсором
+        let urlMatch: Match | undefined;
+
+        // Проверяем все совпадения на наличие URL под курсором
+        for (const match of this.matches) {
+            if (match.url && pos >= match.from && pos <= match.to) {
+                urlMatch = match;
+                break;
+            }
+        }
+
+        if (!urlMatch || !urlMatch.url) return null;
+
+        // Создаем и возвращаем тултип
+        return {
+            pos: urlMatch.from,
+            end: urlMatch.to,
+            above: true,
+            create: () => {
+                const dom = document.createElement('div');
+                dom.className = 'url-tooltip';
+
+                const urlText = document.createElement('div');
+                urlText.textContent = urlMatch.url as string;
+
+                const openButton = document.createElement('button');
+                openButton.textContent = 'Открыть ссылку';
+                openButton.onclick = () => {
+                    if (urlMatch.url) {
+                        window.open(urlMatch.url, '_blank');
+                    }
+                };
+
+                dom.appendChild(urlText);
+                dom.appendChild(openButton);
+
+                return { dom };
+            },
+        };
     });
 
     public async updateLinksState(
@@ -103,6 +153,7 @@ export class WikiHighlighterService {
             this.collectMapPointMatches();
             this.collectMatches(this.linkRegex, 'cm-link', true);
             this.collectMatches(this.quoteRegex, 'cm-quote');
+            this.collectUrlMatches();
             this.collectLinksMatches();
             this.matches.sort((a, b) => a.from - b.from);
             this.updateLinksState(this.linksState);
@@ -127,6 +178,8 @@ export class WikiHighlighterService {
         isBalancedCorrectionNeeded = false
     ): void {
         let match;
+        // Сбрасываем lastIndex, чтобы регулярка начала поиск с начала строки
+        regex.lastIndex = 0;
         while ((match = regex.exec(this.text)) !== null) {
             let matchedText = match[0];
             if (isBalancedCorrectionNeeded) {
@@ -140,8 +193,25 @@ export class WikiHighlighterService {
         }
     }
 
+    private collectUrlMatches(): void {
+        let match;
+        // Сбрасываем lastIndex, чтобы регулярка начала поиск с начала строки
+        this.urlRegex.lastIndex = 0;
+        while ((match = this.urlRegex.exec(this.text)) !== null) {
+            const url = match[0];
+            this.matches.push({
+                from: match.index,
+                to: match.index + url.length,
+                className: `${commonClassName} cm-url`,
+                url: url,
+            });
+        }
+    }
+
     private collectLinksMatches(): void {
         let match;
+        // Сбрасываем lastIndex, чтобы регулярка начала поиск с начала строки
+        this.linkRegex.lastIndex = 0;
         while ((match = this.linkRegex.exec(this.text)) !== null) {
             const matchedText = this.trimToBalanced(match[1]);
             const start = match.index + 2; // Skip the opening brackets
@@ -157,6 +227,8 @@ export class WikiHighlighterService {
 
     private collectMapPointMatches(): void {
         let match: RegExpExecArray | null;
+        // Сбрасываем lastIndex, чтобы регулярка начала поиск с начала строки
+        this.mapPointRegex.lastIndex = 0;
         while ((match = this.mapPointRegex.exec(this.text)) !== null) {
             const fullMatch = match[0];
             const start = match.index;
