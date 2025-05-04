@@ -1,7 +1,0 @@
-# SPDX-License-Identifier: MIT-0
----
-# Test playbook for mysql role
-- name: Test MySQL role
-  hosts: localhost
-  roles:
-    - role: mysql

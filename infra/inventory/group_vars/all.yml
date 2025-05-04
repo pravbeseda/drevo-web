@@ -1,3 +1,0 @@
-# Load variables from production.cfg
-vars_files:
-  - ../production.cfg 

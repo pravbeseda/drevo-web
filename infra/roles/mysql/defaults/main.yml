@@ -1,7 +1,0 @@
----
-# Default variables for mysql role
-
-mysql_root_password: "CHANGEME"     # put the real value in an encrypted vault file
-mysql_bind_address: "127.0.0.1"       # "127.0.0.1" if you want only local access
-mysql_databases: []                 # [{ name: app_db, encoding: utf8mb4 }]
-mysql_users: []                     # [{ name: app, pass: secret, priv: "app_db.*:ALL" }]

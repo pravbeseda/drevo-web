@@ -1,9 +1,0 @@
-# Production environment inventory
-all:
-  hosts:
-    production-server:  # replace with your production host alias
-      ansible_host: "{{ production_server_ip }}"  # from production.cfg
-      ansible_port: "{{ connection_port }}"  # initial connection port
-      ansible_user: root  # using root for initial connection
-      ansible_private_key_file: "~/.ssh/{{ ssh_key_name }}"  # from production.cfg
-      ssh_port: "{{ ssh_port }}"  # using encrypted variable
