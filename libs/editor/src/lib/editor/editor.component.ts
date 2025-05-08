@@ -11,7 +11,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformServer } from '@angular/common';
-import { EditorState, Transaction } from '@codemirror/state';
+import { EditorState } from '@codemirror/state';
 import {
     EditorView,
     drawSelection,
@@ -228,7 +228,7 @@ function continueLists(view: EditorView): boolean {
         view.dispatch({
             changes: {
                 from: head,
-                to: head,
+                to: line.to,
                 insert: insertText,
             },
             selection: { anchor: cursorPos }, // Place cursor on the second line
@@ -252,9 +252,9 @@ function continueLists(view: EditorView): boolean {
                 changes: {
                     from: line.from,
                     to: line.to,
-                    insert: '\n'
+                    insert: '\n',
                 },
-                selection: { anchor: line.from + 1 } // Position cursor after the empty line
+                selection: { anchor: line.from + 1 }, // Position cursor after the empty line
             });
             return true;
         }
