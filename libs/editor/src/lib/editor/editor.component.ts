@@ -143,6 +143,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
                     }),
                     keymap.of([
                         { key: 'Enter', run: continueLists },
+                        { key: 'Tab', run: increaseListIndent },
+                        { key: 'Shift-Tab', run: decreaseListIndent },
                         ...defaultKeymap,
                         ...historyKeymap,
                         ...searchKeymap,
@@ -271,5 +273,161 @@ function continueLists(view: EditorView): boolean {
         return true;
     }
 
+    return false;
+}
+
+function increaseListIndent(view: EditorView): boolean {
+    const { state } = view;
+    const { doc } = state;
+    const selection = state.selection;
+    
+    // Проверяем, есть ли выделение
+    if (selection.ranges.length > 0) {
+        // Получаем диапазон строк, затронутых выделением
+        const startLine = doc.lineAt(selection.main.from);
+        const endLine = doc.lineAt(selection.main.to);
+        
+        // Если выделение охватывает несколько строк
+        if (startLine.number !== endLine.number) {
+            const changes = [];
+            let affectedLines = false;
+            
+            // Проходим по всем строкам в выделении
+            for (let i = startLine.number; i <= endLine.number; i++) {
+                const line = doc.line(i);
+                const lineContent = line.text;
+                
+                // Проверяем, является ли строка элементом списка
+                const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
+                
+                if (listPrefixMatch) {
+                    affectedLines = true;
+                    const currentPrefix = listPrefixMatch[1];
+                    // Используем последний символ префикса вместо первого
+                    const lastChar = currentPrefix[currentPrefix.length - 1];
+                    const newPrefix = currentPrefix + lastChar;
+                    const spaceAfter = listPrefixMatch[2];
+                    
+                    changes.push({
+                        from: line.from,
+                        to: line.from + listPrefixMatch[0].length,
+                        insert: newPrefix + spaceAfter
+                    });
+                }
+            }
+            
+            if (affectedLines) {
+                view.dispatch({ changes });
+                return true;
+            }
+        }
+    }
+    
+    // Обработка одной строки (как раньше)
+    const { head } = selection.main;
+    
+    // Получаем текущую строку
+    const line = doc.lineAt(head);
+    const lineContent = line.text;
+    
+    // Проверяем, начинается ли строка с маркера списка (* или #)
+    const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
+    
+    if (listPrefixMatch) {
+        // Увеличиваем уровень вложенности, добавляя один символ в начало
+        // Используем последний символ из текущего префикса
+        const currentPrefix = listPrefixMatch[1]; // Текущие символы * и #
+        const lastChar = currentPrefix[currentPrefix.length - 1]; // Последний символ
+        const newPrefix = currentPrefix + lastChar; // Добавляем один символ того же типа
+        const spaceAfter = listPrefixMatch[2]; // Сохраняем пробелы после префикса
+        
+        // Заменяем старый префикс на новый
+        view.dispatch({
+            changes: {
+                from: line.from,
+                to: line.from + listPrefixMatch[0].length,
+                insert: newPrefix + spaceAfter
+            }
+        });
+        
+        return true;
+    }
+    
+    return false;
+}
+
+function decreaseListIndent(view: EditorView): boolean {
+    const { state } = view;
+    const { doc } = state;
+    const selection = state.selection;
+    
+    // Проверяем, есть ли выделение
+    if (selection.ranges.length > 0) {
+        // Получаем диапазон строк, затронутых выделением
+        const startLine = doc.lineAt(selection.main.from);
+        const endLine = doc.lineAt(selection.main.to);
+        
+        // Если выделение охватывает несколько строк
+        if (startLine.number !== endLine.number) {
+            const changes = [];
+            let affectedLines = false;
+            
+            // Проходим по всем строкам в выделении
+            for (let i = startLine.number; i <= endLine.number; i++) {
+                const line = doc.line(i);
+                const lineContent = line.text;
+                
+                // Проверяем, является ли строка элементом списка с вложенностью > 1
+                const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
+                
+                if (listPrefixMatch && listPrefixMatch[1].length > 1) {
+                    affectedLines = true;
+                    const currentPrefix = listPrefixMatch[1];
+                    const newPrefix = currentPrefix.slice(0, -1); // Удаляем последний символ
+                    const spaceAfter = listPrefixMatch[2];
+                    
+                    changes.push({
+                        from: line.from,
+                        to: line.from + listPrefixMatch[0].length,
+                        insert: newPrefix + spaceAfter
+                    });
+                }
+            }
+            
+            if (affectedLines) {
+                view.dispatch({ changes });
+                return true;
+            }
+        }
+    }
+    
+    // Обработка одной строки (как раньше)
+    const { head } = selection.main;
+    
+    // Получаем текущую строку
+    const line = doc.lineAt(head);
+    const lineContent = line.text;
+    
+    // Проверяем, начинается ли строка с маркера списка (* или #)
+    const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
+    
+    if (listPrefixMatch && listPrefixMatch[1].length > 1) {
+        // Уменьшаем уровень вложенности, удаляя один символ из начала
+        const currentPrefix = listPrefixMatch[1];
+        const newPrefix = currentPrefix.slice(0, -1); // Удаляем последний символ
+        const spaceAfter = listPrefixMatch[2]; // Сохраняем пробелы после префикса
+        
+        // Заменяем старый префикс на новый
+        view.dispatch({
+            changes: {
+                from: line.from,
+                to: line.from + listPrefixMatch[0].length,
+                insert: newPrefix + spaceAfter
+            }
+        });
+        
+        return true;
+    }
+    
     return false;
 }
