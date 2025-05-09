@@ -136,6 +136,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
                     closeBrackets(),
                     bracketMatching(),
                     this.wikiHighlighterService.wikiHighlighter,
+                    this.wikiHighlighterService.urlTooltips,
                     EditorView.updateListener.of((v: ViewUpdate) => {
                         if (v.docChanged) {
                             this.contentChanged.emit(v.state.doc.toString());
