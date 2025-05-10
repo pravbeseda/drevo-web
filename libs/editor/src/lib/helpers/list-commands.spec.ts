@@ -25,8 +25,8 @@ describe('List commands tests', () => {
             },
             {
                 title: 'should handle list with bold text',
-                prev: '* *hello*| world',
-                next: '* *hello*\n* | world',
+                prev: '* *hello*|   world ',
+                next: '* *hello*\n* |world',
             },
             {
                 title: 'should continue list',

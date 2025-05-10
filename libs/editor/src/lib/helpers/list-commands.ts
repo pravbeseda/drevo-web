@@ -77,11 +77,14 @@ export function continueLists(view: EditorView): boolean {
         }
 
         // Insert a new line with the full prefix (guarantee a space)
+        const reminder = lineContent.substring(head - line.from);
+        const trimmedReminder = reminder.trim();
+
         view.dispatch({
             changes: {
                 from: head,
-                to: head,
-                insert: '\n' + correctPrefix,
+                to: line.to,
+                insert: '\n' + correctPrefix + trimmedReminder,
             },
             selection: { anchor: head + 1 + correctPrefix.length },
         });
