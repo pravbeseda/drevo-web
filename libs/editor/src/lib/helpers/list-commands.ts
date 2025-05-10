@@ -1,97 +1,7 @@
 import { EditorView } from '@codemirror/view';
 
 export function continueLists(view: EditorView): boolean {
-    const { state } = view;
-    const { doc } = state;
-    const { head } = state.selection.main;
-
-    // Get the current line
-    const line = doc.lineAt(head);
-    const lineContent = line.text;
-
-    // Check if the line starts with a quote character ">"
-    const quoteMatch = lineContent.match(/^>\s*/);
-
-    if (quoteMatch) {
-        // Special handling for quote character ">"
-        const prefix = quoteMatch[0];
-        const remainingContent = lineContent.substring(head - line.from);
-        const isCursorAtEndOfLine = head === line.to;
-
-        let insertText;
-        const cursorPos = head + 2; // Position after first \n\n
-
-        if (isCursorAtEndOfLine) {
-            // If cursor is at the end of line, just insert two lines
-            // One empty line and one for cursor
-            insertText = '\n\n';
-        } else {
-            // Format: Empty line + cursor line + empty lines + (optional) remaining text with prefix
-            insertText = '\n\n\n\n'; // Four lines: before cursor, cursor line, two empty lines after
-
-            // Add remaining text with prefix
-            if (remainingContent.trim().length > 0) {
-                insertText += prefix + remainingContent;
-            }
-        }
-
-        view.dispatch({
-            changes: {
-                from: head,
-                to: line.to,
-                insert: insertText,
-            },
-            selection: { anchor: cursorPos }, // Place cursor on the second line
-        });
-        return true;
-    }
-
-    // Handling for lists (* and #), with skip for single '*' used in bold (even total '*' count)
-    const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-
-    if (listPrefixMatch) {
-        const symbolPrefix = listPrefixMatch[1]; // sequence of '*' or '#'
-        // If single '*' and total '*' count is even, skip (likely bold syntax)
-        if (symbolPrefix === '*') {
-            const totalStars = (lineContent.match(/\*/g) || []).length;
-            if (totalStars % 2 === 0) {
-                return false;
-            }
-        }
-
-        // Form the correct prefix with a guaranteed space
-        const correctPrefix = symbolPrefix + ' ';
-
-        // If the line contains only prefix and whitespace, remove the prefix
-        if (lineContent.trim() === symbolPrefix.trim()) {
-            // Remove prefix and insert an empty line before cursor
-            view.dispatch({
-                changes: {
-                    from: line.from,
-                    to: line.to,
-                    insert: '\n',
-                },
-                selection: { anchor: line.from + 1 }, // Position cursor after the empty line
-            });
-            return true;
-        }
-
-        // Insert a new line with the full prefix (guarantee a space)
-        const reminder = lineContent.substring(head - line.from);
-        const trimmedReminder = reminder.trim();
-
-        view.dispatch({
-            changes: {
-                from: head,
-                to: line.to,
-                insert: '\n' + correctPrefix + trimmedReminder,
-            },
-            selection: { anchor: head + 1 + correctPrefix.length },
-        });
-        return true;
-    }
-
-    return false;
+    return handleQuoteContinuation(view) || handleListContinuation(view);
 }
 
 export function increaseListIndent(view: EditorView): boolean {
@@ -248,4 +158,102 @@ export function decreaseListIndent(view: EditorView): boolean {
     }
 
     return false;
+}
+
+function handleListContinuation(view: EditorView): boolean {
+    const { state } = view;
+    const { doc } = state;
+    const head = state.selection.main.head;
+    const line = doc.lineAt(head);
+    const lineContent = line.text;
+    const listMatch = lineContent.match(/^([*#]+)(\s*)/);
+
+    if (!listMatch) return false;
+
+    const symbolPrefix = listMatch[1]; // sequence of '*' or '#'
+    // If single '*' and total '*' count is even, skip (likely bold syntax)
+    if (symbolPrefix === '*') {
+        const totalStars = (lineContent.match(/\*/g) || []).length;
+        if (totalStars % 2 === 0) {
+            return false;
+        }
+    }
+
+    // Form the correct prefix with a guaranteed space
+    const correctPrefix = symbolPrefix + ' ';
+
+    // If the line contains only prefix and whitespace, remove the prefix
+    if (lineContent.trim() === symbolPrefix.trim()) {
+        // Remove prefix and insert an empty line before cursor
+        view.dispatch({
+            changes: {
+                from: line.from,
+                to: line.to,
+                insert: '\n',
+            },
+            selection: { anchor: line.from + 1 }, // Position cursor after the empty line
+        });
+        return true;
+    }
+
+    // Insert a new line with the full prefix (guarantee a space)
+    const reminder = lineContent.substring(head - line.from);
+    const trimmedReminder = reminder.trim();
+
+    view.dispatch({
+        changes: {
+            from: head,
+            to: line.to,
+            insert: '\n' + correctPrefix + trimmedReminder,
+        },
+        selection: { anchor: head + 1 + correctPrefix.length },
+    });
+    return true;
+}
+
+function handleQuoteContinuation(view: EditorView): boolean {
+    const { state } = view;
+    const { doc } = state;
+    const { head } = state.selection.main;
+
+    // Get the current line
+    const line = doc.lineAt(head);
+    const lineContent = line.text;
+
+    // Check if the line starts with a quote character ">"
+    const quoteMatch = lineContent.match(/^>\s*/);
+
+    if (!quoteMatch) return false;
+
+    // Special handling for quote character ">"
+    const prefix = quoteMatch[0];
+    const remainingContent = lineContent.substring(head - line.from);
+    const isCursorAtEndOfLine = head === line.to;
+
+    let insertText;
+    const cursorPos = head + 2; // Position after first \n\n
+
+    if (isCursorAtEndOfLine) {
+        // If cursor is at the end of line, just insert two lines
+        // One empty line and one for cursor
+        insertText = '\n\n';
+    } else {
+        // Format: Empty line + cursor line + empty lines + (optional) remaining text with prefix
+        insertText = '\n\n\n\n'; // Four lines: before cursor, cursor line, two empty lines after
+
+        // Add remaining text with prefix
+        if (remainingContent.trim().length > 0) {
+            insertText += prefix + remainingContent;
+        }
+    }
+
+    view.dispatch({
+        changes: {
+            from: head,
+            to: line.to,
+            insert: insertText,
+        },
+        selection: { anchor: cursorPos }, // Place cursor on the second line
+    });
+    return true;
 }
