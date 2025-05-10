@@ -34,6 +34,26 @@ describe('List commands tests', () => {
                 next: '* item\n* |',
             },
             {
+                title: 'should continue list level2',
+                prev: '** item|',
+                next: '** item\n** |',
+            },
+            {
+                title: 'should continue numbered list',
+                prev: '# item|',
+                next: '# item\n# |',
+            },
+            {
+                title: 'should continue numbered list level2',
+                prev: '## item|',
+                next: '## item\n## |',
+            },
+            {
+                title: 'should continue mixed list level2',
+                prev: '*# item|',
+                next: '*# item\n*# |',
+            },
+            {
                 title: 'should skip list after empy item',
                 prev: '*|',
                 next: '\n|',
@@ -42,6 +62,22 @@ describe('List commands tests', () => {
                 title: 'should not handle when cursor at the beginning of line',
                 prev: '|* item',
                 next: '|* item',
+            },
+            // comments tests
+            {
+                title: 'should break comment',
+                prev: '> word1| word2',
+                next: '> word1\n\n|\n\n> word2',
+            },
+            {
+                title: 'should add empty string',
+                prev: '> word1 word2|',
+                next: '> word1 word2\n\n|',
+            },
+            {
+                title: 'should not handle when cursor at the beginning of quote mark',
+                prev: '|> word1 word2',
+                next: '|> word1 word2',
             },
         ];
 
@@ -54,8 +90,10 @@ describe('List commands tests', () => {
 
                 const { doc: expectedDoc, pos: expectedPos } =
                     parseCursor(next);
+                // Serialize doc with visible newline markers for easier diffing
+                const rawActualDoc = view.state.doc.toString();
                 const actual = {
-                    doc: view.state.doc.toString(),
+                    doc: rawActualDoc,
                     pos: view.state.selection.main.anchor,
                     result,
                 };

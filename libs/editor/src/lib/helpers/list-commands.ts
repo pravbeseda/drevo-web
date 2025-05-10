@@ -226,6 +226,11 @@ function handleQuoteContinuation(view: EditorView): boolean {
     const line = doc.lineAt(head);
     const lineContent = line.text;
 
+    // Do not handle when cursor at the beginning of a line
+    if (head === line.from) {
+        return false;
+    }
+
     // Check if the line starts with a quote character ">"
     const quoteMatch = lineContent.match(/^>\s*/);
 
@@ -233,7 +238,7 @@ function handleQuoteContinuation(view: EditorView): boolean {
 
     // Special handling for quote character ">"
     const prefix = quoteMatch[0];
-    const remainingContent = lineContent.substring(head - line.from);
+    const remainingContent = lineContent.substring(head - line.from).trim();
     const isCursorAtEndOfLine = head === line.to;
 
     let insertText;
