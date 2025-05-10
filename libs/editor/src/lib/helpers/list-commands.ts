@@ -46,11 +46,18 @@ export function continueLists(view: EditorView): boolean {
         return true;
     }
 
-    // Handling for lists (* and #)
+    // Handling for lists (* and #), with skip for single '*' used in bold (even total '*' count)
     const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
 
     if (listPrefixMatch) {
-        const symbolPrefix = listPrefixMatch[1]; // Only * and # symbols
+        const symbolPrefix = listPrefixMatch[1]; // sequence of '*' or '#'
+        // If single '*' and total '*' count is even, skip (likely bold syntax)
+        if (symbolPrefix === '*') {
+            const totalStars = (lineContent.match(/\*/g) || []).length;
+            if (totalStars % 2 === 0) {
+                return false;
+            }
+        }
 
         // Form the correct prefix with a guaranteed space
         const correctPrefix = symbolPrefix + ' ';
