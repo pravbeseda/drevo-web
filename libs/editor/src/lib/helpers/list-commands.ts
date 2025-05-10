@@ -1,198 +1,6 @@
-import {
-    AfterViewInit,
-    Component,
-    ElementRef,
-    EventEmitter,
-    Inject,
-    Input,
-    OnInit,
-    Output,
-    PLATFORM_ID,
-    ViewChild,
-} from '@angular/core';
-import { CommonModule, isPlatformServer } from '@angular/common';
-import { EditorState } from '@codemirror/state';
-import {
-    EditorView,
-    drawSelection,
-    dropCursor,
-    highlightSpecialChars,
-    keymap,
-    ViewUpdate,
-} from '@codemirror/view';
-import {
-    defaultHighlightStyle,
-    indentOnInput,
-    bracketMatching,
-    syntaxHighlighting,
-} from '@codemirror/language';
-import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
-import { closeBrackets } from '@codemirror/autocomplete';
-import { WikiHighlighterService } from '../services/wiki-highlighter/wiki-highlighter.service';
-import { linksUpdatedEffect } from '../constants/editor-effects';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { BehaviorSubject, filter } from 'rxjs';
-import { InsertTagCommand } from '@drevo-web/shared';
-import { search, searchKeymap, openSearchPanel } from '@codemirror/search';
+import { EditorView } from '@codemirror/view';
 
-const russianPhrases = {
-    Find: 'Найти',
-    Replace: 'Заменить',
-    next: 'Следующее',
-    previous: 'Предыдущее',
-    replace: 'Заменить',
-    'replace all': 'Заменить все',
-    'by word': 'искать по словам',
-    'match case': 'учитывать регистр',
-    Close: 'Закрыть',
-};
-
-@UntilDestroy()
-@Component({
-    selector: 'lib-editor',
-    imports: [CommonModule],
-    providers: [WikiHighlighterService],
-    templateUrl: './editor.component.html',
-    styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
-})
-export class EditorComponent implements OnInit, AfterViewInit {
-    private linksSubject = new BehaviorSubject<Record<string, boolean>>({});
-
-    @ViewChild('editorContainer')
-    editorContainer?: ElementRef;
-
-    @Input({ required: true })
-    content!: string;
-
-    @Input()
-    set insertTagCommand(command: InsertTagCommand | null) {
-        if (!command) {
-            return;
-        }
-        this.insertTag(command);
-    }
-
-    @Output()
-    readonly updateLinksEvent = new EventEmitter<string[]>();
-
-    @Output()
-    readonly contentChanged = new EventEmitter<string>();
-
-    @Input()
-    set linksStatus(links: Record<string, boolean>) {
-        this.linksSubject.next(links);
-
-        this.wikiHighlighterService.updateLinksState(links).then(changed => {
-            if (changed && this.editor) {
-                this.editor.dispatch({
-                    effects: linksUpdatedEffect.of(undefined),
-                });
-            }
-        });
-    }
-    get linksStatus(): Record<string, boolean> {
-        return this.linksSubject.getValue();
-    }
-
-    private editor?: EditorView;
-
-    constructor(
-        @Inject(PLATFORM_ID) private readonly platformId: object,
-        private readonly wikiHighlighterService: WikiHighlighterService
-    ) {}
-
-    ngOnInit() {
-        this.wikiHighlighterService.updateLinks$
-            .pipe(
-                filter(links => links.length > 0),
-                untilDestroyed(this)
-            )
-            .subscribe(links => {
-                this.updateLinksEvent.emit(links);
-            });
-    }
-
-    ngAfterViewInit(): void {
-        if (isPlatformServer(this.platformId)) {
-            return;
-        }
-
-        if (!this.editorContainer) {
-            return;
-        }
-
-        this.editor = new EditorView({
-            state: EditorState.create({
-                doc: this.content,
-                extensions: [
-                    EditorState.phrases.of(russianPhrases),
-                    highlightSpecialChars(),
-                    drawSelection(),
-                    dropCursor(),
-                    syntaxHighlighting(defaultHighlightStyle),
-                    indentOnInput(),
-                    EditorView.lineWrapping,
-                    history(),
-                    closeBrackets(),
-                    bracketMatching(),
-                    this.wikiHighlighterService.wikiHighlighter,
-                    EditorView.updateListener.of((v: ViewUpdate) => {
-                        if (v.docChanged) {
-                            this.contentChanged.emit(v.state.doc.toString());
-                        }
-                    }),
-                    keymap.of([
-                        { key: 'Enter', run: continueLists },
-                        { key: 'Tab', run: increaseListIndent },
-                        { key: 'Shift-Tab', run: decreaseListIndent },
-                        ...defaultKeymap,
-                        ...historyKeymap,
-                        ...searchKeymap,
-                        { key: 'Mod-f', run: openSearchPanel },
-                    ]),
-                    search({
-                        scrollToMatch: ({ from }) =>
-                            EditorView.scrollIntoView(from, {
-                                y: 'start',
-                                x: 'nearest',
-                            }),
-                    }),
-                ],
-            }),
-            parent: this.editorContainer.nativeElement,
-        });
-
-        this.editor.contentDOM.setAttribute('spellcheck', 'true');
-        this.editor.contentDOM.setAttribute('autocorrect', 'on');
-    }
-
-    private insertTag(command: InsertTagCommand): void {
-        if (!this.editor) {
-            return;
-        }
-
-        const view = this.editor;
-        const { state } = view;
-        const { from, to } = state.selection.main;
-
-        const selectedText =
-            from === to ? command.sampleText : state.doc.sliceString(from, to);
-
-        const taggedText = `${command.tagOpen}${selectedText}${command.tagClose}`;
-
-        view.dispatch({
-            changes: { from, to, insert: taggedText },
-            selection: {
-                anchor: from + command.tagOpen.length,
-                head: from + command.tagOpen.length + selectedText.length,
-            },
-        });
-
-        view.focus();
-    }
-}
-
-function continueLists(view: EditorView): boolean {
+export function continueLists(view: EditorView): boolean {
     const { state } = view;
     const { doc } = state;
     const { head } = state.selection.main;
@@ -276,30 +84,30 @@ function continueLists(view: EditorView): boolean {
     return false;
 }
 
-function increaseListIndent(view: EditorView): boolean {
+export function increaseListIndent(view: EditorView): boolean {
     const { state } = view;
     const { doc } = state;
     const selection = state.selection;
-    
+
     // Проверяем, есть ли выделение
     if (selection.ranges.length > 0) {
         // Получаем диапазон строк, затронутых выделением
         const startLine = doc.lineAt(selection.main.from);
         const endLine = doc.lineAt(selection.main.to);
-        
+
         // Если выделение охватывает несколько строк
         if (startLine.number !== endLine.number) {
             const changes = [];
             let affectedLines = false;
-            
+
             // Проходим по всем строкам в выделении
             for (let i = startLine.number; i <= endLine.number; i++) {
                 const line = doc.line(i);
                 const lineContent = line.text;
-                
+
                 // Проверяем, является ли строка элементом списка
                 const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-                
+
                 if (listPrefixMatch) {
                     affectedLines = true;
                     const currentPrefix = listPrefixMatch[1];
@@ -307,32 +115,32 @@ function increaseListIndent(view: EditorView): boolean {
                     const lastChar = currentPrefix[currentPrefix.length - 1];
                     const newPrefix = currentPrefix + lastChar;
                     const spaceAfter = listPrefixMatch[2];
-                    
+
                     changes.push({
                         from: line.from,
                         to: line.from + listPrefixMatch[0].length,
-                        insert: newPrefix + spaceAfter
+                        insert: newPrefix + spaceAfter,
                     });
                 }
             }
-            
+
             if (affectedLines) {
                 view.dispatch({ changes });
                 return true;
             }
         }
     }
-    
+
     // Обработка одной строки (как раньше)
     const { head } = selection.main;
-    
+
     // Получаем текущую строку
     const line = doc.lineAt(head);
     const lineContent = line.text;
-    
+
     // Проверяем, начинается ли строка с маркера списка (* или #)
     const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-    
+
     if (listPrefixMatch) {
         // Увеличиваем уровень вложенности, добавляя один символ в начало
         // Используем последний символ из текущего префикса
@@ -340,94 +148,94 @@ function increaseListIndent(view: EditorView): boolean {
         const lastChar = currentPrefix[currentPrefix.length - 1]; // Последний символ
         const newPrefix = currentPrefix + lastChar; // Добавляем один символ того же типа
         const spaceAfter = listPrefixMatch[2]; // Сохраняем пробелы после префикса
-        
+
         // Заменяем старый префикс на новый
         view.dispatch({
             changes: {
                 from: line.from,
                 to: line.from + listPrefixMatch[0].length,
-                insert: newPrefix + spaceAfter
-            }
+                insert: newPrefix + spaceAfter,
+            },
         });
-        
+
         return true;
     }
-    
+
     return false;
 }
 
-function decreaseListIndent(view: EditorView): boolean {
+export function decreaseListIndent(view: EditorView): boolean {
     const { state } = view;
     const { doc } = state;
     const selection = state.selection;
-    
+
     // Проверяем, есть ли выделение
     if (selection.ranges.length > 0) {
         // Получаем диапазон строк, затронутых выделением
         const startLine = doc.lineAt(selection.main.from);
         const endLine = doc.lineAt(selection.main.to);
-        
+
         // Если выделение охватывает несколько строк
         if (startLine.number !== endLine.number) {
             const changes = [];
             let affectedLines = false;
-            
+
             // Проходим по всем строкам в выделении
             for (let i = startLine.number; i <= endLine.number; i++) {
                 const line = doc.line(i);
                 const lineContent = line.text;
-                
+
                 // Проверяем, является ли строка элементом списка с вложенностью > 1
                 const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-                
+
                 if (listPrefixMatch && listPrefixMatch[1].length > 1) {
                     affectedLines = true;
                     const currentPrefix = listPrefixMatch[1];
                     const newPrefix = currentPrefix.slice(0, -1); // Удаляем последний символ
                     const spaceAfter = listPrefixMatch[2];
-                    
+
                     changes.push({
                         from: line.from,
                         to: line.from + listPrefixMatch[0].length,
-                        insert: newPrefix + spaceAfter
+                        insert: newPrefix + spaceAfter,
                     });
                 }
             }
-            
+
             if (affectedLines) {
                 view.dispatch({ changes });
                 return true;
             }
         }
     }
-    
+
     // Обработка одной строки (как раньше)
     const { head } = selection.main;
-    
+
     // Получаем текущую строку
     const line = doc.lineAt(head);
     const lineContent = line.text;
-    
+
     // Проверяем, начинается ли строка с маркера списка (* или #)
     const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-    
+
     if (listPrefixMatch && listPrefixMatch[1].length > 1) {
         // Уменьшаем уровень вложенности, удаляя один символ из начала
         const currentPrefix = listPrefixMatch[1];
         const newPrefix = currentPrefix.slice(0, -1); // Удаляем последний символ
         const spaceAfter = listPrefixMatch[2]; // Сохраняем пробелы после префикса
-        
+
         // Заменяем старый префикс на новый
         view.dispatch({
             changes: {
                 from: line.from,
                 to: line.from + listPrefixMatch[0].length,
-                insert: newPrefix + spaceAfter
-            }
+                insert: newPrefix + spaceAfter,
+            },
         });
-        
+
         return true;
     }
-    
+
     return false;
 }
