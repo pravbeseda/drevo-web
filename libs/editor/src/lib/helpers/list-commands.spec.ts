@@ -38,6 +38,11 @@ describe('List commands tests', () => {
                 prev: '*|',
                 next: '\n|',
             },
+            {
+                title: 'should not handle when cursor at the beginning of line',
+                prev: '|* item',
+                next: '|* item',
+            },
         ];
 
         continueCases.forEach(({ title, prev, next }) => {

@@ -166,6 +166,12 @@ function handleListContinuation(view: EditorView): boolean {
     const head = state.selection.main.head;
     const line = doc.lineAt(head);
     const lineContent = line.text;
+
+    // Do not handle when cursor at the beginning of a line
+    if (head === line.from) {
+        return false;
+    }
+
     const listMatch = lineContent.match(/^([*#]+)(\s*)/);
 
     if (!listMatch) return false;
