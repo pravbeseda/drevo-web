@@ -11,44 +11,53 @@ type TestCase = {
 };
 
 const testCases: TestCase[] = [
-    { title: 'wrap selected text', input: '<text>', expectedPattern: '^text^' },
     {
-        title: 'replace selected single quote',
+        title: 'should not handle text without selection',
+        input: 'text<>',
+        expectedPattern: 'text',
+    },
+    {
+        title: 'should wrap selected text',
+        input: '<text>',
+        expectedPattern: '^text^',
+    },
+    {
+        title: 'should replace selected single quote',
         input: "<'>",
         expectedPattern: '^',
     },
     {
-        title: 'replace selected double quote',
+        title: 'should replace selected double quote',
         input: '<">',
         expectedPattern: '^',
     },
     {
-        title: 'strip single outer quotes',
+        title: 'should strip single outer quotes',
         input: "<'text'>",
         expectedPattern: '^text^',
     },
     {
-        title: 'strip double outer quotes',
+        title: 'should strip double outer quotes',
         input: '<"text">',
         expectedPattern: '^text^',
     },
     {
-        title: 'strip nested mixed quotes',
+        title: 'should strip nested mixed quotes',
         input: `<"'nested'">`,
         expectedPattern: '^nested^',
     },
     {
-        title: 'strip guillemets « »',
+        title: 'should strip guillemets « »',
         input: '<«text»>',
         expectedPattern: '^text^',
     },
     {
-        title: 'strip low-high quotes „ “',
+        title: 'should strip low-high quotes „ “',
         input: '<„text“>',
         expectedPattern: '^text^',
     },
     {
-        title: 'strip double-prime quotes ‟ ”',
+        title: 'should strip double-prime quotes ‟ ”',
         input: '<‟text”>',
         expectedPattern: '^text^',
     },

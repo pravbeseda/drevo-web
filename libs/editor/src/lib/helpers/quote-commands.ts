@@ -1,7 +1,7 @@
 import { EditorSelection, SelectionRange } from '@codemirror/state';
 import { EditorView, KeyBinding } from '@codemirror/view';
 
-/** All supported quote pairs and their characters */
+/** All supported quote pairs for stripping */
 const outerPairs: [string, string][] = [
     ["'", "'"],
     ['"', '"'],
@@ -10,35 +10,39 @@ const outerPairs: [string, string][] = [
     ['‟', '”'],
 ];
 
+/** Flattened set of all individual quote chars */
 const allQuoteChars = new Set(
     outerPairs.flatMap(([open, close]) => [open, close])
 );
 
 /**
- * Handle a quote key press:
- * - empty selection → insert two quoteChar and place cursor between
- * - single‐char selection of any supported quote → replace with quoteChar
- * - selection wrapped in any supported pair(s) → strip all outer layers, then wrap with quoteChar
+ * Handle a quote key press **only when there is a non-empty selection**:
+ * - single-char selection of any supported quote → replace with quoteChar
+ * - selection wrapped in any supported pair(s) → strip all layers, then wrap with quoteChar
  * - otherwise → wrap selection with quoteChar
+ *
+ * If there is no selection (cursor only), do nothing and allow default behavior.
  */
 export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
     const { state } = view;
+    // collect only ranges that actually have text selected
+    const ranges = state.selection.ranges.filter(r => !r.empty);
+    if (ranges.length === 0) {
+        // no non-empty selection: do not handle
+        return false;
+    }
+
     const changes: { from: number; to: number; insert: string }[] = [];
     const newRanges: SelectionRange[] = [];
     let didChange = false;
 
-    for (const range of state.selection.ranges) {
-        const { from, to } = range;
+    for (const { from, to } of ranges) {
         const text = state.sliceDoc(from, to);
         let replacement: string;
         let cursorPos: number;
 
-        if (from === to) {
-            // no selection: insert a pair and place cursor in between
-            replacement = quoteChar + quoteChar;
-            cursorPos = from + 1;
-        } else if (text.length === 1 && allQuoteChars.has(text)) {
-            // single‐char selection of any supported quote: replace it
+        if (text.length === 1 && allQuoteChars.has(text)) {
+            // replace a single existing quote
             replacement = quoteChar;
             cursorPos = from + 1;
         } else {
@@ -59,7 +63,7 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
                 }
             } while (stripped);
 
-            // now wrap stripped or original text
+            // wrap the stripped (or original) text
             replacement = quoteChar + inner + quoteChar;
             cursorPos = from + replacement.length;
         }
@@ -71,7 +75,9 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
         newRanges.push(EditorSelection.cursor(cursorPos));
     }
 
-    if (!didChange) return false;
+    if (!didChange) {
+        return false;
+    }
 
     view.dispatch({
         changes,
@@ -80,7 +86,7 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
     return true;
 }
 
-/** Only bind the two keys, the rest is handled in handleQuote */
+/** Bind only the two quote keys; default behavior applies when no selection */
 export const quoteKeymap: readonly KeyBinding[] = [
     { key: "'", run: view => handleQuote(view, "'") },
     { key: '"', run: view => handleQuote(view, '"') },
