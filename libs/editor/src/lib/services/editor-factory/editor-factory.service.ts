@@ -25,6 +25,7 @@ import {
     decreaseListIndent,
     increaseListIndent,
 } from '../../helpers/list-commands';
+import { quoteKeymap } from '../../helpers/quote-commands';
 
 @Injectable()
 export class EditorFactoryService {
@@ -69,6 +70,7 @@ export class EditorFactoryService {
                     ...defaultKeymap,
                     ...historyKeymap,
                     ...searchKeymap,
+                    ...quoteKeymap,
                     { key: 'Mod-f', run: openSearchPanel },
                 ]),
                 search({
