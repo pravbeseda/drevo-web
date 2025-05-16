@@ -1,6 +1,26 @@
 import { EditorSelection, SelectionRange } from '@codemirror/state';
 import { EditorView, KeyBinding } from '@codemirror/view';
 
+/** All supported quote pairs and their characters */
+const outerPairs: [string, string][] = [
+    ["'", "'"],
+    ['"', '"'],
+    ['«', '»'],
+    ['„', '“'],
+    ['‟', '”'],
+];
+
+const allQuoteChars = new Set(
+    outerPairs.flatMap(([open, close]) => [open, close])
+);
+
+/**
+ * Handle a quote key press:
+ * - empty selection → insert two quoteChar and place cursor between
+ * - single‐char selection of any supported quote → replace with quoteChar
+ * - selection wrapped in any supported pair(s) → strip all outer layers, then wrap with quoteChar
+ * - otherwise → wrap selection with quoteChar
+ */
 export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
     const { state } = view;
     const changes: { from: number; to: number; insert: string }[] = [];
@@ -14,30 +34,39 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
         let cursorPos: number;
 
         if (from === to) {
+            // no selection: insert a pair and place cursor in between
             replacement = quoteChar + quoteChar;
             cursorPos = from + 1;
-        } else if (text === "'" || text === '"') {
+        } else if (text.length === 1 && allQuoteChars.has(text)) {
+            // single‐char selection of any supported quote: replace it
             replacement = quoteChar;
             cursorPos = from + 1;
         } else {
+            // strip all matching outer pairs
             let inner = text;
-            while (
-                inner.length >= 2 &&
-                (inner.startsWith("'") || inner.startsWith('"')) &&
-                inner[0] === inner[inner.length - 1]
-            ) {
-                inner = inner.slice(1, -1);
-            }
-            if (inner !== text) {
-                replacement = quoteChar + inner + quoteChar;
-                cursorPos = from + replacement.length;
-            } else {
-                replacement = quoteChar + text + quoteChar;
-                cursorPos = from + replacement.length;
-            }
+            let stripped: boolean;
+            do {
+                stripped = false;
+                for (const [open, close] of outerPairs) {
+                    if (inner.startsWith(open) && inner.endsWith(close)) {
+                        inner = inner.slice(
+                            open.length,
+                            inner.length - close.length
+                        );
+                        stripped = true;
+                        break;
+                    }
+                }
+            } while (stripped);
+
+            // now wrap stripped or original text
+            replacement = quoteChar + inner + quoteChar;
+            cursorPos = from + replacement.length;
         }
 
-        if (replacement !== text) didChange = true;
+        if (replacement !== text) {
+            didChange = true;
+        }
         changes.push({ from, to, insert: replacement });
         newRanges.push(EditorSelection.cursor(cursorPos));
     }
@@ -51,6 +80,7 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
     return true;
 }
 
+/** Only bind the two keys, the rest is handled in handleQuote */
 export const quoteKeymap: readonly KeyBinding[] = [
     { key: "'", run: view => handleQuote(view, "'") },
     { key: '"', run: view => handleQuote(view, '"') },
