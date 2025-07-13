@@ -41,13 +41,14 @@ jobs:
           yarn nx affected -t e2e
 
       - name: Build for deployment
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/production')
+        env:
+          APP_VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          npx nx build client --configuration=production \
-          --define "process.env.APP_VERSION=${{ steps.get_version.outputs.version }}"
+          npx nx build client --configuration=production
 
       - name: Upload build artifact
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/production')
         uses: actions/upload-artifact@v4
         with:
           name: dist
