@@ -9,7 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,9 +30,11 @@ jobs:
 
       - run: yarn install --frozen-lockfile
       - run: yarn playwright install --with-deps
-      - uses: nrwl/nx-set-shas@v4
 
-      # Run affected commands
+      - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: 'main'
+
       - name: Verify affected projects
         run: |
           yarn nx affected -t lint,test,build --parallel=3
@@ -55,56 +56,26 @@ jobs:
 
   deploy-staging:
     needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    environment:
-      name: staging
-      url: ${{ vars.STAGING_URL }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/apps/client
-
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-
-      - name: Deploy to Staging
-        run: |
-          echo "Deploying version: ${{ needs.build-and-test.outputs.version }}"
-          chmod +x ./scripts/deploy.sh
-          rsync -avz --delete dist/apps/client/ ${{ secrets.STAGING_SSH_USER }}@${{ secrets.STAGING_SSH_HOST }}:${{ secrets.STAGING_PATH }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+      SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+      DEPLOY_PATH: ${{ secrets.STAGING_PATH }}
 
   deploy-production:
     needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    environment:
-      name: production
-      url: ${{ vars.PRODUCTION_URL }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/apps/client
-
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-
-      - name: Deploy to Production
-        run: |
-          echo "Deploying version: ${{ needs.build-and-test.outputs.version }}"
-          chmod +x ./scripts/deploy.sh
-          rsync -avz --delete dist/apps/client/ ${{ secrets.PRODUCTION_SSH_USER }}@${{ secrets.PRODUCTION_SSH_HOST }}:${{ secrets.PRODUCTION_PATH }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+      SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+      DEPLOY_PATH: ${{ secrets.PRODUCTION_PATH }}
