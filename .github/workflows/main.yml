@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, staging, production ]
+  pull_request:
+    branches: [ main, staging, production ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [[ $GITHUB_REF == refs/heads/production ]]; then
+            echo "version=$(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn playwright install --with-deps
+
+      - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: 'main'
+
+      - name: Verify affected projects
+        run: |
+          yarn nx affected -t lint,test,build --parallel=3
+          yarn nx affected -t e2e
+
+      - name: Build for deployment
+        if: github.event_name == 'push'
+        run: |
+          npx nx build client --configuration=production \
+          --define "process.env.APP_VERSION=${{ steps.get_version.outputs.version }}"
+
+      - name: Upload build artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/apps/client
+          retention-days: 1
+
+  deploy-staging:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+      SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+      DEPLOY_PATH: ${{ secrets.STAGING_PATH }}
+
+  deploy-production:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+      SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+      DEPLOY_PATH: ${{ secrets.PRODUCTION_PATH }}

@@ -1,82 +1,128 @@
-# DrevoWeb
+# Drevo Web
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Modern web application for Drevo project, built with Angular and Node.js. This is a gradual migration from the legacy Yii1 application.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Project Structure
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Finish your CI setup
-
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/mW0f9xZn3e)
-
-
-## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx serve client
+```
+apps/
+  client/          # Angular frontend application
+  client-e2e/     # E2E tests with Playwright
+legacy-drevo-yii/  # Legacy Yii1 application
+libs/
+  editor/         # Shared editor component
+  shared/         # Shared utilities and types
 ```
 
-To create a production bundle:
+## Development
 
-```sh
-npx nx build client
+### Prerequisites
+
+- Node.js 20+
+- Yarn
+- Playwright for E2E testing
+
+### Installation
+
+```bash
+# Install dependencies
+yarn install
+
+# Install Playwright browsers
+yarn playwright install --with-deps
 ```
 
-To see all available targets to run for a project, run:
+### Available Commands
 
-```sh
-npx nx show project client
+```bash
+# Development server
+yarn nx serve client
+
+# Build
+yarn nx build client
+
+# Run tests
+yarn nx test client          # Unit tests
+yarn nx e2e client-e2e      # E2E tests
+yarn nx affected -t lint     # Lint affected projects
+
+# Check affected projects
+yarn nx affected -t lint,test,build --parallel=3
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## CI/CD Pipeline
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The project uses GitHub Actions for CI/CD with three main branches:
 
-## Add new projects
+- `main` - development branch
+- `staging` - staging environment
+- `production` - production environment
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+### Workflow Stages
 
-Use the plugin's generator to create new projects.
+1. **Build and Test** (all branches)
+   - Runs on every push and pull request
+   - Installs dependencies
+   - Runs linting
+   - Runs unit tests
+   - Runs E2E tests
+   - Builds the application
+   - Uses Nx affected to optimize build time
 
-To generate a new application, use:
+2. **Deploy to Staging** (staging branch)
+   - Triggered on push to staging branch
+   - Requires successful build and tests
+   - Deploys to staging environment
+   - Available at ${STAGING_URL}
 
-```sh
-npx nx g @nx/angular:app demo
+3. **Deploy to Production** (production branch)
+   - Triggered on push to production branch
+   - Requires successful build and tests
+   - Creates a new release version
+   - Deploys to production environment
+   - Available at ${PRODUCTION_URL}
+
+### Version Management
+
+- Uses semantic versioning
+- Version tags are automatically created on production deployments
+- Version can be bumped using commit messages:
+  - `#major` - Major version bump
+  - `#minor` - Minor version bump
+  - Default is patch version bump
+
+### Branch Protection
+
+- Protected branches: `staging`, `production`
+- Direct pushes are not allowed
+- Required pull request reviews
+- Required status checks must pass
+- Feature branches are automatically deleted after merge
+
+## Deployment
+
+### Prerequisites
+
+1. Set up GitHub repository secrets:
+   - `SSH_PRIVATE_KEY`
+   - `SSH_KNOWN_HOSTS`
+   - `STAGING_SSH_USER`
+   - `STAGING_SSH_HOST`
+   - `STAGING_PATH`
+   - `PRODUCTION_SSH_USER`
+   - `PRODUCTION_SSH_HOST`
+   - `PRODUCTION_PATH`
+
+2. Set up GitHub environments:
+   - `staging`
+   - `production`
+
+### Manual Deployment
+
+```bash
+# Build for production
+yarn nx build client --configuration=production
+
+# Deploy using deploy script
+./scripts/deploy.sh /path/to/deploy environment
 ```
-
-To generate a new library, use:
-
-```sh
-npx nx g @nx/angular:lib mylib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
