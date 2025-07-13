@@ -1,0 +1,4 @@
+--bind
+--platform ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+

@@ -5,7 +5,13 @@
     "scripts": {
         "test": "nx run-many --target=test --all --parallel",
         "build": "npx nx build client --configuration=production --base-href=/new/",
-        "start:prod": "NODE_ENV=production node dist/apps/client/server/server.mjs"
+        "start:prod": "NODE_ENV=production node dist/apps/client/server/server.mjs",
+        "ci:setup": "cp .act.secrets.example .act.secrets",
+        "ci:test": "act -n --container-architecture linux/amd64 --secret-file .act.secrets",
+        "ci:test:run": "act --container-architecture linux/amd64 --secret-file .act.secrets",
+        "ci:test:build": "act -j build-and-test --container-architecture linux/amd64 --secret-file .act.secrets",
+        "ci:test:staging": "act push -s GITHUB_REF=refs/heads/staging --container-architecture linux/amd64 --secret-file .act.secrets",
+        "ci:test:production": "act push -s GITHUB_REF=refs/heads/production --container-architecture linux/amd64 --secret-file .act.secrets"
     },
     "private": true,
     "dependencies": {

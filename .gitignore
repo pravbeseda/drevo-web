@@ -79,3 +79,7 @@ ENV/
 *.swp
 *.swo
 
+legacy-drevo-yii
+
+# Testing secrets
+.act.secrets
