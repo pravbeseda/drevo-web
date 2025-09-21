@@ -1,0 +1,43 @@
+name: Test Deploy Key
+
+on:
+  workflow_dispatch: # Можно запустить вручную
+
+jobs:
+  test-deploy-key:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup SSH for Deploy Key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Test SSH connection to server
+        run: |
+          echo "🧪 Testing SSH connection..."
+          ssh -o StrictHostKeyChecking=no github-deploy@drevo-info.ru "echo 'SSH connection successful'"
+
+      - name: Test directory access
+        run: |
+          echo "🧪 Testing directory access..."
+          ssh -o StrictHostKeyChecking=no github-deploy@drevo-info.ru "touch staging/test-deploy-key.txt"
+          ssh -o StrictHostKeyChecking=no github-deploy@drevo-info.ru "ls -la staging/test-deploy-key.txt"
+          ssh -o StrictHostKeyChecking=no github-deploy@drevo-info.ru "rm staging/test-deploy-key.txt"
+          echo "✅ Deploy Key test completed successfully"
+
+      - name: Test git operations
+        run: |
+          echo "🧪 Testing git operations..."
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          echo "# Deploy Key Test $(date)" > DEPLOY_TEST.md
+          git add DEPLOY_TEST.md
+          git commit -m "test: Deploy Key functionality $(date)"
+          git push origin main
+          git rm DEPLOY_TEST.md
+          git commit -m "test: Remove Deploy Key test file"
+          git push origin main
+          echo "✅ Git operations test completed successfully"
