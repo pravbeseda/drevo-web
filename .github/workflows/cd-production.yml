@@ -22,6 +22,10 @@ jobs:
         id: get_version
         run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: Get current timestamp
+        id: get_timestamp
+        run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -34,6 +38,12 @@ jobs:
         env:
           APP_VERSION: ${{ steps.get_version.outputs.version }}
         run: npx nx build client --configuration=production --base-href=/new/
+
+      - name: Create build archive
+        run: |
+          cd dist/apps/client
+          tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
+          cd ../../..
 
       - name: Deploy with reusable action
         uses: ./.github/actions/deploy
@@ -57,7 +67,7 @@ jobs:
           body: |
             🚀 **Production Release ${{ steps.get_version.outputs.version }}**
             
-            **Deployed**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
             **Environment**: Production
             **URL**: ${{ vars.PRODUCTION_URL }}
             
@@ -65,8 +75,13 @@ jobs:
             - See commit history for detailed changes
             
             **Deployment**: ✅ Files deployed successfully
+            
+            **Download:**
+            - 📦 `drevo-web-${{ steps.get_version.outputs.version }}.tar.gz` - Production build archive
           draft: false
           prerelease: false
+          files: |
+            drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
 
       - name: Notify deployment
         if: always()
