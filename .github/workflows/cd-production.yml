@@ -26,6 +26,26 @@ jobs:
         id: get_timestamp
         run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
 
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # If no previous tag, get all commits from the beginning
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            # Get commits between previous tag and current
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -64,6 +84,7 @@ jobs:
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
           body: |
             🚀 **Production Release ${{ steps.get_version.outputs.version }}**
             
@@ -72,7 +93,7 @@ jobs:
             **URL**: ${{ vars.PRODUCTION_URL }}
             
             **Changes in this release:**
-            - See commit history for detailed changes
+            ${{ steps.changelog.outputs.changelog }}
             
             **Deployment**: ✅ Files deployed successfully
             
