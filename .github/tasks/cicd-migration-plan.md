@@ -237,22 +237,16 @@ sudo chmod 700 /home/github-deploy/.ssh
 sudo chown -R github-deploy:github-deploy /home/github-deploy
 ```
 
-### 3. GitHub Deploy Keys Configuration
+### 3. GitHub Secrets Configuration
 
-#### 3.1 Set up Deploy Key
-1. Go to GitHub Repository → Settings → Deploy keys
-2. Click "Add deploy key"
-3. Title: `GitHub Actions Deploy Key`
-4. Key: Paste the public key content from `~/.ssh/github_deploy_key.pub`
-5. ✅ Check "Allow write access"
-6. Click "Add key"
-
-#### 3.2 Configure Deploy Key Secret
 In GitHub Repository → Settings → Secrets and variables → Actions:
 
-Add one secret:
+#### Required Secrets:
 ```
-DEPLOY_KEY=private_key_content_from_github_deploy_key_file
+SSH_PRIVATE_KEY=private_key_content_from_github_deploy_key_file
+SSH_KNOWN_HOSTS=ssh-keyscan_result_for_server
+SSH_USER=github-deploy
+SSH_HOST=drevo-info.ru
 ```
 
 ### 4. GitHub Variables Configuration
@@ -299,12 +293,21 @@ chmod 755 /home/github-deploy/production
 
 ### Example Values:
 
-#### DEPLOY_KEY Secret:
+#### Required Secrets:
 ```bash
-# DEPLOY_KEY (private key file contents)
+# SSH_PRIVATE_KEY (private key file contents)
 -----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAlwAAAAdzc2gtcn...
 -----END OPENSSH PRIVATE KEY-----
+
+# SSH_KNOWN_HOSTS
+drevo-info.ru ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGq...
+
+# SSH_USER
+github-deploy
+
+# SSH_HOST
+drevo-info.ru
 ```
 
 #### Variable Values:

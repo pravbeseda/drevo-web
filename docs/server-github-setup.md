@@ -74,17 +74,17 @@ exit
 
 ## Part 2: SSH Key Generation and Configuration
 
-### Step 4: Generate SSH Keys for GitHub Deploy Keys
+### Step 4: Generate SSH Keys for GitHub Actions
 
 ```bash
 # On your local machine or server, generate SSH key pair
 ssh-keygen -t ed25519 -C "github-deploy@drevo-info.ru" -f ~/.ssh/github_deploy_key -N ""
 
 # This creates two files:
-# ~/.ssh/github_deploy_key (private key - keep secret)
-# ~/.ssh/github_deploy_key.pub (public key - will be added as Deploy Key)
+# ~/.ssh/github_deploy_key (private key - will go to GitHub Secrets)
+# ~/.ssh/github_deploy_key.pub (public key - will go to server)
 
-# Display public key (copy this for Deploy Key setup)
+# Display public key (copy this for server setup)
 cat ~/.ssh/github_deploy_key.pub
 # Expected output: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... github-deploy@drevo-info.ru
 ```
@@ -126,19 +126,7 @@ ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "ls -la staging/"
 ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "rm staging/ssh_test.txt"
 ```
 
-### Step 6: Set Up GitHub Deploy Keys
-
-After testing SSH authentication, set up the Deploy Key in GitHub:
-
-1. Go to your GitHub repository: `https://github.com/pravbeseda/drevo-web`
-2. Navigate to: **Settings → Deploy keys**
-3. Click **"Add deploy key"**
-4. **Title**: `GitHub Actions Deploy Key`
-5. **Key**: Paste the public key content from `~/.ssh/github_deploy_key.pub`
-6. ✅ **Allow write access** (required for deployment)
-7. Click **"Add key"**
-
-### Step 7: Get Server Fingerprint
+### Step 6: Get Server Fingerprint
 
 ```bash
 # Get server fingerprint for GitHub Actions
@@ -150,6 +138,38 @@ cat known_hosts
 ```
 
 ## Part 3: GitHub Repository Configuration
+
+### Step 7: Configure GitHub Secrets
+
+Navigate to: **Settings → Secrets and variables → Actions**
+
+Click **"New repository secret"** and add the following secrets:
+
+#### Required Secrets:
+
+1. **SSH_PRIVATE_KEY**
+   ```
+   # Copy content of ~/.ssh/github_deploy_key (private key file)
+   -----BEGIN OPENSSH PRIVATE KEY-----
+   b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAlwAAAAdzc2gtcn...
+   -----END OPENSSH PRIVATE KEY-----
+   ```
+
+2. **SSH_KNOWN_HOSTS**
+   ```
+   # Copy content from known_hosts file
+   drevo-info.ru ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI...
+   ```
+
+3. **SSH_USER**
+   ```
+   github-deploy
+   ```
+
+4. **SSH_HOST**
+   ```
+   drevo-info.ru
+   ```
 
 ### Step 8: Configure GitHub Variables
 
@@ -190,7 +210,7 @@ Navigate to: **Settings → Environments**
 
 ## Part 4: Verification Tests
 
-### Step 11: Test Complete Setup
+### Step 10: Test Complete Setup
 
 ```bash
 # Test 1: SSH connection from GitHub Actions perspective
@@ -212,7 +232,7 @@ ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "cat staging/local-t
 ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "rm staging/test-deploy.html staging/local-test.html"
 ```
 
-### Step 12: Final Security Check
+### Step 11: Final Security Check
 
 ```bash
 # Verify github-deploy user has limited access
@@ -257,16 +277,16 @@ ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "touch /tmp/test" 2>
 - ✅ **SSH key authentication only (no password)**
 - ✅ **Limited to specific directories only**
 - ✅ **Separate user from main server administration**
-- ✅ **Repository-specific Deploy Key access**
-- ✅ **No private keys stored in GitHub Secrets**
+- ✅ **Repository-specific SSH key access**
+- ✅ **Private key stored securely in GitHub Secrets**
 
 ## Next Steps
 
 After completing this setup successfully:
 
-1. ✅ **All tests in Step 11 pass**
-2. ✅ **GitHub variables and environments configured**
-3. ✅ **Deploy Key configured with write access**
+1. ✅ **All tests in Step 10 pass**
+2. ✅ **GitHub secrets and variables configured**
+3. ✅ **GitHub environments created**
 4. ✅ **SSH key authentication works**
 
 **You are now ready to implement the CI/CD Migration Plan!**

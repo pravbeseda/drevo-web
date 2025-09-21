@@ -79,15 +79,16 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Setup SSH for Deploy Key
-        uses: webfactory/ssh-agent@v0.8.0
+      - name: Setup SSH for deployment
+        uses: shimataro/ssh-key-action@v2
         with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
       - name: Deploy to staging
         run: |
           echo "🚀 Deploying to staging environment..."
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/apps/client/ github-deploy@drevo-info.ru:staging
+          rsync -avz --delete dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging
 
       - name: Health check
         run: |
@@ -144,15 +145,16 @@ jobs:
           APP_VERSION: ${{ steps.get_version.outputs.version }}
         run: npx nx build client --configuration=production
 
-      - name: Setup SSH for Deploy Key
-        uses: webfactory/ssh-agent@v0.8.0
+      - name: Setup SSH for deployment
+        uses: shimataro/ssh-key-action@v2
         with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
       - name: Deploy to production
         run: |
           echo "🚀 Deploying ${{ steps.get_version.outputs.version }} to production..."
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/apps/client/ github-deploy@drevo-info.ru:production
+          rsync -avz --delete dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:production
 
       - name: Health check
         run: |
