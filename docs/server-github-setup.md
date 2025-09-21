@@ -170,8 +170,11 @@ Click **"New repository secret"** and add the following secrets:
    ```
    drevo-info.ru
    ```
-   
-   **Note**: If you use a non-standard SSH port, include it in the host: `drevo-info.ru:2222`
+
+5. **SSH_PORT** (optional, defaults to 22)
+   ```
+   2222
+   ```
 
 ### Step 8: Configure GitHub Variables
 

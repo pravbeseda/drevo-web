@@ -88,7 +88,8 @@ jobs:
       - name: Deploy to staging
         run: |
           echo "🚀 Deploying to staging environment..."
-          rsync -avz --delete dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging
+          # Deploy to staging
+          rsync -avz -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging
 
       - name: Health check
         run: |
@@ -154,7 +155,7 @@ jobs:
       - name: Deploy to production
         run: |
           echo "🚀 Deploying ${{ steps.get_version.outputs.version }} to production..."
-          rsync -avz --delete dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:production
+          rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:production
 
       - name: Health check
         run: |
