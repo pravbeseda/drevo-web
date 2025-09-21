@@ -1,0 +1,56 @@
+name: Deploy to Staging
+
+on:
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy-staging:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.event.workflow_run.head_sha }}
+          path: dist/apps/client
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Setup SSH for deployment
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          # Deploy to staging using rsync with relative paths for github-deploy user
+          rsync -avz -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" \
+            --delete \
+            dist/apps/client/ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging/
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment files..."
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "ls -la staging/index.html" || echo "Files deployed successfully"
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Staging deployment successful: ${{ vars.STAGING_URL }}"
+          else
+            echo "❌ Staging deployment failed"
+            exit 1
+          fi

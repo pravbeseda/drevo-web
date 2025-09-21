@@ -1,0 +1,50 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright
+        run: yarn playwright install --with-deps
+
+      - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: 'main'
+
+      - name: Run affected tasks
+        run: |
+          yarn nx affected -t lint,test,build --parallel=3
+          yarn nx affected -t e2e
+
+      - name: Build for staging deployment
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          APP_VERSION: ${{ github.sha }}
+        run: |
+          npx nx build client --configuration=production --base-href=/new/
+
+      - name: Upload build artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/apps/client
+          retention-days: 1

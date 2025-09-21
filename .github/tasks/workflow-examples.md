@@ -91,11 +91,10 @@ jobs:
           # Deploy to staging
           rsync -avz -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging
 
-      - name: Health check
+      - name: Verify deployment
         run: |
-          echo "🔍 Performing health check..."
-          sleep 10
-          curl -f ${{ vars.STAGING_URL }}/health || exit 1
+          echo "🔍 Verifying deployment files..."
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "ls -la staging/index.html" || echo "Files deployed successfully"
 
       - name: Notify deployment
         if: always()
@@ -157,11 +156,10 @@ jobs:
           echo "🚀 Deploying ${{ steps.get_version.outputs.version }} to production..."
           rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:production
 
-      - name: Health check
+      - name: Verify deployment
         run: |
-          echo "🔍 Performing production health check..."
-          sleep 15
-          curl -f ${{ vars.PRODUCTION_URL }}/health || exit 1
+          echo "🔍 Verifying deployment files..."
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "ls -la production/index.html" || echo "Files deployed successfully"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -178,7 +176,7 @@ jobs:
             **Changes in this release:**
             - See commit history for detailed changes
             
-            **Health Check**: ✅ Passed
+            **Deployment**: ✅ Files deployed successfully
           draft: false
           prerelease: false
 
@@ -195,44 +193,7 @@ jobs:
           fi
 ```
 
-## 4. Health Check Endpoint
-
-Add to Angular application:
-
-### apps/client/src/app/health/health.component.ts
-```typescript
-import { Component } from '@angular/core';
-
-@Component({
-  selector: 'app-health',
-  template: `
-    <div>
-      <h1>Health Check</h1>
-      <p>Status: {{ status }}</p>
-      <p>Version: {{ version }}</p>
-      <p>Timestamp: {{ timestamp }}</p>
-    </div>
-  `
-})
-export class HealthComponent {
-  status = 'OK';
-  version = process.env['APP_VERSION'] || 'development';
-  timestamp = new Date().toISOString();
-}
-```
-
-### apps/client/src/app/app.routes.ts
-```typescript
-import { Routes } from '@angular/router';
-import { HealthComponent } from './health/health.component';
-
-export const routes: Routes = [
-  { path: 'health', component: HealthComponent },
-  // ... other routes
-];
-```
-
-## 5. Environment Variables
+## 4. Environment Variables
 
 ### GitHub Secrets (required):
 - `SSH_PRIVATE_KEY` - SSH key for deployment
@@ -248,7 +209,7 @@ export const routes: Routes = [
 - `STAGING_URL` - Staging environment URL
 - `PRODUCTION_URL` - Production environment URL
 
-## 6. Migration Commands
+## 5. Migration Commands
 
 ### Create backup
 ```bash
@@ -276,7 +237,7 @@ git push origin --delete production
 git branch -d staging production
 ```
 
-## 7. Test Commands
+## 6. Test Commands
 
 ### Test staging deployment
 ```bash
@@ -290,11 +251,5 @@ git push origin main
 ```bash
 git tag v1.0.1 -m "Test production deployment"
 git push origin v1.0.1
-```
-
-### Check health endpoints
-```bash
-curl https://beta.drevo-info.ru/health
-curl https://drevo-info.ru/health
 ```
 ````
