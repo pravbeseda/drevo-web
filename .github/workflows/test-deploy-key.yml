@@ -9,18 +9,6 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-
-      - name: Install dependencies and build
-        run: |
-          echo "🧪 Testing build process..."
-          yarn install --frozen-lockfile
-          npx nx build client --configuration=production
-          echo "✅ Build successful"
 
       - name: Setup SSH for deployment
         uses: shimataro/ssh-key-action@v2
@@ -33,19 +21,21 @@ jobs:
           echo "🧪 Testing SSH connection..."
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
 
-      - name: Test deployment to staging
+      - name: Test file deployment to staging
         run: |
-          echo "🧪 Testing deployment to staging..."
-          # Create test file
-          echo "<h1>Test Deployment $(date)</h1>" > dist/apps/client/test-deploy.html
+          echo "🧪 Testing file deployment to staging..."
           
-          # Deploy to staging
-          rsync -avz --delete dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging
+          # Create simple test file
+          echo "<h1>SSH Test $(date)</h1>" > test-deploy.html
+          
+          # Deploy test file to staging
+          rsync -avz test-deploy.html ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging/
           
           # Verify deployment
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat staging/test-deploy.html"
           
           # Cleanup
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm staging/test-deploy.html"
+          rm test-deploy.html
           
           echo "✅ SSH deployment test successful"
