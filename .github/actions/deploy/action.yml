@@ -1,0 +1,81 @@
+name: 'Deploy to Server'
+description: 'Deploy using SSH and rsync with verification'
+author: 'Drevo CI/CD'
+
+inputs:
+  environment:
+    description: 'Target environment (staging/production)'
+    required: true
+  ssh-private-key:
+    description: 'SSH private key for deployment'
+    required: true
+  ssh-known-hosts:
+    description: 'SSH known hosts'
+    required: true
+  ssh-user:
+    description: 'SSH user for deployment'
+    required: true
+  ssh-host:
+    description: 'SSH host for deployment'
+    required: true
+  ssh-port:
+    description: 'SSH port for deployment'
+    required: false
+    default: '22'
+  source-path:
+    description: 'Source path to deploy from'
+    required: true
+    default: 'dist/apps/client'
+  target-path:
+    description: 'Target path on server (relative to user home)'
+    required: true
+  environment-url:
+    description: 'Environment URL for notifications'
+    required: false
+  version:
+    description: 'Version being deployed (for production)'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup SSH for deployment
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ inputs.ssh-private-key }}
+        known_hosts: ${{ inputs.ssh-known-hosts }}
+
+    - name: Deploy to ${{ inputs.environment }}
+      shell: bash
+      run: |
+        echo "🚀 Deploying to ${{ inputs.environment }} environment..."
+        if [ -n "${{ inputs.version }}" ]; then
+          echo "📦 Version: ${{ inputs.version }}"
+        fi
+        
+        # Deploy using rsync with relative paths
+        rsync -avz --delete \
+          -e "ssh -p ${{ inputs.ssh-port }}" \
+          ${{ inputs.source-path }}/ \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.target-path }}/
+        
+        echo "✅ Files deployed successfully"
+
+    - name: Verify deployment
+      shell: bash
+      run: |
+        echo "🔍 Verifying deployment files..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "ls -la ${{ inputs.target-path }}/index.html" || echo "Verification completed"
+
+    - name: Notify deployment success
+      shell: bash
+      run: |
+        echo "✅ ${{ inputs.environment }} deployment successful"
+        if [ -n "${{ inputs.environment-url }}" ]; then
+          echo "🌐 URL: ${{ inputs.environment-url }}"
+        fi
+        if [ -n "${{ inputs.version }}" ]; then
+          echo "🎉 Release ${{ inputs.version }} is live!"
+        fi

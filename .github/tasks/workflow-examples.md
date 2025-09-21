@@ -85,16 +85,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
-      - name: Deploy to staging
-        run: |
-          echo "🚀 Deploying to staging environment..."
-          # Deploy to staging
-          rsync -avz -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:staging
-
-      - name: Verify deployment
-        run: |
-          echo "🔍 Verifying deployment files..."
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "ls -la staging/index.html" || echo "Files deployed successfully"
+      - name: Deploy with reusable action
+        uses: ./.github/actions/deploy
+        with:
+          environment: 'staging'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-port: ${{ secrets.SSH_PORT || '22' }}
+          source-path: 'dist/apps/client'
+          target-path: 'staging'
+          environment-url: ${{ vars.STAGING_URL }}
 
       - name: Notify deployment
         if: always()
@@ -151,15 +153,19 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
-      - name: Deploy to production
-        run: |
-          echo "🚀 Deploying ${{ steps.get_version.outputs.version }} to production..."
-          rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" dist/apps/client/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:production
-
-      - name: Verify deployment
-        run: |
-          echo "🔍 Verifying deployment files..."
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "ls -la production/index.html" || echo "Files deployed successfully"
+      - name: Deploy with reusable action
+        uses: ./.github/actions/deploy
+        with:
+          environment: 'production'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-port: ${{ secrets.SSH_PORT || '22' }}
+          source-path: 'dist/apps/client'
+          target-path: 'production'
+          environment-url: ${{ vars.PRODUCTION_URL }}
+          version: ${{ steps.get_version.outputs.version }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -193,7 +199,91 @@ jobs:
           fi
 ```
 
-## 4. Environment Variables
+## 4. Reusable Deployment Action
+
+### .github/actions/deploy/action.yml
+```yaml
+name: 'Deploy to Server'
+description: 'Deploy using SSH and rsync with verification'
+author: 'Drevo CI/CD'
+
+inputs:
+  environment:
+    description: 'Target environment (staging/production)'
+    required: true
+  ssh-private-key:
+    description: 'SSH private key for deployment'
+    required: true
+  ssh-known-hosts:
+    description: 'SSH known hosts'
+    required: true
+  ssh-user:
+    description: 'SSH user for deployment'
+    required: true
+  ssh-host:
+    description: 'SSH host for deployment'
+    required: true
+  ssh-port:
+    description: 'SSH port for deployment'
+    required: false
+    default: '22'
+  source-path:
+    description: 'Source path to deploy from'
+    required: true
+    default: 'dist/apps/client'
+  target-path:
+    description: 'Target path on server (relative to user home)'
+    required: true
+  environment-url:
+    description: 'Environment URL for notifications'
+    required: false
+  version:
+    description: 'Version being deployed (for production)'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup SSH for deployment
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ inputs.ssh-private-key }}
+        known_hosts: ${{ inputs.ssh-known-hosts }}
+
+    - name: Deploy to ${{ inputs.environment }}
+      shell: bash
+      run: |
+        echo "🚀 Deploying to ${{ inputs.environment }} environment..."
+        if [ -n "${{ inputs.version }}" ]; then
+          echo "📦 Version: ${{ inputs.version }}"
+        fi
+        
+        rsync -avz --delete \
+          -e "ssh -p ${{ inputs.ssh-port }}" \
+          ${{ inputs.source-path }}/ \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.target-path }}/
+
+    - name: Verify deployment
+      shell: bash
+      run: |
+        echo "🔍 Verifying deployment files..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "ls -la ${{ inputs.target-path }}/index.html" || echo "Verification completed"
+
+    - name: Notify deployment success
+      shell: bash
+      run: |
+        echo "✅ ${{ inputs.environment }} deployment successful"
+        if [ -n "${{ inputs.environment-url }}" ]; then
+          echo "🌐 URL: ${{ inputs.environment-url }}"
+        fi
+        if [ -n "${{ inputs.version }}" ]; then
+          echo "🎉 Release ${{ inputs.version }} is live!"
+        fi
+```
+
+## 5. Environment Variables
 
 ### GitHub Secrets (required):
 - `SSH_PRIVATE_KEY` - SSH key for deployment
@@ -209,7 +299,7 @@ jobs:
 - `STAGING_URL` - Staging environment URL
 - `PRODUCTION_URL` - Production environment URL
 
-## 5. Migration Commands
+## 6. Migration Commands
 
 ### Create backup
 ```bash
@@ -237,7 +327,7 @@ git push origin --delete production
 git branch -d staging production
 ```
 
-## 6. Test Commands
+## 7. Test Commands
 
 ### Test staging deployment
 ```bash

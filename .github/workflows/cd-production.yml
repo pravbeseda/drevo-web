@@ -33,24 +33,19 @@ jobs:
           APP_VERSION: ${{ steps.get_version.outputs.version }}
         run: npx nx build client --configuration=production --base-href=/new/
 
-      - name: Setup SSH for deployment
-        uses: shimataro/ssh-key-action@v2
+      - name: Deploy with reusable action
+        uses: ./.github/actions/deploy
         with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-
-      - name: Deploy to production
-        run: |
-          echo "🚀 Deploying ${{ steps.get_version.outputs.version }} to production..."
-          # Deploy to production using rsync with relative paths for github-deploy user
-          rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT || '22' }}" \
-            dist/apps/client/ \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:production/
-
-      - name: Verify deployment
-        run: |
-          echo "🔍 Verifying deployment files..."
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "ls -la production/index.html" || echo "Files deployed successfully"
+          environment: 'production'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-port: ${{ secrets.SSH_PORT || '22' }}
+          source-path: 'dist/apps/client'
+          target-path: 'production'
+          environment-url: ${{ vars.PRODUCTION_URL }}
+          version: ${{ steps.get_version.outputs.version }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
