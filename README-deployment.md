@@ -52,6 +52,10 @@ The Drevo Web project uses an atomic deployment system that ensures zero-downtim
 
 # Deploy to production (format: X.Y.Z)
 ./deploy.sh production 1.2.0
+
+# Test deployment without making changes (dry-run)
+./deploy.sh staging 20240923-0900 --dry-run
+./deploy.sh production 1.2.0 --dry-run
 ```
 
 ### Rollback Commands
@@ -243,6 +247,44 @@ chmod 644 ~/ecosystem.config.js
 chmod 755 ~/releases/
 ```
 
+#### 7. Deploy Script Not Executing
+
+**Problem**: Action completes but deploy.sh script doesn't run or symlinks aren't created.
+
+**Solution**:
+```bash
+# Check if script was copied and has correct permissions
+ssh user@host "ls -la ~/deploy.sh ~/ecosystem.config.js"
+
+# Test script manually with dry-run
+ssh user@host "~/deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run"
+
+# Fix permissions if needed
+ssh user@host "chmod +x ~/deploy.sh"
+
+# Check release directory exists
+ssh user@host "ls -la ~/releases/staging/"
+
+# Verify build contains server.mjs
+ssh user@host "ls -la ~/releases/staging/YYYYMMDD-HHMM/server/"
+```
+
+#### 8. Logs Directory Not Created
+
+**Problem**: PM2 logs fail because logs directory doesn't exist.
+
+**Solution**:
+```bash
+# Create logs directory manually
+ssh user@host "mkdir -p ~/logs"
+
+# Check if deploy script is creating it
+ssh user@host "~/deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run"
+
+# Run actual deployment
+ssh user@host "~/deploy.sh staging YYYYMMDD-HHMM"
+```
+
 #### 6. Out of Disk Space
 
 **Problem**: Server runs out of disk space due to old releases.
@@ -338,8 +380,11 @@ The system uses the following environment variables in PM2:
 # Quick status check
 pm2 status && ls -la ~/current-*
 
-# Full system check
+# Test deployment system (dry-run)
 ./deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run
+
+# Full system check
+./deploy.sh staging $(date +'%Y%m%d-%H%M')
 
 # Log monitoring
 tail -f ~/logs/staging-combined.log ~/logs/production-combined.log
@@ -349,6 +394,12 @@ pm2 stop all
 
 # Emergency start
 pm2 start ecosystem.config.js
+
+# Check script permissions and readiness
+ls -la ~/deploy.sh ~/ecosystem.config.js
+
+# Manual debugging
+ssh user@host "~/deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run"
 ```
 
 This documentation should be updated as the system evolves and new features are added.

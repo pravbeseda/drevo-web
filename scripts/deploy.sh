@@ -27,15 +27,28 @@ log_error() {
 }
 
 # Argument validation
-if [ $# -ne 2 ]; then
-    log_error "Usage: $0 <environment> <version>"
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+    log_error "Usage: $0 <environment> <version> [--dry-run]"
     log_error "Environment: staging or production"
     log_error "Version format: YYYYMMDD-HHMM for staging, X.Y.Z for production"
+    log_error "Optional: --dry-run for testing without making changes"
     exit 1
 fi
 
 ENVIRONMENT="$1"
 VERSION="$2"
+DRY_RUN=false
+
+# Check for dry-run flag
+if [ $# -eq 3 ] && [ "$3" = "--dry-run" ]; then
+    DRY_RUN=true
+    log_warn "DRY RUN MODE - No changes will be made"
+fi
+
+log_info "Starting deployment script with arguments: $*"
+log_info "Current user: $(whoami)"
+log_info "Current directory: $(pwd)"
+log_info "Home directory: $HOME"
 
 # Validate environment
 if [[ ! "$ENVIRONMENT" =~ ^(staging|production)$ ]]; then
@@ -84,17 +97,25 @@ log_info "Release readiness check passed"
 # Ensure required directories exist
 log_info "Ensuring required directories exist..."
 
-mkdir -p "$RELEASES_DIR"
-mkdir -p "$LOGS_DIR"
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Would create directories: $RELEASES_DIR, $LOGS_DIR"
+else
+    mkdir -p "$RELEASES_DIR"
+    mkdir -p "$LOGS_DIR"
+fi
 
 log_info "Required directories created/verified"
 
 # Save current symlink for rollback (if exists)
 if [ -L "$CURRENT_LINK" ]; then
     log_info "Saving current symlink for rollback..."
-    cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
-        log_warn "Failed to save current symlink for rollback"
-    }
+    if [ "$DRY_RUN" = true ]; then
+        log_info "[DRY RUN] Would save current symlink to $PREVIOUS_LINK"
+    else
+        cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
+            log_warn "Failed to save current symlink for rollback"
+        }
+    fi
     log_info "Current symlink saved to $PREVIOUS_LINK"
 else
     log_warn "No current symlink found, skipping rollback preparation"
@@ -105,11 +126,16 @@ log_info "Performing atomic symlink switch..."
 
 TEMP_LINK="$CURRENT_LINK.tmp.$$"
 
-# Create temporary symlink
-ln -sfn "$RELEASE_DIR" "$TEMP_LINK"
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Would create temporary symlink: $TEMP_LINK -> $RELEASE_DIR"
+    log_info "[DRY RUN] Would atomically move: $TEMP_LINK -> $CURRENT_LINK"
+else
+    # Create temporary symlink
+    ln -sfn "$RELEASE_DIR" "$TEMP_LINK"
 
-# Atomic move
-mv "$TEMP_LINK" "$CURRENT_LINK"
+    # Atomic move
+    mv "$TEMP_LINK" "$CURRENT_LINK"
+fi
 
 log_info "Symlink switched atomically: $CURRENT_LINK -> $RELEASE_DIR"
 
@@ -135,8 +161,12 @@ if [ "$RELEASE_COUNT" -gt 5 ]; then
     
     echo "$RELEASES_TO_DELETE" | while read -r dir; do
         if [ -n "$dir" ] && [ -d "$dir" ]; then
-            log_info "Deleting old release: $dir"
-            rm -rf "$dir"
+            if [ "$DRY_RUN" = true ]; then
+                log_info "[DRY RUN] Would delete old release: $dir"
+            else
+                log_info "Deleting old release: $dir"
+                rm -rf "$dir"
+            fi
         fi
     done
     
@@ -146,7 +176,21 @@ else
 fi
 
 # Final verification
-if [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" ]; then
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Deployment simulation completed successfully!"
+    
+    # Display deployment summary for dry run
+    echo ""
+    log_info "=== DRY RUN SUMMARY ==="
+    log_info "Environment: $ENVIRONMENT"
+    log_info "Version: $VERSION"
+    log_info "Release path: $RELEASE_DIR"
+    log_info "Would create symlink: $CURRENT_LINK -> $RELEASE_DIR"
+    log_info "Would create directories: $RELEASES_DIR, $LOGS_DIR"
+    log_info "======================="
+    echo ""
+    
+elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" ]; then
     log_info "Deployment verification successful"
     log_info "Current symlink points to: $(readlink "$CURRENT_LINK")"
     
@@ -175,5 +219,11 @@ if [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" ];
     
 else
     log_error "Deployment verification failed: symlink not pointing to expected target"
+    if [ -L "$CURRENT_LINK" ]; then
+        log_error "Current symlink points to: $(readlink "$CURRENT_LINK")"
+        log_error "Expected: $RELEASE_DIR"
+    else
+        log_error "Current symlink does not exist: $CURRENT_LINK"
+    fi
     exit 1
 fi

@@ -52,7 +52,13 @@ runs:
         scp -P ${{ inputs.ssh-port }} \
           scripts/deploy.sh scripts/ecosystem.config.js \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:~/
-        echo "✅ Deployment scripts copied"
+        
+        echo "🔧 Setting executable permissions..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "chmod +x ~/deploy.sh"
+        
+        echo "✅ Deployment scripts copied and configured"
 
     - name: Create release directory
       shell: bash
@@ -81,18 +87,39 @@ runs:
       shell: bash
       run: |
         echo "⚡ Executing atomic deployment..."
+        echo "🔍 Checking deployment script readiness..."
+        
         ssh -p ${{ inputs.ssh-port }} \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-          "./deploy.sh ${{ inputs.environment }} ${{ inputs.version }}"
+          "ls -la ~/deploy.sh && echo 'Script permissions: OK'"
+        
+        echo "🚀 Running deployment script..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "~/deploy.sh ${{ inputs.environment }} ${{ inputs.version }}"
+        
         echo "✅ Atomic deployment completed"
 
     - name: Verify deployment
       shell: bash
       run: |
         echo "🔍 Verifying deployment..."
+        
+        echo "📂 Checking release directory..."
         ssh -p ${{ inputs.ssh-port }} \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-          "ls -la ~/current-${{ inputs.environment }} && readlink ~/current-${{ inputs.environment }}"
+          "ls -la ~/releases/${{ inputs.environment }}/${{ inputs.version }}/"
+        
+        echo "🔗 Checking current symlink..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "ls -la ~/current-${{ inputs.environment }} && readlink ~/current-${{ inputs.environment }}" || echo "Symlink not found or broken"
+        
+        echo "📁 Checking logs directory..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "ls -la ~/logs/" || echo "Logs directory not found"
+        
         echo "✅ Deployment verification completed"
 
     - name: Notify deployment success
