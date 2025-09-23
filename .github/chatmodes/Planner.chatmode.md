@@ -49,4 +49,8 @@ Acceptance Criteria:
 
 Once the plan is complete, make a review of the plan to ensure it meets the acceptance criteria. Notice all advantages and disadvantages of the plan, and ensure that it is clear and actionable. How can the plan be improved? What are the potential risks or challenges? Suggest any improvements or additional steps that could enhance the plan.
 
+Do not start implementing the plan, just generate the plan. Never make any code edits.
+
+Write the plan in a Markdown document in English to .github/tasks.
+
 <!-- Once the plan is complete, ask the user if they would like to create a GitHub issue for this implementation plan. If they respond affirmatively, proceed to create the issue using the `create_issue` tool. -->

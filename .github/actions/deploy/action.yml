@@ -33,8 +33,8 @@ inputs:
     description: 'Environment URL for notifications'
     required: false
   version:
-    description: 'Version being deployed (for production)'
-    required: false
+    description: 'Release version (required parameter)'
+    required: true
 
 runs:
   using: 'composite'
@@ -45,29 +45,55 @@ runs:
         key: ${{ inputs.ssh-private-key }}
         known_hosts: ${{ inputs.ssh-known-hosts }}
 
+    - name: Copy deployment scripts
+      shell: bash
+      run: |
+        echo "📝 Copying deployment scripts..."
+        scp -P ${{ inputs.ssh-port }} \
+          scripts/deploy.sh scripts/ecosystem.config.js \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:~/
+        echo "✅ Deployment scripts copied"
+
+    - name: Create release directory
+      shell: bash
+      run: |
+        echo "� Creating release directory for ${{ inputs.environment }}/${{ inputs.version }}..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "mkdir -p ~/releases/${{ inputs.environment }}/${{ inputs.version }}/"
+        echo "✅ Release directory created"
+
     - name: Deploy to ${{ inputs.environment }}
       shell: bash
       run: |
         echo "🚀 Deploying to ${{ inputs.environment }} environment..."
-        if [ -n "${{ inputs.version }}" ]; then
-          echo "📦 Version: ${{ inputs.version }}"
-        fi
+        echo "📦 Version: ${{ inputs.version }}"
         
-        # Deploy using rsync with relative paths
+        # Deploy using rsync to versioned folder
         rsync -avz --delete \
           -e "ssh -p ${{ inputs.ssh-port }}" \
           ${{ inputs.source-path }}/ \
-          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.target-path }}/
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:releases/${{ inputs.environment }}/${{ inputs.version }}/
         
-        echo "✅ Files deployed successfully"
+        echo "✅ Files deployed to versioned directory"
+
+    - name: Execute deployment script
+      shell: bash
+      run: |
+        echo "⚡ Executing atomic deployment..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "./deploy.sh ${{ inputs.environment }} ${{ inputs.version }}"
+        echo "✅ Atomic deployment completed"
 
     - name: Verify deployment
       shell: bash
       run: |
-        echo "🔍 Verifying deployment files..."
+        echo "🔍 Verifying deployment..."
         ssh -p ${{ inputs.ssh-port }} \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-          "ls -la ${{ inputs.target-path }}/index.html" || echo "Verification completed"
+          "ls -la ~/current-${{ inputs.environment }} && readlink ~/current-${{ inputs.environment }}"
+        echo "✅ Deployment verification completed"
 
     - name: Notify deployment success
       shell: bash
@@ -76,6 +102,4 @@ runs:
         if [ -n "${{ inputs.environment-url }}" ]; then
           echo "🌐 URL: ${{ inputs.environment-url }}"
         fi
-        if [ -n "${{ inputs.version }}" ]; then
-          echo "🎉 Release ${{ inputs.version }} is live!"
-        fi
+        echo "🎉 Release ${{ inputs.version }} is live!"

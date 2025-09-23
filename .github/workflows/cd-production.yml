@@ -1,117 +1,117 @@
 name: Deploy to Production
 
 on:
-  push:
-    tags: ['v*']
+    push:
+        tags: ['v*']
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Required for creating GitHub releases
-    environment:
-      name: production
-      url: ${{ vars.PRODUCTION_URL }}
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write # Required for creating GitHub releases
+        environment:
+            name: production
+            url: ${{ vars.PRODUCTION_URL }}
 
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Get version from tag
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            - name: Get version from tag
+              id: get_version
+              run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Get current timestamp
-        id: get_timestamp
-        run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
+            - name: Get current timestamp
+              id: get_timestamp
+              run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Get the previous tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          
-          if [ -z "$PREVIOUS_TAG" ]; then
-            # If no previous tag, get all commits from the beginning
-            echo "changelog<<EOF" >> $GITHUB_OUTPUT
-            git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
-            echo "" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            # Get commits between previous tag and current
-            echo "changelog<<EOF" >> $GITHUB_OUTPUT
-            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
-            echo "" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
+            - name: Generate changelog
+              id: changelog
+              run: |
+                  # Get the previous tag
+                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
+                  if [ -z "$PREVIOUS_TAG" ]; then
+                    # If no previous tag, get all commits from the beginning
+                    echo "changelog<<EOF" >> $GITHUB_OUTPUT
+                    git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+                    echo "" >> $GITHUB_OUTPUT
+                    echo "EOF" >> $GITHUB_OUTPUT
+                  else
+                    # Get commits between previous tag and current
+                    echo "changelog<<EOF" >> $GITHUB_OUTPUT
+                    git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+                    echo "" >> $GITHUB_OUTPUT
+                    echo "EOF" >> $GITHUB_OUTPUT
+                  fi
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
 
-      - name: Build for production
-        env:
-          APP_VERSION: ${{ steps.get_version.outputs.version }}
-        run: npx nx build client --configuration=production --base-href=/new/
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
 
-      - name: Create build archive
-        run: |
-          cd dist/apps/client
-          tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
-          cd ../../..
+            - name: Build for production
+              env:
+                  APP_VERSION: ${{ steps.get_version.outputs.version }}
+              run: npx nx build client --configuration=production --base-href=/new/
 
-      - name: Deploy with reusable action
-        uses: ./.github/actions/deploy
-        with:
-          environment: 'production'
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          ssh-user: ${{ secrets.SSH_USER }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-port: ${{ secrets.SSH_PORT || '22' }}
-          source-path: 'dist/apps/client'
-          target-path: 'production'
-          environment-url: ${{ vars.PRODUCTION_URL }}
-          version: ${{ steps.get_version.outputs.version }}
+            - name: Create build archive
+              run: |
+                  cd dist/apps/client
+                  tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
+                  cd ../../..
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          name: Release ${{ steps.get_version.outputs.version }}
-          generate_release_notes: true
-          body: |
-            🚀 **Production Release ${{ steps.get_version.outputs.version }}**
-            
-            **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
-            **Environment**: Production
-            **URL**: ${{ vars.PRODUCTION_URL }}
-            
-            **Changes in this release:**
-            ${{ steps.changelog.outputs.changelog }}
-            
-            **Deployment**: ✅ Files deployed successfully
-            
-            **Download:**
-            - 📦 `drevo-web-${{ steps.get_version.outputs.version }}.tar.gz` - Production build archive
-          draft: false
-          prerelease: false
-          files: |
-            drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
+            - name: Deploy with reusable action
+              uses: ./.github/actions/deploy
+              with:
+                  environment: 'production'
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+                  ssh-user: ${{ secrets.SSH_USER }}
+                  ssh-host: ${{ secrets.SSH_HOST }}
+                  ssh-port: ${{ secrets.SSH_PORT || '22' }}
+                  source-path: 'dist/apps/client'
+                  target-path: 'production'
+                  environment-url: ${{ vars.PRODUCTION_URL }}
+                  version: ${{ steps.get_version.outputs.version }}
 
-      - name: Notify deployment
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Production deployment successful: ${{ vars.PRODUCTION_URL }}"
-            echo "🎉 Release ${{ steps.get_version.outputs.version }} is live!"
-          else
-            echo "❌ Production deployment failed"
-            echo "🚨 Manual intervention required"
-            exit 1
-          fi
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.get_version.outputs.version }}
+                  name: Release ${{ steps.get_version.outputs.version }}
+                  generate_release_notes: true
+                  body: |
+                      🚀 **Production Release ${{ steps.get_version.outputs.version }}**
+
+                      **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
+                      **Environment**: Production
+                      **URL**: ${{ vars.PRODUCTION_URL }}
+
+                      **Changes in this release:**
+                      ${{ steps.changelog.outputs.changelog }}
+
+                      **Deployment**: ✅ Files deployed successfully
+
+                      **Download:**
+                      - 📦 `drevo-web-${{ steps.get_version.outputs.version }}.tar.gz` - Production build archive
+                  draft: false
+                  prerelease: false
+                  files: |
+                      drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
+
+            - name: Notify deployment
+              if: always()
+              run: |
+                  if [ "${{ job.status }}" == "success" ]; then
+                    echo "✅ Production deployment successful: ${{ vars.PRODUCTION_URL }}"
+                    echo "🎉 Release ${{ steps.get_version.outputs.version }} is live!"
+                  else
+                    echo "❌ Production deployment failed"
+                    echo "🚨 Manual intervention required"
+                    exit 1
+                  fi

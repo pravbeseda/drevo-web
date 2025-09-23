@@ -1,49 +1,54 @@
 name: Deploy to Staging
 
 on:
-  workflow_run:
-    workflows: ["Continuous Integration"]
-    types: [completed]
-    branches: [main]
+    workflow_run:
+        workflows: ['Continuous Integration']
+        types: [completed]
+        branches: [main]
 
 jobs:
-  deploy-staging:
-    if: github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: ${{ vars.STAGING_URL }}
+    deploy-staging:
+        if: github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        environment:
+            name: staging
+            url: ${{ vars.STAGING_URL }}
 
-    steps:
-      - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-${{ github.event.workflow_run.head_sha }}
-          path: dist/apps/client
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+            - name: Generate staging version
+              id: get_version
+              run: echo "version=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
 
-      - name: Deploy with reusable action
-        uses: ./.github/actions/deploy
-        with:
-          environment: 'staging'
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          ssh-user: ${{ secrets.SSH_USER }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-port: ${{ secrets.SSH_PORT || '22' }}
-          source-path: 'dist/apps/client'
-          target-path: 'staging'
-          environment-url: ${{ vars.STAGING_URL }}
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: dist-${{ github.event.workflow_run.head_sha }}
+                  path: dist/apps/client
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Notify deployment
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Staging deployment successful: ${{ vars.STAGING_URL }}"
-          else
-            echo "❌ Staging deployment failed"
-            exit 1
-          fi
+            - name: Deploy with reusable action
+              uses: ./.github/actions/deploy
+              with:
+                  environment: 'staging'
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+                  ssh-user: ${{ secrets.SSH_USER }}
+                  ssh-host: ${{ secrets.SSH_HOST }}
+                  ssh-port: ${{ secrets.SSH_PORT || '22' }}
+                  source-path: 'dist/apps/client'
+                  target-path: 'staging'
+                  environment-url: ${{ vars.STAGING_URL }}
+                  version: ${{ steps.get_version.outputs.version }}
+
+            - name: Notify deployment
+              if: always()
+              run: |
+                  if [ "${{ job.status }}" == "success" ]; then
+                    echo "✅ Staging deployment successful: ${{ vars.STAGING_URL }}"
+                  else
+                    echo "❌ Staging deployment failed"
+                    exit 1
+                  fi
