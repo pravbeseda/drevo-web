@@ -273,19 +273,43 @@ ssh user@host "ls -la ~/releases/staging/YYYYMMDD-HHMM/server/"
 
 **Problem**: PM2 logs fail because logs directory doesn't exist.
 
+**Note**: Empty `~/logs/` directory after deployment is normal - log files are created only when PM2 processes start.
+
 **Solution**:
 ```bash
-# Create logs directory manually
+# Create logs directory manually if needed
 ssh user@host "mkdir -p ~/logs"
 
 # Check if deploy script is creating it
 ssh user@host "~/deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run"
 
-# Run actual deployment
-ssh user@host "~/deploy.sh staging YYYYMMDD-HHMM"
+# Start PM2 to create log files
+ssh user@host "pm2 start ecosystem.config.js"
+
+# Verify logs are being created
+ssh user@host "ls -la ~/logs/"
 ```
 
-#### 6. Out of Disk Space
+#### 9. Symlink Not Switching Correctly
+
+**Problem**: Deploy script completes but symlink points to old release.
+
+**Solution**:
+```bash
+# Check current symlink status
+ssh user@host "ls -la ~/current-staging && readlink ~/current-staging"
+
+# Manually fix symlink if needed
+ssh user@host "ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/current-staging"
+
+# Re-run deployment to see detailed logs
+ssh user@host "~/deploy.sh staging YYYYMMDD-HHMM"
+
+# Check for any temporary symlinks that might be blocking
+ssh user@host "ls -la ~/current-staging.tmp.*" 
+```
+
+#### 10. Out of Disk Space
 
 **Problem**: Server runs out of disk space due to old releases.
 

@@ -124,13 +124,49 @@ TEMP_LINK="$CURRENT_LINK.tmp.$$"
 if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Would perform atomic symlink switch"
 else
+    # Remove any existing temporary symlinks first
+    rm -f "$TEMP_LINK"*
+    
     # Create temporary symlink
     ln -sfn "$RELEASE_DIR" "$TEMP_LINK"
+    
+    # Verify temporary symlink was created correctly
+    if [ ! -L "$TEMP_LINK" ]; then
+        log_error "Failed to create temporary symlink: $TEMP_LINK"
+        exit 1
+    fi
+    
+    # Verify the temporary symlink points to the correct target
+    TEMP_TARGET=$(readlink "$TEMP_LINK")
+    if [ "$TEMP_TARGET" != "$RELEASE_DIR" ]; then
+        log_error "Temporary symlink points to wrong target: $TEMP_TARGET (expected: $RELEASE_DIR)"
+        rm -f "$TEMP_LINK"
+        exit 1
+    fi
+    
     # Atomic move
     mv "$TEMP_LINK" "$CURRENT_LINK"
+    
+    # Verify the move was successful
+    if [ ! -L "$CURRENT_LINK" ]; then
+        log_error "Failed to move temporary symlink to final location"
+        exit 1
+    fi
 fi
 
 log_info "Symlink switched atomically: $CURRENT_LINK -> $RELEASE_DIR"
+
+# Debug information for symlink verification
+if [ ! "$DRY_RUN" = true ]; then
+    log_info "Verifying symlink creation..."
+    if [ -L "$CURRENT_LINK" ]; then
+        ACTUAL_TARGET=$(readlink "$CURRENT_LINK")
+        log_info "Actual symlink target: $ACTUAL_TARGET"
+        log_info "Expected target: $RELEASE_DIR"
+    else
+        log_error "Current symlink does not exist after creation!"
+    fi
+fi
 
 # PM2 management (PREPARE BUT DO NOT EXECUTE)
 log_info "Preparing PM2 reload command (NOT EXECUTING YET):"
