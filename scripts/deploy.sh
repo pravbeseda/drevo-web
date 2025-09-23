@@ -45,11 +45,6 @@ if [ $# -eq 3 ] && [ "$3" = "--dry-run" ]; then
     log_warn "DRY RUN MODE - No changes will be made"
 fi
 
-log_info "Starting deployment script with arguments: $*"
-log_info "Current user: $(whoami)"
-log_info "Current directory: $(pwd)"
-log_info "Home directory: $HOME"
-
 # Validate environment
 if [[ ! "$ENVIRONMENT" =~ ^(staging|production)$ ]]; then
     log_error "Environment must be 'staging' or 'production', got: $ENVIRONMENT"
@@ -98,7 +93,7 @@ log_info "Release readiness check passed"
 log_info "Ensuring required directories exist..."
 
 if [ "$DRY_RUN" = true ]; then
-    log_info "[DRY RUN] Would create directories: $RELEASES_DIR, $LOGS_DIR"
+    log_info "[DRY RUN] Would create directories"
 else
     mkdir -p "$RELEASES_DIR"
     mkdir -p "$LOGS_DIR"
@@ -110,13 +105,13 @@ log_info "Required directories created/verified"
 if [ -L "$CURRENT_LINK" ]; then
     log_info "Saving current symlink for rollback..."
     if [ "$DRY_RUN" = true ]; then
-        log_info "[DRY RUN] Would save current symlink to $PREVIOUS_LINK"
-    else
-        cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
-            log_warn "Failed to save current symlink for rollback"
-        }
-    fi
-    log_info "Current symlink saved to $PREVIOUS_LINK"
+    log_info "[DRY RUN] Would save current symlink for rollback"
+else
+    cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
+        log_warn "Failed to save current symlink for rollback"
+    }
+fi
+log_info "Current symlink saved to $PREVIOUS_LINK"
 else
     log_warn "No current symlink found, skipping rollback preparation"
 fi
@@ -127,12 +122,10 @@ log_info "Performing atomic symlink switch..."
 TEMP_LINK="$CURRENT_LINK.tmp.$$"
 
 if [ "$DRY_RUN" = true ]; then
-    log_info "[DRY RUN] Would create temporary symlink: $TEMP_LINK -> $RELEASE_DIR"
-    log_info "[DRY RUN] Would atomically move: $TEMP_LINK -> $CURRENT_LINK"
+    log_info "[DRY RUN] Would perform atomic symlink switch"
 else
     # Create temporary symlink
     ln -sfn "$RELEASE_DIR" "$TEMP_LINK"
-
     # Atomic move
     mv "$TEMP_LINK" "$CURRENT_LINK"
 fi
@@ -162,9 +155,9 @@ if [ "$RELEASE_COUNT" -gt 5 ]; then
     echo "$RELEASES_TO_DELETE" | while read -r dir; do
         if [ -n "$dir" ] && [ -d "$dir" ]; then
             if [ "$DRY_RUN" = true ]; then
-                log_info "[DRY RUN] Would delete old release: $dir"
+                log_info "[DRY RUN] Would delete old release: $(basename "$dir")"
             else
-                log_info "Deleting old release: $dir"
+                log_info "Deleting old release: $(basename "$dir")"
                 rm -rf "$dir"
             fi
         fi
@@ -178,17 +171,7 @@ fi
 # Final verification
 if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Deployment simulation completed successfully!"
-    
-    # Display deployment summary for dry run
-    echo ""
-    log_info "=== DRY RUN SUMMARY ==="
-    log_info "Environment: $ENVIRONMENT"
-    log_info "Version: $VERSION"
-    log_info "Release path: $RELEASE_DIR"
-    log_info "Would create symlink: $CURRENT_LINK -> $RELEASE_DIR"
-    log_info "Would create directories: $RELEASES_DIR, $LOGS_DIR"
-    log_info "======================="
-    echo ""
+    log_info "Environment: $ENVIRONMENT, Version: $VERSION"
     
 elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" ]; then
     log_info "Deployment verification successful"

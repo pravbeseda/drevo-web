@@ -380,11 +380,8 @@ The system uses the following environment variables in PM2:
 # Quick status check
 pm2 status && ls -la ~/current-*
 
-# Test deployment system (dry-run)
+# Test deployment (dry-run)
 ./deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run
-
-# Full system check
-./deploy.sh staging $(date +'%Y%m%d-%H%M')
 
 # Log monitoring
 tail -f ~/logs/staging-combined.log ~/logs/production-combined.log
@@ -394,12 +391,6 @@ pm2 stop all
 
 # Emergency start
 pm2 start ecosystem.config.js
-
-# Check script permissions and readiness
-ls -la ~/deploy.sh ~/ecosystem.config.js
-
-# Manual debugging
-ssh user@host "~/deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run"
 ```
 
 This documentation should be updated as the system evolves and new features are added.
