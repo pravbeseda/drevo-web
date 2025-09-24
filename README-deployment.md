@@ -294,10 +294,21 @@ ssh user@host "ls -la ~/logs/"
 
 **Problem**: Deploy script completes but symlink points to old release.
 
+**Common causes**: 
+- Filesystem doesn't support atomic `mv` operations on symlinks
+- Temporary symlinks interfering with the process
+- Permission issues with symlink operations
+
 **Solution**:
 ```bash
 # Check current symlink status
 ssh user@host "ls -la ~/current-staging && readlink ~/current-staging"
+
+# Check for any leftover temporary symlinks
+ssh user@host "ls -la ~/current-staging.tmp.* ~/current-staging.new.*" 
+
+# Clean up any temporary symlinks
+ssh user@host "rm -f ~/current-staging.tmp.* ~/current-staging.new.*"
 
 # Manually fix symlink if needed
 ssh user@host "ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/current-staging"
@@ -305,8 +316,8 @@ ssh user@host "ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/current-staging"
 # Re-run deployment to see detailed logs
 ssh user@host "~/deploy.sh staging YYYYMMDD-HHMM"
 
-# Check for any temporary symlinks that might be blocking
-ssh user@host "ls -la ~/current-staging.tmp.*" 
+# Test with dry-run first
+ssh user@host "~/deploy.sh staging YYYYMMDD-HHMM --dry-run"
 ```
 
 #### 10. Out of Disk Space

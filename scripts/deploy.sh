@@ -119,37 +119,48 @@ fi
 # Atomic symlink switching
 log_info "Performing atomic symlink switch..."
 
-TEMP_LINK="$CURRENT_LINK.tmp.$$"
+# Note: We'll use a unique temp name in the actual implementation
 
 if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Would perform atomic symlink switch"
 else
-    # Remove any existing temporary symlinks first
-    rm -f "$TEMP_LINK"*
+    # Alternative atomic symlink approach for better compatibility
+    # Use a unique temporary name and then ln + rm for atomicity
+    TEMP_LINK_UNIQUE="$CURRENT_LINK.new.$$"
     
-    # Create temporary symlink
-    ln -sfn "$RELEASE_DIR" "$TEMP_LINK"
+    # Remove any existing temporary symlinks first
+    rm -f "$CURRENT_LINK".tmp.* "$CURRENT_LINK".new.*
+    
+    # Create new symlink with unique name
+    ln -sfn "$RELEASE_DIR" "$TEMP_LINK_UNIQUE"
     
     # Verify temporary symlink was created correctly
-    if [ ! -L "$TEMP_LINK" ]; then
-        log_error "Failed to create temporary symlink: $TEMP_LINK"
+    if [ ! -L "$TEMP_LINK_UNIQUE" ]; then
+        log_error "Failed to create temporary symlink: $TEMP_LINK_UNIQUE"
         exit 1
     fi
     
     # Verify the temporary symlink points to the correct target
-    TEMP_TARGET=$(readlink "$TEMP_LINK")
+    TEMP_TARGET=$(readlink "$TEMP_LINK_UNIQUE")
     if [ "$TEMP_TARGET" != "$RELEASE_DIR" ]; then
         log_error "Temporary symlink points to wrong target: $TEMP_TARGET (expected: $RELEASE_DIR)"
-        rm -f "$TEMP_LINK"
+        rm -f "$TEMP_LINK_UNIQUE"
         exit 1
     fi
     
-    # Atomic move
-    mv "$TEMP_LINK" "$CURRENT_LINK"
+    # Atomic replacement using mv (should work on most filesystems)
+    mv "$TEMP_LINK_UNIQUE" "$CURRENT_LINK"
     
-    # Verify the move was successful
+    # Verify the move was successful and points to correct target
     if [ ! -L "$CURRENT_LINK" ]; then
         log_error "Failed to move temporary symlink to final location"
+        exit 1
+    fi
+    
+    # Double-check the final symlink target
+    FINAL_TARGET=$(readlink "$CURRENT_LINK")
+    if [ "$FINAL_TARGET" != "$RELEASE_DIR" ]; then
+        log_error "Final symlink points to wrong target: $FINAL_TARGET (expected: $RELEASE_DIR)"
         exit 1
     fi
 fi
