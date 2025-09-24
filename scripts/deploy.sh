@@ -68,10 +68,11 @@ log_info "Starting deployment for $ENVIRONMENT environment, version $VERSION"
 
 # Base directory
 BASE_DIR="$HOME"
-RELEASES_DIR="$BASE_DIR/releases/$ENVIRONMENT"
+RELEASES_BASE_DIR="$BASE_DIR/releases"
+RELEASES_DIR="$RELEASES_BASE_DIR/$ENVIRONMENT"
 RELEASE_DIR="$RELEASES_DIR/$VERSION"
-CURRENT_LINK="$BASE_DIR/current-$ENVIRONMENT"
-PREVIOUS_LINK="$BASE_DIR/previous-$ENVIRONMENT"
+CURRENT_LINK="$RELEASES_BASE_DIR/current-$ENVIRONMENT"
+PREVIOUS_LINK="$RELEASES_BASE_DIR/previous-$ENVIRONMENT"
 LOGS_DIR="$BASE_DIR/logs"
 
 # Release readiness check
@@ -96,6 +97,7 @@ if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Would create directories"
 else
     mkdir -p "$RELEASES_DIR"
+    mkdir -p "$RELEASES_BASE_DIR"
     mkdir -p "$LOGS_DIR"
 fi
 
