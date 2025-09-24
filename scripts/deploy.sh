@@ -105,78 +105,46 @@ log_info "Required directories created/verified"
 if [ -L "$CURRENT_LINK" ]; then
     log_info "Saving current symlink for rollback..."
     if [ "$DRY_RUN" = true ]; then
-    log_info "[DRY RUN] Would save current symlink for rollback"
-else
-    cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
-        log_warn "Failed to save current symlink for rollback"
-    }
-fi
-log_info "Current symlink saved to $PREVIOUS_LINK"
+        log_info "[DRY RUN] Would save current symlink for rollback"
+    else
+        cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
+            log_warn "Failed to save current symlink for rollback"
+        }
+        log_info "Current symlink saved to $PREVIOUS_LINK"
+    fi
 else
     log_warn "No current symlink found, skipping rollback preparation"
 fi
 
-# Atomic symlink switching
+# Simplified atomic symlink switching
 log_info "Performing atomic symlink switch..."
-
-# Note: We'll use a unique temp name in the actual implementation
 
 if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Would perform atomic symlink switch"
 else
-    # Alternative atomic symlink approach for better compatibility
-    # Use a unique temporary name and then ln + rm for atomicity
-    TEMP_LINK_UNIQUE="$CURRENT_LINK.new.$$"
-    
-    # Remove any existing temporary symlinks first
-    rm -f "$CURRENT_LINK".tmp.* "$CURRENT_LINK".new.*
-    
-    # Create new symlink with unique name
-    ln -sfn "$RELEASE_DIR" "$TEMP_LINK_UNIQUE"
-    
-    # Verify temporary symlink was created correctly
-    if [ ! -L "$TEMP_LINK_UNIQUE" ]; then
-        log_error "Failed to create temporary symlink: $TEMP_LINK_UNIQUE"
-        exit 1
-    fi
-    
-    # Verify the temporary symlink points to the correct target
-    TEMP_TARGET=$(readlink "$TEMP_LINK_UNIQUE")
-    if [ "$TEMP_TARGET" != "$RELEASE_DIR" ]; then
-        log_error "Temporary symlink points to wrong target: $TEMP_TARGET (expected: $RELEASE_DIR)"
-        rm -f "$TEMP_LINK_UNIQUE"
-        exit 1
-    fi
-    
-    # Atomic replacement using mv (should work on most filesystems)
-    mv "$TEMP_LINK_UNIQUE" "$CURRENT_LINK"
-    
-    # Verify the move was successful and points to correct target
-    if [ ! -L "$CURRENT_LINK" ]; then
-        log_error "Failed to move temporary symlink to final location"
-        exit 1
-    fi
-    
-    # Double-check the final symlink target
-    FINAL_TARGET=$(readlink "$CURRENT_LINK")
-    if [ "$FINAL_TARGET" != "$RELEASE_DIR" ]; then
-        log_error "Final symlink points to wrong target: $FINAL_TARGET (expected: $RELEASE_DIR)"
-        exit 1
-    fi
-fi
-
-log_info "Symlink switched atomically: $CURRENT_LINK -> $RELEASE_DIR"
-
-# Debug information for symlink verification
-if [ ! "$DRY_RUN" = true ]; then
-    log_info "Verifying symlink creation..."
+    # Simple and reliable symlink replacement
+    # Remove existing symlink if it exists
     if [ -L "$CURRENT_LINK" ]; then
-        ACTUAL_TARGET=$(readlink "$CURRENT_LINK")
-        log_info "Actual symlink target: $ACTUAL_TARGET"
-        log_info "Expected target: $RELEASE_DIR"
-    else
-        log_error "Current symlink does not exist after creation!"
+        rm "$CURRENT_LINK"
     fi
+    
+    # Create new symlink
+    ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
+    
+    # Verify the symlink was created correctly
+    if [ ! -L "$CURRENT_LINK" ]; then
+        log_error "Failed to create symlink: $CURRENT_LINK"
+        exit 1
+    fi
+    
+    # Verify the symlink points to the correct target
+    ACTUAL_TARGET=$(readlink "$CURRENT_LINK")
+    if [ "$ACTUAL_TARGET" != "$RELEASE_DIR" ]; then
+        log_error "Symlink points to wrong target: $ACTUAL_TARGET (expected: $RELEASE_DIR)"
+        exit 1
+    fi
+    
+    log_info "Symlink created successfully: $CURRENT_LINK -> $RELEASE_DIR"
 fi
 
 # PM2 management (PREPARE BUT DO NOT EXECUTE)
