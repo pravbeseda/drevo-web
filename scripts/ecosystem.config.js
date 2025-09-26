@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'drevo-staging',
       script: './server/server.mjs',
-      cwd: '/home/github-deploy/current-staging',
+      cwd: '/home/github-deploy/releases/current-staging',
       env: {
         NODE_ENV: 'staging',
         PORT: 4001
@@ -34,7 +34,7 @@ module.exports = {
     {
       name: 'drevo-production',
       script: './server/server.mjs', 
-      cwd: '/home/github-deploy/current-production',
+      cwd: '/home/github-deploy/releases/current-production',
       env: {
         NODE_ENV: 'production',
         PORT: 4002
