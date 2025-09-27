@@ -14,10 +14,12 @@ module.exports = {
       log_file: '/home/github-deploy/logs/staging-combined.log',
       out_file: '/home/github-deploy/logs/staging-out.log',
       error_file: '/home/github-deploy/logs/staging-error.log',
+      merge_logs: true,
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       // Graceful restart settings
       kill_timeout: 5000,
       wait_ready: true,
-      listen_timeout: 8000,
+      listen_timeout: 5000,
       // Performance settings
       max_restarts: 5,
       min_uptime: '10s',
@@ -37,18 +39,21 @@ module.exports = {
       cwd: '/home/github-deploy/releases/current-production',
       env: {
         NODE_ENV: 'production',
-        PORT: 4002
+        PORT: 4002,
+        DEBUG: 'express:*'
       },
-      instances: 'max',
-      exec_mode: 'cluster',
+      instances: '1',
+      exec_mode: 'fork',
       // Logging
       log_file: '/home/github-deploy/logs/production-combined.log',
       out_file: '/home/github-deploy/logs/production-out.log',
       error_file: '/home/github-deploy/logs/production-error.log',
+      merge_logs: true,
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       // Graceful restart settings
       kill_timeout: 5000,
       wait_ready: true,
-      listen_timeout: 8000,
+      listen_timeout: 5000,
       // Performance settings (higher limits for production)
       max_restarts: 3,
       min_uptime: '30s',

@@ -55,8 +55,15 @@ app.use('/**', (req, res, next) => {
  */
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
+  console.log(`Starting server with NODE_ENV: ${process.env['NODE_ENV']}, PORT: ${port}`);
+  
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
+    
+    // Send ready signal to PM2 if running under PM2
+    if (process.send) {
+      process.send('ready');
+    }
   });
 }
 
