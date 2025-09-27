@@ -53,6 +53,14 @@ app.use('/**', (req, res, next) => {
  * Start the server if this module is the main entry point.
  * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
+
+// Debug logging for PM2 execution context
+console.log('=== Server Module Execution Debug ===');
+console.log('import.meta.url:', import.meta.url);
+console.log('process.argv[1]:', process.argv[1]);
+console.log('isMainModule result:', isMainModule(import.meta.url));
+console.log('========================================');
+
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
   console.log(`Starting server with NODE_ENV: ${process.env['NODE_ENV']}, PORT: ${port}`);
@@ -65,6 +73,8 @@ if (isMainModule(import.meta.url)) {
       process.send('ready');
     }
   });
+} else {
+  console.log('Server module loaded but not starting - not the main module');
 }
 
 /**
