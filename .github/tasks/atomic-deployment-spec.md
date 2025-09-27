@@ -21,8 +21,8 @@ Implement secure atomic deployment with release versioning for Angular SSR appli
 │       ├── 1.0.0/             # Semantic version from git tag (without 'v' prefix)
 │       ├── 1.0.1/
 │       └── 1.1.0/
-├── current-staging -> releases/staging/20240922-1630/
-├── current-production -> releases/production/1.1.0/
+├── staging-current -> releases/staging/20240922-1630/
+├── production-current -> releases/production/1.1.0/
 ├── logs/
 │   ├── staging-*.log
 │   └── production-*.log
@@ -54,9 +54,9 @@ Implement secure atomic deployment with release versioning for Angular SSR appli
 
 3. **Atomic symlink switching**:
    - Ensure required directories exist (`~/releases/{env}/`, `~/logs/`)
-   - Save current symlink for rollback: `~/previous-{env}` (if current symlink exists)
-   - Create temporary symlink: `~/current-{env}.tmp.$$`
-   - Atomic move: `mv ~/current-{env}.tmp.$$ ~/current-{env}`
+   - Save current symlink for rollback: `~/staging-previous` or `~/production-previous` (if current symlink exists)
+   - Create temporary symlink: `~/{env}-current.tmp.$$`
+   - Atomic move: `mv ~/{env}-current.tmp.$$ ~/{env}-current`
 
 4. **PM2 management** (PREPARE BUT DO NOT EXECUTE):
    - Prepare commands for `pm2 reload ecosystem.config.js --only drevo-{env}`
@@ -88,7 +88,7 @@ module.exports = {
     {
       name: 'drevo-staging',
       script: './server/server.mjs',
-      cwd: '/home/github-deploy/current-staging',
+      cwd: '/home/github-deploy/staging-current',
       env: {
         NODE_ENV: 'staging',
         PORT: 4001
@@ -119,7 +119,7 @@ module.exports = {
     {
       name: 'drevo-production',
       script: './server/server.mjs', 
-      cwd: '/home/github-deploy/current-production',
+      cwd: '/home/github-deploy/production-current',
       env: {
         NODE_ENV: 'production',
         PORT: 4002
@@ -216,7 +216,7 @@ echo "version=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
 ./deploy.sh production 1.2.0
 
 # Rollback to previous version
-ln -sfn $(readlink ~/previous-staging) ~/current-staging
+ln -sfn $(readlink ~/staging-previous) ~/staging-current
 pm2 reload ecosystem.config.js --only drevo-staging
 
 # View releases
@@ -226,7 +226,7 @@ ls -la ~/releases/production/
 
 **6.3 Monitoring**:
 - PM2 commands: `pm2 status`, `pm2 logs drevo-staging`
-- Check symlinks: `ls -la ~/current-*`
+- Check symlinks: `ls -la ~/staging-current ~/production-current`
 - Deployment logs in `~/.pm2/logs/`
 
 **6.4 Troubleshooting**:

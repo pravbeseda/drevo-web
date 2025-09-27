@@ -17,10 +17,10 @@ The Drevo Web project uses an atomic deployment system that ensures zero-downtim
 │       ├── 1.0.0/             # Semantic version from git tag (without 'v' prefix)
 │       ├── 1.0.1/
 │       └── 1.1.0/
-├── current-staging -> releases/staging/20240923-1630/
-├── current-production -> releases/production/1.1.0/
-├── previous-staging -> releases/staging/20240923-1430/
-├── previous-production -> releases/production/1.0.1/
+├── staging-current -> releases/staging/20240923-1630/
+├── production-current -> releases/production/1.1.0/
+├── staging-previous -> releases/staging/20240923-1430/
+├── production-previous -> releases/production/1.0.1/
 ├── logs/
 │   ├── staging-combined.log
 │   ├── staging-out.log
@@ -62,15 +62,15 @@ The Drevo Web project uses an atomic deployment system that ensures zero-downtim
 
 ```bash
 # Quick rollback to previous version (staging)
-ln -sfn $(readlink ~/previous-staging) ~/current-staging
+ln -sfn $(readlink ~/staging-previous) ~/staging-current
 pm2 reload ecosystem.config.js --only drevo-staging
 
 # Quick rollback to previous version (production)
-ln -sfn $(readlink ~/previous-production) ~/current-production
+ln -sfn $(readlink ~/production-previous) ~/production-current
 pm2 reload ecosystem.config.js --only drevo-production
 
 # Manual rollback to specific version
-ln -sfn ~/releases/staging/20240923-1430 ~/current-staging
+ln -sfn ~/releases/staging/20240923-1430 ~/staging-current
 pm2 reload ecosystem.config.js --only drevo-staging
 ```
 
@@ -117,15 +117,15 @@ pm2 restart ecosystem.config.js
 
 ```bash
 # View current symlinks
-ls -la ~/current-*
+ls -la ~/staging-current ~/production-current
 
 # Check if symlinks are valid
-readlink ~/current-staging
-readlink ~/current-production
+readlink ~/staging-current
+readlink ~/production-current
 
 # Verify deployment integrity
-ls -la ~/current-staging/server/server.mjs
-ls -la ~/current-production/server/server.mjs
+ls -la ~/staging-current/server/server.mjs
+ls -la ~/production-current/server/server.mjs
 ```
 
 ### Log Monitoring
@@ -187,10 +187,10 @@ mkdir -p ~/releases/production
 **Solution**:
 ```bash
 # Check current symlink
-ls -la ~/current-staging
+ls -la ~/staging-current
 
 # Fix broken symlink manually
-ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/current-staging
+ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/staging-current
 
 # Reload PM2
 pm2 reload ecosystem.config.js --only drevo-staging
@@ -213,7 +213,7 @@ pm2 restart drevo-staging
 
 # If still failing, check node version and dependencies
 node --version
-ls -la ~/current-staging/node_modules/
+ls -la ~/staging-current/node_modules/
 ```
 
 #### 4. Server Build Missing
@@ -302,16 +302,16 @@ ssh user@host "ls -la ~/logs/"
 **Solution**:
 ```bash
 # Check current symlink status
-ssh user@host "ls -la ~/current-staging && readlink ~/current-staging"
+ssh user@host "ls -la ~/staging-current && readlink ~/staging-current"
 
 # Check for any leftover temporary symlinks
-ssh user@host "ls -la ~/current-staging.tmp.* ~/current-staging.new.*" 
+ssh user@host "ls -la ~/staging-current.tmp.* ~/staging-current.new.*" 
 
 # Clean up any temporary symlinks
-ssh user@host "rm -f ~/current-staging.tmp.* ~/current-staging.new.*"
+ssh user@host "rm -f ~/staging-current.tmp.* ~/staging-current.new.*"
 
 # Manually fix symlink if needed
-ssh user@host "ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/current-staging"
+ssh user@host "ln -sfn ~/releases/staging/YYYYMMDD-HHMM ~/staging-current"
 
 # Re-run deployment to see detailed logs
 ssh user@host "~/deploy.sh staging YYYYMMDD-HHMM"
@@ -349,11 +349,11 @@ If the new atomic deployment system fails completely:
 pm2 stop all
 
 # Remove current symlinks
-rm ~/current-staging ~/current-production
+rm ~/staging-current ~/production-current
 
 # Point back to legacy directories (if they exist)
-ln -sfn ~/staging ~/current-staging
-ln -sfn ~/production ~/current-production
+ln -sfn ~/staging ~/staging-current
+ln -sfn ~/production ~/production-current
 
 # Update PM2 configuration to use legacy paths temporarily
 # Edit ecosystem.config.js or use legacy PM2 setup
@@ -413,7 +413,7 @@ The system uses the following environment variables in PM2:
 
 ```bash
 # Quick status check
-pm2 status && ls -la ~/current-*
+pm2 status && ls -la ~/staging-current ~/production-current
 
 # Test deployment (dry-run)
 ./deploy.sh staging $(date +'%Y%m%d-%H%M') --dry-run
