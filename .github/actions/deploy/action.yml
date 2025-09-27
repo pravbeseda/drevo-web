@@ -95,7 +95,7 @@ runs:
         echo "🔍 Verifying deployment..."
         ssh -p ${{ inputs.ssh-port }} \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-          "if [ -L ~/releases/current-${{ inputs.environment }} ]; then ls -la ~/releases/current-${{ inputs.environment }} && readlink ~/releases/current-${{ inputs.environment }}; else echo 'Symlink ~/releases/current-${{ inputs.environment }} does not exist'; fi"
+          "if [ -L ~/releases/${{ inputs.environment }}-current ]; then ls -la ~/releases/${{ inputs.environment }}-current && readlink ~/releases/${{ inputs.environment }}-current; else echo 'Symlink ~/releases/${{ inputs.environment }}-current does not exist'; fi"
         echo "✅ Deployment verification completed"
 
     - name: Notify deployment success

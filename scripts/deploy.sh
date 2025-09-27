@@ -158,8 +158,9 @@ log_warn "PM2 integration will be enabled in future iteration"
 # Automatic cleanup of releases
 log_info "Starting automatic cleanup of old releases..."
 
-# Find all directories in releases folder, sort by creation time (newest first)
-RELEASE_DIRS=$(find "$RELEASES_DIR" -maxdepth 1 -type d -not -path "$RELEASES_DIR" | sort -t/ -k2 -r)
+# Find all directories in releases folder, sort by modification time (newest first)
+# Use stat to get modification time for proper sorting
+RELEASE_DIRS=$(find "$RELEASES_DIR" -maxdepth 1 -type d -not -path "$RELEASES_DIR" -exec stat -c '%Y %n' {} \; | sort -nr | cut -d' ' -f2-)
 RELEASE_COUNT=$(echo "$RELEASE_DIRS" | wc -l | tr -d ' ')
 
 log_info "Found $RELEASE_COUNT releases in $RELEASES_DIR"
