@@ -54,20 +54,13 @@ app.use('/**', (req, res, next) => {
  * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
 
-// Debug logging for PM2 execution context
-console.log('=== Server Module Execution Debug ===');
-console.log('import.meta.url:', import.meta.url);
-console.log('process.argv[1]:', process.argv[1]);
-console.log('isMainModule result:', isMainModule(import.meta.url));
-console.log('Running under PM2:', process.env['PM2_HOME'] !== undefined);
-console.log('========================================');
-
-// Check if this is the main module OR if we're running under PM2
+// When running under PM2, isMainModule() returns false because process.argv[1] points to
+// PM2's ProcessContainerFork.js instead of our server file. We check for PM2_HOME as a
+// reliable fallback to detect PM2 execution environment.
 const shouldStartServer = isMainModule(import.meta.url) || process.env['PM2_HOME'] !== undefined;
 
 if (shouldStartServer) {
   const port = process.env['PORT'] || 4000;
-  console.log(`Starting server with NODE_ENV: ${process.env['NODE_ENV']}, PORT: ${port}`);
   
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
@@ -77,8 +70,6 @@ if (shouldStartServer) {
       process.send('ready');
     }
   });
-} else {
-  console.log('Server module loaded but not starting - not the main module');
 }
 
 /**

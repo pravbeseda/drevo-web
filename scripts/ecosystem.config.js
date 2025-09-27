@@ -28,8 +28,6 @@ module.exports = {
       autorestart: true,
       // Process monitoring
       pmx: true,
-      // File watching (disabled in production)
-      ignore_watch: ['node_modules', 'logs', '.git'],
       // Node.js arguments
       node_args: '--max-old-space-size=512'
     },
@@ -39,11 +37,10 @@ module.exports = {
       cwd: '/home/github-deploy/releases/current-production',
       env: {
         NODE_ENV: 'production',
-        PORT: 4002,
-        DEBUG: 'express:*'
+        PORT: 4002
       },
-      instances: '1',
-      exec_mode: 'fork',
+      instances: 'max',
+      exec_mode: 'cluster',
       // Logging
       log_file: '/home/github-deploy/logs/production-combined.log',
       out_file: '/home/github-deploy/logs/production-out.log',
@@ -54,7 +51,7 @@ module.exports = {
       kill_timeout: 5000,
       wait_ready: true,
       listen_timeout: 5000,
-      // Performance settings (higher limits for production)
+      // Performance settings
       max_restarts: 3,
       min_uptime: '30s',
       max_memory_restart: '1G',
@@ -62,8 +59,6 @@ module.exports = {
       autorestart: true,
       // Process monitoring
       pmx: true,
-      // File watching (disabled in production)
-      ignore_watch: ['node_modules', 'logs', '.git'],
       // Node.js arguments
       node_args: '--max-old-space-size=1024'
     }
