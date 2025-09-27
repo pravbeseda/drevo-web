@@ -113,9 +113,28 @@ runs:
       shell: bash
       run: |
         echo "🔍 Verifying deployment..."
+        
+        # Verify symlink
         ssh -p ${{ inputs.ssh-port }} \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
           "if [ -L ~/releases/${{ inputs.environment }}-current ]; then ls -la ~/releases/${{ inputs.environment }}-current && readlink ~/releases/${{ inputs.environment }}-current; else echo 'Symlink ~/releases/${{ inputs.environment }}-current does not exist'; fi"
+        
+        # Determine app name for PM2 verification
+        if [ "${{ inputs.environment }}" = "staging" ]; then
+          APP_NAME="drevo-staging"
+        elif [ "${{ inputs.environment }}" = "production" ]; then
+          APP_NAME="drevo-production"
+        else
+          echo "❌ Invalid environment: ${{ inputs.environment }}"
+          exit 1
+        fi
+        
+        # Verify PM2 status
+        echo "🔍 Verifying PM2 status..."
+        ssh -p ${{ inputs.ssh-port }} \
+          ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
+          "pm2 show $APP_NAME | head -10 || echo 'PM2 process not found or not running'"
+        
         echo "✅ Deployment verification completed"
 
     - name: Notify deployment success

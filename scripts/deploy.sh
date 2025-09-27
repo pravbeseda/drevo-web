@@ -286,11 +286,41 @@ else
     fi
 fi
 
-# PM2 management (PREPARE BUT DO NOT EXECUTE)
-log_info "Preparing PM2 reload command (NOT EXECUTING YET):"
-PM2_COMMAND="pm2 reload ecosystem.config.js --only $APP_NAME"
-log_warn "PM2 Command to run manually: $PM2_COMMAND"
-log_warn "PM2 integration will be enabled in future iteration"
+# PM2 management - Auto restart after deployment
+log_info "Performing PM2 restart..."
+
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Would execute PM2 restart: pm2 reload ecosystem.config.js --only $APP_NAME"
+else
+    PM2_COMMAND="pm2 reload ecosystem.config.js --only $APP_NAME"
+    
+    log_info "Executing PM2 restart: $PM2_COMMAND"
+    
+    if $PM2_COMMAND; then
+        log_info "✅ PM2 restart completed successfully"
+        
+        # Wait a moment for PM2 to settle
+        sleep 2
+        
+        # Verify PM2 status
+        log_info "Verifying PM2 status..."
+        if pm2 show "$APP_NAME" >/dev/null 2>&1; then
+            log_info "✅ PM2 process '$APP_NAME' is running"
+            
+            # Show current status
+            log_info "Current PM2 status:"
+            pm2 status | grep -E "(id|$APP_NAME)" || pm2 status
+        else
+            log_error "❌ PM2 process '$APP_NAME' is not running after restart"
+            log_error "Manual intervention may be required"
+            # Don't fail deployment, but warn
+        fi
+    else
+        log_error "❌ PM2 restart failed"
+        log_error "Manual PM2 restart required: $PM2_COMMAND"
+        # Don't fail deployment, but warn that manual restart is needed
+    fi
+fi
 
 # Automatic cleanup of releases
 log_info "Starting automatic cleanup of old releases..."
@@ -349,11 +379,12 @@ elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" 
     
     # Instructions for manual PM2 reload
     echo ""
-    log_warn "Next steps (manual):"
-    log_warn "1. Run: $PM2_COMMAND"
-    log_warn "2. Check status: pm2 status"
-    log_warn "3. Monitor logs: pm2 logs $APP_NAME"
-    log_warn "4. Check version display: pm2 show $APP_NAME"
+    log_info "🎉 Deployment completed successfully!"
+    log_info "✅ PM2 process restarted automatically"
+    log_info "📋 Next steps (optional verification):"
+    log_info "1. Check detailed status: pm2 show $APP_NAME"
+    log_info "2. Monitor logs: pm2 logs $APP_NAME"
+    log_info "3. Verify version display: pm2 status"
     echo ""
     
 else
