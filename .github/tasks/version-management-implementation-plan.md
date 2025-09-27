@@ -84,26 +84,27 @@ The solution integrates version information throughout the deployment pipeline, 
 #### Step 3.3: Update Deployment Action
 - Modify `.github/actions/deploy/action.yml`
 - Pass version information to deployment scripts
-- Ensure version is available to PM2 configuration
+- Create package.json with version in deployment directory for PM2 detection
 
 ### Phase 4: PM2 Integration
 
 #### Step 4.1: Update PM2 Configuration
-- Modify `scripts/ecosystem.config.js`
-- Add version information to PM2 app configuration
-- Include version in process metadata and environment variables
-- Update both staging and production configurations
+- Keep `scripts/ecosystem.config.js` minimal (no version field needed)
+- Ensure APP_VERSION environment variable is set for application access
+- PM2 version display will be handled via package.json in deployment directory
 
 #### Step 4.2: Update Deployment Script
 - Modify `scripts/deploy.sh`
-- Pass version information to PM2 during reload
-- Ensure version metadata is preserved during process management
+- Accept version parameter from CI/CD pipeline
+- Create package.json file with version in deployment directory
+- Set APP_VERSION environment variable for application
 - Add version verification in deployment process
 
-#### Step 4.3: Create Version File System
-- Create version file in deployment directory
-- Make version accessible to PM2 and application
-- Implement version file reading in application startup
+#### Step 4.3: Create Package.json Version Files
+- Create package.json with version in each deployment directory (`cwd` path)
+- Format: `{"name": "drevo-staging|drevo-production", "version": "X.X.X"}`
+- Place package.json alongside server.mjs for PM2 to detect version
+- This enables version display in `pm2 status` and `pm2 show` commands
 
 ### Phase 5: Application Runtime Integration
 
@@ -162,9 +163,9 @@ The solution integrates version information throughout the deployment pipeline, 
 - Version consistency across environments
 
 ### Phase 4 Deliverables
-- PM2 configuration with version metadata
-- Updated deployment scripts
-- Version display in PM2 status
+- Updated deployment scripts that create package.json with version
+- Version display in PM2 status via package.json detection
+- APP_VERSION environment variable for application access
 - Process management with version tracking
 
 ### Phase 5 Deliverables
@@ -219,8 +220,8 @@ The solution integrates version information throughout the deployment pipeline, 
 ### Potential Risks and Challenges
 1. **Build Process Complexity**: Adding version injection could complicate builds
    - *Mitigation*: Use environment variables and simple file replacement
-2. **PM2 Configuration**: Changes to ecosystem.config.js might affect process management
-   - *Mitigation*: Test in staging environment first, maintain backward compatibility
+2. **PM2 Version Detection**: Dependency on package.json file creation in deployment directory
+   - *Mitigation*: Ensure deployment script creates package.json before PM2 restart, add validation
 3. **Cache Invalidation**: Version changes might affect Nx caching
    - *Mitigation*: Properly configure cache inputs to include version-related files
 4. **SSR Compatibility**: Version injection must work with server-side rendering

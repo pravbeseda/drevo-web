@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # Atomic deployment script for Drevo Web
-# Usage: ./deploy.sh <environment> <version>
-# Example: ./deploy.sh staging 20240923-0900
-# Example: ./deploy.sh production 1.2.0
+# New Usage: ./deploy.sh <version> <app_name> <deploy_path> <environment>
+# Example: ./deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
+# Example: ./deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
+# Legacy Usage: ./deploy.sh <environment> <version> (for backward compatibility)
 
 set -euo pipefail
 
@@ -26,22 +27,136 @@ log_error() {
     echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1"
 }
 
-# Argument validation
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-    log_error "Usage: $0 <environment> <version> [--dry-run]"
-    log_error "Environment: staging or production"
-    log_error "Version format: YYYYMMDD-HHMM for staging, X.Y.Z for production"
-    log_error "Optional: --dry-run for testing without making changes"
+# Function to create deployment package.json
+create_deployment_package_json() {
+    local deployment_path="$1"
+    local app_name="$2"
+    local version="$3"
+    
+    local package_json_path="${deployment_path}/package.json"
+    
+    log_info "Creating package.json for PM2 version display..."
+    log_info "  - Path: $package_json_path"
+    log_info "  - App Name: $app_name"
+    log_info "  - Version: $version"
+    
+    # Create package.json content
+    cat > "$package_json_path" << EOF
+{
+  "name": "$app_name",
+  "version": "$version",
+  "description": "Drevo Web Application"
+}
+EOF
+    
+    # Verify file creation and content
+    if [[ -f "$package_json_path" ]]; then
+        log_info "✓ Created package.json with version $version at $package_json_path"
+        
+        # Verify JSON is valid
+        if command -v node >/dev/null 2>&1; then
+            if node -e "JSON.parse(require('fs').readFileSync('$package_json_path', 'utf8'))" 2>/dev/null; then
+                log_info "✓ Package.json has valid JSON format"
+            else
+                log_error "✗ Package.json has invalid JSON format"
+                return 1
+            fi
+        fi
+        
+        return 0
+    else
+        log_error "✗ Failed to create package.json at $package_json_path"
+        return 1
+    fi
+}
+
+# Argument validation - support both new and legacy parameter formats
+if [ $# -eq 2 ]; then
+    # Legacy format: ./deploy.sh <environment> <version>
+    log_warn "Using legacy parameter format - this will be deprecated"
+    ENVIRONMENT="$1"
+    VERSION="$2"
+    DRY_RUN=false
+    
+    # Determine app name and deploy path from environment
+    if [ "$ENVIRONMENT" = "staging" ]; then
+        APP_NAME="drevo-staging"
+        DEPLOY_PATH_PARAM="$HOME/releases/staging-current"
+    elif [ "$ENVIRONMENT" = "production" ]; then
+        APP_NAME="drevo-production"
+        DEPLOY_PATH_PARAM="$HOME/releases/production-current"
+    else
+        log_error "Invalid environment: $ENVIRONMENT"
+        exit 1
+    fi
+    
+elif [ $# -eq 3 ] && [ "$3" = "--dry-run" ]; then
+    # Legacy format with dry-run: ./deploy.sh <environment> <version> --dry-run
+    log_warn "Using legacy parameter format with dry-run - this will be deprecated"
+    ENVIRONMENT="$1"
+    VERSION="$2"
+    DRY_RUN=true
+    
+    # Determine app name and deploy path from environment
+    if [ "$ENVIRONMENT" = "staging" ]; then
+        APP_NAME="drevo-staging"
+        DEPLOY_PATH_PARAM="$HOME/releases/staging-current"
+    elif [ "$ENVIRONMENT" = "production" ]; then
+        APP_NAME="drevo-production"  
+        DEPLOY_PATH_PARAM="$HOME/releases/production-current"
+    else
+        log_error "Invalid environment: $ENVIRONMENT"
+        exit 1
+    fi
+    
+elif [ $# -eq 4 ]; then
+    # New format: ./deploy.sh <version> <app_name> <deploy_path> <environment>
+    VERSION="$1"
+    APP_NAME="$2"
+    DEPLOY_PATH_PARAM="$3"
+    ENVIRONMENT="$4"
+    DRY_RUN=false
+    
+    # Expand tilde in deploy path if needed
+    DEPLOY_PATH_PARAM="${DEPLOY_PATH_PARAM/#\~/$HOME}"
+    
+elif [ $# -eq 5 ] && [ "$5" = "--dry-run" ]; then
+    # New format with dry-run: ./deploy.sh <version> <app_name> <deploy_path> <environment> --dry-run
+    VERSION="$1"
+    APP_NAME="$2"
+    DEPLOY_PATH_PARAM="$3"
+    ENVIRONMENT="$4"
+    DRY_RUN=true
+    
+    # Expand tilde in deploy path if needed
+    DEPLOY_PATH_PARAM="${DEPLOY_PATH_PARAM/#\~/$HOME}"
+    
+else
+    log_error "Usage: $0 <version> <app_name> <deploy_path> <environment> [--dry-run]"
+    log_error "  New format (recommended):"
+    log_error "    Version: Version string (e.g., '1.2.0' or '20240923-0900')"
+    log_error "    App Name: PM2 app name (e.g., 'drevo-staging' or 'drevo-production')"
+    log_error "    Deploy Path: Deployment directory path (e.g., '~/releases/staging-current')"
+    log_error "    Environment: staging or production"
+    log_error ""
+    log_error "  Legacy format (deprecated):"
+    log_error "    $0 <environment> <version> [--dry-run]"
+    log_error "    Environment: staging or production"
+    log_error "    Version format: YYYYMMDD-HHMM for staging, X.Y.Z for production"
+    log_error ""
+    log_error "  Optional: --dry-run for testing without making changes"
     exit 1
 fi
 
-ENVIRONMENT="$1"
-VERSION="$2"
-DRY_RUN=false
+# Parameter validation
+if [[ -z "$VERSION" || -z "$APP_NAME" || -z "$DEPLOY_PATH_PARAM" || -z "$ENVIRONMENT" ]]; then
+    log_error "ERROR: Missing required parameters"
+    log_error "Version: '$VERSION', App Name: '$APP_NAME', Deploy Path: '$DEPLOY_PATH_PARAM', Environment: '$ENVIRONMENT'"
+    exit 1
+fi
 
 # Check for dry-run flag
-if [ $# -eq 3 ] && [ "$3" = "--dry-run" ]; then
-    DRY_RUN=true
+if [ "$DRY_RUN" = true ]; then
     log_warn "DRY RUN MODE - No changes will be made"
 fi
 
@@ -51,20 +166,23 @@ if [[ ! "$ENVIRONMENT" =~ ^(staging|production)$ ]]; then
     exit 1
 fi
 
-# Validate version format
-if [ "$ENVIRONMENT" = "staging" ]; then
-    if [[ ! "$VERSION" =~ ^[0-9]{8}-[0-9]{4}$ ]]; then
-        log_error "Staging version must match format YYYYMMDD-HHMM, got: $VERSION"
-        exit 1
-    fi
-elif [ "$ENVIRONMENT" = "production" ]; then
-    if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        log_error "Production version must match format X.Y.Z, got: $VERSION"
-        exit 1
-    fi
+# Validate app name format
+if [[ ! "$APP_NAME" =~ ^drevo-(staging|production)$ ]]; then
+    log_error "App name must be 'drevo-staging' or 'drevo-production', got: $APP_NAME"
+    exit 1
 fi
 
-log_info "Starting deployment for $ENVIRONMENT environment, version $VERSION"
+# Basic version format validation (flexible to support both formats)
+if [[ -z "$VERSION" ]]; then
+    log_error "Version cannot be empty"
+    exit 1
+fi
+
+log_info "Starting deployment with parameters:"
+log_info "  - Environment: $ENVIRONMENT"
+log_info "  - Version: $VERSION"
+log_info "  - App Name: $APP_NAME"
+log_info "  - Deploy Path: $DEPLOY_PATH_PARAM"
 
 # Base directory
 BASE_DIR="$HOME"
@@ -149,9 +267,28 @@ else
     log_info "Symlink created successfully: $CURRENT_LINK -> $RELEASE_DIR"
 fi
 
+# Create package.json for PM2 version display
+log_info "Creating package.json for PM2 version display..."
+
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Would create package.json at $DEPLOY_PATH_PARAM"
+    log_info "[DRY RUN] Package.json would contain:"
+    log_info "[DRY RUN]   - name: $APP_NAME"
+    log_info "[DRY RUN]   - version: $VERSION"
+    log_info "[DRY RUN]   - description: Drevo Web Application"
+else
+    if create_deployment_package_json "$DEPLOY_PATH_PARAM" "$APP_NAME" "$VERSION"; then
+        log_info "✅ Package.json created successfully for PM2 version display"
+    else
+        log_error "❌ Failed to create package.json - continuing with deployment"
+        log_warn "PM2 will not be able to display version information"
+        # Don't fail the deployment, just warn
+    fi
+fi
+
 # PM2 management (PREPARE BUT DO NOT EXECUTE)
 log_info "Preparing PM2 reload command (NOT EXECUTING YET):"
-PM2_COMMAND="pm2 reload ecosystem.config.js --only drevo-$ENVIRONMENT"
+PM2_COMMAND="pm2 reload ecosystem.config.js --only $APP_NAME"
 log_warn "PM2 Command to run manually: $PM2_COMMAND"
 log_warn "PM2 integration will be enabled in future iteration"
 
@@ -215,7 +352,8 @@ elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" 
     log_warn "Next steps (manual):"
     log_warn "1. Run: $PM2_COMMAND"
     log_warn "2. Check status: pm2 status"
-    log_warn "3. Monitor logs: pm2 logs drevo-$ENVIRONMENT"
+    log_warn "3. Monitor logs: pm2 logs $APP_NAME"
+    log_warn "4. Check version display: pm2 show $APP_NAME"
     echo ""
     
 else

@@ -17,9 +17,13 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Generate staging version
+            - name: Generate datetime-based version
               id: get_version
-              run: echo "version=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+              run: |
+                  # Generate datetime-based version for staging
+                  VERSION=$(date +'%Y%m%d-%H%M')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "📋 Staging version: $VERSION"
 
             - name: Download build artifacts
               uses: actions/download-artifact@v4

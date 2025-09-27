@@ -84,9 +84,29 @@ runs:
       shell: bash
       run: |
         echo "⚡ Executing atomic deployment..."
+        
+        # Determine app name based on environment
+        if [ "${{ inputs.environment }}" = "staging" ]; then
+          APP_NAME="drevo-staging"
+        elif [ "${{ inputs.environment }}" = "production" ]; then
+          APP_NAME="drevo-production"
+        else
+          echo "❌ Invalid environment: ${{ inputs.environment }}"
+          exit 1
+        fi
+        
+        # Determine deployment path
+        DEPLOY_PATH="~/releases/${{ inputs.environment }}-current"
+        
+        echo "📋 Deployment parameters:"
+        echo "  - Environment: ${{ inputs.environment }}"
+        echo "  - Version: ${{ inputs.version }}"
+        echo "  - App Name: $APP_NAME"
+        echo "  - Deploy Path: $DEPLOY_PATH"
+        
         ssh -p ${{ inputs.ssh-port }} \
           ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-          "~/deploy.sh ${{ inputs.environment }} ${{ inputs.version }}"
+          "~/deploy.sh '${{ inputs.version }}' '$APP_NAME' '$DEPLOY_PATH' '${{ inputs.environment }}'"
         echo "✅ Atomic deployment completed"
 
     - name: Verify deployment
