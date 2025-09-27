@@ -1,127 +1,127 @@
 name: Deploy to Production
 
 on:
-    push:
-        tags: ['v*']
+  push:
+    tags: ["v*"]
 
 jobs:
-    build-and-deploy:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write # Required for creating GitHub releases
-        environment:
-            name: production
-            url: ${{ vars.PRODUCTION_URL }}
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required for creating GitHub releases
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
 
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Get version from Git tag
-              id: get_version
-              run: |
-                  # Extract version from tag name (remove 'v' prefix if present)
-                  VERSION="${GITHUB_REF_NAME#v}"
-                  
-                  # Fallback to git describe if GITHUB_REF_NAME is not available or invalid
-                  if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
-                      VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0-$(git rev-parse --short HEAD)")
-                  fi
-                  
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  echo "📋 Production version: $VERSION"
+      - name: Get version from Git tag
+        id: get_version
+        run: |
+          # Extract version from tag name (remove 'v' prefix if present)
+          VERSION="${GITHUB_REF_NAME#v}"
 
-            - name: Get current timestamp
-              id: get_timestamp
-              run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
+          # Fallback to git describe if GITHUB_REF_NAME is not available or invalid
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
+              VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0-$(git rev-parse --short HEAD)")
+          fi
 
-            - name: Generate changelog
-              id: changelog
-              run: |
-                  # Get the previous tag
-                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📋 Production version: $VERSION"
 
-                  if [ -z "$PREVIOUS_TAG" ]; then
-                    # If no previous tag, get all commits from the beginning
-                    echo "changelog<<EOF" >> $GITHUB_OUTPUT
-                    git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
-                    echo "" >> $GITHUB_OUTPUT
-                    echo "EOF" >> $GITHUB_OUTPUT
-                  else
-                    # Get commits between previous tag and current
-                    echo "changelog<<EOF" >> $GITHUB_OUTPUT
-                    git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
-                    echo "" >> $GITHUB_OUTPUT
-                    echo "EOF" >> $GITHUB_OUTPUT
-                  fi
+      - name: Get current timestamp
+        id: get_timestamp
+        run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: 'yarn'
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
 
-            - name: Install dependencies
-              run: yarn install --frozen-lockfile
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # If no previous tag, get all commits from the beginning
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            # Get commits between previous tag and current
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Build for production
-              env:
-                  APP_VERSION: ${{ steps.get_version.outputs.version }}
-              run: npx nx build client --configuration=production --base-href=/new/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
 
-            - name: Create build archive
-              run: |
-                  cd dist/apps/client
-                  tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
-                  cd ../../..
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-            - name: Deploy with reusable action
-              uses: ./.github/actions/deploy
-              with:
-                  environment: 'production'
-                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-                  ssh-user: ${{ secrets.SSH_USER }}
-                  ssh-host: ${{ secrets.SSH_HOST }}
-                  ssh-port: ${{ secrets.SSH_PORT || '22' }}
-                  source-path: 'dist/apps/client'
-                  target-path: 'production'
-                  environment-url: ${{ vars.PRODUCTION_URL }}
-                  version: ${{ steps.get_version.outputs.version }}
+      - name: Build for production
+        env:
+          APP_VERSION: ${{ steps.get_version.outputs.version }}
+        run: npx nx build client --configuration=production --base-href=/new/
 
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v1
-              with:
-                  tag_name: ${{ steps.get_version.outputs.version }}
-                  name: Release ${{ steps.get_version.outputs.version }}
-                  generate_release_notes: true
-                  body: |
-                      🚀 **Production Release ${{ steps.get_version.outputs.version }}**
+      - name: Create build archive
+        run: |
+          cd dist/apps/client
+          tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
+          cd ../../..
 
-                      **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
-                      **Environment**: Production
-                      **URL**: ${{ vars.PRODUCTION_URL }}
+      - name: Deploy with reusable action
+        uses: ./.github/actions/deploy
+        with:
+          environment: "production"
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-port: ${{ secrets.SSH_PORT || '22' }}
+          source-path: "dist/apps/client"
+          target-path: "production"
+          environment-url: ${{ vars.PRODUCTION_URL }}
+          version: ${{ steps.get_version.outputs.version }}
 
-                      **Changes in this release:**
-                      ${{ steps.changelog.outputs.changelog }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
+          body: |
+            🚀 **Production Release ${{ steps.get_version.outputs.version }}**
 
-                      **Deployment**: ✅ Files deployed successfully
+            **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
+            **Environment**: Production
+            **URL**: ${{ vars.PRODUCTION_URL }}
 
-                      **Download:**
-                      - 📦 `drevo-web-${{ steps.get_version.outputs.version }}.tar.gz` - Production build archive
-                  draft: false
-                  prerelease: false
-                  files: |
-                      drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
+            **Changes in this release:**
+            ${{ steps.changelog.outputs.changelog }}
 
-            - name: Notify deployment
-              if: always()
-              run: |
-                  if [ "${{ job.status }}" == "success" ]; then
-                    echo "✅ Production deployment successful: ${{ vars.PRODUCTION_URL }}"
-                    echo "🎉 Release ${{ steps.get_version.outputs.version }} is live!"
-                  else
-                    echo "❌ Production deployment failed"
-                    echo "🚨 Manual intervention required"
-                    exit 1
-                  fi
+            **Deployment**: ✅ Files deployed successfully
+
+            **Download:**
+            - 📦 `drevo-web-${{ steps.get_version.outputs.version }}.tar.gz` - Production build archive
+          draft: false
+          prerelease: false
+          files: |
+            drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Production deployment successful: ${{ vars.PRODUCTION_URL }}"
+            echo "🎉 Release ${{ steps.get_version.outputs.version }} is live!"
+          else
+            echo "❌ Production deployment failed"
+            echo "🚨 Manual intervention required"
+            exit 1
+          fi
