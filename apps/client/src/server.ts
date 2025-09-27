@@ -59,9 +59,13 @@ console.log('=== Server Module Execution Debug ===');
 console.log('import.meta.url:', import.meta.url);
 console.log('process.argv[1]:', process.argv[1]);
 console.log('isMainModule result:', isMainModule(import.meta.url));
+console.log('Running under PM2:', process.env['PM2_HOME'] !== undefined);
 console.log('========================================');
 
-if (isMainModule(import.meta.url)) {
+// Check if this is the main module OR if we're running under PM2
+const shouldStartServer = isMainModule(import.meta.url) || process.env['PM2_HOME'] !== undefined;
+
+if (shouldStartServer) {
   const port = process.env['PORT'] || 4000;
   console.log(`Starting server with NODE_ENV: ${process.env['NODE_ENV']}, PORT: ${port}`);
   
