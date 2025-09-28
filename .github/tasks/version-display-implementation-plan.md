@@ -11,8 +11,8 @@
 **Time Estimate: 1 hour**
 
 **Files to create:**
-- `apps/client/src/app/services/version.service.ts`
-- `apps/client/src/app/services/version.service.spec.ts`
+- `apps/client/src/app/services/version/version.service.ts`
+- `apps/client/src/app/services/version/version.service.spec.ts`
 
 **Implementation:**
 ```typescript
