@@ -38,8 +38,20 @@ yarn playwright install --with-deps
 # Development server
 yarn nx serve client
 
-# Build
-yarn nx build client
+# Build for different environments
+npm run build:staging      # Build with /staging base-href
+npm run build:prod         # Build with /new base-href  
+npm run build              # Build with / base-href
+
+# Local development servers
+npm run dev                # Start dev server with / base-path
+npm run dev:staging        # Start dev server with /staging base-path
+npm run dev:prod           # Start dev server with /new base-path
+
+# Production servers
+npm run start              # Start production server with / base-path
+npm run start:staging      # Start production server with /staging base-path
+npm run start:prod         # Start production server with /new base-path
 
 # Run tests
 yarn nx test client          # Unit tests
@@ -49,6 +61,8 @@ yarn nx affected -t lint     # Lint affected projects
 # Check affected projects
 yarn nx affected -t lint,test,build --parallel=3
 ```
+
+> 📖 **For detailed information about deployment and development scripts, see [SCRIPTS-GUIDE.md](./SCRIPTS-GUIDE.md)**
 
 ## CI/CD Pipeline
 

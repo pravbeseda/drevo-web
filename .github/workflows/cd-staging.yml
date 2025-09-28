@@ -17,6 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
       - name: Generate datetime-based version
         id: get_version
         run: |
@@ -25,13 +33,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📋 Staging version: $VERSION"
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-${{ github.event.workflow_run.head_sha }}
-          path: dist/apps/client
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+      - name: Build for staging deployment
+        env:
+          APP_VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          npx nx build client --configuration=production --base-href=/staging/
 
       - name: Deploy with reusable action
         uses: ./.github/actions/deploy

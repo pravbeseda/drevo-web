@@ -11,8 +11,14 @@ import { fileURLToPath } from 'node:url';
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
+// Get base path from environment variable or default to '/'
+const BASE_PATH = process.env['BASE_PATH'] || '/';
+const normalizedBasePath = BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
+
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+console.log(`Server configured with BASE_PATH: ${BASE_PATH}`);
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -28,7 +34,21 @@ const angularApp = new AngularNodeAppEngine();
 
 /**
  * Serve static files from /browser
+ * Dynamically handle base path based on environment
  */
+if (normalizedBasePath) {
+  // Serve static files at the configured base path
+  app.use(
+    normalizedBasePath,
+    express.static(browserDistFolder, {
+      maxAge: '1y',
+      index: false,
+      redirect: false,
+    })
+  );
+}
+
+// Always serve static files at root for direct asset access
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
@@ -39,15 +59,40 @@ app.use(
 
 /**
  * Handle all other requests by rendering the Angular application.
+ * Dynamically handle routing based on configured base path
  */
-app.use('/**', (req, res, next) => {
-  angularApp
-    .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next()
-    )
-    .catch(next);
-});
+if (normalizedBasePath) {
+  // Redirect root to configured base path
+  app.get('/', (req, res) => {
+    res.redirect(BASE_PATH);
+  });
+
+  // Handle all requests under the base path with Angular SSR
+  app.use(`${normalizedBasePath}/**`, (req, res, next) => {
+    angularApp
+      .handle(req)
+      .then((response) =>
+        response ? writeResponseToNodeResponse(response, res) : next()
+      )
+      .catch(next);
+  });
+
+  // Fallback for any other routes - redirect to base path
+  app.use('/**', (req, res) => {
+    const targetPath = normalizedBasePath + req.path;
+    res.redirect(targetPath);
+  });
+} else {
+  // Handle requests at root level when BASE_PATH is '/'
+  app.use('/**', (req, res, next) => {
+    angularApp
+      .handle(req)
+      .then((response) =>
+        response ? writeResponseToNodeResponse(response, res) : next()
+      )
+      .catch(next);
+  });
+}
 
 /**
  * Start the server if this module is the main entry point.
