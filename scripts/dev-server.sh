@@ -46,4 +46,11 @@ echo ""
 echo "🎯 Starting LOCAL development server..."
 echo "📝 Note: This is for development/testing only"
 echo "📝 For production deployment, use deploy.sh"
-BASE_PATH=$BASE_PATH PORT=$PORT node dist/apps/client/server/server.mjs
+
+SERVER_FILE="dist/apps/client/server/server.mjs"
+if [ ! -f "$SERVER_FILE" ]; then
+  echo "❌ Server file not found: $SERVER_FILE"
+  echo "   Build may have failed or output path is incorrect."
+  exit 1
+fi
+BASE_PATH=$BASE_PATH PORT=$PORT node "$SERVER_FILE"
