@@ -18,7 +18,7 @@
 ```typescript
 // apps/client/src/app/services/version.service.ts
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class VersionService {
