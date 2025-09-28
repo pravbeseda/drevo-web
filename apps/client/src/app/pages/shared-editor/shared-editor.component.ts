@@ -11,6 +11,7 @@ import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { InsertTagCommand } from '@drevo-web/shared';
+import { VersionService } from '../../services/version/version.service';
 
 interface EditorConfig {
     content: string;
@@ -37,7 +38,8 @@ export class SharedEditorComponent implements AfterViewInit {
 
     constructor(
         private readonly linkService: LinksService,
-        private readonly iframeService: IframeService
+        private readonly iframeService: IframeService,
+        private readonly versionService: VersionService
     ) {
         this.editorConfig$ = this.iframeService.content$.pipe(
             map(content => ({
@@ -58,6 +60,9 @@ export class SharedEditorComponent implements AfterViewInit {
                     content,
                 });
             });
+
+        const version = this.versionService.getVersion();
+        console.log('Version:', version);
     }
 
     updateLinks(links: string[]): void {
