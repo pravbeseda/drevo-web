@@ -11,15 +11,15 @@
 **Time Estimate: 1 hour**
 
 **Files to create:**
-- `libs/shared/src/lib/services/version.service.ts`
-- `libs/shared/src/lib/services/version.service.spec.ts`
-
-**Files to modify:**
-- `libs/shared/src/index.ts` (add export)
+- `apps/client/src/app/services/version.service.ts`
+- `apps/client/src/app/services/version.service.spec.ts`
 
 **Implementation:**
 ```typescript
-// version.service.ts
+// apps/client/src/app/services/version.service.ts
+import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
+
 @Injectable({ providedIn: 'root' })
 export class VersionService {
   getVersion(): string {
@@ -33,10 +33,12 @@ export class VersionService {
 - Mock environment in tests
 - Test both development and production scenarios
 
-**Export from Shared Library:**
+**Usage:**
 ```typescript
-// libs/shared/src/index.ts
-export * from './lib/services/version.service';
+// Import directly from app services
+import { VersionService } from './services/version.service';
+
+constructor(private versionService: VersionService) {}
 ```
 
 ## Acceptance Criteria
@@ -45,4 +47,4 @@ export * from './lib/services/version.service';
 - ✅ Available through DI: `constructor(private versionService: VersionService)`
 - ✅ Zero performance impact (simple getter)
 - ✅ All unit tests pass using Jest + Spectator
-- ✅ Exported from shared library
+- ✅ Available within client app

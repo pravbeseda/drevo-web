@@ -1,3 +1,2 @@
-export type { Article } from './lib/models/article';
-export type { InsertTagCommand } from './lib/models/editor';
-export * from './lib/services/version.service';
+export * from './lib/models/article';
+export * from './lib/models/editor';
