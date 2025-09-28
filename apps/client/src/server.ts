@@ -68,7 +68,7 @@ if (normalizedBasePath) {
   });
 
   // Handle all requests under the base path with Angular SSR
-  app.use(`${normalizedBasePath}/**`, (req, res, next) => {
+  app.use(`${normalizedBasePath}/*`, (req, res, next) => {
     angularApp
       .handle(req)
       .then((response) =>
@@ -78,13 +78,13 @@ if (normalizedBasePath) {
   });
 
   // Fallback for any other routes - redirect to base path
-  app.use('/**', (req, res) => {
+  app.use('/*', (req, res) => {
     const targetPath = normalizedBasePath + req.path;
     res.redirect(targetPath);
   });
 } else {
   // Handle requests at root level when BASE_PATH is '/'
-  app.use('/**', (req, res, next) => {
+  app.use('/*', (req, res, next) => {
     angularApp
       .handle(req)
       .then((response) =>
