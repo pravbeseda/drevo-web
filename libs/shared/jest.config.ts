@@ -1,10 +1,18 @@
 export default {
     displayName: 'shared',
     preset: '../../jest.preset.js',
-    testEnvironment: 'node',
+    setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
+    testEnvironment: 'jsdom',
     transform: {
-        '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
+        '^.+\\.(ts|mjs|js|html)$': [
+            'jest-preset-angular',
+            {
+                tsconfig: '<rootDir>/tsconfig.spec.json',
+                stringifyContentPathRegex: '\\.(html|svg)$',
+            },
+        ],
     },
+    transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
     moduleFileExtensions: ['ts', 'js', 'html'],
     coverageDirectory: '../../coverage/libs/shared',
 };

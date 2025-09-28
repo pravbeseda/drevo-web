@@ -14,6 +14,8 @@ import {
     withFetch,
     withInterceptorsFromDi,
 } from '@angular/common/http';
+import { VERSION_CONFIG } from '@drevo-web/shared';
+import { environment } from '../environments/environment';
 
 const routesTracing = false;
 
@@ -26,5 +28,9 @@ export const appConfig: ApplicationConfig = {
         importProvidersFrom(
             RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
         ),
+        {
+            provide: VERSION_CONFIG,
+            useValue: { version: environment.version }
+        },
     ],
 };
