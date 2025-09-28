@@ -6,7 +6,8 @@ module.exports = {
       cwd: '/home/github-deploy/releases/staging-current',
       env: {
         NODE_ENV: 'staging',
-        PORT: 4001
+        PORT: 4001,
+        BASE_PATH: '/staging'
       },
       instances: 'max',
       exec_mode: 'cluster',
@@ -37,7 +38,8 @@ module.exports = {
       cwd: '/home/github-deploy/releases/production-current',
       env: {
         NODE_ENV: 'production',
-        PORT: 4002
+        PORT: 4002,
+        BASE_PATH: '/new'
       },
       instances: 'max',
       exec_mode: 'cluster',

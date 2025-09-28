@@ -34,17 +34,18 @@ jobs:
           yarn nx affected -t lint,test,build --parallel=3
           yarn nx affected -t e2e
 
-      - name: Build for staging deployment
+      - name: Build verification
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           APP_VERSION: ${{ github.sha }}
         run: |
+          # Verify builds work with different base-href configurations
+          echo "🔍 Verifying build configurations..."
+          npx nx build client --configuration=production --base-href=/
+          echo "✅ Root path build successful"
+          
+          npx nx build client --configuration=production --base-href=/staging/
+          echo "✅ Staging path build successful"
+          
           npx nx build client --configuration=production --base-href=/new/
-
-      - name: Upload build artifacts
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ github.sha }}
-          path: dist/apps/client
-          retention-days: 1
+          echo "✅ Production path build successful"
