@@ -67,7 +67,17 @@ jobs:
       - name: Build for production
         env:
           APP_VERSION: ${{ steps.get_version.outputs.version }}
-        run: npx nx build client --configuration=production --base-href=/new/
+        run: |
+          # Replace version in environment.prod.ts for production build
+          echo "Building production with version: $APP_VERSION"
+          sed -i "s/process.env\['APP_VERSION'\] || 'unknown'/'$APP_VERSION'/g" apps/client/src/environments/environment.prod.ts
+          
+          # Verify the replacement
+          echo "Environment file after replacement:"
+          cat apps/client/src/environments/environment.prod.ts
+          
+          # Build with production configuration
+          npx nx build client --configuration=production --base-href=/new/
 
       - name: Create build archive
         run: |
