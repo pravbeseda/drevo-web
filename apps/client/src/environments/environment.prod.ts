@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    version: process.env['APP_VERSION'] || 'unknown',
+    version: '__VERSION_PLACEHOLDER__',
 };

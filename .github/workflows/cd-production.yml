@@ -68,9 +68,9 @@ jobs:
         env:
           APP_VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          # Replace version in environment.prod.ts for production build
+          # Replace version placeholder in environment.prod.ts
           echo "Building production with version: $APP_VERSION"
-          sed -i "s/process.env\['APP_VERSION'\] || 'unknown'/'$APP_VERSION'/g" apps/client/src/environments/environment.prod.ts
+          sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
           
           # Verify the replacement
           echo "Environment file after replacement:"
