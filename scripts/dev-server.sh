@@ -26,11 +26,11 @@ case $ENVIRONMENT in
     npm run build:prod
     ;;
   "dev")
-    BASE_PATH="/"
-    PORT=4000
-    echo "🔧 Development server for dev path"
+    BASE_PATH="/new"
+    PORT=4200
+    echo "🔧 Development server for dev path (/new)"
     echo "ℹ️  For production deployment, use deploy.sh instead"
-    npm run build
+    npm run build:prod
     ;;
   *)
     echo "❌ Unknown environment: $ENVIRONMENT"
