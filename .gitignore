@@ -84,5 +84,9 @@ legacy-drevo-yii
 # Testing secrets
 .act.secrets
 
+# Security scanning
+gitleaks-report.json
+results.sarif
+
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md

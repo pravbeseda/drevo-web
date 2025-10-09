@@ -48,16 +48,20 @@ export class WikiHighlighterService {
         let changed = false;
         this.linksState = { ...this.linksState, ...updateLinksState };
         this.pendingLinks.length = 0;
+
         if (this.text.length === 0) {
             return Promise.resolve(true);
         }
+
         for (const match of this.matches) {
             if (LINK_STATE_RE.test(match.className)) {
                 const linkText = this.extractLinkText(this.text, match);
                 if (linkText) {
+                    const normalizedLink = this.normalizeLinkText(linkText);
                     const status: boolean | undefined =
-                        this.linksState[linkText.trim().toUpperCase()];
+                        this.linksState[normalizedLink];
                     let newClass: string | undefined;
+
                     if (status === true) {
                         newClass = `${commonClassName} cm-link-exists`;
                     } else if (status === false) {
@@ -66,6 +70,7 @@ export class WikiHighlighterService {
                         newClass = `${commonClassName} cm-link-pending`;
                         this.pendingLinks.push(linkText);
                     }
+
                     if (newClass && newClass !== match.className) {
                         match.className = newClass;
                         changed = true;
@@ -84,9 +89,11 @@ export class WikiHighlighterService {
             return;
         }
 
-        this.updateLinksSubject.next(
-            Array.from(new Set(links.map(link => link.trim().toUpperCase())))
+        const uniqueNormalized = new Set(
+            links.map(link => this.normalizeLinkText(link))
         );
+
+        this.updateLinksSubject.next(Array.from(uniqueNormalized));
     }
 
     private reset(text: string): void {
@@ -191,5 +198,13 @@ export class WikiHighlighterService {
         }
 
         return text.slice(0, endIndex);
+    }
+
+    private normalizeLinkText(link: string): string {
+        return link
+            .trim()
+            .toUpperCase()
+            .replace(/Ё/g, 'Е')
+            .replace(/\s+/g, ' ');
     }
 }

@@ -1,0 +1,48 @@
+# Gitleaks configuration for drevo-web project
+title = "Gitleaks config for Drevo Web"
+
+[extend]
+# useDefault will extend the base configuration with the default gitleaks config:
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+useDefault = true
+
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+    # Ignore yarn binary and package locks
+    '''\.yarn/releases/''',
+    '''yarn\.lock''',
+    '''package-lock\.json''',
+    '''pnpm-lock\.yaml''',
+    
+    # Ignore test files with mock data
+    '''\.spec\.ts$''',
+    '''\.test\.ts$''',
+    '''/mocks/''',
+    
+    # Ignore documentation
+    '''README.*\.md$''',
+    '''^docs/''',
+    
+    # Ignore Python virtual environment
+    '''\.venv/''',
+]
+
+# Allow GitHub Actions secrets syntax
+regexes = [
+    '''\$\{\{\s*secrets\.''',
+    '''\$\{\{\s*vars\.''',
+    '''ansible_vault''',
+    '''\$ANSIBLE_VAULT''',
+]
+
+# Stopwords that indicate false positives
+stopwords = [
+    'example',
+    'sample',
+    'test',
+    'mock',
+    'placeholder',
+    'dummy',
+    'fake',
+]
