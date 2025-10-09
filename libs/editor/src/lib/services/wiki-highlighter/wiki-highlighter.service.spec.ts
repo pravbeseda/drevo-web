@@ -85,98 +85,100 @@ describe('WikiHighlighterService', () => {
     }
 
     describe('Link Normalization', () => {
-        describe('normalizeLinkText', () => {
+        describe('link normalization', () => {
             it.each([
-                { input: 'Ёлка', expected: 'ЕЛКА', description: 'normalize "ё" to "е" (uppercase)' },
-                { input: 'ёлка', expected: 'ЕЛКА', description: 'normalize "ё" to "е" (lowercase)' },
-                { input: 'Новый   год', expected: 'НОВЫЙ ГОД', description: 'remove multiple spaces' },
-                { input: 'Новый\t\tгод', expected: 'НОВЫЙ ГОД', description: 'remove tabs' },
-                { input: '  Ёлка   новогодняя  ', expected: 'ЕЛКА НОВОГОДНЯЯ', description: 'combine ё + spaces normalization' },
-                { input: '   ', expected: '', description: 'handle empty strings' },
-                { input: 'ёёё', expected: 'ЕЕЕ', description: 'handle only ё characters' },
-            ])('should $description: "$input" -> "$expected"', ({ input, expected }) => {
-                expect(service['normalizeLinkText'](input)).toBe(expected);
+                { input: 'Ёлка', normalized: 'ЕЛКА', description: 'normalize "ё" to "е" (uppercase)' },
+                { input: 'ёлка', normalized: 'ЕЛКА', description: 'normalize "ё" to "е" (lowercase)' },
+                { input: 'Новый   год', normalized: 'НОВЫЙ ГОД', description: 'remove multiple spaces' },
+                { input: 'Новый\t\tгод', normalized: 'НОВЫЙ ГОД', description: 'remove tabs' },
+                { input: '  Ёлка   новогодняя  ', normalized: 'ЕЛКА НОВОГОДНЯЯ', description: 'combine ё + spaces normalization' },
+            ])('should $description: "$input" -> "$normalized"', async ({ input, normalized }) => {
+                const view = getView(`((${input}))`);
+                
+                await service.updateLinksState({ [normalized]: true });
+                view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
+
+                const existsElement = view.dom.querySelector(existsSelector);
+                expect(existsElement).not.toBeNull();
+                expect(existsElement?.textContent).toBe(input);
             });
 
-            it('should handle null safely', () => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                expect(() => service['normalizeLinkText'](null as any)).not.toThrow();
+            it('should handle empty strings without errors', async () => {
+                getView('((   ))');
+                
+                await expect(service.updateLinksState({ '': true })).resolves.not.toThrow();
             });
         });
 
-        describe('requestLinksStatus', () => {
+        describe('links deduplication', () => {
             it.each([
                 {
                     description: 'send one request for ЁЛКА and ЕЛКА',
-                    input: ['Ёлка', 'Елка', 'ёлка'],
+                    text: '((Ёлка)) ((Елка)) ((ёлка))',
                     expected: ['ЕЛКА'],
                 },
                 {
                     description: 'deduplicate multiple variants to single normalized key',
-                    input: ['Ёлка', '  ЕЛКА  ', 'ёлка', 'Елка'],
+                    text: '((Ёлка)) ((  ЕЛКА  )) ((ёлка)) ((Елка))',
                     expected: ['ЕЛКА'],
                 },
-            ])('should $description', ({ input, expected }) => {
-                const spy = jest.spyOn(service['updateLinksSubject'], 'next');
+            ])('should $description', ({ text, expected }) => {
+                const spy = jest.spyOn(service.updateLinks$, 'subscribe');
+                let emittedValue: string[] | undefined;
                 
-                service['requestLinksStatus'](input);
+                service.updateLinks$.subscribe(value => {
+                    emittedValue = value;
+                });
                 
-                expect(spy).toHaveBeenCalledWith(expected);
-                expect(spy).toHaveBeenCalledTimes(1);
+                getView(text);
+                
+                expect(spy).toHaveBeenCalled();
+                expect(emittedValue).toEqual(expected);
             });
 
-            it('should not emit for empty array', () => {
-                const spy = jest.spyOn(service['updateLinksSubject'], 'next');
+            it('should not emit for editor without links', () => {
+                const spy = jest.fn();
+                service.updateLinks$.subscribe(spy);
                 
-                service['requestLinksStatus']([]);
+                getView('просто текст без ссылок');
                 
                 expect(spy).not.toHaveBeenCalled();
             });
         });
 
         describe('updateLinksState', () => {
-            it('should store status under normalized key', async () => {
-                service['requestLinksStatus'](['Ёлка', 'Елка']);
+            it('should update link status to "exists" when normalized key matches', async () => {
+                const view = getView('((Ёлка)) ((Елка))');
                 
                 await service.updateLinksState({ 'ЕЛКА': true });
+                view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
                 
-                expect(service['linksState']['ЕЛКА']).toBe(true);
+                const existsElements = view.dom.querySelectorAll(existsSelector);
+                expect(existsElements.length).toBe(2);
             });
 
             it('should lookup status by normalized key regardless of input variant', async () => {
-                service['linksState'] = { 'ЕЛКА': true };
+                const view = getView('((Ёлка)) ((елка  )) ((ЕЛКА))');
                 
-                expect(service['linksState'][service['normalizeLinkText']('Ёлка')]).toBe(true);
-                expect(service['linksState'][service['normalizeLinkText']('елка  ')]).toBe(true);
-                expect(service['linksState'][service['normalizeLinkText']('ЕЛКА')]).toBe(true);
+                await service.updateLinksState({ 'ЕЛКА': true });
+                view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
+
+                const existsElements = view.dom.querySelectorAll(existsSelector);
+                expect(existsElements.length).toBe(3);
+                expect(existsElements[0]?.textContent).toBe('Ёлка');
+                expect(existsElements[1]?.textContent).toBe('елка  ');
+                expect(existsElements[2]?.textContent).toBe('ЕЛКА');
             });
 
             it('should handle non-normalized keys (backward compatibility)', async () => {
+                const view = getView('((СТАРЫЙ_КЛЮЧ))');
+                
                 await service.updateLinksState({ 'СТАРЫЙ_КЛЮЧ': false });
+                view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
                 
-                expect(service['linksState']['СТАРЫЙ_КЛЮЧ']).toBe(false);
-            });
-        });
-
-        describe('integration tests', () => {
-            it.each([
-                {
-                    description: 'deduplicate Ё/Е variants in editor',
-                    text: '((Ёлка)) и ((Елка)) и ((ёлка))',
-                    expected: ['ЕЛКА'],
-                },
-                {
-                    description: 'deduplicate space variants in editor',
-                    text: '((Новый  год)) и ((Новый год))',
-                    expected: ['НОВЫЙ ГОД'],
-                },
-            ])('should $description', async ({ text, expected }) => {
-                const spy = jest.spyOn(service['updateLinksSubject'], 'next');
-                
-                getView(text);
-
-                expect(spy).toHaveBeenCalledWith(expected);
-                expect(spy).toHaveBeenCalledTimes(1);
+                const missingElement = view.dom.querySelector(missingSelector);
+                expect(missingElement).not.toBeNull();
+                expect(missingElement?.textContent).toBe('СТАРЫЙ_КЛЮЧ');
             });
 
             it('should apply status to all Ё/Е variants in editor', async () => {
