@@ -30,6 +30,9 @@ yarn install
 
 # Install Playwright browsers
 yarn playwright install --with-deps
+
+# Set up git hooks for security scanning
+./scripts/setup-git-hooks.sh
 ```
 
 ### Available Commands
@@ -71,6 +74,14 @@ The project uses GitHub Actions for CI/CD with three main branches:
 - `main` - development branch
 - `staging` - staging environment
 - `production` - production environment
+
+### Security Scanning
+
+The project includes automated security scanning to prevent secrets from being committed:
+
+- **Pre-commit hook**: Scans staged files before each commit
+- **GitHub Actions**: Scans all commits on push and pull requests
+- **Configuration**: See [docs/security-scanning.md](./docs/security-scanning.md) for details
 
 ### Workflow Stages
 
