@@ -201,7 +201,7 @@ export class WikiHighlighterService {
     }
 
     private normalizeLinkText(link: string): string {
-        return (link ?? '')
+        return link
             .trim()
             .toUpperCase()
             .replace(/Ё/g, 'Е')
