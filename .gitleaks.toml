@@ -20,9 +20,10 @@ paths = [
     '''\.test\.ts$''',
     '''/mocks/''',
     
-    # Ignore documentation
+    # Ignore documentation (contains truncated examples)
     '''README.*\.md$''',
     '''^docs/''',
+    '''^\.github/tasks/''',
     
     # Ignore Python virtual environment
     '''\.venv/''',
