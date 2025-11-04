@@ -28,7 +28,8 @@
         "ssr": {
           "entry": "apps/client/src/server.ts"
         },
-        "outputMode": "server"
+        "outputMode": "server",
+        "baseHref": "/new/"
       },
       "configurations": {
         "production": {
