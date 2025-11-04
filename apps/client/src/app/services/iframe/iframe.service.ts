@@ -6,6 +6,7 @@ import { InsertTagCommand } from '@drevo-web/shared';
 const allowedOrigins = [
     'http://drevo-local.ru',
     'https://drevo-info.ru',
+    'https://staging.drevo-info.ru',
     'http://localhost',
 ];
 
