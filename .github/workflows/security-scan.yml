@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - develop
-      - 'feature/**'
+      - "feature/**"
   pull_request:
     branches:
       - main
@@ -13,18 +13,18 @@ on:
 
 permissions:
   contents: read
-  security-events: write  # For uploading SARIF results
+  security-events: write # For uploading SARIF results
 
 jobs:
   gitleaks:
     name: Scan for secrets
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for full scan
+          fetch-depth: 0 # Fetch all history for full scan
 
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2

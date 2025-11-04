@@ -46,7 +46,8 @@ jobs:
           cat apps/client/src/environments/environment.prod.ts
           
           # Build with production configuration (will use environment.prod.ts)
-          npx nx build client --configuration=production --base-href=/staging/
+          # NOTE: Staging base-href is now /new/ (not /staging/). Update documentation and scripts to match.
+          npx nx build client --configuration=production --base-href=/new/
 
       - name: Deploy with reusable action
         uses: ./.github/actions/deploy
