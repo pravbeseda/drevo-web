@@ -41,5 +41,11 @@ jobs:
         run: |
           # Verify builds work with different base-href configurations
           echo "🔍 Verifying build configurations..."
-          npx nx build client --configuration=production --base-href=/new/
+          npx nx build client --configuration=production --base-href=/
           echo "✅ Root path build successful"
+          
+          npx nx build client --configuration=production --base-href=/staging/
+          echo "✅ Staging path build successful"
+          
+          npx nx build client --configuration=production --base-href=/new/
+          echo "✅ Production path build successful"

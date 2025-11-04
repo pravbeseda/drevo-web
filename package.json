@@ -4,7 +4,7 @@
     "license": "MIT",
     "scripts": {
         "test": "nx run-many --target=test --all --parallel",
-        "build:staging": "npx nx build client --configuration=production --base-href=/new/",
+        "build:staging": "npx nx build client --configuration=production --base-href=/staging/",
         "build:prod": "npx nx build client --configuration=production --base-href=/new/",
         "build": "npx nx build client --configuration=production --base-href=/",
         "start:prod": "NODE_ENV=production BASE_PATH=/new node dist/apps/client/server/server.mjs",
