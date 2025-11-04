@@ -7,7 +7,7 @@ module.exports = {
       env: {
         NODE_ENV: 'staging',
         PORT: 4001,
-        BASE_PATH: '/staging'
+        BASE_PATH: '/new'
       },
       instances: 'max',
       exec_mode: 'cluster',
