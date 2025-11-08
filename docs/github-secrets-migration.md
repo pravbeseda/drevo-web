@@ -1,6 +1,6 @@
 # GitHub Secrets Migration: Repository → Environment
 
-## 🎯 Current Situation
+## 🎯 Current Situation.
 
 Currently, secrets are configured as **Repository secrets** - they are shared across all environments.
 For separate deployment to different servers, you need to migrate them to **Environment secrets**.
