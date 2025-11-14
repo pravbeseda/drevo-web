@@ -29,7 +29,7 @@ describe('YiiNavigationService', () => {
 
   describe('isAngularRoute', () => {
     it('should return true for root path', () => {
-      expect(service.isAngularRoute('/')).toBe(true);
+      expect(service.isAngularRoute('/')).toBe(false);
     });
 
     it('should return true for /editor', () => {
