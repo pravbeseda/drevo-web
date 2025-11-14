@@ -4,6 +4,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-yii-iframe',
@@ -20,6 +21,11 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
   private readonly isBrowser: boolean;
   private currentIframePath = '/';
   private pendingIframeNavigationPath: string | null = null;
+  private readonly allowedOrigins = [
+    environment.yiiBackendUrl,
+    'http://localhost:4200',
+    'http://localhost',
+  ];
   
   iframeSrc: SafeResourceUrl | null = null;
   isLoading = true;
@@ -84,16 +90,8 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
    * Обработчик сообщений от iframe (должен быть стрелочной функцией для корректного this)
    */
   private handleMessage = (event: MessageEvent): void => {
-    // Проверяем origin (в production используйте конкретный origin)
-    const allowedOrigins = [
-      'http://localhost:4200',
-      'http://drevo-local.ru',
-      'https://drevo-info.ru',
-      'https://staging.drevo-info.ru',
-      'https://new.drevo-info.ru',
-    ];
-
-    if (!allowedOrigins.includes(event.origin)) {
+    // Проверяем origin
+    if (!this.allowedOrigins.includes(event.origin)) {
       return;
     }
 
