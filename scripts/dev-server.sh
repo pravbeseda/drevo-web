@@ -2,13 +2,14 @@
 
 # Development server script with dynamic base path configuration
 # For local development and testing
-# Usage: ./scripts/dev-server.sh [staging|production|dev]
+# Usage: ./scripts/dev-server.sh [staging|production|dev|local]
 # Note: This is for LOCAL development only, not production deployment
 # For production deployment, use deploy.sh instead
 
 set -e
 
-ENVIRONMENT=${1:-production}
+ENVIRONMENT=${1:-local}
+PROXY_CONFIG=""
 
 case $ENVIRONMENT in
   "staging")
@@ -32,9 +33,18 @@ case $ENVIRONMENT in
     echo "ℹ️  For production deployment, use deploy.sh instead"
     npm run build:prod
     ;;
+  "local")
+    BASE_PATH="/"
+    PORT=4200
+    PROXY_CONFIG="apps/client/proxy.conf.json"
+    echo "🔧 Development server for LOCAL Angular-First environment"
+    echo "📋 Using proxy.conf.json to connect to drevo-local.ru"
+    echo "ℹ️  For production deployment, use deploy.sh instead"
+    npm run build
+    ;;
   *)
     echo "❌ Unknown environment: $ENVIRONMENT"
-    echo "Usage: $0 [staging|production|dev]"
+    echo "Usage: $0 [staging|production|dev|local]"
     exit 1
     ;;
 esac
@@ -42,6 +52,9 @@ esac
 echo "✅ Build completed for $ENVIRONMENT environment"
 echo "🔧 Base path: $BASE_PATH"
 echo "🔧 Port: $PORT"
+if [ -n "$PROXY_CONFIG" ]; then
+  echo "🔀 Proxy config: $PROXY_CONFIG"
+fi
 echo ""
 echo "🎯 Starting LOCAL development server..."
 echo "📝 Note: This is for development/testing only"
@@ -53,4 +66,4 @@ if [ ! -f "$SERVER_FILE" ]; then
   echo "   Build may have failed or output path is incorrect."
   exit 1
 fi
-BASE_PATH=$BASE_PATH PORT=$PORT node "$SERVER_FILE"
+BASE_PATH=$BASE_PATH PORT=$PORT PROXY_CONFIG=$PROXY_CONFIG node "$SERVER_FILE"

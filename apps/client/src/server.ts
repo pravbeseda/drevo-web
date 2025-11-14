@@ -4,7 +4,9 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import express from 'express';
+import express, { type Application } from 'express';
+import { createProxyMiddleware, type Options } from 'http-proxy-middleware';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +21,7 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 console.log(`Server configured with BASE_PATH: ${BASE_PATH}`);
+configureProxy(app);
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -121,3 +124,34 @@ if (shouldStartServer) {
  * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
  */
 export const reqHandler = createNodeRequestHandler(app);
+
+function configureProxy(app: Application): void {
+  const proxyConfigPath = process.env['PROXY_CONFIG'];
+
+  if (!proxyConfigPath) {
+    return;
+  }
+
+  try {
+    const resolvedPath = resolve(process.cwd(), proxyConfigPath);
+
+    if (!existsSync(resolvedPath)) {
+      console.warn(`[Proxy] Configuration file not found at ${resolvedPath}. Skipping proxy setup.`);
+      return;
+    }
+
+    const config = JSON.parse(readFileSync(resolvedPath, 'utf-8')) as Record<string, Options>;
+
+    Object.entries(config).forEach(([context, options]) => {
+      if (!options?.target) {
+        console.warn(`[Proxy] Skipping proxy for ${context}: missing target`);
+        return;
+      }
+
+      app.use(context, createProxyMiddleware(options));
+      console.log(`[Proxy] ${context} → ${options.target}`);
+    });
+  } catch (error) {
+    console.error(`[Proxy] Failed to configure proxy from ${proxyConfigPath}`, error);
+  }
+}
