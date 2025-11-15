@@ -13,15 +13,11 @@ export class YiiNavigationService {
         this.setupNavigationTracking();
     }
 
-    /**
-     * Check if a path is an Angular route or should be handled by Yii iframe
-     */
     isAngularRoute(path: string): boolean {
         // Remove query params and hash for comparison
         const cleanPath = path.split('?')[0].split('#')[0];
 
         return this.angularRoutes.some(route => {
-            // Exact match
             if (cleanPath === route) {
                 return true;
             }
@@ -31,19 +27,12 @@ export class YiiNavigationService {
         });
     }
 
-    /**
-     * Get the Yii URL for a given path (for iframe src)
-     */
     getYiiUrl(path: string): string {
         // Remove leading slash if present
         const cleanPath = path.startsWith('/') ? path.slice(1) : path;
         return `/legacy/${cleanPath}`;
     }
 
-    /**
-     * Register a new Angular route at runtime
-     * Useful when dynamically adding new Angular pages
-     */
     registerAngularRoute(route: string): void {
         if (!this.angularRoutes.includes(route)) {
             this.angularRoutes.push(route);
@@ -53,17 +42,10 @@ export class YiiNavigationService {
         }
     }
 
-    /**
-     * Get all registered Angular routes
-     */
     getAngularRoutes(): string[] {
         return [...this.angularRoutes];
     }
 
-    /**
-     * Setup navigation tracking to log route changes
-     * Useful for debugging and analytics
-     */
     private setupNavigationTracking(): void {
         this.router.events
             .pipe(filter(event => event instanceof NavigationEnd))
