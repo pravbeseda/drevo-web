@@ -1,62 +1,69 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { ɵbypassSanitizationTrustResourceUrl } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
 import { YiiIframeComponent } from './yii-iframe.component';
 
 describe('YiiIframeComponent', () => {
-  let component: YiiIframeComponent;
-  let fixture: ComponentFixture<YiiIframeComponent>;
-  let mockRouter: jest.Mocked<Router>;
-  let mockSanitizer: jest.Mocked<DomSanitizer>;
+    let spectator: Spectator<YiiIframeComponent>;
+    let mockRouter: jest.Mocked<Router>;
+    let mockSanitizer: jest.Mocked<DomSanitizer>;
+    const createComponent = createComponentFactory({
+        component: YiiIframeComponent,
+        detectChanges: false,
+    });
 
-  beforeEach(async () => {
-    mockRouter = {
-      url: '/test-path'
-    } as unknown as jest.Mocked<Router>;
+    beforeEach(() => {
+        const routerEvents$ = new Subject<NavigationEnd>();
 
-    mockSanitizer = {
-      bypassSecurityTrustResourceUrl: jest.fn().mockReturnValue('safe-url' as SafeResourceUrl)
-    } as unknown as jest.Mocked<DomSanitizer>;
+        mockRouter = {
+            url: '/test-path',
+            events: routerEvents$.asObservable(),
+            navigateByUrl: jest.fn().mockResolvedValue(true),
+        } as unknown as jest.Mocked<Router>;
 
-    await TestBed.configureTestingModule({
-      imports: [YiiIframeComponent],
-      providers: [
-        { provide: Router, useValue: mockRouter },
-        { provide: DomSanitizer, useValue: mockSanitizer }
-      ]
-    }).compileComponents();
+        mockSanitizer = {
+            bypassSecurityTrustResourceUrl: jest.fn((value: string) =>
+                ɵbypassSanitizationTrustResourceUrl(value)
+            ),
+        } as unknown as jest.Mocked<DomSanitizer>;
 
-    fixture = TestBed.createComponent(YiiIframeComponent);
-    component = fixture.componentInstance;
-  });
+        spectator = createComponent({
+            providers: [
+                { provide: Router, useValue: mockRouter },
+                { provide: DomSanitizer, useValue: mockSanitizer },
+            ],
+        });
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(spectator.component).toBeTruthy();
+    });
 
-  it('should initialize iframe source on init', () => {
-    fixture.detectChanges();
-    expect(mockSanitizer.bypassSecurityTrustResourceUrl).toHaveBeenCalledWith('/legacy/test-path');
-  });
+    it('should initialize iframe source on init', () => {
+        spectator.detectChanges();
+        expect(mockSanitizer.bypassSecurityTrustResourceUrl).toHaveBeenCalledWith('/legacy/test-path');
+    });
 
-  it('should handle iframe load event', () => {
-    component.isLoading = true;
-    component.onIframeLoad();
-    expect(component.isLoading).toBe(false);
-    expect(component.hasError).toBe(false);
-  });
+    it('should handle iframe load event', () => {
+        spectator.component.isLoading = true;
+        spectator.component.onIframeLoad();
+        expect(spectator.component.isLoading).toBe(false);
+        expect(spectator.component.hasError).toBe(false);
+    });
 
-  it('should handle iframe error event', () => {
-    component.isLoading = true;
-    component.onIframeError();
-    expect(component.isLoading).toBe(false);
-    expect(component.hasError).toBe(true);
-    expect(component.errorMessage).toBeTruthy();
-  });
+    it('should handle iframe error event', () => {
+        spectator.component.isLoading = true;
+        spectator.component.onIframeError();
+        expect(spectator.component.isLoading).toBe(false);
+        expect(spectator.component.hasError).toBe(true);
+        expect(spectator.component.errorMessage).toBeTruthy();
+    });
 
-  it('should reload iframe when reload is called', () => {
-    const updateSpy = jest.spyOn(component as never, 'updateIframeSrc');
-    component.reload();
-    expect(updateSpy).toHaveBeenCalled();
-  });
+    it('should reload iframe when reload is called', () => {
+        const updateSpy = jest.spyOn(spectator.component as never, 'updateIframeSrc');
+        spectator.component.reload();
+        expect(updateSpy).toHaveBeenCalled();
+    });
 });
