@@ -1,8 +1,9 @@
 import { PLATFORM_ID } from '@angular/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { IframeService } from './iframe.service';
+import { environment } from '../../../environments/environment';
 
-const allowedOrigin = 'http://drevo-local.ru';
+const allowedOrigin = environment.yiiBackendUrl;
 
 describe('IframeService - Browser Platform', () => {
     let spectator: SpectatorService<IframeService>;

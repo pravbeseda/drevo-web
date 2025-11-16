@@ -1,0 +1,33 @@
+<div class="yii-iframe-container">
+    <!-- Loading indicator -->
+    <div
+        *ngIf="isLoading"
+        class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading page...</p>
+    </div>
+
+    <!-- Error message -->
+    <div
+        *ngIf="hasError"
+        class="error-container">
+        <div class="error-message">
+            <h3>⚠️ Error Loading Page</h3>
+            <p>{{ errorMessage }}</p>
+            <button
+                (click)="reload()"
+                class="retry-button">
+                Retry
+            </button>
+        </div>
+    </div>
+
+    <!-- Iframe for Yii content -->
+    <iframe
+        *ngIf="iframeSrc && !hasError"
+        [src]="iframeSrc"
+        (load)="onIframeLoad()"
+        (error)="onIframeError()"
+        class="yii-iframe"
+        title="Yii Content"></iframe>
+</div>

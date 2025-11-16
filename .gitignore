@@ -1,5 +1,7 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
+.nginx-conf-for-ai
+
 # compiled output
 dist
 tmp
@@ -90,3 +92,4 @@ results.sarif
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+package-lock.json

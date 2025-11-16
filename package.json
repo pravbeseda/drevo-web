@@ -4,15 +4,16 @@
     "license": "MIT",
     "scripts": {
         "test": "nx run-many --target=test --all --parallel",
-        "build:staging": "npx nx build client --configuration=production --base-href=/staging/",
+        "build:staging": "npx nx build client --configuration=production --base-href=/",
         "build:prod": "npx nx build client --configuration=production --base-href=/new/",
         "build": "npx nx build client --configuration=production --base-href=/",
         "start:prod": "NODE_ENV=production BASE_PATH=/new node dist/apps/client/server/server.mjs",
-        "start:staging": "NODE_ENV=staging BASE_PATH=/staging node dist/apps/client/server/server.mjs",
+        "start:staging": "NODE_ENV=staging BASE_PATH=/ node dist/apps/client/server/server.mjs",
         "start": "NODE_ENV=production BASE_PATH=/ node dist/apps/client/server/server.mjs",
+        "dev:local": "./scripts/dev-server.sh local",
         "dev:staging": "./scripts/dev-server.sh staging",
         "dev:prod": "./scripts/dev-server.sh production",
-        "dev": "./scripts/dev-server.sh dev"
+        "dev": "./scripts/dev-server.sh local"
     },
     "private": true,
     "dependencies": {
@@ -34,6 +35,7 @@
         "@ngneat/until-destroy": "^10.0.0",
         "codemirror": "^6.0.1",
         "express": "^4.21.2",
+        "http-proxy-middleware": "^3.0.5",
         "rxjs": "~7.8.0"
     },
     "devDependencies": {

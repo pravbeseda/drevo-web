@@ -52,6 +52,27 @@
           ],
           "outputHashing": "all"
         },
+        "staging": {
+          "fileReplacements": [
+            {
+              "replace": "apps/client/src/environments/environment.ts",
+              "with": "apps/client/src/environments/environment.staging.ts"
+            }
+          ],
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
         "development": {
           "optimization": false,
           "extractLicenses": false,
@@ -62,18 +83,22 @@
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
+      "options": {
+        "allowedHosts": ["localhost", "drevo-local.ru"],
+        "proxyConfig": "apps/client/proxy.conf.js"
+      },
       "configurations": {
         "production": {
           "buildTarget": "client:build:production"
+        },
+        "staging": {
+          "buildTarget": "client:build:staging"
         },
         "development": {
           "buildTarget": "client:build:development"
         }
       },
-      "defaultConfiguration": "development",
-      "options": {
-        "allowedHosts": ["localhost", "drevo-local.ru"]
-      }
+      "defaultConfiguration": "development"
     },
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",

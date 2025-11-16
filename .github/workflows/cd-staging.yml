@@ -19,8 +19,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'yarn'
+          node-version: "20"
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -40,13 +40,13 @@ jobs:
           # Replace version placeholder in environment.prod.ts
           echo "Building staging with version: $APP_VERSION"
           sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
-          
+
           # Verify the replacement
           echo "Environment file after replacement:"
           cat apps/client/src/environments/environment.prod.ts
-          
-          # Build with production configuration (will use environment.prod.ts)
-          npx nx build client --configuration=production --base-href=/staging/
+
+          # Build with production configuration for Angular-First (base-href=/)
+          npx nx build client --configuration=production --base-href=/
 
       - name: Deploy with reusable action
         uses: ./.github/actions/deploy

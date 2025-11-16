@@ -2,17 +2,15 @@ import { Inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { InsertTagCommand } from '@drevo-web/shared';
-
-const allowedOrigins = [
-    'http://drevo-local.ru',
-    'https://drevo-info.ru',
-    'https://staging.drevo-info.ru',
-    'https://new.drevo-info.ru',
-    'http://localhost',
-];
+import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class IframeService implements OnDestroy {
+    private readonly allowedOrigins = [
+        environment.yiiBackendUrl,
+        'http://localhost:4200',
+        'http://localhost',
+    ];
     private readonly messageHandler = (event: MessageEvent): void =>
         this.onMessage(event);
     private isBrowser = false;
@@ -48,7 +46,7 @@ export class IframeService implements OnDestroy {
     }
 
     private onMessage(event: MessageEvent): void {
-        if (!allowedOrigins.includes(event.origin)) {
+        if (!this.allowedOrigins.includes(event.origin)) {
             return;
         }
         if (!event.data || typeof event.data.action === 'undefined') {
