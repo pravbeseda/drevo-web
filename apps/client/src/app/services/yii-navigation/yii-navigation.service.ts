@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable({
     providedIn: 'root',
@@ -9,7 +10,10 @@ export class YiiNavigationService {
     // List of known Angular routes (extensible)
     private readonly angularRoutes: string[] = ['/editor'];
 
-    constructor(private router: Router) {
+    constructor(
+        private router: Router,
+        private logger: LoggerService
+    ) {
         this.setupNavigationTracking();
     }
 
@@ -36,7 +40,7 @@ export class YiiNavigationService {
     registerAngularRoute(route: string): void {
         if (!this.angularRoutes.includes(route)) {
             this.angularRoutes.push(route);
-            console.log(
+            this.logger.log(
                 `[YiiNavigation] Registered new Angular route: ${route}`
             );
         }
@@ -51,7 +55,7 @@ export class YiiNavigationService {
             .pipe(filter(event => event instanceof NavigationEnd))
             .subscribe((event: NavigationEnd) => {
                 const isAngular = this.isAngularRoute(event.urlAfterRedirects);
-                console.log(
+                this.logger.log(
                     `[YiiNavigation] Navigation to: ${event.urlAfterRedirects} | ` +
                         `Type: ${isAngular ? 'Angular' : 'Yii iframe'}`
                 );
@@ -63,7 +67,7 @@ export class YiiNavigationService {
      * Call this from window message event listener
      */
     handleIframeNavigation(path: string): void {
-        console.log(`[YiiNavigation] Iframe navigation request: ${path}`);
+        this.logger.log(`[YiiNavigation] Iframe navigation request: ${path}`);
 
         // Update browser URL without reloading the page
         this.router.navigate([path], {
