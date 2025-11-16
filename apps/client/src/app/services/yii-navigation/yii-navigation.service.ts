@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
 import { LoggerService } from '../logger/logger.service';
+import { Router } from '@angular/router';
 
 @Injectable({
     providedIn: 'root',
@@ -10,12 +9,7 @@ export class YiiNavigationService {
     // List of known Angular routes (extensible)
     private readonly angularRoutes: string[] = ['/editor'];
 
-    constructor(
-        private router: Router,
-        private logger: LoggerService
-    ) {
-        this.setupNavigationTracking();
-    }
+    constructor(private readonly router: Router, private readonly logger: LoggerService) {}
 
     isAngularRoute(path: string): boolean {
         // Remove query params and hash for comparison
@@ -40,9 +34,6 @@ export class YiiNavigationService {
     registerAngularRoute(route: string): void {
         if (!this.angularRoutes.includes(route)) {
             this.angularRoutes.push(route);
-            this.logger.log(
-                `[YiiNavigation] Registered new Angular route: ${route}`
-            );
         }
     }
 
@@ -50,25 +41,11 @@ export class YiiNavigationService {
         return [...this.angularRoutes];
     }
 
-    private setupNavigationTracking(): void {
-        this.router.events
-            .pipe(filter(event => event instanceof NavigationEnd))
-            .subscribe((event: NavigationEnd) => {
-                const isAngular = this.isAngularRoute(event.urlAfterRedirects);
-                this.logger.log(
-                    `[YiiNavigation] Navigation to: ${event.urlAfterRedirects} | ` +
-                        `Type: ${isAngular ? 'Angular' : 'Yii iframe'}`
-                );
-            });
-    }
-
     /**
      * Handle postMessage from Yii iframe for navigation sync
      * Call this from window message event listener
      */
     handleIframeNavigation(path: string): void {
-        this.logger.log(`[YiiNavigation] Iframe navigation request: ${path}`);
-
         // Update browser URL without reloading the page
         this.router.navigate([path], {
             replaceUrl: false,
