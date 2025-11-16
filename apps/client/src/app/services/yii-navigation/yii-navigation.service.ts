@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { LoggerService } from '../logger/logger.service';
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -8,7 +9,7 @@ export class YiiNavigationService {
     // List of known Angular routes (extensible)
     private readonly angularRoutes: string[] = ['/editor'];
 
-    constructor(private router: Router) {}
+    constructor(private readonly router: Router, private readonly logger: LoggerService) {}
 
     isAngularRoute(path: string): boolean {
         // Remove query params and hash for comparison

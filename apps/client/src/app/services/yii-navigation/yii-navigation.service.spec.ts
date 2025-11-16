@@ -2,10 +2,12 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { YiiNavigationService } from './yii-navigation.service';
+import { LoggerService } from '../logger/logger.service';
 
 describe('YiiNavigationService', () => {
     let spectator: SpectatorService<YiiNavigationService>;
     let mockRouter: { events: Subject<unknown>; navigate: jest.Mock };
+    let mockLogger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock };
     const createService = createServiceFactory({
         service: YiiNavigationService,
     });
@@ -16,8 +18,16 @@ describe('YiiNavigationService', () => {
             events: eventsSubject,
             navigate: jest.fn(),
         };
+        mockLogger = {
+            log: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
+        };
         spectator = createService({
-            providers: [{ provide: Router, useValue: mockRouter }],
+            providers: [
+                { provide: Router, useValue: mockRouter },
+                { provide: LoggerService, useValue: mockLogger },
+            ],
         });
     });
 
