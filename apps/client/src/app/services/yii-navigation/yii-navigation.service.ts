@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, DestroyRef, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
 @Injectable({
@@ -8,6 +9,7 @@ import { filter } from 'rxjs/operators';
 export class YiiNavigationService {
     // List of known Angular routes (extensible)
     private readonly angularRoutes: string[] = ['/editor'];
+    private readonly destroyRef = inject(DestroyRef);
 
     constructor(private router: Router) {
         this.setupNavigationTracking();
@@ -36,9 +38,6 @@ export class YiiNavigationService {
     registerAngularRoute(route: string): void {
         if (!this.angularRoutes.includes(route)) {
             this.angularRoutes.push(route);
-            console.log(
-                `[YiiNavigation] Registered new Angular route: ${route}`
-            );
         }
     }
 
@@ -48,14 +47,11 @@ export class YiiNavigationService {
 
     private setupNavigationTracking(): void {
         this.router.events
-            .pipe(filter(event => event instanceof NavigationEnd))
-            .subscribe((event: NavigationEnd) => {
-                const isAngular = this.isAngularRoute(event.urlAfterRedirects);
-                console.log(
-                    `[YiiNavigation] Navigation to: ${event.urlAfterRedirects} | ` +
-                        `Type: ${isAngular ? 'Angular' : 'Yii iframe'}`
-                );
-            });
+            .pipe(
+                filter(event => event instanceof NavigationEnd),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe();
     }
 
     /**
@@ -63,8 +59,6 @@ export class YiiNavigationService {
      * Call this from window message event listener
      */
     handleIframeNavigation(path: string): void {
-        console.log(`[YiiNavigation] Iframe navigation request: ${path}`);
-
         // Update browser URL without reloading the page
         this.router.navigate([path], {
             replaceUrl: false,
