@@ -148,7 +148,12 @@ function configureProxy(app: Application): void {
         return;
       }
 
-      app.use(context, createProxyMiddleware(options));
+      const middleware = createProxyMiddleware({
+        ...options,
+        pathFilter: options.pathFilter ?? context,
+      });
+
+      app.use(middleware);
       console.log(`[Proxy] ${context} → ${options.target}`);
     });
   } catch (error) {
