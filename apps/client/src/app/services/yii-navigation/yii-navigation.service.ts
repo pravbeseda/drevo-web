@@ -1,7 +1,5 @@
-import { Injectable, DestroyRef, inject } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Injectable({
     providedIn: 'root',
@@ -9,11 +7,8 @@ import { filter } from 'rxjs/operators';
 export class YiiNavigationService {
     // List of known Angular routes (extensible)
     private readonly angularRoutes: string[] = ['/editor'];
-    private readonly destroyRef = inject(DestroyRef);
 
-    constructor(private router: Router) {
-        this.setupNavigationTracking();
-    }
+    constructor(private router: Router) {}
 
     isAngularRoute(path: string): boolean {
         // Remove query params and hash for comparison
@@ -43,15 +38,6 @@ export class YiiNavigationService {
 
     getAngularRoutes(): string[] {
         return [...this.angularRoutes];
-    }
-
-    private setupNavigationTracking(): void {
-        this.router.events
-            .pipe(
-                filter(event => event instanceof NavigationEnd),
-                takeUntilDestroyed(this.destroyRef)
-            )
-            .subscribe();
     }
 
     /**
