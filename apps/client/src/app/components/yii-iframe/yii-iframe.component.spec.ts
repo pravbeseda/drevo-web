@@ -1,14 +1,16 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-import { ɵbypassSanitizationTrustResourceUrl } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { YiiIframeComponent } from './yii-iframe.component';
+import { LoggerService } from '../../services/logger/logger.service';
 
 describe('YiiIframeComponent', () => {
     let spectator: Spectator<YiiIframeComponent>;
     let mockRouter: jest.Mocked<Router>;
-    let mockSanitizer: jest.Mocked<DomSanitizer>;
+    let mockLogger: jest.Mocked<LoggerService>;
+    let sanitizer: DomSanitizer;
+    let bypassSecurityTrustResourceUrlSpy: jest.SpiedFunction<DomSanitizer['bypassSecurityTrustResourceUrl']>;
     const createComponent = createComponentFactory({
         component: YiiIframeComponent,
         detectChanges: false,
@@ -23,18 +25,24 @@ describe('YiiIframeComponent', () => {
             navigateByUrl: jest.fn().mockResolvedValue(true),
         } as unknown as jest.Mocked<Router>;
 
-        mockSanitizer = {
-            bypassSecurityTrustResourceUrl: jest.fn((value: string) =>
-                ɵbypassSanitizationTrustResourceUrl(value)
-            ),
-        } as unknown as jest.Mocked<DomSanitizer>;
+        mockLogger = {
+            info: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
+        } as unknown as jest.Mocked<LoggerService>;
 
         spectator = createComponent({
             providers: [
                 { provide: Router, useValue: mockRouter },
-                { provide: DomSanitizer, useValue: mockSanitizer },
+                { provide: LoggerService, useValue: mockLogger },
             ],
         });
+
+        sanitizer = spectator.inject(DomSanitizer);
+        bypassSecurityTrustResourceUrlSpy = jest.spyOn(
+            sanitizer,
+            'bypassSecurityTrustResourceUrl'
+        );
     });
 
     it('should create', () => {
@@ -43,7 +51,9 @@ describe('YiiIframeComponent', () => {
 
     it('should initialize iframe source on init', () => {
         spectator.detectChanges();
-        expect(mockSanitizer.bypassSecurityTrustResourceUrl).toHaveBeenCalledWith('/legacy/test-path');
+        expect(
+            bypassSecurityTrustResourceUrlSpy
+        ).toHaveBeenCalledWith('/legacy/test-path');
     });
 
     it('should handle iframe load event', () => {
@@ -62,7 +72,10 @@ describe('YiiIframeComponent', () => {
     });
 
     it('should reload iframe when reload is called', () => {
-        const updateSpy = jest.spyOn(spectator.component as never, 'updateIframeSrc');
+        const updateSpy = jest.spyOn(
+            spectator.component as never,
+            'updateIframeSrc'
+        );
         spectator.component.reload();
         expect(updateSpy).toHaveBeenCalled();
     });

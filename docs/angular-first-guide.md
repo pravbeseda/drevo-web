@@ -72,7 +72,7 @@ drevo-web/
 │   └── staging-angular-first.drevo-info.ru.conf  # Nginx config
 ├── apps/
 │   └── client/
-│       ├── proxy.conf.json                        # Dev proxy config
+│       ├── proxy.conf.js                          # Dev/SSR proxy config
 │       └── src/
 │           └── app/
 │               ├── components/
@@ -176,7 +176,7 @@ Browser (localhost:4200)
     ↓
 Angular Dev Server (nx serve)
     ↓
-proxy.conf.json
+proxy.conf.js
     ↓
 drevo-local.ru (Docker) or localhost:80
     ↓
@@ -185,23 +185,42 @@ Yii Application
 
 ### Proxy Configuration
 
-Located at `apps/client/proxy.conf.json`:
+Located at `apps/client/proxy.conf.js` (shared by both Angular CLI and SSR server):
 
-```json
-{
-  "/api": {
-    "target": "http://drevo-local.ru",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/legacy": {
-    "target": "http://drevo-local.ru",
-    "pathRewrite": { "^/legacy": "" }
-  },
-  "/css": { "target": "http://drevo-local.ru" },
-  "/js": { "target": "http://drevo-local.ru" },
-  "/images": { "target": "http://drevo-local.ru" }
-}
+```ts
+const PROXY_CONFIG = (() => {
+  const target = process.env['YII_BACKEND_URL'] || 'http://drevo-local.ru';
+  const isSecure = target.startsWith('https://');
+
+  const paths = [
+    '/api',
+    { path: '/legacy', pathRewrite: { '^/legacy': '' } },
+    '/css',
+    '/js',
+    '/images',
+    '/pictures',
+    '/fonts',
+    '/assets',
+    '/external',
+  ];
+
+  return paths.reduce((config, item) => {
+    const path = typeof item === 'string' ? item : item.path;
+    const pathRewrite = typeof item === 'object' ? item.pathRewrite : undefined;
+
+    config[path] = {
+      target,
+      secure: isSecure,
+      changeOrigin: true,
+      logLevel: 'info',
+      ...(pathRewrite && { pathRewrite }),
+    };
+
+    return config;
+  }, {});
+})();
+
+module.exports = PROXY_CONFIG;
 ```
 
 ### Development Workflows
@@ -292,14 +311,17 @@ fetch('/api/user/current')
 
 #### Enable Verbose Proxy Logging
 
-```json
-// proxy.conf.json
-{
-  "/api": {
-    "target": "http://drevo-local.ru",
-    "logLevel": "debug"
-  }
-}
+In `apps/client/proxy.conf.js` temporarily bump the `logLevel` for the paths you need to inspect inside the `paths.reduce(...)` block:
+
+```ts
+// proxy.conf.js
+config[path] = {
+  target,
+  secure: isSecure,
+  changeOrigin: true,
+  logLevel: path === '/api' ? 'debug' : 'info',
+  ...(pathRewrite && { pathRewrite }),
+};
 ```
 
 Restart dev server to see all proxied requests in terminal.
@@ -320,11 +342,11 @@ docker inspect <container> | grep IPAddress
 
 **Issue**: CORS errors
 
-**Solution**: Verify `"changeOrigin": true` in proxy.conf.json
+**Solution**: Verify `changeOrigin: true` in proxy.conf.js
 
 **Issue**: Static assets 404
 
-**Solution**: Check proxy.conf.json includes `/css`, `/js`, `/images` routes
+**Solution**: Check proxy.conf.js includes `/css`, `/js`, `/images` routes
 
 **Issue**: Iframe shows 404
 
@@ -402,7 +424,7 @@ npm install -g json-server
 # Create db.json with mock data
 json-server --watch db.json --port 3000
 
-# Update proxy.conf.json
+# Update proxy.conf.js
 { "/api": { "target": "http://localhost:3000" } }
 ```
 
@@ -829,7 +851,7 @@ docker logs <container>
 curl http://drevo-local.ru
 
 # Check proxy config
-cat apps/client/proxy.conf.json
+cat apps/client/proxy.conf.js
 ```
 
 ---

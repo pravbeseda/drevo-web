@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 export class LoggerService {
     private isProduction = environment.production;
 
-    log(message: string, ...args: unknown[]): void {
+    info(message: string, ...args: unknown[]): void {
         if (!this.isProduction) {
             console.log(message, ...args);
         }

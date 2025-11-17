@@ -7,6 +7,7 @@
         "build:staging": "npx nx build client --configuration=production --base-href=/",
         "build:prod": "npx nx build client --configuration=production --base-href=/new/",
         "build": "npx nx build client --configuration=production --base-href=/",
+        "build:dev": "npx nx build client --configuration=local --base-href=/",
         "start:prod": "NODE_ENV=production BASE_PATH=/new node dist/apps/client/server/server.mjs",
         "start:staging": "NODE_ENV=staging BASE_PATH=/ node dist/apps/client/server/server.mjs",
         "start": "NODE_ENV=production BASE_PATH=/ node dist/apps/client/server/server.mjs",

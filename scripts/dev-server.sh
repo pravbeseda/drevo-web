@@ -36,11 +36,12 @@ case $ENVIRONMENT in
   "local")
     BASE_PATH="/"
     PORT=4200
-    PROXY_CONFIG="apps/client/proxy.conf.json"
+    PROXY_CONFIG="apps/client/proxy.conf.js"
     echo "🔧 Development server for LOCAL Angular-First environment"
-    echo "📋 Using proxy.conf.json to connect to drevo-local.ru"
+    echo "📋 Using proxy.conf.js to connect to drevo-local.ru"
+    echo "🌱 Building with local configuration (environment.ts remains default)"
     echo "ℹ️  For production deployment, use deploy.sh instead"
-    npm run build
+    npm run build:dev
     ;;
   *)
     echo "❌ Unknown environment: $ENVIRONMENT"
