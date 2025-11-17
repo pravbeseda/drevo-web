@@ -1,6 +1,7 @@
 import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { Component, Inject, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { LoggerService } from './services/logger/logger.service';
 
 @Component({
     imports: [RouterModule],
@@ -16,9 +17,10 @@ export class AppComponent implements OnDestroy {
     constructor(
         private readonly router: Router,
         @Inject(DOCUMENT) private readonly document: Document,
-        @Inject(PLATFORM_ID) platformId: object
+        @Inject(PLATFORM_ID) platformId: object,
+        private readonly logger: LoggerService
     ) {
-        console.log('AppComponent initialized!!!');
+        this.logger.info('Application initialized');
         this.isBrowser = isPlatformBrowser(platformId);
         if (this.isBrowser) {
             this.document.addEventListener('click', this.handleClick);
@@ -52,7 +54,11 @@ export class AppComponent implements OnDestroy {
         const htmlAnchor = anchor as HTMLAnchorElement;
         const href = htmlAnchor.getAttribute('href');
 
-        if (!href || href.startsWith('#') || htmlAnchor.hasAttribute('download')) {
+        if (
+            !href ||
+            href.startsWith('#') ||
+            htmlAnchor.hasAttribute('download')
+        ) {
             return;
         }
 

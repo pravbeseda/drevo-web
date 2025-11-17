@@ -11,6 +11,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { LoggerService } from '../../services/logger/logger.service';
 
 @Component({
     selector: 'app-yii-iframe',
@@ -23,6 +24,7 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly sanitizer = inject(DomSanitizer);
     private readonly platformId = inject(PLATFORM_ID);
+    private readonly logger = inject(LoggerService);
     private readonly destroy$ = new Subject<void>();
     private readonly isBrowser: boolean;
     private pendingIframeNavigationPath: string | null = null;
@@ -63,7 +65,7 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
             this.pendingIframeNavigationPath &&
             normalizedPath === this.pendingIframeNavigationPath
         ) {
-            console.log(
+            this.logger.info(
                 '[YiiIframe] Iframe already handled navigation, skipping src update'
             );
             this.pendingIframeNavigationPath = null;
@@ -75,7 +77,7 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
         const yiiUrl =
             normalizedPath === '/' ? '/legacy/' : `/legacy${normalizedPath}`;
 
-        console.log('[YiiIframe] Updating iframe src:', yiiUrl);
+        this.logger.info('[YiiIframe] Updating iframe src:', yiiUrl);
         this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(yiiUrl);
         this.isLoading = true;
         this.hasError = false;
@@ -100,10 +102,10 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
 
         const path = event.data.path;
         const normalizedPath = this.normalizePath(path);
-        console.log('[YiiIframe] Navigation event from iframe:', path);
+        this.logger.info('[YiiIframe] Navigation event from iframe:', path);
 
         if (this.router.url === path) {
-            console.log(
+            this.logger.info(
                 '[YiiIframe] Path already matches current URL, skipping navigation'
             );
             return;
@@ -126,7 +128,7 @@ export class YiiIframeComponent implements OnInit, OnDestroy {
                 takeUntil(this.destroy$)
             )
             .subscribe(() => {
-                console.log(
+                this.logger.info(
                     '[YiiIframe] Router navigation detected, updating iframe'
                 );
                 this.updateIframeSrc();

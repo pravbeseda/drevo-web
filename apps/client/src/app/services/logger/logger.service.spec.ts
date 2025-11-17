@@ -31,15 +31,22 @@ describe('LoggerService', () => {
 
     describe('log', () => {
         it('should call console.log in non-production', () => {
-            spectator.service.log('test message', 'arg1', 'arg2');
-            expect(console.log).toHaveBeenCalledWith('test message', 'arg1', 'arg2');
+            spectator.service.info('test message', 'arg1', 'arg2');
+            expect(console.log).toHaveBeenCalledWith(
+                'test message',
+                'arg1',
+                'arg2'
+            );
         });
     });
 
     describe('warn', () => {
         it('should call console.warn in non-production', () => {
             spectator.service.warn('warning message', 'arg1');
-            expect(console.warn).toHaveBeenCalledWith('warning message', 'arg1');
+            expect(console.warn).toHaveBeenCalledWith(
+                'warning message',
+                'arg1'
+            );
         });
     });
 

@@ -3,63 +3,31 @@ const PROXY_CONFIG = (() => {
   const target = process.env['YII_BACKEND_URL'] || 'http://drevo-local.ru';
   const isSecure = target.startsWith('https://');
 
-  console.log(`[Proxy] Using backend URL: ${target}`);
+  const paths = [
+    '/api',
+    { path: '/legacy', pathRewrite: { '^/legacy': '' } },
+    '/css',
+    '/js',
+    '/images',
+    '/pictures',
+    '/fonts',
+    '/assets',
+    '/external',
+  ];
 
-  const config = {
-    '/api': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'debug',
-    },
-    '/legacy': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'debug',
-      pathRewrite: {
-        '^/legacy': '',
-      },
-    },
-    '/css': {
+  return paths.reduce((config, item) => {
+    const path = typeof item === 'string' ? item : item.path;
+    const pathRewrite = typeof item === 'object' ? item.pathRewrite : undefined;
+    
+    config[path] = {
       target,
       secure: isSecure,
       changeOrigin: true,
       logLevel: 'info',
-    },
-    '/js': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'info',
-    },
-    '/images': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'info',
-    },
-    '/pictures': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'info',
-    },
-    '/fonts': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'info',
-    },
-    '/assets': {
-      target,
-      secure: isSecure,
-      changeOrigin: true,
-      logLevel: 'info',
-    },
-  };
-
-  return config;
+      ...(pathRewrite && { pathRewrite }),
+    };
+    return config;
+  }, {});
 })();
 
 module.exports = PROXY_CONFIG;
