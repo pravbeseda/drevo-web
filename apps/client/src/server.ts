@@ -7,8 +7,9 @@ import {
 import express, { type Application } from 'express';
 import { createProxyMiddleware, type Options } from 'http-proxy-middleware';
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { LoggerService } from './app/services/logger/logger.service';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -19,6 +20,7 @@ const BASE_PATH = process.env['BASE_PATH'] || '/';
 const normalizedBasePath =
     BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
 
+const require = createRequire(import.meta.url);
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 const logger = new LoggerService();
@@ -148,9 +150,14 @@ function configureProxy(app: Application): void {
             return;
         }
 
-        const config = JSON.parse(
-            readFileSync(resolvedPath, 'utf-8')
-        ) as Record<string, Options>;
+        const config = loadProxyConfig(resolvedPath);
+
+        if (!config) {
+            logger.warn(
+                `[Proxy] Unsupported proxy config format for ${resolvedPath}`
+            );
+            return;
+        }
 
         Object.entries(config).forEach(([context, options]) => {
             if (!options?.target) {
@@ -174,4 +181,29 @@ function configureProxy(app: Application): void {
             error
         );
     }
+}
+
+function loadProxyConfig(
+    resolvedPath: string
+): Record<string, Options> | null {
+    const extension = extname(resolvedPath);
+
+    if (extension === '.js' || extension === '.cjs') {
+        const moduleExports = require(resolvedPath) as
+            | Record<string, Options>
+            | { default: Record<string, Options> };
+        return (
+            (moduleExports as { default?: Record<string, Options> }).default ??
+            (moduleExports as Record<string, Options>)
+        );
+    }
+
+    if (extension === '.json') {
+        return JSON.parse(readFileSync(resolvedPath, 'utf-8')) as Record<
+            string,
+            Options
+        >;
+    }
+
+    return null;
 }
