@@ -29,7 +29,7 @@ describe('LoggerService', () => {
         expect(spectator.service).toBeTruthy();
     });
 
-    describe('log', () => {
+    describe('info', () => {
         it('should call console.log in non-production', () => {
             spectator.service.info('test message', 'arg1', 'arg2');
             expect(console.log).toHaveBeenCalledWith(
