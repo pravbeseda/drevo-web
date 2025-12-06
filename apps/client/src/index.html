@@ -6,6 +6,22 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <script>
+      // Framebusting: prevent Angular from rendering inside iframe
+      // This runs before Angular loads, preventing any visual glitches
+      (function() {
+        try {
+          if (window.self !== window.top) {
+            // We're in an iframe - redirect top frame immediately
+            window.top.location.replace(window.location.href);
+            // Stop further execution
+            window.stop();
+          }
+        } catch (e) {
+          // Cross-origin iframe - ignore
+        }
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>
