@@ -72,11 +72,18 @@ describe('YiiIframeComponent', () => {
     });
 
     it('should reload iframe when reload is called', () => {
-        const updateSpy = jest.spyOn(
+        const navigateSpy = jest.spyOn(
             spectator.component as never,
-            'updateIframeSrc'
+            'navigateIframe'
         );
+        // Setup iframeRef mock
+        (spectator.component as unknown as { iframeRef: unknown }).iframeRef = {
+            nativeElement: { src: '' },
+        };
+        (
+            spectator.component as unknown as { currentIframePath: string }
+        ).currentIframePath = '/legacy/test';
         spectator.component.reload();
-        expect(updateSpy).toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalled();
     });
 });

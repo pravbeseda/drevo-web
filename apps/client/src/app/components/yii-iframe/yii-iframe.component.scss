@@ -94,5 +94,9 @@
     height: 100%;
     border: none;
     display: block;
+
+    &.hidden {
+      display: none;
+    }
   }
 }

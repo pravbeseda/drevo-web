@@ -4,7 +4,7 @@
         *ngIf="isLoading"
         class="loading-overlay">
         <div class="spinner"></div>
-        <p>Loading page...</p>
+        <p>Загрузка...</p>
     </div>
 
     <!-- Error message -->
@@ -12,20 +12,21 @@
         *ngIf="hasError"
         class="error-container">
         <div class="error-message">
-            <h3>⚠️ Error Loading Page</h3>
+            <h3>⚠️ Ошибка загрузки страницы</h3>
             <p>{{ errorMessage }}</p>
             <button
                 (click)="reload()"
                 class="retry-button">
-                Retry
+                Повторить попытку
             </button>
         </div>
     </div>
 
     <!-- Iframe for Yii content -->
     <iframe
-        *ngIf="iframeSrc && !hasError"
-        [src]="iframeSrc"
+        #yiiFrame
+        [src]="initialSrc"
+        [class.hidden]="hasError"
         (load)="onIframeLoad()"
         (error)="onIframeError()"
         class="yii-iframe"
