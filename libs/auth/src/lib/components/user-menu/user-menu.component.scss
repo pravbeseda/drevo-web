@@ -1,0 +1,201 @@
+// Переменные
+$primary-color: #3b82f6;
+$primary-hover: #2563eb;
+$text-color: #1f2937;
+$text-secondary: #6b7280;
+$border-color: #e5e7eb;
+$bg-hover: #f3f4f6;
+$dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+.user-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+// Login button (guest)
+.login-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  background: $primary-color;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+
+  &:hover {
+    background: $primary-hover;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 12px;
+
+    .login-text {
+      display: none;
+    }
+  }
+}
+
+// User button (authenticated)
+.user-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text-color;
+  background: transparent;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: $bg-hover;
+    border-color: #d1d5db;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+  }
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: $primary-color;
+  border-radius: 50%;
+}
+
+.user-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (max-width: 480px) {
+    display: none;
+  }
+}
+
+.dropdown-icon {
+  color: $text-secondary;
+  transition: transform 0.2s;
+
+  &.rotated {
+    transform: rotate(180deg);
+  }
+}
+
+// Dropdown menu
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  box-shadow: $dropdown-shadow;
+  z-index: 100;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+.dropdown-header {
+  padding: 12px 16px;
+}
+
+.dropdown-email {
+  font-size: 0.75rem;
+  color: $text-secondary;
+  word-break: break-all;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: $border-color;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: $text-color;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    background: $bg-hover;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+
+  svg {
+    color: $text-secondary;
+  }
+}
+
+// Skeleton
+.skeleton-button {
+  width: 80px;
+  height: 36px;
+  background: linear-gradient(90deg, $bg-hover 25%, #e5e7eb 50%, $bg-hover 75%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+// Animations
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

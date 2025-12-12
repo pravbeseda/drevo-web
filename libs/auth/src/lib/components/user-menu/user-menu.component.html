@@ -1,0 +1,78 @@
+<div class="user-menu">
+  @if (!authService.isInitialized()) {
+    <!-- Skeleton while loading -->
+    <div class="skeleton-button"></div>
+  } @else if (authService.isAuthenticated()) {
+    <!-- Authenticated user -->
+    <button
+      type="button"
+      class="user-button"
+      (click)="toggleDropdown()"
+      [attr.aria-expanded]="showDropdown()"
+      aria-haspopup="true"
+    >
+      <span class="user-avatar">
+        {{ authService.displayName().charAt(0).toUpperCase() }}
+      </span>
+      <span class="user-name">{{ authService.displayName() }}</span>
+      <svg
+        class="dropdown-icon"
+        [class.rotated]="showDropdown()"
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+
+    @if (showDropdown()) {
+      <div class="dropdown-menu" role="menu">
+        <div class="dropdown-header">
+          <span class="dropdown-email">{{ authService.user()?.email }}</span>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button
+          type="button"
+          class="dropdown-item"
+          role="menuitem"
+          (click)="logout()"
+          [disabled]="isLoggingOut()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          @if (isLoggingOut()) {
+            Выход...
+          } @else {
+            Выйти
+          }
+        </button>
+      </div>
+    }
+  } @else {
+    <!-- Guest user -->
+    <button
+      type="button"
+      class="login-button"
+      (click)="openLoginModal()"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+        <polyline points="10 17 15 12 10 7"></polyline>
+        <line x1="15" y1="12" x2="3" y2="12"></line>
+      </svg>
+      <span class="login-text">Войти</span>
+    </button>
+  }
+</div>
+
+@if (showLoginModal()) {
+  <lib-login-modal (closed)="closeLoginModal()" />
+}

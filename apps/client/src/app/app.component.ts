@@ -2,9 +2,10 @@ import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { Component, Inject, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { LoggerService } from './services/logger/logger.service';
+import { UserMenuComponent } from '@drevo-web/auth';
 
 @Component({
-    imports: [RouterModule],
+    imports: [RouterModule, UserMenuComponent],
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',

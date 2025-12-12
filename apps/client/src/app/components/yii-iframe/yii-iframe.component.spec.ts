@@ -10,7 +10,9 @@ describe('YiiIframeComponent', () => {
     let mockRouter: jest.Mocked<Router>;
     let mockLogger: jest.Mocked<LoggerService>;
     let sanitizer: DomSanitizer;
-    let bypassSecurityTrustResourceUrlSpy: jest.SpiedFunction<DomSanitizer['bypassSecurityTrustResourceUrl']>;
+    let bypassSecurityTrustResourceUrlSpy: jest.SpiedFunction<
+        DomSanitizer['bypassSecurityTrustResourceUrl']
+    >;
     const createComponent = createComponentFactory({
         component: YiiIframeComponent,
         detectChanges: false,
@@ -51,9 +53,9 @@ describe('YiiIframeComponent', () => {
 
     it('should initialize iframe source on init', () => {
         spectator.detectChanges();
-        expect(
-            bypassSecurityTrustResourceUrlSpy
-        ).toHaveBeenCalledWith('/legacy/test-path');
+        expect(bypassSecurityTrustResourceUrlSpy).toHaveBeenCalledWith(
+            '/legacy/test-path?iframe=1'
+        );
     });
 
     it('should handle iframe load event', () => {

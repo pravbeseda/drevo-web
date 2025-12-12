@@ -4,21 +4,46 @@ import {
     isMainModule,
     writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import express, { type Application } from 'express';
+import express, {
+    type Application,
+    type Request,
+    type Response,
+} from 'express';
 import { createProxyMiddleware, type Options } from 'http-proxy-middleware';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import cookieParser from 'cookie-parser';
+import * as jwt from 'jsonwebtoken';
 import { LoggerService } from './app/services/logger/logger.service';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
-// Get base path from environment variable or default to '/'
 const BASE_PATH = process.env['BASE_PATH'] || '/';
 const normalizedBasePath =
     BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
+
+const JWT_SECRET =
+    process.env['JWT_SECRET'] || 'dev-secret-change-in-production-min-32-chars';
+const YII_API_URL = process.env['YII_API_URL'] || 'http://drevo-local.ru';
+const COOKIE_DOMAIN = process.env['COOKIE_DOMAIN'] || undefined;
+const IS_PRODUCTION = process.env['NODE_ENV'] === 'production';
+const AUTH_COOKIE_NAME = 'drevo_auth_token';
+
+interface AuthUser {
+    login: string;
+    name: string;
+    email: string;
+    role: string;
+}
+
+declare module 'express-serve-static-core' {
+    interface Request {
+        user?: AuthUser;
+    }
+}
 
 const require = createRequire(import.meta.url);
 const app = express();
@@ -26,24 +51,95 @@ const angularApp = new AngularNodeAppEngine();
 const logger = new LoggerService();
 
 logger.info(`Server configured with BASE_PATH: ${BASE_PATH}`);
+
+app.use(cookieParser());
+app.use(express.json());
+
+app.use((req: Request, _res, next) => {
+    const token = req.cookies?.[AUTH_COOKIE_NAME];
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
+            req.user = {
+                login: decoded.sub as string,
+                name: decoded['name'] as string,
+                email: (decoded['email'] as string) || '',
+                role: decoded['role'] as string,
+            };
+        } catch {
+            // Token invalid or expired
+        }
+    }
+    next();
+});
+
+// Auth endpoints must be before proxy middleware
+app.post('/api/auth/login', async (req: Request, res: Response) => {
+    try {
+        const response = await fetch(`${YII_API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req.body),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.token) {
+            const maxAge = req.body.rememberMe
+                ? 30 * 24 * 60 * 60 * 1000
+                : undefined;
+            res.cookie(AUTH_COOKIE_NAME, data.token, {
+                httpOnly: true,
+                secure: IS_PRODUCTION,
+                sameSite: 'lax',
+                maxAge,
+                path: '/',
+                domain: COOKIE_DOMAIN,
+            });
+
+            const setCookieHeader = response.headers.get('set-cookie');
+            if (setCookieHeader) {
+                res.append('Set-Cookie', setCookieHeader);
+            }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { token, ...safeData } = data;
+        res.json(safeData);
+    } catch (error) {
+        logger.error('Login error:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+app.post('/api/auth/logout', async (req: Request, res: Response) => {
+    try {
+        res.clearCookie(AUTH_COOKIE_NAME, { path: '/', domain: COOKIE_DOMAIN });
+
+        await fetch(`${YII_API_URL}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { Cookie: req.headers.cookie || '' },
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        logger.error('Logout error:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+app.get('/api/auth/me', (req: Request, res: Response) => {
+    if (req.user) {
+        res.json({ success: true, user: req.user });
+    } else {
+        res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+});
+
 configureProxy(app);
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
-
-/**
- * Serve static files from /browser
- * Dynamically handle base path based on environment
- */
 if (normalizedBasePath) {
     // Serve static files at the configured base path
     app.use(
@@ -128,9 +224,6 @@ if (shouldStartServer) {
     });
 }
 
-/**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
- */
 export const reqHandler = createNodeRequestHandler(app);
 
 function configureProxy(app: Application): void {
@@ -183,9 +276,7 @@ function configureProxy(app: Application): void {
     }
 }
 
-function loadProxyConfig(
-    resolvedPath: string
-): Record<string, Options> | null {
+function loadProxyConfig(resolvedPath: string): Record<string, Options> | null {
     const extension = extname(resolvedPath);
 
     if (extension === '.js' || extension === '.cjs') {
