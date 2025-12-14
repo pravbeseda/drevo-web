@@ -41,19 +41,10 @@
                 "^production",
                 "{workspaceRoot}/jest.preset.js"
             ],
-            "options": {
-                "passWithNoTests": true
-            },
-            "configurations": {
-                "ci": {
-                    "ci": true,
-                    "codeCoverage": true
-                }
-            }
+            "options": { "passWithNoTests": true },
+            "configurations": { "ci": { "ci": true, "codeCoverage": true } }
         },
-        "e2e-ci--**/*": {
-            "dependsOn": ["^build"]
-        },
+        "e2e-ci--**/*": { "dependsOn": ["^build"] },
         "@nx/js:tsc": {
             "cache": true,
             "dependsOn": ["^build"],
@@ -63,16 +54,9 @@
     "plugins": [
         {
             "plugin": "@nx/playwright/plugin",
-            "options": {
-                "targetName": "e2e"
-            }
+            "options": { "targetName": "e2e" }
         },
-        {
-            "plugin": "@nx/eslint/plugin",
-            "options": {
-                "targetName": "lint"
-            }
-        }
+        { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } }
     ],
     "generators": {
         "@nx/angular:application": {
@@ -86,12 +70,8 @@
             "changeDetection": "OnPush",
             "jest": true
         },
-        "@nx/angular:library": {
-            "linter": "eslint",
-            "unitTestRunner": "jest"
-        },
-        "@nx/angular:component": {
-            "style": "css"
-        }
-    }
+        "@nx/angular:library": { "linter": "eslint", "unitTestRunner": "jest" },
+        "@nx/angular:component": { "style": "css" }
+    },
+    "nxCloudId": "693e77a22602cf8ef46bb840"
 }
