@@ -4,31 +4,6 @@ This guide explains the different scripts available for building, deploying, and
 
 ## 📁 Scripts Overview
 
-### 🔧 Development Scripts
-
-#### `scripts/dev-server.sh` - Local Development Server
-**Purpose**: For local development and testing only
-
-**Usage**:
-```bash
-# Start staging environment locally
-./scripts/dev-server.sh staging
-
-# Start production environment locally  
-./scripts/dev-server.sh production
-
-# Start at dev path locally
-./scripts/dev-server.sh dev
-```
-
-**What it does**:
-- Builds the application with appropriate base-href
-- Starts a local development server
-- Uses dynamic BASE_PATH configuration
-- **NOT for production deployment**
-
----
-
 ### 🚀 Production Scripts
 
 #### `scripts/deploy.sh` - Production Deployment
@@ -39,10 +14,6 @@ This guide explains the different scripts available for building, deploying, and
 # New format (recommended)
 ./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
 ./scripts/deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
-
-# Legacy format (deprecated)
-./scripts/deploy.sh staging "20240923-0900"
-./scripts/deploy.sh production "1.2.0"
 
 # Dry run mode
 ./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production" --dry-run
@@ -62,38 +33,40 @@ This guide explains the different scripts available for building, deploying, and
 
 #### Build Scripts
 ```bash
-# Build for different environments
-npm run build:staging      # Build with /staging base-href
-npm run build:prod         # Build with /new base-href  
-npm run build              # Build with / base-href
+# Build for production (default)
+npm run build              # Build with production configuration
+
+# Build for development
+npm run build:dev          # Build with development configuration
 ```
 
-#### Start Scripts  
+#### Start & Dev Scripts
 ```bash
-# Start production servers
-npm run start:prod         # Production with /new base-path
-npm run start:staging      # Staging with /staging base-path
-npm run start              # Dev with / base-path
+# Start production server
+npm run start              # Start the SSR server
+
+# Local development
+npm run dev                # Start Nx dev server with HMR
 ```
 
 ---
 
 ## 🎯 When to Use Which Script
 
-### Local Development & Testing
-- **Use**: `./scripts/dev-server.sh [environment]`
-- **For**: Testing different base-path configurations locally
-- **Result**: Local server running on configured port
+### Local Development
+- **Use**: `npm run dev`
+- **For**: Active development with hot module replacement
+- **Result**: Local dev server running on port 4200
 
 ### Production Deployment
 - **Use**: `./scripts/deploy.sh` with full parameters
 - **For**: Deploying to staging/production servers
 - **Result**: Atomic deployment with PM2 management
 
-### Quick Local Builds
-- **Use**: `npm run build:*` + `npm run start:*`
-- **For**: Manual build and start process
-- **Result**: More control over individual steps
+### Manual Build & Test
+- **Use**: `npm run build` + `npm run start`
+- **For**: Testing production build locally
+- **Result**: SSR server running on default port
 
 ---
 
@@ -103,9 +76,10 @@ Each environment uses different paths and ports:
 
 | Environment | Base Path | Port | PM2 App Name |
 |-------------|-----------|------|--------------|
-| Staging     | /staging  | 4001 | drevo-staging |
-| Production  | /new      | 4002 | drevo-production |
-| Dev         | /         | 4000 | N/A |
+| **Production** | `/` | 4002 | drevo-production |
+| **Staging** | `/staging` | 4001 | drevo-staging |
+| **Standalone** | `/` | 4010 | drevo-standalone |
+| **Local dev** | `/` | 4200 | N/A |
 
 ---
 
@@ -113,22 +87,13 @@ Each environment uses different paths and ports:
 
 ```bash
 # 🔧 LOCAL DEVELOPMENT
-./scripts/dev-server.sh staging     # Test staging config locally
-./scripts/dev-server.sh production  # Test production config locally
-./scripts/dev-server.sh dev         # Test dev config locally
-
-# Or using npm shortcuts
-npm run dev:staging                 # = ./scripts/dev-server.sh staging
-npm run dev:prod                    # = ./scripts/dev-server.sh production  
-npm run dev                         # = ./scripts/dev-server.sh dev
+npm run dev                # Start dev server (http://localhost:4200)
 
 # 🚀 PRODUCTION DEPLOYMENT  
 ./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
 ./scripts/deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
 
 # 📦 MANUAL BUILD + START
-npm run build:prod && npm run start:prod
-npm run build:staging && npm run start:staging
 npm run build && npm run start
 ```
 
@@ -136,7 +101,7 @@ npm run build && npm run start
 
 ## ⚠️ Important Notes
 
-- **dev-server.sh**: Development/testing only, runs locally
 - **deploy.sh**: Production deployment only, uses atomic symlinks and PM2
-- **npm scripts**: Individual steps, good for CI/CD pipelines
-- Always use appropriate script for your use case to avoid confusion
+- **npm run dev**: For local development with HMR
+- **npm run build + start**: For testing production SSR locally
+- Staging uses `--base-href=/staging/` passed via CI/CD pipeline

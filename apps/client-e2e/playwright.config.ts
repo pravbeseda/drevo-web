@@ -24,8 +24,8 @@ export default defineConfig({
     },
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: 'yarn nx run client:serve --serve-path /new/ --no-hmr',
-        url: 'http://localhost:4200/new/editor', // until we don't have other pages
+        command: 'yarn nx run client:serve --no-hmr',
+        url: 'http://localhost:4200/editor',
         reuseExistingServer: !process.env.CI,
         cwd: workspaceRoot,
     },

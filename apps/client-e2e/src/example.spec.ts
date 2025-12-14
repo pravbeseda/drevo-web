@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('has editor', async ({ page }) => {
-    await page.goto('/new/editor');
+    await page.goto('/editor');
 
     const content = 'Test article content';
 

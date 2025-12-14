@@ -1,0 +1,48 @@
+name: CI Standalone
+
+on:
+    push:
+        branches: [standalone]
+    pull_request:
+        branches: [standalone]
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "yarn"
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Install Playwright
+              run: yarn playwright install --with-deps
+
+            - uses: nrwl/nx-set-shas@v4
+              with:
+                  main-branch-name: "standalone"
+
+            - name: Run lint
+              run: yarn nx affected -t lint --parallel=3
+
+            - name: Run tests
+              run: yarn nx affected -t test --parallel=3
+
+            - name: Run e2e tests
+              run: yarn nx affected -t e2e
+
+            - name: Build verification
+              if: github.event_name == 'push' && github.ref == 'refs/heads/standalone'
+              env:
+                  APP_VERSION: ${{ github.sha }}
+              run: |
+                  echo "🔍 Verifying standalone build with default base-href (/)..."
+                  npx nx build client --configuration=production
+                  echo "✅ Standalone build successful"
