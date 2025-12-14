@@ -71,11 +71,11 @@ jobs:
           # Replace version placeholder in environment.prod.ts
           echo "Building production with version: $APP_VERSION"
           sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
-          
+
           # Verify the replacement
           echo "Environment file after replacement:"
           cat apps/client/src/environments/environment.prod.ts
-          
+
           # Build with production configuration
           npx nx build client --configuration=production
 
