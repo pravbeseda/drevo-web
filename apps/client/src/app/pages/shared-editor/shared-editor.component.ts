@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { BehaviorSubject, first, Observable, Subject, map } from 'rxjs';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
@@ -19,7 +19,7 @@ interface EditorConfig {
 @UntilDestroy()
 @Component({
     selector: 'app-shared-editor',
-    imports: [EditorComponent, AsyncPipe, NgIf],
+    imports: [EditorComponent, AsyncPipe],
     providers: [HttpClient, IframeService, LinksService],
     templateUrl: './shared-editor.component.html',
     styleUrl: './shared-editor.component.scss',

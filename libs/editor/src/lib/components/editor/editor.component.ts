@@ -8,7 +8,7 @@ import {
     Output,
     ViewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { EditorView } from '@codemirror/view';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
@@ -20,7 +20,7 @@ import { EditorFactoryService } from '../../services/editor-factory/editor-facto
 @UntilDestroy()
 @Component({
     selector: 'lib-editor',
-    imports: [CommonModule],
+    imports: [],
     providers: [EditorFactoryService, WikiHighlighterService],
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
