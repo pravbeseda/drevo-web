@@ -39,7 +39,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 4002,
-        BASE_PATH: '/new'
+        BASE_PATH: '/'
       },
       instances: 'max',
       exec_mode: 'cluster',

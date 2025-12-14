@@ -77,7 +77,7 @@ jobs:
           cat apps/client/src/environments/environment.prod.ts
           
           # Build with production configuration
-          npx nx build client --configuration=production --base-href=/new/
+          npx nx build client --configuration=production
 
       - name: Create build archive
         run: |
