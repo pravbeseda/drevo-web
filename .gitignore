@@ -80,7 +80,7 @@ ENV/
 *.swo
 
 legacy-drevo-yii
-
+.nginx-conf-for-ai
 # Testing secrets
 .act.secrets
 
