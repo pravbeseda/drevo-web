@@ -63,6 +63,38 @@ module.exports = {
       pmx: true,
       // Node.js arguments
       node_args: '--max-old-space-size=1024'
+    },
+    {
+      name: 'drevo-standalone',
+      script: './server/server.mjs',
+      cwd: '/home/github-deploy/releases/standalone-current',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 4010,
+        BASE_PATH: '/'
+      },
+      instances: 'max',
+      exec_mode: 'cluster',
+      // Logging
+      log_file: '/home/github-deploy/logs/standalone-combined.log',
+      out_file: '/home/github-deploy/logs/standalone-out.log',
+      error_file: '/home/github-deploy/logs/standalone-error.log',
+      merge_logs: true,
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      // Graceful restart settings
+      kill_timeout: 5000,
+      wait_ready: true,
+      listen_timeout: 5000,
+      // Performance settings
+      max_restarts: 5,
+      min_uptime: '10s',
+      max_memory_restart: '512M',
+      // Auto-restart settings
+      autorestart: true,
+      // Process monitoring
+      pmx: true,
+      // Node.js arguments
+      node_args: '--max-old-space-size=512'
     }
   ]
 };

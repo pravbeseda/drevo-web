@@ -90,6 +90,8 @@ runs:
           APP_NAME="drevo-staging"
         elif [ "${{ inputs.environment }}" = "production" ]; then
           APP_NAME="drevo-production"
+        elif [ "${{ inputs.environment }}" = "standalone" ]; then
+          APP_NAME="drevo-standalone"
         else
           echo "❌ Invalid environment: ${{ inputs.environment }}"
           exit 1
@@ -124,6 +126,8 @@ runs:
           APP_NAME="drevo-staging"
         elif [ "${{ inputs.environment }}" = "production" ]; then
           APP_NAME="drevo-production"
+        elif [ "${{ inputs.environment }}" = "standalone" ]; then
+          APP_NAME="drevo-standalone"
         else
           echo "❌ Invalid environment: ${{ inputs.environment }}"
           exit 1
