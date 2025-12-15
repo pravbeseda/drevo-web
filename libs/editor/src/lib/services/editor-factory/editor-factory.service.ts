@@ -1,4 +1,4 @@
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { WikiHighlighterService } from '../wiki-highlighter/wiki-highlighter.service';
 import { isPlatformServer } from '@angular/common';
 import { EditorState } from '@codemirror/state';
@@ -33,10 +33,8 @@ export class EditorFactoryService {
         // Should be changed by setChangeHandler
     };
 
-    constructor(
-        private wikiHighlighter: WikiHighlighterService,
-        @Inject(PLATFORM_ID) private platformId: object
-    ) {}
+    private readonly wikiHighlighter = inject(WikiHighlighterService);
+    private readonly platformId = inject<object>(PLATFORM_ID);
 
     public isServer(): boolean {
         return isPlatformServer(this.platformId);

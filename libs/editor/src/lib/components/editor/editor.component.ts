@@ -3,6 +3,7 @@ import {
     Component,
     ElementRef,
     EventEmitter,
+    inject,
     Input,
     OnInit,
     Output,
@@ -66,10 +67,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     private editor?: EditorView;
 
-    constructor(
-        private readonly editorFactory: EditorFactoryService,
-        private readonly wikiHighlighterService: WikiHighlighterService
-    ) {}
+    private readonly editorFactory = inject(EditorFactoryService);
+    private readonly wikiHighlighterService = inject(WikiHighlighterService);
 
     ngOnInit() {
         this.wikiHighlighterService.updateLinks$

@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "test": "nx run-many --target=test --all --parallel",
+    "lint": "yarn nx affected -t lint --parallel",
     "build": "nx build client --configuration=production",
     "build:dev": "nx build client --configuration=development",
     "start": "node dist/apps/client/server/server.mjs",
