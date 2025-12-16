@@ -3,12 +3,13 @@ import {
     Component,
     ElementRef,
     EventEmitter,
+    inject,
     Input,
     OnInit,
     Output,
     ViewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { EditorView } from '@codemirror/view';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
@@ -20,7 +21,7 @@ import { EditorFactoryService } from '../../services/editor-factory/editor-facto
 @UntilDestroy()
 @Component({
     selector: 'lib-editor',
-    imports: [CommonModule],
+    imports: [],
     providers: [EditorFactoryService, WikiHighlighterService],
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
@@ -66,10 +67,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     private editor?: EditorView;
 
-    constructor(
-        private readonly editorFactory: EditorFactoryService,
-        private readonly wikiHighlighterService: WikiHighlighterService
-    ) {}
+    private readonly editorFactory = inject(EditorFactoryService);
+    private readonly wikiHighlighterService = inject(WikiHighlighterService);
 
     ngOnInit() {
         this.wikiHighlighterService.updateLinks$

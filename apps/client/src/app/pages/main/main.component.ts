@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { VersionService } from '../../services/version/version.service';
 
 @Component({
@@ -9,9 +9,6 @@ import { VersionService } from '../../services/version/version.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainComponent {
-    readonly version: string;
-
-    constructor(private readonly versionService: VersionService) {
-        this.version = this.versionService.getVersion();
-    }
+    private readonly versionService = inject(VersionService);
+    readonly version: string = this.versionService.getVersion();
 }

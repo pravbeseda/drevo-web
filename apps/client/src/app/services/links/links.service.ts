@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { debounceTime, filter, map, Observable, of, switchMap } from 'rxjs';
 import { IframeService } from '../iframe/iframe.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
@@ -9,10 +9,8 @@ interface RawResponse {
 
 @Injectable()
 export class LinksService {
-    constructor(
-        private readonly http: HttpClient,
-        private readonly iframeService: IframeService
-    ) {}
+    private readonly http = inject(HttpClient);
+    private readonly iframeService = inject(IframeService);
 
     getLinkStatuses(links: string[]): Observable<Record<string, boolean>> {
         if (links.length === 0) {

@@ -2,10 +2,11 @@ import {
     AfterViewInit,
     ChangeDetectionStrategy,
     Component,
+    inject,
 } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { BehaviorSubject, first, Observable, Subject, map } from 'rxjs';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
@@ -19,33 +20,29 @@ interface EditorConfig {
 @UntilDestroy()
 @Component({
     selector: 'app-shared-editor',
-    imports: [EditorComponent, AsyncPipe, NgIf],
+    imports: [EditorComponent, AsyncPipe],
     providers: [HttpClient, IframeService, LinksService],
     templateUrl: './shared-editor.component.html',
     styleUrl: './shared-editor.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedEditorComponent implements AfterViewInit {
+    private readonly linkService = inject(LinksService);
+    private readonly iframeService = inject(IframeService);
     private readonly updateLinksStateSubject = new BehaviorSubject<
         Record<string, boolean>
     >({});
     private readonly contentUpdateSubject = new Subject<string>();
 
-    readonly editorConfig$: Observable<EditorConfig>;
-    readonly insertTagCommand$: Observable<InsertTagCommand>;
-    readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
-
-    constructor(
-        private readonly linkService: LinksService,
-        private readonly iframeService: IframeService
-    ) {
-        this.editorConfig$ = this.iframeService.content$.pipe(
+    readonly editorConfig$: Observable<EditorConfig> =
+        this.iframeService.content$.pipe(
             map(content => ({
                 content,
             }))
         );
-        this.insertTagCommand$ = this.iframeService.insertTag$;
-    }
+    readonly insertTagCommand$: Observable<InsertTagCommand> =
+        this.iframeService.insertTag$;
+    readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
     ngAfterViewInit(): void {
         this.iframeService.sendMessage({ action: 'editorReady' });

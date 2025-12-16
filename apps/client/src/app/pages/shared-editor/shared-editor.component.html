@@ -1,18 +1,20 @@
-<ng-container *ngIf="editorConfig$ | async as editorConfig; else skeleton">
+@if (editorConfig$ | async; as editorConfig) {
+  @if (editorConfig.content !== null) {
     <div
-        *ngIf="editorConfig.content !== null; else skeleton"
-        class="container">
-        <div class="content">
-            <lib-editor
-                [content]="editorConfig.content"
-                [linksStatus]="(updateLinksState$ | async) ?? {}"
-                [insertTagCommand]="insertTagCommand$ | async"
-                (updateLinksEvent)="updateLinks($event)"
-                (contentChanged)="contentChanged($event)"></lib-editor>
-        </div>
+      class="container">
+      <div class="content">
+        <lib-editor
+          [content]="editorConfig.content"
+          [linksStatus]="(updateLinksState$ | async) ?? {}"
+          [insertTagCommand]="insertTagCommand$ | async"
+          (updateLinksEvent)="updateLinks($event)"
+        (contentChanged)="contentChanged($event)"></lib-editor>
+      </div>
     </div>
-</ng-container>
-
-<ng-template #skeleton>
+  } @else {
     <div class="skeleton-textarea"></div>
-</ng-template>
+  }
+} @else {
+  <div class="skeleton-textarea"></div>
+}
+
