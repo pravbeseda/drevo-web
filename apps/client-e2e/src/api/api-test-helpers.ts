@@ -24,38 +24,38 @@ export interface CsrfResponse {
 }
 
 /**
+ * User permissions structure
+ */
+export interface UserPermissions {
+    canEdit: boolean;
+    canModerate: boolean;
+    canAdmin: boolean;
+}
+
+/**
+ * Common user structure used in auth responses
+ */
+export interface User {
+    login: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    permissions?: UserPermissions;
+}
+
+/**
  * Auth me response
  */
 export interface AuthMeResponse {
     isAuthenticated: boolean;
-    user?: {
-        login: string;
-        name?: string;
-        email?: string;
-        role?: string;
-        permissions?: {
-            canEdit: boolean;
-            canModerate: boolean;
-            canAdmin: boolean;
-        };
-    };
+    user?: User;
 }
 
 /**
  * Login response
  */
 export interface LoginResponse {
-    user: {
-        login: string;
-        name?: string;
-        email?: string;
-        role?: string;
-        permissions?: {
-            canEdit: boolean;
-            canModerate: boolean;
-            canAdmin: boolean;
-        };
-    };
+    user: User;
     csrfToken: string;
 }
 
