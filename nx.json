@@ -129,6 +129,5 @@
         "@schematics/angular:resolver": {
             "typeSeparator": "."
         }
-    },
-    "nxCloudId": "693e657fd53e740671902948"
+    }
 }
