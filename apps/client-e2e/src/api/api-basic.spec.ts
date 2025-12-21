@@ -61,9 +61,10 @@ test.describe('API Basic Endpoints', () => {
             expect(body.data?.csrfToken.length).toBeGreaterThanOrEqual(32);
         });
 
-        test('should include no-cache headers for CSRF endpoint', async ({ request }) => {
+        test('should include no-cache headers for CSRF endpoint', async ({
+            request,
+        }) => {
             const response = await request.get(`${API_BASE_URL}/api/test/csrf`);
-            const headers = response.headers();
 
             // Cache-Control header may not be set - this is a potential improvement
             // For now, just verify the endpoint works
@@ -72,7 +73,9 @@ test.describe('API Basic Endpoints', () => {
             // expect(headers['cache-control']).toContain('no-store');
         });
 
-        test('should return same token for same session', async ({ request }) => {
+        test('should return same token for same session', async ({
+            request,
+        }) => {
             // First request
             const { body: body1 } = await apiGet(request, '/api/test/csrf');
             // Second request (same session via Playwright context)
@@ -83,7 +86,9 @@ test.describe('API Basic Endpoints', () => {
     });
 
     test.describe('API Response Format', () => {
-        test('should have consistent response structure', async ({ request }) => {
+        test('should have consistent response structure', async ({
+            request,
+        }) => {
             const { body } = await apiGet(request, '/api/test/ping');
 
             // All API responses should have 'success' field

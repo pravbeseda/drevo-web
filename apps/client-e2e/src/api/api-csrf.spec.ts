@@ -4,6 +4,7 @@ import {
     apiPost,
     getCsrfToken,
     ALLOWED_ORIGINS,
+    EchoResponse,
 } from './api-test-helpers';
 
 /**
@@ -49,20 +50,22 @@ test.describe('CSRF Protection', () => {
         test('should accept POST with valid CSRF token', async ({ request }) => {
             // First, get a valid CSRF token
             const csrfToken = await getCsrfToken(request);
+            const testData = { test: 'data', message: 'hello' };
 
             // Then make POST with valid token
-            const { response, body } = await apiPost(request, '/api/test/echo', {
-                data: { test: 'data', message: 'hello' },
-                origin: allowedOrigin,
-                csrfToken,
-            });
+            const { response, body } = await apiPost<EchoResponse<typeof testData>>(
+                request,
+                '/api/test/echo',
+                {
+                    data: testData,
+                    origin: allowedOrigin,
+                    csrfToken,
+                }
+            );
 
             expect(response.status()).toBe(200);
             expect(body.success).toBe(true);
-            // Echo endpoint wraps data in 'received' property
-            expect(body.data).toHaveProperty('received');
-            expect(body.data.received).toHaveProperty('test', 'data');
-            expect(body.data.received).toHaveProperty('message', 'hello');
+            expect(body.data?.received).toEqual(testData);
         });
 
         test('should accept X-XSRF-TOKEN header (Angular compatibility)', async ({ request }) => {

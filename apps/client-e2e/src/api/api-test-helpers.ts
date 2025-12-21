@@ -24,6 +24,14 @@ export interface CsrfResponse {
 }
 
 /**
+ * Echo endpoint response - wraps input data in 'received' property
+ * Used by POST /api/test/echo
+ */
+export interface EchoResponse<T = Record<string, unknown>> {
+    received: T;
+}
+
+/**
  * Helper to make API requests with common settings
  */
 export async function apiGet<T>(
