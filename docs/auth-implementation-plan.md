@@ -174,7 +174,7 @@
 - Для всех POST/PUT/DELETE проверять `Origin` или `Referer` заголовок
 - Разрешённые origins: `https://new.drevo-info.ru` (prod), через proxy в dev
 - Если `Origin` отсутствует — проверять `Referer`
-- Почему нужно: `SameSite=Lax` не защищает между субдоменами (same-site ≠ same-origin)
+- Почему нужно: Origin/Referer‑проверка даёт дополнительный уровень защиты сверх `SameSite=Lax` и CSRF, в т.ч. от атак с вредоносных субдоменов (same‑site включает субдомены, но не равен same‑origin)
 
 **⚠️ Browser-only API (уточнённые правила):**
 API предназначен для браузерных клиентов. Origin/Referer проверка применяется **только к state-changing эндпоинтам**.
