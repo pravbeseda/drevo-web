@@ -168,39 +168,8 @@ test.describe('Origin/Referer Validation', () => {
         });
     });
 
-    test.describe('Login endpoint Origin validation', () => {
-        test('POST /api/auth/login should reject without Origin', async ({ request }) => {
-            const csrfToken = await getCsrfToken(request);
-
-            const response = await request.post(`${API_BASE_URL}/api/auth/login`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                    // No Origin, no Referer
-                },
-                data: { username: 'test', password: 'test' },
-            });
-
-            const body = await response.json();
-
-            expect(response.status()).toBe(403);
-            expect(body.success).toBe(false);
-            expect(body.errorCode).toBe('ORIGIN_REQUIRED');
-        });
-
-        test('POST /api/auth/login should reject from disallowed Origin', async ({ request }) => {
-            const csrfToken = await getCsrfToken(request);
-
-            const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: { username: 'test', password: 'test' },
-                origin: TEST_DISALLOWED_ORIGIN,
-                csrfToken,
-            });
-
-            expect(response.status()).toBe(403);
-            expect(body.success).toBe(false);
-            expect(body.errorCode).toBe('ORIGIN_NOT_ALLOWED');
-        });
-    });
+    // NOTE: Login endpoint Origin validation is tested in api-auth.spec.ts
+    // which has comprehensive security tests for all auth endpoints.
+    // This file focuses on testing the Origin validation middleware behavior
+    // using /api/auth/logout as the test endpoint.
 });
