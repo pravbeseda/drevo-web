@@ -100,10 +100,24 @@ export async function apiPost<T>(
 }
 
 /**
- * Helper to get CSRF token
+ * Helper to get CSRF token from test endpoint
  */
 export async function getCsrfToken(request: APIRequestContext): Promise<string> {
     const { response, body } = await apiGet<CsrfResponse>(request, '/api/test/csrf');
+    expect(response.status()).toBe(200);
+    expect(body.success).toBe(true);
+
+    if (!body.data || !body.data.csrfToken) {
+        throw new Error('CSRF token is missing in the API response');
+    }
+    return body.data.csrfToken;
+}
+
+/**
+ * Helper to get CSRF token from auth endpoint (for auth tests)
+ */
+export async function getAuthCsrfToken(request: APIRequestContext): Promise<string> {
+    const { response, body } = await apiGet<CsrfResponse>(request, '/api/auth/csrf');
     expect(response.status()).toBe(200);
     expect(body.success).toBe(true);
 
