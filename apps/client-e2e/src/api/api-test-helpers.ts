@@ -24,11 +24,46 @@ export interface CsrfResponse {
 }
 
 /**
- * Echo endpoint response - wraps input data in 'received' property
- * Used by POST /api/test/echo
+ * User permissions structure
  */
-export interface EchoResponse<T = Record<string, unknown>> {
-    received: T;
+export interface UserPermissions {
+    canEdit: boolean;
+    canModerate: boolean;
+    canAdmin: boolean;
+}
+
+/**
+ * Common user structure used in auth responses
+ */
+export interface User {
+    login: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    permissions?: UserPermissions;
+}
+
+/**
+ * Auth me response
+ */
+export interface AuthMeResponse {
+    isAuthenticated: boolean;
+    user?: User;
+}
+
+/**
+ * Login response
+ */
+export interface LoginResponse {
+    user: User;
+    csrfToken: string;
+}
+
+/**
+ * Logout response
+ */
+export interface LogoutResponse {
+    message: string;
 }
 
 /**
@@ -100,10 +135,10 @@ export async function apiPost<T>(
 }
 
 /**
- * Helper to get CSRF token
+ * Helper to get CSRF token from auth endpoint
  */
 export async function getCsrfToken(request: APIRequestContext): Promise<string> {
-    const { response, body } = await apiGet<CsrfResponse>(request, '/api/test/csrf');
+    const { response, body } = await apiGet<CsrfResponse>(request, '/api/auth/csrf');
     expect(response.status()).toBe(200);
     expect(body.success).toBe(true);
 

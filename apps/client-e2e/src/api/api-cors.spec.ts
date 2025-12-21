@@ -28,7 +28,7 @@ test.describe('CORS Headers', () => {
 
     test.describe('OPTIONS Preflight', () => {
         test('should return 204 for preflight from allowed origin', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: allowedOrigin,
@@ -41,7 +41,7 @@ test.describe('CORS Headers', () => {
         });
 
         test('preflight should include all required CORS headers', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: allowedOrigin,
@@ -71,7 +71,7 @@ test.describe('CORS Headers', () => {
         });
 
         test('preflight should NOT include CORS headers for disallowed origin', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: TEST_DISALLOWED_ORIGIN,
@@ -87,7 +87,7 @@ test.describe('CORS Headers', () => {
         });
 
         test('preflight from disallowed origin should return 403', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: TEST_DISALLOWED_ORIGIN,
@@ -102,7 +102,7 @@ test.describe('CORS Headers', () => {
 
     test.describe('Vary: Origin Header', () => {
         test('every API response should include Vary: Origin', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`, {
                 headers: {
                     Accept: 'application/json',
                     Origin: allowedOrigin,
@@ -115,7 +115,7 @@ test.describe('CORS Headers', () => {
         });
 
         test('Vary: Origin should be present even without Origin header', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`, {
                 headers: {
                     Accept: 'application/json',
                     // No Origin header
@@ -130,7 +130,7 @@ test.describe('CORS Headers', () => {
 
     test.describe('CORS for allowed origins', () => {
         test('should include CORS headers in preflight for allowed origin', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.fetch(`${API_BASE_URL}/api/auth/me`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: allowedOrigin,
@@ -145,7 +145,7 @@ test.describe('CORS Headers', () => {
         });
 
         test('regular GET response should include CORS headers for allowed origin', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
                     Origin: allowedOrigin,
@@ -162,7 +162,7 @@ test.describe('CORS Headers', () => {
 
     test.describe('CORS for disallowed origins', () => {
         test('should NOT include Access-Control-Allow-Origin for disallowed origin', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
                     Origin: TEST_DISALLOWED_ORIGIN,
@@ -177,7 +177,7 @@ test.describe('CORS Headers', () => {
         });
 
         test('should NOT echo wildcard (*) for Access-Control-Allow-Origin', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
                     Origin: allowedOrigin,
@@ -193,7 +193,7 @@ test.describe('CORS Headers', () => {
 
     test.describe('Access-Control-Max-Age', () => {
         test('preflight response should include Max-Age', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: allowedOrigin,

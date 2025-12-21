@@ -20,25 +20,29 @@ import {
  * NOTE: Allowed origins depend on server configuration:
  * - Dev: localhost:4200, localhost:4000
  * - Prod: https://new.drevo-info.ru
+ *
+ * Uses POST /api/auth/logout for testing as it:
+ * - Requires Origin validation (state-changing)
+ * - Works without valid credentials (idempotent for guest)
  */
 
 test.describe('Origin/Referer Validation', () => {
     // Use first allowed origin for tests
     const allowedOrigin = ALLOWED_ORIGINS[0];
+
     test.describe('POST without Origin/Referer', () => {
         test('should reject POST without Origin and Referer headers', async ({ request }) => {
             // Get CSRF token first
             const csrfToken = await getCsrfToken(request);
 
             // POST without Origin or Referer
-            const response = await request.post(`${API_BASE_URL}/api/test/echo`, {
+            const response = await request.post(`${API_BASE_URL}/api/auth/logout`, {
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                     'X-CSRF-Token': csrfToken,
                     // No Origin, no Referer
                 },
-                data: { test: 'data' },
             });
 
             const body = await response.json();
@@ -53,8 +57,7 @@ test.describe('Origin/Referer Validation', () => {
         test('should reject POST from disallowed origin', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
-            const { response, body } = await apiPost(request, '/api/test/echo', {
-                data: { test: 'data' },
+            const { response, body } = await apiPost(request, '/api/auth/logout', {
                 origin: TEST_DISALLOWED_ORIGIN,
                 csrfToken,
             });
@@ -67,8 +70,7 @@ test.describe('Origin/Referer Validation', () => {
         test('should reject POST from random origin', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
-            const { response, body } = await apiPost(request, '/api/test/echo', {
-                data: { test: 'data' },
+            const { response, body } = await apiPost(request, '/api/auth/logout', {
                 origin: 'https://attacker-site.com',
                 csrfToken,
             });
@@ -84,8 +86,7 @@ test.describe('Origin/Referer Validation', () => {
             const csrfToken = await getCsrfToken(request);
 
             // Use configured allowed origin
-            const { response, body } = await apiPost(request, '/api/test/echo', {
-                data: { test: 'allowed-origin' },
+            const { response, body } = await apiPost(request, '/api/auth/logout', {
                 origin: allowedOrigin,
                 csrfToken,
             });
@@ -102,7 +103,7 @@ test.describe('Origin/Referer Validation', () => {
             // Parse allowed origin to use as Referer
             const refererUrl = new URL(allowedOrigin);
 
-            const response = await request.post(`${API_BASE_URL}/api/test/echo`, {
+            const response = await request.post(`${API_BASE_URL}/api/auth/logout`, {
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
@@ -110,7 +111,6 @@ test.describe('Origin/Referer Validation', () => {
                     Referer: `${refererUrl.origin}/some/page`,
                     // No Origin header
                 },
-                data: { test: 'referer-only' },
             });
 
             const body = await response.json();
@@ -122,7 +122,7 @@ test.describe('Origin/Referer Validation', () => {
         test('should reject POST with invalid Referer when Origin is missing', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
-            const response = await request.post(`${API_BASE_URL}/api/test/echo`, {
+            const response = await request.post(`${API_BASE_URL}/api/auth/logout`, {
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
@@ -130,7 +130,6 @@ test.describe('Origin/Referer Validation', () => {
                     Referer: 'https://evil-site.com/attack',
                     // No Origin header
                 },
-                data: { test: 'invalid-referer' },
             });
 
             const body = await response.json();
@@ -143,7 +142,7 @@ test.describe('Origin/Referer Validation', () => {
 
     test.describe('GET requests (no Origin validation)', () => {
         test('GET should work without Origin header', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
                     // No Origin
@@ -156,7 +155,7 @@ test.describe('Origin/Referer Validation', () => {
         });
 
         test('GET should work with any Origin header', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/test/ping`, {
+            const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
                     Origin: 'https://any-origin.com',
@@ -168,4 +167,9 @@ test.describe('Origin/Referer Validation', () => {
             expect(body.success).toBe(true);
         });
     });
+
+    // NOTE: Login endpoint Origin validation is tested in api-auth.spec.ts
+    // which has comprehensive security tests for all auth endpoints.
+    // This file focuses on testing the Origin validation middleware behavior
+    // using /api/auth/logout as the test endpoint.
 });
