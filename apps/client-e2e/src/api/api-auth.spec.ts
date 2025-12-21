@@ -6,6 +6,9 @@ import {
     getCsrfToken,
     expectSecurityHeaders,
     ALLOWED_ORIGINS,
+    CsrfResponse,
+    AuthMeResponse,
+    LoginResponse,
 } from './api-test-helpers';
 
 /**
@@ -18,41 +21,6 @@ import {
  * - POST /api/auth/login - Login endpoint (Task 1.3)
  * - POST /api/auth/logout - Logout endpoint (Task 1.5)
  */
-
-/**
- * User data response from /api/auth/me
- */
-interface AuthMeResponse {
-    isAuthenticated: boolean;
-    user?: {
-        login: string;
-        name?: string;
-        email?: string;
-        role?: string;
-        permissions?: string[];
-    };
-}
-
-/**
- * Login response data
- */
-interface LoginResponse {
-    user: {
-        login: string;
-        name?: string;
-        email?: string;
-        role?: string;
-        permissions?: string[];
-    };
-    csrfToken: string;
-}
-
-/**
- * CSRF token response
- */
-interface CsrfResponse {
-    csrfToken: string;
-}
 
 // Use first allowed origin for tests
 const allowedOrigin = ALLOWED_ORIGINS[0];

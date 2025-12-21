@@ -24,11 +24,46 @@ export interface CsrfResponse {
 }
 
 /**
- * Echo endpoint response - wraps input data in 'received' property
- * Used by POST /api/test/echo
+ * Auth me response
  */
-export interface EchoResponse<T = Record<string, unknown>> {
-    received: T;
+export interface AuthMeResponse {
+    isAuthenticated: boolean;
+    user?: {
+        login: string;
+        name?: string;
+        email?: string;
+        role?: string;
+        permissions?: {
+            canEdit: boolean;
+            canModerate: boolean;
+            canAdmin: boolean;
+        };
+    };
+}
+
+/**
+ * Login response
+ */
+export interface LoginResponse {
+    user: {
+        login: string;
+        name?: string;
+        email?: string;
+        role?: string;
+        permissions?: {
+            canEdit: boolean;
+            canModerate: boolean;
+            canAdmin: boolean;
+        };
+    };
+    csrfToken: string;
+}
+
+/**
+ * Logout response
+ */
+export interface LogoutResponse {
+    message: string;
 }
 
 /**
@@ -100,23 +135,9 @@ export async function apiPost<T>(
 }
 
 /**
- * Helper to get CSRF token from test endpoint
+ * Helper to get CSRF token from auth endpoint
  */
 export async function getCsrfToken(request: APIRequestContext): Promise<string> {
-    const { response, body } = await apiGet<CsrfResponse>(request, '/api/test/csrf');
-    expect(response.status()).toBe(200);
-    expect(body.success).toBe(true);
-
-    if (!body.data || !body.data.csrfToken) {
-        throw new Error('CSRF token is missing in the API response');
-    }
-    return body.data.csrfToken;
-}
-
-/**
- * Helper to get CSRF token from auth endpoint (for auth tests)
- */
-export async function getAuthCsrfToken(request: APIRequestContext): Promise<string> {
     const { response, body } = await apiGet<CsrfResponse>(request, '/api/auth/csrf');
     expect(response.status()).toBe(200);
     expect(body.success).toBe(true);
