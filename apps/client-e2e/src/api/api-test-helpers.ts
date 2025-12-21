@@ -106,8 +106,11 @@ export async function getCsrfToken(request: APIRequestContext): Promise<string> 
     const { response, body } = await apiGet<CsrfResponse>(request, '/api/test/csrf');
     expect(response.status()).toBe(200);
     expect(body.success).toBe(true);
-    expect(body.data?.csrfToken).toBeTruthy();
-    return body.data!.csrfToken;
+
+    if (!body.data || !body.data.csrfToken) {
+        throw new Error('CSRF token is missing in the API response');
+    }
+    return body.data.csrfToken;
 }
 
 /**

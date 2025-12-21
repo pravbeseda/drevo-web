@@ -129,7 +129,7 @@ test.describe('CSRF Protection', () => {
             const token = await getCsrfToken(request);
 
             // Token should be at least 64 hex characters (256 bits)
-            expect(token.length).toBeGreaterThanOrEqual(32);
+            expect(token.length).toBeGreaterThanOrEqual(64);
             // Should be hex string
             expect(token).toMatch(/^[a-f0-9]+$/i);
         });

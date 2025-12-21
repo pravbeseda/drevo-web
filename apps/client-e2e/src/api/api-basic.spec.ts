@@ -57,8 +57,8 @@ test.describe('API Basic Endpoints', () => {
             expect(body.success).toBe(true);
             expect(body.data).toHaveProperty('csrfToken');
             expect(typeof body.data?.csrfToken).toBe('string');
-            // CSRF token should be a hex string of at least 32 characters
-            expect(body.data?.csrfToken.length).toBeGreaterThanOrEqual(32);
+            // CSRF token should be at least 64 hex characters (256 bits)
+            expect(body.data?.csrfToken.length).toBeGreaterThanOrEqual(64);
         });
 
         test('should include no-cache headers for CSRF endpoint', async ({
