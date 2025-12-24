@@ -72,7 +72,8 @@
             },
             "defaultConfiguration": "development",
             "options": {
-                "allowedHosts": ["localhost", "drevo-local.ru"]
+                "allowedHosts": ["localhost", "drevo-local.ru"],
+                "proxyConfig": "apps/client/proxy.conf.json"
             }
         },
         "extract-i18n": {

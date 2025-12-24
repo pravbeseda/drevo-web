@@ -14,6 +14,7 @@ import {
     withFetch,
     withInterceptorsFromDi,
 } from '@angular/common/http';
+import { authInterceptorProvider } from './interceptors/auth.interceptor';
 
 const routesTracing = false;
 
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
         provideZonelessChangeDetection(),
         provideRouter(appRoutes),
         provideHttpClient(withFetch(), withInterceptorsFromDi()),
+        authInterceptorProvider,
         importProvidersFrom(
             RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
         ),
