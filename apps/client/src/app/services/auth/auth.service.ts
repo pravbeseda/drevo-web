@@ -61,7 +61,16 @@ export class AuthService {
             // Initialize CSRF service with HttpClient
             this.csrfService.setHttpClient(this.http);
             this.csrfService.initCsrfToken();
-            this.checkAuth().pipe(take(1)).subscribe();
+            this.checkAuth()
+                .pipe(take(1))
+                .subscribe({
+                    error: error =>
+                        this.logger.error(
+                            'Initial auth check failed',
+                            'AuthService',
+                            error
+                        ),
+                });
         } else {
             // SSR: return guest state
             this.isLoadingSubject.next(false);
