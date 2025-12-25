@@ -1,8 +1,16 @@
-import { Component, signal, inject, PLATFORM_ID } from '@angular/core';
+import {
+    Component,
+    signal,
+    inject,
+    PLATFORM_ID,
+    DestroyRef,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
+import { finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-login',
@@ -24,8 +32,7 @@ import { AuthService } from '../../services/auth/auth.service';
                     name="username"
                     [(ngModel)]="username"
                     required
-                    [disabled]="isSubmitting()"
-                />
+                    [disabled]="isSubmitting()" />
             </div>
 
             <div>
@@ -36,8 +43,7 @@ import { AuthService } from '../../services/auth/auth.service';
                     name="password"
                     [(ngModel)]="password"
                     required
-                    [disabled]="isSubmitting()"
-                />
+                    [disabled]="isSubmitting()" />
             </div>
 
             <div>
@@ -46,13 +52,14 @@ import { AuthService } from '../../services/auth/auth.service';
                         type="checkbox"
                         name="rememberMe"
                         [(ngModel)]="rememberMe"
-                        [disabled]="isSubmitting()"
-                    />
+                        [disabled]="isSubmitting()" />
                     Запомнить меня
                 </label>
             </div>
 
-            <button type="submit" [disabled]="isSubmitting() || !isFormValid()">
+            <button
+                type="submit"
+                [disabled]="isSubmitting() || !isFormValid()">
                 @if (isSubmitting()) {
                     Вход...
                 } @else {
@@ -63,6 +70,7 @@ import { AuthService } from '../../services/auth/auth.service';
     `,
 })
 export class LoginComponent {
+    private readonly destroyRef = inject(DestroyRef);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
     private readonly platformId = inject(PLATFORM_ID);
@@ -96,21 +104,26 @@ export class LoginComponent {
                 password: this.password,
                 rememberMe: this.rememberMe,
             })
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => {
+                    this.isSubmitting.set(false);
+                })
+            )
             .subscribe({
                 next: () => {
-                    this.isSubmitting.set(false);
                     this.router.navigate(['/']);
                 },
-                error: (error) => {
-                    this.isSubmitting.set(false);
-                    this.errorMessage.set(
-                        this.getErrorMessage(error)
-                    );
+                error: error => {
+                    this.errorMessage.set(this.getErrorMessage(error));
                 },
             });
     }
 
-    private getErrorMessage(error: { message?: string; code?: string }): string {
+    private getErrorMessage(error: {
+        message?: string;
+        code?: string;
+    }): string {
         if (error.code === 'ACCOUNT_NOT_ACTIVE') {
             return 'Аккаунт не активирован. Проверьте email для подтверждения.';
         }
