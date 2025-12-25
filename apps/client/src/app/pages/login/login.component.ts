@@ -108,6 +108,8 @@ export class LoginComponent {
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => {
                     this.isSubmitting.set(false);
+                    // Clear password from memory after login attempt
+                    this.password = '';
                 })
             )
             .subscribe({
