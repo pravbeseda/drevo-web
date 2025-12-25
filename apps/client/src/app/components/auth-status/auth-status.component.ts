@@ -1,19 +1,24 @@
-import { Component, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { AuthService } from '../../services/auth/auth.service';
-import { User } from '@drevo-web/shared';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'app-auth-status',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [AsyncPipe, RouterLink],
     template: `
-        @if (isLoading()) {
+        @if (authService.isLoading$ | async) {
             <span>Загрузка...</span>
-        } @else if (user()) {
-            <span>{{ user()?.name || user()?.login }}</span>
-            <button type="button" (click)="logout()" [disabled]="isLoggingOut()">
+        } @else if (authService.user$ | async; as user) {
+            <span>{{ user.name || user.login }}</span>
+            <button
+                type="button"
+                (click)="logout()"
+                [disabled]="isLoggingOutSubject | async">
                 Выйти
             </button>
         } @else {
@@ -21,38 +26,18 @@ import { User } from '@drevo-web/shared';
         }
     `,
 })
-export class AuthStatusComponent implements OnInit {
-    private readonly authService = inject(AuthService);
-    private readonly platformId = inject(PLATFORM_ID);
-
-    readonly user = signal<User | null>(null);
-    readonly isLoading = signal(true);
-    readonly isLoggingOut = signal(false);
-
-    ngOnInit(): void {
-        if (!isPlatformBrowser(this.platformId)) {
-            this.isLoading.set(false);
-            return;
-        }
-
-        this.authService.isLoading$.subscribe((loading) => {
-            this.isLoading.set(loading);
-        });
-
-        this.authService.user$.subscribe((user) => {
-            this.user.set(user);
-        });
-    }
+export class AuthStatusComponent {
+    readonly authService = inject(AuthService);
+    readonly isLoggingOutSubject = new BehaviorSubject(false);
 
     logout(): void {
-        this.isLoggingOut.set(true);
-        this.authService.logout().subscribe({
-            next: () => {
-                this.isLoggingOut.set(false);
-            },
-            error: () => {
-                this.isLoggingOut.set(false);
-            },
-        });
+        this.isLoggingOutSubject.next(true);
+        this.authService
+            .logout()
+            .pipe(
+                takeUntilDestroyed(),
+                finalize(() => this.isLoggingOutSubject.next(false))
+            )
+            .subscribe();
     }
 }
