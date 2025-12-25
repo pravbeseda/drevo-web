@@ -102,8 +102,9 @@ export class AuthInterceptor implements HttpInterceptor {
                         setHeaders: {
                             'X-CSRF-Token': newToken,
                         },
+                        withCredentials: true,
                     });
-                    return next.handle(this.addCredentials(retryRequest));
+                    return next.handle(retryRequest);
                 }),
                 catchError(() => throwError(() => error)), // original error if retry fails
                 finalize(() => {
