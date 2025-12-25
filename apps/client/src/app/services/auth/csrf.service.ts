@@ -1,8 +1,15 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, ReplaySubject, throwError } from 'rxjs';
-import { map, catchError, tap, timeout, retry, take } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import {
+    map,
+    catchError,
+    tap,
+    timeout,
+    retry,
+    shareReplay,
+} from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { CsrfResponse } from '@drevo-web/shared';
 import { LoggerService } from '../logger/logger.service';
@@ -23,45 +30,44 @@ export class CsrfService {
     private readonly isBrowser = isPlatformBrowser(this.platformId);
     private readonly logger = inject(LoggerService);
 
-    // CSRF token management
-    private readonly csrfTokenSubject = new ReplaySubject<string>(1);
-    private csrfTokenInitialized = false;
-    private httpClient: HttpClient | null = null;
+    private csrfToken: string | undefined;
+    private fetchInProgress$: Observable<string> | undefined;
+    private httpClient: HttpClient | undefined;
 
-    /**
-     * Set HttpClient (called from AuthService to avoid circular dependency)
-     */
     setHttpClient(http: HttpClient): void {
         this.httpClient = http;
     }
 
-    /**
-     * Get CSRF token observable (waits for token to be available)
-     */
-    get csrfToken$(): Observable<string> {
-        return this.csrfTokenSubject.pipe(take(1), timeout(CSRF_TIMEOUT_MS));
+    getCsrfToken(): Observable<string> {
+        if (this.csrfToken) {
+            return of(this.csrfToken);
+        }
+
+        if (this.fetchInProgress$) {
+            return this.fetchInProgress$;
+        }
+
+        return this.fetchCsrfToken();
     }
 
-    /**
-     * Initialize CSRF token on app start
-     */
     initCsrfToken(): void {
-        if (!this.isBrowser || this.csrfTokenInitialized || !this.httpClient) {
+        if (
+            !this.isBrowser ||
+            this.csrfToken ||
+            this.fetchInProgress$ ||
+            !this.httpClient
+        ) {
             return;
         }
-        this.csrfTokenInitialized = true;
         this.fetchCsrfToken().subscribe();
     }
 
-    /**
-     * Fetch CSRF token from server
-     */
     private fetchCsrfToken(): Observable<string> {
         if (!this.httpClient) {
             return throwError(() => new Error('HttpClient not initialized'));
         }
 
-        return this.httpClient
+        this.fetchInProgress$ = this.httpClient
             .get<CsrfResponse>(`${this.apiUrl}/api/auth/csrf`, {
                 withCredentials: true,
             })
@@ -74,56 +80,36 @@ export class CsrfService {
                     }
                     throw new Error('Invalid CSRF response');
                 }),
-                tap(token => this.csrfTokenSubject.next(token)),
+                tap(token => {
+                    this.csrfToken = token;
+                    this.fetchInProgress$ = undefined;
+                }),
                 catchError(error => {
                     this.logger.error(
                         'Failed to fetch CSRF token',
                         'CsrfService',
                         error
                     );
-                    this.csrfTokenSubject.error(error);
+                    this.fetchInProgress$ = undefined;
                     return throwError(() => error);
-                })
-            );
-    }
-
-    /**
-     * Refresh CSRF token (after logout or on 403)
-     */
-    refreshCsrfToken(): Observable<string> {
-        if (!this.httpClient) {
-            return throwError(() => new Error('HttpClient not initialized'));
-        }
-
-        return this.httpClient
-            .get<CsrfResponse>(`${this.apiUrl}/api/auth/csrf`, {
-                withCredentials: true,
-            })
-            .pipe(
-                timeout(CSRF_TIMEOUT_MS),
-                retry(CSRF_RETRY_COUNT),
-                map(response => {
-                    if (response.success && response.data?.csrfToken) {
-                        return response.data.csrfToken;
-                    }
-                    throw new Error('Invalid CSRF response');
                 }),
-                tap(token => this.csrfTokenSubject.next(token)),
-                catchError(error => {
-                    this.logger.error(
-                        'Failed to refresh CSRF token',
-                        'CsrfService',
-                        error
-                    );
-                    return throwError(() => error);
-                })
+                shareReplay(1)
             );
+
+        return this.fetchInProgress$;
     }
 
-    /**
-     * Update CSRF token (called after login with new token from response)
-     */
+    refreshCsrfToken(): Observable<string> {
+        this.clearToken();
+        return this.fetchCsrfToken();
+    }
+
     updateCsrfToken(token: string): void {
-        this.csrfTokenSubject.next(token);
+        this.csrfToken = token;
+    }
+
+    private clearToken(): void {
+        this.csrfToken = undefined;
+        this.fetchInProgress$ = undefined;
     }
 }

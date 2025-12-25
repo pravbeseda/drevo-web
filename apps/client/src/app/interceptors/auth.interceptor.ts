@@ -57,7 +57,7 @@ export class AuthInterceptor implements HttpInterceptor {
         request: HttpRequest<unknown>,
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
-        return this.csrfService.csrfToken$.pipe(
+        return this.csrfService.getCsrfToken().pipe(
             switchMap(csrfToken => {
                 const csrfRequest = request.clone({
                     setHeaders: {

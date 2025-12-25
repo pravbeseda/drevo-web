@@ -140,7 +140,7 @@ export class AuthService {
         // Set lock
         this.authOperationInProgressSubject.next(true);
 
-        return this.csrfService.csrfToken$.pipe(
+        return this.csrfService.getCsrfToken().pipe(
             switchMap(csrfToken =>
                 this.http.post<AuthResponse>(
                     `${this.apiUrl}/api/auth/login`,
@@ -192,7 +192,7 @@ export class AuthService {
         // Set lock
         this.authOperationInProgressSubject.next(true);
 
-        return this.csrfService.csrfToken$.pipe(
+        return this.csrfService.getCsrfToken().pipe(
             switchMap(csrfToken =>
                 this.http.post<AuthResponse>(
                     `${this.apiUrl}/api/auth/logout`,
