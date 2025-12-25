@@ -8,7 +8,7 @@ import {
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, finalize, switchMap } from 'rxjs/operators';
+import { catchError, finalize, shareReplay, switchMap } from 'rxjs/operators';
 import { CsrfService } from '../services/auth/csrf.service';
 import { LoggerService } from '../services/logger/logger.service';
 import { environment } from '../../environments/environment';
@@ -21,7 +21,9 @@ export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
     private readonly csrfService = inject(CsrfService);
     private readonly logger = inject(LoggerService);
-    private retryingRequest = false;
+
+    // Shared observable for token refresh to handle concurrent CSRF failures
+    private refreshingToken$: Observable<string> | undefined;
 
     intercept(
         request: HttpRequest<unknown>,
@@ -88,15 +90,27 @@ export class AuthInterceptor implements HttpInterceptor {
         request: HttpRequest<unknown>,
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
-        // Handle 403 CSRF validation failed - retry once with new token
+        // Handle 403 CSRF validation failed - retry with new token
+        // Uses shared observable to coordinate concurrent refresh attempts
         if (
             error.status === 403 &&
             error.error?.errorCode === 'CSRF_VALIDATION_FAILED' &&
-            !this.retryingRequest &&
             this.isStateChangingMethod(request.method)
         ) {
-            this.retryingRequest = true;
-            return this.csrfService.refreshCsrfToken().pipe(
+            // If no refresh is in progress, start one with shareReplay
+            // so all concurrent failures share the same token refresh
+            if (!this.refreshingToken$) {
+                this.refreshingToken$ = this.csrfService
+                    .refreshCsrfToken()
+                    .pipe(
+                        shareReplay(1),
+                        finalize(() => {
+                            this.refreshingToken$ = undefined;
+                        })
+                    );
+            }
+
+            return this.refreshingToken$.pipe(
                 switchMap(newToken => {
                     const retryRequest = request.clone({
                         setHeaders: {
@@ -106,10 +120,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     });
                     return next.handle(retryRequest);
                 }),
-                catchError(() => throwError(() => error)), // original error if retry fails
-                finalize(() => {
-                    this.retryingRequest = false;
-                })
+                catchError(() => throwError(() => error)) // original error if retry fails
             );
         }
 
