@@ -23,6 +23,7 @@ import {
     LoginRequest,
 } from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable({
     providedIn: 'root',
@@ -57,6 +58,7 @@ export class AuthService {
     private readonly http = inject(HttpClient);
     private readonly platformId = inject(PLATFORM_ID);
     private readonly csrfService = inject(CsrfService);
+    private readonly logger = inject(LoggerService);
 
     constructor() {
         this.isBrowser = isPlatformBrowser(this.platformId);
@@ -110,7 +112,7 @@ export class AuthService {
                     };
                 }),
                 catchError((error) => {
-                    console.error('Auth check failed:', error);
+                    this.logger.error('Auth check failed', 'AuthService', error);
                     this.userSubject.next(null);
                     this.isAuthenticatedSubject.next(false);
                     return of({
@@ -200,7 +202,7 @@ export class AuthService {
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
             catchError((error) => {
-                console.error('Logout failed:', error);
+                this.logger.error('Logout failed', 'AuthService', error);
                 // Still clear local state even if server request fails
                 this.userSubject.next(null);
                 this.isAuthenticatedSubject.next(false);

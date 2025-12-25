@@ -1,21 +1,11 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import {
-    Observable,
-    ReplaySubject,
-    throwError,
-} from 'rxjs';
-import {
-    map,
-    catchError,
-    tap,
-    timeout,
-    retry,
-    take,
-} from 'rxjs/operators';
+import { Observable, ReplaySubject, throwError } from 'rxjs';
+import { map, catchError, tap, timeout, retry, take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { CsrfResponse } from '@drevo-web/shared';
+import { LoggerService } from '../logger/logger.service';
 
 const CSRF_TIMEOUT_MS = 10000;
 const CSRF_RETRY_COUNT = 3;
@@ -31,6 +21,7 @@ export class CsrfService {
     private readonly apiUrl = environment.apiUrl;
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
+    private readonly logger = inject(LoggerService);
 
     // CSRF token management
     private readonly csrfTokenSubject = new ReplaySubject<string>(1);
@@ -48,10 +39,7 @@ export class CsrfService {
      * Get CSRF token observable (waits for token to be available)
      */
     get csrfToken$(): Observable<string> {
-        return this.csrfTokenSubject.pipe(
-            take(1),
-            timeout(CSRF_TIMEOUT_MS)
-        );
+        return this.csrfTokenSubject.pipe(take(1), timeout(CSRF_TIMEOUT_MS));
     }
 
     /**
@@ -80,15 +68,15 @@ export class CsrfService {
             .pipe(
                 timeout(CSRF_TIMEOUT_MS),
                 retry(CSRF_RETRY_COUNT),
-                map((response) => {
+                map(response => {
                     if (response.success && response.data?.csrfToken) {
                         return response.data.csrfToken;
                     }
                     throw new Error('Invalid CSRF response');
                 }),
-                tap((token) => this.csrfTokenSubject.next(token)),
-                catchError((error) => {
-                    console.error('Failed to fetch CSRF token:', error);
+                tap(token => this.csrfTokenSubject.next(token)),
+                catchError(error => {
+                    this.logger.error('Failed to fetch CSRF token', 'CsrfService', error);
                     this.csrfTokenSubject.error(error);
                     return throwError(() => error);
                 })
@@ -110,15 +98,15 @@ export class CsrfService {
             .pipe(
                 timeout(CSRF_TIMEOUT_MS),
                 retry(CSRF_RETRY_COUNT),
-                map((response) => {
+                map(response => {
                     if (response.success && response.data?.csrfToken) {
                         return response.data.csrfToken;
                     }
                     throw new Error('Invalid CSRF response');
                 }),
-                tap((token) => this.csrfTokenSubject.next(token)),
-                catchError((error) => {
-                    console.error('Failed to refresh CSRF token:', error);
+                tap(token => this.csrfTokenSubject.next(token)),
+                catchError(error => {
+                    this.logger.error('Failed to refresh CSRF token', 'CsrfService', error);
                     return throwError(() => error);
                 })
             );

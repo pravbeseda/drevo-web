@@ -10,6 +10,7 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { CsrfService } from '../services/auth/csrf.service';
+import { LoggerService } from '../services/logger/logger.service';
 import { environment } from '../../environments/environment';
 
 const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
@@ -19,6 +20,7 @@ const CSRF_ENDPOINTS = ['/api/auth/csrf'];
 export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
     private readonly csrfService = inject(CsrfService);
+    private readonly logger = inject(LoggerService);
     private retryingRequest = false;
 
     intercept(
@@ -71,7 +73,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     );
             }),
             catchError(error => {
-                console.error('Failed to get CSRF token:', error);
+                this.logger.error('Failed to get CSRF token', 'AuthInterceptor', error);
                 return throwError(() => error);
             })
         );
