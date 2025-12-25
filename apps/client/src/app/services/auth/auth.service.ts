@@ -13,6 +13,7 @@ import {
     tap,
     finalize,
     switchMap,
+    take,
 } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
@@ -64,7 +65,7 @@ export class AuthService {
             // Initialize CSRF service with HttpClient
             this.csrfService.setHttpClient(this.http);
             this.csrfService.initCsrfToken();
-            this.checkAuth().subscribe();
+            this.checkAuth().pipe(take(1)).subscribe();
         } else {
             // SSR: return guest state
             this.isLoadingSubject.next(false);
