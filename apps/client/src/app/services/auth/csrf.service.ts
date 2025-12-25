@@ -76,7 +76,11 @@ export class CsrfService {
                 }),
                 tap(token => this.csrfTokenSubject.next(token)),
                 catchError(error => {
-                    this.logger.error('Failed to fetch CSRF token', 'CsrfService', error);
+                    this.logger.error(
+                        'Failed to fetch CSRF token',
+                        'CsrfService',
+                        error
+                    );
                     this.csrfTokenSubject.error(error);
                     return throwError(() => error);
                 })
@@ -106,7 +110,11 @@ export class CsrfService {
                 }),
                 tap(token => this.csrfTokenSubject.next(token)),
                 catchError(error => {
-                    this.logger.error('Failed to refresh CSRF token', 'CsrfService', error);
+                    this.logger.error(
+                        'Failed to refresh CSRF token',
+                        'CsrfService',
+                        error
+                    );
                     return throwError(() => error);
                 })
             );

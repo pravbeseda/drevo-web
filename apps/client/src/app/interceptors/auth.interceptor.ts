@@ -73,7 +73,11 @@ export class AuthInterceptor implements HttpInterceptor {
                     );
             }),
             catchError(error => {
-                this.logger.error('Failed to get CSRF token', 'AuthInterceptor', error);
+                this.logger.error(
+                    'Failed to get CSRF token',
+                    'AuthInterceptor',
+                    error
+                );
                 return throwError(() => error);
             })
         );

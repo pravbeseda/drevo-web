@@ -1,12 +1,7 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import {
-    BehaviorSubject,
-    Observable,
-    of,
-    throwError,
-} from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import {
     map,
     catchError,
@@ -16,12 +11,7 @@ import {
     take,
 } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import {
-    User,
-    AuthState,
-    AuthResponse,
-    LoginRequest,
-} from '@drevo-web/shared';
+import { User, AuthState, AuthResponse, LoginRequest } from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
 import { LoggerService } from '../logger/logger.service';
 
@@ -35,20 +25,24 @@ export class AuthService {
     // Auth state
     private readonly userSubject = new BehaviorSubject<User | null>(null);
     private readonly isLoadingSubject = new BehaviorSubject<boolean>(true);
-    private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+    private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(
+        false
+    );
 
     // Lock for auth operations (login/logout)
-    private readonly authOperationInProgressSubject = new BehaviorSubject<boolean>(false);
+    private readonly authOperationInProgressSubject =
+        new BehaviorSubject<boolean>(false);
 
     // Public observables
     readonly user$ = this.userSubject.asObservable();
     readonly isLoading$ = this.isLoadingSubject.asObservable();
     readonly isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
-    readonly isAuthOperationInProgress$ = this.authOperationInProgressSubject.asObservable();
+    readonly isAuthOperationInProgress$ =
+        this.authOperationInProgressSubject.asObservable();
 
     // Auth state as combined observable
     readonly authState$: Observable<AuthState> = this.user$.pipe(
-        map((user) => ({
+        map(user => ({
             isAuthenticated: !!user,
             user,
             isLoading: this.isLoadingSubject.value,
@@ -93,8 +87,12 @@ export class AuthService {
                 withCredentials: true,
             })
             .pipe(
-                map((response) => {
-                    if (response.success && response.data?.isAuthenticated && response.data.user) {
+                map(response => {
+                    if (
+                        response.success &&
+                        response.data?.isAuthenticated &&
+                        response.data.user
+                    ) {
                         this.userSubject.next(response.data.user);
                         this.isAuthenticatedSubject.next(true);
                         return {
@@ -111,8 +109,12 @@ export class AuthService {
                         isLoading: false,
                     };
                 }),
-                catchError((error) => {
-                    this.logger.error('Auth check failed', 'AuthService', error);
+                catchError(error => {
+                    this.logger.error(
+                        'Auth check failed',
+                        'AuthService',
+                        error
+                    );
                     this.userSubject.next(null);
                     this.isAuthenticatedSubject.next(false);
                     return of({
@@ -130,14 +132,16 @@ export class AuthService {
      */
     login(request: LoginRequest): Observable<User> {
         if (!this.isBrowser) {
-            return throwError(() => new Error('Login is only available in browser'));
+            return throwError(
+                () => new Error('Login is only available in browser')
+            );
         }
 
         // Set lock
         this.authOperationInProgressSubject.next(true);
 
         return this.csrfService.csrfToken$.pipe(
-            switchMap((csrfToken) =>
+            switchMap(csrfToken =>
                 this.http.post<AuthResponse>(
                     `${this.apiUrl}/api/auth/login`,
                     request,
@@ -149,11 +153,13 @@ export class AuthService {
                     }
                 )
             ),
-            map((response) => {
+            map(response => {
                 if (response.success && response.data?.user) {
                     // Update CSRF token from response
                     if (response.data.csrfToken) {
-                        this.csrfService.updateCsrfToken(response.data.csrfToken);
+                        this.csrfService.updateCsrfToken(
+                            response.data.csrfToken
+                        );
                     }
 
                     this.userSubject.next(response.data.user);
@@ -163,9 +169,13 @@ export class AuthService {
                 throw new Error(response.error || 'Login failed');
             }),
             catchError((error: HttpErrorResponse) => {
-                const errorMessage = error.error?.error || error.message || 'Login failed';
+                const errorMessage =
+                    error.error?.error || error.message || 'Login failed';
                 const errorCode = error.error?.errorCode;
-                return throwError(() => ({ message: errorMessage, code: errorCode }));
+                return throwError(() => ({
+                    message: errorMessage,
+                    code: errorCode,
+                }));
             }),
             finalize(() => this.authOperationInProgressSubject.next(false))
         );
@@ -183,7 +193,7 @@ export class AuthService {
         this.authOperationInProgressSubject.next(true);
 
         return this.csrfService.csrfToken$.pipe(
-            switchMap((csrfToken) =>
+            switchMap(csrfToken =>
                 this.http.post<AuthResponse>(
                     `${this.apiUrl}/api/auth/logout`,
                     {},
@@ -201,7 +211,7 @@ export class AuthService {
             }),
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
-            catchError((error) => {
+            catchError(error => {
                 this.logger.error('Logout failed', 'AuthService', error);
                 // Still clear local state even if server request fails
                 this.userSubject.next(null);
