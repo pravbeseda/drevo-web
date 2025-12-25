@@ -8,7 +8,7 @@ import {
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { CsrfService } from '../services/auth/csrf.service';
 import { environment } from '../../environments/environment';
 
@@ -97,16 +97,11 @@ export class AuthInterceptor implements HttpInterceptor {
                             'X-CSRF-Token': newToken,
                         },
                     });
-                    return next.handle(this.addCredentials(retryRequest)).pipe(
-                        catchError(retryError => {
-                            this.retryingRequest = false;
-                            return throwError(() => retryError);
-                        })
-                    );
+                    return next.handle(this.addCredentials(retryRequest));
                 }),
-                catchError(() => {
+                catchError(() => throwError(() => error)), // original error if retry fails
+                finalize(() => {
                     this.retryingRequest = false;
-                    return throwError(() => error);
                 })
             );
         }
