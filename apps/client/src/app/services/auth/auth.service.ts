@@ -1,7 +1,13 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import {
+    BehaviorSubject,
+    Observable,
+    of,
+    throwError,
+    combineLatest,
+} from 'rxjs';
 import {
     map,
     catchError,
@@ -33,19 +39,20 @@ export class AuthService {
     private readonly authOperationInProgressSubject =
         new BehaviorSubject<boolean>(false);
 
-    // Public observables
     readonly user$ = this.userSubject.asObservable();
     readonly isLoading$ = this.isLoadingSubject.asObservable();
     readonly isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
     readonly isAuthOperationInProgress$ =
         this.authOperationInProgressSubject.asObservable();
 
-    // Auth state as combined observable
-    readonly authState$: Observable<AuthState> = this.user$.pipe(
-        map(user => ({
+    readonly authState$: Observable<AuthState> = combineLatest([
+        this.user$,
+        this.isLoading$,
+    ]).pipe(
+        map(([user, isLoading]) => ({
             isAuthenticated: !!user,
             user,
-            isLoading: this.isLoadingSubject.value,
+            isLoading,
         }))
     );
 
