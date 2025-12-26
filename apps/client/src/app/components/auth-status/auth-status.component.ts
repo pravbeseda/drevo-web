@@ -28,7 +28,7 @@ import { finalize } from 'rxjs/operators';
 })
 export class AuthStatusComponent {
     readonly authService = inject(AuthService);
-    readonly isLoggingOutSubject = new BehaviorSubject(false);
+    readonly isLoggingOutSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
     logout(): void {
         this.isLoggingOutSubject.next(true);
