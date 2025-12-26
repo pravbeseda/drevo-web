@@ -11,14 +11,14 @@ import { finalize } from 'rxjs/operators';
     standalone: true,
     imports: [AsyncPipe, RouterLink],
     template: `
-        @if (authService.isLoading$ | async) {
+        @if (isLoading$ | async) {
             <span>Загрузка...</span>
-        } @else if (authService.user$ | async; as user) {
+        } @else if (user$ | async; as user) {
             <span>{{ user.name || user.login }}</span>
             <button
                 type="button"
                 (click)="logout()"
-                [disabled]="isLoggingOutSubject | async">
+                [disabled]="isLoggingOut$ | async">
                 Выйти
             </button>
         } @else {
@@ -28,9 +28,13 @@ import { finalize } from 'rxjs/operators';
 })
 export class AuthStatusComponent {
     private readonly destroyRef = inject(DestroyRef);
-    readonly authService = inject(AuthService);
-    readonly isLoggingOutSubject: BehaviorSubject<boolean> =
+    private readonly authService = inject(AuthService);
+    private readonly isLoggingOutSubject: BehaviorSubject<boolean> =
         new BehaviorSubject(false);
+
+    readonly isLoggingOut$ = this.isLoggingOutSubject.asObservable();
+    readonly user$ = this.authService.user$;
+    readonly isLoading$ = this.authService.isLoading$;
 
     logout(): void {
         this.isLoggingOutSubject.next(true);
