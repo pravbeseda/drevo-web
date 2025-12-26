@@ -52,12 +52,16 @@ describe('AuthService SSR', () => {
 
     describe('login on server', () => {
         it('should throw error indicating login is only available in browser', done => {
-            spectator.service.login({ username: 'test', password: 'test' }).subscribe({
-                error: error => {
-                    expect(error.message).toBe('Login is only available in browser');
-                    done();
-                },
-            });
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe({
+                    error: error => {
+                        expect(error.message).toBe(
+                            'Login is only available in browser'
+                        );
+                        done();
+                    },
+                });
 
             // No HTTP request should be made
             httpController.expectNone('http://test-api/api/auth/login');
@@ -80,12 +84,16 @@ describe('AuthService SSR', () => {
 
     describe('initial state on server', () => {
         it('should not call initCsrfToken on server', () => {
-            const csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
+            const csrfService = spectator.inject(
+                CsrfService
+            ) as jest.Mocked<CsrfService>;
             expect(csrfService.initCsrfToken).not.toHaveBeenCalled();
         });
 
         it('should not call setHttpClient on server', () => {
-            const csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
+            const csrfService = spectator.inject(
+                CsrfService
+            ) as jest.Mocked<CsrfService>;
             expect(csrfService.setHttpClient).not.toHaveBeenCalled();
         });
 

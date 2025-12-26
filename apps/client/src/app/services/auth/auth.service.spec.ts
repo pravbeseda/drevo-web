@@ -67,7 +67,9 @@ describe('AuthService', () => {
 
         // Default mock for CSRF
         csrfService.getCsrfToken.mockReturnValue(of('test-csrf-token'));
-        csrfService.refreshCsrfToken.mockReturnValue(of('refreshed-csrf-token'));
+        csrfService.refreshCsrfToken.mockReturnValue(
+            of('refreshed-csrf-token')
+        );
 
         // Handle initial auth check that happens in constructor
         try {
@@ -92,10 +94,12 @@ describe('AuthService', () => {
             const freshSpectator = createService();
             // Service starts in loading state before checkAuth completes
             expect(freshSpectator.service).toBeTruthy();
-            
+
             // Clean up pending request
             const controller = freshSpectator.inject(HttpTestingController);
-            controller.match('http://test-api/api/auth/me').forEach(req => req.flush(mockUnauthenticatedResponse));
+            controller
+                .match('http://test-api/api/auth/me')
+                .forEach(req => req.flush(mockUnauthenticatedResponse));
         });
 
         it('should call initCsrfToken and checkAuth on browser platform', () => {
@@ -164,16 +168,16 @@ describe('AuthService', () => {
 
         it('should set isLoading to true during request', () => {
             let isLoadingDuringRequest = false;
-            
+
             spectator.service.isLoading$.subscribe(isLoading => {
                 isLoadingDuringRequest = isLoading;
             });
 
             spectator.service.checkAuth().subscribe();
-            
+
             // During the request, isLoading should be true
             expect(isLoadingDuringRequest).toBe(true);
-            
+
             const req = httpController.expectOne('http://test-api/api/auth/me');
             req.flush(mockUnauthenticatedResponse);
         });
@@ -226,11 +230,15 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             expect(req.request.method).toBe('POST');
             expect(req.request.body).toEqual(loginRequest);
             expect(req.request.withCredentials).toBe(true);
-            expect(req.request.headers.get('X-CSRF-Token')).toBe('test-csrf-token');
+            expect(req.request.headers.get('X-CSRF-Token')).toBe(
+                'test-csrf-token'
+            );
             req.flush(mockAuthResponse);
         });
 
@@ -241,46 +249,60 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
 
         it('should update CSRF token from response', done => {
             spectator.service.login(loginRequest).subscribe(() => {
-                expect(csrfService.updateCsrfToken).toHaveBeenCalledWith('new-csrf-token');
+                expect(csrfService.updateCsrfToken).toHaveBeenCalledWith(
+                    'new-csrf-token'
+                );
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
 
         it('should set auth operation in progress during login', () => {
             let inProgressDuringRequest = false;
-            
-            spectator.service.isAuthOperationInProgress$.subscribe(inProgress => {
-                inProgressDuringRequest = inProgress;
-            });
+
+            spectator.service.isAuthOperationInProgress$.subscribe(
+                inProgress => {
+                    inProgressDuringRequest = inProgress;
+                }
+            );
 
             spectator.service.login(loginRequest).subscribe();
-            
+
             expect(inProgressDuringRequest).toBe(true);
-            
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
 
         it('should reset auth operation in progress after login completes', done => {
             spectator.service.login(loginRequest).subscribe({
                 complete: () => {
-                    spectator.service.isAuthOperationInProgress$.subscribe(inProgress => {
-                        expect(inProgress).toBe(false);
-                        done();
-                    });
+                    spectator.service.isAuthOperationInProgress$.subscribe(
+                        inProgress => {
+                            expect(inProgress).toBe(false);
+                            done();
+                        }
+                    );
                 },
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
 
@@ -297,7 +319,9 @@ describe('AuthService', () => {
                 },
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(errorResponse);
         });
 
@@ -316,7 +340,9 @@ describe('AuthService', () => {
                 },
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(responseWithoutUser);
         });
 
@@ -328,7 +354,9 @@ describe('AuthService', () => {
                 },
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(
                 { error: 'Server error', errorCode: 'SERVER_ERROR' },
                 { status: 500, statusText: 'Internal Server Error' }
@@ -343,9 +371,14 @@ describe('AuthService', () => {
                 },
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(
-                { error: 'Invalid credentials', errorCode: 'INVALID_CREDENTIALS' },
+                {
+                    error: 'Invalid credentials',
+                    errorCode: 'INVALID_CREDENTIALS',
+                },
                 { status: 401, statusText: 'Unauthorized' }
             );
         });
@@ -356,7 +389,9 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
 
@@ -387,7 +422,9 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(responseWithoutCsrf);
         });
     });
@@ -395,8 +432,12 @@ describe('AuthService', () => {
     describe('logout', () => {
         beforeEach(done => {
             // First login to have authenticated state
-            spectator.service.login({ username: 'test', password: 'test' }).subscribe(() => done());
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe(() => done());
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
 
@@ -407,10 +448,14 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/logout');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/logout'
+            );
             expect(req.request.method).toBe('POST');
             expect(req.request.withCredentials).toBe(true);
-            expect(req.request.headers.get('X-CSRF-Token')).toBe('test-csrf-token');
+            expect(req.request.headers.get('X-CSRF-Token')).toBe(
+                'test-csrf-token'
+            );
             req.flush({ success: true });
         });
 
@@ -420,41 +465,53 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/logout');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/logout'
+            );
             req.flush({ success: true });
         });
 
         it('should set auth operation in progress during logout', () => {
             let inProgressDuringRequest = false;
-            
-            spectator.service.isAuthOperationInProgress$.subscribe(inProgress => {
-                inProgressDuringRequest = inProgress;
-            });
+
+            spectator.service.isAuthOperationInProgress$.subscribe(
+                inProgress => {
+                    inProgressDuringRequest = inProgress;
+                }
+            );
 
             spectator.service.logout().subscribe();
-            
+
             expect(inProgressDuringRequest).toBe(true);
-            
-            const req = httpController.expectOne('http://test-api/api/auth/logout');
+
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/logout'
+            );
             req.flush({ success: true });
         });
 
         it('should reset auth operation in progress after logout completes', done => {
             spectator.service.logout().subscribe({
                 complete: () => {
-                    spectator.service.isAuthOperationInProgress$.subscribe(inProgress => {
-                        expect(inProgress).toBe(false);
-                        done();
-                    });
+                    spectator.service.isAuthOperationInProgress$.subscribe(
+                        inProgress => {
+                            expect(inProgress).toBe(false);
+                            done();
+                        }
+                    );
                 },
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/logout');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/logout'
+            );
             req.flush({ success: true });
         });
 
         it('should clear local state even on server error', done => {
-            const loggerService = spectator.inject(LoggerService) as jest.Mocked<LoggerService>;
+            const loggerService = spectator.inject(
+                LoggerService
+            ) as jest.Mocked<LoggerService>;
 
             spectator.service.logout().subscribe(() => {
                 expect(spectator.service.currentUser).toBeNull();
@@ -463,7 +520,9 @@ describe('AuthService', () => {
                 done();
             });
 
-            const req = httpController.expectOne('http://test-api/api/auth/logout');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/logout'
+            );
             req.error(new ErrorEvent('Network error'));
         });
     });
@@ -474,12 +533,16 @@ describe('AuthService', () => {
         });
 
         it('should return user when authenticated', done => {
-            spectator.service.login({ username: 'test', password: 'test' }).subscribe(() => {
-                expect(spectator.service.currentUser).toEqual(mockUser);
-                done();
-            });
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe(() => {
+                    expect(spectator.service.currentUser).toEqual(mockUser);
+                    done();
+                });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
     });
@@ -490,12 +553,16 @@ describe('AuthService', () => {
         });
 
         it('should return true when authenticated', done => {
-            spectator.service.login({ username: 'test', password: 'test' }).subscribe(() => {
-                expect(spectator.service.isAuthenticated).toBe(true);
-                done();
-            });
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe(() => {
+                    expect(spectator.service.isAuthenticated).toBe(true);
+                    done();
+                });
 
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
     });
@@ -503,7 +570,7 @@ describe('AuthService', () => {
     describe('authState$ observable', () => {
         it('should emit auth state changes', done => {
             const states: boolean[] = [];
-            
+
             spectator.service.authState$.subscribe(state => {
                 states.push(state.isAuthenticated);
                 if (states.length === 2) {
@@ -513,9 +580,13 @@ describe('AuthService', () => {
                 }
             });
 
-            spectator.service.login({ username: 'test', password: 'test' }).subscribe();
-            
-            const req = httpController.expectOne('http://test-api/api/auth/login');
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe();
+
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
             req.flush(mockAuthResponse);
         });
     });
@@ -523,7 +594,7 @@ describe('AuthService', () => {
     describe('SSR platform', () => {
         // SSR tests need separate test file due to TestBed limitations with different PLATFORM_ID
         // These tests verify the service handles server-side rendering correctly
-        
+
         it('should handle non-browser environment gracefully', () => {
             // The service checks isPlatformBrowser and returns early/different behavior
             // Full SSR tests would require a separate test file with different PLATFORM_ID
