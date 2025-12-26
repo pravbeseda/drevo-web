@@ -103,7 +103,6 @@ describe('AuthService', () => {
         });
 
         it('should call initCsrfToken and checkAuth on browser platform', () => {
-            expect(csrfService.setHttpClient).toHaveBeenCalled();
             expect(csrfService.initCsrfToken).toHaveBeenCalled();
         });
     });

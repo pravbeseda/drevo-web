@@ -33,24 +33,10 @@ describe('CsrfService', () => {
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
         httpClient = spectator.inject(HttpClient);
-        spectator.service.setHttpClient(httpClient);
     });
 
     afterEach(() => {
         httpController.verify();
-    });
-
-    describe('setHttpClient', () => {
-        it('should set httpClient', () => {
-            const service = spectator.service;
-            service.setHttpClient(httpClient);
-            // Verify by calling getCsrfToken which requires httpClient
-            service.getCsrfToken().subscribe();
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
-            req.flush(mockCsrfResponse);
-        });
     });
 
     describe('getCsrfToken', () => {

@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, Injector, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
@@ -19,7 +19,10 @@ const CSRF_RETRY_COUNT = 3;
 
 /**
  * Separate service for CSRF token management to avoid circular dependency
- * between AuthInterceptor and AuthService
+ * between AuthInterceptor and AuthService.
+ *
+ * Uses Injector to lazily retrieve HttpClient, breaking the circular dependency:
+ * HttpClient → AuthInterceptor → CsrfService → HttpClient
  */
 @Injectable({
     providedIn: 'root',
@@ -29,13 +32,20 @@ export class CsrfService {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
     private readonly logger = inject(LoggerService);
+    private readonly injector = inject(Injector);
 
     private csrfToken: string | undefined;
     private fetchInProgress$: Observable<string> | undefined;
-    private httpClient: HttpClient | undefined;
+    private _httpClient: HttpClient | undefined;
 
-    setHttpClient(http: HttpClient): void {
-        this.httpClient = http;
+    /**
+     * Lazily get HttpClient to avoid circular dependency
+     */
+    private get httpClient(): HttpClient {
+        if (!this._httpClient) {
+            this._httpClient = this.injector.get(HttpClient);
+        }
+        return this._httpClient;
     }
 
     getCsrfToken(): Observable<string> {
@@ -51,22 +61,13 @@ export class CsrfService {
     }
 
     initCsrfToken(): void {
-        if (
-            !this.isBrowser ||
-            this.csrfToken ||
-            this.fetchInProgress$ ||
-            !this.httpClient
-        ) {
+        if (!this.isBrowser || this.csrfToken || this.fetchInProgress$) {
             return;
         }
         this.fetchCsrfToken().subscribe();
     }
 
     private fetchCsrfToken(): Observable<string> {
-        if (!this.httpClient) {
-            return throwError(() => new Error('HttpClient not initialized'));
-        }
-
         this.fetchInProgress$ = this.httpClient
             .get<CsrfResponse>(`${this.apiUrl}/api/auth/csrf`, {
                 withCredentials: true,

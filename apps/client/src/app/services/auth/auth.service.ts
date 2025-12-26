@@ -65,8 +65,7 @@ export class AuthService {
         this.isBrowser = isPlatformBrowser(this.platformId);
 
         if (this.isBrowser) {
-            // Initialize CSRF service with HttpClient
-            this.csrfService.setHttpClient(this.http);
+            // Initialize CSRF token fetch
             this.csrfService.initCsrfToken();
             this.checkAuth()
                 .pipe(take(1))

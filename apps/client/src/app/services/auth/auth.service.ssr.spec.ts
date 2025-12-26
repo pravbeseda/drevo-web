@@ -90,13 +90,6 @@ describe('AuthService SSR', () => {
             expect(csrfService.initCsrfToken).not.toHaveBeenCalled();
         });
 
-        it('should not call setHttpClient on server', () => {
-            const csrfService = spectator.inject(
-                CsrfService
-            ) as jest.Mocked<CsrfService>;
-            expect(csrfService.setHttpClient).not.toHaveBeenCalled();
-        });
-
         it('should set isLoading to false immediately', done => {
             spectator.service.isLoading$.subscribe(isLoading => {
                 expect(isLoading).toBe(false);
