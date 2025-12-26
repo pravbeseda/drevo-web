@@ -98,22 +98,26 @@ export class LoginComponent {
         this.isSubmitting.set(true);
         this.errorMessage.set(null);
 
+        // Capture credentials and clear password immediately
+        const credentials = {
+            username: this.username.trim(),
+            password: this.password,
+            rememberMe: this.rememberMe,
+        };
+        this.password = '';
+
         this.authService
-            .login({
-                username: this.username.trim(),
-                password: this.password,
-                rememberMe: this.rememberMe,
-            })
+            .login(credentials)
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => {
                     this.isSubmitting.set(false);
-                    // Clear password from memory after login attempt
-                    this.password = '';
                 })
             )
             .subscribe({
                 next: () => {
+                    // Clear username on successful login
+                    this.username = '';
                     this.router.navigate(['/']);
                 },
                 error: error => {

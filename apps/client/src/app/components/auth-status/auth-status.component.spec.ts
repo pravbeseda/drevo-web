@@ -52,9 +52,9 @@ describe('AuthStatusComponent', () => {
             expect(spectator.component).toBeTruthy();
         });
 
-        it('should have isLoggingOut$ initially false', (done) => {
+        it('should have isLoggingOut$ initially false', done => {
             spectator = createComponent();
-            spectator.component.isLoggingOut$.subscribe((value) => {
+            spectator.component.isLoggingOut$.subscribe(value => {
                 expect(value).toBe(false);
                 done();
             });
@@ -73,9 +73,9 @@ describe('AuthStatusComponent', () => {
             isLoadingSubject.next(false);
             spectator = createComponent();
 
-            const loadingSpan = spectator.queryAll('span').find(
-                (el) => el.textContent === 'Загрузка...'
-            );
+            const loadingSpan = spectator
+                .queryAll('span')
+                .find(el => el.textContent === 'Загрузка...');
             expect(loadingSpan).toBeFalsy();
         });
     });
@@ -150,9 +150,7 @@ describe('AuthStatusComponent', () => {
             spectator = createComponent();
 
             const spans = spectator.queryAll('span');
-            const userSpan = spans.find(
-                (el) => el.textContent !== 'Загрузка...'
-            );
+            const userSpan = spans.find(el => el.textContent !== 'Загрузка...');
             expect(userSpan).toBeFalsy();
         });
     });
@@ -172,7 +170,7 @@ describe('AuthStatusComponent', () => {
             spectator = createComponent();
 
             let isLoggingOutValue = false;
-            spectator.component.isLoggingOut$.subscribe((value) => {
+            spectator.component.isLoggingOut$.subscribe(value => {
                 isLoggingOutValue = value;
             });
 
@@ -187,9 +185,9 @@ describe('AuthStatusComponent', () => {
         it('should disable logout button while logging out', () => {
             // Create a subject that doesn't complete immediately
             const logoutSubject = new BehaviorSubject<void>(undefined);
-            authServiceMock.logout = jest.fn().mockReturnValue(
-                logoutSubject.asObservable()
-            );
+            authServiceMock.logout = jest
+                .fn()
+                .mockReturnValue(logoutSubject.asObservable());
 
             userSubject.next(mockUser);
             spectator = createComponent();
@@ -204,23 +202,23 @@ describe('AuthStatusComponent', () => {
             expect(authServiceMock.logout).toHaveBeenCalled();
         });
 
-        it('should reset isLoggingOut$ to false after logout completes', (done) => {
+        it('should reset isLoggingOut$ to false after logout completes', done => {
             userSubject.next(mockUser);
             spectator = createComponent();
 
             spectator.click('button');
 
             // After the observable completes, isLoggingOut$ should be false
-            spectator.component.isLoggingOut$.subscribe((value) => {
+            spectator.component.isLoggingOut$.subscribe(value => {
                 expect(value).toBe(false);
                 done();
             });
         });
 
-        it('should reset isLoggingOut$ to false after logout fails', (done) => {
-            authServiceMock.logout = jest.fn().mockReturnValue(
-                throwError(() => new Error('Logout failed'))
-            );
+        it('should reset isLoggingOut$ to false after logout fails', done => {
+            authServiceMock.logout = jest
+                .fn()
+                .mockReturnValue(throwError(() => new Error('Logout failed')));
 
             userSubject.next(mockUser);
             spectator = createComponent();
@@ -228,7 +226,7 @@ describe('AuthStatusComponent', () => {
             spectator.click('button');
 
             // After the observable errors, finalize should still set isLoggingOut$ to false
-            spectator.component.isLoggingOut$.subscribe((value) => {
+            spectator.component.isLoggingOut$.subscribe(value => {
                 expect(value).toBe(false);
                 done();
             });
