@@ -120,7 +120,13 @@ export class AuthInterceptor implements HttpInterceptor {
                     });
                     return next.handle(retryRequest);
                 }),
-                catchError(() => throwError(() => error)) // original error if retry fails
+                catchError(retryError => {
+                    this.logger.error('CSRF retry request failed', {
+                        originalError: error,
+                        retryError,
+                    });
+                    return throwError(() => error); // keep returning original error
+                })
             );
         }
 
