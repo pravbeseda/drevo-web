@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -27,15 +27,17 @@ import { finalize } from 'rxjs/operators';
     `,
 })
 export class AuthStatusComponent {
+    private readonly destroyRef = inject(DestroyRef);
     readonly authService = inject(AuthService);
-    readonly isLoggingOutSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
+    readonly isLoggingOutSubject: BehaviorSubject<boolean> =
+        new BehaviorSubject(false);
 
     logout(): void {
         this.isLoggingOutSubject.next(true);
         this.authService
             .logout()
             .pipe(
-                takeUntilDestroyed(),
+                takeUntilDestroyed(this.destroyRef),
                 finalize(() => this.isLoggingOutSubject.next(false))
             )
             .subscribe();
