@@ -180,7 +180,15 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     private isApiRequest(url: string): boolean {
-        return url.startsWith(this.apiUrl) || url.startsWith('/api/');
+        // Check for relative API paths (works in all environments)
+        if (url.startsWith('/api/')) {
+            return true;
+        }
+        // Check for absolute API URL (only if apiUrl is configured)
+        if (this.apiUrl && url.startsWith(this.apiUrl)) {
+            return true;
+        }
+        return false;
     }
 
     private isStateChangingMethod(method: string): boolean {
