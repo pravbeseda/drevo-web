@@ -66,6 +66,10 @@ jobs:
           echo "📋 Building standalone version: $VERSION"
 
           sed -i "s/__VERSION_PLACEHOLDER__/$VERSION/g" apps/client/src/environments/environment.prod.ts
+
+          echo "Environment file after replacement:"
+          cat apps/client/src/environments/environment.prod.ts
+
           npx nx build client --configuration=production
 
       - name: Deploy
@@ -80,3 +84,13 @@ jobs:
           source-path: "dist/apps/client"
           target-path: "standalone"
           version: ${{ steps.build.outputs.version }}
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Standalone deployment successful"
+          else
+            echo "❌ Standalone deployment failed"
+            exit 1
+          fi
