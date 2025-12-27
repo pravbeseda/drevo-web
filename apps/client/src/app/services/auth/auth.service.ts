@@ -124,12 +124,32 @@ export class AuthService {
                         isLoading: false,
                     };
                 }),
-                catchError(error => {
-                    this.logger.error(
-                        'Auth check failed',
-                        'AuthService',
-                        error
-                    );
+                catchError((error: HttpErrorResponse) => {
+                    // Log different error types appropriately
+                    if (error.status === 0) {
+                        this.logger.warn(
+                            'Auth check failed: network error or server unavailable',
+                            'AuthService'
+                        );
+                    } else if (error.status >= 500) {
+                        this.logger.error(
+                            `Auth check failed: server error (${error.status})`,
+                            'AuthService',
+                            error
+                        );
+                    } else if (error.status === 401 || error.status === 403) {
+                        this.logger.debug(
+                            'Auth check: user not authenticated',
+                            'AuthService'
+                        );
+                    } else {
+                        this.logger.error(
+                            `Auth check failed: unexpected error (${error.status})`,
+                            'AuthService',
+                            error
+                        );
+                    }
+
                     this.userSubject.next(null);
                     this.isAuthenticatedSubject.next(false);
                     return of({
