@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
 import {
     HttpInterceptor,
     HttpRequest,
@@ -8,19 +8,38 @@ import {
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, finalize, shareReplay, switchMap } from 'rxjs/operators';
+import {
+    catchError,
+    filter,
+    finalize,
+    shareReplay,
+    switchMap,
+    take,
+} from 'rxjs/operators';
+import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
 import { LoggerService } from '../services/logger/logger.service';
 import { environment } from '../../environments/environment';
 
 const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 const CSRF_ENDPOINTS = ['/api/auth/csrf'];
+const AUTH_ENDPOINTS = ['/api/auth/login', '/api/auth/logout'];
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
+    private readonly injector = inject(Injector);
     private readonly csrfService = inject(CsrfService);
     private readonly logger = inject(LoggerService);
+
+    // Lazy-loaded to avoid circular dependency (AuthService -> HttpClient -> HTTP_INTERCEPTORS)
+    private _authService: AuthService | undefined;
+    private get authService(): AuthService {
+        if (!this._authService) {
+            this._authService = this.injector.get(AuthService);
+        }
+        return this._authService;
+    }
 
     // Shared observable for token refresh to handle concurrent CSRF failures
     private refreshingToken$: Observable<string> | undefined;
@@ -51,8 +70,18 @@ export class AuthInterceptor implements HttpInterceptor {
                 );
         }
 
-        // For state-changing requests, add CSRF token
-        return this.addCsrfAndSend(request, next);
+        // For auth endpoints (login/logout), add CSRF directly without waiting
+        if (this.isAuthEndpoint(request.url)) {
+            return this.addCsrfAndSend(request, next);
+        }
+
+        // For other state-changing requests, wait for auth operations to complete
+        // This prevents race conditions where requests use outdated CSRF tokens
+        return this.authService.isAuthOperationInProgress$.pipe(
+            filter(inProgress => !inProgress),
+            take(1),
+            switchMap(() => this.addCsrfAndSend(request, next))
+        );
     }
 
     private addCsrfAndSend(
@@ -155,6 +184,10 @@ export class AuthInterceptor implements HttpInterceptor {
 
     private isCsrfEndpoint(url: string): boolean {
         return CSRF_ENDPOINTS.some(endpoint => url.includes(endpoint));
+    }
+
+    private isAuthEndpoint(url: string): boolean {
+        return AUTH_ENDPOINTS.some(endpoint => url.includes(endpoint));
     }
 }
 

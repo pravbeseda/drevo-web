@@ -1,13 +1,15 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { Injector } from '@angular/core';
 import {
     HttpRequest,
     HttpHandler,
     HttpResponse,
     HttpErrorResponse,
 } from '@angular/common/http';
-import { of, throwError, Subject } from 'rxjs';
+import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AuthInterceptor, authInterceptorProvider } from './auth.interceptor';
+import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
 import { LoggerService } from '../services/logger/logger.service';
 
@@ -17,13 +19,15 @@ jest.mock('../../environments/environment', () => ({
 
 describe('AuthInterceptor', () => {
     let spectator: SpectatorService<AuthInterceptor>;
+    let authService: jest.Mocked<AuthService>;
     let csrfService: jest.Mocked<CsrfService>;
     let loggerService: jest.Mocked<LoggerService>;
     let mockHandler: jest.Mocked<HttpHandler>;
+    let authOperationInProgress$: BehaviorSubject<boolean>;
 
     const createService = createServiceFactory({
         service: AuthInterceptor,
-        mocks: [CsrfService, LoggerService],
+        mocks: [AuthService, CsrfService, LoggerService],
     });
 
     const createMockHandler = (response: unknown = { success: true }) => ({
@@ -42,6 +46,7 @@ describe('AuthInterceptor', () => {
 
     beforeEach(() => {
         spectator = createService();
+        authService = spectator.inject(AuthService) as jest.Mocked<AuthService>;
         csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
         loggerService = spectator.inject(
             LoggerService
@@ -49,6 +54,10 @@ describe('AuthInterceptor', () => {
         mockHandler = createMockHandler() as jest.Mocked<HttpHandler>;
 
         // Default mocks
+        authOperationInProgress$ = new BehaviorSubject<boolean>(false);
+        Object.defineProperty(authService, 'isAuthOperationInProgress$', {
+            get: () => authOperationInProgress$.asObservable(),
+        });
         csrfService.getCsrfToken.mockReturnValue(of('test-csrf-token'));
         csrfService.refreshCsrfToken.mockReturnValue(of('new-csrf-token'));
     });
@@ -142,6 +151,54 @@ describe('AuthInterceptor', () => {
         });
     });
 
+    describe('Auth endpoints (login/logout)', () => {
+        it('should add CSRF token for login without waiting for auth operation', done => {
+            // Start with auth operation in progress
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/login',
+                { username: 'test', password: 'test' }
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    const passedRequest = mockHandler.handle.mock
+                        .calls[0][0] as HttpRequest<unknown>;
+                    expect(passedRequest.headers.get('X-CSRF-Token')).toBe(
+                        'test-csrf-token'
+                    );
+                    expect(passedRequest.withCredentials).toBe(true);
+                    done();
+                },
+            });
+        });
+
+        it('should add CSRF token for logout without waiting for auth operation', done => {
+            // Start with auth operation in progress
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/logout',
+                {}
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    const passedRequest = mockHandler.handle.mock
+                        .calls[0][0] as HttpRequest<unknown>;
+                    expect(passedRequest.headers.get('X-CSRF-Token')).toBe(
+                        'test-csrf-token'
+                    );
+                    expect(passedRequest.withCredentials).toBe(true);
+                    done();
+                },
+            });
+        });
+    });
+
     describe('GET requests', () => {
         it('should not add CSRF token for GET requests', done => {
             const request = new HttpRequest('GET', 'http://test-api/api/users');
@@ -195,6 +252,69 @@ describe('AuthInterceptor', () => {
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
                     expect(csrfService.getCsrfToken).toHaveBeenCalled();
+                    done();
+                },
+            });
+        });
+    });
+
+    describe('Auth operation queuing', () => {
+        it('should wait for auth operation to complete before sending state-changing request', done => {
+            // Start with auth operation in progress
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/resource',
+                {}
+            );
+
+            let requestCompleted = false;
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    requestCompleted = true;
+                    // Request should only complete after auth operation finishes
+                    expect(mockHandler.handle).toHaveBeenCalled();
+                    done();
+                },
+            });
+
+            // Request should not have been sent yet
+            expect(mockHandler.handle).not.toHaveBeenCalled();
+            expect(requestCompleted).toBe(false);
+
+            // Complete the auth operation
+            authOperationInProgress$.next(false);
+        });
+
+        it('should send request immediately when no auth operation is in progress', done => {
+            // Auth operation not in progress
+            authOperationInProgress$.next(false);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/resource',
+                {}
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    expect(mockHandler.handle).toHaveBeenCalled();
+                    done();
+                },
+            });
+        });
+
+        it('should not queue GET requests during auth operation', done => {
+            // Auth operation in progress
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest('GET', 'http://test-api/api/users');
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    // GET request should be sent immediately
+                    expect(mockHandler.handle).toHaveBeenCalled();
                     done();
                 },
             });
