@@ -513,8 +513,8 @@ API предназначен для браузерных клиентов. Origi
 - Production: `https://drevo-info.ru`
 
 **Acceptance Criteria:**
-- [ ] API URL доступен через environment
-- [ ] Правильный URL в каждом окружении
+- [x] API URL доступен через environment
+- [x] Правильный URL в каждом окружении
 
 **Тестирование:** Build для разных конфигураций
 
@@ -532,8 +532,8 @@ API предназначен для браузерных клиентов. Origi
 - `LoginRequest` interface
 
 **Acceptance Criteria:**
-- [ ] Типы экспортируются из @drevo-web/shared
-- [ ] Типы соответствуют API response
+- [x] Типы экспортируются из @drevo-web/shared
+- [x] Типы соответствуют API response
 
 **Тестирование:** TypeScript compilation
 
@@ -609,12 +609,12 @@ API предназначен для браузерных клиентов. Origi
 - После logout: вызывать `refreshCsrfToken()`
 
 **Acceptance Criteria:**
-- [ ] Методы login/logout/getCurrentUser работают
-- [ ] CSRF токен получается и хранится
-- [ ] State обновляется реактивно
-- [ ] Credentials передаются с запросами
-- [ ] **Lock устанавливается на время login/logout**
-- [ ] **CSRF токен обновляется атомарно после login**
+- [x] Методы login/logout/getCurrentUser работают
+- [x] CSRF токен получается и хранится
+- [x] State обновляется реактивно
+- [x] Credentials передаются с запросами
+- [x] **Lock устанавливается на время login/logout**
+- [x] **CSRF токен обновляется атомарно после login**
 
 **Тестирование:** Unit tests с HttpClientTestingModule
 
@@ -647,11 +647,11 @@ API предназначен для браузерных клиентов. Origi
 - GET запросы — только credentials, без CSRF
 
 **Acceptance Criteria:**
-- [ ] Все запросы к API имеют credentials
-- [ ] CSRF токен добавляется к state-changing запросам
-- [ ] **State-changing запросы ждут завершения login/logout**
-- [ ] **При 403 CSRF_VALIDATION_FAILED — retry с новым токеном (один раз)**
-- [ ] 401 обрабатывается корректно
+- [x] Все запросы к API имеют credentials
+- [x] CSRF токен добавляется к state-changing запросам
+- [x] **State-changing запросы ждут завершения login/logout**
+- [x] **При 403 CSRF_VALIDATION_FAILED — retry с новым токеном (один раз)**
+- [x] 401 обрабатывается корректно
 
 **Тестирование:** Unit tests, интеграционные тесты с race conditions
 
@@ -669,9 +669,9 @@ API предназначен для браузерных клиентов. Origi
 - Использует AuthService.user$ для реактивного обновления
 
 **Acceptance Criteria:**
-- [ ] Правильное отображение для гостя
-- [ ] Правильное отображение для авторизованного
-- [ ] UI обновляется при login/logout без reload
+- [x] Правильное отображение для гостя
+- [x] Правильное отображение для авторизованного
+- [x] UI обновляется при login/logout без reload
 
 **Тестирование:** Visual testing, unit tests
 
@@ -690,10 +690,10 @@ API предназначен для браузерных клиентов. Origi
 - Redirect после успешного логина
 
 **Acceptance Criteria:**
-- [ ] Форма валидируется
-- [ ] Ошибки отображаются
-- [ ] Успешный логин редиректит на главную
-- [ ] Loading state во время запроса
+- [x] Форма валидируется
+- [x] Ошибки отображаются
+- [x] Успешный логин редиректит на главную
+- [x] Loading state во время запроса
 
 **Тестирование:** Unit tests, manual testing
 
@@ -708,8 +708,8 @@ API предназначен для браузерных клиентов. Origi
 - Опционально: AuthGuard для защищённых роутов (подготовка)
 
 **Acceptance Criteria:**
-- [ ] /login route работает
-- [ ] Lazy loading компонента
+- [x] /login route работает
+- [x] Lazy loading компонента
 
 **Тестирование:** Navigation testing
 
@@ -725,8 +725,8 @@ API предназначен для браузерных клиентов. Origi
 - Инициализировать AuthService при старте приложения
 
 **Acceptance Criteria:**
-- [ ] Компонент отображается на всех страницах
-- [ ] При загрузке страницы проверяется auth state
+- [x] Компонент отображается на всех страницах
+- [x] При загрузке страницы проверяется auth state
 
 **Тестирование:** Visual, manual testing
 

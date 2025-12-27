@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { AuthStatusComponent } from './components/auth-status/auth-status.component';
 
 @Component({
-    imports: [RouterModule],
+    imports: [RouterModule, AuthStatusComponent],
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',

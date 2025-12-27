@@ -1,6 +1,7 @@
 import {
     AfterViewInit,
     Component,
+    DestroyRef,
     ElementRef,
     EventEmitter,
     inject,
@@ -13,12 +14,11 @@ import {
 import { EditorView } from '@codemirror/view';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject, filter } from 'rxjs';
 import { InsertTagCommand } from '@drevo-web/shared';
 import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-@UntilDestroy()
 @Component({
     selector: 'lib-editor',
     imports: [],
@@ -67,14 +67,15 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     private editor?: EditorView;
 
+    private readonly destroyRef = inject(DestroyRef);
     private readonly editorFactory = inject(EditorFactoryService);
     private readonly wikiHighlighterService = inject(WikiHighlighterService);
 
     ngOnInit() {
         this.wikiHighlighterService.updateLinks$
             .pipe(
-                filter(links => links.length > 0),
-                untilDestroyed(this)
+                takeUntilDestroyed(this.destroyRef),
+                filter(links => links.length > 0)
             )
             .subscribe(links => {
                 this.updateLinksEvent.emit(links);

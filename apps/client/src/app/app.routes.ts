@@ -10,6 +10,13 @@ export const appRoutes: Route[] = [
             ),
     },
     {
+        path: 'login',
+        loadComponent: () =>
+            import('./pages/login/login.component').then(
+                m => m.LoginComponent
+            ),
+    },
+    {
         path: 'editor',
         loadComponent: () =>
             import('./pages/shared-editor/shared-editor.component').then(

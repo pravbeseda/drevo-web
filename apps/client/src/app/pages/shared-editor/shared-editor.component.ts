@@ -2,6 +2,7 @@ import {
     AfterViewInit,
     ChangeDetectionStrategy,
     Component,
+    DestroyRef,
     inject,
 } from '@angular/core';
 import { EditorComponent } from '@drevo-web/editor';
@@ -10,14 +11,13 @@ import { AsyncPipe } from '@angular/common';
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { HttpClient } from '@angular/common/http';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { InsertTagCommand } from '@drevo-web/shared';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface EditorConfig {
     content: string;
 }
 
-@UntilDestroy()
 @Component({
     selector: 'app-shared-editor',
     imports: [EditorComponent, AsyncPipe],
@@ -27,6 +27,7 @@ interface EditorConfig {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedEditorComponent implements AfterViewInit {
+    private readonly destroyRef = inject(DestroyRef);
     private readonly linkService = inject(LinksService);
     private readonly iframeService = inject(IframeService);
     private readonly updateLinksStateSubject = new BehaviorSubject<
@@ -48,7 +49,7 @@ export class SharedEditorComponent implements AfterViewInit {
         this.iframeService.sendMessage({ action: 'editorReady' });
 
         this.contentUpdateSubject
-            .pipe(untilDestroyed(this))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(content => {
                 this.iframeService.sendMessage({
                     action: 'contentChanged',
