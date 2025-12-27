@@ -1,0 +1,96 @@
+name: CI/CD Standalone
+
+on:
+  push:
+    branches: [standalone]
+  pull_request:
+    branches: [standalone]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright
+        run: yarn playwright install --with-deps
+
+      - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: "standalone"
+
+      - name: Run affected tasks
+        run: |
+          yarn nx affected -t lint --parallel=3
+          yarn nx affected -t test --parallel=3
+          yarn nx affected -t e2e
+
+      - name: Build verification
+        run: |
+          echo "🔍 Verifying standalone build..."
+          npx nx build client --configuration=production
+          echo "✅ Standalone build successful"
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/standalone'
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: standalone
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate version and build
+        id: build
+        run: |
+          VERSION=$(date +'%Y%m%d-%H%M')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📋 Building standalone version: $VERSION"
+
+          sed -i "s/__VERSION_PLACEHOLDER__/$VERSION/g" apps/client/src/environments/environment.prod.ts
+
+          echo "Environment file after replacement:"
+          cat apps/client/src/environments/environment.prod.ts
+
+          npx nx build client --configuration=production
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          environment: "standalone"
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-port: ${{ secrets.SSH_PORT || '22' }}
+          source-path: "dist/apps/client"
+          target-path: "standalone"
+          version: ${{ steps.build.outputs.version }}
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Standalone deployment successful"
+          else
+            echo "❌ Standalone deployment failed"
+            exit 1
+          fi
