@@ -10,7 +10,6 @@ import { AuthService } from './auth.service';
 import { CsrfService } from './csrf.service';
 import { LoggerService } from '../logger/logger.service';
 import { AuthResponse, User } from '@drevo-web/shared';
-import { HttpErrorResponse } from '@angular/common/http';
 
 jest.mock('../../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api', production: false },
@@ -72,12 +71,11 @@ describe('AuthService', () => {
         );
 
         // Handle initial auth check that happens in constructor
-        try {
-            const req = httpController.expectOne('http://test-api/api/auth/me');
-            req.flush(mockUnauthenticatedResponse);
-        } catch {
-            // Initial request may not exist depending on timing
-        }
+        // Using match() instead of expectOne() to avoid throwing when request doesn't exist
+        const initialRequests = httpController.match(
+            'http://test-api/api/auth/me'
+        );
+        initialRequests.forEach(req => req.flush(mockUnauthenticatedResponse));
     });
 
     afterEach(() => {
