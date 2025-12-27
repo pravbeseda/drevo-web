@@ -161,14 +161,14 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 # Validate environment
-if [[ ! "$ENVIRONMENT" =~ ^(staging|production)$ ]]; then
-    log_error "Environment must be 'staging' or 'production', got: $ENVIRONMENT"
+if [[ ! "$ENVIRONMENT" =~ ^(staging|production|standalone)$ ]]; then
+    log_error "Environment must be 'staging', 'production', or 'standalone', got: $ENVIRONMENT"
     exit 1
 fi
 
 # Validate app name format
-if [[ ! "$APP_NAME" =~ ^drevo-(staging|production)$ ]]; then
-    log_error "App name must be 'drevo-staging' or 'drevo-production', got: $APP_NAME"
+if [[ ! "$APP_NAME" =~ ^drevo-(staging|production|standalone)$ ]]; then
+    log_error "App name must be 'drevo-staging', 'drevo-production', or 'drevo-standalone', got: $APP_NAME"
     exit 1
 fi
 
