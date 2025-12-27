@@ -1,5 +1,4 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { Injector } from '@angular/core';
 import {
     HttpRequest,
     HttpHandler,
@@ -149,6 +148,53 @@ describe('AuthInterceptor', () => {
                 },
             });
         });
+
+        it('should NOT match CSRF endpoint for similar URLs like /api/auth/csrf-test', done => {
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/csrf-test',
+                {}
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    // This should NOT be treated as CSRF endpoint, so CSRF token should be added
+                    expect(csrfService.getCsrfToken).toHaveBeenCalled();
+                    done();
+                },
+            });
+        });
+
+        it('should NOT match CSRF endpoint for URLs with /api/auth/csrf as prefix', done => {
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/csrf/something',
+                {}
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    // This should NOT be treated as CSRF endpoint
+                    expect(csrfService.getCsrfToken).toHaveBeenCalled();
+                    done();
+                },
+            });
+        });
+
+        it('should skip CSRF token for /api/auth/csrf with query parameters', done => {
+            const request = new HttpRequest(
+                'GET',
+                'http://test-api/api/auth/csrf?timestamp=123'
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    // Should still match CSRF endpoint even with query params
+                    expect(csrfService.getCsrfToken).not.toHaveBeenCalled();
+                    done();
+                },
+            });
+        });
     });
 
     describe('Auth endpoints (login/logout)', () => {
@@ -193,6 +239,78 @@ describe('AuthInterceptor', () => {
                         'test-csrf-token'
                     );
                     expect(passedRequest.withCredentials).toBe(true);
+                    done();
+                },
+            });
+        });
+
+        it('should NOT match auth endpoint for similar URLs like /api/auth/login-test', done => {
+            // Auth operation in progress - if it's NOT an auth endpoint, it should wait
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/login-test',
+                {}
+            );
+
+            let requestCompleted = false;
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    requestCompleted = true;
+                    done();
+                },
+            });
+
+            // Request should NOT have been sent yet because it's not an auth endpoint
+            // and auth operation is in progress
+            expect(mockHandler.handle).not.toHaveBeenCalled();
+            expect(requestCompleted).toBe(false);
+
+            // Complete the auth operation
+            authOperationInProgress$.next(false);
+        });
+
+        it('should NOT match auth endpoint for URLs with /api/auth/logout as prefix', done => {
+            // Auth operation in progress - if it's NOT an auth endpoint, it should wait
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/logout/session',
+                {}
+            );
+
+            let requestCompleted = false;
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    requestCompleted = true;
+                    done();
+                },
+            });
+
+            // Request should NOT have been sent yet
+            expect(mockHandler.handle).not.toHaveBeenCalled();
+            expect(requestCompleted).toBe(false);
+
+            // Complete the auth operation
+            authOperationInProgress$.next(false);
+        });
+
+        it('should match auth endpoint for login with query parameters', done => {
+            // Auth operation in progress - auth endpoints should NOT wait
+            authOperationInProgress$.next(true);
+
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/login?redirect=/dashboard',
+                { username: 'test', password: 'test' }
+            );
+
+            spectator.service.intercept(request, mockHandler).subscribe({
+                next: () => {
+                    // Should match auth endpoint even with query params, so no waiting
+                    expect(mockHandler.handle).toHaveBeenCalled();
                     done();
                 },
             });

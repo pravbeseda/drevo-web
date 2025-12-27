@@ -182,12 +182,40 @@ export class AuthInterceptor implements HttpInterceptor {
         return STATE_CHANGING_METHODS.includes(method.toUpperCase());
     }
 
+    /**
+     * Extract URL path without query string and fragment
+     */
+    private getUrlPath(url: string): string {
+        try {
+            // Handle both absolute and relative URLs
+            const urlObj = new URL(url, 'http://dummy');
+            return urlObj.pathname;
+        } catch {
+            // Fallback: remove query string and fragment manually
+            return url.split('?')[0].split('#')[0];
+        }
+    }
+
+    /**
+     * Check if URL path matches endpoint exactly or ends with it
+     * This prevents false positives like /api/auth/csrf-test matching /api/auth/csrf
+     */
+    private matchesEndpoint(url: string, endpoint: string): boolean {
+        const path = this.getUrlPath(url);
+        // Check exact match or if path ends with the endpoint
+        return path === endpoint || path.endsWith(endpoint);
+    }
+
     private isCsrfEndpoint(url: string): boolean {
-        return CSRF_ENDPOINTS.some(endpoint => url.includes(endpoint));
+        return CSRF_ENDPOINTS.some(endpoint =>
+            this.matchesEndpoint(url, endpoint)
+        );
     }
 
     private isAuthEndpoint(url: string): boolean {
-        return AUTH_ENDPOINTS.some(endpoint => url.includes(endpoint));
+        return AUTH_ENDPOINTS.some(endpoint =>
+            this.matchesEndpoint(url, endpoint)
+        );
     }
 }
 
