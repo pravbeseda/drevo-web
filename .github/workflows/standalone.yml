@@ -34,6 +34,12 @@ jobs:
           yarn nx affected -t lint,test --parallel=3
           yarn nx affected -t e2e
 
+      - name: Build verification
+        run: |
+          echo "🔍 Verifying standalone build..."
+          npx nx build client --configuration=production
+          echo "✅ Standalone build successful"
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/standalone'
     needs: ci
