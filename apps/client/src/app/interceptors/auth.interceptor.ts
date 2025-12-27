@@ -25,6 +25,9 @@ const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 const CSRF_ENDPOINTS = ['/api/auth/csrf'];
 const AUTH_ENDPOINTS = ['/api/auth/login', '/api/auth/logout'];
 
+// Custom header to mark requests that have already been retried for CSRF
+const CSRF_RETRY_HEADER = 'X-CSRF-Retry';
+
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
@@ -119,12 +122,13 @@ export class AuthInterceptor implements HttpInterceptor {
         request: HttpRequest<unknown>,
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
-        // Handle 403 CSRF validation failed - retry with new token
+        // Handle 403 CSRF validation failed - retry with new token (once only)
         // Uses shared observable to coordinate concurrent refresh attempts
         if (
             error.status === 403 &&
             error.error?.errorCode === 'CSRF_VALIDATION_FAILED' &&
-            this.isStateChangingMethod(request.method)
+            this.isStateChangingMethod(request.method) &&
+            !request.headers.has(CSRF_RETRY_HEADER) // Prevent infinite retry loops
         ) {
             // If no refresh is in progress, start one with shareReplay
             // so all concurrent failures share the same token refresh
@@ -144,6 +148,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     const retryRequest = request.clone({
                         setHeaders: {
                             'X-CSRF-Token': newToken,
+                            [CSRF_RETRY_HEADER]: 'true', // Mark as retried to prevent loops
                         },
                         withCredentials: true,
                     });

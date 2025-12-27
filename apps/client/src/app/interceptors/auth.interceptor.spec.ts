@@ -510,9 +510,47 @@ describe('AuthInterceptor', () => {
                         'new-csrf-token'
                     );
                     expect(retryRequest.withCredentials).toBe(true);
+                    // Verify retry marker header is set
+                    expect(retryRequest.headers.get('X-CSRF-Retry')).toBe(
+                        'true'
+                    );
                     done();
                 },
             });
+        });
+
+        it('should NOT retry if request already has X-CSRF-Retry header (prevent infinite loops)', done => {
+            // Create a request that already has the retry header (simulating a retried request)
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/resource',
+                {},
+                {
+                    headers: new (
+                        jest.requireActual('@angular/common/http')
+                    ).HttpHeaders({
+                        'X-CSRF-Retry': 'true',
+                    }),
+                }
+            );
+
+            const handler = createErrorHandler(403, {
+                errorCode: 'CSRF_VALIDATION_FAILED',
+            });
+
+            spectator.service
+                .intercept(request, handler as HttpHandler)
+                .subscribe({
+                    error: (error: HttpErrorResponse) => {
+                        // Should NOT retry - error should be propagated
+                        expect(error.status).toBe(403);
+                        expect(
+                            csrfService.refreshCsrfToken
+                        ).not.toHaveBeenCalled();
+                        expect(handler.handle).toHaveBeenCalledTimes(1);
+                        done();
+                    },
+                });
         });
 
         it('should not retry on 403 without CSRF_VALIDATION_FAILED errorCode', done => {
