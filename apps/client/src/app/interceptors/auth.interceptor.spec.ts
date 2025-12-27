@@ -526,9 +526,9 @@ describe('AuthInterceptor', () => {
                 'http://test-api/api/resource',
                 {},
                 {
-                    headers: new (
-                        jest.requireActual('@angular/common/http')
-                    ).HttpHeaders({
+                    headers: new (jest.requireActual(
+                        '@angular/common/http'
+                    ).HttpHeaders)({
                         'X-CSRF-Retry': 'true',
                     }),
                 }
