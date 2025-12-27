@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+// Page Object Selectors
+const poForm = 'form';
+const poUsernameInput = 'input[type="text"], input[formcontrolname="username"]';
+const poPasswordInput = 'input[type="password"]';
+const poSubmitButton = 'button[type="submit"]';
+const poCheckbox = 'input[type="checkbox"]';
+const poAuthStatus = 'app-auth-status';
+const poLoginLink = 'a[href="/login"], a:has-text("Войти")';
+const poLogoutButton = 'button:has-text("Выйти")';
+const poErrorMessage = '.error, [class*="error"], [class*="alert"], [role="alert"]';
+
 /**
  * E2E Tests for Authentication UI (Task 4.1)
  *
@@ -18,25 +29,23 @@ test.describe('Authentication UI', () => {
             await page.goto('/login');
 
             // Wait for page to load
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
             // Check form elements
             await expect(
-                page.locator(
-                    'input[type="text"], input[formcontrolname="username"]'
-                )
+                page.locator(poUsernameInput)
             ).toBeVisible();
-            await expect(page.locator('input[type="password"]')).toBeVisible();
-            await expect(page.locator('button[type="submit"]')).toBeVisible();
+            await expect(page.locator(poPasswordInput)).toBeVisible();
+            await expect(page.locator(poSubmitButton)).toBeVisible();
         });
 
         test('should have "Remember me" checkbox', async ({ page }) => {
             await page.goto('/login');
 
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
             // Check for remember me checkbox
-            await expect(page.locator('input[type="checkbox"]')).toBeVisible();
+            await expect(page.locator(poCheckbox)).toBeVisible();
         });
 
         test('should disable submit button when form is invalid', async ({
@@ -44,9 +53,9 @@ test.describe('Authentication UI', () => {
         }) => {
             await page.goto('/login');
 
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
-            const submitButton = page.locator('button[type="submit"]');
+            const submitButton = page.locator(poSubmitButton);
 
             // Initially disabled (empty form)
             await expect(submitButton).toBeDisabled();
@@ -57,18 +66,16 @@ test.describe('Authentication UI', () => {
         }) => {
             await page.goto('/login');
 
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
             // Fill in the form
             await page
-                .locator(
-                    'input[type="text"], input[formcontrolname="username"]'
-                )
+                .locator(poUsernameInput)
                 .first()
                 .fill('testuser');
-            await page.locator('input[type="password"]').fill('testpassword');
+            await page.locator(poPasswordInput).fill('testpassword');
 
-            const submitButton = page.locator('button[type="submit"]');
+            const submitButton = page.locator(poSubmitButton);
 
             // Should be enabled now
             await expect(submitButton).toBeEnabled();
@@ -79,23 +86,21 @@ test.describe('Authentication UI', () => {
         }) => {
             await page.goto('/login');
 
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
             // Focus and blur username field to trigger validation
             const usernameInput = page
-                .locator(
-                    'input[type="text"], input[formcontrolname="username"]'
-                )
+                .locator(poUsernameInput)
                 .first();
             await usernameInput.focus();
             await usernameInput.blur();
 
             // Fill password but not username
-            await page.locator('input[type="password"]').fill('testpassword');
+            await page.locator(poPasswordInput).fill('testpassword');
 
             // Should show some validation indicator (could be text or styling)
             // This test is flexible to accommodate different validation display methods
-            const submitButton = page.locator('button[type="submit"]');
+            const submitButton = page.locator(poSubmitButton);
             await expect(submitButton).toBeDisabled();
         });
 
@@ -104,29 +109,25 @@ test.describe('Authentication UI', () => {
         }) => {
             await page.goto('/login');
 
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
             // Fill in the form with invalid credentials
             await page
-                .locator(
-                    'input[type="text"], input[formcontrolname="username"]'
-                )
+                .locator(poUsernameInput)
                 .first()
                 .fill('invaliduser');
             await page
-                .locator('input[type="password"]')
+                .locator(poPasswordInput)
                 .fill('invalidpassword');
 
             // Submit the form
-            await page.locator('button[type="submit"]').click();
+            await page.locator(poSubmitButton).click();
 
             // Wait for error message (could be various error texts)
             // Using a flexible selector that looks for error-like elements
             await expect(
                 page
-                    .locator(
-                        '.error, [class*="error"], [class*="alert"], [role="alert"]'
-                    )
+                    .locator(poErrorMessage)
                     .first()
             ).toBeVisible({ timeout: 10000 });
         });
@@ -141,13 +142,8 @@ test.describe('Authentication UI', () => {
 
             await page.goto('/');
 
-            // Wait for auth status to load (initial loading state should resolve)
-            await page.waitForTimeout(2000);
-
-            // Should show login link for guest
-            const loginLink = page.locator(
-                'a[href="/login"], a:has-text("Войти")'
-            );
+            // Should show login link for guest (wait for it to appear after auth check)
+            const loginLink = page.locator(poLoginLink);
             await expect(loginLink).toBeVisible({ timeout: 10000 });
         });
 
@@ -159,7 +155,7 @@ test.describe('Authentication UI', () => {
             await page.goto('/');
 
             // The loading state should be brief, but we can check the component exists
-            const authStatus = page.locator('app-auth-status');
+            const authStatus = page.locator(poAuthStatus);
             await expect(authStatus).toBeVisible({ timeout: 10000 });
         });
     });
@@ -170,7 +166,7 @@ test.describe('Authentication UI', () => {
 
         test('should redirect to home after successful login', async ({
             page,
-        }, testInfo) => {
+        }) => {
             // Skip if no test credentials configured
             test.skip(
                 !process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'],
@@ -182,19 +178,17 @@ test.describe('Authentication UI', () => {
 
             await page.goto('/login');
 
-            await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
+            await expect(page.locator(poForm)).toBeVisible({ timeout: 10000 });
 
             // Fill in the form
             await page
-                .locator(
-                    'input[type="text"], input[formcontrolname="username"]'
-                )
+                .locator(poUsernameInput)
                 .first()
                 .fill(testUsername);
-            await page.locator('input[type="password"]').fill(testPassword);
+            await page.locator(poPasswordInput).fill(testPassword);
 
             // Submit the form
-            await page.locator('button[type="submit"]').click();
+            await page.locator(poSubmitButton).click();
 
             // On success, should redirect away from login page
             await page.waitForURL(url => !url.pathname.includes('/login'), {
@@ -218,7 +212,7 @@ test.describe('Authentication UI', () => {
             await page.goto('/');
 
             // If there's a logout button visible, click it
-            const logoutButton = page.locator('button:has-text("Выйти")');
+            const logoutButton = page.locator(poLogoutButton);
 
             if (
                 await logoutButton
@@ -228,15 +222,11 @@ test.describe('Authentication UI', () => {
                 await logoutButton.click();
 
                 // After logout, should show login link
-                const loginLink = page.locator(
-                    'a[href="/login"], a:has-text("Войти")'
-                );
+                const loginLink = page.locator(poLoginLink);
                 await expect(loginLink).toBeVisible({ timeout: 10000 });
             } else {
                 // User not logged in, just verify login link is visible
-                const loginLink = page.locator(
-                    'a[href="/login"], a:has-text("Войти")'
-                );
+                const loginLink = page.locator(poLoginLink);
                 await expect(loginLink).toBeVisible({ timeout: 10000 });
             }
         });
