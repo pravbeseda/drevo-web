@@ -2,9 +2,9 @@ name: CI/CD Standalone
 
 on:
   push:
-    branches: [ standalone ]
+    branches: [standalone]
   pull_request:
-    branches: [ standalone ]
+    branches: [standalone]
 
 jobs:
   ci:
