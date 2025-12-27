@@ -21,7 +21,11 @@ test.describe('Authentication UI', () => {
             await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
 
             // Check form elements
-            await expect(page.locator('input[type="text"], input[formcontrolname="username"]')).toBeVisible();
+            await expect(
+                page.locator(
+                    'input[type="text"], input[formcontrolname="username"]'
+                )
+            ).toBeVisible();
             await expect(page.locator('input[type="password"]')).toBeVisible();
             await expect(page.locator('button[type="submit"]')).toBeVisible();
         });
@@ -35,7 +39,9 @@ test.describe('Authentication UI', () => {
             await expect(page.locator('input[type="checkbox"]')).toBeVisible();
         });
 
-        test('should disable submit button when form is invalid', async ({ page }) => {
+        test('should disable submit button when form is invalid', async ({
+            page,
+        }) => {
             await page.goto('/login');
 
             await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
@@ -46,13 +52,20 @@ test.describe('Authentication UI', () => {
             await expect(submitButton).toBeDisabled();
         });
 
-        test('should enable submit button when form is filled', async ({ page }) => {
+        test('should enable submit button when form is filled', async ({
+            page,
+        }) => {
             await page.goto('/login');
 
             await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
 
             // Fill in the form
-            await page.locator('input[type="text"], input[formcontrolname="username"]').first().fill('testuser');
+            await page
+                .locator(
+                    'input[type="text"], input[formcontrolname="username"]'
+                )
+                .first()
+                .fill('testuser');
             await page.locator('input[type="password"]').fill('testpassword');
 
             const submitButton = page.locator('button[type="submit"]');
@@ -61,13 +74,19 @@ test.describe('Authentication UI', () => {
             await expect(submitButton).toBeEnabled();
         });
 
-        test('should show validation error for empty username', async ({ page }) => {
+        test('should show validation error for empty username', async ({
+            page,
+        }) => {
             await page.goto('/login');
 
             await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
 
             // Focus and blur username field to trigger validation
-            const usernameInput = page.locator('input[type="text"], input[formcontrolname="username"]').first();
+            const usernameInput = page
+                .locator(
+                    'input[type="text"], input[formcontrolname="username"]'
+                )
+                .first();
             await usernameInput.focus();
             await usernameInput.blur();
 
@@ -80,14 +99,23 @@ test.describe('Authentication UI', () => {
             await expect(submitButton).toBeDisabled();
         });
 
-        test('should show error message for invalid credentials', async ({ page }) => {
+        test('should show error message for invalid credentials', async ({
+            page,
+        }) => {
             await page.goto('/login');
 
             await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
 
             // Fill in the form with invalid credentials
-            await page.locator('input[type="text"], input[formcontrolname="username"]').first().fill('invaliduser');
-            await page.locator('input[type="password"]').fill('invalidpassword');
+            await page
+                .locator(
+                    'input[type="text"], input[formcontrolname="username"]'
+                )
+                .first()
+                .fill('invaliduser');
+            await page
+                .locator('input[type="password"]')
+                .fill('invalidpassword');
 
             // Submit the form
             await page.locator('button[type="submit"]').click();
@@ -95,13 +123,19 @@ test.describe('Authentication UI', () => {
             // Wait for error message (could be various error texts)
             // Using a flexible selector that looks for error-like elements
             await expect(
-                page.locator('.error, [class*="error"], [class*="alert"], [role="alert"]').first()
+                page
+                    .locator(
+                        '.error, [class*="error"], [class*="alert"], [role="alert"]'
+                    )
+                    .first()
             ).toBeVisible({ timeout: 10000 });
         });
     });
 
     test.describe('Auth Status Component', () => {
-        test('should show login link for unauthenticated user', async ({ page }) => {
+        test('should show login link for unauthenticated user', async ({
+            page,
+        }) => {
             // Clear cookies to ensure unauthenticated state
             await page.context().clearCookies();
 
@@ -111,7 +145,9 @@ test.describe('Authentication UI', () => {
             await page.waitForTimeout(2000);
 
             // Should show login link for guest
-            const loginLink = page.locator('a[href="/login"], a:has-text("Войти")');
+            const loginLink = page.locator(
+                'a[href="/login"], a:has-text("Войти")'
+            );
             await expect(loginLink).toBeVisible({ timeout: 10000 });
         });
 
@@ -131,11 +167,15 @@ test.describe('Authentication UI', () => {
     test.describe('Login Flow', () => {
         // These tests require real backend with valid test credentials
         // To run: set TEST_USERNAME and TEST_PASSWORD environment variables
-        
-        test('should redirect to home after successful login', async ({ page }, testInfo) => {
+
+        test('should redirect to home after successful login', async ({
+            page,
+        }, testInfo) => {
             // Skip if no test credentials configured
-            test.skip(!process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'], 
-                'Requires TEST_USERNAME and TEST_PASSWORD environment variables');
+            test.skip(
+                !process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'],
+                'Requires TEST_USERNAME and TEST_PASSWORD environment variables'
+            );
 
             const testUsername = process.env['TEST_USERNAME']!;
             const testPassword = process.env['TEST_PASSWORD']!;
@@ -145,14 +185,19 @@ test.describe('Authentication UI', () => {
             await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
 
             // Fill in the form
-            await page.locator('input[type="text"], input[formcontrolname="username"]').first().fill(testUsername);
+            await page
+                .locator(
+                    'input[type="text"], input[formcontrolname="username"]'
+                )
+                .first()
+                .fill(testUsername);
             await page.locator('input[type="password"]').fill(testPassword);
 
             // Submit the form
             await page.locator('button[type="submit"]').click();
 
             // On success, should redirect away from login page
-            await page.waitForURL((url) => !url.pathname.includes('/login'), {
+            await page.waitForURL(url => !url.pathname.includes('/login'), {
                 timeout: 10000,
             });
         });
@@ -160,11 +205,13 @@ test.describe('Authentication UI', () => {
 
     test.describe('Logout Flow', () => {
         // These tests require authenticated session
-        
+
         test('should show login link after logout', async ({ page }) => {
             // Skip if no test credentials configured
-            test.skip(!process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'], 
-                'Requires TEST_USERNAME and TEST_PASSWORD environment variables');
+            test.skip(
+                !process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'],
+                'Requires TEST_USERNAME and TEST_PASSWORD environment variables'
+            );
             // This test assumes user is already logged in via previous test
             // or we need to login first
 
@@ -173,15 +220,23 @@ test.describe('Authentication UI', () => {
             // If there's a logout button visible, click it
             const logoutButton = page.locator('button:has-text("Выйти")');
 
-            if (await logoutButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+            if (
+                await logoutButton
+                    .isVisible({ timeout: 2000 })
+                    .catch(() => false)
+            ) {
                 await logoutButton.click();
 
                 // After logout, should show login link
-                const loginLink = page.locator('a[href="/login"], a:has-text("Войти")');
+                const loginLink = page.locator(
+                    'a[href="/login"], a:has-text("Войти")'
+                );
                 await expect(loginLink).toBeVisible({ timeout: 10000 });
             } else {
                 // User not logged in, just verify login link is visible
-                const loginLink = page.locator('a[href="/login"], a:has-text("Войти")');
+                const loginLink = page.locator(
+                    'a[href="/login"], a:has-text("Войти")'
+                );
                 await expect(loginLink).toBeVisible({ timeout: 10000 });
             }
         });
