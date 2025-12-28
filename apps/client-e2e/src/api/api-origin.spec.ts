@@ -19,7 +19,7 @@ import {
  *
  * NOTE: Allowed origins depend on server configuration:
  * - Dev: localhost:4200, localhost:4000
- * - Prod: https://new.drevo-info.ru
+ * - Prod: https://app.drevo-info.ru
  *
  * Uses POST /api/auth/logout for testing as it:
  * - Requires Origin validation (state-changing)

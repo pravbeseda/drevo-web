@@ -171,7 +171,7 @@ export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestCon
 /**
  * Allowed origins for CORS (depends on server configuration)
  * On dev server (drevo-local.ru): localhost:4200, localhost:4000
- * On prod server: https://new.drevo-info.ru
+ * On prod server: https://app.drevo-info.ru
  */
 export const ALLOWED_ORIGINS = ['http://localhost:4200', 'http://localhost:4000'];
 

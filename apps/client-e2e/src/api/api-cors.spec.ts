@@ -11,7 +11,7 @@ import {
  *
  * NOTE: CORS behavior depends on server configuration:
  * - Dev server (drevo-local.ru): allows localhost:4200, localhost:4000
- * - Prod server: allows https://new.drevo-info.ru
+ * - Prod server: allows https://app.drevo-info.ru
  *
  * CORS Contract:
  * - Access-Control-Allow-Origin: specific origin (not *)

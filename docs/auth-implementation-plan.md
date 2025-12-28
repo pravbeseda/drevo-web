@@ -30,7 +30,7 @@
 
 ### ⚠️ Cookie Policy: Cross-Site vs Same-Site
 
-**Критически важно:** `new.drevo-info.ru` и `drevo-info.ru` — это **cross-site**, не same-site!
+**Критически важно:** `app.drevo-info.ru` и `drevo-info.ru` — это **cross-site**, не same-site!
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -39,7 +39,7 @@
 │                                                                  │
 │  Registrable domain = eTLD+1 (effective TLD + 1 label)          │
 │                                                                  │
-│  new.drevo-info.ru  →  registrable domain: drevo-info.ru        │
+│  app.drevo-info.ru  →  registrable domain: drevo-info.ru        │
 │  drevo-info.ru      →  registrable domain: drevo-info.ru        │
 │                                                                  │
 │  ✅ Same registrable domain = same-site? НЕТ для cookies!       │
@@ -65,7 +65,7 @@
 
 **Альтернатива (если хотим Lax):**
 - Перенести фронт на `drevo-info.ru` (например, `drevo-info.ru/app/`)
-- Или API на `api.new.drevo-info.ru` (тот же site что и фронт)
+- Или API на `api.app.drevo-info.ru` (тот же site что и фронт)
 - Тогда same-site и Lax будет работать
 
 ### SSR Strategy (упрощённый подход)
@@ -115,7 +115,7 @@
 │     (защита от Session Fixation)                                │
 │                                                                  │
 │  ⚠️  Production: SameSite=None; Secure (cross-site запросы)     │
-│      new.drevo-info.ru → drevo-info.ru = cross-site для XHR!    │
+│      app.drevo-info.ru → drevo-info.ru = cross-site для XHR!    │
 │      CSRF-токен + Origin/Referer — основная защита.             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -128,7 +128,7 @@
 | Окружение | Angular | Yii Backend | Примечание |
 |-----------|---------|-------------|------------|
 | Development | localhost:4200 | localhost:4200/api (proxy) | Same-origin через Angular proxy, HTTP |
-| Production | new.drevo-info.ru | drevo-info.ru | Субдомены, **HTTPS** |
+| Production | app.drevo-info.ru | drevo-info.ru | Субдомены, **HTTPS** |
 
 ### Dev Environment Strategy (РЕШЕНИЕ)
 
@@ -172,7 +172,7 @@
 
 **Origin/Referer Validation (основная защита вместе с CSRF):**
 - Для всех POST/PUT/DELETE проверять `Origin` или `Referer` заголовок
-- Разрешённые origins: `https://new.drevo-info.ru` (prod), через proxy в dev
+- Разрешённые origins: `https://app.drevo-info.ru` (prod), через proxy в dev
 - Если `Origin` отсутствует — проверять `Referer`
 - Почему нужно: Origin/Referer‑проверка даёт дополнительный уровень защиты сверх `SameSite=Lax` и CSRF, в т.ч. от атак с вредоносных субдоменов (same‑site включает субдомены, но не равен same‑origin)
 
@@ -236,7 +236,7 @@ API предназначен для браузерных клиентов. Origi
 
 **Описание:**
 - Создать CORS filter для всех `/api/*` endpoints
-- Разрешить origin: `https://new.drevo-info.ru` (только production)
+- Разрешить origin: `https://app.drevo-info.ru` (только production)
 - Разрешить credentials (cookies)
 
 **⚠️ CORS Contract (ОБЯЗАТЕЛЬНЫЕ требования):**
@@ -246,7 +246,7 @@ API предназначен для браузерных клиентов. Origi
 │                      CORS Response Headers                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  Access-Control-Allow-Origin: https://new.drevo-info.ru         │
+│  Access-Control-Allow-Origin: https://app.drevo-info.ru         │
 │  ├── КОНКРЕТНОЕ значение, НЕ wildcard (*)                       │
 │  └── Wildcard запрещён при credentials: true                    │
 │                                                                  │
@@ -275,7 +275,7 @@ API предназначен для браузерных клиентов. Origi
 
 **Важно:**
 - **Dev не требует CORS** — Angular proxy делает запросы same-origin
-- CORS нужен только для production (new.drevo-info.ru → drevo-info.ru)
+- CORS нужен только для production (app.drevo-info.ru → drevo-info.ru)
 - `Vary: Origin` **обязателен** — без него CDN/proxy закешируют ответ с одним Origin и сломают для других
 - Preflight (OPTIONS) должен возвращать 204 и **не** доходить до контроллера
 
@@ -451,7 +451,7 @@ API предназначен для браузерных клиентов. Origi
 **Описание:**
 - Настроить cookie параметры для сессий по окружениям:
 
-**⚠️ Production (cross-site: new.drevo-info.ru → drevo-info.ru):**
+**⚠️ Production (cross-site: app.drevo-info.ru → drevo-info.ru):**
 - `session.cookie_httponly` = 1
 - `session.cookie_secure` = 1 (HTTPS обязателен)
 - `session.cookie_samesite` = 'None' (cross-site запросы!)
@@ -465,7 +465,7 @@ API предназначен для браузерных клиентов. Origi
 **Почему SameSite=None в Production:**
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Browser: https://new.drevo-info.ru                             │
+│  Browser: https://app.drevo-info.ru                             │
 │           ↓ fetch('/api/auth/me', {credentials: 'include'})     │
 │  API:     https://drevo-info.ru/api/auth/me                     │
 │                                                                  │
@@ -939,7 +939,7 @@ Week 5: Testing
 | `sameSite` | `Lax` | **`None`** |
 | `domain` | не устанавливать | **не устанавливать** (host-only) |
 
-> **⚠️ SameSite=None в Production:** Обязательно, т.к. `new.drevo-info.ru → drevo-info.ru` — cross-site для XHR/fetch.
+> **⚠️ SameSite=None в Production:** Обязательно, т.к. `app.drevo-info.ru → drevo-info.ru` — cross-site для XHR/fetch.
 > С `SameSite=Lax` cookie не отправляется на fetch запросы → авторизация не работает.
 >
 > **Защита при SameSite=None:** CSRF Token + Origin/Referer validation (уже реализовано).
@@ -955,7 +955,7 @@ Week 5: Testing
 │  3. SameSite=None; Secure (production) — позволяет         │
 │     cross-site запросы, защита через CSRF+Origin           │
 │                                                             │
-│  ⚠️ new.drevo-info.ru → drevo-info.ru = CROSS-SITE!        │
+│  ⚠️ app.drevo-info.ru → drevo-info.ru = CROSS-SITE!        │
 │     (для XHR/fetch с credentials)                          │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -965,4 +965,4 @@ Week 5: Testing
 
 ### CORS Origins
 - Development: **не требуется** (Angular proxy = same-origin)
-- Production: `https://new.drevo-info.ru`
+- Production: `https://app.drevo-info.ru`

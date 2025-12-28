@@ -7,7 +7,7 @@ const allowedOrigins = [
     'http://drevo-local.ru',
     'https://drevo-info.ru',
     'https://staging.drevo-info.ru',
-    'https://new.drevo-info.ru',
+    'https://app.drevo-info.ru',
     'http://localhost',
 ];
 
