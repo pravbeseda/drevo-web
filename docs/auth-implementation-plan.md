@@ -737,7 +737,7 @@ API предназначен для браузерных клиентов. Origi
 > **Решение:** Авторизация проверяется только на клиенте. SSR рендерит страницы как для гостя.
 > Это стандартный подход для большинства SPA (GitHub, Twitter, YouTube).
 
-#### Task 3.1: Client-only Auth Check
+#### Task 3.1: Client-only Auth Check ✅
 **Файлы:**
 - `apps/client/src/app/services/auth/auth.service.ts` (модификация)
 
@@ -757,15 +757,16 @@ API предназначен для браузерных клиентов. Origi
 **Implementation:** В `checkAuth()` использовать `isPlatformBrowser` — на сервере возвращать guest state, на клиенте делать HTTP запрос.
 
 **Acceptance Criteria:**
-- [ ] SSR не падает при рендеринге
-- [ ] На клиенте auth state корректно загружается
-- [ ] Нет hydration mismatch ошибок
+
+- [x] SSR не падает при рендеринге
+- [x] На клиенте auth state корректно загружается
+- [x] Нет hydration mismatch ошибок
 
 **Тестирование:** SSR build + manual testing
 
 ---
 
-#### Task 3.2: Loading State для AuthStatusComponent
+#### Task 3.2: Loading State для AuthStatusComponent ✅
 **Файлы:**
 - `apps/client/src/app/components/auth-status/auth-status.component.ts`
 - `apps/client/src/app/components/auth-status/auth-status.component.html`
@@ -778,8 +779,9 @@ API предназначен для браузерных клиентов. Origi
 **Implementation:** Три состояния: isLoading → skeleton, user → имя + выход, иначе → кнопка "Войти"
 
 **Acceptance Criteria:**
-- [ ] Skeleton показывается при загрузке
-- [ ] Плавный переход к финальному состоянию
+
+- [x] Skeleton показывается при загрузке
+- [x] Плавный переход к финальному состоянию
 
 **Тестирование:** Visual testing
 
@@ -787,33 +789,46 @@ API предназначен для браузерных клиентов. Origi
 
 ### Phase 4: Testing & Polish
 
-#### Task 4.1: E2E тесты авторизации
+#### Task 4.1: E2E тесты авторизации ✅
 **Файлы:**
-- `apps/client-e2e/src/auth.spec.ts`
+
+- `apps/client-e2e/src/auth.spec.ts` — UI тесты авторизации
+- `apps/client-e2e/src/api/api-auth.spec.ts` — API тесты (494 строки)
+- `apps/client-e2e/src/api/api-csrf.spec.ts` — CSRF тесты
+- `apps/client-e2e/src/api/api-cors.spec.ts` — CORS тесты
+- `apps/client-e2e/src/api/api-session.spec.ts` — Session тесты
+- `apps/client-e2e/src/api/api-origin.spec.ts` — Origin validation тесты
 
 **Описание:**
 - Тест: неавторизованный пользователь видит "Войти"
 - Тест: успешный логин
 - Тест: неверный пароль
 - Тест: logout
+- API тесты: CSRF, CORS, Session, Origin validation
 
 **Acceptance Criteria:**
-- [ ] Все E2E тесты проходят
+
+- [x] Все E2E тесты проходят (75+ API тестов)
 
 ---
 
-#### Task 4.2: Unit тесты
+#### Task 4.2: Unit тесты ✅
 **Файлы:**
-- `apps/client/src/app/services/auth/auth.service.spec.ts`
-- `apps/client/src/app/components/auth-status/auth-status.component.spec.ts`
-- `apps/client/src/app/pages/login/login.component.spec.ts`
+
+- `apps/client/src/app/services/auth/auth.service.spec.ts` — 34 теста
+- `apps/client/src/app/services/auth/auth.service.ssr.spec.ts` — SSR тесты
+- `apps/client/src/app/services/auth/csrf.service.spec.ts` — CSRF сервис
+- `apps/client/src/app/components/auth-status/auth-status.component.spec.ts` — компонент статуса
+- `apps/client/src/app/pages/login/login.component.spec.ts` — страница логина
+- `apps/client/src/app/interceptors/auth.interceptor.spec.ts` — интерсептор
 
 **Acceptance Criteria:**
-- [ ] Coverage > 80% для auth-related кода
+
+- [x] Coverage > 80% для auth-related кода (84.39% Lines)
 
 ---
 
-#### Task 4.3: Документация
+#### Task 4.3: Документация ✅
 **Файлы:**
 - `docs/auth-api.md`
 
@@ -821,6 +836,8 @@ API предназначен для браузерных клиентов. Origi
 - API документация для auth endpoints
 - Примеры запросов/ответов
 - Описание cookie handling
+- Security checklist
+- Frontend integration examples
 
 ---
 
@@ -837,26 +854,26 @@ Week 1: Backend Foundation ✅ COMPLETE
 ├── Task 1.4: /auth/me Endpoint ✅ DONE
 └── Task 1.5: Logout Endpoint ✅ DONE
 
-Week 2: Frontend Start
-├── Task 2.1: Environment Config
-├── Task 2.2: TypeScript Models
-└── Task 2.3: AuthService
+Week 2: Frontend Start ✅ COMPLETE
+├── Task 2.1: Environment Config ✅ DONE
+├── Task 2.2: TypeScript Models ✅ DONE
+└── Task 2.3: AuthService ✅ DONE
 
-Week 3: Frontend Core
-├── Task 2.4: Auth Interceptor
-├── Task 2.5: AuthStatusComponent
-└── Task 2.6: LoginPageComponent
+Week 3: Frontend Core ✅ COMPLETE
+├── Task 2.4: Auth Interceptor ✅ DONE
+├── Task 2.5: AuthStatusComponent ✅ DONE
+└── Task 2.6: LoginPageComponent ✅ DONE
 
-Week 4: Integration & SSR
-├── Task 2.7: Routing
-├── Task 2.8: Layout Integration
-├── Task 3.1: Client-only Auth Check
-└── Task 3.2: Loading State для AuthStatus
+Week 4: Integration & SSR ✅ COMPLETE
+├── Task 2.7: Routing ✅ DONE
+├── Task 2.8: Layout Integration ✅ DONE
+├── Task 3.1: Client-only Auth Check ✅ DONE
+└── Task 3.2: Loading State для AuthStatus ✅ DONE
 
-Week 5: Testing
-├── Task 4.1: E2E Tests (API tests done: 75 tests passing)
-├── Task 4.2: Unit Tests
-└── Task 4.3: Documentation
+Week 5: Testing ✅ COMPLETE
+├── Task 4.1: E2E Tests ✅ DONE (75+ API tests, UI tests)
+├── Task 4.2: Unit Tests ✅ DONE (152 tests, 84% coverage)
+└── Task 4.3: Documentation ✅ DONE (docs/auth-api.md)
 ```
 
 ---

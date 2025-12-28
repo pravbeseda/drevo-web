@@ -5,6 +5,7 @@
   "scripts": {
     "test": "nx run-many --target=test --all --parallel",
     "lint": "yarn nx affected -t lint --parallel",
+    "e2e": "yarn playwright test --config=apps/client-e2e/playwright.config.ts",
     "e2e:api": "yarn playwright test --project=api --config=apps/client-e2e/playwright.config.ts",
     "build": "nx build client --configuration=production",
     "build:dev": "nx build client --configuration=development",
@@ -17,8 +18,8 @@
   },
   "dependencies": {
     "@angular/animations": "20.3.9",
-    "@angular/common": "20.3.9",
-    "@angular/compiler": "20.3.9",
+    "@angular/common": "20.3.14",
+    "@angular/compiler": "20.3.15",
     "@angular/core": "20.3.9",
     "@angular/forms": "20.3.9",
     "@angular/platform-browser": "20.3.9",
