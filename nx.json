@@ -68,7 +68,7 @@
         "@ngneat/spectator:spectator-component": {
             "style": "scss",
             "changeDetection": "OnPush",
-            "jest": true
+            "unitTestRunner": "jest"
         },
         "@nx/angular:library": {
             "linter": "eslint",
