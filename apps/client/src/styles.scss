@@ -1,5 +1,16 @@
-html,
-body {
-    height: 100%;
-    margin: 0;
+@use 'modern-normalize';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
 }
