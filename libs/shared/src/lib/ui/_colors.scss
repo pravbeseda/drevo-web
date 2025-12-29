@@ -1,0 +1,24 @@
+@use 'palette' as *;
+
+// editor
+$skeleton-offset: $md-blue-50;
+$footnote: black;
+$footnote-bg: $md-grey-100;
+$quote: $md-deep-purple-500;
+
+$link: $md-blue-900;
+$link-bg: $md-blue-50;
+$link-pending: black;
+$link-pending-bg: $md-yellow-100;
+$link-exists: black;
+$link-exists-bg: $md-green-A100;
+$link-missing: black;
+$link-missing-bg: $md-red-100;
+
+$map: $md-cyan-900;
+$map-bg: $md-cyan-50;
+$map-point: $md-cyan-900;
+$map-point-bg: $md-cyan-50;
+
+$search-match-bg: $md-yellow-400;
+$search-match-selected-bg: $md-orange-300;

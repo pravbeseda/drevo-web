@@ -1,7 +1,7 @@
 @use 'colors';
 
 $skeleton-color: white;
-$skeleton-offset: colors.$md-blue-50;
+$skeleton-offset: colors.$skeleton-offset;
 
 .container {
     display: flex;
