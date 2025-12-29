@@ -42,17 +42,18 @@
     display: none;
 }
 
-/* Tablet: pin left sidebar, keep right as off-canvas or below (your choice) */
+/* Tablet: pin left sidebar full height, header/footer shift right */
 @media (min-width: $breakpoint-tablet) {
     .layout {
         grid-template-columns: minmax(
                 #{$sidebar-min-width-tablet},
                 rem($sidebar-width)
             ) 1fr;
+        grid-template-rows: rem($header-height) 1fr rem($footer-height);
         grid-template-areas:
-            'header header'
+            'left header'
             'left main'
-            'footer footer';
+            'left footer';
     }
     .left {
         display: block;
@@ -60,17 +61,18 @@
     }
 }
 
-/* Desktop: two sidebars */
+/* Desktop: left sidebar full height, right sidebar between header and footer */
 @media (min-width: $breakpoint-desktop) {
     .layout {
         grid-template-columns: minmax(
                 #{$sidebar-min-width-desktop},
                 rem($sidebar-width)
             ) 1fr minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width));
+        grid-template-rows: rem($header-height) 1fr rem($footer-height);
         grid-template-areas:
-            'header header header'
+            'left header header'
             'left main right'
-            'footer footer footer';
+            'left footer footer';
     }
     .right {
         display: block;
