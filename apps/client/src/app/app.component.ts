@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { AuthStatusComponent } from './components/auth-status/auth-status.component';
+import { LayoutComponent } from './layout/layout.component';
 
 @Component({
-    imports: [RouterModule, AuthStatusComponent],
+    imports: [RouterModule, LayoutComponent],
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
 })
 export class AppComponent {
-    title = 'client';
+    title = 'Древо';
 }

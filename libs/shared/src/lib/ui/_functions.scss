@@ -1,0 +1,6 @@
+@use "sass:math";
+@use "tokens" as t;
+
+@function rem($px, $base: t.$root-font-size) {
+  @return math.div($px, $base) * 1rem;
+}

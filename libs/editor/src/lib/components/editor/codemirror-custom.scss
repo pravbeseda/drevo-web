@@ -18,51 +18,50 @@
     //}
 
     .cm-footnote {
-        background-color: colors.$md-blue-grey-100;
-        color: black;
+        background-color: colors.$footnote-bg;
+        color: colors.$footnote;
         opacity: 0.7 !important;
     }
 
     .cm-quote {
-        color: colors.$md-deep-purple-500;
+        color: colors.$quote;
     }
 
     .cm-link {
-        background-color: colors.$md-blue-50;
-        color: colors.$md-blue-900;
+        background-color: colors.$link-bg;
+        color: colors.$link;
     }
 
     .cm-map {
-        background-color: colors.$md-cyan-50;
-        color: colors.$md-cyan-900;
+        background-color: colors.$map-bg;
+        color: colors.$map;
     }
 
     .cm-map-point {
-        background-color: colors.$md-cyan-50;
-        color: colors.$md-cyan-900;
+        background-color: colors.$map-point-bg;
+        color: colors.$map-point;
     }
 
     .cm-link-pending {
-        background-color: colors.$md-yellow-100;
-        color: black;
+        background-color: colors.$link-pending-bg;
+        color: colors.$link-pending;
     }
 
     .cm-link-exists {
-        // background-color: colors.$link-green;
-        background-color: colors.$md-green-A100;
-        color: black;
+        background-color: colors.$link-exists-bg;
+        color: colors.$link-exists;
     }
 
     .cm-link-missing {
-        background-color: colors.$md-red-100;
-        color: black;
+        background-color: colors.$link-missing-bg;
+        color: colors.$link-missing;
     }
 
     .cm-searchMatch {
-        background-color: colors.$md-yellow-400;
+        background-color: colors.$search-match-bg;
 
         &.cm-searchMatch-selected {
-            background-color: colors.$md-orange-300;
+            background-color: colors.$searchMatch-selected-bg;
         }
 
         .cm-wikiHighlight {
