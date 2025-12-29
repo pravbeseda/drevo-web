@@ -51,7 +51,7 @@
 }
 
 /* Tablet: pin left sidebar, keep right as off-canvas or below (your choice) */
-@media (min-width: 768px) {
+@media (min-width: $breakpoint-tablet) {
     .layout {
         grid-template-columns: minmax(#{$sidebar-min-width-tablet}, rem($sidebar-width)) 1fr;
         grid-template-areas:
@@ -66,7 +66,7 @@
 }
 
 /* Desktop: two sidebars */
-@media (min-width: 1024px) {
+@media (min-width: $breakpoint-desktop) {
     .layout {
         grid-template-columns: minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width)) 1fr minmax(
                 #{$sidebar-min-width-desktop},

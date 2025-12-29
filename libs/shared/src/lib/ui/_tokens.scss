@@ -1,9 +1,13 @@
 $root-font-size: 16px;
 
+// Breakpoints
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+
 // Layout dimensions
 $header-height: 60px;
 $footer-height: 20px;
 $sidebar-width: 260px;
 $sidebar-min-width-tablet: 200px;
 $sidebar-min-width-desktop: 220px;
-$layout-gap: 16px;
+$layout-gap: 0px;
