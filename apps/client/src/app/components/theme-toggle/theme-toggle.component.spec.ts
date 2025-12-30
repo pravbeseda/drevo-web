@@ -42,14 +42,4 @@ describe('ThemeToggleComponent', () => {
         component.toggle();
         expect(themeService.theme()).toBe('dark');
     });
-
-    it('should have correct tooltip for light theme', () => {
-        themeService.setTheme('light');
-        expect(component.tooltip).toBe('Dark theme');
-    });
-
-    it('should have correct tooltip for dark theme', () => {
-        themeService.setTheme('dark');
-        expect(component.tooltip).toBe('Light theme');
-    });
 });

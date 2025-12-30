@@ -21,7 +21,7 @@
             "inputs": ["production", "^production"],
             "options": {
                 "stylePreprocessorOptions": {
-                    "includePaths": ["libs/shared/src/lib/ui"]
+                    "includePaths": ["libs/ui/src/lib/styles"]
                 }
             }
         },
