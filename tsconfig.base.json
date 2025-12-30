@@ -15,8 +15,10 @@
         "skipDefaultLibCheck": true,
         "baseUrl": ".",
         "paths": {
+            "@angular/material/*": ["node_modules/@angular/material/types/*.d.ts"],
             "@drevo-web/editor": ["libs/editor/src/index.ts"],
-            "@drevo-web/shared": ["libs/shared/src/index.ts"]
+            "@drevo-web/shared": ["libs/shared/src/index.ts"],
+            "@drevo-web/ui": ["libs/ui/src/index.ts"]
         }
     },
     "exclude": ["node_modules", "tmp"]

@@ -1,5 +1,107 @@
 @use 'modern-normalize';
 
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+// ============================================================================
+// LIGHT THEME (default)
+// ============================================================================
+html {
+    height: 100%;
+
+    // Angular Material light theme
+    @include mat.theme(
+        (
+            color: (
+                primary: mat.$azure-palette,
+                tertiary: mat.$blue-palette,
+            ),
+            typography: Roboto,
+            density: 0,
+        )
+    );
+
+    // Custom CSS variables for light theme
+    --drevo-bg-primary: #ffffff;
+    --drevo-bg-secondary: #f5f5f5;
+    --drevo-bg-tertiary: #e0e0e0;
+    --drevo-text-primary: #1a1a1a;
+    --drevo-text-secondary: #666666;
+    --drevo-text-muted: #999999;
+    --drevo-border-color: #e0e0e0;
+    --drevo-shadow-color: rgba(0, 0, 0, 0.1);
+    --drevo-link-color: #1976d2;
+    --drevo-link-hover: #1565c0;
+    --drevo-accent-color: #ff4081;
+    --drevo-success-color: #4caf50;
+    --drevo-warning-color: #ff9800;
+    --drevo-error-color: #f44336;
+}
+
+// ============================================================================
+// DARK THEME
+// ============================================================================
+html.dark-theme {
+    // Angular Material dark theme
+    @include mat.theme(
+        (
+            color: (
+                theme-type: dark,
+                primary: mat.$azure-palette,
+                tertiary: mat.$blue-palette,
+            ),
+            typography: Roboto,
+            density: 0,
+        )
+    );
+
+    // Custom CSS variables for dark theme
+    --drevo-bg-primary: #121212;
+    --drevo-bg-secondary: #1e1e1e;
+    --drevo-bg-tertiary: #2d2d2d;
+    --drevo-text-primary: #e0e0e0;
+    --drevo-text-secondary: #b0b0b0;
+    --drevo-text-muted: #757575;
+    --drevo-border-color: #424242;
+    --drevo-shadow-color: rgba(0, 0, 0, 0.4);
+    --drevo-link-color: #64b5f6;
+    --drevo-link-hover: #90caf9;
+    --drevo-accent-color: #ff80ab;
+    --drevo-success-color: #81c784;
+    --drevo-warning-color: #ffb74d;
+    --drevo-error-color: #e57373;
+}
+
+body {
+    // Smooth transition between themes
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+
+    // Use custom CSS variables for consistent theming
+    background-color: var(--drevo-bg-primary);
+    color: var(--drevo-text-primary);
+    font: var(--mat-sys-body-medium);
+
+    // Reset the user agent margin.
+    margin: 0;
+    height: 100%;
+}
+
+// Light theme explicit class (for override if needed)
+html.light-theme body {
+    color-scheme: light;
+}
+
+// Dark theme body styles
+html.dark-theme body {
+    color-scheme: dark;
+}
+
 *,
 *::before,
 *::after {
