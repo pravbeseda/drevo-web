@@ -7,6 +7,7 @@ module.exports = {
     ...nxPreset,
     moduleNameMapper: {
         ...nxPreset.moduleNameMapper,
+        // Workaround: Jest doesn't resolve Angular Material ESM exports correctly
         '^@angular/material/(.*)$': `${rootNodeModules}/@angular/material/fesm2022/$1.mjs`,
     },
 };
