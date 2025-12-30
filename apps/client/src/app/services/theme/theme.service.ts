@@ -66,11 +66,11 @@ export class ThemeService {
         if (theme === 'dark') {
             root.classList.add('dark-theme');
             root.classList.remove('light-theme');
-            document.body.style.colorScheme = 'dark';
+            root.style.colorScheme = 'dark';
         } else {
             root.classList.add('light-theme');
             root.classList.remove('dark-theme');
-            document.body.style.colorScheme = 'light';
+            root.style.colorScheme = 'light';
         }
     }
 
