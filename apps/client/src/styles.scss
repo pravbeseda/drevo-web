@@ -10,6 +10,7 @@
 // Import themed color tokens from UI library
 // This generates --themed-* CSS variables that automatically switch with theme
 @use 'theme-colors';
+@use 'tokens' as *;
 
 // ============================================================================
 // LIGHT THEME (default)
@@ -55,9 +56,10 @@ body {
         color 0.3s ease;
 
     // Use themed CSS variables for consistent theming
-    background-color: var(--themed-bg-primary);
+    background-color: var(--themed-border-color);
     color: var(--themed-text-primary);
     font: var(--mat-sys-body-medium);
+    font-size: $root-font-size;
 
     // Reset the user agent margin.
     margin: 0;
