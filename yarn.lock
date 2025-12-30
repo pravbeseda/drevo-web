@@ -328,10 +328,10 @@
   dependencies:
     "@angular-eslint/bundled-angular-compiler" "20.7.0"
 
-"@angular/animations@^21.0.6":
-  version "21.0.6"
-  resolved "https://registry.yarnpkg.com/@angular/animations/-/animations-21.0.6.tgz#19f7305e34786145ea7a80ddb74f39436416db53"
-  integrity sha512-dSxhkh/ZlljdglZ0rriSy7GdC1Y3rGaagkx6oAzF5XqAoBbFmiVFEBZPxssSeQ+O0izmAw3GwsUnz3E/1JYsbA==
+"@angular/animations@^20.0.0":
+  version "20.3.15"
+  resolved "https://registry.yarnpkg.com/@angular/animations/-/animations-20.3.15.tgz#4acd599812e0d409278207ad7afa1829a39fdea4"
+  integrity sha512-ikyKfhkxoqQA6JcBN0B9RaN6369sM1XYX81Id0lI58dmWCe7gYfrTp8ejqxxKftl514psQO3pkW8Gn1nJ131Gw==
   dependencies:
     tslib "^2.3.0"
 
@@ -369,10 +369,10 @@
   optionalDependencies:
     lmdb "3.4.2"
 
-"@angular/cdk@^21.0.5":
-  version "21.0.5"
-  resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-21.0.5.tgz#b4eaa09c2804d2614cccbab9f816c469245839b1"
-  integrity sha512-yO/IRYEZ5wJkpwg3GT3b6RST4pqNFTAhuyPdEdLcE81cs283K3aKOsCYh2xUR3bR4WxBh2kBPSJ31AFZyJXbSA==
+"@angular/cdk@^20.0.0":
+  version "20.2.14"
+  resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-20.2.14.tgz#5da8d29a0688cf0c6f58db77aee8afa0a05faaea"
+  integrity sha512-7bZxc01URbiPiIBWThQ69XwOxVduqEKN4PhpbF2AAyfMc/W8Hcr4VoIJOwL0O1Nkq5beS8pCAqoOeIgFyXd/kg==
   dependencies:
     parse5 "^8.0.0"
     tslib "^2.3.0"
@@ -448,10 +448,10 @@
   resolved "https://registry.yarnpkg.com/@angular/language-service/-/language-service-20.3.9.tgz#9d12d347c6bd3ca982742670485a5cc1af3b8130"
   integrity sha512-aCsuzlFx8a/VMBNgXMfwai97j2QHZ8PhQwzwodDNb2X3eQsaUO+nCgs5kNIZmQ/rJESH+fY9ZdlZcrYbVp+nBA==
 
-"@angular/material@^21.0.5":
-  version "21.0.5"
-  resolved "https://registry.yarnpkg.com/@angular/material/-/material-21.0.5.tgz#9bb6754cc8a56e6ad009282a42701b64143ef0a6"
-  integrity sha512-LcDotwwTl2GFtFK1BqcKjj0eRAkOjTSj1C6ux0rOlpU2hJaECxue/ZqEyB/KMHngFAqMJpecxF4zGy/ISCp2xA==
+"@angular/material@^20.0.0":
+  version "20.2.14"
+  resolved "https://registry.yarnpkg.com/@angular/material/-/material-20.2.14.tgz#93027a9eb052d639e8e4f1bd7a3d65e072dc2702"
+  integrity sha512-IbAgV6XLsvmHiJzxycVhcNC1PA4M30qi+ERCOir6cT333Bxm8vDV32gsOjfL52uzG5YRARroPC+8s1XqR2oxeA==
   dependencies:
     tslib "^2.3.0"
 
