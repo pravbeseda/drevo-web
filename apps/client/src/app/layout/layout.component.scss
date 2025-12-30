@@ -17,7 +17,7 @@
 
 .header {
     grid-area: header;
-    background-color: var(--themed-bg-secondary);
+    background-color: var(--themed-header-bg);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -35,21 +35,23 @@
     grid-area: main;
     background-color: var(--themed-bg-primary);
     transition: background-color 0.3s ease;
+    padding: 1rem;
 }
 
 .footer {
     grid-area: footer;
-    background-color: var(--themed-bg-tertiary);
+    background-color: var(--themed-footer-bg);
     transition: background-color 0.3s ease;
+    padding: 0 0.5rem;
 }
 
 .right {
-    background-color: var(--themed-bg-secondary);
+    background-color: var(--themed-sidebar-bg);
     transition: background-color 0.3s ease;
 }
 
 .left {
-    background-color: var(--themed-bg-secondary);
+    background-color: var(--themed-sidebar-bg);
     transition: background-color 0.3s ease;
 }
 
@@ -57,6 +59,7 @@
 .left,
 .right {
     display: none;
+    padding: 1rem;
 }
 
 /* Tablet: pin left sidebar full height, header/footer shift right */
