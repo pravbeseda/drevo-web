@@ -17,38 +17,57 @@
 
 .header {
     grid-area: header;
-    background-color: #576970;
+    background-color: var(--themed-header-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    transition: background-color 0.3s ease;
 }
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .main {
     grid-area: main;
-    background-color: #9ab4bd;
+    background-color: var(--themed-bg-primary);
+    transition: background-color 0.3s ease;
+    padding: 1rem;
 }
+
 .footer {
     grid-area: footer;
-    background-color: #515151;
+    background-color: var(--themed-footer-bg);
+    transition: background-color 0.3s ease;
+    padding: 0 0.5rem;
 }
 
 .right {
-    background-color: #0c7d9d;
+    background-color: var(--themed-sidebar-bg);
+    transition: background-color 0.3s ease;
 }
 
 .left {
-    background-color: #0c5460;
+    background-color: var(--themed-sidebar-bg);
+    transition: background-color 0.3s ease;
 }
 
 /* Mobile behavior: keep sidebars accessible but not taking layout space */
 .left,
 .right {
     display: none;
+    padding: 1rem;
 }
 
 /* Tablet: pin left sidebar full height, header/footer shift right */
 @media (min-width: $breakpoint-tablet) {
     .layout {
-        grid-template-columns: minmax(
-                #{$sidebar-min-width-tablet},
-                rem($sidebar-width)
-            ) 1fr;
+        grid-template-columns:
+            minmax(#{$sidebar-min-width-tablet}, rem($sidebar-width))
+            1fr;
         grid-template-rows: rem($header-height) 1fr rem($footer-height);
         grid-template-areas:
             'left header'
@@ -64,10 +83,9 @@
 /* Desktop: left sidebar full height, right sidebar between header and footer */
 @media (min-width: $breakpoint-desktop) {
     .layout {
-        grid-template-columns: minmax(
-                #{$sidebar-min-width-desktop},
-                rem($sidebar-width)
-            ) 1fr minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width));
+        grid-template-columns:
+            minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width))
+            1fr minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width));
         grid-template-rows: rem($header-height) 1fr rem($footer-height);
         grid-template-areas:
             'left header header'

@@ -1,16 +1,77 @@
 @use 'modern-normalize';
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+// Import themed color tokens from UI library
+// This generates --themed-* CSS variables that automatically switch with theme
+@use 'theme-colors';
+@use 'tokens' as *;
+
+// ============================================================================
+// LIGHT THEME (default)
+// ============================================================================
+html {
+    height: 100%;
+
+    // Angular Material light theme
+    @include mat.theme(
+        (
+            color: (
+                primary: mat.$azure-palette,
+                tertiary: mat.$blue-palette,
+            ),
+            typography: Roboto,
+            density: 0,
+        )
+    );
 }
 
-img,
-picture,
-video,
-canvas,
-svg {
-    display: block;
-    max-width: 100%;
+// ============================================================================
+// DARK THEME
+// ============================================================================
+html.dark-theme {
+    // Angular Material dark theme
+    @include mat.theme(
+        (
+            color: (
+                theme-type: dark,
+                primary: mat.$azure-palette,
+                tertiary: mat.$blue-palette,
+            ),
+            typography: Roboto,
+            density: 0,
+        )
+    );
+}
+
+body {
+    // Smooth transition between themes
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+
+    // Use themed CSS variables for consistent theming
+    background-color: var(--themed-border-color);
+    color: var(--themed-text-primary);
+    font: var(--mat-sys-body-medium);
+    font-size: $root-font-size;
+
+    // Reset the user agent margin.
+    margin: 0;
+    height: 100%;
+}
+
+// Light theme explicit class (for override if needed)
+html.light-theme body {
+    color-scheme: light;
+}
+
+// Dark theme body styles
+html.dark-theme body {
+    color-scheme: dark;
 }

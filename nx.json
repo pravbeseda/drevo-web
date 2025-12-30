@@ -21,7 +21,7 @@
             "inputs": ["production", "^production"],
             "options": {
                 "stylePreprocessorOptions": {
-                    "includePaths": ["libs/shared/src/lib/ui"]
+                    "includePaths": ["libs/ui/src/lib/styles"]
                 }
             }
         },
@@ -41,10 +41,19 @@
                 "^production",
                 "{workspaceRoot}/jest.preset.js"
             ],
-            "options": { "passWithNoTests": true },
-            "configurations": { "ci": { "ci": true, "codeCoverage": true } }
+            "options": {
+                "passWithNoTests": true
+            },
+            "configurations": {
+                "ci": {
+                    "ci": true,
+                    "codeCoverage": true
+                }
+            }
         },
-        "e2e-ci--**/*": { "dependsOn": ["^build"] },
+        "e2e-ci--**/*": {
+            "dependsOn": ["^build"]
+        },
         "@nx/js:tsc": {
             "cache": true,
             "dependsOn": ["^build"],
@@ -54,9 +63,16 @@
     "plugins": [
         {
             "plugin": "@nx/playwright/plugin",
-            "options": { "targetName": "e2e" }
+            "options": {
+                "targetName": "e2e"
+            }
         },
-        { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } }
+        {
+            "plugin": "@nx/eslint/plugin",
+            "options": {
+                "targetName": "lint"
+            }
+        }
     ],
     "generators": {
         "@nx/angular:application": {

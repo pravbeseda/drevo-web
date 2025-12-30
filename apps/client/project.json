@@ -16,6 +16,9 @@
                 "polyfills": [],
                 "tsConfig": "apps/client/tsconfig.app.json",
                 "inlineStyleLanguage": "scss",
+                "stylePreprocessorOptions": {
+                    "includePaths": ["libs/ui/src/lib/styles"]
+                },
                 "assets": [
                     {
                         "glob": "**/*",
