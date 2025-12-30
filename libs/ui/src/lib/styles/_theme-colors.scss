@@ -1,0 +1,61 @@
+@use 'sass:map';
+@use 'palette' as *;
+
+// ============================================================================
+// THEME COLOR TOKENS
+// ============================================================================
+// Define all themed colors in one place with light/dark variants.
+// Use --themed-* CSS variables in your styles - they automatically
+// switch values based on the current theme.
+//
+// Usage:
+//   background: var(--themed-bg-primary);
+//   color: var(--themed-text-primary);
+// ============================================================================
+
+$theme-colors: (
+  // Background colors
+  bg-primary: (light: white, dark: $md-grey-900),
+  bg-secondary: (light: $md-grey-100, dark: $md-grey-800),
+  bg-tertiary: (light: $md-grey-300, dark: $md-grey-600),
+
+  // Text colors
+  text-primary: (light: $md-grey-900, dark: $md-grey-300),
+  text-secondary: (light: $md-grey-700, dark: $md-grey-400),
+  text-muted: (light: $md-grey-500, dark: $md-grey-600),
+
+  // Border & Shadow
+  border-color: (light: $md-grey-300, dark: $md-grey-800),
+  shadow-color: (light: rgba(0, 0, 0, 0.1), dark: rgba(0, 0, 0, 0.4)),
+
+  // Links
+  link-color: (light: $md-blue-700, dark: $md-blue-300),
+  link-hover: (light: $md-blue-800, dark: $md-blue-200),
+
+  // Semantic colors
+  accent-color: (light: $md-pink-A200, dark: $md-pink-A100),
+  success-color: (light: $md-green-500, dark: $md-green-300),
+  warning-color: (light: $md-orange-500, dark: $md-orange-300),
+  error-color: (light: $md-red-500, dark: $md-red-300),
+);
+
+// ============================================================================
+// GENERATE CSS CUSTOM PROPERTIES
+// ============================================================================
+
+// Mixin to generate themed variables for a specific theme
+@mixin generate-theme-vars($theme: light) {
+  @each $name, $values in $theme-colors {
+    --themed-#{$name}: #{map.get($values, $theme)};
+  }
+}
+
+// Light theme (default)
+:root {
+  @include generate-theme-vars(light);
+}
+
+// Dark theme
+html.dark-theme {
+  @include generate-theme-vars(dark);
+}
