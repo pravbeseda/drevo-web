@@ -4,18 +4,8 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 @Component({
     selector: 'ui-spinner',
     imports: [MatProgressSpinner],
-    template: `
-        <mat-spinner
-            [diameter]="diameter()"
-            [strokeWidth]="strokeWidth()" />
-    `,
-    styles: `
-        :host {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    `,
+    templateUrl: './spinner.component.html',
+    styleUrl: './spinner.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpinnerComponent {

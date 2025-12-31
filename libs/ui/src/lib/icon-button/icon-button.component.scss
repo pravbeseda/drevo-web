@@ -4,8 +4,4 @@
     mat-icon {
         transition: transform 0.2s ease;
     }
-
-    button:hover:not(:disabled) mat-icon {
-        transform: rotate(15deg);
-    }
 }
