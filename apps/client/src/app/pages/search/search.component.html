@@ -1,1 +1,6 @@
-<p>search works!</p>
+<div class="search-container">
+    <ui-text-input
+        label="Поиск"
+        placeholder="Введите запрос..."
+        (valueChanged)="onSearchChange($event)" />
+</div>
