@@ -7,7 +7,7 @@ import { ModalContainerComponent } from '../components/modal-container.component
 import { ModalConfig } from '../models/modal.types';
 import { ModalService } from './modal.service';
 
-@Component({ selector: 'test-modal', template: '', standalone: true })
+@Component({ selector: 'ui-test-modal', template: '', standalone: true })
 class TestModalComponent {}
 
 describe('ModalService', () => {
@@ -24,7 +24,9 @@ describe('ModalService', () => {
     beforeEach(() => {
         afterClosedSubject = new Subject();
         dialogRefMock = {
-            afterClosed: jest.fn().mockReturnValue(afterClosedSubject.asObservable()),
+            afterClosed: jest
+                .fn()
+                .mockReturnValue(afterClosedSubject.asObservable()),
             close: jest.fn(),
         } as unknown as jest.Mocked<MatDialogRef<ModalContainerComponent>>;
 
@@ -134,7 +136,7 @@ describe('ModalService', () => {
             const result$ = spectator.service.open<void, string>(mockLoader);
             const results: (string | undefined)[] = [];
 
-            result$.subscribe((value) => results.push(value));
+            result$.subscribe(value => results.push(value));
 
             afterClosedSubject.next('result-value');
             afterClosedSubject.complete();
@@ -146,7 +148,7 @@ describe('ModalService', () => {
             const result$ = spectator.service.open(mockLoader);
             const results: unknown[] = [];
 
-            result$.subscribe((value) => results.push(value));
+            result$.subscribe(value => results.push(value));
 
             afterClosedSubject.next(undefined);
             afterClosedSubject.complete();
@@ -205,7 +207,9 @@ describe('ModalService', () => {
         });
 
         it('should allow closing dialog via ref with result', () => {
-            const { ref } = spectator.service.openWithRef<void, string>(mockLoader);
+            const { ref } = spectator.service.openWithRef<void, string>(
+                mockLoader
+            );
 
             ref.close('success');
 
@@ -213,10 +217,12 @@ describe('ModalService', () => {
         });
 
         it('should emit result through closed observable', () => {
-            const { closed } = spectator.service.openWithRef<void, number>(mockLoader);
+            const { closed } = spectator.service.openWithRef<void, number>(
+                mockLoader
+            );
             const results: (number | undefined)[] = [];
 
-            closed.subscribe((value) => results.push(value));
+            closed.subscribe(value => results.push(value));
 
             afterClosedSubject.next(42);
             afterClosedSubject.complete();
