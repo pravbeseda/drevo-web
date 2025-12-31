@@ -11,4 +11,14 @@ describe('SearchComponent', () => {
 
     expect(spectator.component).toBeTruthy();
   });
+
+  it('should update searchQuery when onSearchChange is called', () => {
+    spectator = createComponent();
+
+    expect(spectator.component.searchQuery()).toBe('');
+
+    spectator.component.onSearchChange('test query');
+
+    expect(spectator.component.searchQuery()).toBe('test query');
+  });
 });
