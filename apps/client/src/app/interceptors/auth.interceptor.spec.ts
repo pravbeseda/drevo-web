@@ -10,7 +10,8 @@ import { take } from 'rxjs/operators';
 import { AuthInterceptor, authInterceptorProvider } from './auth.interceptor';
 import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
-import { LoggerService } from '../services/logger/logger.service';
+import { LoggerService } from '@drevo-web/core';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 
 jest.mock('../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api' },
@@ -20,13 +21,14 @@ describe('AuthInterceptor', () => {
     let spectator: SpectatorService<AuthInterceptor>;
     let authService: jest.Mocked<AuthService>;
     let csrfService: jest.Mocked<CsrfService>;
-    let loggerService: jest.Mocked<LoggerService>;
+    let loggerService: MockLoggerService;
     let mockHandler: jest.Mocked<HttpHandler>;
     let authOperationInProgress$: BehaviorSubject<boolean>;
 
     const createService = createServiceFactory({
         service: AuthInterceptor,
-        mocks: [AuthService, CsrfService, LoggerService],
+        providers: [mockLoggerProvider()],
+        mocks: [AuthService, CsrfService],
     });
 
     const createMockHandler = (response: unknown = { success: true }) => ({
@@ -49,7 +51,7 @@ describe('AuthInterceptor', () => {
         csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
         loggerService = spectator.inject(
             LoggerService
-        ) as jest.Mocked<LoggerService>;
+        ) as unknown as MockLoggerService;
         mockHandler = createMockHandler() as jest.Mocked<HttpHandler>;
 
         // Default mocks
@@ -454,9 +456,8 @@ describe('AuthInterceptor', () => {
             spectator.service.intercept(request, mockHandler).subscribe({
                 error: error => {
                     expect(error).toBe(tokenError);
-                    expect(loggerService.error).toHaveBeenCalledWith(
+                    expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                         'Failed to get CSRF token',
-                        'AuthInterceptor',
                         tokenError
                     );
                     done();

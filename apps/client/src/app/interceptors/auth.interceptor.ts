@@ -18,7 +18,7 @@ import {
 } from 'rxjs/operators';
 import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
-import { LoggerService } from '../services/logger/logger.service';
+import { LoggerService } from '@drevo-web/core';
 import { environment } from '../../environments/environment';
 
 const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
@@ -33,7 +33,7 @@ export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
     private readonly injector = inject(Injector);
     private readonly csrfService = inject(CsrfService);
-    private readonly logger = inject(LoggerService);
+    private readonly logger = inject(LoggerService).withContext('AuthInterceptor');
 
     // Lazy-loaded to avoid circular dependency (AuthService -> HttpClient -> HTTP_INTERCEPTORS)
     private _authService: AuthService | undefined;
@@ -107,11 +107,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     );
             }),
             catchError(error => {
-                this.logger.error(
-                    'Failed to get CSRF token',
-                    'AuthInterceptor',
-                    error
-                );
+                this.logger.error('Failed to get CSRF token', error);
                 return throwError(() => error);
             })
         );
@@ -155,14 +151,10 @@ export class AuthInterceptor implements HttpInterceptor {
                     return next.handle(retryRequest);
                 }),
                 catchError(retryError => {
-                    this.logger.error(
-                        'CSRF retry request failed',
-                        'AuthInterceptor',
-                        {
-                            originalError: error,
-                            retryError,
-                        }
-                    );
+                    this.logger.error('CSRF retry request failed', {
+                        originalError: error,
+                        retryError,
+                    });
                     return throwError(() => error); // keep returning original error
                 })
             );

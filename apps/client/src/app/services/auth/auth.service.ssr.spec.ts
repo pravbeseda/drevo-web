@@ -7,7 +7,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { AuthService } from './auth.service';
 import { CsrfService } from './csrf.service';
-import { LoggerService } from '../logger/logger.service';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 
 jest.mock('../../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api', production: false },
@@ -23,8 +23,9 @@ describe('AuthService SSR', () => {
             provideHttpClient(),
             provideHttpClientTesting(),
             { provide: PLATFORM_ID, useValue: 'server' },
+            mockLoggerProvider(),
         ],
-        mocks: [CsrfService, LoggerService],
+        mocks: [CsrfService],
     });
 
     beforeEach(() => {

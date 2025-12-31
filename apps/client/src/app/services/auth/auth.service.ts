@@ -19,7 +19,7 @@ import {
 import { environment } from '../../../environments/environment';
 import { User, AuthState, AuthResponse, LoginRequest } from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '@drevo-web/core';
 
 @Injectable({
     providedIn: 'root',
@@ -59,7 +59,7 @@ export class AuthService {
     private readonly http = inject(HttpClient);
     private readonly platformId = inject(PLATFORM_ID);
     private readonly csrfService = inject(CsrfService);
-    private readonly logger = inject(LoggerService);
+    private readonly logger = inject(LoggerService).withContext('AuthService');
 
     constructor() {
         this.isBrowser = isPlatformBrowser(this.platformId);
@@ -73,7 +73,6 @@ export class AuthService {
                     error: error =>
                         this.logger.error(
                             'Initial auth check failed',
-                            'AuthService',
                             error
                         ),
                 });
@@ -128,24 +127,20 @@ export class AuthService {
                     // Log different error types appropriately
                     if (error.status === 0) {
                         this.logger.warn(
-                            'Auth check failed: network error or server unavailable',
-                            'AuthService'
+                            'Auth check failed: network error or server unavailable'
                         );
                     } else if (error.status >= 500) {
                         this.logger.error(
                             `Auth check failed: server error (${error.status})`,
-                            'AuthService',
                             error
                         );
                     } else if (error.status === 401 || error.status === 403) {
                         this.logger.debug(
-                            'Auth check: user not authenticated',
-                            'AuthService'
+                            'Auth check: user not authenticated'
                         );
                     } else {
                         this.logger.error(
                             `Auth check failed: unexpected error (${error.status})`,
-                            'AuthService',
                             error
                         );
                     }
@@ -247,7 +242,7 @@ export class AuthService {
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
             catchError(error => {
-                this.logger.error('Logout failed', 'AuthService', error);
+                this.logger.error('Logout failed', error);
                 // Still clear local state even if server request fails
                 this.userSubject.next(null);
                 this.isAuthenticatedSubject.next(false);

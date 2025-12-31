@@ -6,8 +6,9 @@ import {
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { CsrfService } from './csrf.service';
-import { LoggerService } from '../logger/logger.service';
 import { CsrfResponse } from '@drevo-web/shared';
+import { LoggerService } from '@drevo-web/core';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 
 jest.mock('../../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api' },
@@ -17,11 +18,15 @@ describe('CsrfService', () => {
     let spectator: SpectatorService<CsrfService>;
     let httpController: HttpTestingController;
     let httpClient: HttpClient;
+    let loggerService: MockLoggerService;
 
     const createService = createServiceFactory({
         service: CsrfService,
-        providers: [provideHttpClient(), provideHttpClientTesting()],
-        mocks: [LoggerService],
+        providers: [
+            provideHttpClient(),
+            provideHttpClientTesting(),
+            mockLoggerProvider(),
+        ],
     });
 
     const mockCsrfResponse: CsrfResponse = {
@@ -33,6 +38,7 @@ describe('CsrfService', () => {
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
         httpClient = spectator.inject(HttpClient);
+        loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
 
     afterEach(() => {
@@ -105,14 +111,11 @@ describe('CsrfService', () => {
         });
 
         it('should log error and allow retry after failure', done => {
-            const logger = spectator.inject(LoggerService);
-
             // First call - fails
             spectator.service.getCsrfToken().subscribe({
                 error: () => {
-                    expect(logger.error).toHaveBeenCalledWith(
+                    expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                         'Failed to fetch CSRF token',
-                        'CsrfService',
                         expect.any(Error)
                     );
 
