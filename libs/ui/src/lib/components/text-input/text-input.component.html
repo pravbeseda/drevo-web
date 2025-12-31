@@ -1,0 +1,26 @@
+<mat-form-field appearance="outline">
+    @if (label()) {
+        <mat-label>{{ label() }}</mat-label>
+    }
+
+    <input
+        matInput
+        [type]="type()"
+        [value]="value()"
+        [placeholder]="placeholder()"
+        [disabled]="disabled() || isDisabled()"
+        [readonly]="readonly()"
+        [required]="required()"
+        [attr.maxlength]="maxLength()"
+        [attr.minlength]="minLength()"
+        (input)="onInput($event)"
+        (blur)="onBlur()" />
+
+    @if (hint() && !errorMessage()) {
+        <mat-hint>{{ hint() }}</mat-hint>
+    }
+
+    @if (errorMessage()) {
+        <mat-error>{{ errorMessage() }}</mat-error>
+    }
+</mat-form-field>

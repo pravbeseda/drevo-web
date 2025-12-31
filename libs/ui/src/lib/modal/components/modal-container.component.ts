@@ -10,7 +10,7 @@ import {
     viewChild,
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { SpinnerComponent } from '../../spinner/spinner.component';
+import { SpinnerComponent } from '../../components/spinner/spinner.component';
 import { MODAL_DATA } from '../models/modal.tokens';
 import { LazyComponentLoader, ModalData } from '../models/modal.types';
 import { LoggerService } from '@drevo-web/core';
@@ -36,7 +36,9 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown>
         );
     private readonly dialogData = inject<LazyModalData<TData>>(MAT_DIALOG_DATA);
     private readonly injector = inject(Injector);
-    private readonly logger = inject(LoggerService).withContext('ModalContainerComponent');
+    private readonly logger = inject(LoggerService).withContext(
+        'ModalContainerComponent'
+    );
 
     private readonly outlet = viewChild.required('outlet', {
         read: ViewContainerRef,
