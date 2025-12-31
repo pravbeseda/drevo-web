@@ -47,8 +47,12 @@ export class TextInputComponent implements ControlValueAccessor {
     protected value = signal<string>('');
     protected isDisabled = signal<boolean>(false);
 
-    private onChange: (value: string) => void = () => {};
-    private onTouched: () => void = () => {};
+    private onChange: (value: string) => void = () => {
+        /* empty */
+    };
+    private onTouched: () => void = () => {
+        /* empty */
+    };
 
     writeValue(value: string): void {
         this.value.set(value ?? '');
