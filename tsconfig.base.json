@@ -15,12 +15,14 @@
         "skipDefaultLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            // Workaround: TypeScript with moduleResolution "node" doesn't support package.json "exports"
-            // Angular Material uses "exports" for submodule types (e.g., @angular/material/icon -> types/icon.d.ts)
-            "@angular/material/*": ["node_modules/@angular/material/types/*.d.ts"],
+            "@angular/material/*": [
+                "node_modules/@angular/material/types/*.d.ts"
+            ],
             "@drevo-web/editor": ["libs/editor/src/index.ts"],
             "@drevo-web/shared": ["libs/shared/src/index.ts"],
-            "@drevo-web/ui": ["libs/ui/src/index.ts"]
+            "@drevo-web/ui": ["libs/ui/src/index.ts"],
+            "@drevo-web/core": ["libs/core/src/index.ts"],
+            "@drevo-web/core/testing": ["libs/core/src/testing.ts"]
         }
     },
     "exclude": ["node_modules", "tmp"]

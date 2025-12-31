@@ -8,7 +8,8 @@ import { PLATFORM_ID } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { CsrfService } from './csrf.service';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '@drevo-web/core';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthResponse, User } from '@drevo-web/shared';
 
 jest.mock('../../../environments/environment', () => ({
@@ -55,8 +56,9 @@ describe('AuthService', () => {
             provideHttpClient(),
             provideHttpClientTesting(),
             { provide: PLATFORM_ID, useValue: 'browser' },
+            mockLoggerProvider(),
         ],
-        mocks: [CsrfService, LoggerService],
+        mocks: [CsrfService],
     });
 
     beforeEach(() => {
@@ -508,12 +510,12 @@ describe('AuthService', () => {
         it('should clear local state even on server error', done => {
             const loggerService = spectator.inject(
                 LoggerService
-            ) as jest.Mocked<LoggerService>;
+            ) as unknown as MockLoggerService;
 
             spectator.service.logout().subscribe(() => {
                 expect(spectator.service.currentUser).toBeNull();
                 expect(spectator.service.isAuthenticated).toBe(false);
-                expect(loggerService.error).toHaveBeenCalled();
+                expect(loggerService.mockLogger.error).toHaveBeenCalled();
                 done();
             });
 

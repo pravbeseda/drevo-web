@@ -2,6 +2,8 @@ import {
     ApplicationConfig,
     importProvidersFrom,
     provideZonelessChangeDetection,
+    provideAppInitializer,
+    inject,
 } from '@angular/core';
 import { provideRouter, RouterModule } from '@angular/router';
 import { appRoutes } from './app.routes';
@@ -15,6 +17,8 @@ import {
     withInterceptorsFromDi,
 } from '@angular/common/http';
 import { authInterceptorProvider } from './interceptors/auth.interceptor';
+import { LoggerService } from '@drevo-web/core';
+import { environment } from '../environments/environment';
 
 const routesTracing = false;
 
@@ -28,5 +32,9 @@ export const appConfig: ApplicationConfig = {
         importProvidersFrom(
             RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
         ),
+        provideAppInitializer(() => {
+            const logger = inject(LoggerService);
+            logger.setProductionMode(environment.production);
+        }),
     ],
 };

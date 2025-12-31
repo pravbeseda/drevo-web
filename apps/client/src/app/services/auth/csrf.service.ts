@@ -12,7 +12,7 @@ import {
 } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { CsrfResponse } from '@drevo-web/shared';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '@drevo-web/core';
 
 const CSRF_TIMEOUT_MS = 10000;
 const CSRF_RETRY_COUNT = 3;
@@ -31,7 +31,7 @@ export class CsrfService {
     private readonly apiUrl = environment.apiUrl;
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
-    private readonly logger = inject(LoggerService);
+    private readonly logger = inject(LoggerService).withContext('CsrfService');
     private readonly injector = inject(Injector);
 
     private csrfToken: string | undefined;
@@ -86,11 +86,7 @@ export class CsrfService {
                     this.fetchInProgress$ = undefined;
                 }),
                 catchError(error => {
-                    this.logger.error(
-                        'Failed to fetch CSRF token',
-                        'CsrfService',
-                        error
-                    );
+                    this.logger.error('Failed to fetch CSRF token', error);
                     this.fetchInProgress$ = undefined;
                     return throwError(() => error);
                 }),

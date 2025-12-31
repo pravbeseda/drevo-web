@@ -1,0 +1,6 @@
+@if (isLoading()) {
+    <div class="modal-loading">
+        <ui-spinner [diameter]="48" />
+    </div>
+}
+<ng-container #outlet />

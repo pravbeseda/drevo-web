@@ -1,6 +1,5 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../../environments/environment';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -13,23 +12,92 @@ interface LogEntry {
 }
 
 /**
+ * Logger interface matching console API
+ */
+export interface Logger {
+    debug(message: string, data?: unknown): void;
+    info(message: string, data?: unknown): void;
+    warn(message: string, data?: unknown): void;
+    error(message: string, data?: unknown): void;
+}
+
+/**
+ * Context-bound logger wrapper
+ * Provides console-like API with automatic context prefix
+ */
+class ContextLogger implements Logger {
+    constructor(
+        private readonly loggerService: LoggerService,
+        private readonly context: string
+    ) {}
+
+    debug(message: string, data?: unknown): void {
+        this.loggerService.debug(message, data, this.context);
+    }
+
+    info(message: string, data?: unknown): void {
+        this.loggerService.info(message, data, this.context);
+    }
+
+    warn(message: string, data?: unknown): void {
+        this.loggerService.warn(message, data, this.context);
+    }
+
+    error(message: string, data?: unknown): void {
+        this.loggerService.error(message, data, this.context);
+    }
+}
+
+/**
  * Centralized logging service
  * - Disables debug/info logs in production
  * - Adds context and timestamps
  * - Can be extended to send logs to server
+ *
+ * Usage:
+ * ```typescript
+ * private readonly logger = inject(LoggerService).withContext('MyService');
+ * this.logger.debug('Something happened', { data });
+ * ```
+ *
+ * Note: Production mode is determined by Angular's isDevMode() at runtime.
+ * This allows the service to be used across different apps with different
+ * environment configurations.
  */
 @Injectable({
     providedIn: 'root',
 })
-export class LoggerService {
+export class LoggerService implements Logger {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
-    private readonly isProduction = environment.production;
+
+    /**
+     * Production mode flag. Defaults to false (development mode).
+     * Can be configured via `setProductionMode()` during app initialization.
+     */
+    private isProduction = false;
+
+    /**
+     * Configure production mode for the logger.
+     * Call this in app initialization if needed.
+     */
+    setProductionMode(isProduction: boolean): void {
+        this.isProduction = isProduction;
+    }
+
+    /**
+     * Create a context-bound logger instance
+     * @param context - Context name to prefix all log messages (e.g., 'AuthService')
+     * @returns Logger instance with console-like API
+     */
+    withContext(context: string): Logger {
+        return new ContextLogger(this, context);
+    }
 
     /**
      * Log debug message (disabled in production)
      */
-    debug(message: string, context?: string, data?: unknown): void {
+    debug(message: string, data?: unknown, context?: string): void {
         if (!this.isProduction) {
             this.log('debug', message, context, data);
         }
@@ -38,7 +106,7 @@ export class LoggerService {
     /**
      * Log info message (disabled in production)
      */
-    info(message: string, context?: string, data?: unknown): void {
+    info(message: string, data?: unknown, context?: string): void {
         if (!this.isProduction) {
             this.log('info', message, context, data);
         }
@@ -47,14 +115,14 @@ export class LoggerService {
     /**
      * Log warning message
      */
-    warn(message: string, context?: string, data?: unknown): void {
+    warn(message: string, data?: unknown, context?: string): void {
         this.log('warn', message, context, data);
     }
 
     /**
      * Log error message
      */
-    error(message: string, context?: string, data?: unknown): void {
+    error(message: string, data?: unknown, context?: string): void {
         this.log('error', message, context, data);
     }
 
