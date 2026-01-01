@@ -29,7 +29,9 @@ export class AuthService {
     private readonly isBrowser: boolean;
 
     // Auth state
-    private readonly userSubject = new BehaviorSubject<User | null>(null);
+    private readonly userSubject = new BehaviorSubject<User | undefined>(
+        undefined
+    );
     private readonly isLoadingSubject = new BehaviorSubject<boolean>(true);
     private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(
         false
@@ -71,10 +73,7 @@ export class AuthService {
                 .pipe(take(1))
                 .subscribe({
                     error: error =>
-                        this.logger.error(
-                            'Initial auth check failed',
-                            error
-                        ),
+                        this.logger.error('Initial auth check failed', error),
                 });
         } else {
             // SSR: return guest state
@@ -89,7 +88,7 @@ export class AuthService {
         if (!this.isBrowser) {
             return of({
                 isAuthenticated: false,
-                user: null,
+                user: undefined,
                 isLoading: false,
             });
         }
@@ -115,11 +114,11 @@ export class AuthService {
                             isLoading: false,
                         };
                     }
-                    this.userSubject.next(null);
+                    this.userSubject.next(undefined);
                     this.isAuthenticatedSubject.next(false);
                     return {
                         isAuthenticated: false,
-                        user: null,
+                        user: undefined,
                         isLoading: false,
                     };
                 }),
@@ -135,9 +134,7 @@ export class AuthService {
                             error
                         );
                     } else if (error.status === 401 || error.status === 403) {
-                        this.logger.debug(
-                            'Auth check: user not authenticated'
-                        );
+                        this.logger.debug('Auth check: user not authenticated');
                     } else {
                         this.logger.error(
                             `Auth check failed: unexpected error (${error.status})`,
@@ -145,11 +142,11 @@ export class AuthService {
                         );
                     }
 
-                    this.userSubject.next(null);
+                    this.userSubject.next(undefined);
                     this.isAuthenticatedSubject.next(false);
                     return of({
                         isAuthenticated: false,
-                        user: null,
+                        user: undefined,
                         isLoading: false,
                     });
                 }),
@@ -236,7 +233,7 @@ export class AuthService {
                 )
             ),
             tap(() => {
-                this.userSubject.next(null);
+                this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
             }),
             switchMap(() => this.csrfService.refreshCsrfToken()),
@@ -244,7 +241,7 @@ export class AuthService {
             catchError(error => {
                 this.logger.error('Logout failed', error);
                 // Still clear local state even if server request fails
-                this.userSubject.next(null);
+                this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
                 return of(void 0);
             }),
@@ -253,9 +250,9 @@ export class AuthService {
     }
 
     /**
-     * Get current user synchronously (may be null during loading)
+     * Get current user synchronously (may be undefined during loading)
      */
-    get currentUser(): User | null {
+    get currentUser(): User | undefined {
         return this.userSubject.value;
     }
 

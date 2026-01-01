@@ -124,7 +124,7 @@ describe('AuthService', () => {
         it('should return unauthenticated state when user is not logged in', done => {
             spectator.service.checkAuth().subscribe(state => {
                 expect(state.isAuthenticated).toBe(false);
-                expect(state.user).toBeNull();
+                expect(state.user).toBeUndefined();
                 expect(state.isLoading).toBe(false);
                 done();
             });
@@ -136,7 +136,7 @@ describe('AuthService', () => {
         it('should return unauthenticated state on error', done => {
             spectator.service.checkAuth().subscribe(state => {
                 expect(state.isAuthenticated).toBe(false);
-                expect(state.user).toBeNull();
+                expect(state.user).toBeUndefined();
                 expect(state.isLoading).toBe(false);
                 done();
             });
@@ -192,7 +192,7 @@ describe('AuthService', () => {
 
             spectator.service.checkAuth().subscribe(state => {
                 expect(state.isAuthenticated).toBe(false);
-                expect(state.user).toBeNull();
+                expect(state.user).toBeUndefined();
                 done();
             });
 
@@ -208,7 +208,7 @@ describe('AuthService', () => {
 
             spectator.service.checkAuth().subscribe(state => {
                 expect(state.isAuthenticated).toBe(false);
-                expect(state.user).toBeNull();
+                expect(state.user).toBeUndefined();
                 done();
             });
 
@@ -442,7 +442,7 @@ describe('AuthService', () => {
 
         it('should successfully logout user', done => {
             spectator.service.logout().subscribe(() => {
-                expect(spectator.service.currentUser).toBeNull();
+                expect(spectator.service.currentUser).toBeUndefined();
                 expect(spectator.service.isAuthenticated).toBe(false);
                 done();
             });
@@ -513,7 +513,7 @@ describe('AuthService', () => {
             ) as unknown as MockLoggerService;
 
             spectator.service.logout().subscribe(() => {
-                expect(spectator.service.currentUser).toBeNull();
+                expect(spectator.service.currentUser).toBeUndefined();
                 expect(spectator.service.isAuthenticated).toBe(false);
                 expect(loggerService.mockLogger.error).toHaveBeenCalled();
                 done();
@@ -527,8 +527,8 @@ describe('AuthService', () => {
     });
 
     describe('currentUser getter', () => {
-        it('should return null when not authenticated', () => {
-            expect(spectator.service.currentUser).toBeNull();
+        it('should return undefined when not authenticated', () => {
+            expect(spectator.service.currentUser).toBeUndefined();
         });
 
         it('should return user when authenticated', done => {

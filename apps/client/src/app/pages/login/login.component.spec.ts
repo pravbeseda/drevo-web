@@ -49,7 +49,7 @@ describe('LoginComponent', () => {
             expect(spectator.component.password).toBe('');
             expect(spectator.component.rememberMe).toBe(false);
             expect(spectator.component.isSubmitting()).toBe(false);
-            expect(spectator.component.errorMessage()).toBeNull();
+            expect(spectator.component.errorMessage()).toBeUndefined();
         });
 
         it('should render login form', () => {
@@ -187,7 +187,7 @@ describe('LoginComponent', () => {
             spectator.component.password = 'password123';
             spectator.component.onSubmit();
 
-            expect(spectator.component.errorMessage()).toBeNull();
+            expect(spectator.component.errorMessage()).toBeUndefined();
         });
 
         it('should navigate to root on successful login', () => {
@@ -318,10 +318,10 @@ describe('LoginComponent', () => {
             expect(alertElement).toHaveText('Test error');
         });
 
-        it('should not render error alert when errorMessage is null', () => {
+        it('should not render error alert when errorMessage is undefined', () => {
             spectator = createComponent();
 
-            spectator.component.errorMessage.set(null);
+            spectator.component.errorMessage.set(undefined);
             spectator.detectChanges();
 
             expect(spectator.query('[role="alert"]')).not.toExist();

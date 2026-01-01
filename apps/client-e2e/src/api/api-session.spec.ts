@@ -29,17 +29,19 @@ const allowedOrigin = ALLOWED_ORIGINS[0];
 /**
  * Parse Set-Cookie header to extract cookie attributes
  */
-function parseCookieHeader(setCookieHeader: string | undefined): {
-    name: string;
-    value: string;
-    attributes: Record<string, string | boolean>;
-} | null {
-    if (!setCookieHeader) return null;
+function parseCookieHeader(setCookieHeader: string | undefined):
+    | {
+          name: string;
+          value: string;
+          attributes: Record<string, string | boolean>;
+      }
+    | undefined {
+    if (!setCookieHeader) return undefined;
 
     const parts = setCookieHeader.split(';').map(p => p.trim());
     const [nameValue, ...attributeParts] = parts;
 
-    if (!nameValue) return null;
+    if (!nameValue) return undefined;
 
     const [name, value] = nameValue.split('=');
 
@@ -61,7 +63,7 @@ function getSessionCookie(
 ): ReturnType<typeof parseCookieHeader> {
     // Headers can have multiple Set-Cookie values joined by newlines
     const setCookieHeader = headers['set-cookie'];
-    if (!setCookieHeader) return null;
+    if (!setCookieHeader) return undefined;
 
     // Split by newlines and find PHPSESSID
     const cookies = setCookieHeader.split('\n');
@@ -72,7 +74,7 @@ function getSessionCookie(
         }
     }
 
-    return null;
+    return undefined;
 }
 
 test.describe('Session Cookie Security (Task 1.6)', () => {

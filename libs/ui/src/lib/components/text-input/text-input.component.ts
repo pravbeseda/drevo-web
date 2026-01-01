@@ -39,8 +39,8 @@ export class TextInputComponent implements ControlValueAccessor {
     disabled = input<boolean>(false);
     readonly = input<boolean>(false);
     required = input<boolean>(false);
-    maxLength = input<number | null>(null);
-    minLength = input<number | null>(null);
+    maxLength = input<number | undefined>(undefined);
+    minLength = input<number | undefined>(undefined);
 
     valueChanged = output<string>();
 

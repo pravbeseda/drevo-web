@@ -7,7 +7,7 @@ import { User } from '@drevo-web/shared';
 
 describe('AuthStatusComponent', () => {
     let spectator: Spectator<AuthStatusComponent>;
-    let userSubject: BehaviorSubject<User | null>;
+    let userSubject: BehaviorSubject<User | undefined>;
     let isLoadingSubject: BehaviorSubject<boolean>;
     let authServiceMock: Partial<AuthService>;
 
@@ -36,7 +36,7 @@ describe('AuthStatusComponent', () => {
     });
 
     beforeEach(() => {
-        userSubject = new BehaviorSubject<User | null>(null);
+        userSubject = new BehaviorSubject<User | undefined>(undefined);
         isLoadingSubject = new BehaviorSubject<boolean>(false);
 
         authServiceMock = {
@@ -126,7 +126,7 @@ describe('AuthStatusComponent', () => {
 
     describe('Guest state', () => {
         it('should display login link when not authenticated', () => {
-            userSubject.next(null);
+            userSubject.next(undefined);
             isLoadingSubject.next(false);
             spectator = createComponent();
 
@@ -137,7 +137,7 @@ describe('AuthStatusComponent', () => {
         });
 
         it('should not display logout button when not authenticated', () => {
-            userSubject.next(null);
+            userSubject.next(undefined);
             isLoadingSubject.next(false);
             spectator = createComponent();
 
@@ -145,7 +145,7 @@ describe('AuthStatusComponent', () => {
         });
 
         it('should not display user name when not authenticated', () => {
-            userSubject.next(null);
+            userSubject.next(undefined);
             isLoadingSubject.next(false);
             spectator = createComponent();
 
@@ -246,7 +246,7 @@ describe('AuthStatusComponent', () => {
 
         it('should prioritize loading state over guest state', () => {
             isLoadingSubject.next(true);
-            userSubject.next(null);
+            userSubject.next(undefined);
             spectator = createComponent();
 
             // Should show loading, not login link
