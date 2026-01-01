@@ -1,4 +1,5 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ArticleService } from '../../services/articles';
 import { SearchComponent } from './search.component';
@@ -22,7 +23,10 @@ describe('SearchComponent', () => {
 
     const createComponent = createComponentFactory({
         component: SearchComponent,
-        providers: [{ provide: ArticleService, useValue: mockArticleService }],
+        providers: [
+            { provide: ArticleService, useValue: mockArticleService },
+            provideRouter([]),
+        ],
     });
 
     beforeEach(() => {
