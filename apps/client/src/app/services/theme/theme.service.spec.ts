@@ -1,17 +1,17 @@
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
 import { ThemeService } from './theme.service';
 
 describe('ThemeService', () => {
-    let service: ThemeService;
+    let spectator: SpectatorService<ThemeService>;
+    const createService = createServiceFactory({
+        service: ThemeService,
+        providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
+    });
 
     beforeEach(() => {
         localStorage.clear();
-
-        TestBed.configureTestingModule({
-            providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
-        });
-        service = TestBed.inject(ThemeService);
+        spectator = createService();
     });
 
     afterEach(() => {
@@ -20,38 +20,38 @@ describe('ThemeService', () => {
     });
 
     it('should be created', () => {
-        expect(service).toBeTruthy();
+        expect(spectator.service).toBeTruthy();
     });
 
     it('should have default light theme', () => {
-        expect(service.theme()).toBe('light');
+        expect(spectator.service.theme()).toBe('light');
     });
 
     it('should toggle theme from light to dark', () => {
-        service.setTheme('light');
-        service.toggleTheme();
-        expect(service.theme()).toBe('dark');
+        spectator.service.setTheme('light');
+        spectator.service.toggleTheme();
+        expect(spectator.service.theme()).toBe('dark');
     });
 
     it('should toggle theme from dark to light', () => {
-        service.setTheme('dark');
-        service.toggleTheme();
-        expect(service.theme()).toBe('light');
+        spectator.service.setTheme('dark');
+        spectator.service.toggleTheme();
+        expect(spectator.service.theme()).toBe('light');
     });
 
     it('should set theme correctly', () => {
-        service.setTheme('dark');
-        expect(service.theme()).toBe('dark');
+        spectator.service.setTheme('dark');
+        expect(spectator.service.theme()).toBe('dark');
 
-        service.setTheme('light');
-        expect(service.theme()).toBe('light');
+        spectator.service.setTheme('light');
+        expect(spectator.service.theme()).toBe('light');
     });
 
     it('should return correct isDark value', () => {
-        service.setTheme('light');
-        expect(service.isDark()).toBe(false);
+        spectator.service.setTheme('light');
+        expect(spectator.service.isDark()).toBe(false);
 
-        service.setTheme('dark');
-        expect(service.isDark()).toBe(true);
+        spectator.service.setTheme('dark');
+        expect(spectator.service.isDark()).toBe(true);
     });
 });

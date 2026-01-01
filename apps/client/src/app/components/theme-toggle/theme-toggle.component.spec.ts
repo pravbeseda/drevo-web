@@ -1,21 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { ThemeToggleComponent } from './theme-toggle.component';
 import { ThemeService } from '../../services/theme/theme.service';
 
 describe('ThemeToggleComponent', () => {
-    let component: ThemeToggleComponent;
-    let fixture: ComponentFixture<ThemeToggleComponent>;
+    let spectator: Spectator<ThemeToggleComponent>;
     let themeService: ThemeService;
 
-    beforeEach(async () => {
-        await TestBed.configureTestingModule({
-            imports: [ThemeToggleComponent],
-        }).compileComponents();
+    const createComponent = createComponentFactory({
+        component: ThemeToggleComponent,
+    });
 
-        fixture = TestBed.createComponent(ThemeToggleComponent);
-        component = fixture.componentInstance;
-        themeService = TestBed.inject(ThemeService);
-        fixture.detectChanges();
+    beforeEach(() => {
+        spectator = createComponent();
+        themeService = spectator.inject(ThemeService);
     });
 
     afterEach(() => {
@@ -24,22 +21,22 @@ describe('ThemeToggleComponent', () => {
     });
 
     it('should create', () => {
-        expect(component).toBeTruthy();
+        expect(spectator.component).toBeTruthy();
     });
 
     it('should show dark_mode icon when theme is light', () => {
         themeService.setTheme('light');
-        expect(component.icon).toBe('dark_mode');
+        expect(spectator.component.icon).toBe('dark_mode');
     });
 
     it('should show light_mode icon when theme is dark', () => {
         themeService.setTheme('dark');
-        expect(component.icon).toBe('light_mode');
+        expect(spectator.component.icon).toBe('light_mode');
     });
 
     it('should toggle theme when clicked', () => {
         themeService.setTheme('light');
-        component.toggle();
+        spectator.component.toggle();
         expect(themeService.theme()).toBe('dark');
     });
 });

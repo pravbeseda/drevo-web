@@ -7,6 +7,8 @@ export interface ModalConfig<TData = unknown> {
     width?: string;
     minWidth?: string;
     maxWidth?: string;
+    minHeight?: string;
+    maxHeight?: string;
     disableClose?: boolean;
     panelClass?: string | string[];
 }

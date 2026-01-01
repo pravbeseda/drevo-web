@@ -19,7 +19,7 @@ export class HeaderComponent {
                 import('../../pages/search/search.component').then(
                     m => m.SearchComponent
                 ),
-            { width: '600px' }
+            { width: '600px', minHeight: '90vh' }
         );
     }
 }

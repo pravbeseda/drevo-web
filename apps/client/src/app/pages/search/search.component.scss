@@ -3,3 +3,44 @@
     margin: 0 auto;
     padding: 1rem;
 }
+
+.search-loading {
+    margin-top: 1rem;
+    color: var(--text-secondary, #666);
+    font-style: italic;
+}
+
+.search-results-header {
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary, #666);
+}
+
+.search-results-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.search-result-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color, #eee);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    a {
+        color: var(--link-color, #0066cc);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-no-results {
+    margin-top: 1rem;
+    color: var(--text-secondary, #666);
+}

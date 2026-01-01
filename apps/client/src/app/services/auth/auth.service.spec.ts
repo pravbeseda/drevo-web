@@ -591,7 +591,6 @@ describe('AuthService', () => {
     });
 
     describe('SSR platform', () => {
-        // SSR tests need separate test file due to TestBed limitations with different PLATFORM_ID
         // These tests verify the service handles server-side rendering correctly
 
         it('should handle non-browser environment gracefully', () => {

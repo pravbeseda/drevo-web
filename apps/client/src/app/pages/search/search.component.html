@@ -3,4 +3,27 @@
         label="Поиск"
         placeholder="Введите запрос..."
         (valueChanged)="onSearchChange($event)" />
+
+    @if (isLoading()) {
+        <div class="search-loading">Поиск...</div>
+    }
+
+    @if (searchResults().length > 0) {
+        <div class="search-results">
+            <div class="search-results-header">
+                Найдено: {{ totalResults() }}
+            </div>
+            <ul class="search-results-list">
+                @for (result of searchResults(); track result.id) {
+                    <li class="search-result-item">
+                        <a [href]="'/articles/' + result.id">{{ result.title }}</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    } @else if (searchQuery().length > 0 && !isLoading()) {
+        <div class="search-no-results">
+            По запросу "{{ searchQuery() }}" ничего не найдено
+        </div>
+    }
 </div>
