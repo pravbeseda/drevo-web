@@ -1,7 +1,9 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ArticleService } from '../../services/articles';
 import { SearchComponent } from './search.component';
+
+const DEBOUNCE_TIME_MS = 500;
 
 describe('SearchComponent', () => {
     let spectator: Spectator<SearchComponent>;
@@ -25,6 +27,11 @@ describe('SearchComponent', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     it('should create', () => {
@@ -43,10 +50,14 @@ describe('SearchComponent', () => {
         expect(spectator.component.searchQuery()).toBe('test query');
     });
 
-    it('should call articleService.searchArticles when search query is not empty', () => {
+    it('should call articleService.searchArticles after debounce time', () => {
         spectator = createComponent();
 
         spectator.component.onSearchChange('angular');
+
+        expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
         expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
             query: 'angular',
@@ -58,10 +69,22 @@ describe('SearchComponent', () => {
 
         spectator.component.onSearchChange('');
 
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
         expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
     });
 
-    it('should clear results when search query becomes empty', () => {
+    it('should not call articleService.searchArticles when search query is only whitespace', () => {
+        spectator = createComponent();
+
+        spectator.component.onSearchChange('   ');
+
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
+    });
+
+    it('should clear results immediately when search query becomes empty', () => {
         mockArticleService.searchArticles.mockReturnValue(
             of({
                 items: [{ id: 1, title: 'Test Article' }],
@@ -74,9 +97,11 @@ describe('SearchComponent', () => {
         spectator = createComponent();
 
         spectator.component.onSearchChange('test');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
         expect(spectator.component.searchResults().length).toBe(1);
 
         spectator.component.onSearchChange('');
+        // Results should clear immediately, no need to wait for debounce
         expect(spectator.component.searchResults().length).toBe(0);
         expect(spectator.component.totalResults()).toBe(0);
     });
@@ -96,9 +121,61 @@ describe('SearchComponent', () => {
         spectator = createComponent();
 
         spectator.component.onSearchChange('test');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
         expect(spectator.component.searchResults()).toEqual(mockResponse.items);
         expect(spectator.component.totalResults()).toBe(50);
+        expect(spectator.component.isLoading()).toBe(false);
+    });
+
+    it('should debounce multiple rapid search inputs', () => {
+        spectator = createComponent();
+
+        spectator.component.onSearchChange('a');
+        jest.advanceTimersByTime(100);
+        spectator.component.onSearchChange('an');
+        jest.advanceTimersByTime(100);
+        spectator.component.onSearchChange('ang');
+        jest.advanceTimersByTime(100);
+        spectator.component.onSearchChange('angu');
+        jest.advanceTimersByTime(100);
+        spectator.component.onSearchChange('angul');
+        jest.advanceTimersByTime(100);
+        spectator.component.onSearchChange('angular');
+
+        expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
+            query: 'angular',
+        });
+    });
+
+    it('should not call search again if query has not changed', () => {
+        spectator = createComponent();
+
+        spectator.component.onSearchChange('test');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+
+        spectator.component.onSearchChange('test');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle search errors gracefully', () => {
+        mockArticleService.searchArticles.mockReturnValue(
+            throwError(() => new Error('Search failed'))
+        );
+        spectator = createComponent();
+
+        spectator.component.onSearchChange('test');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        expect(spectator.component.searchResults()).toEqual([]);
+        expect(spectator.component.totalResults()).toBe(0);
         expect(spectator.component.isLoading()).toBe(false);
     });
 });
