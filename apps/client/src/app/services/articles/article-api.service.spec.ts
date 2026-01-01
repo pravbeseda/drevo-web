@@ -92,4 +92,68 @@ describe('ArticleApiService', () => {
             expectSearchRequest({ page: '3', size: '50' });
         });
     });
+
+    describe('error handling', () => {
+        it('should throw when response.data is undefined', done => {
+            spectator.service.searchArticles('test').subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/search'
+            );
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should throw when response.data is missing', done => {
+            spectator.service.searchArticles('test').subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/search'
+            );
+            req.flush({ success: false, error: 'Not found' });
+        });
+
+        it('should propagate HTTP 500 errors', done => {
+            spectator.service.searchArticles('test').subscribe({
+                error: err => {
+                    expect(err.status).toBe(500);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/search'
+            );
+            req.flush('Server error', {
+                status: 500,
+                statusText: 'Internal Server Error',
+            });
+        });
+
+        it('should propagate HTTP 404 errors', done => {
+            spectator.service.searchArticles('test').subscribe({
+                error: err => {
+                    expect(err.status).toBe(404);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/search'
+            );
+            req.flush('Not found', {
+                status: 404,
+                statusText: 'Not Found',
+            });
+        });
+    });
 });
