@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { TextInputComponent } from '@drevo-web/ui';
 import { ArticleSearchResult } from '@drevo-web/shared';
 import {
@@ -23,7 +24,7 @@ const DEBOUNCE_TIME_MS = 500;
 
 @Component({
     selector: 'app-search',
-    imports: [CommonModule, TextInputComponent],
+    imports: [CommonModule, RouterLink, TextInputComponent],
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
