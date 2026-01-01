@@ -2,7 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ApiResponse, ArticleSearchResponseApi } from '@drevo-web/shared';
+import {
+    ApiResponse,
+    ArticleSearchResponseApi,
+    assertIsDefined,
+} from '@drevo-web/shared';
 import { environment } from '../../../environments/environment';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 
@@ -44,6 +48,14 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleSearchResponseApi>
             >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
-            .pipe(map(response => response.data!));
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
     }
 }

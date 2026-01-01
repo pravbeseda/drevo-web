@@ -1,4 +1,5 @@
 import nx from '@nx/eslint-plugin';
+import noNull from 'eslint-plugin-no-null';
 
 export default [
   ...nx.configs['flat/base'],
@@ -36,7 +37,11 @@ export default [
       '**/*.cjs',
       '**/*.mjs',
     ],
-    // Override or add rules here
-    rules: {},
+    plugins: {
+      'no-null': noNull,
+    },
+    rules: {
+      'no-null/no-null': 'error',
+    },
   },
 ];
