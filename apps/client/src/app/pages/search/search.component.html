@@ -16,7 +16,7 @@
             <ul class="search-results-list">
                 @for (result of searchResults(); track result.id) {
                     <li class="search-result-item">
-                        <a [href]="'/articles/' + result.id">{{ result.title }}</a>
+                        <a [routerLink]="['/articles', result.id]">{{ result.title }}</a>
                     </li>
                 }
             </ul>
