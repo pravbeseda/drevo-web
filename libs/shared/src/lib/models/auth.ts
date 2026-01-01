@@ -27,6 +27,6 @@ export interface CsrfResponse {
 
 export interface AuthState {
     isAuthenticated: boolean;
-    user: User | null;
+    user: User | undefined;
     isLoading: boolean;
 }

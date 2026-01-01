@@ -46,7 +46,7 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown>
 
     protected readonly isLoading = signal(true);
 
-    private componentRef: ComponentRef<unknown> | null = null;
+    private componentRef: ComponentRef<unknown> | undefined = undefined;
 
     ngAfterViewInit(): void {
         this.loadComponent();

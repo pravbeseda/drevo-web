@@ -522,8 +522,8 @@ API предназначен для браузерных клиентов. Origi
 
 #### Task 2.2: User и Auth модели/интерфейсы
 **Файлы:**
-- `libs/shared/src/lib/models/user.d.ts`
-- `libs/shared/src/lib/models/auth.d.ts`
+- `libs/shared/src/lib/models/user.ts`
+- `libs/shared/src/lib/models/auth.ts`
 - `libs/shared/src/index.ts` (export)
 
 **Описание:**

@@ -80,7 +80,7 @@ export class LoginComponent {
     rememberMe = false;
 
     readonly isSubmitting = signal(false);
-    readonly errorMessage = signal<string | null>(null);
+    readonly errorMessage = signal<string | undefined>(undefined);
 
     isFormValid(): boolean {
         return this.username.trim().length > 0 && this.password.length > 0;
@@ -96,7 +96,7 @@ export class LoginComponent {
         }
 
         this.isSubmitting.set(true);
-        this.errorMessage.set(null);
+        this.errorMessage.set(undefined);
 
         // Capture credentials and clear password immediately
         const credentials = {

@@ -134,6 +134,7 @@ export class WikiHighlighterService {
         isBalancedCorrectionNeeded = false
     ): void {
         let match;
+        // eslint-disable-next-line no-null/no-null
         while ((match = regex.exec(this.text)) !== null) {
             let matchedText = match[0];
             if (isBalancedCorrectionNeeded) {
@@ -149,6 +150,7 @@ export class WikiHighlighterService {
 
     private collectLinksMatches(): void {
         let match;
+        // eslint-disable-next-line no-null/no-null
         while ((match = this.linkRegex.exec(this.text)) !== null) {
             const matchedText = this.trimToBalanced(match[1]);
             const start = match.index + 2; // Skip the opening brackets
@@ -164,6 +166,7 @@ export class WikiHighlighterService {
 
     private collectMapPointMatches(): void {
         let match: RegExpExecArray | null;
+        // eslint-disable-next-line no-null/no-null
         while ((match = this.mapPointRegex.exec(this.text)) !== null) {
             const fullMatch = match[0];
             const start = match.index;

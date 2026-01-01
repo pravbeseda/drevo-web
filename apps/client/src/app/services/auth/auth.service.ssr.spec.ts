@@ -41,7 +41,7 @@ describe('AuthService SSR', () => {
         it('should return unauthenticated state without making HTTP request', done => {
             spectator.service.checkAuth().subscribe(state => {
                 expect(state.isAuthenticated).toBe(false);
-                expect(state.user).toBeNull();
+                expect(state.user).toBeUndefined();
                 expect(state.isLoading).toBe(false);
                 done();
             });
@@ -100,8 +100,8 @@ describe('AuthService SSR', () => {
     });
 
     describe('currentUser on server', () => {
-        it('should return null', () => {
-            expect(spectator.service.currentUser).toBeNull();
+        it('should return undefined', () => {
+            expect(spectator.service.currentUser).toBeUndefined();
         });
     });
 

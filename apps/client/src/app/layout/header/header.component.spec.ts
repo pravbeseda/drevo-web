@@ -14,7 +14,7 @@ describe('HeaderComponent', () => {
             provideRouter([]),
             MockProvider(ModalService),
             MockProvider(AuthService, {
-                user$: of(null),
+                user$: of(undefined),
                 isLoading$: of(false),
             }),
         ],
