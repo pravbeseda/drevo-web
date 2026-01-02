@@ -55,9 +55,6 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
     /** Items to display in the virtual scroll */
     readonly items = input.required<readonly T[]>();
 
-    /** Minimum item height for virtual scroll calculations (used as estimate for autosize) */
-    readonly minItemSize = input<number>(48);
-
     /** Number of items from the end to trigger loadMore event */
     readonly loadMoreThreshold = input<number>(DEFAULT_LOAD_MORE_THRESHOLD);
 
