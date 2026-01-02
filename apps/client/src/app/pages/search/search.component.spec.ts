@@ -1,6 +1,6 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { delay, of, throwError } from 'rxjs';
 import { ArticleService } from '../../services/articles';
 import { SearchComponent } from './search.component';
 
@@ -65,6 +65,7 @@ describe('SearchComponent', () => {
 
         expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
             query: 'angular',
+            page: 1,
         });
     });
 
@@ -88,7 +89,7 @@ describe('SearchComponent', () => {
         expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
     });
 
-    it('should clear results immediately when search query becomes empty', () => {
+    it('should clear results when search query becomes empty after debounce', () => {
         mockArticleService.searchArticles.mockReturnValue(
             of({
                 items: [{ id: 1, title: 'Test Article' }],
@@ -105,7 +106,8 @@ describe('SearchComponent', () => {
         expect(spectator.component.searchResults().length).toBe(1);
 
         spectator.component.onSearchChange('');
-        // Results should clear immediately, no need to wait for debounce
+        // Results clear after debounce when using switchMap for cancellation
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
         expect(spectator.component.searchResults().length).toBe(0);
         expect(spectator.component.totalResults()).toBe(0);
     });
@@ -154,6 +156,7 @@ describe('SearchComponent', () => {
         expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
         expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
             query: 'angular',
+            page: 1,
         });
     });
 
@@ -181,5 +184,95 @@ describe('SearchComponent', () => {
         expect(spectator.component.searchResults()).toEqual([]);
         expect(spectator.component.totalResults()).toBe(0);
         expect(spectator.component.isLoading()).toBe(false);
+    });
+
+    it('should cancel previous request when clearing search quickly (race condition)', () => {
+        // Simulate a slow HTTP request that takes 1000ms
+        const slowResponse = {
+            items: [{ id: 1, title: 'Stale Result' }],
+            total: 1,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+        mockArticleService.searchArticles.mockReturnValue(
+            of(slowResponse).pipe(delay(1000))
+        );
+        spectator = createComponent();
+
+        // User types 'a'
+        spectator.component.onSearchChange('a');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        // Request is now in flight
+        expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
+            query: 'a',
+            page: 1,
+        });
+        expect(spectator.component.isLoading()).toBe(true);
+
+        // User quickly clears the input before request completes
+        spectator.component.onSearchChange('');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        // Results should be empty, loading should be false
+        expect(spectator.component.searchResults()).toEqual([]);
+        expect(spectator.component.isLoading()).toBe(false);
+
+        // Now let the slow request "complete" - it should have been cancelled
+        jest.advanceTimersByTime(1000);
+
+        // Results should still be empty - stale response should not appear
+        expect(spectator.component.searchResults()).toEqual([]);
+        expect(spectator.component.totalResults()).toBe(0);
+    });
+
+    it('should cancel previous request when typing new query quickly', () => {
+        const staleResponse = {
+            items: [{ id: 1, title: 'Stale Result for "a"' }],
+            total: 1,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+        const freshResponse = {
+            items: [{ id: 2, title: 'Fresh Result for "abc"' }],
+            total: 1,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(of(staleResponse).pipe(delay(1000)))
+            .mockReturnValueOnce(of(freshResponse).pipe(delay(100)));
+
+        spectator = createComponent();
+
+        // User types 'a'
+        spectator.component.onSearchChange('a');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+
+        // User types 'abc' before first request completes
+        spectator.component.onSearchChange('abc');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(2);
+
+        // Wait for second (faster) request to complete
+        jest.advanceTimersByTime(100);
+
+        // Should have fresh results, not stale
+        expect(spectator.component.searchResults()).toEqual(
+            freshResponse.items
+        );
+
+        // Wait for stale request to "complete"
+        jest.advanceTimersByTime(1000);
+
+        // Results should still be fresh - stale response was cancelled
+        expect(spectator.component.searchResults()).toEqual(
+            freshResponse.items
+        );
     });
 });

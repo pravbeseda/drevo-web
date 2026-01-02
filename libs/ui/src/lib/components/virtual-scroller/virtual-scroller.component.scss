@@ -1,0 +1,27 @@
+:host {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.virtual-scroller-viewport {
+    height: 100%;
+    width: 100%;
+}
+
+.virtual-scroller-item {
+    // Allow item to determine its own height
+    box-sizing: border-box;
+
+    &--default {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+}
+
+.virtual-scroller-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}

@@ -5,25 +5,33 @@
         (valueChanged)="onSearchChange($event)" />
 
     @if (isLoading()) {
-        <div class="search-loading">Поиск...</div>
+        <ui-spinner />
     }
 
-    @if (searchResults().length > 0) {
+    @if (hasResults()) {
         <div class="search-results">
             <div class="search-results-header">
-                Найдено: {{ totalResults() }}
+                Найдено "{{ searchQuery() }}": {{ totalResults() }}
             </div>
-            <ul class="search-results-list">
-                @for (result of searchResults(); track result.id) {
-                    <li class="search-result-item">
-                        <a [routerLink]="['/articles', result.id]">{{ result.title }}</a>
-                    </li>
-                }
-            </ul>
+            <ui-virtual-scroller
+                class="search-results-scroller"
+                [items]="searchResults()"
+                [totalItems]="totalResults()"
+                [isLoading]="isLoadingMore()"
+                [trackByFn]="trackByFn"
+                (loadMore)="onLoadMore()">
+                <ng-template
+                    uiVirtualScrollerItem
+                    let-result>
+                    <a
+                        class="search-result-item"
+                        [routerLink]="['/articles', result.id]">
+                        {{ result.title }}
+                    </a>
+                </ng-template>
+            </ui-virtual-scroller>
         </div>
-    } @else if (searchQuery().length > 0 && !isLoading()) {
-        <div class="search-no-results">
-            По запросу "{{ searchQuery() }}" ничего не найдено
-        </div>
+    } @else if (showNoResults()) {
+        <div class="search-no-results">Ничего не найдено</div>
     }
 </div>

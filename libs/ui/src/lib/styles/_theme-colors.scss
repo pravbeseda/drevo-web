@@ -44,6 +44,15 @@ $theme-colors: (
         light: $md-grey-500,
         dark: $md-grey-600,
     ),
+    // Menu
+    menu-hover-background: (
+            light: $md-grey-300,
+            dark: $md-grey-900,
+        ),
+    menu-border-color: (
+        light: $md-grey-300,
+        dark: $md-grey-900,
+    ),
     // Border & Shadow
     border-color: (
             light: $md-grey-300,
