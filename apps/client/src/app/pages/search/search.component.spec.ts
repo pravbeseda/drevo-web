@@ -275,4 +275,176 @@ describe('SearchComponent', () => {
             freshResponse.items
         );
     });
+
+    describe('onLoadMore', () => {
+        const firstPageResponse = {
+            items: [
+                { id: 1, title: 'Article 1' },
+                { id: 2, title: 'Article 2' },
+            ],
+            total: 4,
+            page: 1,
+            pageSize: 2,
+            totalPages: 2,
+        };
+
+        const secondPageResponse = {
+            items: [
+                { id: 3, title: 'Article 3' },
+                { id: 4, title: 'Article 4' },
+            ],
+            total: 4,
+            page: 2,
+            pageSize: 2,
+            totalPages: 2,
+        };
+
+        it('should load next page and append results to existing ones', () => {
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(of(secondPageResponse));
+            spectator = createComponent();
+
+            // Load first page
+            spectator.component.onSearchChange('test');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            expect(spectator.component.searchResults()).toEqual(
+                firstPageResponse.items
+            );
+            expect(spectator.component.currentPage()).toBe(1);
+
+            // Load more
+            spectator.component.onLoadMore();
+
+            expect(mockArticleService.searchArticles).toHaveBeenLastCalledWith({
+                query: 'test',
+                page: 2,
+            });
+            expect(spectator.component.searchResults()).toEqual([
+                ...firstPageResponse.items,
+                ...secondPageResponse.items,
+            ]);
+            expect(spectator.component.currentPage()).toBe(2);
+            expect(spectator.component.isLoadingMore()).toBe(false);
+        });
+
+        it('should not load more when all results are already loaded', () => {
+            const allLoadedResponse = {
+                items: [{ id: 1, title: 'Article 1' }],
+                total: 1,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            };
+            mockArticleService.searchArticles.mockReturnValue(
+                of(allLoadedResponse)
+            );
+            spectator = createComponent();
+
+            // Load first (and only) page
+            spectator.component.onSearchChange('test');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+
+            // Try to load more
+            spectator.component.onLoadMore();
+
+            // Should not call searchArticles again
+            expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+            expect(spectator.component.isLoadingMore()).toBe(false);
+        });
+
+        it('should set isLoadingMore to true during request', () => {
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(of(secondPageResponse).pipe(delay(500)));
+            spectator = createComponent();
+
+            // Load first page
+            spectator.component.onSearchChange('test');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            // Start loading more
+            spectator.component.onLoadMore();
+
+            expect(spectator.component.isLoadingMore()).toBe(true);
+
+            // Complete the request
+            jest.advanceTimersByTime(500);
+
+            expect(spectator.component.isLoadingMore()).toBe(false);
+        });
+
+        it('should handle pagination errors without losing existing results', () => {
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(
+                    throwError(() => new Error('Pagination failed'))
+                );
+            spectator = createComponent();
+
+            // Load first page
+            spectator.component.onSearchChange('test');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            const existingResults = spectator.component.searchResults();
+            expect(existingResults).toEqual(firstPageResponse.items);
+
+            // Try to load more (will fail)
+            spectator.component.onLoadMore();
+
+            // Existing results should be preserved
+            expect(spectator.component.searchResults()).toEqual(existingResults);
+            expect(spectator.component.isLoadingMore()).toBe(false);
+        });
+
+        it('should not increment currentPage on error', () => {
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(
+                    throwError(() => new Error('Pagination failed'))
+                );
+            spectator = createComponent();
+
+            // Load first page
+            spectator.component.onSearchChange('test');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            expect(spectator.component.currentPage()).toBe(1);
+
+            // Try to load more (will fail)
+            spectator.component.onLoadMore();
+
+            // Page should remain unchanged
+            expect(spectator.component.currentPage()).toBe(1);
+        });
+
+        it('should reset to page 1 when starting a new search', () => {
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(of(secondPageResponse))
+                .mockReturnValueOnce(of(firstPageResponse));
+            spectator = createComponent();
+
+            // Load first page
+            spectator.component.onSearchChange('test');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            // Load second page
+            spectator.component.onLoadMore();
+            expect(spectator.component.currentPage()).toBe(2);
+
+            // Start new search
+            spectator.component.onSearchChange('new query');
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            expect(spectator.component.currentPage()).toBe(1);
+            expect(mockArticleService.searchArticles).toHaveBeenLastCalledWith({
+                query: 'new query',
+                page: 1,
+            });
+        });
+    });
 });
