@@ -369,6 +369,13 @@
   optionalDependencies:
     lmdb "3.4.2"
 
+"@angular/cdk-experimental@^20.0.0":
+  version "20.2.14"
+  resolved "https://registry.yarnpkg.com/@angular/cdk-experimental/-/cdk-experimental-20.2.14.tgz#5e8f58acd238f28cb7e63507ff2ddefce6a4b89e"
+  integrity sha512-oTqd8fV9m8HfzIpd1GXJ9OOKhTV/2D3hPfhZjG4puTQ5JeWcljVR2T/fZHpWGnNRoHJL5MkIkQP6338uJbX22Q==
+  dependencies:
+    tslib "^2.3.0"
+
 "@angular/cdk@^20.0.0":
   version "20.2.14"
   resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-20.2.14.tgz#5da8d29a0688cf0c6f58db77aee8afa0a05faaea"
