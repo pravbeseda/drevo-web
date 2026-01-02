@@ -3,7 +3,6 @@ import {
     Component,
     computed,
     DestroyRef,
-    effect,
     inject,
     OnInit,
     signal,
@@ -27,7 +26,6 @@ import {
     tap,
 } from 'rxjs';
 import { ArticleService } from '../../services/articles';
-import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from '../../services/articles/article.constants';
 
 const DEBOUNCE_TIME_MS = 500;
 

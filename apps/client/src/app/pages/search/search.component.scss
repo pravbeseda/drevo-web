@@ -9,7 +9,7 @@
 
 .search-loading {
     margin-top: 1rem;
-    color: var(--text-secondary);
+    color: var(--themed-text-secondary);
     font-style: italic;
 }
 
@@ -23,7 +23,7 @@
 .search-results-header {
     font-weight: 500;
     margin-bottom: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--themed-text-secondary);
     flex-shrink: 0;
 }
 
