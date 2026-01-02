@@ -15,8 +15,6 @@ describe('VirtualScrollerComponent', () => {
         imports: [ScrollingModule],
     });
 
-    const trackById = (_index: number, item: TestItem): number => item.id;
-
     it('should create', () => {
         spectator = createHost(
             `<ui-virtual-scroller [items]="[]" [totalItems]="0" />`
