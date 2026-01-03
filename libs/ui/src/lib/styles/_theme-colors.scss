@@ -53,6 +53,14 @@ $theme-colors: (
         light: $md-grey-300,
         dark: $md-grey-900,
     ),
+    search-highlighted-bg: (
+        light: $md-yellow-300,
+        dark: $md-yellow-800,
+    ),
+    search-highlighted: (
+        light: black,
+        dark: black,
+    ),
     // Border & Shadow
     border-color: (
             light: $md-grey-300,
