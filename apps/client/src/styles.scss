@@ -91,11 +91,11 @@ html.dark-theme body {
 // ============================================================================
 
 /* Firefox + modern browsers */
-.cdk-virtual-scroll-viewport,
+.cdk-virtual-scrollable,
 .cdk-overlay-container .mat-mdc-select-panel,
 .cdk-overlay-container .mat-mdc-autocomplete-panel {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.45) transparent;
+    scrollbar-color: var(--themed-border-color) transparent;
 }
 
 /* Chromium/Safari (non-standard) */
