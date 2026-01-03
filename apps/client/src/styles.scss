@@ -90,22 +90,20 @@ html.dark-theme body {
 // SCROLLBAR STYLES
 // ============================================================================
 
-/* Firefox + современные браузеры */
-.cdk-virtual-scrollable,
+/* Firefox + modern browsers */
+.cdk-virtual-scroll-viewport,
 .cdk-overlay-container .mat-mdc-select-panel,
-.cdk-virtual-scrollable,
 .cdk-overlay-container .mat-mdc-autocomplete-panel {
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.45) transparent;
 }
 
 /* Chromium/Safari (non-standard) */
-.cdk-virtual-scrollable,
 .cdk-overlay-container .mat-mdc-select-panel::-webkit-scrollbar,
-.cdk-virtual-scrollable,
 .cdk-overlay-container .mat-mdc-autocomplete-panel::-webkit-scrollbar {
     width: 10px;
 }
+
 .cdk-overlay-container .mat-mdc-select-panel::-webkit-scrollbar-thumb,
 .cdk-overlay-container .mat-mdc-autocomplete-panel::-webkit-scrollbar-thumb {
     border-radius: 999px;
