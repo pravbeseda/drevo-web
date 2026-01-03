@@ -4,3 +4,4 @@ export * from './lib/components/text-input/text-input.component';
 export * from './lib/components/virtual-scroller/virtual-scroller.component';
 export * from './lib/components/virtual-scroller/virtual-scroller-item.directive';
 export * from './lib/modal';
+export * from './lib/pipes/highlight/highlight.pipe';

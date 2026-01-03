@@ -75,3 +75,13 @@ html.light-theme body {
 html.dark-theme body {
     color-scheme: dark;
 }
+
+// ============================================================================
+// GLOBAL UTILITY STYLES
+// ============================================================================
+
+// Highlight style for search results (used by HighlightPipe)
+.highlighted-text {
+    background-color: var(--themed-search-highlighted-bg);
+    color: var(--themed-search-highlighted);
+}

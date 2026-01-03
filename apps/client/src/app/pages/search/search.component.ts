@@ -15,6 +15,7 @@ import {
     TextInputComponent,
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
+    HighlightPipe,
 } from '@drevo-web/ui';
 import { ArticleSearchResult } from '@drevo-web/shared';
 import {
@@ -38,6 +39,7 @@ const DEBOUNCE_TIME_MS = 500;
         SpinnerComponent,
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
+        HighlightPipe,
     ],
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
