@@ -85,3 +85,26 @@ html.dark-theme body {
     background-color: var(--themed-search-highlighted-bg);
     color: var(--themed-search-highlighted);
 }
+
+// ============================================================================
+// SCROLLBAR STYLES
+// ============================================================================
+
+/* Firefox + modern browsers */
+.cdk-virtual-scrollable,
+.cdk-overlay-container .mat-mdc-select-panel,
+.cdk-overlay-container .mat-mdc-autocomplete-panel {
+    scrollbar-width: thin;
+    scrollbar-color: var(--themed-border-color) transparent;
+}
+
+/* Chromium/Safari (non-standard) */
+.cdk-overlay-container .mat-mdc-select-panel::-webkit-scrollbar,
+.cdk-overlay-container .mat-mdc-autocomplete-panel::-webkit-scrollbar {
+    width: 10px;
+}
+
+.cdk-overlay-container .mat-mdc-select-panel::-webkit-scrollbar-thumb,
+.cdk-overlay-container .mat-mdc-autocomplete-panel::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+}
