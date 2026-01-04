@@ -79,22 +79,19 @@ $theme-colors: (
         light: $md-blue-800,
         dark: $md-blue-200,
     ),
-    // Semantic colors
-    accent-color: (
-            light: $md-pink-A200,
-            dark: $md-pink-A100,
+
+    // Toast backgrounds (darker for better contrast with white text)
+    toast-success-bg: (
+            light: $md-green-700,
+            dark: $md-green-800,
         ),
-    success-color: (
-        light: $md-green-500,
-        dark: $md-green-300,
+    toast-error-bg: (
+        light: $md-red-700,
+        dark: $md-red-900,
     ),
-    warning-color: (
-        light: $md-orange-500,
-        dark: $md-orange-300,
-    ),
-    error-color: (
-        light: $md-red-500,
-        dark: $md-red-300,
+    toast-info-bg: (
+        light: $md-blue-700,
+        dark: $md-blue-900,
     )
 );
 
