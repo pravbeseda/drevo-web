@@ -21,6 +21,8 @@ import { ArticleSearchResult } from '@drevo-web/shared';
 import {
     debounceTime,
     distinctUntilChanged,
+    map,
+    startWith,
     Subject,
     switchMap,
     tap,
@@ -71,16 +73,16 @@ export class SearchComponent implements OnInit {
         item.id;
 
     ngOnInit(): void {
-        // Load initial results without search query
-        this.loadArticles('');
-
         this.searchSubject
             .pipe(
-                debounceTime(DEBOUNCE_TIME_MS),
+                startWith(''),
+                map(query => query.trim()),
                 distinctUntilChanged(),
                 tap(() => {
+                    this.isLoading.set(true);
                     this.currentPage.set(1);
                 }),
+                debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
                     return this.articleService.searchArticles({
                         query,
@@ -103,31 +105,8 @@ export class SearchComponent implements OnInit {
             });
     }
 
-    /**
-     * Load articles with optional query
-     */
-    private loadArticles(query: string): void {
-        this.isLoading.set(true);
-        this.articleService
-            .searchArticles({ query, page: 1 })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: response => {
-                    this.searchResults.set([...response.items]);
-                    this.totalResults.set(response.total);
-                    this.isLoading.set(false);
-                },
-                error: () => {
-                    this.searchResults.set([]);
-                    this.totalResults.set(0);
-                    this.isLoading.set(false);
-                },
-            });
-    }
-
     onSearchChange(value: string): void {
         this.searchQuery.set(value);
-        this.isLoading.set(true);
         this.searchSubject.next(value);
     }
 
