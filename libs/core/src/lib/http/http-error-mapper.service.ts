@@ -82,7 +82,7 @@ export class HttpErrorMapperService {
 
         // Server errors
         if (err.status >= 500) {
-            return 'Ошибка на сервере. Попробуйте позже';
+            return 'Ошибка на сервере. Попробуйте позже.';
         }
 
         // Try to extract backend message for other errors

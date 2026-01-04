@@ -114,7 +114,7 @@ describe('HttpErrorMapperService', () => {
             const error = createHttpError(500);
             const result = spectator.service.mapError(error);
 
-            expect(result.message).toBe('Ошибка на сервере. Попробуйте позже');
+            expect(result.message).toBe('Ошибка на сервере. Попробуйте позже.');
             expect(result.isServerError).toBe(true);
         });
 
@@ -122,7 +122,7 @@ describe('HttpErrorMapperService', () => {
             const error = createHttpError(502);
             const result = spectator.service.mapError(error);
 
-            expect(result.message).toBe('Ошибка на сервере. Попробуйте позже');
+            expect(result.message).toBe('Ошибка на сервере. Попробуйте позже.');
             expect(result.isServerError).toBe(true);
         });
 

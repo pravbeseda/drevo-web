@@ -72,7 +72,7 @@ describe('ErrorNotificationInterceptor', () => {
             req.flush(null, { status: 500, statusText: 'Server Error' });
 
             expect(notificationService.error).toHaveBeenCalledWith(
-                'Ошибка на сервере. Попробуйте позже'
+                'Ошибка на сервере. Попробуйте позже.'
             );
         });
 
