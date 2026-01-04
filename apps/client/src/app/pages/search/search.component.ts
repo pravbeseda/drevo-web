@@ -21,7 +21,8 @@ import { ArticleSearchResult } from '@drevo-web/shared';
 import {
     debounceTime,
     distinctUntilChanged,
-    EMPTY,
+    map,
+    startWith,
     Subject,
     switchMap,
     tap,
@@ -64,7 +65,8 @@ export class SearchComponent implements OnInit {
         () =>
             this.searchQuery().length > 0 &&
             !this.isLoading() &&
-            !this.hasResults()
+            this.totalResults() === 0 &&
+            this.searchResults().length === 0
     );
 
     readonly trackByFn = (_index: number, item: ArticleSearchResult): number =>
@@ -73,20 +75,15 @@ export class SearchComponent implements OnInit {
     ngOnInit(): void {
         this.searchSubject
             .pipe(
-                debounceTime(DEBOUNCE_TIME_MS),
+                startWith(''),
+                map(query => query.trim()),
                 distinctUntilChanged(),
-                tap(query => {
-                    if (query.trim().length === 0) {
-                        this.searchResults.set([]);
-                        this.totalResults.set(0);
-                        this.isLoading.set(false);
-                    }
+                tap(() => {
+                    this.isLoading.set(true);
                     this.currentPage.set(1);
                 }),
+                debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
-                    if (query.trim().length === 0) {
-                        return EMPTY;
-                    }
                     return this.articleService.searchArticles({
                         query,
                         page: 1,
@@ -110,11 +107,6 @@ export class SearchComponent implements OnInit {
 
     onSearchChange(value: string): void {
         this.searchQuery.set(value);
-
-        if (value.trim().length > 0) {
-            this.isLoading.set(true);
-        }
-
         this.searchSubject.next(value);
     }
 

@@ -54,8 +54,23 @@ describe('SearchComponent', () => {
         expect(spectator.component.searchQuery()).toBe('test query');
     });
 
+    it('should load initial results on component creation after debounce', () => {
+        spectator = createComponent();
+
+        // Initial load happens after debounce due to startWith('')
+        expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
+            query: '',
+            page: 1,
+        });
+    });
+
     it('should call articleService.searchArticles after debounce time', () => {
         spectator = createComponent();
+        mockArticleService.searchArticles.mockClear();
 
         spectator.component.onSearchChange('angular');
 
@@ -69,50 +84,79 @@ describe('SearchComponent', () => {
         });
     });
 
-    it('should not call articleService.searchArticles when search query is empty', () => {
+    it('should call articleService.searchArticles with empty query when search field is cleared', () => {
         spectator = createComponent();
+        mockArticleService.searchArticles.mockClear();
 
         spectator.component.onSearchChange('');
 
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
-        expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
+        expect(mockArticleService.searchArticles).toHaveBeenCalledWith({
+            query: '',
+            page: 1,
+        });
     });
 
-    it('should not call articleService.searchArticles when search query is only whitespace', () => {
+    it('should trim whitespace from search query before calling service', () => {
         spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
+        mockArticleService.searchArticles.mockClear();
 
         spectator.component.onSearchChange('   ');
 
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
+        // Query is trimmed, so '   ' becomes '' which is same as initial - no new call due to distinctUntilChanged
         expect(mockArticleService.searchArticles).not.toHaveBeenCalled();
     });
 
-    it('should clear results when search query becomes empty after debounce', () => {
-        mockArticleService.searchArticles.mockReturnValue(
-            of({
-                items: [{ id: 1, title: 'Test Article' }],
-                total: 1,
-                page: 1,
-                pageSize: 25,
-                totalPages: 1,
-            })
-        );
+    it('should reload all results when search query becomes empty after debounce', () => {
+        const searchResponse = {
+            items: [{ id: 1, title: 'Test Article' }],
+            total: 1,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+        const allArticlesResponse = {
+            items: [
+                { id: 1, title: 'Article 1' },
+                { id: 2, title: 'Article 2' },
+            ],
+            total: 2,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(of(allArticlesResponse)) // initial load
+            .mockReturnValueOnce(of(searchResponse)) // search for 'test'
+            .mockReturnValueOnce(of(allArticlesResponse)); // clear search
+
         spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
+        expect(spectator.component.searchResults().length).toBe(2);
 
         spectator.component.onSearchChange('test');
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
         expect(spectator.component.searchResults().length).toBe(1);
 
         spectator.component.onSearchChange('');
-        // Results clear after debounce when using switchMap for cancellation
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
-        expect(spectator.component.searchResults().length).toBe(0);
-        expect(spectator.component.totalResults()).toBe(0);
+        // Results reload with all articles
+        expect(spectator.component.searchResults().length).toBe(2);
+        expect(spectator.component.totalResults()).toBe(2);
     });
 
     it('should update searchResults and totalResults on successful search', () => {
+        const initialResponse = {
+            items: [],
+            total: 0,
+            page: 1,
+            pageSize: 25,
+            totalPages: 0,
+        };
         const mockResponse = {
             items: [
                 { id: 1, title: 'Article 1' },
@@ -123,8 +167,11 @@ describe('SearchComponent', () => {
             pageSize: 25,
             totalPages: 2,
         };
-        mockArticleService.searchArticles.mockReturnValue(of(mockResponse));
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(of(initialResponse)) // initial load
+            .mockReturnValueOnce(of(mockResponse));
         spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
         spectator.component.onSearchChange('test');
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
@@ -136,6 +183,7 @@ describe('SearchComponent', () => {
 
     it('should debounce multiple rapid search inputs', () => {
         spectator = createComponent();
+        mockArticleService.searchArticles.mockClear();
 
         spectator.component.onSearchChange('a');
         jest.advanceTimersByTime(100);
@@ -162,6 +210,7 @@ describe('SearchComponent', () => {
 
     it('should not call search again if query has not changed', () => {
         spectator = createComponent();
+        mockArticleService.searchArticles.mockClear();
 
         spectator.component.onSearchChange('test');
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
@@ -173,9 +222,17 @@ describe('SearchComponent', () => {
     });
 
     it('should handle search errors gracefully', () => {
-        mockArticleService.searchArticles.mockReturnValue(
-            throwError(() => new Error('Search failed'))
-        );
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(
+                of({
+                    items: [],
+                    total: 0,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 0,
+                })
+            ) // initial load
+            .mockReturnValueOnce(throwError(() => new Error('Search failed'))); // search error
         spectator = createComponent();
 
         spectator.component.onSearchChange('test');
@@ -186,8 +243,15 @@ describe('SearchComponent', () => {
         expect(spectator.component.isLoading()).toBe(false);
     });
 
-    it('should cancel previous request when clearing search quickly (race condition)', () => {
+    it('should cancel previous search request when clearing search quickly (race condition)', () => {
         // Simulate a slow HTTP request that takes 1000ms
+        const initialResponse = {
+            items: [{ id: 0, title: 'Initial' }],
+            total: 1,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
         const slowResponse = {
             items: [{ id: 1, title: 'Stale Result' }],
             total: 1,
@@ -195,10 +259,24 @@ describe('SearchComponent', () => {
             pageSize: 25,
             totalPages: 1,
         };
-        mockArticleService.searchArticles.mockReturnValue(
-            of(slowResponse).pipe(delay(1000))
-        );
+        const emptyQueryResponse = {
+            items: [
+                { id: 2, title: 'All Articles 1' },
+                { id: 3, title: 'All Articles 2' },
+            ],
+            total: 2,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+        mockArticleService.searchArticles.mockReset();
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(of(initialResponse)) // initial load
+            .mockReturnValueOnce(of(slowResponse).pipe(delay(1000))) // slow search 'a'
+            .mockReturnValueOnce(of(emptyQueryResponse).pipe(delay(50))); // clear search ''
+
         spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
         // User types 'a'
         spectator.component.onSearchChange('a');
@@ -215,16 +293,22 @@ describe('SearchComponent', () => {
         spectator.component.onSearchChange('');
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
-        // Results should be empty, loading should be false
-        expect(spectator.component.searchResults()).toEqual([]);
+        // Wait for the clear request to complete
+        jest.advanceTimersByTime(50);
+
+        // Results should be the all articles response
+        expect(spectator.component.searchResults()).toEqual(
+            emptyQueryResponse.items
+        );
         expect(spectator.component.isLoading()).toBe(false);
 
         // Now let the slow request "complete" - it should have been cancelled
         jest.advanceTimersByTime(1000);
 
-        // Results should still be empty - stale response should not appear
-        expect(spectator.component.searchResults()).toEqual([]);
-        expect(spectator.component.totalResults()).toBe(0);
+        // Results should still be the all articles - stale response was cancelled
+        expect(spectator.component.searchResults()).toEqual(
+            emptyQueryResponse.items
+        );
     });
 
     it('should cancel previous request when typing new query quickly', () => {
@@ -243,21 +327,33 @@ describe('SearchComponent', () => {
             totalPages: 1,
         };
 
+        // Setup: initial load completes, then search mocks
+        mockArticleService.searchArticles.mockReset();
         mockArticleService.searchArticles
+            .mockReturnValueOnce(
+                of({
+                    items: [],
+                    total: 0,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 0,
+                })
+            ) // initial load
             .mockReturnValueOnce(of(staleResponse).pipe(delay(1000)))
             .mockReturnValueOnce(of(freshResponse).pipe(delay(100)));
 
         spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
         // User types 'a'
         spectator.component.onSearchChange('a');
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
-        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(2); // initial + 'a'
 
         // User types 'abc' before first request completes
         spectator.component.onSearchChange('abc');
         jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
-        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(2);
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(3); // + 'abc'
 
         // Wait for second (faster) request to complete
         jest.advanceTimersByTime(100);
@@ -299,13 +395,24 @@ describe('SearchComponent', () => {
             totalPages: 2,
         };
 
-        it('should load next page and append results to existing ones', () => {
-            mockArticleService.searchArticles
-                .mockReturnValueOnce(of(firstPageResponse))
-                .mockReturnValueOnce(of(secondPageResponse));
-            spectator = createComponent();
+        const emptyInitialResponse = {
+            items: [],
+            total: 0,
+            page: 1,
+            pageSize: 25,
+            totalPages: 0,
+        };
 
-            // Load first page
+        it('should load next page and append results to existing ones', () => {
+            mockArticleService.searchArticles.mockReset();
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                .mockReturnValueOnce(of(firstPageResponse)) // search
+                .mockReturnValueOnce(of(secondPageResponse)); // load more
+            spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
+
+            // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
@@ -337,32 +444,37 @@ describe('SearchComponent', () => {
                 pageSize: 25,
                 totalPages: 1,
             };
-            mockArticleService.searchArticles.mockReturnValue(
-                of(allLoadedResponse)
-            );
+            mockArticleService.searchArticles.mockReset();
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                .mockReturnValueOnce(of(allLoadedResponse)); // search
             spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
             // Load first (and only) page
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
-            expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+            expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(2); // initial + search
 
             // Try to load more
             spectator.component.onLoadMore();
 
-            // Should not call searchArticles again
-            expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(1);
+            // Should not call searchArticles again since all results are loaded
+            expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(2);
             expect(spectator.component.isLoadingMore()).toBe(false);
         });
 
         it('should set isLoadingMore to true during request', () => {
+            mockArticleService.searchArticles.mockReset();
             mockArticleService.searchArticles
-                .mockReturnValueOnce(of(firstPageResponse))
-                .mockReturnValueOnce(of(secondPageResponse).pipe(delay(500)));
+                .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                .mockReturnValueOnce(of(firstPageResponse)) // search
+                .mockReturnValueOnce(of(secondPageResponse).pipe(delay(500))); // load more (delayed)
             spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
-            // Load first page
+            // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
@@ -378,14 +490,17 @@ describe('SearchComponent', () => {
         });
 
         it('should handle pagination errors without losing existing results', () => {
+            mockArticleService.searchArticles.mockReset();
             mockArticleService.searchArticles
-                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                .mockReturnValueOnce(of(firstPageResponse)) // search
                 .mockReturnValueOnce(
                     throwError(() => new Error('Pagination failed'))
-                );
+                ); // load more error
             spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
-            // Load first page
+            // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
@@ -396,19 +511,23 @@ describe('SearchComponent', () => {
             spectator.component.onLoadMore();
 
             // Existing results should be preserved
-            expect(spectator.component.searchResults()).toEqual(existingResults);
+            expect(spectator.component.searchResults()).toEqual(
+                existingResults
+            );
             expect(spectator.component.isLoadingMore()).toBe(false);
         });
 
         it('should not increment currentPage on error', () => {
+            mockArticleService.searchArticles.mockReset();
             mockArticleService.searchArticles
-                .mockReturnValueOnce(of(firstPageResponse))
+                .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                .mockReturnValueOnce(of(firstPageResponse)) // search
                 .mockReturnValueOnce(
                     throwError(() => new Error('Pagination failed'))
-                );
+                ); // load more error
             spectator = createComponent();
 
-            // Load first page
+            // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
@@ -422,13 +541,16 @@ describe('SearchComponent', () => {
         });
 
         it('should reset to page 1 when starting a new search', () => {
+            mockArticleService.searchArticles.mockReset();
             mockArticleService.searchArticles
-                .mockReturnValueOnce(of(firstPageResponse))
-                .mockReturnValueOnce(of(secondPageResponse))
-                .mockReturnValueOnce(of(firstPageResponse));
+                .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                .mockReturnValueOnce(of(firstPageResponse)) // first search
+                .mockReturnValueOnce(of(secondPageResponse)) // load more
+                .mockReturnValueOnce(of(firstPageResponse)); // new search
             spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
-            // Load first page
+            // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 

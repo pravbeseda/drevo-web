@@ -27,14 +27,14 @@ export class ArticleService {
     /**
      * Search articles by title
      *
-     * @param params - Search parameters
+     * @param params - Search parameters (query is optional - empty returns all articles)
      * @returns Observable with mapped search response
      */
     searchArticles(
-        params: ArticleSearchParams
+        params: ArticleSearchParams = {}
     ): Observable<ArticleSearchResponse> {
         const {
-            query,
+            query = '',
             page = 1,
             pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
         } = params;
