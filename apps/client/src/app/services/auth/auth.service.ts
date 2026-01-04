@@ -23,7 +23,7 @@ import {
 import { environment } from '../../../environments/environment';
 import { User, AuthState, AuthResponse, LoginRequest } from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
-import { LoggerService, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
+import { LoggerService, SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 
 @Injectable({
     providedIn: 'root',
@@ -182,8 +182,8 @@ export class AuthService {
                             'X-CSRF-Token': csrfToken,
                         },
                         context: new HttpContext().set(
-                            SKIP_ERROR_NOTIFICATION,
-                            true
+                            SKIP_ERROR_FOR_STATUSES,
+                            [401]
                         ),
                     }
                 )
