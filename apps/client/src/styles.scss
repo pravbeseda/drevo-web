@@ -108,3 +108,40 @@ html.dark-theme body {
 .cdk-overlay-container .mat-mdc-autocomplete-panel::-webkit-scrollbar-thumb {
     border-radius: 999px;
 }
+
+// ============================================================================
+// TOAST / SNACKBAR STYLES
+// ============================================================================
+// Custom styles for different toast types (info, success, error)
+// panelClass is applied to the snack-bar-container element directly
+
+// Base styles for all toasts
+.mat-mdc-snack-bar-container {
+    --mdc-snackbar-supporting-text-color: white;
+    --mat-snack-bar-button-color: white;
+}
+
+.mat-mdc-snack-bar-label {
+    color: white;
+}
+
+// Error toast (red background)
+.mat-mdc-snack-bar-container.toast-error {
+    .mdc-snackbar__surface {
+        background-color: var(--themed-toast-error-bg);
+    }
+}
+
+// Success toast (green background)
+.mat-mdc-snack-bar-container.toast-success {
+    .mdc-snackbar__surface {
+        background-color: var(--themed-toast-success-bg);
+    }
+}
+
+// Info toast (blue background)
+.mat-mdc-snack-bar-container.toast-info {
+    .mdc-snackbar__surface {
+        background-color: var(--themed-toast-info-bg);
+    }
+}

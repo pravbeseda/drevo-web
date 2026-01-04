@@ -17,7 +17,10 @@ import {
     withInterceptorsFromDi,
 } from '@angular/common/http';
 import { authInterceptorProvider } from './interceptors/auth.interceptor';
-import { LoggerService } from '@drevo-web/core';
+import {
+    LoggerService,
+    errorNotificationInterceptorProvider,
+} from '@drevo-web/core';
 import { environment } from '../environments/environment';
 
 const routesTracing = false;
@@ -29,6 +32,7 @@ export const appConfig: ApplicationConfig = {
         provideRouter(appRoutes),
         provideHttpClient(withFetch(), withInterceptorsFromDi()),
         authInterceptorProvider,
+        errorNotificationInterceptorProvider,
         importProvidersFrom(
             RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
         ),

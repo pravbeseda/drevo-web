@@ -1,0 +1,46 @@
+import { inject, Injectable } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+export type ToastKind = 'error' | 'info' | 'success';
+const errorDurationMs = 6000;
+const messageDurationMs = 3000;
+const throttleTimeMs = 2000;
+
+@Injectable({ providedIn: 'root' })
+export class NotificationService {
+    private readonly snackBar = inject(MatSnackBar);
+
+    private lastKey: string | undefined = undefined;
+    private lastAt = 0;
+
+    private show(message: string, kind: ToastKind = 'info'): void {
+        const key = `${kind}:${message}`;
+        const now = Date.now();
+
+        // Simple dedupe/throttle: ignore same message within throttleTimeMs
+        if (this.lastKey === key && now - this.lastAt < throttleTimeMs) return;
+
+        this.lastKey = key;
+        this.lastAt = now;
+
+        this.snackBar.open(message, 'OK', {
+            duration: kind === 'error' ? errorDurationMs : messageDurationMs,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: [`toast-${kind}`],
+            politeness: kind === 'error' ? 'assertive' : 'polite',
+        });
+    }
+
+    error(message: string): void {
+        this.show(message, 'error');
+    }
+
+    success(message: string): void {
+        this.show(message, 'success');
+    }
+
+    info(message: string): void {
+        this.show(message, 'info');
+    }
+}
