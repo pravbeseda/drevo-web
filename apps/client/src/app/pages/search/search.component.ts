@@ -21,7 +21,6 @@ import { ArticleSearchResult } from '@drevo-web/shared';
 import {
     debounceTime,
     distinctUntilChanged,
-    EMPTY,
     Subject,
     switchMap,
     tap,
@@ -64,29 +63,25 @@ export class SearchComponent implements OnInit {
         () =>
             this.searchQuery().length > 0 &&
             !this.isLoading() &&
-            !this.hasResults()
+            this.totalResults() === 0 &&
+            this.searchResults().length === 0
     );
 
     readonly trackByFn = (_index: number, item: ArticleSearchResult): number =>
         item.id;
 
     ngOnInit(): void {
+        // Load initial results without search query
+        this.loadArticles('');
+
         this.searchSubject
             .pipe(
                 debounceTime(DEBOUNCE_TIME_MS),
                 distinctUntilChanged(),
-                tap(query => {
-                    if (query.trim().length === 0) {
-                        this.searchResults.set([]);
-                        this.totalResults.set(0);
-                        this.isLoading.set(false);
-                    }
+                tap(() => {
                     this.currentPage.set(1);
                 }),
                 switchMap(query => {
-                    if (query.trim().length === 0) {
-                        return EMPTY;
-                    }
                     return this.articleService.searchArticles({
                         query,
                         page: 1,
@@ -108,13 +103,31 @@ export class SearchComponent implements OnInit {
             });
     }
 
+    /**
+     * Load articles with optional query
+     */
+    private loadArticles(query: string): void {
+        this.isLoading.set(true);
+        this.articleService
+            .searchArticles({ query, page: 1 })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: response => {
+                    this.searchResults.set([...response.items]);
+                    this.totalResults.set(response.total);
+                    this.isLoading.set(false);
+                },
+                error: () => {
+                    this.searchResults.set([]);
+                    this.totalResults.set(0);
+                    this.isLoading.set(false);
+                },
+            });
+    }
+
     onSearchChange(value: string): void {
         this.searchQuery.set(value);
-
-        if (value.trim().length > 0) {
-            this.isLoading.set(true);
-        }
-
+        this.isLoading.set(true);
         this.searchSubject.next(value);
     }
 

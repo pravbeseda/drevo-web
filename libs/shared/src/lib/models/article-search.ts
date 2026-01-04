@@ -26,7 +26,7 @@ export interface ArticleSearchResponse {
  * Search parameters for article search
  */
 export interface ArticleSearchParams {
-    readonly query: string;
+    readonly query?: string;
     readonly page?: number;
     readonly pageSize?: number;
 }

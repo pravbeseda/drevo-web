@@ -29,20 +29,23 @@ export class ArticleApiService {
     /**
      * Search articles by title
      *
-     * @param query - Search query string
+     * @param query - Search query string (empty string returns all articles)
      * @param page - Page number (1-based)
      * @param pageSize - Number of items per page
      * @returns Observable with raw API response
      */
     searchArticles(
-        query: string,
+        query = '',
         page = 1,
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE
     ): Observable<ArticleSearchResponseApi> {
-        const params = new HttpParams()
-            .set('q', query)
+        let params = new HttpParams()
             .set('page', page.toString())
             .set('size', pageSize.toString());
+
+        if (query) {
+            params = params.set('q', query);
+        }
 
         return this.http
             .get<

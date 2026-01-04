@@ -91,6 +91,34 @@ describe('ArticleApiService', () => {
 
             expectSearchRequest({ page: '3', size: '50' });
         });
+
+        it('should not include q param when query is empty', () => {
+            spectator.service.searchArticles('').subscribe();
+
+            const req = httpController.expectOne(request => {
+                return (
+                    request.url === '/api/articles/search' &&
+                    !request.params.has('q') &&
+                    request.params.get('page') === '1' &&
+                    request.params.get('size') === '25'
+                );
+            });
+            req.flush(createMockResponse());
+        });
+
+        it('should not include q param when query is not provided', () => {
+            spectator.service.searchArticles().subscribe();
+
+            const req = httpController.expectOne(request => {
+                return (
+                    request.url === '/api/articles/search' &&
+                    !request.params.has('q') &&
+                    request.params.get('page') === '1' &&
+                    request.params.get('size') === '25'
+                );
+            });
+            req.flush(createMockResponse());
+        });
     });
 
     describe('error handling', () => {
