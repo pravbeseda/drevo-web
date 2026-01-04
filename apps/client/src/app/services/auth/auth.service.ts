@@ -1,6 +1,10 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+    HttpClient,
+    HttpContext,
+    HttpErrorResponse,
+} from '@angular/common/http';
 import {
     BehaviorSubject,
     Observable,
@@ -19,7 +23,7 @@ import {
 import { environment } from '../../../environments/environment';
 import { User, AuthState, AuthResponse, LoginRequest } from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 
 @Injectable({
     providedIn: 'root',
@@ -177,6 +181,10 @@ export class AuthService {
                         headers: {
                             'X-CSRF-Token': csrfToken,
                         },
+                        context: new HttpContext().set(
+                            SKIP_ERROR_NOTIFICATION,
+                            true
+                        ),
                     }
                 )
             ),
