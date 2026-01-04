@@ -106,11 +106,11 @@ export class HttpErrorMapperService {
         // Handle common API response structures
         if (typeof error === 'object' && error) {
             // { message: "..." }
-            if ('message' in error && typeof error.message === 'string') {
+            if ('message' in error && typeof error.message === 'string' && error.message.length > 0) {
                 return error.message;
             }
             // { error: "..." }
-            if ('error' in error && typeof error.error === 'string') {
+            if ('error' in error && typeof error.error === 'string' && error.error.length > 0) {
                 return error.error;
             }
         }
