@@ -144,11 +144,14 @@ export class HttpErrorMapperService {
         const error = err.error;
 
         if (typeof error === 'object' && error) {
-            // { errors: { field: ["message"] } } or { errors: ["message"] }
             if ('errors' in error) {
                 const errors = error.errors;
-                if (Array.isArray(errors) && errors.length > 0) {
-                    return String(errors[0]);
+                if (
+                    Array.isArray(errors) &&
+                    errors.length > 0 &&
+                    typeof errors[0] === 'string'
+                ) {
+                    return errors[0];
                 }
                 if (typeof errors === 'object' && errors) {
                     const firstField = Object.keys(errors)[0];
