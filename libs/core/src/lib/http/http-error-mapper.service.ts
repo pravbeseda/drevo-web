@@ -160,7 +160,13 @@ export class HttpErrorMapperService {
                             Array.isArray(fieldErrors) &&
                             fieldErrors.length > 0
                         ) {
-                            return `${firstField}: ${fieldErrors[0]}`;
+                            const firstFieldError = fieldErrors[0];
+                            if (
+                                typeof firstFieldError === 'string' &&
+                                firstFieldError.length > 0
+                            ) {
+                                return `${firstField}: ${firstFieldError}`;
+                            }
                         }
                     }
                 }
