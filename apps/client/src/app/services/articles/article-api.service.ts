@@ -43,8 +43,9 @@ export class ArticleApiService {
             .set('page', page.toString())
             .set('size', pageSize.toString());
 
-        if (query) {
-            params = params.set('q', query);
+        const trimmedQuery = query.trim();
+        if (trimmedQuery) {
+            params = params.set('q', trimmedQuery);
         }
 
         return this.http
