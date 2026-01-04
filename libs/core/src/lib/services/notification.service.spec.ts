@@ -111,7 +111,7 @@ describe('NotificationService', () => {
             expect(snackBar.open).toHaveBeenCalledTimes(3);
         });
 
-        it('should not throttle message just before throttle time expires', () => {
+        it('should continue throttling message just before throttle time expires', () => {
             spectator.service.info('Message');
             expect(snackBar.open).toHaveBeenCalledTimes(1);
 
