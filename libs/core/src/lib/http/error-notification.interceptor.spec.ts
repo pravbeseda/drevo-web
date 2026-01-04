@@ -1,5 +1,11 @@
 /* eslint-disable no-null/no-null */
-import { HttpContext } from '@angular/common/http';
+import { HttpContext, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import {
+    createHttpFactory,
+    HttpMethod,
+    SpectatorHttp,
+} from '@ngneat/spectator/jest';
 import { ErrorNotificationInterceptor } from './error-notification.interceptor';
 import { NotificationService } from '../services/notification.service';
 import { HttpErrorMapperService } from './http-error-mapper.service';
@@ -8,68 +14,54 @@ import {
     CUSTOM_ERROR_MESSAGE,
     SKIP_ERROR_FOR_STATUSES,
 } from './http-context-tokens';
-import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
-import { TestBed } from '@angular/core/testing';
-import {
-    provideHttpClient,
-    withInterceptorsFromDi,
-} from '@angular/common/http';
-import {
-    provideHttpClientTesting,
-    HttpTestingController,
-} from '@angular/common/http/testing';
+
+/**
+ * Dummy service to make HTTP requests through the interceptor.
+ * SpectatorHttp requires a service, so we use HttpClient directly.
+ */
+@Injectable()
+class TestHttpService {
+    constructor(private readonly http: HttpClient) {}
+
+    get(url: string, context?: HttpContext) {
+        return this.http.get(url, { context });
+    }
+
+    post(url: string, body: unknown, context?: HttpContext) {
+        return this.http.post(url, body, { context });
+    }
+}
 
 describe('ErrorNotificationInterceptor', () => {
-    let httpClient: HttpClient;
-    let httpTestingController: HttpTestingController;
+    let spectator: SpectatorHttp<TestHttpService>;
     let notificationService: jest.Mocked<NotificationService>;
 
-    // Helper to subscribe with expected error
-    const subscribeWithExpectedError = (
-        obs: ReturnType<typeof httpClient.get>
-    ): void => {
-        obs.subscribe({
-            error: (_err: unknown) => {
-                // Error is expected in these tests
+    const createHttp = createHttpFactory({
+        service: TestHttpService,
+        providers: [
+            {
+                provide: HTTP_INTERCEPTORS,
+                useClass: ErrorNotificationInterceptor,
+                multi: true,
             },
-        });
-    };
-
-    beforeEach(() => {
-        notificationService = {
-            error: jest.fn(),
-            success: jest.fn(),
-            info: jest.fn(),
-        } as unknown as jest.Mocked<NotificationService>;
-
-        TestBed.configureTestingModule({
-            providers: [
-                provideHttpClient(withInterceptorsFromDi()),
-                provideHttpClientTesting(),
-                {
-                    provide: HTTP_INTERCEPTORS,
-                    useClass: ErrorNotificationInterceptor,
-                    multi: true,
-                },
-                { provide: NotificationService, useValue: notificationService },
-                HttpErrorMapperService,
-            ],
-        });
-
-        httpClient = TestBed.inject(HttpClient);
-        httpTestingController = TestBed.inject(HttpTestingController);
+            HttpErrorMapperService,
+        ],
+        mocks: [NotificationService],
     });
 
-    afterEach(() => {
-        httpTestingController.verify();
+    beforeEach(() => {
+        spectator = createHttp();
+        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
     });
 
     describe('automatic error notifications', () => {
         it('should show error notification for 500 error', () => {
-            subscribeWithExpectedError(httpClient.get('/api/test'));
+            spectator.service.get('/api/test').subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 500, statusText: 'Server Error' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 500,
+                statusText: 'Server Error',
+            });
 
             expect(notificationService.error).toHaveBeenCalledWith(
                 'Ошибка на сервере. Попробуйте позже.'
@@ -77,10 +69,12 @@ describe('ErrorNotificationInterceptor', () => {
         });
 
         it('should show error notification for 404 error', () => {
-            subscribeWithExpectedError(httpClient.get('/api/test'));
+            spectator.service.get('/api/test').subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 404, statusText: 'Not Found' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 404,
+                statusText: 'Not Found',
+            });
 
             expect(notificationService.error).toHaveBeenCalledWith(
                 'Не найдено.'
@@ -88,10 +82,9 @@ describe('ErrorNotificationInterceptor', () => {
         });
 
         it('should show error notification for network error', () => {
-            subscribeWithExpectedError(httpClient.get('/api/test'));
+            spectator.service.get('/api/test').subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.error(new ProgressEvent('error'));
+            spectator.expectOne('/api/test', HttpMethod.GET).error(new ProgressEvent('error'));
 
             expect(notificationService.error).toHaveBeenCalledWith(
                 'Сетевая ошибка. Проверьте подключение к интернету.'
@@ -106,12 +99,12 @@ describe('ErrorNotificationInterceptor', () => {
                 true
             );
 
-            subscribeWithExpectedError(
-                httpClient.get('/api/test', { context })
-            );
+            spectator.service.get('/api/test', context).subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 500, statusText: 'Server Error' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 500,
+                statusText: 'Server Error',
+            });
 
             expect(notificationService.error).not.toHaveBeenCalled();
         });
@@ -122,12 +115,12 @@ describe('ErrorNotificationInterceptor', () => {
                 false
             );
 
-            subscribeWithExpectedError(
-                httpClient.get('/api/test', { context })
-            );
+            spectator.service.get('/api/test', context).subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 500, statusText: 'Server Error' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 500,
+                statusText: 'Server Error',
+            });
 
             expect(notificationService.error).toHaveBeenCalled();
         });
@@ -140,12 +133,12 @@ describe('ErrorNotificationInterceptor', () => {
                 [404, 409]
             );
 
-            subscribeWithExpectedError(
-                httpClient.get('/api/test', { context })
-            );
+            spectator.service.get('/api/test', context).subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 404, statusText: 'Not Found' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 404,
+                statusText: 'Not Found',
+            });
 
             expect(notificationService.error).not.toHaveBeenCalled();
         });
@@ -155,12 +148,12 @@ describe('ErrorNotificationInterceptor', () => {
                 404,
             ]);
 
-            subscribeWithExpectedError(
-                httpClient.get('/api/test', { context })
-            );
+            spectator.service.get('/api/test', context).subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 500, statusText: 'Server Error' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 500,
+                statusText: 'Server Error',
+            });
 
             expect(notificationService.error).toHaveBeenCalled();
         });
@@ -174,12 +167,12 @@ describe('ErrorNotificationInterceptor', () => {
                 customMessage
             );
 
-            subscribeWithExpectedError(
-                httpClient.post('/api/test', {}, { context })
-            );
+            spectator.service.post('/api/test', {}, context).subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 500, statusText: 'Server Error' });
+            spectator.expectOne('/api/test', HttpMethod.POST).flush(null, {
+                status: 500,
+                statusText: 'Server Error',
+            });
 
             expect(notificationService.error).toHaveBeenCalledWith(
                 customMessage
@@ -189,12 +182,12 @@ describe('ErrorNotificationInterceptor', () => {
         it('should use default message when custom message is empty', () => {
             const context = new HttpContext().set(CUSTOM_ERROR_MESSAGE, '');
 
-            subscribeWithExpectedError(
-                httpClient.get('/api/test', { context })
-            );
+            spectator.service.get('/api/test', context).subscribe({ error: () => {} });
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush(null, { status: 404, statusText: 'Not Found' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush(null, {
+                status: 404,
+                statusText: 'Not Found',
+            });
 
             expect(notificationService.error).toHaveBeenCalledWith(
                 'Не найдено.'
@@ -204,10 +197,9 @@ describe('ErrorNotificationInterceptor', () => {
 
     describe('successful requests', () => {
         it('should NOT show notification for successful requests', () => {
-            httpClient.get('/api/test').subscribe();
+            spectator.service.get('/api/test').subscribe();
 
-            const req = httpTestingController.expectOne('/api/test');
-            req.flush({ data: 'success' });
+            spectator.expectOne('/api/test', HttpMethod.GET).flush({ data: 'success' });
 
             expect(notificationService.error).not.toHaveBeenCalled();
         });
