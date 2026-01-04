@@ -50,8 +50,12 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
         return next.handle(request).pipe(
-            catchError((error: HttpErrorResponse) => {
-                this.handleError(request, error);
+            catchError((error: unknown) => {
+                if (error instanceof HttpErrorResponse) {
+                    this.handleError(request, error);
+                } else {
+                    this.notification.error('Произошла неожиданная ошибка.');
+                }
                 return throwError(() => error);
             })
         );
