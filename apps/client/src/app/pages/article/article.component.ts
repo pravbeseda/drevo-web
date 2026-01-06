@@ -48,6 +48,7 @@ export class ArticleComponent implements OnInit {
     }
 
     private loadArticle(id: number): void {
+        this.article.set(undefined);
         this.isLoading.set(true);
         this.error.set(undefined);
 
