@@ -27,7 +27,7 @@ export class ArticleComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
 
     readonly article = signal<Article | undefined>(undefined);
-    readonly isLoading = signal<boolean | undefined>(undefined);
+    readonly isLoading = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
 
     ngOnInit(): void {

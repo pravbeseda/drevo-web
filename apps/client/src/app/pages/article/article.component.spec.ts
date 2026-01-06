@@ -150,8 +150,6 @@ describe('ArticleComponent', () => {
 });
 
 describe('ArticleComponent with invalid ID', () => {
-    let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
-
     const createComponentWithInvalidId = createComponentFactory({
         component: ArticleComponent,
         mocks: [ArticleService, Router],
