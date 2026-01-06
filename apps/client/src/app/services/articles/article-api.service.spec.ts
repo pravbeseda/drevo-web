@@ -24,7 +24,7 @@ describe('ArticleApiService', () => {
         httpController.verify();
     });
 
-    const createMockResponse = (
+    const createMockSearchResponse = (
         items: unknown[] = [],
         page = 1,
         pageSize = 25,
@@ -42,7 +42,7 @@ describe('ArticleApiService', () => {
 
     const expectSearchRequest = (
         params: { q?: string; page?: string; size?: string },
-        response = createMockResponse()
+        response = createMockSearchResponse()
     ) => {
         const req = httpController.expectOne(
             request =>
@@ -54,6 +54,70 @@ describe('ArticleApiService', () => {
         req.flush(response);
         return req;
     };
+
+    describe('getArticle', () => {
+        const mockArticleResponse = {
+            success: true,
+            data: {
+                articleId: 123,
+                versionId: 456,
+                title: 'Test Article',
+                content: '<p>Content</p>',
+                author: 'Author',
+                date: '2024-01-15T10:00:00+00:00',
+                redirect: 0,
+            },
+        };
+
+        it('should call HTTP GET with correct URL', () => {
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result).toEqual(mockArticleResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/show/123');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush(mockArticleResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service.getArticle(456).subscribe(result => {
+                expect(result.articleId).toBe(123);
+                expect(result.title).toBe('Test Article');
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/show/456');
+            req.flush(mockArticleResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.getArticle(123).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/show/123');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 404 errors', done => {
+            spectator.service.getArticle(999).subscribe({
+                error: err => {
+                    expect(err.status).toBe(404);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/show/999');
+            req.flush(
+                { success: false, error: 'Article not found' },
+                { status: 404, statusText: 'Not Found' }
+            );
+        });
+    });
 
     describe('searchArticles', () => {
         it('should call HTTP GET with correct URL and params and extract data from wrapper', () => {
@@ -73,7 +137,7 @@ describe('ArticleApiService', () => {
 
             const req = expectSearchRequest(
                 { q: 'test', page: '1', size: '25' },
-                createMockResponse(mockData.items, 1, 25, 1)
+                createMockSearchResponse(mockData.items, 1, 25, 1)
             );
 
             expect(req.request.method).toBe('GET');
@@ -103,7 +167,7 @@ describe('ArticleApiService', () => {
                     request.params.get('size') === '25'
                 );
             });
-            req.flush(createMockResponse());
+            req.flush(createMockSearchResponse());
         });
 
         it('should not include q param when query is not provided', () => {
@@ -117,7 +181,7 @@ describe('ArticleApiService', () => {
                     request.params.get('size') === '25'
                 );
             });
-            req.flush(createMockResponse());
+            req.flush(createMockSearchResponse());
         });
     });
 

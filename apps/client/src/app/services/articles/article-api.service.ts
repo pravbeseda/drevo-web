@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import {
     ApiResponse,
     ArticleSearchResponseApi,
+    ArticleDetailApi,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { environment } from '../../../environments/environment';
@@ -25,6 +26,28 @@ import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 export class ArticleApiService {
     private readonly apiUrl = environment.apiUrl;
     private readonly http = inject(HttpClient);
+
+    /**
+     * Get article by ID
+     *
+     * @param id - Article ID
+     * @returns Observable with raw API response
+     */
+    getArticle(id: number): Observable<ArticleDetailApi> {
+        return this.http
+            .get<
+                ApiResponse<ArticleDetailApi>
+            >(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
 
     /**
      * Search articles by title

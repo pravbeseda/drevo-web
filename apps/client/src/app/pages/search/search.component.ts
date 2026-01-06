@@ -16,6 +16,8 @@ import {
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
     HighlightPipe,
+    MODAL_DATA,
+    ModalData,
 } from '@drevo-web/ui';
 import { ArticleSearchResult } from '@drevo-web/shared';
 import {
@@ -49,6 +51,9 @@ const DEBOUNCE_TIME_MS = 500;
 export class SearchComponent implements OnInit {
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly modalData = inject<ModalData>(MODAL_DATA, {
+        optional: true,
+    });
     private readonly searchSubject = new Subject<string>();
 
     readonly searchQuery = signal('');
@@ -71,6 +76,10 @@ export class SearchComponent implements OnInit {
 
     readonly trackByFn = (_index: number, item: ArticleSearchResult): number =>
         item.id;
+
+    closeModal(): void {
+        this.modalData?.close();
+    }
 
     ngOnInit(): void {
         this.searchSubject

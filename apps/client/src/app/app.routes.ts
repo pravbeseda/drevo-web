@@ -5,16 +5,12 @@ export const appRoutes: Route[] = [
         path: '',
         pathMatch: 'full',
         loadComponent: () =>
-            import('./pages/main/main.component').then(
-                m => m.MainComponent
-            ),
+            import('./pages/main/main.component').then(m => m.MainComponent),
     },
     {
         path: 'login',
         loadComponent: () =>
-            import('./pages/login/login.component').then(
-                m => m.LoginComponent
-            ),
+            import('./pages/login/login.component').then(m => m.LoginComponent),
     },
     {
         path: 'editor',
@@ -23,8 +19,11 @@ export const appRoutes: Route[] = [
                 m => m.SharedEditorComponent
             ),
     },
-    // {
-    //     path: '**',
-    //     redirectTo: 'article/edit',
-    // },
+    {
+        path: 'articles/:id',
+        loadComponent: () =>
+            import('./pages/article/article.component').then(
+                m => m.ArticleComponent
+            ),
+    },
 ];
