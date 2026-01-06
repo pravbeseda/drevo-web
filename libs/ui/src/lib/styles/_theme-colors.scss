@@ -44,6 +44,10 @@ $theme-colors: (
         light: $md-grey-500,
         dark: $md-grey-600,
     ),
+    text-error: (
+        light: $md-red-800,
+        dark: $md-red-500,
+    ),
     // Menu
     menu-hover-background: (
             light: $md-grey-300,

@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
+    Article,
+    ArticleDetailApi,
     ArticleSearchResponseApi,
     ArticleSearchResultApi,
     ArticleSearchResponse,
@@ -25,6 +27,18 @@ export class ArticleService {
     private readonly articleApiService = inject(ArticleApiService);
 
     /**
+     * Get article by ID
+     *
+     * @param id - Article ID
+     * @returns Observable with mapped article
+     */
+    getArticle(id: number): Observable<Article> {
+        return this.articleApiService
+            .getArticle(id)
+            .pipe(map(response => this.mapArticle(response)));
+    }
+
+    /**
      * Search articles by title
      *
      * @param params - Search parameters (query is optional - empty returns all articles)
@@ -42,6 +56,30 @@ export class ArticleService {
         return this.articleApiService
             .searchArticles(query, page, pageSize)
             .pipe(map(response => this.mapSearchResponse(response)));
+    }
+
+    private mapArticle(response: ArticleDetailApi): Article {
+        return {
+            articleId: response.articleId,
+            versionId: response.versionId,
+            title: response.title,
+            content: this.transformArticleLinks(response.content),
+            author: response.author,
+            date: new Date(response.date),
+            redirect: response.redirect === 1,
+        };
+    }
+
+    /**
+     * Transform legacy article links to Angular-friendly format.
+     * Converts href="/articles/8.html" to href="/articles/8"
+     */
+    private transformArticleLinks(content: string): string {
+        // Match href attributes pointing to /articles/*.html
+        return content.replace(
+            /href="\/articles\/(\d+)\.html"/g,
+            'href="/articles/$1"'
+        );
     }
 
     private mapSearchResponse(

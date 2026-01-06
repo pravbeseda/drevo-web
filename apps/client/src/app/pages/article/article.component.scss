@@ -1,0 +1,37 @@
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.error-message {
+    color: var(--themed-test-error);
+}
+
+.article {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.article-header {
+    margin-bottom: 1.5rem;
+
+    .article-title {
+        font-size: 1.75rem;
+        font-weight: 500;
+        margin: 0;
+    }
+}
+
+.article-content {
+    line-height: 1.6;
+}

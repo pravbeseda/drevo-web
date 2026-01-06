@@ -1,6 +1,6 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
-import { ArticleSearchResponseApi } from '@drevo-web/shared';
+import { ArticleSearchResponseApi, ArticleDetailApi } from '@drevo-web/shared';
 import { ArticleService } from './article.service';
 import { ArticleApiService } from './article-api.service';
 
@@ -18,6 +18,113 @@ describe('ArticleService', () => {
         articleApiService = spectator.inject(
             ArticleApiService
         ) as jest.Mocked<ArticleApiService>;
+    });
+
+    describe('getArticle', () => {
+        const mockApiResponse: ArticleDetailApi = {
+            articleId: 123,
+            versionId: 456,
+            title: 'Test Article',
+            content: '<p>Content</p>',
+            author: 'Test Author',
+            date: '2024-01-15T10:00:00+00:00',
+            redirect: 0,
+        };
+
+        it('should call articleApiService.getArticle with correct id', () => {
+            articleApiService.getArticle.mockReturnValue(of(mockApiResponse));
+
+            spectator.service.getArticle(123).subscribe();
+
+            expect(articleApiService.getArticle).toHaveBeenCalledWith(123);
+        });
+
+        it('should map API response to frontend model', done => {
+            articleApiService.getArticle.mockReturnValue(of(mockApiResponse));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.articleId).toBe(123);
+                expect(result.versionId).toBe(456);
+                expect(result.title).toBe('Test Article');
+                expect(result.content).toBe('<p>Content</p>');
+                expect(result.author).toBe('Test Author');
+                expect(result.redirect).toBe(false);
+                done();
+            });
+        });
+
+        it('should convert date string to Date object', done => {
+            articleApiService.getArticle.mockReturnValue(of(mockApiResponse));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.date).toBeInstanceOf(Date);
+                expect(result.date.toISOString()).toBe(
+                    '2024-01-15T10:00:00.000Z'
+                );
+                done();
+            });
+        });
+
+        it('should map redirect=1 to true', done => {
+            const redirectArticle: ArticleDetailApi = {
+                ...mockApiResponse,
+                redirect: 1,
+            };
+            articleApiService.getArticle.mockReturnValue(of(redirectArticle));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.redirect).toBe(true);
+                done();
+            });
+        });
+
+        it('should transform article links removing .html extension', done => {
+            const articleWithLinks: ArticleDetailApi = {
+                ...mockApiResponse,
+                content:
+                    '<a class="existlink" href="/articles/8.html">Link</a>',
+            };
+            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.content).toBe(
+                    '<a class="existlink" href="/articles/8">Link</a>'
+                );
+                done();
+            });
+        });
+
+        it('should transform multiple article links', done => {
+            const articleWithLinks: ArticleDetailApi = {
+                ...mockApiResponse,
+                content:
+                    '<p><a href="/articles/1.html">First</a> and <a href="/articles/999.html">Second</a></p>',
+            };
+            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.content).toBe(
+                    '<p><a href="/articles/1">First</a> and <a href="/articles/999">Second</a></p>'
+                );
+                done();
+            });
+        });
+
+        it('should not transform non-article links', done => {
+            const articleWithLinks: ArticleDetailApi = {
+                ...mockApiResponse,
+                content:
+                    '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
+            };
+            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.content).toBe(
+                    '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>'
+                );
+                done();
+            });
+        });
     });
 
     describe('searchArticles', () => {

@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { delay, of, throwError } from 'rxjs';
 import { ArticleService } from '../../services/articles';
 import { SearchComponent } from './search.component';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui';
 
 const DEBOUNCE_TIME_MS = 500;
 
@@ -567,6 +568,29 @@ describe('SearchComponent', () => {
                 query: 'new query',
                 page: 1,
             });
+        });
+    });
+
+    describe('closeModal', () => {
+        it('should call modalData.close when modalData is provided', () => {
+            const mockModalData: ModalData = {
+                data: undefined,
+                close: jest.fn(),
+            };
+
+            spectator = createComponent({
+                providers: [{ provide: MODAL_DATA, useValue: mockModalData }],
+            });
+
+            spectator.component.closeModal();
+
+            expect(mockModalData.close).toHaveBeenCalled();
+        });
+
+        it('should not throw error when modalData is not provided', () => {
+            spectator = createComponent();
+
+            expect(() => spectator.component.closeModal()).not.toThrow();
         });
     });
 });
