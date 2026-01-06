@@ -76,10 +76,6 @@ export class InternalLinksDirective implements OnInit, OnDestroy {
         }
 
         // Skip hash-only links
-        if (href.startsWith('/#')) {
-            return false;
-        }
-
-        return true;
+        return !href.startsWith('/#');
     }
 }
