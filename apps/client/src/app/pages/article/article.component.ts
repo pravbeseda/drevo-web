@@ -13,6 +13,7 @@ import { ArticleContentComponent, SpinnerComponent } from '@drevo-web/ui';
 import { Article } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article',
@@ -29,14 +30,19 @@ export class ArticleComponent implements OnInit {
     readonly article = signal<Article | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
+    private currentFragment: string | undefined = undefined;
 
     ngOnInit(): void {
         this.route.paramMap
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(params => {
-                const idParam = params.get('id');
-                const id = idParam ? parseInt(idParam, 10) : NaN;
-
+            .pipe(
+                map(params => {
+                    const idParam = params.get('id');
+                    return idParam ? parseInt(idParam, 10) : NaN;
+                }),
+                distinctUntilChanged(),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(id => {
                 if (isNaN(id) || id <= 0) {
                     this.article.set(undefined);
                     this.error.set('Неверный ID статьи');
@@ -45,6 +51,13 @@ export class ArticleComponent implements OnInit {
                 }
 
                 this.loadArticle(id);
+            });
+
+        this.route.fragment
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(fragment => {
+                this.currentFragment = fragment ?? undefined;
+                this.scrollToFragment();
             });
     }
 
@@ -60,6 +73,7 @@ export class ArticleComponent implements OnInit {
                 next: article => {
                     this.article.set(article);
                     this.isLoading.set(false);
+                    this.scrollToFragment();
                 },
                 error: (err: HttpErrorResponse) => {
                     this.article.set(undefined);
@@ -71,5 +85,41 @@ export class ArticleComponent implements OnInit {
                     this.isLoading.set(false);
                 },
             });
+    }
+
+    private scrollToFragment(): void {
+        setTimeout(() => {
+            if (!this.currentFragment || !this.article()) {
+                return;
+            }
+
+            const targetElement =
+                document.getElementById(this.currentFragment) ||
+                document.querySelector(`a[name="${this.currentFragment}"]`);
+
+            if (!targetElement) {
+                return;
+            }
+
+            const mainContainer = document.querySelector('.main');
+            if (mainContainer) {
+                const targetRect = targetElement.getBoundingClientRect();
+                const containerRect = mainContainer.getBoundingClientRect();
+                const scrollTop =
+                    targetRect.top -
+                    containerRect.top +
+                    mainContainer.scrollTop;
+
+                mainContainer.scrollTo({
+                    top: scrollTop,
+                    behavior: 'smooth',
+                });
+            } else {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                });
+            }
+        }, 0);
     }
 }

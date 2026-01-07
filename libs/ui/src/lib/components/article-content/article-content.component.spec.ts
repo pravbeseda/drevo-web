@@ -42,6 +42,47 @@ describe('ArticleContentComponent', () => {
             expect(link).toBeTruthy();
             expect(link.href).toContain('/articles/123');
         });
+
+        it('should preserve id attributes in content', () => {
+            spectator.setInput(
+                'content',
+                '<div id="section1"><p>Content with ID</p></div>'
+            );
+            spectator.detectChanges();
+
+            const div = spectator.query('#section1') as HTMLDivElement;
+            expect(div).toBeTruthy();
+            expect(div.id).toBe('section1');
+        });
+
+        it('should preserve name attributes in anchors', () => {
+            spectator.setInput(
+                'content',
+                '<a name="anchor1">Anchor with name</a>'
+            );
+            spectator.detectChanges();
+
+            const anchor = spectator.query('a[name="anchor1"]') as HTMLAnchorElement;
+            expect(anchor).toBeTruthy();
+            expect(anchor.getAttribute('name')).toBe('anchor1');
+        });
+
+        it('should preserve both id and name attributes', () => {
+            spectator.setInput(
+                'content',
+                '<a name="S26" id="section26">Section</a><div id="content">Content</div>'
+            );
+            spectator.detectChanges();
+
+            const anchor = spectator.query('a[name="S26"]') as HTMLAnchorElement;
+            expect(anchor).toBeTruthy();
+            expect(anchor.getAttribute('name')).toBe('S26');
+            expect(anchor.id).toBe('section26');
+
+            const div = spectator.query('#content') as HTMLDivElement;
+            expect(div).toBeTruthy();
+            expect(div.id).toBe('content');
+        });
     });
 
     describe('internal link navigation', () => {

@@ -9,6 +9,7 @@ import {
     ViewEncapsulation,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 /**
  * Component for rendering article content with internal link handling.
@@ -17,6 +18,7 @@ import { Router } from '@angular/router';
  * - Renders HTML content safely using innerHTML
  * - Intercepts clicks on internal links and navigates using Angular Router
  * - Provides styling for article content without ng-deep
+ * - Preserves id and name attributes for anchor navigation
  *
  * Uses ViewEncapsulation.None to allow styling of dynamically injected HTML
  * without requiring ::ng-deep.
@@ -28,19 +30,35 @@ import { Router } from '@angular/router';
  */
 @Component({
     selector: 'ui-article-content',
-    template: '<div [innerHTML]="content"></div>',
+    template: '<div [innerHTML]="sanitizedContent"></div>',
     styleUrls: ['./article-content.component.scss'],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleContentComponent implements OnInit, OnDestroy {
+    private _content = '';
+    private _sanitizedContent: SafeHtml = '';
+
     /**
      * HTML content to render
      */
-    @Input() content = '';
+    @Input()
+    set content(value: string) {
+        this._content = value;
+        this._sanitizedContent = this.sanitizer.bypassSecurityTrustHtml(value);
+    }
+
+    get content(): string {
+        return this._content;
+    }
+
+    get sanitizedContent(): SafeHtml {
+        return this._sanitizedContent;
+    }
 
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly router = inject(Router);
+    private readonly sanitizer = inject(DomSanitizer);
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
