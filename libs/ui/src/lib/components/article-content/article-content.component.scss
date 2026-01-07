@@ -1,0 +1,41 @@
+/**
+ * Styles for article content component.
+ *
+ * Note: This component uses ViewEncapsulation.None, so styles are not scoped.
+ * Using direct element selector to ensure styles are applied correctly.
+ * The selector is scoped to ui-article-content to avoid affecting other elements.
+ */
+
+ui-article-content {
+    display: block;
+    line-height: 1.6;
+
+    // Wiki link styles
+    .existlink {
+        color: var(--themed-wiki-existlink);
+    }
+
+    .newlink {
+        color: var(--themed-wiki-newlink);
+    }
+
+    .BibleRus,
+    .BibleCsl {
+        background-color: var(--themed-wiki-bible-bg);
+        padding: 5px;
+        vertical-align: top;
+    }
+
+    .verse {
+        color: var(--themed-wiki-verse);
+    }
+
+    // Additional content styling can be added here
+    a {
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
