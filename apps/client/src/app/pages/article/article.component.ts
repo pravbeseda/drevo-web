@@ -1,8 +1,10 @@
 import {
+    afterNextRender,
     ChangeDetectionStrategy,
     Component,
     DestroyRef,
     inject,
+    Injector,
     OnInit,
     signal,
 } from '@angular/core';
@@ -26,6 +28,7 @@ export class ArticleComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly injector = inject(Injector);
 
     readonly article = signal<Article | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
@@ -88,7 +91,7 @@ export class ArticleComponent implements OnInit {
     }
 
     private scrollToFragment(): void {
-        setTimeout(() => {
+        afterNextRender(() => {
             if (!this.currentFragment || !this.article()) {
                 return;
             }
@@ -120,6 +123,6 @@ export class ArticleComponent implements OnInit {
                     block: 'start',
                 });
             }
-        }, 0);
+        }, { injector: this.injector });
     }
 }
