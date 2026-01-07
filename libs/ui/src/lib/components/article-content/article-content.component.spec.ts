@@ -1,33 +1,56 @@
 import { Router } from '@angular/router';
 import {
-    createDirectiveFactory,
-    SpectatorDirective,
+    createComponentFactory,
+    Spectator,
 } from '@ngneat/spectator/jest';
-import { InternalLinksDirective } from './internal-links.directive';
+import { ArticleContentComponent } from './article-content.component';
 
-describe('InternalLinksDirective', () => {
-    let spectator: SpectatorDirective<InternalLinksDirective>;
+describe('ArticleContentComponent', () => {
+    let spectator: Spectator<ArticleContentComponent>;
     let router: jest.Mocked<Router>;
 
-    const createDirective = createDirectiveFactory({
-        directive: InternalLinksDirective,
+    const createComponent = createComponentFactory({
+        component: ArticleContentComponent,
         mocks: [Router],
     });
 
     beforeEach(() => {
-        router = undefined!;
+        spectator = createComponent();
+        router = spectator.inject(Router) as jest.Mocked<Router>;
     });
 
-    function setup(content: string): void {
-        spectator = createDirective(
-            `<div uiInternalLinks>${content}</div>`
-        );
-        router = spectator.inject(Router) as jest.Mocked<Router>;
-    }
+    it('should create', () => {
+        expect(spectator.component).toBeTruthy();
+    });
+
+    describe('content rendering', () => {
+        it('should render HTML content', () => {
+            spectator.setInput('content', '<p>Test content</p>');
+            spectator.detectChanges();
+
+            expect(spectator.query('p')).toHaveText('Test content');
+        });
+
+        it('should render links in content', () => {
+            spectator.setInput(
+                'content',
+                '<a href="/articles/123">Article Link</a>'
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            expect(link).toBeTruthy();
+            expect(link.href).toContain('/articles/123');
+        });
+    });
 
     describe('internal link navigation', () => {
         it('should navigate using router for internal links', () => {
-            setup('<a href="/articles/123">Article Link</a>');
+            spectator.setInput(
+                'content',
+                '<a href="/articles/123">Article Link</a>'
+            );
+            spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
             link.click();
@@ -36,7 +59,11 @@ describe('InternalLinksDirective', () => {
         });
 
         it('should prevent default browser navigation for internal links', () => {
-            setup('<a href="/articles/456">Article Link</a>');
+            spectator.setInput(
+                'content',
+                '<a href="/articles/456">Article Link</a>'
+            );
+            spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
             const event = new MouseEvent('click', {
@@ -51,7 +78,11 @@ describe('InternalLinksDirective', () => {
         });
 
         it('should handle nested elements inside links', () => {
-            setup('<a href="/articles/789"><span>Nested Text</span></a>');
+            spectator.setInput(
+                'content',
+                '<a href="/articles/789"><span>Nested Text</span></a>'
+            );
+            spectator.detectChanges();
 
             const span = spectator.query('span') as HTMLSpanElement;
             span.click();
@@ -62,7 +93,11 @@ describe('InternalLinksDirective', () => {
 
     describe('external link handling', () => {
         it('should not intercept external http links', () => {
-            setup('<a href="https://example.com">External</a>');
+            spectator.setInput(
+                'content',
+                '<a href="https://example.com">External</a>'
+            );
+            spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
             link.click();
@@ -71,7 +106,11 @@ describe('InternalLinksDirective', () => {
         });
 
         it('should not intercept mailto links', () => {
-            setup('<a href="mailto:test@example.com">Email</a>');
+            spectator.setInput(
+                'content',
+                '<a href="mailto:test@example.com">Email</a>'
+            );
+            spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
             link.click();
@@ -80,7 +119,8 @@ describe('InternalLinksDirective', () => {
         });
 
         it('should not intercept hash-only links', () => {
-            setup('<a href="/#section">Hash Link</a>');
+            spectator.setInput('content', '<a href="/#section">Hash Link</a>');
+            spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
             link.click();
@@ -91,7 +131,8 @@ describe('InternalLinksDirective', () => {
 
     describe('non-link clicks', () => {
         it('should not intercept clicks on non-link elements', () => {
-            setup('<p>Plain text</p>');
+            spectator.setInput('content', '<p>Plain text</p>');
+            spectator.detectChanges();
 
             const paragraph = spectator.query('p') as HTMLParagraphElement;
             paragraph.click();
@@ -99,8 +140,9 @@ describe('InternalLinksDirective', () => {
             expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
-        it('should not intercept clicks on links without href', () => {
-            setup('<a>No href</a>');
+        it('should not intercept clicks on elements without href', () => {
+            spectator.setInput('content', '<a>No href</a>');
+            spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
             link.click();
@@ -111,15 +153,12 @@ describe('InternalLinksDirective', () => {
 
     describe('cleanup', () => {
         it('should remove event listener on destroy', () => {
-            setup('<a href="/test">Link</a>');
-
-            const hostElement = spectator.directive['elementRef'].nativeElement;
             const removeEventListenerSpy = jest.spyOn(
-                hostElement,
+                spectator.element,
                 'removeEventListener'
             );
 
-            spectator.directive.ngOnDestroy();
+            spectator.component.ngOnDestroy();
 
             expect(removeEventListenerSpy).toHaveBeenCalledWith(
                 'click',

@@ -74,8 +74,9 @@ describe('ArticleComponent', () => {
         it('should render article content as HTML', () => {
             spectator.detectChanges();
 
-            const contentEl = spectator.query('.article-content');
-            expect(contentEl?.innerHTML).toContain(
+            const contentComponent = spectator.query('ui-article-content');
+            expect(contentComponent).toBeTruthy();
+            expect(contentComponent?.innerHTML).toContain(
                 '<p>Test article content</p>'
             );
         });

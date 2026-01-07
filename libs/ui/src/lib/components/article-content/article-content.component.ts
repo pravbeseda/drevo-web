@@ -1,32 +1,44 @@
 import {
-    Directive,
+    ChangeDetectionStrategy,
+    Component,
     ElementRef,
     inject,
+    Input,
     OnDestroy,
     OnInit,
+    ViewEncapsulation,
 } from '@angular/core';
 import { Router } from '@angular/router';
 
 /**
- * Directive that intercepts clicks on internal links within dynamic HTML content
- * and navigates using Angular Router instead of full page reload.
+ * Component for rendering article content with internal link handling.
  *
- * This is useful for rendering HTML content with links (e.g., from API)
- * that should use client-side navigation.
+ * This component:
+ * - Renders HTML content safely using innerHTML
+ * - Intercepts clicks on internal links and navigates using Angular Router
+ * - Provides styling for article content without ng-deep
+ *
+ * Uses ViewEncapsulation.None to allow styling of dynamically injected HTML
+ * without requiring ::ng-deep.
  *
  * @example
  * ```html
- * <div [innerHTML]="article.content" uiInternalLinks></div>
+ * <ui-article-content [content]="article.content" />
  * ```
- *
- * The directive intercepts clicks on links that:
- * - Have href starting with "/" (internal links)
- * - Are not external links (http://, https://, mailto:, etc.)
  */
-@Directive({
-    selector: '[uiInternalLinks]',
+@Component({
+    selector: 'ui-article-content',
+    template: '<div [innerHTML]="content"></div>',
+    styleUrls: ['./article-content.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InternalLinksDirective implements OnInit, OnDestroy {
+export class ArticleContentComponent implements OnInit, OnDestroy {
+    /**
+     * HTML content to render
+     */
+    @Input() content = '';
+
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly router = inject(Router);
 

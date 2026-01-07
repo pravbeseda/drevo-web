@@ -9,14 +9,14 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { InternalLinksDirective, SpinnerComponent } from '@drevo-web/ui';
+import { ArticleContentComponent, SpinnerComponent } from '@drevo-web/ui';
 import { Article } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'app-article',
-    imports: [CommonModule, SpinnerComponent, InternalLinksDirective],
+    imports: [CommonModule, SpinnerComponent, ArticleContentComponent],
     templateUrl: './article.component.html',
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +38,7 @@ export class ArticleComponent implements OnInit {
                 const id = idParam ? parseInt(idParam, 10) : NaN;
 
                 if (isNaN(id) || id <= 0) {
+                    this.article.set(undefined);
                     this.error.set('Неверный ID статьи');
                     this.isLoading.set(false);
                     return;
@@ -52,19 +53,23 @@ export class ArticleComponent implements OnInit {
         this.isLoading.set(true);
         this.error.set(undefined);
 
-        this.articleService.getArticle(id).subscribe({
-            next: article => {
-                this.article.set(article);
-                this.isLoading.set(false);
-            },
-            error: (err: HttpErrorResponse) => {
-                if (err.status === 404) {
-                    this.error.set('Статья не найдена');
-                } else {
-                    this.error.set('Ошибка загрузки статьи');
-                }
-                this.isLoading.set(false);
-            },
-        });
+        this.articleService
+            .getArticle(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: article => {
+                    this.article.set(article);
+                    this.isLoading.set(false);
+                },
+                error: (err: HttpErrorResponse) => {
+                    this.article.set(undefined);
+                    if (err.status === 404) {
+                        this.error.set('Статья не найдена');
+                    } else {
+                        this.error.set('Ошибка загрузки статьи');
+                    }
+                    this.isLoading.set(false);
+                },
+            });
     }
 }

@@ -84,6 +84,24 @@ $theme-colors: (
         dark: $md-blue-200,
     ),
 
+    // wiki colors
+    wiki-existlink: (
+            light: $md-blue-900,
+            dark: $md-blue-300,
+        ),
+    wiki-newlink: (
+        light: $md-red-900,
+        dark: $md-red-200,
+    ),
+    wiki-bible-bg: (
+        light: $md-grey-200,
+        dark: $md-grey-800,
+    ),
+    wiki-verse: (
+        light: $md-cyan-800,
+        dark: $md-cyan-300,
+    ),
+
     // Toast backgrounds (darker for better contrast with white text)
     toast-success-bg: (
             light: $md-green-700,

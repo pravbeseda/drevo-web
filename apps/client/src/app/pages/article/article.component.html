@@ -11,9 +11,8 @@
         <header class="article-header">
             <h1 class="article-title">{{ article.title }}</h1>
         </header>
-        <div
+        <ui-article-content
             class="article-content"
-            uiInternalLinks
-            [innerHTML]="article.content"></div>
+            [content]="article.content" />
     </article>
 }
