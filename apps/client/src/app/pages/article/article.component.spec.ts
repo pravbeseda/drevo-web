@@ -129,8 +129,6 @@ describe('ArticleComponent', () => {
         let scrollToMock: jest.Mock;
 
         beforeEach(() => {
-            jest.useFakeTimers();
-
             // Create mock main container
             mainContainer = document.createElement('div');
             mainContainer.className = 'main';
@@ -142,8 +140,6 @@ describe('ArticleComponent', () => {
         });
 
         afterEach(() => {
-            jest.runOnlyPendingTimers();
-            jest.useRealTimers();
             document.body.removeChild(mainContainer);
         });
 
@@ -186,9 +182,6 @@ describe('ArticleComponent', () => {
             fragmentSubject.next('S26');
             spectator.detectChanges();
 
-            // Wait for setTimeout in scrollToFragment
-            jest.runAllTimers();
-
             expect(scrollToMock).toHaveBeenCalledWith({
                 top: 200, // 300 - 100 + 0
                 behavior: 'smooth',
@@ -203,18 +196,12 @@ describe('ArticleComponent', () => {
             fragmentSubject.next(undefined);
             spectator.detectChanges();
 
-            jest.runAllTimers();
-
             expect(scrollToMock).not.toHaveBeenCalled();
         });
 
         it('should handle non-existent fragment gracefully', () => {
             fragmentSubject.next('nonexistent');
             spectator.detectChanges();
-
-            expect(() => {
-                jest.runAllTimers();
-            }).not.toThrow();
 
             expect(scrollToMock).not.toHaveBeenCalled();
         });
@@ -257,8 +244,6 @@ describe('ArticleComponent', () => {
 
             fragmentSubject.next('S26');
             spectator.detectChanges();
-
-            jest.runAllTimers();
 
             expect(scrollToMock).toHaveBeenCalledWith({
                 top: 200,
@@ -309,8 +294,6 @@ describe('ArticleComponent', () => {
 
             fragmentSubject.next('S26');
             spectator.detectChanges();
-
-            jest.runAllTimers();
 
             // Should scroll to element with id (position 400), not name (position 300)
             expect(scrollToMock).toHaveBeenCalledWith({
@@ -373,7 +356,6 @@ describe('ArticleComponent', () => {
 
             fragmentSubject.next('S26');
             spectator.detectChanges();
-            jest.runAllTimers();
 
             expect(scrollToMock).toHaveBeenCalledWith({
                 top: 200,
@@ -382,7 +364,7 @@ describe('ArticleComponent', () => {
 
             // Change fragment
             fragmentSubject.next('S30');
-            jest.runAllTimers();
+            spectator.detectChanges();
 
             expect(scrollToMock).toHaveBeenCalledWith({
                 top: 400,
@@ -402,8 +384,6 @@ describe('ArticleComponent', () => {
 
             fragmentSubject.next('S26');
             spectator.detectChanges();
-
-            jest.runAllTimers();
 
             expect(scrollIntoViewMock).toHaveBeenCalledWith({
                 behavior: 'smooth',
