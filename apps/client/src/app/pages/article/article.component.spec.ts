@@ -141,7 +141,9 @@ describe('ArticleComponent', () => {
         });
 
         afterEach(() => {
-            document.body.removeChild(mainContainer);
+            if (document.body.contains(mainContainer)) {
+                document.body.removeChild(mainContainer);
+            }
         });
 
         it('should scroll main container to element when fragment is provided', () => {
@@ -392,11 +394,6 @@ describe('ArticleComponent', () => {
             });
 
             document.body.removeChild(mockElement);
-
-            // Restore main container for cleanup
-            mainContainer = document.createElement('div');
-            mainContainer.className = 'main';
-            document.body.appendChild(mainContainer);
         });
     });
 
