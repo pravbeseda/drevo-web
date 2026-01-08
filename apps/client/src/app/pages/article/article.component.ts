@@ -105,7 +105,7 @@ export class ArticleComponent implements OnInit {
                     return;
                 }
 
-                const mainContainer = document.querySelector('.main');
+                const mainContainer = document.getElementById('content');
                 if (mainContainer) {
                     const targetRect = targetElement.getBoundingClientRect();
                     const containerRect = mainContainer.getBoundingClientRect();

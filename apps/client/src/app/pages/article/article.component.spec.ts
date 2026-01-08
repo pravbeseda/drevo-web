@@ -131,6 +131,7 @@ describe('ArticleComponent', () => {
         beforeEach(() => {
             // Create mock main container
             mainContainer = document.createElement('div');
+            mainContainer.id = 'content';
             mainContainer.className = 'main';
             mainContainer.style.overflowY = 'auto';
             mainContainer.style.height = '500px';
