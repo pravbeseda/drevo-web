@@ -97,7 +97,7 @@ export class ArticleComponent implements OnInit {
         afterNextRender(
             () => {
                 if (!this.currentFragment || !this.article()) {
-                    this.logger.error(
+                    this.logger.debug(
                         'scrollToFragment failed: no currentFragment or article',
                         {
                             currentFragment: !!this.currentFragment,
@@ -124,7 +124,7 @@ export class ArticleComponent implements OnInit {
                 }
 
                 if (!targetElement) {
-                    this.logger.error('scrollToFragment: no targetElement');
+                    this.logger.debug('scrollToFragment: no targetElement');
                     return;
                 }
 
