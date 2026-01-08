@@ -57,7 +57,7 @@ export class ArticleComponent implements OnInit {
             });
 
         this.route.fragment
-            .pipe(takeUntilDestroyed(this.destroyRef))
+            .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
             .subscribe(fragment => {
                 this.currentFragment = fragment ?? undefined;
                 this.scrollToFragment();
@@ -91,38 +91,41 @@ export class ArticleComponent implements OnInit {
     }
 
     private scrollToFragment(): void {
-        afterNextRender(() => {
-            if (!this.currentFragment || !this.article()) {
-                return;
-            }
+        afterNextRender(
+            () => {
+                if (!this.currentFragment || !this.article()) {
+                    return;
+                }
 
-            const targetElement =
-                document.getElementById(this.currentFragment) ||
-                document.querySelector(`a[name="${this.currentFragment}"]`);
+                const targetElement =
+                    document.getElementById(this.currentFragment) ||
+                    document.querySelector(`a[name="${this.currentFragment}"]`);
 
-            if (!targetElement) {
-                return;
-            }
+                if (!targetElement) {
+                    return;
+                }
 
-            const mainContainer = document.querySelector('.main');
-            if (mainContainer) {
-                const targetRect = targetElement.getBoundingClientRect();
-                const containerRect = mainContainer.getBoundingClientRect();
-                const scrollTop =
-                    targetRect.top -
-                    containerRect.top +
-                    mainContainer.scrollTop;
+                const mainContainer = document.querySelector('.main');
+                if (mainContainer) {
+                    const targetRect = targetElement.getBoundingClientRect();
+                    const containerRect = mainContainer.getBoundingClientRect();
+                    const scrollTop =
+                        targetRect.top -
+                        containerRect.top +
+                        mainContainer.scrollTop;
 
-                mainContainer.scrollTo({
-                    top: scrollTop,
-                    behavior: 'smooth',
-                });
-            } else {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                });
-            }
-        }, { injector: this.injector });
+                    mainContainer.scrollTo({
+                        top: scrollTop,
+                        behavior: 'smooth',
+                    });
+                } else {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                    });
+                }
+            },
+            { injector: this.injector }
+        );
     }
 }
