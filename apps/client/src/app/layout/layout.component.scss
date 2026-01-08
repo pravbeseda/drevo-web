@@ -35,6 +35,7 @@
     background-color: var(--themed-bg-primary);
     transition: background-color 0.3s ease;
     padding: 1rem;
+    overflow-y: auto;
 }
 
 .footer {
