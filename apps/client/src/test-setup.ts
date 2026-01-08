@@ -26,6 +26,9 @@ if (typeof CSS === 'undefined') {
 }
 if (!CSS.escape) {
     CSS.escape = (cssIdentifier: string): string => {
-        return cssIdentifier.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+        return cssIdentifier.replace(
+            /[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g,
+            '\\$&'
+        );
     };
 }
