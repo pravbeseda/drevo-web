@@ -19,3 +19,13 @@ Object.defineProperty(window, 'matchMedia', {
         dispatchEvent: jest.fn(),
     })),
 });
+
+// Polyfill CSS.escape for tests
+if (typeof CSS === 'undefined') {
+    (global as any).CSS = {};
+}
+if (!CSS.escape) {
+    CSS.escape = (cssIdentifier: string): string => {
+        return cssIdentifier.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+    };
+}

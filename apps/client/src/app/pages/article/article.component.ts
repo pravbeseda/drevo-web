@@ -16,6 +16,7 @@ import { Article } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
 import { distinctUntilChanged, map } from 'rxjs/operators';
+import { LoggerService } from '@drevo-web/core';
 
 @Component({
     selector: 'app-article',
@@ -29,6 +30,8 @@ export class ArticleComponent implements OnInit {
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly injector = inject(Injector);
+    private readonly logger =
+        inject(LoggerService).withContext('ArticleComponent');
 
     readonly article = signal<Article | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
@@ -94,14 +97,34 @@ export class ArticleComponent implements OnInit {
         afterNextRender(
             () => {
                 if (!this.currentFragment || !this.article()) {
+                    this.logger.error(
+                        'scrollToFragment failed: no currentFragment or article',
+                        {
+                            currentFragment: !!this.currentFragment,
+                            article: !!this.article(),
+                        }
+                    );
                     return;
                 }
 
-                const targetElement =
-                    document.getElementById(this.currentFragment) ||
-                    document.querySelector(`a[name="${this.currentFragment}"]`);
+                let targetElement: Element | undefined = undefined;
+                try {
+                    targetElement =
+                        document.getElementById(this.currentFragment) ||
+                        document.querySelector(
+                            `a[name="${CSS.escape(this.currentFragment)}"]`
+                        ) ||
+                        undefined;
+                } catch (error) {
+                    this.logger.error(
+                        'scrollToFragment: querySelector failed',
+                        { error }
+                    );
+                    return;
+                }
 
                 if (!targetElement) {
+                    this.logger.error('scrollToFragment: no targetElement');
                     return;
                 }
 
