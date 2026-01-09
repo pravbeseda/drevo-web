@@ -131,7 +131,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         // Find element by id or name attribute
         const element =
             document.getElementById(anchorId) ||
-            document.querySelector(`[name="${anchorId}"]`);
+            document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
 
         if (element) {
             // Use native scrollIntoView for smooth scrolling

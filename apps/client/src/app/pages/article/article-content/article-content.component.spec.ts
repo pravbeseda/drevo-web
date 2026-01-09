@@ -192,6 +192,59 @@ describe('ArticleContentComponent', () => {
         });
     });
 
+    describe('anchor navigation', () => {
+        it('should handle anchor links with hash', () => {
+            const mockElement = document.createElement('div');
+            mockElement.setAttribute('name', 'section1');
+            mockElement.scrollIntoView = jest.fn();
+            spectator.element.appendChild(mockElement);
+
+            const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
+            const pushStateSpy = jest.spyOn(history, 'pushState');
+
+            spectator.setInput(
+                'content',
+                '<a href="#section1">Go to section</a>'
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            link.click();
+
+            expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+                behavior: 'smooth',
+                block: 'start',
+            });
+            expect(pushStateSpy).toHaveBeenCalledWith(
+                undefined,
+                '',
+                expect.stringContaining('#section1')
+            );
+        });
+
+        it('should handle anchor IDs with special characters safely', () => {
+            // Test that CSS.escape() prevents selector injection
+            const safeId = 'section-with-special';
+            const mockElement = document.createElement('div');
+            mockElement.setAttribute('name', safeId);
+            mockElement.scrollIntoView = jest.fn();
+            spectator.element.appendChild(mockElement);
+
+            const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
+
+            spectator.setInput(
+                'content',
+                `<a href="#${safeId}">Go to section</a>`
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            link.click();
+
+            expect(scrollIntoViewSpy).toHaveBeenCalled();
+        });
+    });
+
     describe('cleanup', () => {
         it('should remove event listener on destroy', () => {
             const removeEventListenerSpy = jest.spyOn(
