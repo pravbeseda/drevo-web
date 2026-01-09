@@ -1,8 +1,5 @@
 import { Router } from '@angular/router';
-import {
-    createComponentFactory,
-    Spectator,
-} from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticleContentComponent } from './article-content.component';
 
 describe('ArticleContentComponent', () => {
@@ -17,6 +14,10 @@ describe('ArticleContentComponent', () => {
     beforeEach(() => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should create', () => {
@@ -62,7 +63,9 @@ describe('ArticleContentComponent', () => {
             );
             spectator.detectChanges();
 
-            const anchor = spectator.query('a[name="anchor1"]') as HTMLAnchorElement;
+            const anchor = spectator.query(
+                'a[name="anchor1"]'
+            ) as HTMLAnchorElement;
             expect(anchor).toBeTruthy();
             expect(anchor.getAttribute('name')).toBe('anchor1');
         });
@@ -74,7 +77,9 @@ describe('ArticleContentComponent', () => {
             );
             spectator.detectChanges();
 
-            const anchor = spectator.query('a[name="S26"]') as HTMLAnchorElement;
+            const anchor = spectator.query(
+                'a[name="S26"]'
+            ) as HTMLAnchorElement;
             expect(anchor).toBeTruthy();
             expect(anchor.getAttribute('name')).toBe('S26');
             expect(anchor.id).toBe('section26');
@@ -242,6 +247,21 @@ describe('ArticleContentComponent', () => {
             link.click();
 
             expect(scrollIntoViewSpy).toHaveBeenCalled();
+        });
+
+        it('should not throw error when anchor target does not exist', () => {
+            const pushStateSpy = jest.spyOn(history, 'pushState');
+
+            spectator.setInput(
+                'content',
+                '<a href="#nonexistent">Go nowhere</a>'
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+
+            expect(() => link.click()).not.toThrow();
+            expect(pushStateSpy).not.toHaveBeenCalled();
         });
     });
 
