@@ -25,11 +25,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
  *
  * @example
  * ```html
- * <ui-article-content [content]="article.content" />
+ * <app-article-content [content]="article.content" />
  * ```
  */
 @Component({
-    selector: 'ui-article-content',
+    selector: 'app-article-content',
     template: '<div [innerHTML]="sanitizedContent"></div>',
     styleUrls: ['./article-content.component.scss'],
     encapsulation: ViewEncapsulation.None,

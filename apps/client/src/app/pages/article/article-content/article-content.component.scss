@@ -3,10 +3,10 @@
  *
  * Note: This component uses ViewEncapsulation.None, so styles are not scoped.
  * Using direct element selector to ensure styles are applied correctly.
- * The selector is scoped to ui-article-content to avoid affecting other elements.
+ * The selector is scoped to app-article-content to avoid affecting other elements.
  */
 
-ui-article-content {
+app-article-content {
     display: block;
     line-height: 1.6;
 
