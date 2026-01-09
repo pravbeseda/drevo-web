@@ -73,12 +73,13 @@ export class ArticleService {
     /**
      * Transform legacy article links to Angular-friendly format.
      * Converts href="/articles/8.html" to href="/articles/8"
+     * Converts href="/articles/8.html#S22" to href="/articles/8#S22"
      */
     private transformArticleLinks(content: string): string {
-        // Match href attributes pointing to /articles/*.html
+        // Match href attributes pointing to /articles/*.html with optional anchor
         return content.replace(
-            /href="\/articles\/(\d+)\.html"/g,
-            'href="/articles/$1"'
+            /href="\/articles\/(\d+)\.html(#[^"]+)?"/g,
+            'href="/articles/$1$2"'
         );
     }
 

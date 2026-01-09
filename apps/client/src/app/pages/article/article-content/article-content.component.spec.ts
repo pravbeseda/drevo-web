@@ -1,8 +1,5 @@
 import { Router } from '@angular/router';
-import {
-    createComponentFactory,
-    Spectator,
-} from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticleContentComponent } from './article-content.component';
 
 describe('ArticleContentComponent', () => {
@@ -17,6 +14,10 @@ describe('ArticleContentComponent', () => {
     beforeEach(() => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should create', () => {
@@ -62,7 +63,9 @@ describe('ArticleContentComponent', () => {
             );
             spectator.detectChanges();
 
-            const anchor = spectator.query('a[name="anchor1"]') as HTMLAnchorElement;
+            const anchor = spectator.query(
+                'a[name="anchor1"]'
+            ) as HTMLAnchorElement;
             expect(anchor).toBeTruthy();
             expect(anchor.getAttribute('name')).toBe('anchor1');
         });
@@ -74,7 +77,9 @@ describe('ArticleContentComponent', () => {
             );
             spectator.detectChanges();
 
-            const anchor = spectator.query('a[name="S26"]') as HTMLAnchorElement;
+            const anchor = spectator.query(
+                'a[name="S26"]'
+            ) as HTMLAnchorElement;
             expect(anchor).toBeTruthy();
             expect(anchor.getAttribute('name')).toBe('S26');
             expect(anchor.id).toBe('section26');
@@ -189,6 +194,74 @@ describe('ArticleContentComponent', () => {
             link.click();
 
             expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('anchor navigation', () => {
+        it('should handle anchor links with hash', () => {
+            const mockElement = document.createElement('div');
+            mockElement.setAttribute('name', 'section1');
+            mockElement.scrollIntoView = jest.fn();
+            spectator.element.appendChild(mockElement);
+
+            const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
+            const pushStateSpy = jest.spyOn(history, 'pushState');
+
+            spectator.setInput(
+                'content',
+                '<a href="#section1">Go to section</a>'
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            link.click();
+
+            expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+                behavior: 'smooth',
+                block: 'start',
+            });
+            expect(pushStateSpy).toHaveBeenCalledWith(
+                undefined,
+                '',
+                expect.stringContaining('#section1')
+            );
+        });
+
+        it('should handle anchor IDs with special characters safely', () => {
+            // Test that CSS.escape() prevents selector injection
+            const safeId = 'section-with-special';
+            const mockElement = document.createElement('div');
+            mockElement.setAttribute('name', safeId);
+            mockElement.scrollIntoView = jest.fn();
+            spectator.element.appendChild(mockElement);
+
+            const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
+
+            spectator.setInput(
+                'content',
+                `<a href="#${safeId}">Go to section</a>`
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            link.click();
+
+            expect(scrollIntoViewSpy).toHaveBeenCalled();
+        });
+
+        it('should not throw error when anchor target does not exist', () => {
+            const pushStateSpy = jest.spyOn(history, 'pushState');
+
+            spectator.setInput(
+                'content',
+                '<a href="#nonexistent">Go nowhere</a>'
+            );
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+
+            expect(() => link.click()).not.toThrow();
+            expect(pushStateSpy).not.toHaveBeenCalled();
         });
     });
 

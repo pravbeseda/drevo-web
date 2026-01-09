@@ -25,11 +25,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
  *
  * @example
  * ```html
- * <ui-article-content [content]="article.content" />
+ * <app-article-content [content]="article.content" />
  * ```
  */
 @Component({
-    selector: 'ui-article-content',
+    selector: 'app-article-content',
     template: '<div [innerHTML]="sanitizedContent"></div>',
     styleUrls: ['./article-content.component.scss'],
     encapsulation: ViewEncapsulation.None,
@@ -74,6 +74,14 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
             return;
         }
 
+        // Handle anchor links (hash-only links like #section-id)
+        if (this.isAnchorLink(href)) {
+            event.preventDefault();
+            const anchorId = href.substring(1); // Remove '#'
+            this.scrollToAnchor(anchorId);
+            return;
+        }
+
         // Only handle internal links (starting with /)
         // Skip external links and special protocols
         if (this.isInternalLink(href)) {
@@ -107,5 +115,31 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
         // Skip hash-only links
         return !href.startsWith('/#');
+    }
+
+    /**
+     * Check if the href is an anchor link (hash-only link like #section-id)
+     */
+    private isAnchorLink(href: string): boolean {
+        return href.startsWith('#') && href.length > 1;
+    }
+
+    /**
+     * Scroll to an element with the given anchor ID with smooth behavior
+     */
+    private scrollToAnchor(anchorId: string): void {
+        // Find element by id or name attribute
+        const element =
+            document.getElementById(anchorId) ||
+            document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
+
+        if (element) {
+            // Use native scrollIntoView for smooth scrolling
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Add to browser history with full path to enable back/forward navigation
+            const url = `${window.location.pathname}${window.location.search}#${anchorId}`;
+            history.pushState(undefined, '', url);
+        }
     }
 }

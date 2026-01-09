@@ -11,12 +11,13 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ArticleContentComponent, SpinnerComponent } from '@drevo-web/ui';
+import { SpinnerComponent } from '@drevo-web/ui';
 import { Article } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { LoggerService } from '@drevo-web/core';
+import { ArticleContentComponent } from './article-content/article-content.component';
 
 @Component({
     selector: 'app-article',

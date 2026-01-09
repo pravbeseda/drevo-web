@@ -85,10 +85,19 @@ $theme-colors: (
     ),
 
     // wiki colors
-    wiki-existlink: (
-            light: $md-blue-900,
-            dark: $md-blue-300,
+    // footnotes and other links by default
+    wiki-default-link: (
+            light: $md-brown-600,
+            dark: $md-brown-300,
         ),
+    wiki-external-link: (
+        light: $md-green-800,
+        dark: $md-green-200,
+    ),
+    wiki-existlink: (
+        light: $md-blue-900,
+        dark: $md-blue-300,
+    ),
     wiki-newlink: (
         light: $md-red-900,
         dark: $md-red-200,

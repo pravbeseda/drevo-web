@@ -77,7 +77,7 @@ describe('ArticleComponent', () => {
         it('should render article content as HTML', () => {
             spectator.detectChanges();
 
-            const contentComponent = spectator.query('ui-article-content');
+            const contentComponent = spectator.query('app-article-content');
             expect(contentComponent).toBeTruthy();
             expect(contentComponent?.innerHTML).toContain(
                 '<p>Test article content</p>'

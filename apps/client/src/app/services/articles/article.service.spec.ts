@@ -125,6 +125,21 @@ describe('ArticleService', () => {
                 done();
             });
         });
+
+        it('should transform article links with anchor fragments', done => {
+            const articleWithLinks: ArticleDetailApi = {
+                ...mockApiResponse,
+                content: '<a href="/articles/8.html#S22">Link with anchor</a>',
+            };
+            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
+
+            spectator.service.getArticle(123).subscribe(result => {
+                expect(result.content).toBe(
+                    '<a href="/articles/8#S22">Link with anchor</a>'
+                );
+                done();
+            });
+        });
     });
 
     describe('searchArticles', () => {
