@@ -129,8 +129,7 @@ describe('ArticleService', () => {
         it('should transform article links with anchor fragments', done => {
             const articleWithLinks: ArticleDetailApi = {
                 ...mockApiResponse,
-                content:
-                    '<a href="/articles/8.html#S22">Link with anchor</a>',
+                content: '<a href="/articles/8.html#S22">Link with anchor</a>',
             };
             articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
 

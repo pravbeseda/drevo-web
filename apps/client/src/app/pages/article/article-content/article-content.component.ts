@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ViewportScroller } from '@angular/common';
 
 /**
  * Component for rendering article content with internal link handling.
@@ -60,7 +59,6 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly router = inject(Router);
     private readonly sanitizer = inject(DomSanitizer);
-    private readonly viewportScroller = inject(ViewportScroller);
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
