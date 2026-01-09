@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ViewportScroller } from '@angular/common';
 
 /**
  * Component for rendering article content with internal link handling.
@@ -59,6 +60,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly router = inject(Router);
     private readonly sanitizer = inject(DomSanitizer);
+    private readonly viewportScroller = inject(ViewportScroller);
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
@@ -71,6 +73,14 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         const href = anchor.getAttribute('href');
 
         if (!href) {
+            return;
+        }
+
+        // Handle anchor links (hash-only links like #section-id)
+        if (this.isAnchorLink(href)) {
+            event.preventDefault();
+            const anchorId = href.substring(1); // Remove '#'
+            this.scrollToAnchor(anchorId);
             return;
         }
 
@@ -107,5 +117,31 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
         // Skip hash-only links
         return !href.startsWith('/#');
+    }
+
+    /**
+     * Check if the href is an anchor link (hash-only link like #section-id)
+     */
+    private isAnchorLink(href: string): boolean {
+        return href.startsWith('#') && href.length > 1;
+    }
+
+    /**
+     * Scroll to an element with the given anchor ID with smooth behavior
+     */
+    private scrollToAnchor(anchorId: string): void {
+        // Find element by id or name attribute
+        const element =
+            document.getElementById(anchorId) ||
+            document.querySelector(`[name="${anchorId}"]`);
+
+        if (element) {
+            // Use native scrollIntoView for smooth scrolling
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Add to browser history with full path to enable back/forward navigation
+            const url = `${window.location.pathname}${window.location.search}#${anchorId}`;
+            history.pushState(null, '', url);
+        }
     }
 }

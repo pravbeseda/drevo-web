@@ -10,6 +10,17 @@ app-article-content {
     display: block;
     line-height: 1.6;
 
+    // Enable smooth scrolling for anchor navigation
+    scroll-behavior: smooth;
+
+    a {
+        color: var(--themed-wiki-default-link);
+    }
+
+    .external {
+        color: var(--themed-wiki-external-link);
+    }
+
     // Wiki link styles
     .existlink {
         color: var(--themed-wiki-existlink);
