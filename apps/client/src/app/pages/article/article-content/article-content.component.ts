@@ -141,7 +141,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
             // Add to browser history with full path to enable back/forward navigation
             const url = `${window.location.pathname}${window.location.search}#${anchorId}`;
-            history.pushState(null, '', url);
+            history.pushState(undefined, '', url);
         }
     }
 }
