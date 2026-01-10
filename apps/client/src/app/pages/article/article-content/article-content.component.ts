@@ -101,7 +101,11 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         // TODO: Remove when migrating wiki formatter to Angular
         // Normalize href to prevent bypass attempts (JavaScript:, java script:, etc.)
         const normalizedHref = href.trim().toLowerCase().replace(/\s+/g, '');
-        if (normalizedHref.startsWith('javascript:')) {
+        if (
+            normalizedHref.startsWith('javascript:') ||
+            normalizedHref.startsWith('data:') ||
+            normalizedHref.startsWith('vbscript:')
+        ) {
             event.preventDefault();
             this.handleJavaScriptAction(href);
             return;
