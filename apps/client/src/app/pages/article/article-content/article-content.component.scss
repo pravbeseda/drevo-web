@@ -14,7 +14,12 @@ app-article-content {
     scroll-behavior: smooth;
 
     a {
-        color: var(--themed-wiki-default-link);
+        color: var(--themed-link-color);
+    }
+
+    .link-note,
+    .link-source {
+        color: var(--themed-wiki-note-link);
     }
 
     .external {
