@@ -66,7 +66,10 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     @Input()
     set content(value: string) {
         this._content = value;
-        this._sanitizedContent = this.sanitizer.bypassSecurityTrustHtml(value);
+        // Convert onclick="javascript:..." to data-onclick before sanitizing
+        const processedValue = this.preprocessContent(value);
+        this._sanitizedContent =
+            this.sanitizer.bypassSecurityTrustHtml(processedValue);
     }
 
     get content(): string {
@@ -85,29 +88,34 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
-        const anchor = target.closest('a');
 
+        // Check for data-onclick attribute on clicked element or its parents
+        let element: HTMLElement | null = target;
+        while (element && element !== this.elementRef.nativeElement) {
+            const dataOnclick = element.getAttribute('data-onclick');
+            if (dataOnclick && this.isJavaScriptProtocol(dataOnclick)) {
+                event.preventDefault();
+                this.executeJavaScriptAction(dataOnclick);
+                return;
+            }
+            element = element.parentElement;
+        }
+
+        // Then check for anchor links
+        const anchor = target.closest('a');
         if (!anchor) {
             return;
         }
 
         const href = anchor.getAttribute('href');
-
         if (!href) {
             return;
         }
 
         // Handle javascript: protocol links (legacy interactive features)
-        // TODO: Remove when migrating wiki formatter to Angular
-        // Normalize href to prevent bypass attempts (JavaScript:, java script:, etc.)
-        const normalizedHref = href.trim().toLowerCase().replace(/\s+/g, '');
-        if (
-            normalizedHref.startsWith('javascript:') ||
-            normalizedHref.startsWith('data:') ||
-            normalizedHref.startsWith('vbscript:')
-        ) {
+        if (this.isJavaScriptProtocol(href)) {
             event.preventDefault();
-            this.handleJavaScriptAction(href);
+            this.executeJavaScriptAction(href);
             return;
         }
 
@@ -131,6 +139,18 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         this.elementRef.nativeElement.addEventListener(
             'click',
             this.clickHandler
+        );
+    }
+
+    /**
+     * Preprocess HTML content to convert onclick="javascript:..." to data-onclick
+     * This prevents browser from trying to execute undefined functions
+     * Uses regex to work in both browser and SSR contexts
+     */
+    private preprocessContent(html: string): string {
+        return html.replace(
+            /\s+onclick=(["'])(javascript:[\s\S]*?)\1/gi,
+            ' data-onclick=$1$2$1'
         );
     }
 
@@ -185,23 +205,43 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     // ========================================================================
 
     /**
-     * Handle javascript: protocol links from legacy content
-     * @param href - The href attribute value (e.g., "javascript:toggleAll()")
+     * Check if string is a javascript: protocol (with normalization to prevent bypass)
      */
-    private handleJavaScriptAction(href: string): void {
-        // Whitelist of allowed actions to prevent code injection
-        const allowedActions = ['toggleAll', 'toggleRus', 'toggleCsl'] as const;
-        
-        // Extract action name using regex that matches only safe patterns
-        // Matches: javascript:actionName or javascript:actionName()
-        const match = /^javascript:([a-zA-Z]+)(?:\(\))?$/i.exec(href.trim());
-        
-        if (!match) {
-            this.logger.warn('Invalid javascript action format', { href });
+    private isJavaScriptProtocol(value: string): boolean {
+        const normalized = value.trim().toLowerCase().replace(/\s+/g, '');
+        return (
+            normalized.startsWith('javascript:') ||
+            normalized.startsWith('data:') ||
+            normalized.startsWith('vbscript:')
+        );
+    }
+
+    /**
+     * Execute javascript: protocol action from legacy content
+     * @param value - The href or onclick attribute value (e.g., "javascript:toggleAll()")
+     */
+    private executeJavaScriptAction(value: string): void {
+        // Extract action name and parameter using regex
+        const matchSimple = /^javascript:([a-zA-Z]+)(?:\(\))?$/i.exec(
+            value.trim()
+        );
+        const matchWithParam =
+            /^javascript:([a-zA-Z]+)\('([a-zA-Z0-9_-]+)'\)$/i.exec(
+                value.trim()
+            );
+
+        let action: string;
+        let param: string | undefined;
+
+        if (matchWithParam) {
+            action = matchWithParam[1];
+            param = matchWithParam[2];
+        } else if (matchSimple) {
+            action = matchSimple[1];
+        } else {
+            this.logger.warn('Invalid javascript action format', { value });
             return;
         }
-        
-        const action = match[1];
 
         switch (action) {
             case 'toggleAll':
@@ -213,9 +253,21 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
             case 'toggleCsl':
                 this.toggleCsl();
                 break;
-            default:
-                this.logger.warn('Unknown javascript action', { action, href });
+            case 'toggleGroup':
+                if (param) {
+                    this.toggleGroup(param);
+                } else {
+                    this.logger.warn(
+                        'toggleGroup requires a class name parameter',
+                        { value }
+                    );
+                }
                 break;
+            default:
+                this.logger.warn('Unknown javascript action', {
+                    action,
+                    value,
+                });
         }
     }
 

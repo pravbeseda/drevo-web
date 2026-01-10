@@ -18,7 +18,9 @@ describe('ArticleContentComponent', () => {
     beforeEach(() => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
-        logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        logger = spectator.inject(
+            LoggerService
+        ) as unknown as MockLoggerService;
     });
 
     afterEach(() => {
@@ -559,8 +561,11 @@ describe('ArticleContentComponent', () => {
                 expect(preventDefaultSpy).toHaveBeenCalled();
                 // Should log warning but not execute any action
                 expect(logger.mockLogger.warn).toHaveBeenCalledWith(
-                    'Invalid javascript action format',
-                    expect.objectContaining({ href: expect.any(String) })
+                    'Unknown javascript action',
+                    expect.objectContaining({
+                        action: 'alert',
+                        value: expect.any(String),
+                    })
                 );
             });
 
@@ -581,11 +586,180 @@ describe('ArticleContentComponent', () => {
 
                 expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                     'Unknown javascript action',
-                    expect.objectContaining({ 
+                    expect.objectContaining({
                         action: 'unknownAction',
-                        href: expect.any(String)
+                        value: expect.any(String),
                     })
                 );
+            });
+
+            it('should reject data: protocol links', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="data:text/html,<script>alert(1)</script>">XSS</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+                expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+
+            it('should reject vbscript: protocol links', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="vbscript:msgbox(1)">XSS</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+                expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+
+            it('should warn on invalid javascript action format', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="javascript:console.log(\'test\')">Invalid</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                link.click();
+
+                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
+                    'Invalid javascript action format',
+                    expect.objectContaining({ value: expect.any(String) })
+                );
+            });
+        });
+
+        describe('toggleGroup', () => {
+            it('should toggle elements with specified class name', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <a href="javascript:toggleGroup('group1')">Toggle Group</a>
+                    <div class="group1">Item 1</div>
+                    <div class="group1">Item 2</div>
+                `
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const items = spectator.queryAll<HTMLElement>('.group1');
+
+                // Initial state - visible
+                expect(items[0].style.display).toBe('');
+                expect(items[1].style.display).toBe('');
+
+                // Click to hide
+                link.click();
+
+                expect(items[0].style.display).toBe('none');
+                expect(items[1].style.display).toBe('none');
+
+                // Click to show
+                link.click();
+
+                expect(items[0].style.display).toBe('');
+                expect(items[1].style.display).toBe('');
+            });
+
+            it('should warn when toggleGroup called without parameter', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="javascript:toggleGroup()">Invalid</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                link.click();
+
+                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
+                    'toggleGroup requires a class name parameter',
+                    expect.objectContaining({ value: expect.any(String) })
+                );
+            });
+        });
+
+        describe('onclick attribute handling', () => {
+            it('should convert onclick to data-onclick and handle clicks', () => {
+                spectator.setInput(
+                    'content',
+                    `<table onclick="javascript:toggleGroup('cmnt3')"><tr><td>Click me</td></tr></table>
+                    <div class="cmnt3">Content</div>`
+                );
+                spectator.detectChanges();
+
+                const table = spectator.query('table') as HTMLTableElement;
+                const td = spectator.query('td') as HTMLTableCellElement;
+                const content = spectator.query<HTMLElement>('.cmnt3')!;
+
+                // onclick should be converted to data-onclick
+                expect(table.getAttribute('onclick')).toBeNull();
+                expect(table.getAttribute('data-onclick')).toContain(
+                    'javascript:toggleGroup'
+                );
+
+                // Initial state
+                expect(content.style.display).toBe('');
+
+                // Click on child element (td)
+                td.click();
+
+                // Should toggle visibility
+                expect(content.style.display).toBe('none');
+            });
+
+            it('should handle onclick with single quotes', () => {
+                spectator.setInput(
+                    'content',
+                    `<div onclick='javascript:toggleAll()' id="clickable">Click</div>
+                    <div class="cmnt">Comment</div>`
+                );
+                spectator.detectChanges();
+
+                const div = spectator.query('#clickable') as HTMLDivElement;
+
+                expect(div.getAttribute('onclick')).toBeNull();
+                expect(div.getAttribute('data-onclick')).toContain(
+                    'javascript:toggleAll'
+                );
+            });
+
+            it('should handle onclick on nested elements', () => {
+                spectator.setInput(
+                    'content',
+                    `<table onclick="javascript:toggleGroup('test')">
+                        <tr><td><span>Deep nested</span></td></tr>
+                    </table>
+                    <div class="test">Content</div>`
+                );
+                spectator.detectChanges();
+
+                const span = spectator.query('span') as HTMLSpanElement;
+                const content = spectator.query<HTMLElement>('.test')!;
+
+                span.click();
+
+                expect(content.style.display).toBe('none');
             });
         });
     });
