@@ -10,6 +10,17 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { LoggerService } from '@drevo-web/core';
+
+/**
+ * State interface for managing interactive content visibility
+ * TODO: Remove when migrating wiki formatter to Angular
+ */
+interface ContentInteractionState {
+    commentsExpanded: boolean;
+    rusVisible: boolean;
+    cslVisible: boolean;
+}
 
 /**
  * Component for rendering article content with internal link handling.
@@ -40,6 +51,16 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private _sanitizedContent: SafeHtml = '';
 
     /**
+     * State for managing interactive content visibility (comments, translations)
+     * TODO: Remove when migrating wiki formatter to Angular
+     */
+    private interactionState: ContentInteractionState = {
+        commentsExpanded: true,
+        rusVisible: true,
+        cslVisible: true,
+    };
+
+    /**
      * HTML content to render
      */
     @Input()
@@ -59,6 +80,8 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly router = inject(Router);
     private readonly sanitizer = inject(DomSanitizer);
+    private readonly logger =
+        inject(LoggerService).withContext('ArticleContent');
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
@@ -71,6 +94,14 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         const href = anchor.getAttribute('href');
 
         if (!href) {
+            return;
+        }
+
+        // Handle javascript: protocol links (legacy interactive features)
+        // TODO: Remove when migrating wiki formatter to Angular
+        if (href.startsWith('javascript:')) {
+            event.preventDefault();
+            this.handleJavaScriptAction(href);
             return;
         }
 
@@ -141,5 +172,168 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
             const url = `${window.location.pathname}${window.location.search}#${anchorId}`;
             history.pushState(undefined, '', url);
         }
+    }
+
+    // ========================================================================
+    // Legacy interactive features support (TODO: Remove after wiki formatter migration)
+    // ========================================================================
+
+    /**
+     * Handle javascript: protocol links from legacy content
+     * @param href - The href attribute value (e.g., "javascript:toggleAll()")
+     */
+    private handleJavaScriptAction(href: string): void {
+        const action = href.replace('javascript:', '').replace(/\(\).*$/, '');
+
+        switch (action) {
+            case 'toggleAll':
+                this.toggleAll();
+                break;
+            case 'toggleRus':
+                this.toggleRus();
+                break;
+            case 'toggleCsl':
+                this.toggleCsl();
+                break;
+            default:
+                this.logger.warn('Unknown javascript action', { action, href });
+                break;
+        }
+    }
+
+    /**
+     * Toggle visibility of all comments
+     * Mimics jQuery: toggleAll() function
+     */
+    private toggleAll(): void {
+        const host = this.elementRef.nativeElement;
+        const comments = host.querySelectorAll('.cmnt');
+        const links = Array.from(
+            host.querySelectorAll('.LinkComment')
+        ) as HTMLElement[];
+
+        // Check current state from first link
+        const isExpanded = links[0]?.textContent?.trim() === 'Свернуть';
+
+        // Update all toggle links
+        links.forEach(link => {
+            link.textContent = isExpanded ? 'Развернуть' : 'Свернуть';
+        });
+
+        // Toggle comments visibility
+        comments.forEach((comment: Element) => {
+            (comment as HTMLElement).style.display = isExpanded ? 'none' : '';
+        });
+
+        // Update state
+        this.interactionState.commentsExpanded = !isExpanded;
+    }
+
+    /**
+     * Toggle visibility of Russian translation
+     * Mimics jQuery: toggleRus() function
+     */
+    private toggleRus(): void {
+        const host = this.elementRef.nativeElement;
+        const rusElements = Array.from(
+            host.querySelectorAll('.BibleRus')
+        ) as HTMLElement[];
+        const cslElements = Array.from(
+            host.querySelectorAll('.BibleCsl')
+        ) as HTMLElement[];
+
+        // Toggle Russian elements
+        const willBeHidden = rusElements[0]?.style.display !== 'none';
+        rusElements.forEach(el => {
+            el.style.display = willBeHidden ? 'none' : '';
+        });
+
+        // If hiding Russian, ensure Church Slavonic is visible
+        if (willBeHidden) {
+            cslElements.forEach(el => {
+                el.style.display = '';
+            });
+            this.interactionState.cslVisible = true;
+        }
+
+        // Update state and links
+        this.interactionState.rusVisible = !willBeHidden;
+        this.updateBibleLinks();
+    }
+
+    /**
+     * Toggle visibility of Church Slavonic translation
+     * Mimics jQuery: toggleCsl() function
+     */
+    private toggleCsl(): void {
+        const host = this.elementRef.nativeElement;
+        const cslElements = Array.from(
+            host.querySelectorAll('.BibleCsl')
+        ) as HTMLElement[];
+        const rusElements = Array.from(
+            host.querySelectorAll('.BibleRus')
+        ) as HTMLElement[];
+
+        // Toggle Church Slavonic elements
+        const willBeHidden = cslElements[0]?.style.display !== 'none';
+        cslElements.forEach(el => {
+            el.style.display = willBeHidden ? 'none' : '';
+        });
+
+        // If hiding Church Slavonic, ensure Russian is visible
+        if (willBeHidden) {
+            rusElements.forEach(el => {
+                el.style.display = '';
+            });
+            this.interactionState.rusVisible = true;
+        }
+
+        // Update state and links
+        this.interactionState.cslVisible = !willBeHidden;
+        this.updateBibleLinks();
+    }
+
+    /**
+     * Toggle visibility of elements by class name
+     * Mimics jQuery: toggleGroup(cl) function
+     */
+    private toggleGroup(className: string): void {
+        const host = this.elementRef.nativeElement;
+        const elements = Array.from(
+            host.querySelectorAll(`.${className}`)
+        ) as HTMLElement[];
+
+        elements.forEach(el => {
+            el.style.display = el.style.display === 'none' ? '' : 'none';
+        });
+    }
+
+    /**
+     * Update text of Bible translation toggle links
+     * Mimics jQuery: checkBibleLinks() function
+     */
+    private updateBibleLinks(): void {
+        const host = this.elementRef.nativeElement;
+        const rusLinks = Array.from(
+            host.querySelectorAll('.toggleRus')
+        ) as HTMLElement[];
+        const cslLinks = Array.from(
+            host.querySelectorAll('.toggleCsl')
+        ) as HTMLElement[];
+
+        const rusText = this.interactionState.rusVisible
+            ? 'Скрыть русский перевод'
+            : 'Показать русский перевод';
+        const cslText = this.interactionState.cslVisible
+            ? 'Скрыть церковнославянский перевод'
+            : 'Показать церковнославянский перевод';
+
+        rusLinks.forEach(link => {
+            link.textContent = rusText;
+        });
+
+        cslLinks.forEach(link => {
+            link.textContent = cslText;
+        });
     }
 }

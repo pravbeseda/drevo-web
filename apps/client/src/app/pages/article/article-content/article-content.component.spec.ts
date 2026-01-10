@@ -280,4 +280,200 @@ describe('ArticleContentComponent', () => {
             );
         });
     });
+
+    describe('legacy interactive features', () => {
+        describe('toggleAll', () => {
+            it('should toggle comment visibility and link text', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
+                    <div class="cmnt">Comment 1</div>
+                    <div class="cmnt">Comment 2</div>
+                `
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('.LinkComment') as HTMLElement;
+                const comments = spectator.queryAll<HTMLElement>('.cmnt');
+
+                // Initial state
+                expect(link.textContent?.trim()).toBe('Свернуть');
+                expect(comments[0].style.display).toBe('');
+
+                // Click to collapse
+                link.click();
+
+                expect(link.textContent?.trim()).toBe('Развернуть');
+                expect(comments[0].style.display).toBe('none');
+                expect(comments[1].style.display).toBe('none');
+
+                // Click to expand
+                link.click();
+
+                expect(link.textContent?.trim()).toBe('Свернуть');
+                expect(comments[0].style.display).toBe('');
+                expect(comments[1].style.display).toBe('');
+            });
+
+            it('should handle multiple toggle links', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
+                    <div class="cmnt">Comment</div>
+                    <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
+                `
+                );
+                spectator.detectChanges();
+
+                const links = spectator.queryAll<HTMLElement>('.LinkComment');
+
+                links[0].click();
+
+                expect(links[0].textContent?.trim()).toBe('Развернуть');
+                expect(links[1].textContent?.trim()).toBe('Развернуть');
+            });
+        });
+
+        describe('toggleRus', () => {
+            it('should toggle Russian translation visibility', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <p><a href="javascript:toggleRus()" class="toggleRus">Скрыть русский перевод</a></p>
+                    <div class="BibleRus">Russian text</div>
+                    <div class="BibleCsl">Church Slavonic text</div>
+                `
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('.toggleRus') as HTMLElement;
+                const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
+                const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
+
+                // Click to hide Russian
+                link.click();
+
+                expect(rusElement.style.display).toBe('none');
+                expect(cslElement.style.display).toBe('');
+                expect(link.textContent?.trim()).toBe(
+                    'Показать русский перевод'
+                );
+
+                // Click to show Russian
+                link.click();
+
+                expect(rusElement.style.display).toBe('');
+                expect(link.textContent?.trim()).toBe('Скрыть русский перевод');
+            });
+
+            it('should ensure Church Slavonic is visible when hiding Russian', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <p><a href="javascript:toggleRus()" class="toggleRus">Скрыть русский перевод</a></p>
+                    <div class="BibleRus">Russian</div>
+                    <div class="BibleCsl" style="display: none;">Church Slavonic</div>
+                `
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('.toggleRus') as HTMLElement;
+                const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
+
+                link.click();
+
+                expect(cslElement.style.display).toBe('');
+            });
+        });
+
+        describe('toggleCsl', () => {
+            it('should toggle Church Slavonic translation visibility', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <p><a href="javascript:toggleCsl()" class="toggleCsl">Скрыть церковнославянский перевод</a></p>
+                    <div class="BibleRus">Russian text</div>
+                    <div class="BibleCsl">Church Slavonic text</div>
+                `
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('.toggleCsl') as HTMLElement;
+                const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
+                const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
+
+                // Click to hide Church Slavonic
+                link.click();
+
+                expect(cslElement.style.display).toBe('none');
+                expect(rusElement.style.display).toBe('');
+                expect(link.textContent?.trim()).toBe(
+                    'Показать церковнославянский перевод'
+                );
+
+                // Click to show Church Slavonic
+                link.click();
+
+                expect(cslElement.style.display).toBe('');
+                expect(link.textContent?.trim()).toBe(
+                    'Скрыть церковнославянский перевод'
+                );
+            });
+
+            it('should ensure Russian is visible when hiding Church Slavonic', () => {
+                spectator.setInput(
+                    'content',
+                    `
+                    <p><a href="javascript:toggleCsl()" class="toggleCsl">Скрыть церковнославянский перевод</a></p>
+                    <div class="BibleRus" style="display: none;">Russian</div>
+                    <div class="BibleCsl">Church Slavonic</div>
+                `
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('.toggleCsl') as HTMLElement;
+                const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
+
+                link.click();
+
+                expect(rusElement.style.display).toBe('');
+            });
+        });
+
+        describe('javascript: link handling', () => {
+            it('should prevent default for javascript: links', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="javascript:toggleAll()">Toggle</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+            });
+
+            it('should not call router.navigateByUrl for javascript: links', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="javascript:toggleAll()">Toggle</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                link.click();
+
+                expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+        });
+    });
 });
