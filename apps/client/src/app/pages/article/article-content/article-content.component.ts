@@ -99,7 +99,9 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
         // Handle javascript: protocol links (legacy interactive features)
         // TODO: Remove when migrating wiki formatter to Angular
-        if (href.startsWith('javascript:')) {
+        // Normalize href to prevent bypass attempts (JavaScript:, java script:, etc.)
+        const normalizedHref = href.trim().toLowerCase().replace(/\s+/g, '');
+        if (normalizedHref.startsWith('javascript:')) {
             event.preventDefault();
             this.handleJavaScriptAction(href);
             return;
@@ -183,7 +185,19 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      * @param href - The href attribute value (e.g., "javascript:toggleAll()")
      */
     private handleJavaScriptAction(href: string): void {
-        const action = href.replace('javascript:', '').replace(/\(\).*$/, '');
+        // Whitelist of allowed actions to prevent code injection
+        const allowedActions = ['toggleAll', 'toggleRus', 'toggleCsl'] as const;
+        
+        // Extract action name using regex that matches only safe patterns
+        // Matches: javascript:actionName or javascript:actionName()
+        const match = /^javascript:([a-zA-Z]+)(?:\(\))?$/i.exec(href.trim());
+        
+        if (!match) {
+            this.logger.warn('Invalid javascript action format', { href });
+            return;
+        }
+        
+        const action = match[1];
 
         switch (action) {
             case 'toggleAll':

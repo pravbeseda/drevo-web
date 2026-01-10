@@ -1,19 +1,24 @@
 import { Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { LoggerService } from '@drevo-web/core';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { ArticleContentComponent } from './article-content.component';
 
 describe('ArticleContentComponent', () => {
     let spectator: Spectator<ArticleContentComponent>;
     let router: jest.Mocked<Router>;
+    let logger: MockLoggerService;
 
     const createComponent = createComponentFactory({
         component: ArticleContentComponent,
         mocks: [Router],
+        providers: [mockLoggerProvider()],
     });
 
     beforeEach(() => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
+        logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
 
     afterEach(() => {
@@ -473,6 +478,114 @@ describe('ArticleContentComponent', () => {
                 link.click();
 
                 expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+
+            it('should handle javascript: links with uppercase (JavaScript:)', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="JavaScript:toggleAll()">Toggle</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+                expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+
+            it('should handle javascript: links with mixed case', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="JaVaScRiPt:toggleRus()">Toggle</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+                expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+
+            it('should handle javascript: links with whitespace', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="  javascript:toggleCsl()  ">Toggle</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+                expect(router.navigateByUrl).not.toHaveBeenCalled();
+            });
+
+            it('should reject invalid javascript: patterns with special characters', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="javascript:alert(\'xss\')">Invalid</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+                link.dispatchEvent(event);
+
+                expect(preventDefaultSpy).toHaveBeenCalled();
+                // Should log warning but not execute any action
+                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
+                    'Invalid javascript action format',
+                    expect.objectContaining({ href: expect.any(String) })
+                );
+            });
+
+            it('should reject unknown javascript: actions', () => {
+                spectator.setInput(
+                    'content',
+                    '<a href="javascript:unknownAction()">Unknown</a>'
+                );
+                spectator.detectChanges();
+
+                const link = spectator.query('a') as HTMLAnchorElement;
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+
+                link.dispatchEvent(event);
+
+                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
+                    'Unknown javascript action',
+                    expect.objectContaining({ 
+                        action: 'unknownAction',
+                        href: expect.any(String)
+                    })
+                );
             });
         });
     });
