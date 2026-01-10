@@ -370,7 +370,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private toggleGroup(className: string): void {
         const host = this.elementRef.nativeElement;
         const elements = Array.from(
-            host.querySelectorAll(`.${className}`)
+            host.querySelectorAll(`.${CSS.escape(className)}`)
         ) as HTMLElement[];
 
         elements.forEach(el => {
