@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 
 /**
  * State interface for managing interactive content visibility
@@ -85,6 +85,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly sanitizer = inject(DomSanitizer);
     private readonly logger =
         inject(LoggerService).withContext('ArticleContent');
+    private readonly notification = inject(NotificationService);
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
@@ -143,14 +144,34 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Preprocess HTML content to convert onclick="javascript:..." to data-onclick
+     * Preprocess HTML content:
+     * - Remove elements with class="map" and their content
+     * - Convert onclick="javascript:..." to data-onclick
      * This prevents browser from trying to execute undefined functions
      * Uses regex to work in both browser and SSR contexts
      */
     private preprocessContent(html: string): string {
-        return html.replace(
+        // Remove all elements with class="map" and their content
+        let processed = this.removeMapElements(html);
+
+        // Convert onclick to data-onclick
+        processed = processed.replace(
             /\s+onclick=(["'])(javascript:[\s\S]*?)\1/gi,
             ' data-onclick=$1$2$1'
+        );
+
+        return processed;
+    }
+
+    /**
+     * Remove all HTML elements with class="map" and their content
+     */
+    private removeMapElements(html: string): string {
+        // Remove paired tags like <div class="map">...</div>
+        // This regex matches opening tag with class="map", content, and closing tag
+        return html.replace(
+            /<(\w+)[^>]*\sclass="map"[^>]*>[\s\S]*?<\/\1>|<\w+[^>]*\sclass="map"[^>]*\/>/gi,
+            ''
         );
     }
 
@@ -222,11 +243,13 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      */
     private executeJavaScriptAction(value: string): void {
         // Extract action name and parameter using regex
-        const matchSimple = /^javascript:([a-zA-Z]+)(?:\(\))?$/i.exec(
-            value.trim()
-        );
+        // Supports: toggleAll(), toggleGroup('class'), gmap=googleMap();return false;
         const matchWithParam =
-            /^javascript:([a-zA-Z]+)\('([a-zA-Z0-9_-]+)'\)$/i.exec(
+            /^javascript:\s*(?:\w+=)?([a-zA-Z]+)\('([a-zA-Z0-9_-]+)'\)(?:;.*)?$/i.exec(
+                value.trim()
+            );
+        const matchSimple =
+            /^javascript:\s*(?:\w+=)?([a-zA-Z]+)(?:\(\))?(?:;.*)?$/i.exec(
                 value.trim()
             );
 
@@ -262,6 +285,10 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
                         { value }
                     );
                 }
+                break;
+            case 'toggleYandexMap':
+            case 'googleMap':
+                this.showNotImplementedYet();
                 break;
             default:
                 this.logger.warn('Unknown javascript action', {
@@ -405,5 +432,9 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         cslLinks.forEach(link => {
             link.textContent = cslText;
         });
+    }
+
+    private showNotImplementedYet(): void {
+        this.notification.info('Функция еще не реализована');
     }
 }
