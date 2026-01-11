@@ -310,6 +310,16 @@ else
             # Show current status
             log_info "Current PM2 status:"
             pm2 status | grep -E "(id|$APP_NAME)" || pm2 status
+            
+            # Save PM2 process list for auto-restart after server reboot
+            log_info "Saving PM2 process list..."
+            if pm2 save; then
+                log_info "✅ PM2 process list saved successfully"
+                log_info "Application will auto-restart after server reboot"
+            else
+                log_warn "⚠️ Failed to save PM2 process list"
+                log_warn "Application may not auto-restart after server reboot"
+            fi
         else
             log_error "❌ PM2 process '$APP_NAME' is not running after restart"
             log_error "Manual intervention may be required"
@@ -381,10 +391,12 @@ elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" 
     echo ""
     log_info "🎉 Deployment completed successfully!"
     log_info "✅ PM2 process restarted automatically"
+    log_info "✅ PM2 process list saved for auto-restart after server reboot"
     log_info "📋 Next steps (optional verification):"
     log_info "1. Check detailed status: pm2 show $APP_NAME"
     log_info "2. Monitor logs: pm2 logs $APP_NAME"
     log_info "3. Verify version display: pm2 status"
+    log_info "4. Verify startup script: pm2 startup (should show current configuration)"
     echo ""
     
 else
