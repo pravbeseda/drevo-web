@@ -13,10 +13,6 @@ app-article-content {
     // Enable smooth scrolling for anchor navigation
     scroll-behavior: smooth;
 
-    a {
-        color: var(--themed-link-color);
-    }
-
     .link-note,
     .link-source {
         color: var(--themed-wiki-note-link);
@@ -48,10 +44,24 @@ app-article-content {
 
     // Additional content styling can be added here
     a {
+        color: var(--themed-link-color);
         text-decoration: none;
 
         &:hover {
             text-decoration: underline;
+        }
+    }
+
+    .pic {
+        float: right;
+        clear: right;
+        margin: 5px 0 5px 10px;
+        padding: 5px;
+        border: 0;
+        background-color: var(--themed-wiki-image-bg);
+
+        .picdesc {
+            text-align: center;
         }
     }
 }

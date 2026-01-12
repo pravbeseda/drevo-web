@@ -109,6 +109,10 @@ $theme-colors: (
         light: $md-cyan-800,
         dark: $md-cyan-300,
     ),
+    wiki-image-bg: (
+        light: $md-grey-200,
+        dark: $md-grey-800,
+    ),
 
     // Toast backgrounds (darker for better contrast with white text)
     toast-success-bg: (

@@ -6,5 +6,11 @@
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "cookiePathRewrite": "/"
+    },
+    "/pictures": {
+        "target": "http://drevo-local.ru",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug"
     }
 }
