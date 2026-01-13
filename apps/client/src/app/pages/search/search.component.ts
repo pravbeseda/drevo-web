@@ -141,8 +141,13 @@ export class SearchComponent implements OnInit {
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe(response => {
-                this.searchResults.set([...currentResults, ...response.items]);
-                this.currentPage.set(nextPage);
+                if (response.items.length > 0) {
+                    this.searchResults.set([
+                        ...currentResults,
+                        ...response.items,
+                    ]);
+                    this.currentPage.set(nextPage);
+                }
                 this.isLoadingMore.set(false);
             });
     }

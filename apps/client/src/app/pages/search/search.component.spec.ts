@@ -577,12 +577,15 @@ describe('SearchComponent', () => {
                     throwError(() => new Error('Pagination failed'))
                 ); // load more error
             spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
             // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
             expect(spectator.component.currentPage()).toBe(1);
+            expect(spectator.component.searchResults().length).toBe(2);
+            expect(spectator.component.totalResults()).toBe(4);
 
             // Try to load more (will fail)
             spectator.component.onLoadMore();
