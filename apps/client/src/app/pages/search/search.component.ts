@@ -21,9 +21,11 @@ import {
 } from '@drevo-web/ui';
 import { ArticleSearchResult } from '@drevo-web/shared';
 import {
+    catchError,
     debounceTime,
     distinctUntilChanged,
     map,
+    of,
     startWith,
     Subject,
     switchMap,
@@ -93,24 +95,23 @@ export class SearchComponent implements OnInit {
                 }),
                 debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
-                    return this.articleService.searchArticles({
-                        query,
-                        page: 1,
-                    });
+                    return this.articleService
+                        .searchArticles({
+                            query,
+                            page: 1,
+                        })
+                        .pipe(
+                            catchError(() => {
+                                return of({ items: [], total: 0 });
+                            })
+                        );
                 }),
                 takeUntilDestroyed(this.destroyRef)
             )
-            .subscribe({
-                next: response => {
-                    this.searchResults.set([...response.items]);
-                    this.totalResults.set(response.total);
-                    this.isLoading.set(false);
-                },
-                error: () => {
-                    this.searchResults.set([]);
-                    this.totalResults.set(0);
-                    this.isLoading.set(false);
-                },
+            .subscribe(response => {
+                this.searchResults.set([...response.items]);
+                this.totalResults.set(response.total);
+                this.isLoading.set(false);
             });
     }
 
@@ -133,19 +134,21 @@ export class SearchComponent implements OnInit {
 
         this.articleService
             .searchArticles({ query, page: nextPage })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: response => {
+            .pipe(
+                catchError(() => {
+                    return of({ items: [], total: 0 });
+                }),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(response => {
+                if (response.items.length > 0) {
                     this.searchResults.set([
                         ...currentResults,
                         ...response.items,
                     ]);
                     this.currentPage.set(nextPage);
-                    this.isLoadingMore.set(false);
-                },
-                error: () => {
-                    this.isLoadingMore.set(false);
-                },
+                }
+                this.isLoadingMore.set(false);
             });
     }
 }

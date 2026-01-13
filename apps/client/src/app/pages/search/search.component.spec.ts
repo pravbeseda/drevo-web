@@ -244,6 +244,57 @@ describe('SearchComponent', () => {
         expect(spectator.component.isLoading()).toBe(false);
     });
 
+    it('should continue accepting new searches after an API error (stream stays alive)', () => {
+        const emptyInitialResponse = {
+            items: [],
+            total: 0,
+            page: 1,
+            pageSize: 25,
+            totalPages: 0,
+        };
+        const successResponse = {
+            items: [{ id: 1, title: 'Success Result' }],
+            total: 1,
+            page: 1,
+            pageSize: 25,
+            totalPages: 1,
+        };
+
+        // Reset and setup mocks: initial load succeeds, first search fails, second search succeeds
+        mockArticleService.searchArticles.mockReset();
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(of(emptyInitialResponse))
+            .mockReturnValueOnce(throwError(() => new Error('Network error')))
+            .mockReturnValueOnce(of(successResponse));
+
+        spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // complete initial load
+
+        // First search - will fail
+        spectator.component.onSearchChange('fail');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        expect(spectator.component.searchResults()).toEqual([]);
+        expect(spectator.component.totalResults()).toBe(0);
+        expect(spectator.component.isLoading()).toBe(false);
+
+        // Second search - should work (this is the key test)
+        spectator.component.onSearchChange('success');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        // Verify the stream is still alive and processes new requests
+        expect(mockArticleService.searchArticles).toHaveBeenCalledTimes(3);
+        expect(mockArticleService.searchArticles).toHaveBeenLastCalledWith({
+            query: 'success',
+            page: 1,
+        });
+        expect(spectator.component.searchResults()).toEqual(
+            successResponse.items
+        );
+        expect(spectator.component.totalResults()).toBe(1);
+        expect(spectator.component.isLoading()).toBe(false);
+    });
+
     it('should cancel previous search request when clearing search quickly (race condition)', () => {
         // Simulate a slow HTTP request that takes 1000ms
         const initialResponse = {
@@ -527,12 +578,15 @@ describe('SearchComponent', () => {
                     throwError(() => new Error('Pagination failed'))
                 ); // load more error
             spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
             // Load first page via search
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
             expect(spectator.component.currentPage()).toBe(1);
+            expect(spectator.component.searchResults().length).toBe(2);
+            expect(spectator.component.totalResults()).toBe(4);
 
             // Try to load more (will fail)
             spectator.component.onLoadMore();
