@@ -276,6 +276,7 @@ describe('SearchComponent', () => {
 
         expect(spectator.component.searchResults()).toEqual([]);
         expect(spectator.component.totalResults()).toBe(0);
+        expect(spectator.component.isLoading()).toBe(false);
 
         // Second search - should work (this is the key test)
         spectator.component.onSearchChange('success');
