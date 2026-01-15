@@ -5,10 +5,11 @@ import {
 } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
+import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { CsrfService } from './csrf.service';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthResponse, User } from '@drevo-web/shared';
 
@@ -20,6 +21,7 @@ describe('AuthService', () => {
     let spectator: SpectatorService<AuthService>;
     let httpController: HttpTestingController;
     let csrfService: jest.Mocked<CsrfService>;
+    let router: { navigate: jest.Mock; url: string };
 
     const mockUser: User = {
         id: 1,
@@ -56,12 +58,20 @@ describe('AuthService', () => {
             provideHttpClient(),
             provideHttpClientTesting(),
             { provide: PLATFORM_ID, useValue: 'browser' },
+            {
+                provide: Router,
+                useFactory: () => router,
+            },
             mockLoggerProvider(),
         ],
-        mocks: [CsrfService],
+        mocks: [CsrfService, StorageService],
     });
 
     beforeEach(() => {
+        router = {
+            navigate: jest.fn().mockResolvedValue(true),
+            url: '/current-page',
+        };
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
         csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
@@ -444,6 +454,7 @@ describe('AuthService', () => {
             spectator.service.logout().subscribe(() => {
                 expect(spectator.service.currentUser).toBeUndefined();
                 expect(spectator.service.isAuthenticated).toBe(false);
+                expect(router.navigate).toHaveBeenCalledWith(['/login']);
                 done();
             });
 
@@ -516,6 +527,7 @@ describe('AuthService', () => {
                 expect(spectator.service.currentUser).toBeUndefined();
                 expect(spectator.service.isAuthenticated).toBe(false);
                 expect(loggerService.mockLogger.error).toHaveBeenCalled();
+                expect(router.navigate).toHaveBeenCalledWith(['/login']);
                 done();
             });
 
@@ -597,6 +609,124 @@ describe('AuthService', () => {
             // The service checks isPlatformBrowser and returns early/different behavior
             // Full SSR tests would require a separate test file with different PLATFORM_ID
             expect(spectator.service).toBeTruthy();
+        });
+    });
+
+    describe('handleUnauthorized', () => {
+        it('should clear auth state', () => {
+            spectator.service.handleUnauthorized();
+
+            expect(spectator.service.isAuthenticated).toBe(false);
+            expect(spectator.service.currentUser).toBeUndefined();
+        });
+
+        it('should redirect to login with current URL as returnUrl', () => {
+            router.url = '/articles/123';
+
+            spectator.service.handleUnauthorized();
+
+            expect(router.navigate).toHaveBeenCalledWith(['/login'], {
+                queryParams: { returnUrl: '/articles/123' },
+            });
+        });
+
+        it('should use provided currentUrl if specified', () => {
+            router.url = '/other-page';
+
+            spectator.service.handleUnauthorized('/articles/456');
+
+            expect(router.navigate).toHaveBeenCalledWith(['/login'], {
+                queryParams: { returnUrl: '/articles/456' },
+            });
+        });
+
+        it('should not redirect if already on login page', () => {
+            router.url = '/login';
+
+            spectator.service.handleUnauthorized();
+
+            expect(router.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should not redirect if currentUrl is /login', () => {
+            router.url = '/articles/123';
+
+            spectator.service.handleUnauthorized('/login');
+
+            expect(router.navigate).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('cross-tab synchronization', () => {
+        let storageService: jest.Mocked<StorageService>;
+
+        beforeEach(() => {
+            storageService = spectator.inject(
+                StorageService
+            ) as jest.Mocked<StorageService>;
+            storageService.setString.mockReturnValue(true);
+        });
+
+        it('should notify other tabs on successful login', done => {
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe(() => {
+                    expect(storageService.setString).toHaveBeenCalledWith(
+                        'auth_sync',
+                        expect.any(String)
+                    );
+                    done();
+                });
+
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
+            req.flush(mockAuthResponse);
+        });
+
+        it('should notify other tabs on successful logout', done => {
+            spectator.service.logout().subscribe(() => {
+                expect(storageService.setString).toHaveBeenCalledWith(
+                    'auth_sync',
+                    expect.any(String)
+                );
+                done();
+            });
+
+            const req = httpController.expectOne(
+                'http://test-api/api/auth/logout'
+            );
+            req.flush({ success: true });
+        });
+
+        it('should call checkAuth when storage event is received', () => {
+            const checkAuthSpy = jest.spyOn(spectator.service, 'checkAuth');
+
+            window.dispatchEvent(
+                new StorageEvent('storage', {
+                    key: 'auth_sync',
+                    newValue: Date.now().toString(),
+                })
+            );
+
+            expect(checkAuthSpy).toHaveBeenCalled();
+
+            // Clean up the checkAuth request
+            const req = httpController.expectOne('http://test-api/api/auth/me');
+            req.flush(mockUnauthenticatedResponse);
+        });
+
+        it('should not call checkAuth for other storage keys', () => {
+            const checkAuthSpy = jest.spyOn(spectator.service, 'checkAuth');
+
+            window.dispatchEvent(
+                new StorageEvent('storage', {
+                    key: 'other_key',
+                    newValue: 'value',
+                })
+            );
+
+            expect(checkAuthSpy).not.toHaveBeenCalled();
         });
     });
 });

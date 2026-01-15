@@ -785,6 +785,94 @@ describe('AuthInterceptor', () => {
         });
     });
 
+    describe('401 Unauthorized handling', () => {
+        beforeEach(() => {
+            authService.handleUnauthorized = jest.fn();
+        });
+
+        it('should call handleUnauthorized on 401 from protected endpoint', done => {
+            const request = new HttpRequest(
+                'GET',
+                'http://test-api/api/articles'
+            );
+            const handler = createErrorHandler(401);
+
+            spectator.service
+                .intercept(request, handler as HttpHandler)
+                .subscribe({
+                    error: (error: HttpErrorResponse) => {
+                        expect(error.status).toBe(401);
+                        expect(
+                            authService.handleUnauthorized
+                        ).toHaveBeenCalled();
+                        done();
+                    },
+                });
+        });
+
+        it('should NOT call handleUnauthorized on 401 from /api/auth/login', done => {
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/login',
+                { username: 'test', password: 'test' }
+            );
+            const handler = createErrorHandler(401);
+
+            spectator.service
+                .intercept(request, handler as HttpHandler)
+                .subscribe({
+                    error: (error: HttpErrorResponse) => {
+                        expect(error.status).toBe(401);
+                        expect(
+                            authService.handleUnauthorized
+                        ).not.toHaveBeenCalled();
+                        done();
+                    },
+                });
+        });
+
+        it('should NOT call handleUnauthorized on 401 from /api/auth/me', done => {
+            const request = new HttpRequest(
+                'GET',
+                'http://test-api/api/auth/me'
+            );
+            const handler = createErrorHandler(401);
+
+            spectator.service
+                .intercept(request, handler as HttpHandler)
+                .subscribe({
+                    error: (error: HttpErrorResponse) => {
+                        expect(error.status).toBe(401);
+                        expect(
+                            authService.handleUnauthorized
+                        ).not.toHaveBeenCalled();
+                        done();
+                    },
+                });
+        });
+
+        it('should NOT call handleUnauthorized on 401 from /api/auth/logout', done => {
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/auth/logout',
+                {}
+            );
+            const handler = createErrorHandler(401);
+
+            spectator.service
+                .intercept(request, handler as HttpHandler)
+                .subscribe({
+                    error: (error: HttpErrorResponse) => {
+                        expect(error.status).toBe(401);
+                        expect(
+                            authService.handleUnauthorized
+                        ).not.toHaveBeenCalled();
+                        done();
+                    },
+                });
+        });
+    });
+
     describe('authInterceptorProvider', () => {
         it('should provide correct configuration', () => {
             expect(authInterceptorProvider.provide.toString()).toContain(

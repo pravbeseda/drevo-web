@@ -43,6 +43,12 @@ export default [
       '**/*.cjs',
       '**/*.mjs',
     ],
+    ignores: [
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+    ],
     plugins: {
       'no-null': noNull,
     },

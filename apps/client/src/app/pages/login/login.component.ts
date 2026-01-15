@@ -4,76 +4,31 @@ import {
     inject,
     PLATFORM_ID,
     DestroyRef,
+    OnInit,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { isValidReturnUrl } from '@drevo-web/shared';
 
 @Component({
     selector: 'app-login',
     standalone: true,
     imports: [CommonModule, FormsModule],
-    template: `
-        <h1>Вход</h1>
-
-        @if (errorMessage()) {
-            <div role="alert">{{ errorMessage() }}</div>
-        }
-
-        <form (ngSubmit)="onSubmit()">
-            <div>
-                <label for="username">Логин</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    [(ngModel)]="username"
-                    required
-                    [disabled]="isSubmitting()" />
-            </div>
-
-            <div>
-                <label for="password">Пароль</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    [(ngModel)]="password"
-                    required
-                    [disabled]="isSubmitting()" />
-            </div>
-
-            <div>
-                <label>
-                    <input
-                        type="checkbox"
-                        name="rememberMe"
-                        [(ngModel)]="rememberMe"
-                        [disabled]="isSubmitting()" />
-                    Запомнить меня
-                </label>
-            </div>
-
-            <button
-                type="submit"
-                [disabled]="isSubmitting() || !isFormValid()">
-                @if (isSubmitting()) {
-                    Вход...
-                } @else {
-                    Войти
-                }
-            </button>
-        </form>
-    `,
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
     private readonly platformId = inject(PLATFORM_ID);
+
+    private returnUrl = '/';
 
     username = '';
     password = '';
@@ -81,6 +36,13 @@ export class LoginComponent {
 
     readonly isSubmitting = signal(false);
     readonly errorMessage = signal<string | undefined>(undefined);
+
+    ngOnInit(): void {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (returnUrl && isValidReturnUrl(returnUrl)) {
+            this.returnUrl = returnUrl;
+        }
+    }
 
     isFormValid(): boolean {
         return this.username.trim().length > 0 && this.password.length > 0;
@@ -116,9 +78,8 @@ export class LoginComponent {
             )
             .subscribe({
                 next: () => {
-                    // Clear username on successful login
                     this.username = '';
-                    this.router.navigate(['/']);
+                    this.router.navigateByUrl(this.returnUrl);
                 },
                 error: error => {
                     this.errorMessage.set(this.getErrorMessage(error));

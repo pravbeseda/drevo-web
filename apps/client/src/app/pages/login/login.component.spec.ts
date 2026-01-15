@@ -1,7 +1,7 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth/auth.service';
@@ -9,7 +9,8 @@ import { AuthService } from '../../services/auth/auth.service';
 describe('LoginComponent', () => {
     let spectator: Spectator<LoginComponent>;
     let authServiceMock: jest.Mocked<Pick<AuthService, 'login'>>;
-    let routerMock: jest.Mocked<Pick<Router, 'navigate'>>;
+    let routerMock: jest.Mocked<Pick<Router, 'navigateByUrl'>>;
+    let activatedRouteMock: { snapshot: { queryParamMap: { get: jest.Mock } } };
 
     const createComponent = createComponentFactory({
         component: LoginComponent,
@@ -23,6 +24,10 @@ describe('LoginComponent', () => {
                 provide: Router,
                 useFactory: () => routerMock,
             },
+            {
+                provide: ActivatedRoute,
+                useFactory: () => activatedRouteMock,
+            },
             { provide: PLATFORM_ID, useValue: 'browser' },
         ],
     });
@@ -32,7 +37,14 @@ describe('LoginComponent', () => {
             login: jest.fn().mockReturnValue(of({ success: true })),
         };
         routerMock = {
-            navigate: jest.fn().mockResolvedValue(true),
+            navigateByUrl: jest.fn().mockResolvedValue(true),
+        };
+        activatedRouteMock = {
+            snapshot: {
+                queryParamMap: {
+                    get: jest.fn().mockReturnValue(null),
+                },
+            },
         };
     });
 
@@ -190,14 +202,14 @@ describe('LoginComponent', () => {
             expect(spectator.component.errorMessage()).toBeUndefined();
         });
 
-        it('should navigate to root on successful login', () => {
+        it('should navigate to root on successful login when no returnUrl', () => {
             spectator = createComponent();
 
             spectator.component.username = 'testuser';
             spectator.component.password = 'password123';
             spectator.component.onSubmit();
 
-            expect(routerMock.navigate).toHaveBeenCalledWith(['/']);
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
         });
 
         it('should clear password after login attempt', () => {
@@ -337,7 +349,7 @@ describe('LoginComponent', () => {
             spectator.component.password = 'password123';
             spectator.component.onSubmit();
 
-            expect(routerMock.navigate).not.toHaveBeenCalled();
+            expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
         });
 
         it('should set isSubmitting to false after error', () => {
@@ -440,12 +452,108 @@ describe('LoginComponent', () => {
             expect(onSubmitSpy).toHaveBeenCalled();
         });
     });
+
+    describe('Return URL handling', () => {
+        it('should navigate to returnUrl after successful login', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue(
+                '/articles/123'
+            );
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith(
+                '/articles/123'
+            );
+        });
+
+        it('should navigate to returnUrl with query params', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue(
+                '/articles/123?view=full'
+            );
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith(
+                '/articles/123?view=full'
+            );
+        });
+
+        it('should ignore invalid returnUrl starting with //', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue(
+                '//evil.com'
+            );
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+        });
+
+        it('should ignore returnUrl with backslash (open redirect attempt)', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue(
+                '/\\evil.com'
+            );
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+        });
+
+        it('should ignore javascript: protocol in returnUrl', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue(
+                'javascript:alert(1)'
+            );
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+        });
+
+        it('should ignore absolute URLs as returnUrl', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue(
+                'https://evil.com'
+            );
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+        });
+
+        it('should handle empty returnUrl', () => {
+            activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue('');
+            spectator = createComponent();
+
+            spectator.component.username = 'testuser';
+            spectator.component.password = 'password123';
+            spectator.component.onSubmit();
+
+            expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+        });
+    });
 });
 
 describe('LoginComponent SSR', () => {
     let spectator: Spectator<LoginComponent>;
     let authServiceMock: jest.Mocked<Pick<AuthService, 'login'>>;
-    let routerMock: jest.Mocked<Pick<Router, 'navigate'>>;
+    let routerMock: jest.Mocked<Pick<Router, 'navigateByUrl'>>;
+    let activatedRouteMock: { snapshot: { queryParamMap: { get: jest.Mock } } };
 
     const createServerComponent = createComponentFactory({
         component: LoginComponent,
@@ -459,6 +567,10 @@ describe('LoginComponent SSR', () => {
                 provide: Router,
                 useFactory: () => routerMock,
             },
+            {
+                provide: ActivatedRoute,
+                useFactory: () => activatedRouteMock,
+            },
             { provide: PLATFORM_ID, useValue: 'server' },
         ],
     });
@@ -468,7 +580,14 @@ describe('LoginComponent SSR', () => {
             login: jest.fn().mockReturnValue(of({ success: true })),
         };
         routerMock = {
-            navigate: jest.fn().mockResolvedValue(true),
+            navigateByUrl: jest.fn().mockResolvedValue(true),
+        };
+        activatedRouteMock = {
+            snapshot: {
+                queryParamMap: {
+                    get: jest.fn().mockReturnValue(null),
+                },
+            },
         };
     });
 

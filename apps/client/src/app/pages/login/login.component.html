@@ -1,0 +1,59 @@
+<div class="login-container">
+    <div class="login-card">
+        <h1>Вход</h1>
+
+        @if (errorMessage()) {
+            <div
+                class="error-message"
+                role="alert">
+                {{ errorMessage() }}
+            </div>
+        }
+
+        <form (ngSubmit)="onSubmit()">
+            <div class="form-field">
+                <label for="username">Логин</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    [(ngModel)]="username"
+                    required
+                    [disabled]="isSubmitting()" />
+            </div>
+
+            <div class="form-field">
+                <label for="password">Пароль</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    [(ngModel)]="password"
+                    required
+                    [disabled]="isSubmitting()" />
+            </div>
+
+            <div class="form-field checkbox">
+                <label>
+                    <input
+                        type="checkbox"
+                        name="rememberMe"
+                        [(ngModel)]="rememberMe"
+                        [disabled]="isSubmitting()" />
+                    Запомнить меня
+                </label>
+            </div>
+
+            <button
+                type="submit"
+                class="submit-button"
+                [disabled]="isSubmitting() || !isFormValid()">
+                @if (isSubmitting()) {
+                    Вход...
+                } @else {
+                    Войти
+                }
+            </button>
+        </form>
+    </div>
+</div>

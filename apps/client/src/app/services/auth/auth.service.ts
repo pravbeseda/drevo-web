@@ -1,10 +1,11 @@
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
     HttpClient,
     HttpContext,
     HttpErrorResponse,
 } from '@angular/common/http';
+import { Router } from '@angular/router';
 import {
     BehaviorSubject,
     Observable,
@@ -23,14 +24,22 @@ import {
 import { environment } from '../../../environments/environment';
 import { User, AuthState, AuthResponse, LoginRequest } from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
-import { LoggerService, SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
+import {
+    LoggerService,
+    SKIP_ERROR_FOR_STATUSES,
+    StorageService,
+    WINDOW,
+} from '@drevo-web/core';
 
 @Injectable({
     providedIn: 'root',
 })
 export class AuthService {
     private readonly apiUrl = environment.apiUrl;
-    private readonly isBrowser: boolean;
+    private readonly platformId = inject(PLATFORM_ID);
+    private readonly window = inject(WINDOW);
+    private readonly storage = inject(StorageService);
+    private readonly isBrowser = isPlatformBrowser(this.platformId);
 
     // Auth state
     private readonly userSubject = new BehaviorSubject<User | undefined>(
@@ -63,15 +72,14 @@ export class AuthService {
     );
 
     private readonly http = inject(HttpClient);
-    private readonly platformId = inject(PLATFORM_ID);
+    private readonly router = inject(Router);
     private readonly csrfService = inject(CsrfService);
     private readonly logger = inject(LoggerService).withContext('AuthService');
 
-    constructor() {
-        this.isBrowser = isPlatformBrowser(this.platformId);
+    private static readonly AUTH_SYNC_KEY = 'auth_sync';
 
+    constructor() {
         if (this.isBrowser) {
-            // Initialize CSRF token fetch
             this.csrfService.initCsrfToken();
             this.checkAuth()
                 .pipe(take(1))
@@ -79,10 +87,34 @@ export class AuthService {
                     error: error =>
                         this.logger.error('Initial auth check failed', error),
                 });
+            this.initCrossTabSync();
         } else {
             // SSR: return guest state
             this.isLoadingSubject.next(false);
         }
+    }
+
+    private initCrossTabSync(): void {
+        this.window?.addEventListener('storage', (event: StorageEvent) => {
+            if (event.key === AuthService.AUTH_SYNC_KEY && event.newValue) {
+                const wasAuthenticated = this.isAuthenticatedSubject.value;
+                this.checkAuth()
+                    .pipe(take(1))
+                    .subscribe(state => {
+                        // If user was logged in and now logged out, redirect to login
+                        if (wasAuthenticated && !state.isAuthenticated) {
+                            this.router.navigate(['/login']);
+                        }
+                    });
+            }
+        });
+    }
+
+    private notifyOtherTabs(): void {
+        this.storage.setString(
+            AuthService.AUTH_SYNC_KEY,
+            Date.now().toString()
+        );
     }
 
     /**
@@ -199,6 +231,7 @@ export class AuthService {
 
                     this.userSubject.next(response.data.user);
                     this.isAuthenticatedSubject.next(true);
+                    this.notifyOtherTabs();
                     return response.data.user;
                 }
                 throw new Error(response.error || 'Login failed');
@@ -243,6 +276,8 @@ export class AuthService {
             tap(() => {
                 this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
+                this.notifyOtherTabs();
+                this.router.navigate(['/login']);
             }),
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
@@ -251,6 +286,8 @@ export class AuthService {
                 // Still clear local state even if server request fails
                 this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
+                this.notifyOtherTabs();
+                this.router.navigate(['/login']);
                 return of(void 0);
             }),
             finalize(() => this.authOperationInProgressSubject.next(false))
@@ -269,5 +306,24 @@ export class AuthService {
      */
     get isAuthenticated(): boolean {
         return this.isAuthenticatedSubject.value;
+    }
+
+    /**
+     * Handle 401 Unauthorized response - clear state and redirect to login
+     */
+    handleUnauthorized(currentUrl?: string): void {
+        if (!this.isBrowser) {
+            return;
+        }
+
+        this.userSubject.next(undefined);
+        this.isAuthenticatedSubject.next(false);
+
+        const returnUrl = currentUrl || this.router.url;
+        if (returnUrl && returnUrl !== '/login') {
+            this.router.navigate(['/login'], {
+                queryParams: { returnUrl },
+            });
+        }
     }
 }
