@@ -102,7 +102,11 @@ export class AuthService {
                     .pipe(take(1))
                     .subscribe(state => {
                         // If user was logged in and now logged out, redirect to login
-                        if (wasAuthenticated && !state.isAuthenticated) {
+                        if (
+                            wasAuthenticated &&
+                            !state.isAuthenticated &&
+                            this.router.url !== '/login'
+                        ) {
                             this.router.navigate(['/login']);
                         }
                     });

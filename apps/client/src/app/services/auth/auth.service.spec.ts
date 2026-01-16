@@ -728,5 +728,58 @@ describe('AuthService', () => {
 
             expect(checkAuthSpy).not.toHaveBeenCalled();
         });
+
+        it('should redirect to login when logged-in user receives logout notification from another tab', done => {
+            // First, login the user to establish authenticated state
+            spectator.service
+                .login({ username: 'test', password: 'test' })
+                .subscribe(() => {
+                    // Reset navigate mock to track only the redirect from sync
+                    router.navigate.mockClear();
+
+                    // Now simulate storage event from another tab (logout notification)
+                    window.dispatchEvent(
+                        new StorageEvent('storage', {
+                            key: 'auth_sync',
+                            newValue: Date.now().toString(),
+                        })
+                    );
+
+                    // Handle the checkAuth request triggered by storage event
+                    const req = httpController.expectOne(
+                        'http://test-api/api/auth/me'
+                    );
+                    req.flush(mockUnauthenticatedResponse); // Server says user is now logged out
+
+                    // Verify redirect happened
+                    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+                    done();
+                });
+
+            const loginReq = httpController.expectOne(
+                'http://test-api/api/auth/login'
+            );
+            loginReq.flush(mockAuthResponse);
+        });
+
+        it('should not redirect when already-logged-out tab receives sync event', () => {
+            // User is not logged in (default state after beforeEach)
+            expect(spectator.service.isAuthenticated).toBe(false);
+
+            // Simulate storage event from another tab
+            window.dispatchEvent(
+                new StorageEvent('storage', {
+                    key: 'auth_sync',
+                    newValue: Date.now().toString(),
+                })
+            );
+
+            // Handle the checkAuth request triggered by storage event
+            const req = httpController.expectOne('http://test-api/api/auth/me');
+            req.flush(mockUnauthenticatedResponse);
+
+            // Verify no redirect happened (wasAuthenticated was false)
+            expect(router.navigate).not.toHaveBeenCalled();
+        });
     });
 });
