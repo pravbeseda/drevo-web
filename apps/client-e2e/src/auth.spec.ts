@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 // Timeouts
 const DEFAULT_WAIT_TIMEOUT = 10000;
@@ -10,7 +10,6 @@ const poPasswordInput = 'input[type="password"]';
 const poSubmitButton = 'button[type="submit"]';
 const poCheckbox = 'input[type="checkbox"]';
 const poAuthStatus = 'app-auth-status';
-const poLoginLink = 'a[href="/login"], a:has-text("Войти")';
 const poLogoutButton = 'button:has-text("Выйти")';
 const poErrorMessage =
     '.error, [class*="error"], [class*="alert"], [role="alert"]';
@@ -25,44 +24,28 @@ const TEST_FORM_DATA = {
     password: 'testpassword',
 };
 
-// Helper functions
-async function fillLoginForm(
-    page: Page,
-    username: string,
-    password: string
-): Promise<void> {
-    await page.locator(poUsernameInput).first().fill(username);
-    await page.locator(poPasswordInput).fill(password);
-}
-
-async function waitForLoginForm(page: Page): Promise<void> {
-    await expect(page.locator(poForm)).toBeVisible({
-        timeout: DEFAULT_WAIT_TIMEOUT,
-    });
-}
-
 /**
- * E2E Tests for Authentication UI (Task 4.1)
+ * E2E Tests for Authentication UI
  *
- * Tests the frontend authentication flow:
+ * Tests the frontend authentication flow with mocked backend:
  * - Login page functionality
  * - Auth status component states
  * - Login/logout user flows
  *
- * Note: These tests require the backend to be running at drevo-local.ru
- * They are skipped in CI (no backend available)
+ * These tests use Playwright fixtures to mock auth API endpoints,
+ * allowing them to run without a real backend (including in CI).
  */
 
 test.describe('Authentication UI', () => {
     test.describe('Login Page', () => {
-        test.beforeEach(async ({ page }) => {
-            await page.goto('/login');
-            await waitForLoginForm(page);
-        });
-
         test('should display login form with all elements', async ({
-            page,
+            unauthenticatedPage: page,
         }) => {
+            await page.goto('/login');
+
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
             await expect(page.locator(poUsernameInput)).toBeVisible();
             await expect(page.locator(poPasswordInput)).toBeVisible();
             await expect(page.locator(poSubmitButton)).toBeVisible();
@@ -70,25 +53,40 @@ test.describe('Authentication UI', () => {
         });
 
         test('should disable submit button when form is empty', async ({
-            page,
+            unauthenticatedPage: page,
         }) => {
+            await page.goto('/login');
+
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
             await expect(page.locator(poSubmitButton)).toBeDisabled();
         });
 
         test('should enable submit button when form is filled', async ({
-            page,
+            unauthenticatedPage: page,
         }) => {
-            await fillLoginForm(
-                page,
-                TEST_FORM_DATA.username,
-                TEST_FORM_DATA.password
-            );
+            await page.goto('/login');
+
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
+            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
+            await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
+
             await expect(page.locator(poSubmitButton)).toBeEnabled();
         });
 
         test('should keep submit disabled with empty username', async ({
-            page,
+            unauthenticatedPage: page,
         }) => {
+            await page.goto('/login');
+
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
             // Focus and blur username field to trigger validation
             const usernameInput = page.locator(poUsernameInput).first();
             await usernameInput.focus();
@@ -101,13 +99,16 @@ test.describe('Authentication UI', () => {
         });
 
         test('should show error message for invalid credentials', async ({
-            page,
+            unauthenticatedPage: page,
         }) => {
-            await fillLoginForm(
-                page,
-                TEST_INVALID_CREDENTIALS.username,
-                TEST_INVALID_CREDENTIALS.password
-            );
+            await page.goto('/login');
+
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
+            await page.locator(poUsernameInput).first().fill(TEST_INVALID_CREDENTIALS.username);
+            await page.locator(poPasswordInput).fill(TEST_INVALID_CREDENTIALS.password);
             await page.locator(poSubmitButton).click();
 
             await expect(page.locator(poErrorMessage).first()).toBeVisible({
@@ -117,96 +118,124 @@ test.describe('Authentication UI', () => {
     });
 
     test.describe('Auth Status Component', () => {
-        test.beforeEach(async ({ page }) => {
-            await page.context().clearCookies();
+        test('should redirect unauthenticated user to login', async ({
+            unauthenticatedPage: page,
+        }) => {
+            await page.goto('/');
+
+            // Unauthenticated users are redirected to login page
+            await expect(page).toHaveURL(/\/login/, {
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
         });
 
-        test('should show login link for unauthenticated user', async ({
-            page,
+        test('should show user info and logout button for authenticated user', async ({
+            authenticatedPage: page,
         }) => {
             await page.goto('/');
 
             await expect(page.locator(poAuthStatus)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
-            await expect(page.locator(poLoginLink)).toBeVisible({
+            await expect(page.locator(poLogoutButton)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
         });
     });
 
     test.describe('Login Flow', () => {
-        // These tests require real backend with valid test credentials
-        // To run: set TEST_USERNAME and TEST_PASSWORD environment variables
-
         test('should redirect to home after successful login', async ({
-            page,
+            authMockedPage: page,
         }) => {
-            test.skip(
-                !process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'],
-                'Requires TEST_USERNAME and TEST_PASSWORD environment variables'
-            );
-
             await page.goto('/login');
-            await waitForLoginForm(page);
 
-            await fillLoginForm(
-                page,
-                process.env['TEST_USERNAME']!,
-                process.env['TEST_PASSWORD']!
-            );
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
+            // Fill in valid credentials
+            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
+            await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
             await page.locator(poSubmitButton).click();
 
+            // Should redirect away from login page
             await page.waitForURL(url => !url.pathname.includes('/login'), {
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+        });
+
+        test('should display auth status after login', async ({
+            authMockedPage: page,
+        }) => {
+            await page.goto('/login');
+
+            await expect(page.locator(poForm)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
+            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
+            await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
+            await page.locator(poSubmitButton).click();
+
+            // Wait for redirect
+            await page.waitForURL(url => !url.pathname.includes('/login'), {
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
+            // Auth status should be visible after login
+            await expect(page.locator(poAuthStatus)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
         });
     });
 
     test.describe('Logout Flow', () => {
-        test('should show login link after logout', async ({ page }) => {
-            test.skip(
-                !process.env['TEST_USERNAME'] || !process.env['TEST_PASSWORD'],
-                'Requires TEST_USERNAME and TEST_PASSWORD environment variables'
-            );
+        test('should redirect to login after logout', async ({
+            authenticatedPage: page,
+        }) => {
+            await page.goto('/');
 
-            // First login
-            await page.goto('/login');
-            await waitForLoginForm(page);
-            await fillLoginForm(
-                page,
-                process.env['TEST_USERNAME']!,
-                process.env['TEST_PASSWORD']!
-            );
-            await page.locator(poSubmitButton).click();
-            await page.waitForURL(url => !url.pathname.includes('/login'), {
-                timeout: DEFAULT_WAIT_TIMEOUT,
-            });
-
-            // Then logout
             await expect(page.locator(poLogoutButton)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
+
             await page.locator(poLogoutButton).click();
 
-            await expect(page.locator(poLoginLink)).toBeVisible({
+            // Should be redirected to login page after logout
+            await expect(page).toHaveURL(/\/login/, {
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
         });
     });
 
     test.describe('Navigation', () => {
-        test('should allow access to public pages without auth', async ({
-            page,
+        test('should redirect unauthenticated user to login from protected routes', async ({
+            unauthenticatedPage: page,
         }) => {
-            await page.context().clearCookies();
-
-            // Both login and home pages should be accessible
-            await page.goto('/login');
-            await expect(page).toHaveURL(/\/login/);
-
+            // Try to access protected route
             await page.goto('/');
+
+            // Should be redirected to login
+            await expect(page).toHaveURL(/\/login/);
+        });
+
+        test('should allow authenticated user to access protected routes', async ({
+            authenticatedPage: page,
+        }) => {
+            await page.goto('/');
+
+            // Should NOT be redirected to login
             await expect(page).not.toHaveURL(/\/login/);
+        });
+
+        test('should preserve return URL when redirecting to login', async ({
+            unauthenticatedPage: page,
+        }) => {
+            // Try to access a specific protected route
+            await page.goto('/articles/123');
+
+            // Should be redirected to login with returnUrl
+            await expect(page).toHaveURL(/\/login\?returnUrl=/);
         });
     });
 });

@@ -1,6 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
-test('has editor', async ({ page }) => {
+/**
+ * Example test demonstrating editor functionality.
+ *
+ * Uses authenticatedPage fixture since the editor route
+ * requires authentication.
+ */
+test('has editor', async ({ authenticatedPage: page }) => {
     await page.goto('/editor');
 
     const content = 'Test article content';
@@ -21,7 +27,4 @@ test('has editor', async ({ page }) => {
     await expect(page.locator('app-shared-editor')).toHaveCount(1, {
         timeout: 10_000,
     });
-    // await expect(page.locator('app-article-edit')).toHaveText(content, {
-    //     timeout: 5000,
-    // });
 });
