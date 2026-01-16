@@ -318,6 +318,7 @@ export class AuthService {
 
         this.userSubject.next(undefined);
         this.isAuthenticatedSubject.next(false);
+        this.notifyOtherTabs();
 
         const returnUrl = currentUrl || this.router.url;
         if (returnUrl && returnUrl !== '/login') {

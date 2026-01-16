@@ -23,11 +23,7 @@
 
 import { test as base, Page, Route } from '@playwright/test';
 import { User } from '@drevo-web/shared';
-import {
-    apiPatterns,
-    authResponses,
-    mockUsers,
-} from './api-mocks';
+import { apiPatterns, authResponses, mockUsers } from './api-mocks';
 
 // ============================================================================
 // Types
@@ -61,7 +57,10 @@ export interface AuthFixtures {
 /**
  * Setup route mocking for authenticated user
  */
-async function setupAuthenticatedMocks(page: Page, user: User = mockUsers.authenticated): Promise<void> {
+async function setupAuthenticatedMocks(
+    page: Page,
+    user: User = mockUsers.authenticated
+): Promise<void> {
     // Mock /api/auth/me - return authenticated user
     await page.route(apiPatterns.authMe, async (route: Route) => {
         const response = authResponses.authenticatedMe(user);
@@ -133,7 +132,7 @@ async function setupUnauthenticatedMocks(page: Page): Promise<void> {
  */
 async function setupStatefulAuthMocks(page: Page): Promise<void> {
     let isAuthenticated = false;
-    let currentUser: User | null = null;
+    let currentUser: User | undefined = undefined;
 
     // Mock /api/auth/me - return based on current state
     await page.route(apiPatterns.authMe, async (route: Route) => {
@@ -169,7 +168,7 @@ async function setupStatefulAuthMocks(page: Page): Promise<void> {
         // Parse request body to check credentials
         const postData = route.request().postData();
         let credentials: { username?: string; password?: string } = {};
-        
+
         try {
             if (postData) {
                 credentials = JSON.parse(postData);
@@ -212,7 +211,7 @@ async function setupStatefulAuthMocks(page: Page): Promise<void> {
     // Mock /api/auth/logout - toggle unauthenticated state
     await page.route(apiPatterns.authLogout, async (route: Route) => {
         isAuthenticated = false;
-        currentUser = null;
+        currentUser = undefined;
         const response = authResponses.logoutSuccess();
         await route.fulfill({
             status: response.status,
@@ -250,4 +249,8 @@ export const test = base.extend<AuthFixtures>({
 export { expect } from '@playwright/test';
 
 // Export helper functions for custom scenarios
-export { setupAuthenticatedMocks, setupUnauthenticatedMocks, setupStatefulAuthMocks };
+export {
+    setupAuthenticatedMocks,
+    setupUnauthenticatedMocks,
+    setupStatefulAuthMocks,
+};
