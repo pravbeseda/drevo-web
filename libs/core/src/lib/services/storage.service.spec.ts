@@ -1,8 +1,4 @@
-import {
-    createServiceFactory,
-    SpectatorService,
-    mockProvider,
-} from '@ngneat/spectator/jest';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
 import { StorageService } from './storage.service';
 import { LoggerService } from './logger.service';

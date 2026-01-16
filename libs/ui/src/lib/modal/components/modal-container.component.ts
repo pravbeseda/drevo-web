@@ -2,7 +2,6 @@ import {
     AfterViewInit,
     ChangeDetectionStrategy,
     Component,
-    ComponentRef,
     Injector,
     ViewContainerRef,
     inject,
@@ -46,8 +45,6 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown>
 
     protected readonly isLoading = signal(true);
 
-    private componentRef: ComponentRef<unknown> | undefined = undefined;
-
     ngAfterViewInit(): void {
         this.loadComponent();
     }
@@ -66,7 +63,7 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown>
                 parent: this.injector,
             });
 
-            this.componentRef = this.outlet().createComponent(componentType, {
+            this.outlet().createComponent(componentType, {
                 injector,
             });
             this.isLoading.set(false);

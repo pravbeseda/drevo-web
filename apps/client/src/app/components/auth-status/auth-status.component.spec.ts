@@ -169,11 +169,6 @@ describe('AuthStatusComponent', () => {
             userSubject.next(mockUser);
             spectator = createComponent();
 
-            let isLoggingOutValue = false;
-            spectator.component.isLoggingOut$.subscribe(value => {
-                isLoggingOutValue = value;
-            });
-
             spectator.click('button');
 
             // Initially should be true while logout is in progress

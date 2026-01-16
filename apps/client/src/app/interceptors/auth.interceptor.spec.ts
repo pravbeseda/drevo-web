@@ -478,7 +478,7 @@ describe('AuthInterceptor', () => {
             const handler: HttpHandler = {
                 handle: jest
                     .fn()
-                    .mockImplementation((req: HttpRequest<unknown>) => {
+                    .mockImplementation((_req: HttpRequest<unknown>) => {
                         callCount++;
                         if (callCount === 1) {
                             // First call - CSRF error
@@ -500,7 +500,7 @@ describe('AuthInterceptor', () => {
             };
 
             spectator.service.intercept(request, handler).subscribe({
-                next: response => {
+                next: _response => {
                     expect(csrfService.refreshCsrfToken).toHaveBeenCalled();
                     expect(handler.handle).toHaveBeenCalledTimes(2);
 

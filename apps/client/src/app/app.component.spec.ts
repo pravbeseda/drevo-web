@@ -1,13 +1,11 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter, Router, NavigationEnd } from '@angular/router';
-import { Subject } from 'rxjs';
+import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
     let spectator: Spectator<AppComponent>;
-    let routerEvents$: Subject<NavigationEnd>;
 
     const createComponent = createComponentFactory({
         component: AppComponent,
@@ -19,7 +17,6 @@ describe('AppComponent', () => {
     });
 
     beforeEach(() => {
-        routerEvents$ = new Subject<NavigationEnd>();
         spectator = createComponent();
     });
 

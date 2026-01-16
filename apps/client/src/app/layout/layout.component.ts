@@ -1,6 +1,4 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { AuthStatusComponent } from '../components/auth-status/auth-status.component';
-import { ThemeToggleComponent } from '../components/theme-toggle/theme-toggle.component';
 import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
 
