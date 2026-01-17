@@ -30,10 +30,21 @@
  */
 
 // Export auth fixtures and extended test
-export { test, expect, setupAuthenticatedMocks, setupUnauthenticatedMocks, setupStatefulAuthMocks } from './auth.fixture';
+export {
+    test,
+    expect,
+    setupAuthenticatedMocks,
+    setupUnauthenticatedMocks,
+    setupStatefulAuthMocks,
+} from './auth.fixture';
 
 // Export mock data for use in tests
-export { mockUsers, authResponses, apiPatterns, articleResponses } from './api-mocks';
+export {
+    mockUsers,
+    authResponses,
+    apiPatterns,
+    articleResponses,
+} from './api-mocks';
 
 // Re-export types
 export type { AuthFixtures } from './auth.fixture';

@@ -72,7 +72,10 @@ test.describe('Authentication UI', () => {
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
+            await page
+                .locator(poUsernameInput)
+                .first()
+                .fill(TEST_FORM_DATA.username);
             await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
 
             await expect(page.locator(poSubmitButton)).toBeEnabled();
@@ -107,8 +110,13 @@ test.describe('Authentication UI', () => {
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page.locator(poUsernameInput).first().fill(TEST_INVALID_CREDENTIALS.username);
-            await page.locator(poPasswordInput).fill(TEST_INVALID_CREDENTIALS.password);
+            await page
+                .locator(poUsernameInput)
+                .first()
+                .fill(TEST_INVALID_CREDENTIALS.username);
+            await page
+                .locator(poPasswordInput)
+                .fill(TEST_INVALID_CREDENTIALS.password);
             await page.locator(poSubmitButton).click();
 
             await expect(page.locator(poErrorMessage).first()).toBeVisible({
@@ -154,7 +162,10 @@ test.describe('Authentication UI', () => {
             });
 
             // Fill in valid credentials
-            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
+            await page
+                .locator(poUsernameInput)
+                .first()
+                .fill(TEST_FORM_DATA.username);
             await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
             await page.locator(poSubmitButton).click();
 
@@ -173,7 +184,10 @@ test.describe('Authentication UI', () => {
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
+            await page
+                .locator(poUsernameInput)
+                .first()
+                .fill(TEST_FORM_DATA.username);
             await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
             await page.locator(poSubmitButton).click();
 

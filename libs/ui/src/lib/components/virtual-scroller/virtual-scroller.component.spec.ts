@@ -172,7 +172,9 @@ describe('VirtualScrollerComponent', () => {
             ).mockReturnValue({ start: 0, end: 7 });
 
             // Access private method for testing
-            const shouldLoadMore = (spectator.component as any).shouldLoadMore();
+            const shouldLoadMore = (
+                spectator.component as any
+            ).shouldLoadMore();
             expect(shouldLoadMore).toBe(true);
         });
 
@@ -203,7 +205,9 @@ describe('VirtualScrollerComponent', () => {
                 'getRenderedRange'
             ).mockReturnValue({ start: 0, end: 5 });
 
-            const shouldLoadMore = (spectator.component as any).shouldLoadMore();
+            const shouldLoadMore = (
+                spectator.component as any
+            ).shouldLoadMore();
             expect(shouldLoadMore).toBe(false);
         });
     });

@@ -4,7 +4,8 @@ import { APIRequestContext, expect } from '@playwright/test';
  * API Base URL from environment or default
  * Use API_BASE_URL for direct API testing (e.g., http://drevo-local.ru)
  */
-export const API_BASE_URL = process.env['API_BASE_URL'] || 'http://drevo-local.ru';
+export const API_BASE_URL =
+    process.env['API_BASE_URL'] || 'http://drevo-local.ru';
 
 /**
  * Standard API response format
@@ -76,7 +77,10 @@ export async function apiGet<T>(
         headers?: Record<string, string>;
         origin?: string;
     }
-): Promise<{ response: Awaited<ReturnType<APIRequestContext['get']>>; body: ApiResponse<T> }> {
+): Promise<{
+    response: Awaited<ReturnType<APIRequestContext['get']>>;
+    body: ApiResponse<T>;
+}> {
     const headers: Record<string, string> = {
         Accept: 'application/json',
         ...options?.headers,
@@ -86,7 +90,9 @@ export async function apiGet<T>(
         headers['Origin'] = options.origin;
     }
 
-    const response = await request.get(`${API_BASE_URL}${endpoint}`, { headers });
+    const response = await request.get(`${API_BASE_URL}${endpoint}`, {
+        headers,
+    });
     const body = await response.json();
 
     return { response, body };
@@ -104,7 +110,10 @@ export async function apiPost<T>(
         origin?: string;
         csrfToken?: string;
     }
-): Promise<{ response: Awaited<ReturnType<APIRequestContext['post']>>; body: ApiResponse<T> }> {
+): Promise<{
+    response: Awaited<ReturnType<APIRequestContext['post']>>;
+    body: ApiResponse<T>;
+}> {
     const headers: Record<string, string> = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -137,8 +146,13 @@ export async function apiPost<T>(
 /**
  * Helper to get CSRF token from auth endpoint
  */
-export async function getCsrfToken(request: APIRequestContext): Promise<string> {
-    const { response, body } = await apiGet<CsrfResponse>(request, '/api/auth/csrf');
+export async function getCsrfToken(
+    request: APIRequestContext
+): Promise<string> {
+    const { response, body } = await apiGet<CsrfResponse>(
+        request,
+        '/api/auth/csrf'
+    );
     expect(response.status()).toBe(200);
     expect(body.success).toBe(true);
 
@@ -160,11 +174,18 @@ export const EXPECTED_SECURITY_HEADERS = {
 /**
  * Verify security headers are present in response
  */
-export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestContext['get']>>) {
+export function expectSecurityHeaders(
+    response: Awaited<ReturnType<APIRequestContext['get']>>
+) {
     const headers = response.headers();
 
-    for (const [header, expectedValue] of Object.entries(EXPECTED_SECURITY_HEADERS)) {
-        expect(headers[header], `Header ${header} should be "${expectedValue}"`).toBe(expectedValue);
+    for (const [header, expectedValue] of Object.entries(
+        EXPECTED_SECURITY_HEADERS
+    )) {
+        expect(
+            headers[header],
+            `Header ${header} should be "${expectedValue}"`
+        ).toBe(expectedValue);
     }
 }
 
@@ -173,7 +194,10 @@ export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestCon
  * On dev server (drevo-local.ru): localhost:4200, localhost:4000
  * On prod server: https://app.drevo-info.ru
  */
-export const ALLOWED_ORIGINS = ['http://localhost:4200', 'http://localhost:4000'];
+export const ALLOWED_ORIGINS = [
+    'http://localhost:4200',
+    'http://localhost:4000',
+];
 
 /**
  * Origin that should be allowed on current test environment

@@ -50,7 +50,9 @@ describe('ModalContainerComponent', () => {
 
     it('should show spinner while component is loading', async () => {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        let resolveLoader: (component: Type<TestModalComponent>) => void = () => {};
+        let resolveLoader: (
+            component: Type<TestModalComponent>
+        ) => void = () => {};
         const loaderPromise = new Promise<Type<TestModalComponent>>(resolve => {
             resolveLoader = resolve;
         });

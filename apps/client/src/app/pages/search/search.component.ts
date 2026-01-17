@@ -8,7 +8,7 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import {
     SpinnerComponent,
@@ -38,7 +38,6 @@ const DEBOUNCE_TIME_MS = 500;
 @Component({
     selector: 'app-search',
     imports: [
-        CommonModule,
         RouterLink,
         TextInputComponent,
         SpinnerComponent,

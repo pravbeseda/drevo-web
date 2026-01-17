@@ -6,7 +6,7 @@ import {
     DestroyRef,
     OnInit,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
@@ -17,7 +17,7 @@ import { isValidReturnUrl } from '@drevo-web/shared';
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
 })

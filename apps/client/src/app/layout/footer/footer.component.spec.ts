@@ -3,12 +3,12 @@ import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { FooterComponent } from './footer.component';
 
 describe('FooterComponent', () => {
-  let spectator: Spectator<FooterComponent>;
-  const createComponent = createComponentFactory(FooterComponent);
+    let spectator: Spectator<FooterComponent>;
+    const createComponent = createComponentFactory(FooterComponent);
 
-  it('should create', () => {
-    spectator = createComponent();
+    it('should create', () => {
+        spectator = createComponent();
 
-    expect(spectator.component).toBeTruthy();
-  });
+        expect(spectator.component).toBeTruthy();
+    });
 });

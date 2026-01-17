@@ -1,73 +1,76 @@
 name: Deploy to Staging
 
 on:
-  workflow_run:
-    workflows: ["Continuous Integration"]
-    types: [completed]
-    branches: [main]
+    workflow_run:
+        workflows: ['Continuous Integration']
+        types: [completed]
+        branches: [main]
+
+permissions:
+    contents: read
 
 jobs:
-  deploy-staging:
-    if: github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: ${{ vars.STAGING_URL }}
+    deploy-staging:
+        if: github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        environment:
+            name: staging
+            url: ${{ vars.STAGING_URL }}
 
-    steps:
-      - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
 
-      - name: Generate datetime-based version
-        id: get_version
-        run: |
-          # Generate datetime-based version for staging
-          VERSION=$(date +'%Y%m%d-%H%M')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📋 Staging version: $VERSION"
+            - name: Generate datetime-based version
+              id: get_version
+              run: |
+                  # Generate datetime-based version for staging
+                  VERSION=$(date +'%Y%m%d-%H%M')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "📋 Staging version: $VERSION"
 
-      - name: Build for staging deployment
-        env:
-          APP_VERSION: ${{ steps.get_version.outputs.version }}
-        run: |
-          # Replace version placeholder in environment.prod.ts
-          echo "Building staging with version: $APP_VERSION"
-          sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
-          
-          # Verify the replacement
-          echo "Environment file after replacement:"
-          cat apps/client/src/environments/environment.prod.ts
-          
-          # Build with production configuration (will use environment.prod.ts)
-          npx nx build client --configuration=production --base-href=/staging/
+            - name: Build for staging deployment
+              env:
+                  APP_VERSION: ${{ steps.get_version.outputs.version }}
+              run: |
+                  # Replace version placeholder in environment.prod.ts
+                  echo "Building staging with version: $APP_VERSION"
+                  sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
 
-      - name: Deploy with reusable action
-        uses: ./.github/actions/deploy
-        with:
-          environment: "staging"
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          ssh-user: ${{ secrets.SSH_USER }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-port: ${{ secrets.SSH_PORT || '22' }}
-          source-path: "dist/apps/client"
-          target-path: "staging"
-          environment-url: ${{ vars.STAGING_URL }}
-          version: ${{ steps.get_version.outputs.version }}
+                  # Verify the replacement
+                  echo "Environment file after replacement:"
+                  cat apps/client/src/environments/environment.prod.ts
 
-      - name: Notify deployment
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Staging deployment successful: ${{ vars.STAGING_URL }}"
-          else
-            echo "❌ Staging deployment failed"
-            exit 1
-          fi
+                  # Build with production configuration (will use environment.prod.ts)
+                  npx nx build client --configuration=production --base-href=/staging/
+
+            - name: Deploy with reusable action
+              uses: ./.github/actions/deploy
+              with:
+                  environment: 'staging'
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+                  ssh-user: ${{ secrets.SSH_USER }}
+                  ssh-host: ${{ secrets.SSH_HOST }}
+                  ssh-port: ${{ secrets.SSH_PORT || '22' }}
+                  source-path: 'dist/apps/client'
+                  target-path: 'staging'
+                  environment-url: ${{ vars.STAGING_URL }}
+                  version: ${{ steps.get_version.outputs.version }}
+
+            - name: Notify deployment
+              if: always()
+              run: |
+                  if [ "${{ job.status }}" == "success" ]; then
+                    echo "✅ Staging deployment successful: ${{ vars.STAGING_URL }}"
+                  else
+                    echo "❌ Staging deployment failed"
+                    exit 1
+                  fi

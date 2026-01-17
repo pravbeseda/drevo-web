@@ -9,7 +9,7 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute } from '@angular/router';
 import { SpinnerComponent } from '@drevo-web/ui';
 import { Article } from '@drevo-web/shared';
@@ -21,7 +21,7 @@ import { ArticleContentComponent } from './article-content/article-content.compo
 
 @Component({
     selector: 'app-article',
-    imports: [CommonModule, SpinnerComponent, ArticleContentComponent],
+    imports: [SpinnerComponent, ArticleContentComponent],
     templateUrl: './article.component.html',
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
