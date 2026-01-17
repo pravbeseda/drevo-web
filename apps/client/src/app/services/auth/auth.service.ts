@@ -22,7 +22,13 @@ import {
     take,
 } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { User, AuthState, AuthResponse, LoginRequest } from '@drevo-web/shared';
+import {
+    User,
+    AuthState,
+    AuthResponse,
+    LoginRequest,
+    isValidReturnUrl,
+} from '@drevo-web/shared';
 import { CsrfService } from './csrf.service';
 import {
     LoggerService,
@@ -324,7 +330,11 @@ export class AuthService {
         this.isAuthenticatedSubject.next(false);
         this.notifyOtherTabs();
 
-        const returnUrl = currentUrl || this.router.url;
+        // Validate external URL; fall back to router.url if invalid
+        const returnUrl =
+            currentUrl && isValidReturnUrl(currentUrl)
+                ? currentUrl
+                : this.router.url;
         if (returnUrl && returnUrl !== '/login') {
             this.router.navigate(['/login'], {
                 queryParams: { returnUrl },

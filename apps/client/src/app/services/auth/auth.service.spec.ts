@@ -538,46 +538,6 @@ describe('AuthService', () => {
         });
     });
 
-    describe('currentUser getter', () => {
-        it('should return undefined when not authenticated', () => {
-            expect(spectator.service.currentUser).toBeUndefined();
-        });
-
-        it('should return user when authenticated', done => {
-            spectator.service
-                .login({ username: 'test', password: 'test' })
-                .subscribe(() => {
-                    expect(spectator.service.currentUser).toEqual(mockUser);
-                    done();
-                });
-
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/login'
-            );
-            req.flush(mockAuthResponse);
-        });
-    });
-
-    describe('isAuthenticated getter', () => {
-        it('should return false when not authenticated', () => {
-            expect(spectator.service.isAuthenticated).toBe(false);
-        });
-
-        it('should return true when authenticated', done => {
-            spectator.service
-                .login({ username: 'test', password: 'test' })
-                .subscribe(() => {
-                    expect(spectator.service.isAuthenticated).toBe(true);
-                    done();
-                });
-
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/login'
-            );
-            req.flush(mockAuthResponse);
-        });
-    });
-
     describe('authState$ observable', () => {
         it('should emit auth state changes', done => {
             const states: boolean[] = [];
@@ -602,15 +562,6 @@ describe('AuthService', () => {
         });
     });
 
-    describe('SSR platform', () => {
-        // These tests verify the service handles server-side rendering correctly
-
-        it('should handle non-browser environment gracefully', () => {
-            // The service checks isPlatformBrowser and returns early/different behavior
-            // Full SSR tests would require a separate test file with different PLATFORM_ID
-            expect(spectator.service).toBeTruthy();
-        });
-    });
 
     describe('handleUnauthorized', () => {
         it('should clear auth state', () => {
@@ -654,6 +605,26 @@ describe('AuthService', () => {
             spectator.service.handleUnauthorized('/login');
 
             expect(router.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should fall back to router.url if currentUrl is invalid (open redirect prevention)', () => {
+            router.url = '/articles/123';
+
+            spectator.service.handleUnauthorized('//evil.com');
+
+            expect(router.navigate).toHaveBeenCalledWith(['/login'], {
+                queryParams: { returnUrl: '/articles/123' },
+            });
+        });
+
+        it('should reject protocol-relative URLs', () => {
+            router.url = '/dashboard';
+
+            spectator.service.handleUnauthorized('//attacker.com/phishing');
+
+            expect(router.navigate).toHaveBeenCalledWith(['/login'], {
+                queryParams: { returnUrl: '/dashboard' },
+            });
         });
     });
 

@@ -22,17 +22,14 @@
  * isValidReturnUrl('javascript:...')  // false
  * ```
  */
-export function isValidReturnUrl(url: string): boolean {
-    if (!url || typeof url !== 'string') {
+export function isValidReturnUrl(url?: string): boolean {
+    if (!url) {
         return false;
     }
 
     // Must start with single slash (relative path)
     // Reject: //, /\, javascript:, data:, etc.
     return (
-        url.startsWith('/') &&
-        !url.startsWith('//') &&
-        !url.startsWith('/\\') &&
-        !/^[a-z]+:/i.test(url)
+        url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\')
     );
 }
