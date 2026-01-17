@@ -2,6 +2,7 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
 import { StorageService } from './storage.service';
 import { LoggerService } from './logger.service';
+import { WINDOW } from '../tokens/window.token';
 
 describe('StorageService', () => {
     let spectator: SpectatorService<StorageService>;
@@ -149,5 +150,115 @@ describe('StorageService (SSR)', () => {
 
     it('should return false for has on server', () => {
         expect(spectator.service.has('key')).toBe(false);
+    });
+});
+
+describe('StorageService (quota exceeded handling)', () => {
+    let spectator: SpectatorService<StorageService>;
+
+    const mockLoggerContext = {
+        warn: jest.fn(),
+        error: jest.fn(),
+    };
+
+    const mockLogger = {
+        withContext: jest.fn().mockReturnValue(mockLoggerContext),
+    };
+
+    const mockLocalStorage = {
+        setItem: jest.fn(),
+        getItem: jest.fn(),
+        removeItem: jest.fn(),
+        clear: jest.fn(),
+        key: jest.fn(),
+        length: 0,
+    };
+
+    const mockWindow = {
+        localStorage: mockLocalStorage,
+    } as unknown as Window;
+
+    const createService = createServiceFactory({
+        service: StorageService,
+        providers: [
+            { provide: PLATFORM_ID, useValue: 'browser' },
+            { provide: LoggerService, useValue: mockLogger },
+            { provide: WINDOW, useValue: mockWindow },
+        ],
+    });
+
+    beforeEach(() => {
+        spectator = createService();
+        jest.clearAllMocks();
+    });
+
+    describe('set()', () => {
+        it('should return false and log quota error when QuotaExceededError is thrown', () => {
+            const quotaError = new DOMException(
+                'Quota exceeded',
+                'QuotaExceededError'
+            );
+            mockLocalStorage.setItem.mockImplementation(() => {
+                throw quotaError;
+            });
+
+            const result = spectator.service.set('key', { data: 'value' });
+
+            expect(result).toBe(false);
+            expect(mockLoggerContext.error).toHaveBeenCalledWith(
+                'localStorage quota exceeded for key "key"',
+                quotaError
+            );
+        });
+
+        it('should return false and log generic error for non-quota errors', () => {
+            const genericError = new Error('Some other error');
+            mockLocalStorage.setItem.mockImplementation(() => {
+                throw genericError;
+            });
+
+            const result = spectator.service.set('key', { data: 'value' });
+
+            expect(result).toBe(false);
+            expect(mockLoggerContext.error).toHaveBeenCalledWith(
+                'Failed to set localStorage value for key "key"',
+                genericError
+            );
+        });
+    });
+
+    describe('setString()', () => {
+        it('should return false and log quota error when QuotaExceededError is thrown', () => {
+            const quotaError = new DOMException(
+                'Quota exceeded',
+                'QuotaExceededError'
+            );
+            mockLocalStorage.setItem.mockImplementation(() => {
+                throw quotaError;
+            });
+
+            const result = spectator.service.setString('key', 'value');
+
+            expect(result).toBe(false);
+            expect(mockLoggerContext.error).toHaveBeenCalledWith(
+                'localStorage quota exceeded for key "key"',
+                quotaError
+            );
+        });
+
+        it('should return false and log generic error for non-quota errors', () => {
+            const genericError = new Error('Some other error');
+            mockLocalStorage.setItem.mockImplementation(() => {
+                throw genericError;
+            });
+
+            const result = spectator.service.setString('key', 'value');
+
+            expect(result).toBe(false);
+            expect(mockLoggerContext.error).toHaveBeenCalledWith(
+                'Failed to set localStorage value for key "key"',
+                genericError
+            );
+        });
     });
 });

@@ -562,7 +562,6 @@ describe('AuthService', () => {
         });
     });
 
-
     describe('handleUnauthorized', () => {
         it('should clear auth state', () => {
             spectator.service.handleUnauthorized();
