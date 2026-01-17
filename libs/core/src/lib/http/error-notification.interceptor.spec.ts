@@ -1,4 +1,3 @@
-/* eslint-disable no-null/no-null */
 import {
     HttpContext,
     HTTP_INTERCEPTORS,

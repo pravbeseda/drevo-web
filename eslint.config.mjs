@@ -30,6 +30,16 @@ export default [
           ],
         },
       ],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'after-used',
+          ignoreRestSiblings: true,
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {
@@ -42,6 +52,12 @@ export default [
       '**/*.jsx',
       '**/*.cjs',
       '**/*.mjs',
+    ],
+    ignores: [
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/*.test.ts',
+      '**/*.test.tsx',
     ],
     plugins: {
       'no-null': noNull,

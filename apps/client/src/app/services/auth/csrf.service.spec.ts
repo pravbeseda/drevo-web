@@ -3,7 +3,7 @@ import {
     HttpTestingController,
     provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { CsrfService } from './csrf.service';
 import { CsrfResponse } from '@drevo-web/shared';
@@ -17,7 +17,6 @@ jest.mock('../../../environments/environment', () => ({
 describe('CsrfService', () => {
     let spectator: SpectatorService<CsrfService>;
     let httpController: HttpTestingController;
-    let httpClient: HttpClient;
     let loggerService: MockLoggerService;
 
     const createService = createServiceFactory({
@@ -37,8 +36,9 @@ describe('CsrfService', () => {
     beforeEach(() => {
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
-        httpClient = spectator.inject(HttpClient);
-        loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        loggerService = spectator.inject(
+            LoggerService
+        ) as unknown as MockLoggerService;
     });
 
     afterEach(() => {

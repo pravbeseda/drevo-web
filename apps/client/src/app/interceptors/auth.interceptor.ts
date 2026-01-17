@@ -24,6 +24,7 @@ import { environment } from '../../environments/environment';
 const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 const CSRF_ENDPOINTS = ['/api/auth/csrf'];
 const AUTH_ENDPOINTS = ['/api/auth/login', '/api/auth/logout'];
+const AUTH_CHECK_ENDPOINT = '/api/auth/me';
 
 // Custom header to mark requests that have already been retried for CSRF
 const CSRF_RETRY_HEADER = 'X-CSRF-Retry';
@@ -33,7 +34,8 @@ export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
     private readonly injector = inject(Injector);
     private readonly csrfService = inject(CsrfService);
-    private readonly logger = inject(LoggerService).withContext('AuthInterceptor');
+    private readonly logger =
+        inject(LoggerService).withContext('AuthInterceptor');
 
     // Lazy-loaded to avoid circular dependency (AuthService -> HttpClient -> HTTP_INTERCEPTORS)
     private _authService: AuthService | undefined;
@@ -118,6 +120,15 @@ export class AuthInterceptor implements HttpInterceptor {
         request: HttpRequest<unknown>,
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
+        // Handle 401 Unauthorized - redirect to login
+        if (
+            error.status === 401 &&
+            !this.isAuthCheckOrLoginEndpoint(request.url)
+        ) {
+            this.authService.handleUnauthorized();
+            return throwError(() => error);
+        }
+
         // Handle 403 CSRF validation failed - retry with new token (once only)
         // Uses shared observable to coordinate concurrent refresh attempts
         if (
@@ -220,6 +231,13 @@ export class AuthInterceptor implements HttpInterceptor {
     private isAuthEndpoint(url: string): boolean {
         return AUTH_ENDPOINTS.some(endpoint =>
             this.matchesEndpoint(url, endpoint)
+        );
+    }
+
+    private isAuthCheckOrLoginEndpoint(url: string): boolean {
+        return (
+            this.isAuthEndpoint(url) ||
+            this.matchesEndpoint(url, AUTH_CHECK_ENDPOINT)
         );
     }
 }

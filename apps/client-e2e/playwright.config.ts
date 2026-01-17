@@ -8,8 +8,12 @@ const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
 // API Base URL for API tests (can be different from UI base URL)
 const apiBaseURL = process.env['API_BASE_URL'] || 'http://drevo-local.ru';
 
-// Skip API integration tests in CI (no backend available)
+// API tests are enabled locally by default, disabled in CI
+// Set ENABLE_API_TESTS=true to force enable, ENABLE_API_TESTS=false to force disable
 const isCI = !!process.env.CI;
+const enableApiTests = process.env['ENABLE_API_TESTS'] !== undefined
+    ? process.env['ENABLE_API_TESTS'] === 'true'
+    : !isCI; // Default: enabled locally, disabled in CI
 
 /**
  * Read environment variables from file.
@@ -37,10 +41,9 @@ export default defineConfig({
     },
     projects: [
         // API Tests - no browser required, fast execution
-        // Skipped in CI because backend is not available
-        ...(isCI
-            ? []
-            : [
+        // Only run when ENABLE_API_TESTS=true (requires real backend)
+        ...(enableApiTests
+            ? [
                   {
                       name: 'api',
                       testMatch: /api\/.*\.spec\.ts/,
@@ -48,7 +51,8 @@ export default defineConfig({
                           baseURL: apiBaseURL,
                       },
                   },
-              ]),
+              ]
+            : []),
 
         // UI Tests - require browser
         {
