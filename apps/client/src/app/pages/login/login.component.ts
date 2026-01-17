@@ -81,6 +81,7 @@ export class LoginComponent implements OnInit {
 
         this.isSubmitting.set(true);
         this.errorMessage.set(undefined);
+        this.loginForm.disable();
 
         // Capture credentials and clear password immediately
         const { username, password, rememberMe } = this.loginForm.getRawValue();
@@ -97,6 +98,7 @@ export class LoginComponent implements OnInit {
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => {
                     this.isSubmitting.set(false);
+                    this.loginForm.enable();
                 })
             )
             .subscribe({
