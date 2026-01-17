@@ -2,10 +2,13 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "outDir": "../../dist/out-tsc",
-        "module": "commonjs",
+        "module": "preserve",
         "target": "ES2022",
         "types": ["jest", "node"],
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "moduleResolution": "bundler",
+        "lib": ["dom", "es2022"],
+        "isolatedModules": true
     },
     "angularCompilerOptions": {
         "enableI18nLegacyMessageIdFormat": false,
