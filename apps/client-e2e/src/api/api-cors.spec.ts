@@ -27,28 +27,40 @@ test.describe('CORS Headers', () => {
     const allowedOrigin = ALLOWED_ORIGINS[0];
 
     test.describe('OPTIONS Preflight', () => {
-        test('should return 204 for preflight from allowed origin', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: allowedOrigin,
-                    'Access-Control-Request-Method': 'POST',
-                    'Access-Control-Request-Headers': 'Content-Type, X-CSRF-Token',
-                },
-            });
+        test('should return 204 for preflight from allowed origin', async ({
+            request,
+        }) => {
+            const response = await request.fetch(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    method: 'OPTIONS',
+                    headers: {
+                        Origin: allowedOrigin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers':
+                            'Content-Type, X-CSRF-Token',
+                    },
+                }
+            );
 
             expect(response.status()).toBe(204);
         });
 
-        test('preflight should include all required CORS headers', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: allowedOrigin,
-                    'Access-Control-Request-Method': 'POST',
-                    'Access-Control-Request-Headers': 'Content-Type, X-CSRF-Token',
-                },
-            });
+        test('preflight should include all required CORS headers', async ({
+            request,
+        }) => {
+            const response = await request.fetch(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    method: 'OPTIONS',
+                    headers: {
+                        Origin: allowedOrigin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers':
+                            'Content-Type, X-CSRF-Token',
+                    },
+                }
+            );
 
             const headers = response.headers();
 
@@ -65,19 +77,25 @@ test.describe('CORS Headers', () => {
             expect(allowedMethods).toContain('OPTIONS');
 
             // Access-Control-Allow-Headers must include X-CSRF-Token
-            const allowedHeaders = headers['access-control-allow-headers']?.toLowerCase();
+            const allowedHeaders =
+                headers['access-control-allow-headers']?.toLowerCase();
             expect(allowedHeaders).toContain('content-type');
             expect(allowedHeaders).toContain('x-csrf-token');
         });
 
-        test('preflight should NOT include CORS headers for disallowed origin', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: TEST_DISALLOWED_ORIGIN,
-                    'Access-Control-Request-Method': 'POST',
-                },
-            });
+        test('preflight should NOT include CORS headers for disallowed origin', async ({
+            request,
+        }) => {
+            const response = await request.fetch(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    method: 'OPTIONS',
+                    headers: {
+                        Origin: TEST_DISALLOWED_ORIGIN,
+                        'Access-Control-Request-Method': 'POST',
+                    },
+                }
+            );
 
             const headers = response.headers();
 
@@ -86,14 +104,19 @@ test.describe('CORS Headers', () => {
             expect(allowOrigin).not.toBe(TEST_DISALLOWED_ORIGIN);
         });
 
-        test('preflight from disallowed origin should return 403', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: TEST_DISALLOWED_ORIGIN,
-                    'Access-Control-Request-Method': 'POST',
-                },
-            });
+        test('preflight from disallowed origin should return 403', async ({
+            request,
+        }) => {
+            const response = await request.fetch(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    method: 'OPTIONS',
+                    headers: {
+                        Origin: TEST_DISALLOWED_ORIGIN,
+                        'Access-Control-Request-Method': 'POST',
+                    },
+                }
+            );
 
             // Server rejects disallowed origins with 403
             expect(response.status()).toBe(403);
@@ -101,26 +124,36 @@ test.describe('CORS Headers', () => {
     });
 
     test.describe('Vary: Origin Header', () => {
-        test('every API response should include Vary: Origin', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`, {
-                headers: {
-                    Accept: 'application/json',
-                    Origin: allowedOrigin,
-                },
-            });
+        test('every API response should include Vary: Origin', async ({
+            request,
+        }) => {
+            const response = await request.get(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        Origin: allowedOrigin,
+                    },
+                }
+            );
 
             const varyHeader = response.headers()['vary'];
             expect(varyHeader).toBeTruthy();
             expect(varyHeader?.toLowerCase()).toContain('origin');
         });
 
-        test('Vary: Origin should be present even without Origin header', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`, {
-                headers: {
-                    Accept: 'application/json',
-                    // No Origin header
-                },
-            });
+        test('Vary: Origin should be present even without Origin header', async ({
+            request,
+        }) => {
+            const response = await request.get(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        // No Origin header
+                    },
+                }
+            );
 
             const varyHeader = response.headers()['vary'];
             expect(varyHeader).toBeTruthy();
@@ -129,14 +162,19 @@ test.describe('CORS Headers', () => {
     });
 
     test.describe('CORS for allowed origins', () => {
-        test('should include CORS headers in preflight for allowed origin', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/auth/me`, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: allowedOrigin,
-                    'Access-Control-Request-Method': 'GET',
-                },
-            });
+        test('should include CORS headers in preflight for allowed origin', async ({
+            request,
+        }) => {
+            const response = await request.fetch(
+                `${API_BASE_URL}/api/auth/me`,
+                {
+                    method: 'OPTIONS',
+                    headers: {
+                        Origin: allowedOrigin,
+                        'Access-Control-Request-Method': 'GET',
+                    },
+                }
+            );
 
             const headers = response.headers();
 
@@ -144,7 +182,9 @@ test.describe('CORS Headers', () => {
             expect(headers['access-control-allow-credentials']).toBe('true');
         });
 
-        test('regular GET response should include CORS headers for allowed origin', async ({ request }) => {
+        test('regular GET response should include CORS headers for allowed origin', async ({
+            request,
+        }) => {
             const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
@@ -161,7 +201,9 @@ test.describe('CORS Headers', () => {
     });
 
     test.describe('CORS for disallowed origins', () => {
-        test('should NOT include Access-Control-Allow-Origin for disallowed origin', async ({ request }) => {
+        test('should NOT include Access-Control-Allow-Origin for disallowed origin', async ({
+            request,
+        }) => {
             const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
@@ -176,7 +218,9 @@ test.describe('CORS Headers', () => {
             expect(allowOrigin).not.toBe(TEST_DISALLOWED_ORIGIN);
         });
 
-        test('should NOT echo wildcard (*) for Access-Control-Allow-Origin', async ({ request }) => {
+        test('should NOT echo wildcard (*) for Access-Control-Allow-Origin', async ({
+            request,
+        }) => {
             const response = await request.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: {
                     Accept: 'application/json',
@@ -192,14 +236,19 @@ test.describe('CORS Headers', () => {
     });
 
     test.describe('Access-Control-Max-Age', () => {
-        test('preflight response should include Max-Age', async ({ request }) => {
-            const response = await request.fetch(`${API_BASE_URL}/api/auth/csrf`, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: allowedOrigin,
-                    'Access-Control-Request-Method': 'POST',
-                },
-            });
+        test('preflight response should include Max-Age', async ({
+            request,
+        }) => {
+            const response = await request.fetch(
+                `${API_BASE_URL}/api/auth/csrf`,
+                {
+                    method: 'OPTIONS',
+                    headers: {
+                        Origin: allowedOrigin,
+                        'Access-Control-Request-Method': 'POST',
+                    },
+                }
+            );
 
             const headers = response.headers();
             const maxAge = headers['access-control-max-age'];

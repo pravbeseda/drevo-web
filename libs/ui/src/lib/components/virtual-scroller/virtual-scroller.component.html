@@ -5,7 +5,11 @@
     [maxBufferPx]="400">
     @if (itemTemplate(); as template) {
         <div
-            *cdkVirtualFor="let item of items(); let i = index; trackBy: trackByFn()"
+            *cdkVirtualFor="
+                let item of items();
+                let i = index;
+                trackBy: trackByFn()
+            "
             class="virtual-scroller-item">
             <ng-container
                 [ngTemplateOutlet]="template"
@@ -21,7 +25,9 @@
 
     @if (showLoadingIndicator()) {
         <div class="virtual-scroller-loading">
-            <ui-spinner [diameter]="24" [strokeWidth]="3" />
+            <ui-spinner
+                [diameter]="24"
+                [strokeWidth]="3" />
         </div>
     }
 </cdk-virtual-scroll-viewport>

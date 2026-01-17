@@ -5,6 +5,8 @@
     "scripts": {
         "test": "nx run-many --target=test --all --parallel",
         "lint": "yarn nx affected -t lint --parallel",
+        "format:chack": "node ./node_modules/.bin/prettier . --check",
+        "format:fix": "node ./node_modules/.bin/prettier . --write",
         "e2e": "yarn playwright test --config=apps/client-e2e/playwright.config.ts",
         "e2e:api": "yarn playwright test --project=api --config=apps/client-e2e/playwright.config.ts",
         "build": "nx build client --configuration=production",

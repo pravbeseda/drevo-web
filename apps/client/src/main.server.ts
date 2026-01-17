@@ -1,8 +1,12 @@
-import { bootstrapApplication, BootstrapContext } from '@angular/platform-browser';
+import {
+    bootstrapApplication,
+    BootstrapContext,
+} from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { config } from './app/app.config.server';
 
 // BootstrapContext carries per-request state for SSR (transfer state, providers, etc.)
-const bootstrap = (context: BootstrapContext) => bootstrapApplication(AppComponent, config, context);
+const bootstrap = (context: BootstrapContext) =>
+    bootstrapApplication(AppComponent, config, context);
 
 export default bootstrap;

@@ -45,7 +45,9 @@ export const mockUsers = {
 
 export const authResponses = {
     /** Response for authenticated user checking /api/auth/me */
-    authenticatedMe: (user: User = mockUsers.authenticated): { status: number; json: AuthResponse } => ({
+    authenticatedMe: (
+        user: User = mockUsers.authenticated
+    ): { status: number; json: AuthResponse } => ({
         status: 200,
         json: {
             success: true,
@@ -68,7 +70,9 @@ export const authResponses = {
     }),
 
     /** Response for CSRF token request */
-    csrf: (token = 'mock-csrf-token-12345'): { status: number; json: CsrfResponse } => ({
+    csrf: (
+        token = 'mock-csrf-token-12345'
+    ): { status: number; json: CsrfResponse } => ({
         status: 200,
         json: {
             success: true,
@@ -79,7 +83,9 @@ export const authResponses = {
     }),
 
     /** Successful login response */
-    loginSuccess: (user: User = mockUsers.authenticated): { status: number; json: AuthResponse } => ({
+    loginSuccess: (
+        user: User = mockUsers.authenticated
+    ): { status: number; json: AuthResponse } => ({
         status: 200,
         json: {
             success: true,
@@ -91,7 +97,9 @@ export const authResponses = {
     }),
 
     /** Failed login response */
-    loginFailure: (message = 'Invalid username or password'): { status: number; json: AuthResponse } => ({
+    loginFailure: (
+        message = 'Invalid username or password'
+    ): { status: number; json: AuthResponse } => ({
         status: 401,
         json: {
             success: false,

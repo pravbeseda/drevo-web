@@ -38,13 +38,13 @@ const DEBOUNCE_TIME_MS = 500;
 @Component({
     selector: 'app-search',
     imports: [
-    RouterLink,
-    TextInputComponent,
-    SpinnerComponent,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-    HighlightPipe
-],
+        RouterLink,
+        TextInputComponent,
+        SpinnerComponent,
+        VirtualScrollerComponent,
+        VirtualScrollerItemDirective,
+        HighlightPipe,
+    ],
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
