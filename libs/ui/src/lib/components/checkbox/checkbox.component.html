@@ -1,0 +1,7 @@
+<mat-checkbox
+    [checked]="checked()"
+    [disabled]="disabled() || isDisabled()"
+    (change)="onCheckboxChange($event.checked)"
+    (blur)="onBlur()">
+    {{ label() }}
+</mat-checkbox>

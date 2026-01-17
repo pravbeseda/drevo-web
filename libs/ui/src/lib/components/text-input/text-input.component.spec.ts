@@ -99,4 +99,16 @@ describe('TextInputComponent', () => {
         const input = spectator.query<HTMLInputElement>('input')!;
         expect(input.type).toBe('password');
     });
+
+    it('should default autocomplete to off', () => {
+        const input = spectator.query<HTMLInputElement>('input')!;
+        expect(input.autocomplete).toBe('off');
+    });
+
+    it('should apply autocomplete attribute when provided', () => {
+        spectator.setInput('autocomplete', 'current-password');
+
+        const input = spectator.query<HTMLInputElement>('input')!;
+        expect(input.autocomplete).toBe('current-password');
+    });
 });

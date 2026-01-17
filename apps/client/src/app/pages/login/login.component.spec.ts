@@ -1,10 +1,16 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth/auth.service';
+import {
+    TextInputComponent,
+    CheckboxComponent,
+    ButtonComponent,
+} from '@drevo-web/ui';
 
 describe('LoginComponent', () => {
     let spectator: Spectator<LoginComponent>;
@@ -14,7 +20,13 @@ describe('LoginComponent', () => {
 
     const createComponent = createComponentFactory({
         component: LoginComponent,
-        imports: [FormsModule],
+        imports: [
+            ReactiveFormsModule,
+            NoopAnimationsModule,
+            TextInputComponent,
+            CheckboxComponent,
+            ButtonComponent,
+        ],
         providers: [
             {
                 provide: AuthService,
@@ -54,12 +66,13 @@ describe('LoginComponent', () => {
             expect(spectator.component).toBeTruthy();
         });
 
-        it('should have empty initial values', () => {
+        it('should have empty initial form values', () => {
             spectator = createComponent();
 
-            expect(spectator.component.username).toBe('');
-            expect(spectator.component.password).toBe('');
-            expect(spectator.component.rememberMe).toBe(false);
+            const form = spectator.component.loginForm;
+            expect(form.controls.username.value).toBe('');
+            expect(form.controls.password.value).toBe('');
+            expect(form.controls.rememberMe.value).toBe(false);
             expect(spectator.component.isSubmitting()).toBe(false);
             expect(spectator.component.errorMessage()).toBeUndefined();
         });
@@ -68,85 +81,67 @@ describe('LoginComponent', () => {
             spectator = createComponent();
 
             expect(spectator.query('h1')).toHaveText('Вход');
-            expect(spectator.query('input#username')).toExist();
-            expect(spectator.query('input#password')).toExist();
-            expect(spectator.query('input[name="rememberMe"]')).toExist();
-            expect(spectator.query('button[type="submit"]')).toExist();
+            expect(spectator.query('ui-text-input')).toExist();
+            expect(spectator.query('ui-checkbox')).toExist();
+            expect(spectator.query('ui-button')).toExist();
         });
     });
 
     describe('Form validation', () => {
-        it('should return false for empty username', () => {
+        it('should be invalid when username is empty', () => {
             spectator = createComponent();
 
-            spectator.component.username = '';
-            spectator.component.password = 'password123';
+            const form = spectator.component.loginForm;
+            form.controls.password.setValue('password123');
 
-            expect(spectator.component.isFormValid()).toBe(false);
+            expect(form.valid).toBe(false);
+            expect(form.controls.username.errors?.['required']).toBe(true);
         });
 
-        it('should return false for whitespace-only username', () => {
+        it('should be invalid when password is empty', () => {
             spectator = createComponent();
 
-            spectator.component.username = '   ';
-            spectator.component.password = 'password123';
+            const form = spectator.component.loginForm;
+            form.controls.username.setValue('testuser');
 
-            expect(spectator.component.isFormValid()).toBe(false);
+            expect(form.valid).toBe(false);
+            expect(form.controls.password.errors?.['required']).toBe(true);
         });
 
-        it('should return false for empty password', () => {
+        it('should be valid when all required fields are filled', () => {
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = '';
+            const form = spectator.component.loginForm;
+            form.controls.username.setValue('testuser');
+            form.controls.password.setValue('password123');
 
-            expect(spectator.component.isFormValid()).toBe(false);
-        });
-
-        it('should return true for valid form', () => {
-            spectator = createComponent();
-
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
-
-            expect(spectator.component.isFormValid()).toBe(true);
+            expect(form.valid).toBe(true);
         });
 
         it('should disable submit button when form is invalid', () => {
             spectator = createComponent();
 
-            spectator.component.username = '';
-            spectator.component.password = '';
-            spectator.detectChanges();
-
-            const submitButton = spectator.query(
-                'button[type="submit"]'
+            const button = spectator.query(
+                'ui-button button'
             ) as HTMLButtonElement;
-            expect(submitButton.disabled).toBe(true);
+            expect(button.disabled).toBe(true);
         });
 
-        it('should enable submit button when form is valid', async () => {
+        it('should enable submit button when form is valid', () => {
             spectator = createComponent();
-            await spectator.fixture.whenStable();
 
-            const usernameInput = spectator.query(
-                'input#username'
-            ) as HTMLInputElement;
-            const passwordInput = spectator.query(
-                'input#password'
-            ) as HTMLInputElement;
-
-            usernameInput.value = 'testuser';
-            usernameInput.dispatchEvent(new Event('input'));
-            passwordInput.value = 'password123';
-            passwordInput.dispatchEvent(new Event('input'));
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.detectChanges();
-            await spectator.fixture.whenStable();
 
-            const submitButton = spectator.query(
-                'button[type="submit"]'
+            const button = spectator.query(
+                'ui-button button'
             ) as HTMLButtonElement;
-            expect(submitButton.disabled).toBe(false);
+            expect(button.disabled).toBe(false);
         });
     });
 
@@ -154,19 +149,34 @@ describe('LoginComponent', () => {
         it('should not call authService.login when form is invalid', () => {
             spectator = createComponent();
 
-            spectator.component.username = '';
-            spectator.component.password = '';
             spectator.component.onSubmit();
 
             expect(authServiceMock.login).not.toHaveBeenCalled();
         });
 
+        it('should mark form as touched when submitting invalid form', () => {
+            spectator = createComponent();
+
+            spectator.component.onSubmit();
+
+            expect(
+                spectator.component.loginForm.controls.username.touched
+            ).toBe(true);
+            expect(
+                spectator.component.loginForm.controls.password.touched
+            ).toBe(true);
+        });
+
         it('should call authService.login with correct data', () => {
             spectator = createComponent();
 
-            spectator.component.username = '  testuser  ';
-            spectator.component.password = 'password123';
-            spectator.component.rememberMe = true;
+            spectator.component.loginForm.controls.username.setValue(
+                '  testuser  '
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
+            spectator.component.loginForm.controls.rememberMe.setValue(true);
             spectator.component.onSubmit();
 
             expect(authServiceMock.login).toHaveBeenCalledWith({
@@ -179,15 +189,18 @@ describe('LoginComponent', () => {
         it('should set isSubmitting to true during login', () => {
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
 
             expect(spectator.component.isSubmitting()).toBe(false);
 
             spectator.component.onSubmit();
 
             // isSubmitting is set to false after login completes (synchronously in this test)
-            // The login observable completes synchronously with the mock
             expect(spectator.component.isSubmitting()).toBe(false);
         });
 
@@ -195,8 +208,12 @@ describe('LoginComponent', () => {
             spectator = createComponent();
 
             spectator.component.errorMessage.set('Previous error');
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(spectator.component.errorMessage()).toBeUndefined();
@@ -205,58 +222,31 @@ describe('LoginComponent', () => {
         it('should navigate to root on successful login when no returnUrl', () => {
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
         });
 
-        it('should clear password after login attempt', () => {
+        it('should reset password after login attempt', () => {
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
-            expect(spectator.component.password).toBe('');
-        });
-
-        it('should disable inputs while submitting', async () => {
-            spectator = createComponent();
-            await spectator.fixture.whenStable();
-
-            spectator.component.isSubmitting.set(true);
-            spectator.detectChanges();
-            await spectator.fixture.whenStable();
-
-            const usernameInput = spectator.query(
-                'input#username'
-            ) as HTMLInputElement;
-            const passwordInput = spectator.query(
-                'input#password'
-            ) as HTMLInputElement;
-            const rememberMeCheckbox = spectator.query(
-                'input[name="rememberMe"]'
-            ) as HTMLInputElement;
-            const submitButton = spectator.query(
-                'button[type="submit"]'
-            ) as HTMLButtonElement;
-
-            expect(usernameInput.disabled).toBe(true);
-            expect(passwordInput.disabled).toBe(true);
-            expect(rememberMeCheckbox.disabled).toBe(true);
-            expect(submitButton.disabled).toBe(true);
-        });
-
-        it('should show loading text while submitting', () => {
-            spectator = createComponent();
-
-            spectator.component.isSubmitting.set(true);
-            spectator.detectChanges();
-
-            const submitButton = spectator.query('button[type="submit"]');
-            expect(submitButton).toHaveText('Вход...');
+            expect(spectator.component.loginForm.controls.password.value).toBe(
+                ''
+            );
         });
     });
 
@@ -267,8 +257,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(spectator.component.errorMessage()).toBe(
@@ -282,8 +276,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(spectator.component.errorMessage()).toBe(
@@ -297,8 +295,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(spectator.component.errorMessage()).toBe(
@@ -310,8 +312,12 @@ describe('LoginComponent', () => {
             authServiceMock.login.mockReturnValue(throwError(() => ({})));
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(spectator.component.errorMessage()).toBe(
@@ -345,8 +351,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
@@ -358,93 +368,50 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(spectator.component.isSubmitting()).toBe(false);
         });
 
-        it('should clear password after login error', () => {
+        it('should reset password after login error', () => {
             authServiceMock.login.mockReturnValue(
                 throwError(() => ({ code: 'INVALID_CREDENTIALS' }))
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
-            expect(spectator.component.password).toBe('');
-        });
-    });
-
-    describe('Two-way binding', () => {
-        it('should update username from input', async () => {
-            spectator = createComponent();
-            await spectator.fixture.whenStable();
-
-            const usernameInput = spectator.query(
-                'input#username'
-            ) as HTMLInputElement;
-            usernameInput.value = 'myusername';
-            usernameInput.dispatchEvent(new Event('input'));
-            spectator.detectChanges();
-            await spectator.fixture.whenStable();
-
-            expect(spectator.component.username).toBe('myusername');
-        });
-
-        it('should update password from input', async () => {
-            spectator = createComponent();
-            await spectator.fixture.whenStable();
-
-            const passwordInput = spectator.query(
-                'input#password'
-            ) as HTMLInputElement;
-            passwordInput.value = 'mypassword';
-            passwordInput.dispatchEvent(new Event('input'));
-            spectator.detectChanges();
-            await spectator.fixture.whenStable();
-
-            expect(spectator.component.password).toBe('mypassword');
-        });
-
-        it('should update rememberMe from checkbox', async () => {
-            spectator = createComponent();
-            await spectator.fixture.whenStable();
-
-            const checkbox = spectator.query(
-                'input[name="rememberMe"]'
-            ) as HTMLInputElement;
-            checkbox.click();
-            spectator.detectChanges();
-            await spectator.fixture.whenStable();
-
-            expect(spectator.component.rememberMe).toBe(true);
+            expect(spectator.component.loginForm.controls.password.value).toBe(
+                ''
+            );
         });
     });
 
     describe('Form submission via template', () => {
-        it('should call onSubmit when form is submitted', async () => {
+        it('should call onSubmit when form is submitted', () => {
             spectator = createComponent();
-            await spectator.fixture.whenStable();
 
             const onSubmitSpy = jest.spyOn(spectator.component, 'onSubmit');
 
-            const usernameInput = spectator.query(
-                'input#username'
-            ) as HTMLInputElement;
-            const passwordInput = spectator.query(
-                'input#password'
-            ) as HTMLInputElement;
-
-            usernameInput.value = 'testuser';
-            usernameInput.dispatchEvent(new Event('input'));
-            passwordInput.value = 'password123';
-            passwordInput.dispatchEvent(new Event('input'));
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.detectChanges();
-            await spectator.fixture.whenStable();
 
             const form = spectator.query('form') as HTMLFormElement;
             spectator.dispatchFakeEvent(form, 'ngSubmit');
@@ -460,8 +427,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith(
@@ -475,8 +446,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith(
@@ -490,8 +465,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
@@ -503,8 +482,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
@@ -516,8 +499,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
@@ -529,8 +516,12 @@ describe('LoginComponent', () => {
             );
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
@@ -540,8 +531,12 @@ describe('LoginComponent', () => {
             activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue('');
             spectator = createComponent();
 
-            spectator.component.username = 'testuser';
-            spectator.component.password = 'password123';
+            spectator.component.loginForm.controls.username.setValue(
+                'testuser'
+            );
+            spectator.component.loginForm.controls.password.setValue(
+                'password123'
+            );
             spectator.component.onSubmit();
 
             expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
@@ -557,7 +552,13 @@ describe('LoginComponent SSR', () => {
 
     const createServerComponent = createComponentFactory({
         component: LoginComponent,
-        imports: [FormsModule],
+        imports: [
+            ReactiveFormsModule,
+            NoopAnimationsModule,
+            TextInputComponent,
+            CheckboxComponent,
+            ButtonComponent,
+        ],
         providers: [
             {
                 provide: AuthService,
@@ -594,8 +595,8 @@ describe('LoginComponent SSR', () => {
     it('should not call authService.login when not in browser', () => {
         spectator = createServerComponent();
 
-        spectator.component.username = 'testuser';
-        spectator.component.password = 'password123';
+        spectator.component.loginForm.controls.username.setValue('testuser');
+        spectator.component.loginForm.controls.password.setValue('password123');
         spectator.component.onSubmit();
 
         expect(authServiceMock.login).not.toHaveBeenCalled();

@@ -5,19 +5,36 @@ import {
     PLATFORM_ID,
     DestroyRef,
     OnInit,
+    ChangeDetectionStrategy,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+    FormControl,
+    FormGroup,
+    ReactiveFormsModule,
+    Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isValidReturnUrl } from '@drevo-web/shared';
+import {
+    TextInputComponent,
+    CheckboxComponent,
+    ButtonComponent,
+} from '@drevo-web/ui';
 
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [FormsModule],
+    imports: [
+        ReactiveFormsModule,
+        TextInputComponent,
+        CheckboxComponent,
+        ButtonComponent,
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
 })
@@ -30,9 +47,17 @@ export class LoginComponent implements OnInit {
 
     private returnUrl = '/';
 
-    username = '';
-    password = '';
-    rememberMe = false;
+    readonly loginForm = new FormGroup({
+        username: new FormControl('', {
+            nonNullable: true,
+            validators: [Validators.required],
+        }),
+        password: new FormControl('', {
+            nonNullable: true,
+            validators: [Validators.required],
+        }),
+        rememberMe: new FormControl(false, { nonNullable: true }),
+    });
 
     readonly isSubmitting = signal(false);
     readonly errorMessage = signal<string | undefined>(undefined);
@@ -44,29 +69,28 @@ export class LoginComponent implements OnInit {
         }
     }
 
-    isFormValid(): boolean {
-        return this.username.trim().length > 0 && this.password.length > 0;
-    }
-
     onSubmit(): void {
         if (!isPlatformBrowser(this.platformId)) {
             return;
         }
 
-        if (!this.isFormValid()) {
+        if (this.loginForm.invalid) {
+            this.loginForm.markAllAsTouched();
             return;
         }
 
         this.isSubmitting.set(true);
         this.errorMessage.set(undefined);
+        this.loginForm.disable();
 
         // Capture credentials and clear password immediately
+        const { username, password, rememberMe } = this.loginForm.getRawValue();
         const credentials = {
-            username: this.username.trim(),
-            password: this.password,
-            rememberMe: this.rememberMe,
+            username: username.trim(),
+            password,
+            rememberMe,
         };
-        this.password = '';
+        this.loginForm.controls.password.reset();
 
         this.authService
             .login(credentials)
@@ -74,11 +98,12 @@ export class LoginComponent implements OnInit {
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => {
                     this.isSubmitting.set(false);
+                    this.loginForm.enable();
                 })
             )
             .subscribe({
                 next: () => {
-                    this.username = '';
+                    this.loginForm.reset();
                     this.router.navigateByUrl(this.returnUrl);
                 },
                 error: error => {

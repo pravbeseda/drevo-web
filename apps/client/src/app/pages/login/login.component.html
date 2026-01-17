@@ -2,60 +2,39 @@
     <div class="login-card">
         <h1>Вход</h1>
 
-        @if (errorMessage()) {
-            <div
-                class="error-message"
-                role="alert">
-                {{ errorMessage() }}
-            </div>
-        }
+        <form
+            [formGroup]="loginForm"
+            (ngSubmit)="onSubmit()">
+            <ui-text-input
+                label="Логин"
+                autocomplete="username"
+                formControlName="username" />
 
-        <form (ngSubmit)="onSubmit()">
-            <div class="form-field">
-                <label for="username">Логин</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    autocomplete="username"
-                    [(ngModel)]="username"
-                    required
-                    [disabled]="isSubmitting()" />
-            </div>
+            <ui-text-input
+                label="Пароль"
+                type="password"
+                autocomplete="current-password"
+                formControlName="password" />
 
-            <div class="form-field">
-                <label for="password">Пароль</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    autocomplete="current-password"
-                    [(ngModel)]="password"
-                    required
-                    [disabled]="isSubmitting()" />
-            </div>
+            <ui-checkbox
+                label="Запомнить меня"
+                formControlName="rememberMe" />
 
-            <div class="form-field checkbox">
-                <label>
-                    <input
-                        type="checkbox"
-                        name="rememberMe"
-                        [(ngModel)]="rememberMe"
-                        [disabled]="isSubmitting()" />
-                    Запомнить меня
-                </label>
-            </div>
+            @if (errorMessage()) {
+                <div
+                    class="error-message"
+                    role="alert">
+                    {{ errorMessage() }}
+                </div>
+            }
 
-            <button
+            <ui-button
                 type="submit"
-                class="submit-button"
-                [disabled]="isSubmitting() || !isFormValid()">
-                @if (isSubmitting()) {
-                    Вход...
-                } @else {
-                    Войти
-                }
-            </button>
+                [loading]="isSubmitting()"
+                [disabled]="loginForm.invalid"
+                [fullWidth]="true">
+                Войти
+            </ui-button>
         </form>
     </div>
 </div>

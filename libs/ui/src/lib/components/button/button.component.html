@@ -1,0 +1,43 @@
+<ng-template #buttonContent>
+    @if (loading()) {
+        <mat-spinner diameter="20" />
+    }
+    <span [class.loading]="loading()">
+        <ng-content />
+    </span>
+</ng-template>
+
+@switch (variant()) {
+    @case ('primary') {
+        <button
+            mat-flat-button
+            color="primary"
+            [type]="type()"
+            [disabled]="disabled() || loading()"
+            [class.full-width]="fullWidth()"
+            (click)="onClick($event)">
+            <ng-container *ngTemplateOutlet="buttonContent" />
+        </button>
+    }
+    @case ('secondary') {
+        <button
+            mat-stroked-button
+            color="primary"
+            [type]="type()"
+            [disabled]="disabled() || loading()"
+            [class.full-width]="fullWidth()"
+            (click)="onClick($event)">
+            <ng-container *ngTemplateOutlet="buttonContent" />
+        </button>
+    }
+    @default {
+        <button
+            mat-button
+            [type]="type()"
+            [disabled]="disabled() || loading()"
+            [class.full-width]="fullWidth()"
+            (click)="onClick($event)">
+            <ng-container *ngTemplateOutlet="buttonContent" />
+        </button>
+    }
+}
