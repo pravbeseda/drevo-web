@@ -2,14 +2,6 @@
     <div class="login-card">
         <h1>Вход</h1>
 
-        @if (errorMessage()) {
-            <div
-                class="error-message"
-                role="alert">
-                {{ errorMessage() }}
-            </div>
-        }
-
         <form
             [formGroup]="loginForm"
             (ngSubmit)="onSubmit()">
@@ -27,6 +19,14 @@
             <ui-checkbox
                 label="Запомнить меня"
                 formControlName="rememberMe" />
+
+            @if (errorMessage()) {
+                <div
+                    class="error-message"
+                    role="alert">
+                    {{ errorMessage() }}
+                </div>
+            }
 
             <ui-button
                 type="submit"
