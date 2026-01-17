@@ -36,6 +36,7 @@ export class TextInputComponent implements ControlValueAccessor {
     type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url'>(
         'text'
     );
+    autocomplete = input<string>('off');
     disabled = input<boolean>(false);
     readonly = input<boolean>(false);
     required = input<boolean>(false);
