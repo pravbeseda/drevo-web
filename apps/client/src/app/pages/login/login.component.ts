@@ -5,6 +5,7 @@ import {
     PLATFORM_ID,
     DestroyRef,
     OnInit,
+    ChangeDetectionStrategy,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -33,6 +34,7 @@ import {
         CheckboxComponent,
         ButtonComponent,
     ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
 })
