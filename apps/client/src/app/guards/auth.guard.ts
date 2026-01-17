@@ -4,6 +4,7 @@ import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth/auth.service';
+import { isValidReturnUrl } from '@drevo-web/shared';
 
 export const authGuard: CanActivateFn = (
     _route,
@@ -26,8 +27,9 @@ export const authGuard: CanActivateFn = (
                 return true;
             }
 
+            const returnUrl = isValidReturnUrl(state.url) ? state.url : '/';
             return router.createUrlTree(['/login'], {
-                queryParams: { returnUrl: state.url },
+                queryParams: { returnUrl },
             });
         })
     );
