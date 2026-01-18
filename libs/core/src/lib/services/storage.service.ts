@@ -1,6 +1,6 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { LoggerService } from './logger.service';
+import { LoggerService } from '../logging/logger.service';
 import { WINDOW } from '../tokens/window.token';
 
 /**

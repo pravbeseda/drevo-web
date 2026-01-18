@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AuthStatusComponent } from '../../components/auth-status/auth-status.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { IconButtonComponent, ModalService } from '@drevo-web/ui';
+import { LogExportService } from '@drevo-web/core';
 
 @Component({
     selector: 'app-header',
@@ -12,6 +13,7 @@ import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 })
 export class HeaderComponent {
     private readonly modalService = inject(ModalService);
+    private readonly logExportService = inject(LogExportService);
 
     openSearch(): void {
         this.modalService.open(
@@ -21,5 +23,9 @@ export class HeaderComponent {
                 ),
             { width: '600px', minHeight: '90vh' }
         );
+    }
+
+    downloadLogs(): void {
+        void this.logExportService.downloadLogs();
     }
 }

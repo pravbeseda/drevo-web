@@ -1,195 +1,136 @@
 # Drevo Web - AI Coding Agent Instructions
 
-This is an Nx monorepo for the Drevo web application, migrating from a legacy Yii1 PHP application to a modern Angular + Node.js stack.
+Nx monorepo migrating from Yii1 PHP to Angular 21 + Node.js. Uses zoneless change detection and SSR.
 
-## Architecture Overview
+## Architecture
 
-### Workspace Structure
+| Path | Purpose |
+|------|---------|
+| `apps/client/` | Angular 21 standalone app (zoneless, SSR-enabled) |
+| `libs/core/` | LoggerService, NotificationService, HTTP error handling |
+| `libs/shared/` | TypeScript models (User, Article, AuthResponse) and helpers |
+| `libs/ui/` | Angular Material components (Button, TextInput, Modal) |
+| `libs/editor/` | CodeMirror-based wiki markup editor (SSR-safe, uses `EditorFactoryService`) |
+| `legacy-drevo-yii/` | PHP app being migrated (proxied via `apps/client/proxy.conf.json`) |
 
-- **apps/client/** - Angular 20+ standalone application (zoneless, SSR-enabled)
-- **apps/client-e2e/** - Playwright E2E tests with atomized CI targets
-- **libs/core/** - Core services (logging, HTTP error handling, notifications)
-- **libs/editor/** - CodeMirror-based editor component for wiki markup
-- **libs/shared/** - Shared TypeScript utilities and types (buildable)
-- **libs/ui/** - Angular Material UI components and shared styles
-- **legacy-drevo-yii/** - Legacy PHP application (being migrated from)
+**Key patterns**: Standalone components only, `inject()` for DI, `ChangeDetectionStrategy.OnPush`, lazy routes via `loadComponent()`.
 
-### Key Architectural Decisions
+**Branches**: `standalone` (default) - full Angular app development; `main` - iframe mode with `/new` prefix.
 
-1. **Angular Standalone Components**: All components use standalone API, no NgModules
-2. **Zoneless Change Detection**: Application uses `provideZonelessChangeDetection()`
-3. **SSR with Hydration**: Server-side rendering with event replay (`withEventReplay()`)
-4. **Lazy Loading**: All routes use `loadComponent()` for code splitting
-5. **Nx Affected**: CI/CD optimizes builds by only running tasks for affected projects
-
-## Development Workflows
-
-### Running Commands
+## Commands
 
 ```bash
-# Development server (proxies API requests to legacy PHP app)
-yarn nx serve client                    # or: yarn dev
-
-# Building
-yarn nx build client --configuration=production
-yarn nx affected -t build               # Build only affected projects
-
-# Testing
-yarn nx test client                     # Unit tests with Jest
-yarn nx e2e client-e2e                 # E2E tests with Playwright
-yarn nx affected -t test,lint          # Run tests for affected projects
-
-# Linting (uses ESLint 9+ flat config)
-yarn nx lint client
-yarn nx affected -t lint --parallel
+yarn dev                              # Dev server (proxies /api to PHP)
+yarn nx test client                   # Unit tests
+yarn nx affected -t test,lint         # Run only for changed projects
+yarn nx e2e client-e2e               # Playwright E2E
 ```
 
-### Proxy Configuration
+## Testing (CRITICAL)
 
-Development server at `apps/client/proxy.conf.json` proxies API requests to the legacy Yii application, allowing gradual migration. Check this file to understand which endpoints are still served by PHP.
-
-### SSR Development
-
-The application uses Angular Universal with Express. Key files:
-- `apps/client/src/server.ts` - Express server configuration
-- `apps/client/src/main.server.ts` - Server-side entry point
-
-## Project-Specific Conventions
-
-### Testing (CRITICAL - Read testing.instructions.md)
-
-**ALWAYS use Spectator + Jest**, never TestBed directly or Jasmine:
+**Always use Spectator + Jest** - never TestBed or Jasmine. See [testing.instructions.md](instructions/testing.instructions.md).
 
 ```typescript
-// Services
+// Service test
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 
-// Components (prefer shallow: true)
+const createService = createServiceFactory({
+    service: MyService,
+    providers: [mockLoggerProvider()],
+    mocks: [HttpClient],
+});
+
+// Component test
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
-// HTTP testing
-import { createHttpFactory, SpectatorHttp } from '@ngneat/spectator/jest';
+const createComponent = createComponentFactory({
+    component: MyComponent,
+    imports: [NoopAnimationsModule],
+    shallow: true,  // Isolate from child components
+});
+
+// Usage: spectator.setInput(), spectator.click(), spectator.query()
 ```
 
-See [.github/instructions/testing.instructions.md](instructions/testing.instructions.md) for comprehensive examples.
+## Library Exports & Imports
 
-### Angular Component Patterns
+Use path aliases defined in `tsconfig.base.json`:
 
-1. **Change Detection**: Use `ChangeDetectionStrategy.OnPush` by default
-2. **View Encapsulation**: Use `ViewEncapsulation.None` only when styling dynamic HTML (e.g., [article-content.component.ts](../apps/client/src/app/pages/article/article-content/article-content.component.ts))
-3. **Dependency Injection**: Use `inject()` function in constructors over constructor parameters
-4. **Template Syntax**: Components have explicit `template` or `templateUrl`, never inline for complex templates
-
-Example from codebase (article-content.component.ts):
 ```typescript
-@Component({
-    selector: 'app-article-content',
-    template: '<div [innerHTML]="sanitizedContent"></div>',
-    styleUrls: ['./article-content.component.scss'],
-    encapsulation: ViewEncapsulation.None, // For dynamic HTML styling
-    changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class ArticleContentComponent {
-    private readonly elementRef = inject(ElementRef<HTMLElement>);
-    private readonly router = inject(Router);
-    // ...
+import { LoggerService, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
+import { mockLoggerProvider } from '@drevo-web/core/testing';  // Test utilities
+import { User, AuthResponse, isValidReturnUrl } from '@drevo-web/shared';
+import { ButtonComponent, ModalService } from '@drevo-web/ui';
+```
+
+## Core Services Pattern
+
+```typescript
+// Contextual logging
+private readonly logger = inject(LoggerService).withContext('MyService');
+this.logger.debug('message', { data });  // Disabled in production
+
+// HTTP error control via context tokens
+this.http.get('/api/data', {
+    context: new HttpContext()
+        .set(SKIP_ERROR_NOTIFICATION, true)           // No toast on error
+        .set(SKIP_ERROR_FOR_STATUSES, [404])          // Skip specific codes
+        .set(CUSTOM_ERROR_MESSAGE, 'Custom message')
+});
+
+// User notifications
+inject(NotificationService).error('Something failed');
+```
+
+## SSR Compatibility
+
+Guard browser-only code:
+```typescript
+private readonly platformId = inject(PLATFORM_ID);
+if (isPlatformBrowser(this.platformId)) {
+    // Browser-only: DOM, window, localStorage
 }
 ```
 
-### Core Library Services
+## Legacy Migration Context
 
-Located in `libs/core/src/lib/`:
+- Check `apps/client/proxy.conf.json` before creating API services - endpoints may still be PHP
+- Article content contains legacy wiki markup with `onclick="javascript:..."` handlers - see `preprocessContent()` in [article-content.component.ts](../apps/client/src/app/pages/article/article-content/article-content.component.ts)
+- Use `isValidReturnUrl()` from `@drevo-web/shared` to prevent open redirects
 
-- **LoggerService**: Contextual logging with production mode (`logger.withContext('MyComponent')`)
-- **NotificationService**: User notifications (info/success/error messages)
-- **ErrorNotificationInterceptor**: Automatic HTTP error notification with context tokens
-- **HTTP Context Tokens**: Control error handling per-request
-  ```typescript
-  import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
-  
-  this.http.get('/api/data', {
-      context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true)
-  });
-  ```
+## Editor Library (`libs/editor`)
 
-### Migration Context (Legacy PHP Integration)
+CodeMirror 6-based editor for wiki markup with syntax highlighting:
 
-The application is gradually migrating from Yii1 PHP. When working on features:
-1. Check `apps/client/proxy.conf.json` to see which routes are still proxied to PHP
-2. Article content may contain legacy wiki markup with inline JavaScript handlers (see `preprocessContent()` in article-content.component.ts)
-3. API responses may use legacy formats - normalize in services/interceptors
+```typescript
+import { EditorComponent } from '@drevo-web/editor';
 
-### TypeScript Configuration
+// In template:
+<lib-editor 
+    [content]="wikiText" 
+    [linksStatus]="linksValidity" 
+    (contentChanged)="onEdit($event)"
+    (updateLinksEvent)="validateLinks($event)" />
+```
 
-- **Strict Mode**: Enabled (`strict: true`, `noImplicitReturns`, `noFallthroughCasesInSwitch`)
-- **Path Aliases**: Use `@drevo-web/*` imports for libs (defined in `tsconfig.base.json`)
-- **Target**: ES2022 with ESM modules
-
-### Styling Conventions
-
-- **Primary**: SCSS with Angular Material theming
-- **Shared Styles**: `libs/ui/src/lib/styles/` (auto-included via `stylePreprocessorOptions`)
-- **Global Styles**: `apps/client/src/styles.scss` with modern-normalize
-- **Component Styles**: Prefer `:host` selector for component root styling
-
-## CI/CD and Deployment
-
-### Branches and Environments
-
-- `main` → development
-- `staging` → staging environment (deploys with `/staging` base-href)
-- `production` → production environment (deploys with `/new` base-href)
-
-### GitHub Actions
-
-Workflow uses Nx affected to optimize:
-- Parallel test execution for changed projects only
-- Atomized E2E tests (each test file runs independently)
-- Merge reports at the end for comprehensive results
-
-### Security Scanning
-
-Pre-commit hooks and GitHub Actions scan for secrets. See [docs/security-scanning.md](../docs/security-scanning.md).
+- Uses `WikiHighlighterService` for syntax highlighting with link validation
+- SSR-safe: checks `EditorFactoryService.isServer()` before creating EditorView
+- Emits `updateLinksEvent` with article links for async validation
 
 ## Code Generation
 
-Use Nx generators with Angular schematics:
+Use Nx MCP tools when available (see [nx.instructions.md](instructions/nx.instructions.md)), or CLI:
 
 ```bash
-# Component (uses OnPush by default)
 nx g @nx/angular:component my-component --project=client --changeDetection=OnPush
-
-# Service
 nx g @nx/angular:service services/my-service --project=client
-
-# Generate with Spectator test
-nx g @ngneat/spectator:spectator-component my-component --project=client
 ```
-
-Nx instructions are in [.github/instructions/nx.instructions.md](instructions/nx.instructions.md) - reference these when working with Nx workspace.
-
-## Key Files to Reference
-
-- **Nx Workspace**: [nx.json](../nx.json) - task dependencies, caching, and targets
-- **Root Package**: [package.json](../package.json) - dependencies and scripts
-- **App Config**: [apps/client/src/app/app.config.ts](../apps/client/src/app/app.config.ts) - DI providers
-- **Routes**: [apps/client/src/app/app.routes.ts](../apps/client/src/app/app.routes.ts) - lazy-loaded routes
-- **Environments**: [apps/client/src/environments/](../apps/client/src/environments/) - configuration per environment
-- **Proxy Config**: [apps/client/proxy.conf.json](../apps/client/proxy.conf.json) - API proxy for legacy backend
 
 ## Common Pitfalls
 
-1. **Don't use TestBed directly** - Always use Spectator factories
-2. **Don't bypass Nx affected** - Let CI/CD optimize builds
-3. **Check proxy config first** - Before creating new API services, verify the endpoint isn't already proxied
-4. **SSR compatibility** - Avoid browser-only APIs in components (use `isPlatformBrowser()` guard)
-5. **Legacy HTML content** - Article content may contain non-standard markup; sanitize and process carefully
-6. **Path imports** - Use `@drevo-web/core`, `@drevo-web/shared`, etc., not relative paths across projects
-
-## Questions to Ask for Unclear Requirements
-
-- Does this feature need SSR support, or can it be client-only?
-- Should the new API endpoint be in the Angular app or still use the PHP proxy?
-- What's the migration strategy for this component from the legacy app?
-- Do existing E2E tests cover this workflow, or do we need new ones?
-- Should this code go in a shared library or stay in the client app?
+1. ❌ TestBed → ✅ Spectator factories
+2. ❌ Relative cross-project imports → ✅ `@drevo-web/*` aliases
+3. ❌ Direct browser APIs → ✅ `isPlatformBrowser()` guard
+4. ❌ Skipping Nx affected → ✅ Let CI optimize builds
+5. ❌ Creating duplicate API services → ✅ Check proxy config first

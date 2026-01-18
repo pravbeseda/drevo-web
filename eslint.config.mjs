@@ -9,17 +9,6 @@ export default [
         ignores: ['**/dist'],
     },
     {
-        files: [
-            '**/*.spec.ts',
-            '**/*.spec.tsx',
-            '**/*.test.ts',
-            '**/*.test.tsx',
-        ],
-        rules: {
-            '@typescript-eslint/no-empty-function': 'off',
-        },
-    },
-    {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
             '@nx/enforce-module-boundaries': [
@@ -45,6 +34,19 @@ export default [
                     varsIgnorePattern: '^_',
                 },
             ],
+            '@typescript-eslint/no-non-null-assertion': 'error',
+        },
+    },
+    {
+        files: [
+            '**/*.spec.ts',
+            '**/*.spec.tsx',
+            '**/*.test.ts',
+            '**/*.test.tsx',
+        ],
+        rules: {
+            '@typescript-eslint/no-empty-function': 'off',
+            '@typescript-eslint/no-non-null-assertion': 'off',
         },
     },
     {
