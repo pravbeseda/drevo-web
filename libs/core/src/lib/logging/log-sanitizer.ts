@@ -35,13 +35,7 @@ export function sanitizeLogData(value: unknown, depth = 0): unknown {
         return '[MAX_DEPTH_EXCEEDED]';
     }
 
-    // Handle null/undefined - use == to catch both
-    if (!value) {
-        return value;
-    }
-
-    // Handle primitives
-    if (typeof value !== 'object') {
+    if (!value || typeof value !== 'object') {
         return value;
     }
 

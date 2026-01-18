@@ -33,6 +33,7 @@ export class IndexedDBLogProvider implements LogStorageProvider {
     private database: LogDatabase | undefined;
     private buffer: LogEntry[] = [];
     private flushTimer: ReturnType<typeof setTimeout> | undefined;
+    private flushPromise: Promise<void> | undefined;
     private readonly maxSize: number;
     private readonly isBrowser: boolean;
 
@@ -72,12 +73,27 @@ export class IndexedDBLogProvider implements LogStorageProvider {
 
     /**
      * Flush buffered logs to IndexedDB
+     * Serializes concurrent flush calls to prevent ordering issues on failure
      */
     async flush(): Promise<void> {
         if (!this.isAvailable || this.buffer.length === 0) {
             return;
         }
 
+        // If flush is already in progress, wait for it
+        if (this.flushPromise) {
+            return this.flushPromise;
+        }
+
+        this.flushPromise = this.doFlush();
+        try {
+            await this.flushPromise;
+        } finally {
+            this.flushPromise = undefined;
+        }
+    }
+
+    private async doFlush(): Promise<void> {
         // Clear timer
         this.clearFlushTimer();
 
