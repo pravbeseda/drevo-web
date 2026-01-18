@@ -95,9 +95,8 @@ export class LogDatabase extends Dexie {
         }
 
         if (options?.levels && options.levels.length > 0) {
-            collection = collection.filter(log =>
-                options.levels!.includes(log.level)
-            );
+            const levels = options.levels;
+            collection = collection.filter(log => levels.includes(log.level));
         }
 
         const entries = await (options?.limit

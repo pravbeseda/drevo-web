@@ -11,9 +11,7 @@ import { LogEntry } from '../log-provider.interface';
  * Integration tests with real IndexedDB would require a browser-based test runner.
  */
 describe('IndexedDBLogProvider', () => {
-    const createLogEntry = (
-        overrides: Partial<LogEntry> = {}
-    ): LogEntry => ({
+    const createLogEntry = (overrides: Partial<LogEntry> = {}): LogEntry => ({
         level: 'info',
         message: 'Test message',
         timestamp: new Date('2026-01-18T10:00:00.000Z'),

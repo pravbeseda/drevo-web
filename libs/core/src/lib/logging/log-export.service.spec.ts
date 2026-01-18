@@ -241,7 +241,10 @@ describe('LogExportService', () => {
                 { provide: PLATFORM_ID, useValue: 'server' },
                 {
                     provide: LogDispatcher,
-                    useValue: { getStorageProvider: jest.fn(), flush: jest.fn() },
+                    useValue: {
+                        getStorageProvider: jest.fn(),
+                        flush: jest.fn(),
+                    },
                 },
                 {
                     provide: NotificationService,

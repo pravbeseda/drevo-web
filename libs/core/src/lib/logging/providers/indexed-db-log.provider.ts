@@ -4,6 +4,7 @@ import {
     GetLogsOptions,
 } from '../log-provider.interface';
 import { LogDatabase } from '../log-database';
+import { assertIsDefined } from '@drevo-web/shared';
 
 /** Default max storage size in bytes (10MB) */
 const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
@@ -84,8 +85,13 @@ export class IndexedDBLogProvider implements LogStorageProvider {
         const entries = [...this.buffer];
         this.buffer = [];
 
+        assertIsDefined(
+            this.database,
+            'IndexedDBLogProvider flush: database is undefined'
+        );
+
         try {
-            await this.database!.addLogs(entries);
+            await this.database.addLogs(entries);
 
             // Check if pruning is needed
             await this.pruneIfNeeded();
@@ -104,7 +110,12 @@ export class IndexedDBLogProvider implements LogStorageProvider {
             return [];
         }
 
-        return this.database!.getLogs(options);
+        assertIsDefined(
+            this.database,
+            'IndexedDBLogProvider getLogs: database is undefined'
+        );
+
+        return this.database.getLogs(options);
     }
 
     /**
@@ -119,7 +130,12 @@ export class IndexedDBLogProvider implements LogStorageProvider {
         this.buffer = [];
         this.clearFlushTimer();
 
-        await this.database!.clearLogs();
+        assertIsDefined(
+            this.database,
+            'IndexedDBLogProvider clearLogs: database is undefined'
+        );
+
+        await this.database.clearLogs();
     }
 
     /**
@@ -130,7 +146,12 @@ export class IndexedDBLogProvider implements LogStorageProvider {
             return 0;
         }
 
-        return this.database!.getStorageSize();
+        assertIsDefined(
+            this.database,
+            'IndexedDBLogProvider getStorageSize: database is undefined'
+        );
+
+        return this.database.getStorageSize();
     }
 
     /**
@@ -158,8 +179,13 @@ export class IndexedDBLogProvider implements LogStorageProvider {
     private async pruneIfNeeded(): Promise<void> {
         const size = await this.getStorageSize();
 
+        assertIsDefined(
+            this.database,
+            'IndexedDBLogProvider pruneIfNeeded: database is undefined'
+        );
+
         if (size > this.maxSize) {
-            await this.database!.deleteOldestLogs(PRUNE_PERCENTAGE);
+            await this.database.deleteOldestLogs(PRUNE_PERCENTAGE);
         }
     }
 }
