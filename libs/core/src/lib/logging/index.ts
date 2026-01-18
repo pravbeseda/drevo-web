@@ -31,3 +31,8 @@ export {
     IndexedDBLogProvider,
     createIndexedDBLogProvider,
 } from './providers/indexed-db-log.provider';
+export {
+    SentryLogProvider,
+    SentryLogProviderOptions,
+    createSentryLogProvider,
+} from './providers/sentry-log.provider';
