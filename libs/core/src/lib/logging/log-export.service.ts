@@ -80,8 +80,8 @@ export class LogExportService {
             'level',
             'context',
             'message',
-            'url',
             'data',
+            'url',
         ];
         const rows: string[] = [headers.join(';')];
 
@@ -94,10 +94,10 @@ export class LogExportService {
                 log.level.toUpperCase(),
                 this.escapeCSV(log.context ?? ''),
                 this.escapeCSV(log.message),
-                this.escapeCSV(log.url ?? ''),
                 this.escapeCSV(
                     log.data !== undefined ? JSON.stringify(log.data) : ''
                 ),
+                this.escapeCSV(log.url ?? ''),
             ];
             rows.push(row.join(';'));
         }
