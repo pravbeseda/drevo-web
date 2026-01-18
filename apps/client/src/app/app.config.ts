@@ -1,12 +1,9 @@
 import {
     ApplicationConfig,
-    ErrorHandler,
     importProvidersFrom,
-    inject,
-    provideAppInitializer,
     provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter, Router, RouterModule } from '@angular/router';
+import { provideRouter, RouterModule } from '@angular/router';
 import { appRoutes } from './app.routes';
 import {
     provideClientHydration,
@@ -17,7 +14,6 @@ import {
     withFetch,
     withInterceptorsFromDi,
 } from '@angular/common/http';
-import * as Sentry from '@sentry/angular';
 import { authInterceptorProvider } from './interceptors/auth.interceptor';
 import {
     errorNotificationInterceptorProvider,
@@ -50,19 +46,6 @@ export const appConfig: ApplicationConfig = {
         importProvidersFrom(
             RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
         ),
-        // Sentry ErrorHandler and Tracing for catching unhandled Angular errors
-        ...(environment.sentryDsn
-            ? [
-                  {
-                      provide: ErrorHandler,
-                      useValue: Sentry.createErrorHandler(),
-                  },
-                  { provide: Sentry.TraceService, deps: [Router] },
-                  provideAppInitializer(() => {
-                      inject(Sentry.TraceService);
-                  }),
-              ]
-            : []),
         // Logging configuration
         provideLogProductionMode(environment.production),
         provideLogProviders(logProviders),

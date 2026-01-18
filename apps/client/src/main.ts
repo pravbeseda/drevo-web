@@ -1,6 +1,8 @@
 import { bootstrapApplication } from '@angular/platform-browser';
+import { mergeApplicationConfig } from '@angular/core';
 import * as Sentry from '@sentry/angular';
 import { appConfig } from './app/app.config';
+import { browserConfig } from './app/app.config.browser';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 
@@ -29,4 +31,7 @@ if (environment.sentryDsn && environment.production) {
     });
 }
 
-bootstrapApplication(AppComponent, appConfig).catch(err => console.error(err));
+// Merge base config with browser-specific providers (Sentry ErrorHandler, TraceService)
+const config = mergeApplicationConfig(appConfig, browserConfig);
+
+bootstrapApplication(AppComponent, config).catch(err => console.error(err));
