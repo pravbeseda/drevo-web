@@ -1,4 +1,4 @@
-import { LoggerService, Logger } from '../services/logger.service';
+import { LoggerService, Logger } from '../logging/logger.service';
 
 /**
  * Mock logger for testing

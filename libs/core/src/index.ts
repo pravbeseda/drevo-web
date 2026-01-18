@@ -1,4 +1,4 @@
-export { LoggerService, Logger, LogLevel } from './lib/services/logger.service';
+export * from './lib/logging';
 export * from './lib/services/notification.service';
 export * from './lib/services/storage.service';
 export * from './lib/http';
