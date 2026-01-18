@@ -53,6 +53,7 @@ export class ArticleComponent implements OnInit {
                 if (isNaN(id) || id <= 0) {
                     this.article.set(undefined);
                     this.error.set('Неверный ID статьи');
+                    this.logger.error('Invalid article ID', id);
                     this.isLoading.set(false);
                     return;
                 }
@@ -80,6 +81,10 @@ export class ArticleComponent implements OnInit {
                 next: article => {
                     this.article.set(article);
                     this.isLoading.set(false);
+                    this.logger.info('Article loaded', {
+                        id: article.articleId,
+                        title: article.title,
+                    });
                     this.scrollToFragment();
                 },
                 error: (err: HttpErrorResponse) => {
