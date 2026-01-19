@@ -35,6 +35,11 @@
             },
             "configurations": {
                 "production": {
+                    "sourceMap": {
+                        "scripts": true,
+                        "styles": false,
+                        "hidden": true
+                    },
                     "fileReplacements": [
                         {
                             "replace": "apps/client/src/environments/environment.ts",
