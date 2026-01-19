@@ -63,17 +63,58 @@ jobs:
 
             - name: Generate version and build
               id: build
+              env:
+                  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
               run: |
                   VERSION=$(date +'%Y%m%d-%H%M')
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "📋 Building standalone version: $VERSION"
 
+                  # Replace version placeholder
                   sed -i "s/__VERSION_PLACEHOLDER__/$VERSION/g" apps/client/src/environments/environment.prod.ts
 
+                  # Replace Sentry DSN placeholder
+                  if [ -n "$SENTRY_DSN" ]; then
+                    echo "Configuring Sentry DSN..."
+                    sed -i "s|__SENTRY_DSN_PLACEHOLDER__|$SENTRY_DSN|g" apps/client/src/environments/environment.prod.ts
+                  else
+                    echo "Warning: SENTRY_DSN secret is not set, Sentry will be disabled"
+                    sed -i "s|__SENTRY_DSN_PLACEHOLDER__||g" apps/client/src/environments/environment.prod.ts
+                  fi
+
+                  # Verify the replacement (hide sensitive DSN)
                   echo "Environment file after replacement:"
-                  cat apps/client/src/environments/environment.prod.ts
+                  cat apps/client/src/environments/environment.prod.ts | sed "s/$SENTRY_DSN/[SENTRY_DSN_HIDDEN]/g"
 
                   npx nx build client --configuration=production
+
+            - name: Upload source maps to Sentry
+              env:
+                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+                  SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+                  VERSION: ${{ steps.build.outputs.version }}
+              run: |
+                  if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+                    echo "⚠️ SENTRY_AUTH_TOKEN not set, skipping source map upload"
+                    exit 0
+                  fi
+
+                  echo "📤 Uploading source maps to Sentry..."
+
+                  # Create a new release
+                  npx sentry-cli releases new "$VERSION"
+
+                  # Upload source maps from browser build
+                  npx sentry-cli releases files "$VERSION" upload-sourcemaps \
+                    ./dist/apps/client/browser \
+                    --url-prefix "~/" \
+                    --rewrite
+
+                  # Finalize the release
+                  npx sentry-cli releases finalize "$VERSION"
+
+                  echo "✅ Source maps uploaded for release $VERSION"
 
             - name: Deploy
               uses: ./.github/actions/deploy
