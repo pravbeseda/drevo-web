@@ -117,25 +117,15 @@ jobs:
 
           echo "📤 Uploading source maps to Sentry for release $VERSION..."
 
-          echo "🔹 Creating Sentry release..."
-          if ! npx sentry-cli releases new "$VERSION"; then
-            fail_step "Sentry release creation failed for version $VERSION"
-          fi
-
           echo "🔹 Uploading source maps from ./dist/apps/client/browser..."
-          if ! npx sentry-cli releases files "$VERSION" upload-sourcemaps \
-            ./dist/apps/client/browser \
+          if ! npx sentry-cli sourcemaps upload \
+            --release="$VERSION" \
             --url-prefix "~/" \
-            --rewrite; then
+            ./dist/apps/client/browser; then
             fail_step "Sentry source map upload failed for version $VERSION"
           fi
 
-          echo "🔹 Finalizing Sentry release..."
-          if ! npx sentry-cli releases finalize "$VERSION"; then
-            fail_step "Sentry release finalization failed for version $VERSION"
-          fi
-
-          echo "✅ Source maps uploaded and release finalized for $VERSION"
+          echo "✅ Source maps uploaded for release $VERSION"
 
       - name: Deploy
         uses: ./.github/actions/deploy
