@@ -186,13 +186,6 @@ export class SentryLogProvider implements LogProvider {
  * @param isBrowser - Whether the app is running in browser
  * @param options - Optional configuration
  *
- * @example
- * ```typescript
- * // In app.config.ts
- * provideLogProviders([
- *     createSentryLogProvider(environment.production, true),
- * ])
- * ```
  */
 export function createSentryLogProvider(
     isProduction: boolean,
