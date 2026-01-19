@@ -28,4 +28,9 @@ export class HeaderComponent {
     downloadLogs(): void {
         void this.logExportService.downloadLogs();
     }
+
+    /** Test button for Sentry error tracking - REMOVE after testing */
+    throwTestError(): void {
+        throw new Error('Sentry Test Error');
+    }
 }

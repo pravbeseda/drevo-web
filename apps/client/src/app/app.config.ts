@@ -20,10 +20,20 @@ import {
     provideLogProductionMode,
     provideLogProviders,
     createIndexedDBLogProvider,
+    createSentryLogProvider,
 } from '@drevo-web/core';
 import { environment } from '../environments/environment';
 
 const routesTracing = false;
+
+// Build log providers array based on environment
+const logProviders = [
+    createIndexedDBLogProvider(),
+    // Add Sentry provider only when DSN is configured
+    ...(environment.sentryDsn
+        ? [createSentryLogProvider(environment.production, true)]
+        : []),
+];
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -38,6 +48,6 @@ export const appConfig: ApplicationConfig = {
         ),
         // Logging configuration
         provideLogProductionMode(environment.production),
-        provideLogProviders([createIndexedDBLogProvider()]),
+        provideLogProviders(logProviders),
     ],
 };
