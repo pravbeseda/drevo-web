@@ -84,7 +84,12 @@ jobs:
 
           # Verify the replacement (hide sensitive DSN)
           echo "Environment file after replacement:"
-          cat apps/client/src/environments/environment.prod.ts | sed "s/$SENTRY_DSN/[SENTRY_DSN_HIDDEN]/g"
+          if [ -n "$SENTRY_DSN" ]; then
+            # Use awk to avoid sed escaping issues with special characters in DSN URL
+            awk -v dsn="$SENTRY_DSN" '{gsub(dsn, "[SENTRY_DSN_HIDDEN]"); print}' apps/client/src/environments/environment.prod.ts
+          else
+            cat apps/client/src/environments/environment.prod.ts
+          fi
 
           npx nx build client --configuration=production
 
