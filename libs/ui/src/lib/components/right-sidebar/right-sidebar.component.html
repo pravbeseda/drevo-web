@@ -1,46 +1,46 @@
-<!-- Desktop: Floating Sidebar -->
+<!-- Desktop: Static Sidebar -->
 <div class="floating-sidebar">
     @for (action of actions(); track action.id) {
-        <button
-            class="fab"
-            [class.fab-primary]="action.priority === 'primary'"
-            [class.fab-secondary]="action.priority === 'secondary'"
-            [attr.aria-label]="action.label"
-            (click)="action.action()">
-            <span class="material-icons">{{ action.icon }}</span>
-            <span class="fab-tooltip">{{ action.label }}</span>
-        </button>
+        <ui-action-button
+            [icon]="action.icon"
+            [label]="action.label"
+            [priority]="action.priority"
+            (clicked)="action.action()" />
     }
 </div>
 
-<!-- Mobile: FAB with Speed Dial -->
+<!-- Mobile: Floating Sidebar -->
 <div class="fab-container">
     @if (primaryActions().length > 0) {
-        <button
-            class="fab fab-primary fab-main"
-            [attr.aria-label]="primaryActions()[0].label"
-            (click)="primaryActions()[0].action()">
-            <span class="material-icons">{{ primaryActions()[0].icon }}</span>
-        </button>
+        <ui-action-button
+            [icon]="primaryActions()[0].icon"
+            [label]="primaryActions()[0].label"
+            priority="primary"
+            variant="main"
+            [showTooltip]="false"
+            (clicked)="primaryActions()[0].action()" />
     }
 
     @if (secondaryActions().length > 0) {
-        <button
-            class="fab fab-menu"
-            aria-label="Дополнительные действия"
-            (click)="toggleMenu()">
-            <span class="material-icons">{{ menuOpen() ? 'close' : 'more_vert' }}</span>
-        </button>
+        <ui-action-button
+            [icon]="menuOpen() ? 'close' : 'more_vert'"
+            label="Дополнительные действия"
+            variant="menu"
+            [showTooltip]="false"
+            (clicked)="toggleMenu()" />
 
-        <div class="speed-dial" [class.open]="menuOpen()">
+        <div
+            class="speed-dial"
+            [class.open]="menuOpen()">
             @for (action of secondaryActions(); track action.id) {
-                <button
-                    class="fab fab-secondary fab-speed-dial-item"
-                    [attr.aria-label]="action.label"
-                    (click)="handleSpeedDialAction(action)">
-                    <span class="material-icons">{{ action.icon }}</span>
-                    <span class="fab-label">{{ action.label }}</span>
-                </button>
+                <ui-action-button
+                    [icon]="action.icon"
+                    [label]="action.label"
+                    priority="secondary"
+                    variant="speed-dial"
+                    [showTooltip]="false"
+                    [showLabel]="true"
+                    (clicked)="handleSpeedDialAction(action)" />
             }
         </div>
     }
