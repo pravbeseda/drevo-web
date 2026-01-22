@@ -1,0 +1,32 @@
+.loading-container,
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.error-message {
+    color: var(--color-error, #dc3545);
+}
+
+.article-edit {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.article-edit-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+.article-edit-title {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.editor-container {
+    flex: 1;
+    overflow: auto;
+}

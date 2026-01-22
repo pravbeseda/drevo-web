@@ -1,0 +1,47 @@
+<!-- Desktop: Floating Sidebar -->
+<div class="floating-sidebar">
+    @for (action of actions(); track action.id) {
+        <button
+            class="fab"
+            [class.fab-primary]="action.priority === 'primary'"
+            [class.fab-secondary]="action.priority === 'secondary'"
+            [attr.aria-label]="action.label"
+            (click)="action.action()">
+            <span class="material-icons">{{ action.icon }}</span>
+            <span class="fab-tooltip">{{ action.label }}</span>
+        </button>
+    }
+</div>
+
+<!-- Mobile: FAB with Speed Dial -->
+<div class="fab-container">
+    @if (primaryActions().length > 0) {
+        <button
+            class="fab fab-primary fab-main"
+            [attr.aria-label]="primaryActions()[0].label"
+            (click)="primaryActions()[0].action()">
+            <span class="material-icons">{{ primaryActions()[0].icon }}</span>
+        </button>
+    }
+
+    @if (secondaryActions().length > 0) {
+        <button
+            class="fab fab-menu"
+            aria-label="Дополнительные действия"
+            (click)="toggleMenu()">
+            <span class="material-icons">{{ menuOpen() ? 'close' : 'more_vert' }}</span>
+        </button>
+
+        <div class="speed-dial" [class.open]="menuOpen()">
+            @for (action of secondaryActions(); track action.id) {
+                <button
+                    class="fab fab-secondary fab-speed-dial-item"
+                    [attr.aria-label]="action.label"
+                    (click)="handleSpeedDialAction(action)">
+                    <span class="material-icons">{{ action.icon }}</span>
+                    <span class="fab-label">{{ action.label }}</span>
+                </button>
+            }
+        </div>
+    }
+</div>

@@ -4,3 +4,4 @@ export * from './auth';
 export * from './editor';
 export * from './user';
 export * from './api';
+export * from './sidebar';

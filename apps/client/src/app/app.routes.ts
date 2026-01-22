@@ -28,6 +28,13 @@ export const appRoutes: Route[] = [
                     ).then(m => m.SharedEditorComponent),
             },
             {
+                path: 'articles/edit/:id',
+                loadComponent: () =>
+                    import('./pages/article-edit/article-edit.component').then(
+                        m => m.ArticleEditComponent
+                    ),
+            },
+            {
                 path: 'articles/:id',
                 loadComponent: () =>
                     import('./pages/article/article.component').then(

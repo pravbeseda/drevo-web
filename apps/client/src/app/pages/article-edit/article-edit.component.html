@@ -1,0 +1,22 @@
+@if (isLoading()) {
+    <div class="loading-container">
+        <ui-spinner [diameter]="48" />
+    </div>
+} @else if (error()) {
+    <div class="error-container">
+        <p class="error-message">{{ error() }}</p>
+    </div>
+} @else if (article(); as article) {
+    <div class="article-edit">
+        <header class="article-edit-header">
+            <h1 class="article-edit-title">{{ article.title }}</h1>
+        </header>
+        <div class="editor-container">
+            <lib-editor
+                [content]="article.content"
+                [linksStatus]="(updateLinksState$ | async) ?? {}"
+                (updateLinksEvent)="updateLinks($event)"
+                (contentChanged)="contentChanged($event)" />
+        </div>
+    </div>
+}
