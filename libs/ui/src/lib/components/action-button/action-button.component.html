@@ -1,17 +1,37 @@
-<button
-    class="fab"
-    [class.fab-primary]="priority() === 'primary'"
-    [class.fab-secondary]="priority() === 'secondary'"
-    [class.fab-main]="variant() === 'main'"
-    [class.fab-menu]="variant() === 'menu'"
-    [class.fab-speed-dial-item]="variant() === 'speed-dial'"
-    [attr.aria-label]="label()"
-    (click)="onClick()">
-    <span class="material-icons">{{ icon() }}</span>
-    @if (showTooltip()) {
-        <span class="fab-tooltip">{{ label() }}</span>
-    }
-    @if (showLabel()) {
-        <span class="fab-label">{{ label() }}</span>
-    }
-</button>
+@if (size() === 'mini') {
+    <button
+        mat-mini-fab
+        class="action-button"
+        [class.action-button--primary]="priority() === 'primary'"
+        [class.action-button--secondary]="priority() === 'secondary'"
+        [class.action-button--main]="variant() === 'main'"
+        [class.action-button--menu]="variant() === 'menu'"
+        [class.action-button--speed-dial]="variant() === 'speed-dial'"
+        [attr.aria-label]="label()"
+        [matTooltip]="showTooltip() ? label() : ''"
+        matTooltipPosition="left"
+        (click)="onClick()">
+        <mat-icon>{{ icon() }}</mat-icon>
+        @if (showLabel()) {
+            <span class="action-button__label">{{ label() }}</span>
+        }
+    </button>
+} @else {
+    <button
+        mat-fab
+        class="action-button"
+        [class.action-button--primary]="priority() === 'primary'"
+        [class.action-button--secondary]="priority() === 'secondary'"
+        [class.action-button--main]="variant() === 'main'"
+        [class.action-button--menu]="variant() === 'menu'"
+        [class.action-button--speed-dial]="variant() === 'speed-dial'"
+        [attr.aria-label]="label()"
+        [matTooltip]="showTooltip() ? label() : ''"
+        matTooltipPosition="left"
+        (click)="onClick()">
+        <mat-icon>{{ icon() }}</mat-icon>
+        @if (showLabel()) {
+            <span class="action-button__label">{{ label() }}</span>
+        }
+    </button>
+}

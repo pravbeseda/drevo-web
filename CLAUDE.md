@@ -90,6 +90,19 @@ readonly user = toSignal(this.authService.user$);
 - SCSS with Angular Material theming
 - Themes: `html` (light), `html.dark-theme` (dark)
 - Shared styles: `libs/ui/src/lib/styles/`
+- **Color tokens only** — use `--themed-*` CSS variables from `libs/ui/src/lib/styles/_theme-colors.scss`. Add new tokens there if needed, never use hardcoded colors or Angular Material color tokens directly.
+
+```scss
+// Good
+background: var(--themed-bg-primary);
+color: var(--themed-text-secondary);
+
+// Bad
+background: #ffffff;
+color: grey;
+background: var(--mat-sys-surface);           // No direct Material tokens!
+color: var(--mat-sys-on-surface);             // No direct Material tokens!
+```
 
 ## Commands
 
@@ -139,6 +152,7 @@ yarn nx affected -t lint,test,build
 6. **Lazy loading** for all pages
 7. **Comments in English only** — and only where code doesn't explain itself
 8. **Unit tests** — Jest + Spectator only (no other testing utilities)
+9. **Color tokens only** — use `--themed-*` variables from `_theme-colors.scss`, no hardcoded colors or direct Angular Material tokens (`--mat-*`)
 
 ## Unit Testing
 
