@@ -1,4 +1,6 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatTooltip } from '@angular/material/tooltip';
 import { IconButtonComponent } from './icon-button.component';
 
 describe('IconButtonComponent', () => {
@@ -6,6 +8,7 @@ describe('IconButtonComponent', () => {
 
     const createComponent = createComponentFactory({
         component: IconButtonComponent,
+        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {
@@ -50,5 +53,16 @@ describe('IconButtonComponent', () => {
         const icon = spectator.query('mat-icon');
 
         expect(icon?.textContent?.trim()).toBe('settings');
+    });
+
+    it('should have matTooltip with label text', () => {
+        spectator.setInput('label', 'Settings');
+
+        const tooltipDirective = spectator.query('button', {
+            read: MatTooltip,
+        });
+
+        expect(tooltipDirective).toBeTruthy();
+        expect(tooltipDirective?.message).toBe('Settings');
     });
 });
