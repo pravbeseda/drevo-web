@@ -6,10 +6,11 @@ import {
 } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
     selector: 'ui-icon-button',
-    imports: [MatIconButton, MatIcon],
+    imports: [MatIconButton, MatIcon, MatTooltip],
     templateUrl: './icon-button.component.html',
     styleUrl: './icon-button.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

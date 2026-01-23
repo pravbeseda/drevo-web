@@ -1,7 +1,7 @@
 <button
     mat-icon-button
     [disabled]="disabled()"
-    [title]="label()"
+    [matTooltip]="label()"
     [attr.aria-label]="label()"
     (click)="onClick()">
     <mat-icon>{{ icon() }}</mat-icon>
