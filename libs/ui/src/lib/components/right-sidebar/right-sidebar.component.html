@@ -1,0 +1,47 @@
+<!-- Desktop: Static Sidebar -->
+<div class="floating-sidebar">
+    @for (action of actions(); track action.id) {
+        <ui-action-button
+            [icon]="action.icon"
+            [label]="action.label"
+            [priority]="action.priority"
+            (clicked)="action.action()" />
+    }
+</div>
+
+<!-- Mobile: Floating Sidebar -->
+<div class="fab-container">
+    @if (primaryActions().length > 0) {
+        <ui-action-button
+            [icon]="primaryActions()[0].icon"
+            [label]="primaryActions()[0].label"
+            priority="primary"
+            variant="main"
+            [showTooltip]="false"
+            (clicked)="primaryActions()[0].action()" />
+    }
+
+    @if (secondaryActions().length > 0) {
+        <ui-action-button
+            [icon]="menuOpen() ? 'close' : 'more_vert'"
+            label="Дополнительные действия"
+            variant="menu"
+            [showTooltip]="false"
+            (clicked)="toggleMenu()" />
+
+        <div
+            class="speed-dial"
+            [class.open]="menuOpen()">
+            @for (action of secondaryActions(); track action.id) {
+                <ui-action-button
+                    [icon]="action.icon"
+                    [label]="action.label"
+                    priority="secondary"
+                    variant="speed-dial"
+                    [showTooltip]="false"
+                    [showLabel]="true"
+                    (clicked)="handleSpeedDialAction(action)" />
+            }
+        </div>
+    }
+</div>

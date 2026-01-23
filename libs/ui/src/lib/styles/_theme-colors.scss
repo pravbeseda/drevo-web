@@ -126,6 +126,24 @@ $theme-colors: (
     toast-info-bg: (
         light: $md-blue-700,
         dark: $md-blue-900,
+    ),
+
+    // FAB (Floating Action Button)
+    fab-primary-bg: (
+            light: $md-blue-700,
+            dark: $md-blue-300,
+        ),
+    fab-primary: (
+        light: white,
+        dark: $md-grey-900,
+    ),
+    fab-secondary-bg: (
+        light: $md-grey-100,
+        dark: $md-grey-800,
+    ),
+    fab-secondary: (
+        light: $md-grey-600,
+        dark: $md-grey-400,
     )
 );
 

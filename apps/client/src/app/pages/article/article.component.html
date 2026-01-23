@@ -7,6 +7,22 @@
         <p class="error-message">{{ error() }}</p>
     </div>
 } @else if (article(); as article) {
+    <!-- Sidebar Actions -->
+    <button
+        sidebarAction
+        icon="toc"
+        label="Содержание"
+        priority="secondary"
+        (click)="openTableOfContents()">
+    </button>
+    <button
+        sidebarAction
+        icon="edit"
+        label="Изменить"
+        priority="primary"
+        (click)="editArticle()">
+    </button>
+
     <article class="article">
         <header class="article-header">
             <h1 class="article-title">{{ article.title }}</h1>

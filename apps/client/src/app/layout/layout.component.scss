@@ -34,7 +34,6 @@
     grid-area: main;
     background-color: var(--themed-bg-primary);
     transition: background-color 0.3s ease;
-    padding: 1rem;
     overflow-y: auto;
 }
 
@@ -45,21 +44,40 @@
     padding: 0 0.5rem;
 }
 
-.right {
-    background-color: var(--themed-sidebar-bg);
-    transition: background-color 0.3s ease;
-}
-
 .left {
     background-color: var(--themed-sidebar-bg);
     transition: background-color 0.3s ease;
 }
 
 /* Mobile behavior: keep sidebars accessible but not taking layout space */
-.left,
-.right {
+.left {
     display: none;
     padding: 1rem;
+}
+
+.right {
+    position: static;
+    display: block;
+    grid-area: right;
+    width: auto;
+    height: auto;
+    padding: 1rem;
+    background-color: var(--themed-bg-primary);
+    transition: background-color 0.3s ease;
+    overflow-y: auto;
+
+    &:not(.has-actions) {
+        display: none;
+    }
+
+    @media (max-width: $breakpoint-desktop) {
+        /* On mobile, keep in DOM but don't take space */
+        position: absolute;
+        width: 0;
+        height: 0;
+        padding: 0;
+        overflow: visible;
+    }
 }
 
 /* Tablet: pin left sidebar full height, header/footer shift right */
@@ -85,15 +103,11 @@
     .layout {
         grid-template-columns:
             minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width))
-            1fr minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width));
+            1fr auto;
         grid-template-rows: rem($header-height) 1fr rem($footer-height);
         grid-template-areas:
             'left header header'
             'left main right'
             'left footer footer';
-    }
-    .right {
-        display: block;
-        grid-area: right;
     }
 }
