@@ -1,4 +1,5 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTooltip } from '@angular/material/tooltip';
 import { IconButtonComponent } from './icon-button.component';
 
@@ -7,6 +8,7 @@ describe('IconButtonComponent', () => {
 
     const createComponent = createComponentFactory({
         component: IconButtonComponent,
+        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {
