@@ -180,18 +180,18 @@ describe('MyComponent', () => {
 
 ## Logging
 
-Centralized logging via `LogDispatcher`:
+Centralized logging via `LoggerService`:
 - Console (dev)
 - IndexedDB (browser storage)
 - Sentry (production errors)
 
 ```typescript
-import { LogDispatcher } from '@drevo-web/core';
+import { LoggerService } from '@drevo-web/core';
 
-constructor(private log: LogDispatcher) {}
+private readonly logger = inject(LoggerService).withContext('MyService');
 
-this.log.info('message', { context });
-this.log.error('error', error);
+this.logger.info('message', { data });
+this.logger.error('error', error);
 ```
 
 ## Deployment
