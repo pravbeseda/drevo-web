@@ -15,6 +15,8 @@
                 color="primary"
                 [routerLink]="href()"
                 [class.full-width]="fullWidth()"
+                [class.disabled]="disabled() || loading()"
+                [attr.aria-disabled]="disabled() || loading() || null"
                 (click)="onClick($event)">
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </a>
@@ -25,6 +27,8 @@
                 color="primary"
                 [routerLink]="href()"
                 [class.full-width]="fullWidth()"
+                [class.disabled]="disabled() || loading()"
+                [attr.aria-disabled]="disabled() || loading() || null"
                 (click)="onClick($event)">
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </a>
@@ -34,6 +38,8 @@
                 mat-button
                 [routerLink]="href()"
                 [class.full-width]="fullWidth()"
+                [class.disabled]="disabled() || loading()"
+                [attr.aria-disabled]="disabled() || loading() || null"
                 (click)="onClick($event)">
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </a>

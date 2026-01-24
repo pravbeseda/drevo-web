@@ -32,4 +32,10 @@ a {
     &.full-width {
         width: 100%;
     }
+
+    &.disabled {
+        pointer-events: none;
+        opacity: 0.38;
+        cursor: default;
+    }
 }

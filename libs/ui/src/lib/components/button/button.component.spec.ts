@@ -135,5 +135,70 @@ describe('ButtonComponent', () => {
             const anchor = spectator.query('a');
             expect(anchor?.classList).toContain('full-width');
         });
+
+        it('should not emit clicked when anchor is disabled', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('disabled', true);
+            const clickedSpy = jest.fn();
+            spectator.component.clicked.subscribe(clickedSpy);
+
+            spectator.click('a');
+
+            expect(clickedSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not emit clicked when anchor is loading', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('loading', true);
+            const clickedSpy = jest.fn();
+            spectator.component.clicked.subscribe(clickedSpy);
+
+            spectator.click('a');
+
+            expect(clickedSpy).not.toHaveBeenCalled();
+        });
+
+        it('should have disabled class when disabled', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('disabled', true);
+
+            const anchor = spectator.query('a');
+            expect(anchor?.classList).toContain('disabled');
+        });
+
+        it('should have disabled class when loading', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('loading', true);
+
+            const anchor = spectator.query('a');
+            expect(anchor?.classList).toContain('disabled');
+        });
+
+        it('should have aria-disabled attribute when disabled', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('disabled', true);
+
+            const anchor = spectator.query('a');
+            expect(anchor?.getAttribute('aria-disabled')).toBe('true');
+        });
+
+        it('should show spinner when loading', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('loading', true);
+
+            const spinner = spectator.query('mat-spinner');
+            expect(spinner).toBeTruthy();
+        });
+
+        it('should preventDefault on click when disabled', () => {
+            spectator.setInput('href', '/test-link');
+            spectator.setInput('disabled', true);
+
+            const anchor = spectator.query('a') as HTMLAnchorElement;
+            const event = new MouseEvent('click', { cancelable: true });
+            anchor.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(true);
+        });
     });
 });

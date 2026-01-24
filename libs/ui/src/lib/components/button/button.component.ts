@@ -35,8 +35,10 @@ export class ButtonComponent {
     clicked = output<MouseEvent>();
 
     protected onClick(event: MouseEvent): void {
-        if (!this.disabled() && !this.loading()) {
-            this.clicked.emit(event);
+        if (this.disabled() || this.loading()) {
+            event.preventDefault();
+            return;
         }
+        this.clicked.emit(event);
     }
 }
