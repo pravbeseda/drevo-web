@@ -43,4 +43,9 @@ export const appRoutes: Route[] = [
             },
         ],
     },
+    {
+        path: '**',
+        loadComponent: () =>
+            import('./pages/error/error.component').then(m => m.ErrorComponent),
+    },
 ];

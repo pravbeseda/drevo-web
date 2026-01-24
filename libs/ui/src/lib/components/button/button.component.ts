@@ -5,6 +5,7 @@ import {
     output,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -13,7 +14,12 @@ export type ButtonType = 'button' | 'submit' | 'reset';
 
 @Component({
     selector: 'ui-button',
-    imports: [NgTemplateOutlet, MatButtonModule, MatProgressSpinnerModule],
+    imports: [
+        NgTemplateOutlet,
+        RouterLink,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+    ],
     templateUrl: './button.component.html',
     styleUrl: './button.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +30,7 @@ export class ButtonComponent {
     disabled = input<boolean>(false);
     loading = input<boolean>(false);
     fullWidth = input<boolean>(false);
+    href = input<string | undefined>(undefined);
 
     clicked = output<MouseEvent>();
 

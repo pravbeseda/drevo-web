@@ -2,7 +2,8 @@
     display: inline-block;
 }
 
-button {
+button,
+a {
     position: relative;
 
     mat-spinner {
@@ -10,6 +11,18 @@ button {
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
+    }
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        vertical-align: middle;
+
+        ui-icon {
+            display: flex;
+        }
     }
 
     .loading {

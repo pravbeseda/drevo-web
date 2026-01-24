@@ -1,0 +1,32 @@
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+    text-align: center;
+}
+
+.error-icon {
+    color: var(--themed-text-error);
+    margin-bottom: 1.5rem;
+}
+
+.error-title {
+    margin-top: 1rem;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--themed-text-primary);
+}
+
+.error-message {
+    margin: 1.5rem 0;
+    font-size: 1.1rem;
+    color: var(--themed-text-secondary);
+    max-width: 400px;
+}
+
+.home-button {
+    margin-top: 1rem;
+}

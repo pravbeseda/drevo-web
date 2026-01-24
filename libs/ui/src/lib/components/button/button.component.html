@@ -7,37 +7,71 @@
     </span>
 </ng-template>
 
-@switch (variant()) {
-    @case ('primary') {
-        <button
-            mat-flat-button
-            color="primary"
-            [type]="type()"
-            [disabled]="disabled() || loading()"
-            [class.full-width]="fullWidth()"
-            (click)="onClick($event)">
-            <ng-container *ngTemplateOutlet="buttonContent" />
-        </button>
+@if (href()) {
+    @switch (variant()) {
+        @case ('primary') {
+            <a
+                mat-flat-button
+                color="primary"
+                [routerLink]="href()"
+                [class.full-width]="fullWidth()"
+                (click)="onClick($event)">
+                <ng-container *ngTemplateOutlet="buttonContent" />
+            </a>
+        }
+        @case ('secondary') {
+            <a
+                mat-stroked-button
+                color="primary"
+                [routerLink]="href()"
+                [class.full-width]="fullWidth()"
+                (click)="onClick($event)">
+                <ng-container *ngTemplateOutlet="buttonContent" />
+            </a>
+        }
+        @default {
+            <a
+                mat-button
+                [routerLink]="href()"
+                [class.full-width]="fullWidth()"
+                (click)="onClick($event)">
+                <ng-container *ngTemplateOutlet="buttonContent" />
+            </a>
+        }
     }
-    @case ('secondary') {
-        <button
-            mat-stroked-button
-            color="primary"
-            [type]="type()"
-            [disabled]="disabled() || loading()"
-            [class.full-width]="fullWidth()"
-            (click)="onClick($event)">
-            <ng-container *ngTemplateOutlet="buttonContent" />
-        </button>
-    }
-    @default {
-        <button
-            mat-button
-            [type]="type()"
-            [disabled]="disabled() || loading()"
-            [class.full-width]="fullWidth()"
-            (click)="onClick($event)">
-            <ng-container *ngTemplateOutlet="buttonContent" />
-        </button>
+} @else {
+    @switch (variant()) {
+        @case ('primary') {
+            <button
+                mat-flat-button
+                color="primary"
+                [type]="type()"
+                [disabled]="disabled() || loading()"
+                [class.full-width]="fullWidth()"
+                (click)="onClick($event)">
+                <ng-container *ngTemplateOutlet="buttonContent" />
+            </button>
+        }
+        @case ('secondary') {
+            <button
+                mat-stroked-button
+                color="primary"
+                [type]="type()"
+                [disabled]="disabled() || loading()"
+                [class.full-width]="fullWidth()"
+                (click)="onClick($event)">
+                <ng-container *ngTemplateOutlet="buttonContent" />
+            </button>
+        }
+        @default {
+            <button
+                mat-button
+                [type]="type()"
+                [disabled]="disabled() || loading()"
+                [class.full-width]="fullWidth()"
+                (click)="onClick($event)">
+                <ng-container *ngTemplateOutlet="buttonContent" />
+            </button>
+        }
     }
 }

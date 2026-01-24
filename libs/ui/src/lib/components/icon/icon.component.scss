@@ -1,0 +1,31 @@
+:host {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+mat-icon {
+    &.small {
+        font-size: 1rem;
+        width: 1rem;
+        height: 1rem;
+    }
+
+    &.medium {
+        font-size: 1.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    &.large {
+        font-size: 2.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    &.xlarge {
+        font-size: 5rem;
+        width: 5rem;
+        height: 5rem;
+    }
+}
