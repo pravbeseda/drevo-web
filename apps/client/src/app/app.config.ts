@@ -3,7 +3,11 @@ import {
     importProvidersFrom,
     provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter, RouterModule } from '@angular/router';
+import {
+    provideRouter,
+    RouterModule,
+    withComponentInputBinding,
+} from '@angular/router';
 import { appRoutes } from './app.routes';
 import {
     provideClientHydration,
@@ -39,7 +43,7 @@ export const appConfig: ApplicationConfig = {
     providers: [
         provideClientHydration(withEventReplay()),
         provideZonelessChangeDetection(),
-        provideRouter(appRoutes),
+        provideRouter(appRoutes, withComponentInputBinding()),
         provideHttpClient(withFetch(), withInterceptorsFromDi()),
         authInterceptorProvider,
         errorNotificationInterceptorProvider,

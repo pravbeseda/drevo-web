@@ -41,11 +41,14 @@ export const appRoutes: Route[] = [
                         m => m.ArticleComponent
                     ),
             },
+            {
+                path: '**',
+                loadComponent: () =>
+                    import('./pages/error/error.component').then(
+                        m => m.ErrorComponent
+                    ),
+                data: { showHomeButton: true },
+            },
         ],
-    },
-    {
-        path: '**',
-        loadComponent: () =>
-            import('./pages/error/error.component').then(m => m.ErrorComponent),
     },
 ];
