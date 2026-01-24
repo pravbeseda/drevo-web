@@ -1,10 +1,12 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconComponent } from './icon.component';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('IconComponent', () => {
     let spectator: Spectator<IconComponent>;
     const createComponent = createComponentFactory({
         component: IconComponent,
+        imports: [NoopAnimationsModule],
     });
 
     it('should create', () => {
@@ -23,7 +25,9 @@ describe('IconComponent', () => {
     });
 
     it('should apply custom size', () => {
-        spectator = createComponent({ props: { name: 'home', size: 'xlarge' } });
+        spectator = createComponent({
+            props: { name: 'home', size: 'xlarge' },
+        });
         expect(spectator.query('mat-icon')).toHaveClass('xlarge');
     });
 });
