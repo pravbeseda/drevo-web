@@ -14,6 +14,7 @@ import { AsyncPipe } from '@angular/common';
 
 import { EditorComponent } from '@drevo-web/editor';
 import { SpinnerComponent } from '@drevo-web/ui';
+import { ErrorComponent } from '../error/error.component';
 import { Article } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 // import { LinksService } from '../../services/links/links.service';
@@ -22,7 +23,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, SpinnerComponent, AsyncPipe],
+    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent],
     // providers: [LinksService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',

@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActivatedRoute } from '@angular/router';
 import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
+import { ErrorComponent } from '../error/error.component';
 import { Article } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -21,7 +22,7 @@ import { ArticleContentComponent } from './article-content/article-content.compo
 
 @Component({
     selector: 'app-article',
-    imports: [SpinnerComponent, ArticleContentComponent, SidebarActionDirective],
+    imports: [SpinnerComponent, ArticleContentComponent, SidebarActionDirective, ErrorComponent],
     templateUrl: './article.component.html',
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

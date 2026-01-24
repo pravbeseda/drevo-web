@@ -9,7 +9,17 @@ import { ButtonComponent, IconComponent } from '@drevo-web/ui';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ErrorComponent {
-    readonly title = input('Страница не найдена');
-    readonly message = input('Запрашиваемая страница не существует или была удалена.');
-    readonly showHomeButton = input(true);
+    private static readonly DEFAULT_TITLE = 'Страница не найдена';
+    private static readonly DEFAULT_MESSAGE =
+        'Запрашиваемая страница не существует или была удалена.';
+
+    readonly title = input(ErrorComponent.DEFAULT_TITLE, {
+        transform: (value: string | undefined) =>
+            value ?? ErrorComponent.DEFAULT_TITLE,
+    });
+    readonly message = input(ErrorComponent.DEFAULT_MESSAGE, {
+        transform: (value: string | undefined) =>
+            value ?? ErrorComponent.DEFAULT_MESSAGE,
+    });
+    readonly showHomeButton = input(false);
 }

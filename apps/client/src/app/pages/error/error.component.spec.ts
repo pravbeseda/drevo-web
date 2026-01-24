@@ -45,8 +45,8 @@ describe('ErrorComponent', () => {
         );
     });
 
-    it('should show home button by default', () => {
-        expect(spectator.query('.home-button')).toBeTruthy();
+    it('should not show home button by default', () => {
+        expect(spectator.query('.home-button')).toBeFalsy();
     });
 
     it('should hide home button when showHomeButton is false', () => {
