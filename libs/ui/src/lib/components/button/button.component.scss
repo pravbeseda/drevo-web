@@ -2,7 +2,8 @@
     display: inline-block;
 }
 
-button {
+button,
+a {
     position: relative;
 
     mat-spinner {
@@ -12,11 +13,29 @@ button {
         transform: translate(-50%, -50%);
     }
 
+    span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        vertical-align: middle;
+
+        ui-icon {
+            display: flex;
+        }
+    }
+
     .loading {
         visibility: hidden;
     }
 
     &.full-width {
         width: 100%;
+    }
+
+    &.disabled {
+        pointer-events: none;
+        opacity: 0.38;
+        cursor: default;
     }
 }

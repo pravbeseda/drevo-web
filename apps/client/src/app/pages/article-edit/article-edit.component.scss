@@ -1,13 +1,8 @@
-.loading-container,
-.error-container {
+.loading-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 200px;
-}
-
-.error-message {
-    color: var(--themed-text-error);
 }
 
 .article-edit {

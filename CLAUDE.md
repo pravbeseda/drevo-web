@@ -153,6 +153,9 @@ yarn nx affected -t lint,test,build
 7. **Comments in English only** — and only where code doesn't explain itself
 8. **Unit tests** — Jest + Spectator only (no other testing utilities)
 9. **Color tokens only** — use `--themed-*` variables from `_theme-colors.scss`, no hardcoded colors or direct Angular Material tokens (`--mat-*`)
+10. **UI components from `@drevo-web/ui` only** — never use `mat-*` components (MatButton, MatIcon, etc.) directly outside the `libs/ui` library. Always use wrapper components from `@drevo-web/ui` instead
+11. **No `null`** — use `undefined` instead of `null` everywhere
+12. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
 
 ## Unit Testing
 

@@ -3,9 +3,7 @@
         <ui-spinner [diameter]="48" />
     </div>
 } @else if (error()) {
-    <div class="error-container">
-        <p class="error-message">{{ error() }}</p>
-    </div>
+    <app-error title="Ошибка" [message]="error()" />
 } @else if (article(); as article) {
     <!-- Sidebar Actions -->
     <button
