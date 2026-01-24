@@ -55,4 +55,19 @@ describe('ErrorComponent', () => {
         });
         expect(spectator.query('.home-button')).toBeFalsy();
     });
+
+    it('should show home button with correct attributes when showHomeButton is true', () => {
+        spectator = createComponent({
+            props: { showHomeButton: true },
+        });
+
+        const homeButton = spectator.query('.home-button');
+        expect(homeButton).toBeTruthy();
+        expect(homeButton).toHaveAttribute('href', '/');
+        expect(homeButton).toHaveText('На главную');
+        expect(spectator.query('.home-button ui-icon')).toHaveAttribute(
+            'name',
+            'home'
+        );
+    });
 });
