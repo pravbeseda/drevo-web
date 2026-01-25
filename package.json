@@ -4,6 +4,7 @@
     "license": "MIT",
     "scripts": {
         "test": "nx run-many --target=test --all --parallel",
+        "test:coverage": "nx run-many --target=test --all --parallel --coverage",
         "lint": "yarn nx affected -t lint --parallel",
         "format:check": "node ./node_modules/.bin/prettier . --check",
         "format:fix": "node ./node_modules/.bin/prettier . --write",
