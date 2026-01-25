@@ -23,7 +23,7 @@ export class RightSidebarComponent {
     }
 
     handleSpeedDialAction(action: SidebarAction): void {
-        action.action();
+        action.action?.();
         this.menuOpen.set(false);
     }
 }

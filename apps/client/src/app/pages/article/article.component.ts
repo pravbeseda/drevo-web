@@ -2,6 +2,7 @@ import {
     afterNextRender,
     ChangeDetectionStrategy,
     Component,
+    computed,
     DestroyRef,
     inject,
     Injector,
@@ -22,7 +23,12 @@ import { ArticleContentComponent } from './article-content/article-content.compo
 
 @Component({
     selector: 'app-article',
-    imports: [SpinnerComponent, ArticleContentComponent, SidebarActionDirective, ErrorComponent],
+    imports: [
+        SpinnerComponent,
+        ArticleContentComponent,
+        SidebarActionDirective,
+        ErrorComponent,
+    ],
     templateUrl: './article.component.html',
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +44,10 @@ export class ArticleComponent implements OnInit {
     readonly article = signal<Article | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
+    readonly editUrl = computed(() => {
+        const versionId = this.article()?.versionId;
+        return versionId ? `edit/${versionId}` : undefined;
+    });
     private currentFragment: string | undefined = undefined;
 
     ngOnInit(): void {
@@ -84,6 +94,7 @@ export class ArticleComponent implements OnInit {
                     this.isLoading.set(false);
                     this.logger.info('Article loaded', {
                         id: article.articleId,
+                        versionId: article.versionId,
                         title: article.title,
                     });
                     this.scrollToFragment();
@@ -161,12 +172,5 @@ export class ArticleComponent implements OnInit {
 
     openTableOfContents(): void {
         this.logger.info('Open table of contents');
-    }
-
-    editArticle(): void {
-        const articleId = this.article()?.articleId;
-        if (articleId) {
-            this.logger.info('Navigate to edit', { articleId });
-        }
     }
 }

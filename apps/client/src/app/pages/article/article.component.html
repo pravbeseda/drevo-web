@@ -3,22 +3,25 @@
         <ui-spinner [diameter]="48" />
     </div>
 } @else if (error()) {
-    <app-error title="Ошибка" [message]="error()" />
+    <app-error
+        title="Ошибка"
+        [message]="error()" />
 } @else if (article(); as article) {
     <!-- Sidebar Actions -->
     <button
         sidebarAction
         icon="toc"
-        label="Содержание"
         priority="secondary"
         (click)="openTableOfContents()">
+        Содержание
     </button>
     <button
         sidebarAction
         icon="edit"
-        label="Изменить"
         priority="primary"
-        (click)="editArticle()">
+        [disabled]="!editUrl()"
+        [href]="editUrl()">
+        Редактировать
     </button>
 
     <article class="article">

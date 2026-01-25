@@ -4,6 +4,7 @@ import {
     input,
     output,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatFabButton, MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -14,7 +15,7 @@ export type ActionButtonSize = 'default' | 'mini';
 
 @Component({
     selector: 'ui-action-button',
-    imports: [MatFabButton, MatMiniFabButton, MatIcon, MatTooltip],
+    imports: [RouterLink, MatFabButton, MatMiniFabButton, MatIcon, MatTooltip],
     templateUrl: './action-button.component.html',
     styleUrl: './action-button.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +28,8 @@ export class ActionButtonComponent {
     size = input<ActionButtonSize>('default');
     showTooltip = input<boolean>(true);
     showLabel = input<boolean>(false);
+    href = input<string>();
+    disabled = input<boolean>();
 
     clicked = output<void>();
 
