@@ -29,7 +29,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Run tests with coverage
-        run: yarn test:coverage --coverageReporters=json-summary,html
+        run: yarn test:coverage
 
       - name: Merge coverage reports
         run: |
@@ -93,9 +93,10 @@ jobs:
             <h1>Coverage Reports</h1>
             <ul>
               <li><a href="apps/client/index.html">client</a></li>
-              <li><a href="libs/ui/index.html">ui</a></li>
-              <li><a href="libs/shared/index.html">shared</a></li>
+              <li><a href="libs/core/index.html">core</a></li>
               <li><a href="libs/editor/index.html">editor</a></li>
+              <li><a href="libs/shared/index.html">shared</a></li>
+              <li><a href="libs/ui/index.html">ui</a></li>
             </ul>
           </body>
           </html>
