@@ -46,7 +46,7 @@ export class ArticleComponent implements OnInit {
     readonly error = signal<string | undefined>(undefined);
     readonly editUrl = computed(() => {
         const versionId = this.article()?.versionId;
-        return versionId ? `articles/edit/${versionId}` : undefined;
+        return versionId ? `/articles/edit/${versionId}` : undefined;
     });
     private currentFragment: string | undefined = undefined;
 
