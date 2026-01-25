@@ -33,16 +33,21 @@ export class ArticleService {
      * @returns Observable with mapped article
      */
     getArticle(id: number): Observable<ArticleVersion> {
-        return this.articleApiService
-            .getArticle(id)
-            .pipe(map(response => this.mapArticleVersion(response)));
+        return this.articleApiService.getArticle(id).pipe(
+            map(response =>
+                this.mapArticleVersion({
+                    ...response,
+                    content: this.transformArticleLinks(response.content),
+                })
+            )
+        );
     }
 
     /**
      * Get article version by ID (for editing)
      *
      * @param versionId - Version ID
-     * @returns Observable with mapped article version (raw content, no link transformation)
+     * @returns Observable with mapped article version (raw content)
      */
     getArticleVersion(versionId: number): Observable<ArticleVersion> {
         return this.articleApiService
@@ -75,7 +80,7 @@ export class ArticleService {
             articleId: response.articleId,
             versionId: response.versionId,
             title: response.title,
-            content: this.transformArticleLinks(response.content),
+            content: response.content,
             author: response.author,
             date: new Date(response.date),
             redirect: response.redirect === 1,
