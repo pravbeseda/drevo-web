@@ -6,14 +6,14 @@
     <app-error
         title="Ошибка"
         [message]="error()" />
-} @else if (article(); as article) {
+} @else if (version(); as version) {
     <div class="article-edit">
         <header class="article-edit-header">
-            <h1 class="article-edit-title">{{ article.title }}</h1>
+            <h1 class="article-edit-title">{{ version.title }}</h1>
         </header>
         <div class="editor-container">
             <lib-editor
-                [content]="article.content"
+                [content]="version.content"
                 [linksStatus]="(updateLinksState$ | async) ?? {}"
                 (updateLinksEvent)="updateLinks($event)"
                 (contentChanged)="contentChanged($event)" />

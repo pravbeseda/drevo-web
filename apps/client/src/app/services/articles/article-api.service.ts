@@ -6,6 +6,7 @@ import {
     ApiResponse,
     ArticleSearchResponseApi,
     ArticleDetailApi,
+    ArticleVersionDetailApi,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { environment } from '../../../environments/environment';
@@ -38,6 +39,28 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleDetailApi>
             >(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Get article version by ID (for editing)
+     *
+     * @param versionId - Version ID
+     * @returns Observable with raw API response containing version details
+     */
+    getArticleVersion(versionId: number): Observable<ArticleVersionDetailApi> {
+        return this.http
+            .get<
+                ApiResponse<ArticleVersionDetailApi>
+            >(`${this.apiUrl}/api/articles/version/${versionId}`, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(

@@ -3,7 +3,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
     Article,
+    ArticleVersion,
     ArticleDetailApi,
+    ArticleVersionDetailApi,
     ArticleSearchResponseApi,
     ArticleSearchResultApi,
     ArticleSearchResponse,
@@ -39,6 +41,18 @@ export class ArticleService {
     }
 
     /**
+     * Get article version by ID (for editing)
+     *
+     * @param versionId - Version ID
+     * @returns Observable with mapped article version (raw content, no link transformation)
+     */
+    getArticleVersion(versionId: number): Observable<ArticleVersion> {
+        return this.articleApiService
+            .getArticleVersion(versionId)
+            .pipe(map(response => this.mapArticleVersion(response)));
+    }
+
+    /**
      * Search articles by title
      *
      * @param params - Search parameters (query is optional - empty returns all articles)
@@ -67,6 +81,23 @@ export class ArticleService {
             author: response.author,
             date: new Date(response.date),
             redirect: response.redirect === 1,
+        };
+    }
+
+    private mapArticleVersion(response: ArticleVersionDetailApi): ArticleVersion {
+        return {
+            articleId: response.articleId,
+            versionId: response.versionId,
+            title: response.title,
+            content: response.content,
+            author: response.author,
+            date: new Date(response.date),
+            redirect: response.redirect === 1,
+            approved: response.approved,
+            info: response.info,
+            editor: response.editor,
+            edited: response.edited ? new Date(response.edited) : undefined,
+            comment: response.comment,
         };
     }
 

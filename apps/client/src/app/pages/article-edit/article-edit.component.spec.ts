@@ -4,14 +4,14 @@ import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ArticleEditComponent } from './article-edit.component';
 import { ArticleService } from '../../services/articles';
-import { Article } from '@drevo-web/shared';
+import { ArticleVersion } from '@drevo-web/shared';
 
 describe('ArticleEditComponent', () => {
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
     let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
-    const mockArticle: Article = {
+    const mockVersion: ArticleVersion = {
         articleId: 123,
         versionId: 456,
         title: 'Test Article Title',
@@ -19,6 +19,11 @@ describe('ArticleEditComponent', () => {
         author: 'Test Author',
         date: new Date('2024-01-15T10:00:00Z'),
         redirect: false,
+        approved: true,
+        info: 'Test info',
+        editor: 'Test Editor',
+        edited: new Date('2024-01-16T10:00:00Z'),
+        comment: 'Test comment',
     };
 
     const createComponent = createComponentFactory({
@@ -36,12 +41,12 @@ describe('ArticleEditComponent', () => {
     });
 
     beforeEach(() => {
-        paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '123' }));
+        paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '456' }));
         spectator = createComponent();
         articleService = spectator.inject(
             ArticleService
         ) as jest.Mocked<ArticleService>;
-        articleService.getArticle.mockReturnValue(of(mockArticle));
+        articleService.getArticleVersion.mockReturnValue(of(mockVersion));
     });
 
     it('should create', () => {
@@ -49,9 +54,9 @@ describe('ArticleEditComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    describe('successful article loading', () => {
+    describe('successful version loading', () => {
         it('should display spinner while loading', () => {
-            articleService.getArticle.mockReturnValue(NEVER);
+            articleService.getArticleVersion.mockReturnValue(NEVER);
             spectator.detectChanges();
 
             expect(spectator.component.isLoading()).toBe(true);
@@ -59,86 +64,98 @@ describe('ArticleEditComponent', () => {
             expect(spectator.query('.article-edit')).toBeFalsy();
         });
 
-        it('should load and display article for editing', () => {
+        it('should load and display version for editing', () => {
             spectator.detectChanges();
 
-            expect(articleService.getArticle).toHaveBeenCalledWith(123);
-            expect(spectator.component.article()).toEqual(mockArticle);
+            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456);
+            expect(spectator.component.version()).toEqual(mockVersion);
             expect(spectator.component.isLoading()).toBe(false);
             expect(spectator.query('.article-edit-title')).toHaveText(
                 'Test Article Title'
             );
         });
 
-        it('should render editor component with article content', () => {
+        it('should render editor component with version content', () => {
             spectator.detectChanges();
 
             const editorComponent = spectator.query('lib-editor');
             expect(editorComponent).toBeTruthy();
         });
 
-        it('should reload article when route param changes', () => {
+        it('should reload version when route param changes', () => {
             spectator.detectChanges();
 
-            expect(articleService.getArticle).toHaveBeenCalledWith(123);
+            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456);
 
-            const anotherArticle: Article = {
-                ...mockArticle,
-                articleId: 456,
-                title: 'Another Article',
+            const anotherVersion: ArticleVersion = {
+                ...mockVersion,
+                versionId: 789,
+                title: 'Another Version',
             };
-            articleService.getArticle.mockReturnValue(of(anotherArticle));
+            articleService.getArticleVersion.mockReturnValue(of(anotherVersion));
 
-            paramMapSubject.next(convertToParamMap({ id: '456' }));
+            paramMapSubject.next(convertToParamMap({ id: '789' }));
 
-            expect(articleService.getArticle).toHaveBeenCalledWith(456);
-            expect(spectator.component.article()).toEqual(anotherArticle);
+            expect(articleService.getArticleVersion).toHaveBeenCalledWith(789);
+            expect(spectator.component.version()).toEqual(anotherVersion);
         });
 
         it('should not reload when same ID is emitted', () => {
             spectator.detectChanges();
 
-            expect(articleService.getArticle).toHaveBeenCalledTimes(1);
+            expect(articleService.getArticleVersion).toHaveBeenCalledTimes(1);
 
-            paramMapSubject.next(convertToParamMap({ id: '123' }));
+            paramMapSubject.next(convertToParamMap({ id: '456' }));
 
-            expect(articleService.getArticle).toHaveBeenCalledTimes(1);
+            expect(articleService.getArticleVersion).toHaveBeenCalledTimes(1);
         });
 
-        it('should retry loading after error when navigating to different article', () => {
+        it('should retry loading after error when navigating to different version', () => {
             const error = new HttpErrorResponse({
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticle.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
-            expect(spectator.component.error()).toBe('Ошибка загрузки статьи');
+            expect(spectator.component.error()).toBe('Ошибка загрузки версии');
 
-            articleService.getArticle.mockReturnValue(of(mockArticle));
+            articleService.getArticleVersion.mockReturnValue(of(mockVersion));
 
-            paramMapSubject.next(convertToParamMap({ id: '456' }));
+            paramMapSubject.next(convertToParamMap({ id: '789' }));
 
-            expect(articleService.getArticle).toHaveBeenCalledWith(456);
-            expect(spectator.component.article()).toEqual(mockArticle);
+            expect(articleService.getArticleVersion).toHaveBeenCalledWith(789);
+            expect(spectator.component.version()).toEqual(mockVersion);
             expect(spectator.component.error()).toBeUndefined();
         });
     });
 
     describe('error handling', () => {
-        it('should display error message when article not found (404)', () => {
+        it('should display error message when version not found (404)', () => {
             const error = new HttpErrorResponse({
                 status: 404,
                 statusText: 'Not Found',
             });
-            articleService.getArticle.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
-            expect(spectator.component.error()).toBe('Статья не найдена');
+            expect(spectator.component.error()).toBe('Версия не найдена');
             expect(spectator.component.isLoading()).toBe(false);
             expect(spectator.query('.error-message')).toHaveText(
-                'Статья не найдена'
+                'Версия не найдена'
             );
+        });
+
+        it('should display access denied message for 403 error', () => {
+            const error = new HttpErrorResponse({
+                status: 403,
+                statusText: 'Forbidden',
+            });
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
+            spectator.detectChanges();
+
+            expect(spectator.component.error()).toBe('Доступ запрещён');
+            expect(spectator.component.isLoading()).toBe(false);
         });
 
         it('should display generic error message for other errors', () => {
@@ -146,25 +163,25 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticle.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
-            expect(spectator.component.error()).toBe('Ошибка загрузки статьи');
+            expect(spectator.component.error()).toBe('Ошибка загрузки версии');
         });
 
-        it('should clear previous article when error occurs', () => {
+        it('should clear previous version when error occurs', () => {
             spectator.detectChanges();
-            expect(spectator.component.article()).toEqual(mockArticle);
+            expect(spectator.component.version()).toEqual(mockVersion);
 
             const error = new HttpErrorResponse({
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticle.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
 
-            paramMapSubject.next(convertToParamMap({ id: '456' }));
+            paramMapSubject.next(convertToParamMap({ id: '789' }));
 
-            expect(spectator.component.article()).toBeUndefined();
+            expect(spectator.component.version()).toBeUndefined();
         });
     });
 
@@ -217,7 +234,7 @@ describe('ArticleEditComponent with invalid ID', () => {
     it('should show error for non-numeric ID', () => {
         const spectator = createComponentWithInvalidId();
 
-        expect(spectator.component.error()).toBe('Неверный ID статьи');
+        expect(spectator.component.error()).toBe('Неверный ID версии');
         expect(spectator.component.isLoading()).toBe(false);
     });
 
@@ -227,7 +244,7 @@ describe('ArticleEditComponent with invalid ID', () => {
             ArticleService
         ) as jest.Mocked<ArticleService>;
 
-        expect(articleService.getArticle).not.toHaveBeenCalled();
+        expect(articleService.getArticleVersion).not.toHaveBeenCalled();
     });
 });
 
@@ -248,7 +265,7 @@ describe('ArticleEditComponent with negative ID', () => {
     it('should show error for negative ID', () => {
         const spectator = createComponentWithNegativeId();
 
-        expect(spectator.component.error()).toBe('Неверный ID статьи');
+        expect(spectator.component.error()).toBe('Неверный ID версии');
     });
 });
 
@@ -269,7 +286,7 @@ describe('ArticleEditComponent with zero ID', () => {
     it('should show error for zero ID', () => {
         const spectator = createComponentWithZeroId();
 
-        expect(spectator.component.error()).toBe('Неверный ID статьи');
+        expect(spectator.component.error()).toBe('Неверный ID версии');
     });
 });
 
@@ -290,6 +307,6 @@ describe('ArticleEditComponent with missing ID', () => {
     it('should show error when ID is missing', () => {
         const spectator = createComponentWithMissingId();
 
-        expect(spectator.component.error()).toBe('Неверный ID статьи');
+        expect(spectator.component.error()).toBe('Неверный ID версии');
     });
 });

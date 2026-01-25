@@ -11,3 +11,11 @@ export interface Article {
     readonly date: Date;
     readonly redirect: boolean;
 }
+
+export interface ArticleVersion extends Article {
+    readonly approved: boolean;
+    readonly info: string;
+    readonly editor: string;
+    readonly edited: Date | undefined;
+    readonly comment: string;
+}
