@@ -20,7 +20,7 @@
         icon="edit"
         priority="primary"
         [disabled]="!editUrl()"
-        [href]="editUrl()">
+        [href]="editUrl() ?? null">
         Редактировать
     </button>
 

@@ -41,7 +41,7 @@ export interface ArticleVersionDto extends ArticlePageDto {
 /**
  * Prepared article version with formatted content
  * Extends ArticleVersionDto with pre-formatted HTML content
- * Temporary used for article viewing
+ * Temporarily used for article viewing
  * Should be deleted after releasing client Formatter
  */
 export interface ArticlePreparedVersionDto extends ArticleVersionDto {
