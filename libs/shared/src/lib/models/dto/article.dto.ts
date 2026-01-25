@@ -1,0 +1,38 @@
+/**
+ * API response interfaces for article data
+ * These interfaces represent the raw API response structure
+ *
+ * Database tables:
+ * - articles_pages: page metadata (pg_id, title, redirect, etc.)
+ * - articles_versions: version content (id, ArticleId, content, author, etc.)
+ *
+ * Hierarchy:
+ * - ArticlePageDto: page fields only (search results)
+ * - ArticleVersionDto: page + version fields
+ */
+
+/**
+ * Article page data from articles_pages table
+ * Used for search results in dictionary
+ */
+export interface ArticlePageDto {
+    readonly articleId: number;
+    readonly title: string;
+    readonly redirect: number;
+}
+
+/**
+ * Article version data from articles_versions table
+ * Extends ArticlePageDto with version-specific fields
+ * Used for article editing
+ */
+export interface ArticleVersionDto extends ArticlePageDto {
+    readonly versionId: number;
+    readonly content: string; // can be formatted (/api/articles/show/{id}) or raw
+    readonly author: string;
+    readonly date: string; // ISO 8601 format
+    readonly approved: number; // 0, -1, 1
+    readonly new: boolean;
+    readonly info: string;
+    readonly comment: string;
+}

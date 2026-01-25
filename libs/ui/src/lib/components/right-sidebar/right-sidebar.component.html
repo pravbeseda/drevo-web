@@ -5,7 +5,9 @@
             [icon]="action.icon"
             [label]="action.label"
             [priority]="action.priority"
-            (clicked)="action.action()" />
+            [href]="action.href"
+            [disabled]="action.disabled"
+            (clicked)="action.href ? undefined : action.action?.()" />
     }
 </div>
 
@@ -18,7 +20,13 @@
             priority="primary"
             variant="main"
             [showTooltip]="false"
-            (clicked)="primaryActions()[0].action()" />
+            [href]="primaryActions()[0].href"
+            [disabled]="primaryActions()[0].disabled"
+            (clicked)="
+                primaryActions()[0].href
+                    ? undefined
+                    : primaryActions()[0].action?.()
+            " />
     }
 
     @if (secondaryActions().length > 0) {
@@ -40,7 +48,11 @@
                     variant="speed-dial"
                     [showTooltip]="false"
                     [showLabel]="true"
-                    (clicked)="handleSpeedDialAction(action)" />
+                    [href]="action.href"
+                    [disabled]="action.disabled"
+                    (clicked)="
+                        action.href ? undefined : handleSpeedDialAction(action)
+                    " />
             }
         </div>
     }

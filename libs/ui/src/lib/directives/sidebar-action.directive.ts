@@ -25,16 +25,21 @@ export class SidebarActionDirective implements OnInit, OnDestroy {
     private readonly actionId = `sidebar-action-${nextId++}`;
 
     @Input({ required: true }) icon!: string;
-    @Input({ required: true }) label!: string;
     @Input() priority: SidebarActionPriority = 'secondary';
+    @Input() href?: string;
+    @Input() disabled?: boolean;
 
     ngOnInit(): void {
+        const label = this.elementRef.nativeElement.textContent?.trim() || '';
+
         const action: SidebarAction = {
             id: this.actionId,
             icon: this.icon,
-            label: this.label,
+            label,
             priority: this.priority,
-            action: () => this.triggerClick(),
+            href: this.href,
+            disabled: this.disabled,
+            action: this.href ? undefined : () => this.triggerClick(),
         };
 
         this.sidebarService.registerAction(action);

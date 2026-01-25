@@ -50,6 +50,20 @@ libs/
   ui/                        # UI components (button, input, spinner, etc.)
 ```
 
+## Legacy Backend (Yii1)
+
+```
+legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
+  protected/
+    controllers/
+      api/                   # API controllers (only this folder is modified)
+    models/                  # Data models (reference for data structures)
+```
+
+- **Role**: Backend for the Angular app
+- **Policy**: If possible, do not modify existing code, only add new API endpoints
+- **Use as reference**: Data structures and business logic
+
 ## Import Aliases
 
 ```typescript

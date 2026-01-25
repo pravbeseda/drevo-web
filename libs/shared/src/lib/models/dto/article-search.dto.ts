@@ -17,7 +17,7 @@ export interface ApiResponse<T> {
 /**
  * Single article search result from API
  */
-export interface ArticleSearchResultApi {
+export interface ArticleSearchResultDto {
     readonly id: number;
     readonly title: string;
 }
@@ -25,8 +25,8 @@ export interface ArticleSearchResultApi {
 /**
  * Paginated search response from API
  */
-export interface ArticleSearchResponseApi {
-    readonly items: readonly ArticleSearchResultApi[];
+export interface ArticleSearchResponseDto {
+    readonly items: readonly ArticleSearchResultDto[];
     readonly total: number;
     readonly page: number;
     readonly pageSize: number;

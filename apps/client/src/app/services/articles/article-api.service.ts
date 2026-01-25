@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
     ApiResponse,
-    ArticleSearchResponseApi,
-    ArticleDetailApi,
+    ArticleSearchResponseDto,
+    ArticleVersionDto,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { environment } from '../../../environments/environment';
@@ -33,11 +33,33 @@ export class ArticleApiService {
      * @param id - Article ID
      * @returns Observable with raw API response
      */
-    getArticle(id: number): Observable<ArticleDetailApi> {
+    getArticle(id: number): Observable<ArticleVersionDto> {
         return this.http
             .get<
-                ApiResponse<ArticleDetailApi>
+                ApiResponse<ArticleVersionDto>
             >(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Get article version by ID (for editing)
+     *
+     * @param versionId - Version ID
+     * @returns Observable with raw API response containing version details
+     */
+    getArticleVersion(versionId: number): Observable<ArticleVersionDto> {
+        return this.http
+            .get<
+                ApiResponse<ArticleVersionDto>
+            >(`${this.apiUrl}/api/articles/version/${versionId}`, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(
@@ -61,7 +83,7 @@ export class ArticleApiService {
         query = '',
         page = 1,
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE
-    ): Observable<ArticleSearchResponseApi> {
+    ): Observable<ArticleSearchResponseDto> {
         let params = new HttpParams()
             .set('page', page.toString())
             .set('size', pageSize.toString());
@@ -73,7 +95,7 @@ export class ArticleApiService {
 
         return this.http
             .get<
-                ApiResponse<ArticleSearchResponseApi>
+                ApiResponse<ArticleSearchResponseDto>
             >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
             .pipe(
                 map(response => {

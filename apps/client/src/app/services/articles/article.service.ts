@@ -2,13 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-    Article,
-    ArticleDetailApi,
-    ArticleSearchResponseApi,
-    ArticleSearchResultApi,
+    ArticleVersion,
+    ArticleSearchResponseDto,
+    ArticleSearchResultDto,
     ArticleSearchResponse,
     ArticleSearchResult,
     ArticleSearchParams,
+    ArticleVersionDto,
 } from '@drevo-web/shared';
 import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
@@ -32,10 +32,27 @@ export class ArticleService {
      * @param id - Article ID
      * @returns Observable with mapped article
      */
-    getArticle(id: number): Observable<Article> {
+    getArticle(id: number): Observable<ArticleVersion> {
+        return this.articleApiService.getArticle(id).pipe(
+            map(response =>
+                this.mapArticleVersion({
+                    ...response,
+                    content: this.transformArticleLinks(response.content),
+                })
+            )
+        );
+    }
+
+    /**
+     * Get article version by ID (for editing)
+     *
+     * @param versionId - Version ID
+     * @returns Observable with mapped article version (raw content)
+     */
+    getArticleVersion(versionId: number): Observable<ArticleVersion> {
         return this.articleApiService
-            .getArticle(id)
-            .pipe(map(response => this.mapArticle(response)));
+            .getArticleVersion(versionId)
+            .pipe(map(response => this.mapArticleVersion(response)));
     }
 
     /**
@@ -58,15 +75,19 @@ export class ArticleService {
             .pipe(map(response => this.mapSearchResponse(response)));
     }
 
-    private mapArticle(response: ArticleDetailApi): Article {
+    private mapArticleVersion(response: ArticleVersionDto): ArticleVersion {
         return {
             articleId: response.articleId,
             versionId: response.versionId,
             title: response.title,
-            content: this.transformArticleLinks(response.content),
+            content: response.content,
             author: response.author,
             date: new Date(response.date),
             redirect: response.redirect === 1,
+            new: response.new,
+            approved: response.approved,
+            info: response.info,
+            comment: response.comment,
         };
     }
 
@@ -84,7 +105,7 @@ export class ArticleService {
     }
 
     private mapSearchResponse(
-        response: ArticleSearchResponseApi
+        response: ArticleSearchResponseDto
     ): ArticleSearchResponse {
         return {
             items: response.items.map(item => this.mapSearchResult(item)),
@@ -95,7 +116,7 @@ export class ArticleService {
         };
     }
 
-    private mapSearchResult(item: ArticleSearchResultApi): ArticleSearchResult {
+    private mapSearchResult(item: ArticleSearchResultDto): ArticleSearchResult {
         return {
             id: item.id,
             title: item.title,

@@ -15,7 +15,7 @@ import { AsyncPipe } from '@angular/common';
 import { EditorComponent } from '@drevo-web/editor';
 import { SpinnerComponent } from '@drevo-web/ui';
 import { ErrorComponent } from '../error/error.component';
-import { Article } from '@drevo-web/shared';
+import { ArticleVersion } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 // import { LinksService } from '../../services/links/links.service';
 import { LoggerService } from '@drevo-web/core';
@@ -42,7 +42,7 @@ export class ArticleEditComponent implements OnInit {
         Record<string, boolean>
     >({});
 
-    readonly article = signal<Article | undefined>(undefined);
+    readonly version = signal<ArticleVersion | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
@@ -59,40 +59,43 @@ export class ArticleEditComponent implements OnInit {
             )
             .subscribe(id => {
                 if (isNaN(id) || id <= 0) {
-                    this.article.set(undefined);
-                    this.error.set('Неверный ID статьи');
-                    this.logger.error('Invalid article ID', id);
+                    this.version.set(undefined);
+                    this.error.set('Неверный ID версии');
+                    this.logger.error('Invalid version ID', id);
                     this.isLoading.set(false);
                     return;
                 }
 
-                this.loadArticle(id);
+                this.loadVersion(id);
             });
     }
 
-    private loadArticle(id: number): void {
-        this.article.set(undefined);
+    private loadVersion(versionId: number): void {
+        this.version.set(undefined);
         this.isLoading.set(true);
         this.error.set(undefined);
 
         this.articleService
-            .getArticle(id)
+            .getArticleVersion(versionId)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: article => {
-                    this.article.set(article);
+                next: version => {
+                    this.version.set(version);
                     this.isLoading.set(false);
-                    this.logger.info('Article loaded for editing', {
-                        id: article.articleId,
-                        title: article.title,
+                    this.logger.info('Version loaded for editing', {
+                        versionId: version.versionId,
+                        articleId: version.articleId,
+                        title: version.title,
                     });
                 },
                 error: (err: HttpErrorResponse) => {
-                    this.article.set(undefined);
+                    this.version.set(undefined);
                     if (err.status === 404) {
-                        this.error.set('Статья не найдена');
+                        this.error.set('Версия не найдена');
+                    } else if (err.status === 403) {
+                        this.error.set('Доступ запрещён');
                     } else {
-                        this.error.set('Ошибка загрузки статьи');
+                        this.error.set('Ошибка загрузки версии');
                     }
                     this.isLoading.set(false);
                 },
