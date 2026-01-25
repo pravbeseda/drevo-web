@@ -10,7 +10,7 @@ export interface ArticleVersion extends Article {
     readonly date: Date;
     readonly redirect: boolean;
     readonly new: boolean;
-    readonly approved: boolean;
+    readonly approved: number;
     readonly info: string;
     readonly comment: string;
 }

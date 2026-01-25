@@ -32,7 +32,7 @@ export interface ArticleVersionDto extends ArticlePageDto {
     readonly content: string;
     readonly author: string;
     readonly date: string; // ISO 8601 format
-    readonly approved: boolean;
+    readonly approved: number; // 0, -1, 1
     readonly new: boolean;
     readonly info: string;
     readonly comment: string;

@@ -19,12 +19,10 @@ describe('ArticleEditComponent', () => {
         author: 'Test Author',
         date: new Date('2024-01-15T10:00:00Z'),
         redirect: false,
-        approved: true,
+        approved: 1,
         info: 'Test info',
-        editor: 'Test Editor',
-        edited: new Date('2024-01-16T10:00:00Z'),
         comment: 'Test comment',
-    };
+    } as ArticleVersion;
 
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
@@ -92,7 +90,9 @@ describe('ArticleEditComponent', () => {
                 versionId: 789,
                 title: 'Another Version',
             };
-            articleService.getArticleVersion.mockReturnValue(of(anotherVersion));
+            articleService.getArticleVersion.mockReturnValue(
+                of(anotherVersion)
+            );
 
             paramMapSubject.next(convertToParamMap({ id: '789' }));
 
@@ -115,7 +115,9 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Ошибка загрузки версии');
@@ -136,7 +138,9 @@ describe('ArticleEditComponent', () => {
                 status: 404,
                 statusText: 'Not Found',
             });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Версия не найдена');
@@ -151,7 +155,9 @@ describe('ArticleEditComponent', () => {
                 status: 403,
                 statusText: 'Forbidden',
             });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Доступ запрещён');
@@ -163,7 +169,9 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Ошибка загрузки версии');
@@ -177,7 +185,9 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
+            articleService.getArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
 
             paramMapSubject.next(convertToParamMap({ id: '789' }));
 
