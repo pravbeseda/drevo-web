@@ -1,6 +1,9 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
-import { ArticleSearchResponseApi, ArticleDetailApi } from '@drevo-web/shared';
+import {
+    ArticlePreparedVersionDto,
+    ArticleSearchResponseDto,
+} from '@drevo-web/shared';
 import { ArticleService } from './article.service';
 import { ArticleApiService } from './article-api.service';
 
@@ -21,7 +24,7 @@ describe('ArticleService', () => {
     });
 
     describe('getArticle', () => {
-        const mockApiResponse: ArticleDetailApi = {
+        const mockApiResponse: ArticlePreparedVersionDto = {
             articleId: 123,
             versionId: 456,
             title: 'Test Article',
@@ -29,7 +32,7 @@ describe('ArticleService', () => {
             author: 'Test Author',
             date: '2024-01-15T10:00:00+00:00',
             redirect: 0,
-        };
+        } as ArticlePreparedVersionDto;
 
         it('should call articleApiService.getArticle with correct id', () => {
             articleApiService.getArticle.mockReturnValue(of(mockApiResponse));
@@ -66,7 +69,7 @@ describe('ArticleService', () => {
         });
 
         it('should map redirect=1 to true', done => {
-            const redirectArticle: ArticleDetailApi = {
+            const redirectArticle: ArticlePreparedVersionDto = {
                 ...mockApiResponse,
                 redirect: 1,
             };
@@ -79,7 +82,7 @@ describe('ArticleService', () => {
         });
 
         it('should transform article links removing .html extension', done => {
-            const articleWithLinks: ArticleDetailApi = {
+            const articleWithLinks: ArticlePreparedVersionDto = {
                 ...mockApiResponse,
                 content:
                     '<a class="existlink" href="/articles/8.html">Link</a>',
@@ -95,7 +98,7 @@ describe('ArticleService', () => {
         });
 
         it('should transform multiple article links', done => {
-            const articleWithLinks: ArticleDetailApi = {
+            const articleWithLinks: ArticlePreparedVersionDto = {
                 ...mockApiResponse,
                 content:
                     '<p><a href="/articles/1.html">First</a> and <a href="/articles/999.html">Second</a></p>',
@@ -111,7 +114,7 @@ describe('ArticleService', () => {
         });
 
         it('should not transform non-article links', done => {
-            const articleWithLinks: ArticleDetailApi = {
+            const articleWithLinks: ArticlePreparedVersionDto = {
                 ...mockApiResponse,
                 content:
                     '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
@@ -127,7 +130,7 @@ describe('ArticleService', () => {
         });
 
         it('should transform article links with anchor fragments', done => {
-            const articleWithLinks: ArticleDetailApi = {
+            const articleWithLinks: ArticlePreparedVersionDto = {
                 ...mockApiResponse,
                 content: '<a href="/articles/8.html#S22">Link with anchor</a>',
             };
@@ -144,7 +147,7 @@ describe('ArticleService', () => {
 
     describe('searchArticles', () => {
         it('should call articleApiService.searchArticles with correct params', () => {
-            const mockApiResponse: ArticleSearchResponseApi = {
+            const mockApiResponse: ArticleSearchResponseDto = {
                 items: [{ id: 1, title: 'Test Article' }],
                 total: 1,
                 page: 1,
@@ -165,7 +168,7 @@ describe('ArticleService', () => {
         });
 
         it('should use custom page and pageSize when provided', () => {
-            const mockApiResponse: ArticleSearchResponseApi = {
+            const mockApiResponse: ArticleSearchResponseDto = {
                 items: [],
                 total: 0,
                 page: 2,
@@ -188,7 +191,7 @@ describe('ArticleService', () => {
         });
 
         it('should map API response to frontend model', done => {
-            const mockApiResponse: ArticleSearchResponseApi = {
+            const mockApiResponse: ArticleSearchResponseDto = {
                 items: [
                     { id: 1, title: 'Article 1' },
                     { id: 2, title: 'Article 2' },
@@ -220,7 +223,7 @@ describe('ArticleService', () => {
         });
 
         it('should handle empty results', done => {
-            const mockApiResponse: ArticleSearchResponseApi = {
+            const mockApiResponse: ArticleSearchResponseDto = {
                 items: [],
                 total: 0,
                 page: 1,

@@ -2,15 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-    Article,
     ArticleVersion,
-    ArticleDetailApi,
-    ArticleVersionDetailApi,
-    ArticleSearchResponseApi,
-    ArticleSearchResultApi,
+    ArticleSearchResponseDto,
+    ArticleSearchResultDto,
     ArticleSearchResponse,
     ArticleSearchResult,
     ArticleSearchParams,
+    ArticleVersionDto,
 } from '@drevo-web/shared';
 import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
@@ -34,10 +32,10 @@ export class ArticleService {
      * @param id - Article ID
      * @returns Observable with mapped article
      */
-    getArticle(id: number): Observable<Article> {
+    getArticle(id: number): Observable<ArticleVersion> {
         return this.articleApiService
             .getArticle(id)
-            .pipe(map(response => this.mapArticle(response)));
+            .pipe(map(response => this.mapArticleVersion(response)));
     }
 
     /**
@@ -72,7 +70,7 @@ export class ArticleService {
             .pipe(map(response => this.mapSearchResponse(response)));
     }
 
-    private mapArticle(response: ArticleDetailApi): Article {
+    private mapArticleVersion(response: ArticleVersionDto): ArticleVersion {
         return {
             articleId: response.articleId,
             versionId: response.versionId,
@@ -81,22 +79,9 @@ export class ArticleService {
             author: response.author,
             date: new Date(response.date),
             redirect: response.redirect === 1,
-        };
-    }
-
-    private mapArticleVersion(response: ArticleVersionDetailApi): ArticleVersion {
-        return {
-            articleId: response.articleId,
-            versionId: response.versionId,
-            title: response.title,
-            content: response.content,
-            author: response.author,
-            date: new Date(response.date),
-            redirect: response.redirect === 1,
+            new: response.new,
             approved: response.approved,
             info: response.info,
-            editor: response.editor,
-            edited: response.edited ? new Date(response.edited) : undefined,
             comment: response.comment,
         };
     }
@@ -115,7 +100,7 @@ export class ArticleService {
     }
 
     private mapSearchResponse(
-        response: ArticleSearchResponseApi
+        response: ArticleSearchResponseDto
     ): ArticleSearchResponse {
         return {
             items: response.items.map(item => this.mapSearchResult(item)),
@@ -126,7 +111,7 @@ export class ArticleService {
         };
     }
 
-    private mapSearchResult(item: ArticleSearchResultApi): ArticleSearchResult {
+    private mapSearchResult(item: ArticleSearchResultDto): ArticleSearchResult {
         return {
             id: item.id,
             title: item.title,

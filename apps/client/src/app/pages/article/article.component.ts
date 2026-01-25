@@ -14,7 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
 import { ErrorComponent } from '../error/error.component';
-import { Article } from '@drevo-web/shared';
+import { ArticleVersion } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
 import { distinctUntilChanged, map } from 'rxjs/operators';
@@ -41,7 +41,7 @@ export class ArticleComponent implements OnInit {
     private readonly logger =
         inject(LoggerService).withContext('ArticleComponent');
 
-    readonly article = signal<Article | undefined>(undefined);
+    readonly article = signal<ArticleVersion | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
     readonly editUrl = computed(() => {

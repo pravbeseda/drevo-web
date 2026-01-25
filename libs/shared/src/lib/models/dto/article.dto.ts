@@ -33,44 +33,17 @@ export interface ArticleVersionDto extends ArticlePageDto {
     readonly author: string;
     readonly date: string; // ISO 8601 format
     readonly approved: boolean;
+    readonly new: boolean;
     readonly info: string;
-    readonly editor: string;
-    readonly edited: string | undefined;
     readonly comment: string;
 }
 
 /**
  * Prepared article version with formatted content
  * Extends ArticleVersionDto with pre-formatted HTML content
- * Used for article viewing
+ * Temporary used for article viewing
+ * Should be deleted after releasing client Formatter
  */
 export interface ArticlePreparedVersionDto extends ArticleVersionDto {
     readonly formattedContent: string;
 }
-
-// =============================================================================
-// Backward compatibility aliases
-// These match the current backend response structure.
-// TODO: Remove after backend is updated to return ArticlePreparedVersionDto
-// =============================================================================
-
-/**
- * @deprecated Use ArticlePreparedVersionDto when backend is updated
- * Current backend response for article viewing (/api/articles/show/{id})
- * Returns formatted content in 'content' field, missing version metadata
- */
-export interface ArticleDetailApi {
-    readonly articleId: number;
-    readonly versionId: number;
-    readonly title: string;
-    readonly content: string; // formatted HTML (should be formattedContent)
-    readonly author: string;
-    readonly date: string;
-    readonly redirect: number;
-}
-
-/**
- * @deprecated Alias for ArticleVersionDto
- * Current backend response for article editing (/api/articles/version/{id})
- */
-export type ArticleVersionDetailApi = ArticleVersionDto;

@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
     ApiResponse,
-    ArticleSearchResponseApi,
-    ArticleDetailApi,
-    ArticleVersionDetailApi,
+    ArticlePreparedVersionDto,
+    ArticleSearchResponseDto,
+    ArticleVersionDto,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { environment } from '../../../environments/environment';
@@ -34,10 +34,10 @@ export class ArticleApiService {
      * @param id - Article ID
      * @returns Observable with raw API response
      */
-    getArticle(id: number): Observable<ArticleDetailApi> {
+    getArticle(id: number): Observable<ArticlePreparedVersionDto> {
         return this.http
             .get<
-                ApiResponse<ArticleDetailApi>
+                ApiResponse<ArticlePreparedVersionDto>
             >(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
             .pipe(
                 map(response => {
@@ -56,10 +56,10 @@ export class ArticleApiService {
      * @param versionId - Version ID
      * @returns Observable with raw API response containing version details
      */
-    getArticleVersion(versionId: number): Observable<ArticleVersionDetailApi> {
+    getArticleVersion(versionId: number): Observable<ArticleVersionDto> {
         return this.http
             .get<
-                ApiResponse<ArticleVersionDetailApi>
+                ApiResponse<ArticleVersionDto>
             >(`${this.apiUrl}/api/articles/version/${versionId}`, { withCredentials: true })
             .pipe(
                 map(response => {
@@ -84,7 +84,7 @@ export class ArticleApiService {
         query = '',
         page = 1,
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE
-    ): Observable<ArticleSearchResponseApi> {
+    ): Observable<ArticleSearchResponseDto> {
         let params = new HttpParams()
             .set('page', page.toString())
             .set('size', pageSize.toString());
@@ -96,7 +96,7 @@ export class ArticleApiService {
 
         return this.http
             .get<
-                ApiResponse<ArticleSearchResponseApi>
+                ApiResponse<ArticleSearchResponseDto>
             >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
             .pipe(
                 map(response => {
