@@ -8,8 +8,7 @@
  *
  * Hierarchy:
  * - ArticlePageDto: page fields only (search results)
- * - ArticleVersionDto: page + version fields (editing)
- * - ArticlePreparedVersionDto: page + version + formatted content (viewing)
+ * - ArticleVersionDto: page + version fields
  */
 
 /**
@@ -29,21 +28,11 @@ export interface ArticlePageDto {
  */
 export interface ArticleVersionDto extends ArticlePageDto {
     readonly versionId: number;
-    readonly content: string;
+    readonly content: string; // can be formatted (/api/articles/show/{id}) or raw
     readonly author: string;
     readonly date: string; // ISO 8601 format
     readonly approved: number; // 0, -1, 1
     readonly new: boolean;
     readonly info: string;
     readonly comment: string;
-}
-
-/**
- * Prepared article version with formatted content
- * Extends ArticleVersionDto with pre-formatted HTML content
- * Temporarily used for article viewing
- * Should be deleted after releasing client Formatter
- */
-export interface ArticlePreparedVersionDto extends ArticleVersionDto {
-    readonly formattedContent: string;
 }

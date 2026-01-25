@@ -51,7 +51,7 @@
                     [href]="action.href"
                     [disabled]="action.disabled"
                     (clicked)="
-                        !action.href ? handleSpeedDialAction(action) : null
+                        action.href ? undefined : handleSpeedDialAction(action)
                     " />
             }
         </div>

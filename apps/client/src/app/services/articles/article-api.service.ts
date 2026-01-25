@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
     ApiResponse,
-    ArticlePreparedVersionDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
     assertIsDefined,
@@ -34,10 +33,10 @@ export class ArticleApiService {
      * @param id - Article ID
      * @returns Observable with raw API response
      */
-    getArticle(id: number): Observable<ArticlePreparedVersionDto> {
+    getArticle(id: number): Observable<ArticleVersionDto> {
         return this.http
             .get<
-                ApiResponse<ArticlePreparedVersionDto>
+                ApiResponse<ArticleVersionDto>
             >(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
             .pipe(
                 map(response => {
