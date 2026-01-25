@@ -7,7 +7,7 @@
             [priority]="action.priority"
             [href]="action.href"
             [disabled]="action.disabled"
-            (clicked)="action.action?.()" />
+            (clicked)="action.href ? undefined : action.action?.()" />
     }
 </div>
 
