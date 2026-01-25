@@ -22,7 +22,11 @@
             [showTooltip]="false"
             [href]="primaryActions()[0].href"
             [disabled]="primaryActions()[0].disabled"
-            (clicked)="primaryActions()[0].action?.()" />
+            (clicked)="
+                primaryActions()[0].href
+                    ? undefined
+                    : primaryActions()[0].action?.()
+            " />
     }
 
     @if (secondaryActions().length > 0) {
@@ -46,7 +50,9 @@
                     [showLabel]="true"
                     [href]="action.href"
                     [disabled]="action.disabled"
-                    (clicked)="handleSpeedDialAction(action)" />
+                    (clicked)="
+                        !action.href ? handleSpeedDialAction(action) : null
+                    " />
             }
         </div>
     }
