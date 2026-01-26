@@ -1,6 +1,6 @@
-[![Coverage](https://img.shields.io/endpoint?url=https://pravbeseda.github.io/drevo-web/badge.json)](https://pravbeseda.github.io/drevo-web/)
-
 # Drevo Web
+
+[![Coverage](https://img.shields.io/endpoint?url=https://pravbeseda.github.io/drevo-web/badge.json)](https://pravbeseda.github.io/drevo-web/)
 
 Modern web application for Drevo project, built with Angular and Node.js. This is a gradual migration from the legacy Yii1 application.
 
