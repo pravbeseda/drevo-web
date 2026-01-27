@@ -13,9 +13,11 @@ import { BehaviorSubject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 
 import { EditorComponent } from '@drevo-web/editor';
-import { SpinnerComponent } from '@drevo-web/ui';
+import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
 import { ErrorComponent } from '../error/error.component';
+import { Router } from '@angular/router';
 import { ArticleVersion } from '@drevo-web/shared';
+import { NotificationService } from '@drevo-web/core';
 import { ArticleService } from '../../services/articles';
 // import { LinksService } from '../../services/links/links.service';
 import { LoggerService } from '@drevo-web/core';
@@ -23,7 +25,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent],
+    imports: [
+        EditorComponent,
+        SpinnerComponent,
+        AsyncPipe,
+        ErrorComponent,
+        SidebarActionDirective,
+    ],
     // providers: [LinksService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
@@ -31,12 +39,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class ArticleEditComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
+    private readonly notificationService = inject(NotificationService);
     // private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext(
         'ArticleEditComponent'
     );
+
+    private currentContent: string | undefined = undefined;
 
     private readonly updateLinksStateSubject = new BehaviorSubject<
         Record<string, boolean>
@@ -44,6 +56,7 @@ export class ArticleEditComponent implements OnInit {
 
     readonly version = signal<ArticleVersion | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
+    readonly isSaving = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
@@ -112,6 +125,71 @@ export class ArticleEditComponent implements OnInit {
     }
 
     contentChanged(content: string): void {
+        this.currentContent = content;
         this.logger.debug('Content changed', { length: content.length });
+    }
+
+    save(): void {
+        const version = this.version();
+        if (!version || this.isSaving()) {
+            return;
+        }
+
+        const content = this.currentContent ?? version.content;
+
+        if (content === version.content) {
+            this.notificationService.info('Нет изменений для сохранения');
+            return;
+        }
+
+        this.isSaving.set(true);
+        this.logger.info('Saving article', {
+            versionId: version.versionId,
+            articleId: version.articleId,
+            contentLength: content.length,
+        });
+
+        this.articleService
+            .saveArticleVersion({
+                versionId: version.versionId,
+                content,
+            })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: result => {
+                    this.isSaving.set(false);
+                    this.logger.info('Article saved', {
+                        newVersionId: result.versionId,
+                        articleId: result.articleId,
+                    });
+                    this.notificationService.success('Статья сохранена');
+                    this.router.navigate(['/articles', result.articleId]);
+                },
+                error: (err: HttpErrorResponse) => {
+                    this.isSaving.set(false);
+                    this.logger.error('Failed to save article', err);
+
+                    let errorMessage = 'Ошибка сохранения';
+                    if (err.status === 401) {
+                        errorMessage = 'Необходима авторизация';
+                    } else if (err.status === 403) {
+                        errorMessage =
+                            err.error?.error || 'Нет прав для сохранения';
+                    } else if (err.error?.error) {
+                        errorMessage = err.error.error;
+                    }
+
+                    this.notificationService.error(errorMessage);
+                },
+            });
+    }
+
+    cancel(): void {
+        const version = this.version();
+        if (version) {
+            this.router.navigate(['/articles', version.articleId]);
+        } else {
+            this.router.navigate(['/']);
+        }
     }
 }

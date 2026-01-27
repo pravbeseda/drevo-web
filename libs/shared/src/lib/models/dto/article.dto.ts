@@ -36,3 +36,25 @@ export interface ArticleVersionDto extends ArticlePageDto {
     readonly info: string;
     readonly comment: string;
 }
+
+/**
+ * Request body for saving article version
+ */
+export interface SaveArticleVersionRequestDto {
+    readonly versionId: number;
+    readonly content: string;
+    readonly info?: string;
+}
+
+/**
+ * Response from saving article version
+ */
+export interface SaveArticleVersionResponseDto {
+    readonly articleId: number;
+    readonly versionId: number;
+    readonly title: string;
+    readonly content: string;
+    readonly author: string;
+    readonly date: string;
+    readonly approved: number;
+}

@@ -6,6 +6,8 @@ import {
     ApiResponse,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    SaveArticleVersionRequestDto,
+    SaveArticleVersionResponseDto,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { environment } from '../../../environments/environment';
@@ -97,6 +99,30 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleSearchResponseDto>
             >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Save article version
+     *
+     * @param request - Save request with versionId, content, and optional info
+     * @returns Observable with raw API response
+     */
+    saveArticleVersion(
+        request: SaveArticleVersionRequestDto
+    ): Observable<SaveArticleVersionResponseDto> {
+        return this.http
+            .post<
+                ApiResponse<SaveArticleVersionResponseDto>
+            >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(

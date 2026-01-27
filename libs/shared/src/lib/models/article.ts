@@ -14,3 +14,24 @@ export interface ArticleVersion extends Article {
     readonly info: string;
     readonly comment: string;
 }
+
+/**
+ * Request for saving article version
+ */
+export interface SaveArticleVersionRequest {
+    readonly versionId: number;
+    readonly content: string;
+    readonly info?: string;
+}
+
+/**
+ * Result of saving article version
+ */
+export interface SaveArticleVersionResult {
+    readonly articleId: number;
+    readonly versionId: number;
+    readonly title: string;
+    readonly author: string;
+    readonly date: Date;
+    readonly approved: number;
+}
