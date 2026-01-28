@@ -28,8 +28,6 @@ import {
     createSentryLogProvider,
 } from '@drevo-web/core';
 
-
-
 const routesTracing = false;
 
 // Build log providers array based on environment

@@ -11,17 +11,14 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute , Router } from '@angular/router';
-import { NotificationService , LoggerService } from '@drevo-web/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NotificationService, LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
 import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
-
-
 // import { LinksService } from '../../services/links/links.service';
-
 
 @Component({
     selector: 'app-article-edit',

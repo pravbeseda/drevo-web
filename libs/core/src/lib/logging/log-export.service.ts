@@ -4,7 +4,6 @@ import { NotificationService } from '../services/notification.service';
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 
-
 /**
  * Service for exporting logs as a downloadable CSV file
  */

@@ -14,9 +14,6 @@ import { EditorComponent } from '@drevo-web/editor';
 import { InsertTagCommand } from '@drevo-web/shared';
 import { BehaviorSubject, first, Observable, Subject, map } from 'rxjs';
 
-
-
-
 interface EditorConfig {
     content: string;
 }

@@ -7,9 +7,6 @@ import { ModalService } from '@drevo-web/ui';
 import { AuthService } from '../../services/auth/auth.service';
 import { HeaderComponent } from './header.component';
 
-
-
-
 describe('HeaderComponent', () => {
     let spectator: Spectator<HeaderComponent>;
     const createComponent = createComponentFactory({

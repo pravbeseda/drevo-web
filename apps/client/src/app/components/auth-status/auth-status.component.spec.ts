@@ -5,8 +5,6 @@ import { User } from '@drevo-web/shared';
 import { AuthService } from '../../services/auth/auth.service';
 import { AuthStatusComponent } from './auth-status.component';
 
-
-
 describe('AuthStatusComponent', () => {
     let spectator: Spectator<AuthStatusComponent>;
     let userSubject: BehaviorSubject<User | undefined>;
