@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
     ArticleSearchResponseDto,
@@ -119,10 +120,12 @@ export class ArticleApiService {
     saveArticleVersion(
         request: SaveArticleVersionRequestDto
     ): Observable<SaveArticleVersionResponseDto> {
+        const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
+
         return this.http
             .post<
                 ApiResponse<SaveArticleVersionResponseDto>
-            >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true })
+            >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true, context })
             .pipe(
                 map(response => {
                     assertIsDefined(
