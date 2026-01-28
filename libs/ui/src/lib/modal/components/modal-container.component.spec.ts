@@ -1,7 +1,7 @@
-import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { Component, Type, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { By } from '@angular/platform-browser';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { LoggerService } from '@drevo-web/core';
 import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { MODAL_DATA } from '../models/modal.tokens';
@@ -49,7 +49,7 @@ describe('ModalContainerComponent', () => {
     };
 
     it('should show spinner while component is loading', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
+         
         let resolveLoader: (
             component: Type<TestModalComponent>
         ) => void = () => {};

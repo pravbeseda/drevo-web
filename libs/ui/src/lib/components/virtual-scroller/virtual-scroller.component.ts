@@ -1,3 +1,11 @@
+import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
+import { SpinnerComponent } from '../spinner/spinner.component';
+import {
+    CdkVirtualForOf,
+    CdkVirtualScrollViewport,
+} from '@angular/cdk/scrolling';
+import { CdkAutoSizeVirtualScroll } from '@angular/cdk-experimental/scrolling';
+import { NgTemplateOutlet } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -10,16 +18,8 @@ import {
     output,
     viewChild,
 } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-    CdkVirtualForOf,
-    CdkVirtualScrollViewport,
-} from '@angular/cdk/scrolling';
-import { CdkAutoSizeVirtualScroll } from '@angular/cdk-experimental/scrolling';
 import { filter, throttleTime } from 'rxjs';
-import { SpinnerComponent } from '../spinner/spinner.component';
-import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 
 export { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 

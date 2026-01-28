@@ -1,7 +1,7 @@
 // list-commands.spec.ts
 import { EditorState } from '@codemirror/state';
-import { continueLists } from './list-commands';
 import { EditorView, keymap } from '@codemirror/view';
+import { continueLists } from './list-commands';
 
 type Case = { title: string; prev: string; next: string };
 

@@ -3,9 +3,9 @@ import {
     SpectatorDirective,
     SpyObject,
 } from '@ngneat/spectator/jest';
-import { SidebarActionDirective } from './sidebar-action.directive';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
+import { SidebarActionDirective } from './sidebar-action.directive';
 
 describe('SidebarActionDirective', () => {
     let spectator: SpectatorDirective<SidebarActionDirective>;

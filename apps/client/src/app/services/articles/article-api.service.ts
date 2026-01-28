@@ -1,7 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { environment } from '../../../environments/environment';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
@@ -11,8 +11,8 @@ import {
     SaveArticleVersionResponseDto,
     assertIsDefined,
 } from '@drevo-web/shared';
-import { environment } from '../../../environments/environment';
-import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * Low-level API service for article-related HTTP requests.

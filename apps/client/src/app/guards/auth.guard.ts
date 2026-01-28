@@ -1,10 +1,10 @@
-import { inject, PLATFORM_ID } from '@angular/core';
+import { AuthService } from '../services/auth/auth.service';
 import { isPlatformBrowser } from '@angular/common';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { isValidReturnUrl } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
-import { AuthService } from '../services/auth/auth.service';
-import { isValidReturnUrl } from '@drevo-web/shared';
 
 export const authGuard: CanActivateFn = (
     _route,

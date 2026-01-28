@@ -1,9 +1,9 @@
-import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { provideRouter } from '@angular/router';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { delay, of, throwError } from 'rxjs';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui';
 import { ArticleService } from '../../services/articles';
 import { SearchComponent } from './search.component';
-import { MODAL_DATA, ModalData } from '@drevo-web/ui';
 
 const DEBOUNCE_TIME_MS = 500;
 

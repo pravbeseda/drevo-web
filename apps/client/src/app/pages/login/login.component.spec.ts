@@ -1,16 +1,16 @@
-import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { LoginComponent } from './login.component';
-import { AuthService } from '../../services/auth/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { of, throwError } from 'rxjs';
 import {
     TextInputComponent,
     CheckboxComponent,
     ButtonComponent,
 } from '@drevo-web/ui';
+import { AuthService } from '../../services/auth/auth.service';
+import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
     let spectator: Spectator<LoginComponent>;

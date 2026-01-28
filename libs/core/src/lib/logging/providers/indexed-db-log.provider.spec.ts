@@ -1,5 +1,5 @@
-import { IndexedDBLogProvider } from './indexed-db-log.provider';
 import { LogEntry } from '../log-provider.interface';
+import { IndexedDBLogProvider } from './indexed-db-log.provider';
 
 /**
  * Tests for IndexedDBLogProvider

@@ -1,5 +1,5 @@
-import { SentryLogProvider } from './sentry-log.provider';
 import { LogEntry, LogLevel } from '../log-provider.interface';
+import { SentryLogProvider } from './sentry-log.provider';
 
 // Mock Sentry module
 jest.mock('@sentry/angular', () => ({

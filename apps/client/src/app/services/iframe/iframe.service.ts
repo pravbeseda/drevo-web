@@ -1,7 +1,7 @@
-import { inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
+import { inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { InsertTagCommand } from '@drevo-web/shared';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 
 const allowedOrigins = [
     'http://drevo-local.ru',

@@ -1,5 +1,5 @@
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { provideRouter } from '@angular/router';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ErrorComponent } from './error.component';
 
 describe('ErrorComponent', () => {

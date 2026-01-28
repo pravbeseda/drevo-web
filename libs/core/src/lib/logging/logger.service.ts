@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
 import { LogDispatcher } from './log-dispatcher.service';
 import { LogLevel } from './log-provider.interface';
+import { Injectable, inject } from '@angular/core';
 
 /**
  * Logger interface matching console API

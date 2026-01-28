@@ -1,8 +1,7 @@
-import { SpectatorHost, createHostFactory } from '@ngneat/spectator/jest';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { fakeAsync, tick } from '@angular/core/testing';
+import { SpectatorHost, createHostFactory } from '@ngneat/spectator/jest';
 import { Subject } from 'rxjs';
-
 import { VirtualScrollerComponent } from './virtual-scroller.component';
 
 interface TestItem {

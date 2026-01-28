@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 import {
     ApplicationConfig,
     ErrorHandler,
@@ -6,7 +7,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import * as Sentry from '@sentry/angular';
-import { environment } from '../environments/environment';
 
 /**
  * Browser-specific configuration that should NOT be included in SSR.

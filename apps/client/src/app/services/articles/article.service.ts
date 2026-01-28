@@ -1,6 +1,6 @@
+import { ArticleApiService } from './article-api.service';
+import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
     ArticleVersion,
     ArticleSearchResponseDto,
@@ -13,8 +13,8 @@ import {
     SaveArticleVersionResult,
     SaveArticleVersionResponseDto,
 } from '@drevo-web/shared';
-import { ArticleApiService } from './article-api.service';
-import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * Main service for article-related operations.

@@ -9,14 +9,14 @@ import {
     HttpMethod,
     SpectatorHttp,
 } from '@ngneat/spectator/jest';
-import { ErrorNotificationInterceptor } from './error-notification.interceptor';
 import { NotificationService } from '../services/notification.service';
-import { HttpErrorMapperService } from './http-error-mapper.service';
+import { ErrorNotificationInterceptor } from './error-notification.interceptor';
 import {
     SKIP_ERROR_NOTIFICATION,
     CUSTOM_ERROR_MESSAGE,
     SKIP_ERROR_FOR_STATUSES,
 } from './http-context-tokens';
+import { HttpErrorMapperService } from './http-error-mapper.service';
 
 /**
  * Dummy service to make HTTP requests through the interceptor.

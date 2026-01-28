@@ -1,9 +1,11 @@
+import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { BehaviorSubject, of, throwError } from 'rxjs';
-import { provideRouter } from '@angular/router';
-import { AuthStatusComponent } from './auth-status.component';
-import { AuthService } from '../../services/auth/auth.service';
 import { User } from '@drevo-web/shared';
+import { AuthService } from '../../services/auth/auth.service';
+import { AuthStatusComponent } from './auth-status.component';
+
+
 
 describe('AuthStatusComponent', () => {
     let spectator: Spectator<AuthStatusComponent>;

@@ -1,3 +1,7 @@
+import { ArticleService } from '../../services/articles';
+import { ErrorComponent } from '../error/error.component';
+import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -7,21 +11,17 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import { distinctUntilChanged, map } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
-
+import { ActivatedRoute , Router } from '@angular/router';
+import { NotificationService , LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
-import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
-import { ErrorComponent } from '../error/error.component';
-import { Router } from '@angular/router';
 import { ArticleVersion } from '@drevo-web/shared';
-import { NotificationService } from '@drevo-web/core';
-import { ArticleService } from '../../services/articles';
+import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
+
+
 // import { LinksService } from '../../services/links/links.service';
-import { LoggerService } from '@drevo-web/core';
-import { HttpErrorResponse } from '@angular/common/http';
+
 
 @Component({
     selector: 'app-article-edit',

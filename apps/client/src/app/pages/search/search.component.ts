@@ -1,3 +1,4 @@
+import { ArticleService } from '../../services/articles';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -8,8 +9,8 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { RouterLink } from '@angular/router';
+import { ArticleSearchResult } from '@drevo-web/shared';
 import {
     SpinnerComponent,
     TextInputComponent,
@@ -19,7 +20,6 @@ import {
     MODAL_DATA,
     ModalData,
 } from '@drevo-web/ui';
-import { ArticleSearchResult } from '@drevo-web/shared';
 import {
     catchError,
     debounceTime,
@@ -31,7 +31,6 @@ import {
     switchMap,
     tap,
 } from 'rxjs';
-import { ArticleService } from '../../services/articles';
 
 const DEBOUNCE_TIME_MS = 500;
 

@@ -1,5 +1,6 @@
 import nx from '@nx/eslint-plugin';
 import noNull from 'eslint-plugin-no-null';
+import importPlugin from 'eslint-plugin-import';
 
 export default [
     ...nx.configs['flat/base'],
@@ -10,7 +11,22 @@ export default [
     },
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+        plugins: {
+            import: importPlugin,
+        },
         rules: {
+            'import/no-duplicates': 'error',
+            'import/order': [
+                'error',
+                {
+                    groups: [['builtin', 'external', 'internal', 'parent', 'sibling', 'index']],
+                    'newlines-between': 'never',
+                    alphabetize: {
+                        order: 'asc',
+                        caseInsensitive: true,
+                    },
+                },
+            ],
             '@nx/enforce-module-boundaries': [
                 'error',
                 {
@@ -47,6 +63,7 @@ export default [
         rules: {
             '@typescript-eslint/no-empty-function': 'off',
             '@typescript-eslint/no-non-null-assertion': 'off',
+            'import/order': 'off',
         },
     },
     {

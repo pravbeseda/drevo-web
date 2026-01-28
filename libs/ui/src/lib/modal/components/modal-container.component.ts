@@ -1,3 +1,6 @@
+import { SpinnerComponent } from '../../components/spinner/spinner.component';
+import { MODAL_DATA } from '../models/modal.tokens';
+import { LazyComponentLoader, ModalData } from '../models/modal.types';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -9,9 +12,6 @@ import {
     viewChild,
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { SpinnerComponent } from '../../components/spinner/spinner.component';
-import { MODAL_DATA } from '../models/modal.tokens';
-import { LazyComponentLoader, ModalData } from '../models/modal.types';
 import { LoggerService } from '@drevo-web/core';
 
 interface LazyModalData<TData = unknown> {

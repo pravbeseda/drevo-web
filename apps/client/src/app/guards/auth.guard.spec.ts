@@ -1,19 +1,19 @@
-import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
-import {
-    ActivatedRouteSnapshot,
-    Router,
-    RouterStateSnapshot,
-    UrlTree,
-} from '@angular/router';
 import {
     PLATFORM_ID,
     EnvironmentInjector,
     runInInjectionContext,
     Injectable,
 } from '@angular/core';
+import {
+    ActivatedRouteSnapshot,
+    Router,
+    RouterStateSnapshot,
+    UrlTree,
+} from '@angular/router';
+import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { BehaviorSubject, isObservable, firstValueFrom } from 'rxjs';
-import { authGuard } from './auth.guard';
 import { AuthService } from '../services/auth/auth.service';
+import { authGuard } from './auth.guard';
 
 /**
  * Dummy service to bootstrap Spectator's injection context

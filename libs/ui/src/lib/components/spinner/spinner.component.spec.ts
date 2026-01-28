@@ -1,6 +1,6 @@
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { SpinnerComponent } from './spinner.component';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 describe('SpinnerComponent', () => {
     let spectator: Spectator<SpinnerComponent>;

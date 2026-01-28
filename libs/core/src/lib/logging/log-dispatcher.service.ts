@@ -1,5 +1,3 @@
-import { inject, Injectable, InjectionToken, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import {
     LogEntry,
     LogLevel,
@@ -9,6 +7,8 @@ import {
 } from './log-provider.interface';
 import { sanitizeLogEntry } from './log-sanitizer';
 import { ConsoleLogProvider } from './providers/console-log.provider';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, InjectionToken, PLATFORM_ID } from '@angular/core';
 
 /**
  * Injection token for log providers

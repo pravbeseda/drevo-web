@@ -1,7 +1,7 @@
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ButtonComponent } from './button.component';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { ButtonComponent } from './button.component';
 
 describe('ButtonComponent', () => {
     let spectator: Spectator<ButtonComponent>;

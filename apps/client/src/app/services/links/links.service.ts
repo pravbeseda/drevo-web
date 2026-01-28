@@ -1,7 +1,7 @@
-import { inject, Injectable } from '@angular/core';
-import { debounceTime, filter, map, Observable, of, switchMap } from 'rxjs';
 import { IframeService } from '../iframe/iframe.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { debounceTime, filter, map, Observable, of, switchMap } from 'rxjs';
 
 interface RawResponse {
     [key: string]: { isExist: boolean };

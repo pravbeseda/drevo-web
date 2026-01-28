@@ -1,6 +1,6 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { LoggerService } from './logger.service';
 import { LogDispatcher } from './log-dispatcher.service';
+import { LoggerService } from './logger.service';
 
 describe('LoggerService', () => {
     let spectator: SpectatorService<LoggerService>;

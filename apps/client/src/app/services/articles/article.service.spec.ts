@@ -5,8 +5,8 @@ import {
     ArticleVersionDto,
     SaveArticleVersionResponseDto,
 } from '@drevo-web/shared';
-import { ArticleService } from './article.service';
 import { ArticleApiService } from './article-api.service';
+import { ArticleService } from './article.service';
 
 describe('ArticleService', () => {
     let spectator: SpectatorService<ArticleService>;

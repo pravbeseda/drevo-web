@@ -1,8 +1,9 @@
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { LogDispatcher } from './log-dispatcher.service';
 import { LogEntry } from './log-provider.interface';
 import { NotificationService } from '../services/notification.service';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+
 
 /**
  * Service for exporting logs as a downloadable CSV file

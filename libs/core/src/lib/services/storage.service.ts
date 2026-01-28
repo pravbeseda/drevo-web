@@ -1,7 +1,7 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { LoggerService } from '../logging/logger.service';
 import { WINDOW } from '../tokens/window.token';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 
 /**
  * SSR-safe localStorage wrapper with JSON serialization support.

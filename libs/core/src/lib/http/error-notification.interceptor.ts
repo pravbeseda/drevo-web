@@ -1,4 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import {
+    SKIP_ERROR_NOTIFICATION,
+    CUSTOM_ERROR_MESSAGE,
+    SKIP_ERROR_FOR_STATUSES,
+} from './http-context-tokens';
+import { HttpErrorMapperService } from './http-error-mapper.service';
+import { NotificationService } from '../services/notification.service';
 import {
     HttpInterceptor,
     HttpRequest,
@@ -7,15 +13,9 @@ import {
     HttpErrorResponse,
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { NotificationService } from '../services/notification.service';
-import { HttpErrorMapperService } from './http-error-mapper.service';
-import {
-    SKIP_ERROR_NOTIFICATION,
-    CUSTOM_ERROR_MESSAGE,
-    SKIP_ERROR_FOR_STATUSES,
-} from './http-context-tokens';
 
 /**
  * HTTP interceptor that automatically shows toast notifications for HTTP errors.

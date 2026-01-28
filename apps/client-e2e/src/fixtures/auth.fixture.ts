@@ -21,9 +21,9 @@
  * ```
  */
 
-import { test as base, Page, Route } from '@playwright/test';
-import { User } from '@drevo-web/shared';
 import { apiPatterns, authResponses, mockUsers } from './api-mocks';
+import { User } from '@drevo-web/shared';
+import { test as base, Page, Route } from '@playwright/test';
 
 // ============================================================================
 // Types

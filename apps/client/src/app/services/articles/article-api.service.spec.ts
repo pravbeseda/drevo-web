@@ -1,9 +1,9 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { provideHttpClient } from '@angular/common/http';
 import {
     HttpTestingController,
     provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ArticleApiService } from './article-api.service';
 
 describe('ArticleApiService', () => {

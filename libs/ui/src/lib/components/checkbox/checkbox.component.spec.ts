@@ -1,6 +1,6 @@
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CheckboxComponent } from './checkbox.component';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('CheckboxComponent', () => {
     let spectator: Spectator<CheckboxComponent>;

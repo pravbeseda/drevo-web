@@ -1,6 +1,9 @@
-import { Injectable, Injector, PLATFORM_ID, inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Injectable, Injector, PLATFORM_ID, inject } from '@angular/core';
+import { LoggerService } from '@drevo-web/core';
+import { CsrfResponse } from '@drevo-web/shared';
 import { Observable, of, throwError } from 'rxjs';
 import {
     map,
@@ -10,9 +13,6 @@ import {
     retry,
     shareReplay,
 } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { CsrfResponse } from '@drevo-web/shared';
-import { LoggerService } from '@drevo-web/core';
 
 const CSRF_TIMEOUT_MS = 10000;
 const CSRF_RETRY_COUNT = 3;

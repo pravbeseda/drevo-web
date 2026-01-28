@@ -1,9 +1,9 @@
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
     createServiceFactory,
     SpectatorService,
     SpyObject,
 } from '@ngneat/spectator/jest';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from './notification.service';
 
 describe('NotificationService', () => {

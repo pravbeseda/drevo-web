@@ -1,10 +1,10 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { mergeApplicationConfig } from '@angular/core';
-import * as Sentry from '@sentry/angular';
+import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
 import { browserConfig } from './app/app.config.browser';
-import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
+import { mergeApplicationConfig } from '@angular/core';
+import { bootstrapApplication } from '@angular/platform-browser';
+import * as Sentry from '@sentry/angular';
 
 // Initialize Sentry as early as possible for global error catching
 if (environment.sentryDsn && environment.production) {
