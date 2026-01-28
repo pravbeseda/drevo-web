@@ -1,14 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
-import { ArticleVersion } from '@drevo-web/shared';
+import { NotificationService } from '@drevo-web/core';
+import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { ArticleEditComponent } from './article-edit.component';
 
 describe('ArticleEditComponent', () => {
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
+    let notificationService: jest.Mocked<NotificationService>;
+    let router: jest.Mocked<Router>;
     let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
     const mockVersion: ArticleVersion = {
@@ -26,7 +29,7 @@ describe('ArticleEditComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
-        mocks: [ArticleService],
+        mocks: [ArticleService, NotificationService, Router],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -44,6 +47,10 @@ describe('ArticleEditComponent', () => {
         articleService = spectator.inject(
             ArticleService
         ) as jest.Mocked<ArticleService>;
+        notificationService = spectator.inject(
+            NotificationService
+        ) as jest.Mocked<NotificationService>;
+        router = spectator.inject(Router) as jest.Mocked<Router>;
         articleService.getArticleVersion.mockReturnValue(of(mockVersion));
     });
 
@@ -223,6 +230,230 @@ describe('ArticleEditComponent', () => {
             expect(() => {
                 spectator.component.contentChanged('new content');
             }).not.toThrow();
+        });
+    });
+
+    describe('save method', () => {
+        const mockSaveResult: SaveArticleVersionResult = {
+            articleId: 123,
+            versionId: 999,
+            title: 'Test Article Title',
+            author: 'Test Author',
+            date: new Date('2024-01-15T10:00:00Z'),
+            approved: 0,
+        };
+
+        beforeEach(() => {
+            articleService.saveArticleVersion.mockReturnValue(of(mockSaveResult));
+        });
+
+        it('should not save when version is undefined', () => {
+            spectator.component.save();
+
+            expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+        });
+
+        it('should not save when already saving', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            articleService.saveArticleVersion.mockReturnValue(NEVER);
+            spectator.component.save();
+            spectator.component.save();
+
+            expect(articleService.saveArticleVersion).toHaveBeenCalledTimes(1);
+        });
+
+        it('should show info notification when content has not changed', () => {
+            spectator.detectChanges();
+
+            spectator.component.save();
+
+            expect(notificationService.info).toHaveBeenCalledWith(
+                'Нет изменений для сохранения'
+            );
+            expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+        });
+
+        it('should save when content has changed', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            spectator.component.save();
+
+            expect(articleService.saveArticleVersion).toHaveBeenCalledWith({
+                versionId: 456,
+                content: 'new content',
+            });
+        });
+
+        it('should set isSaving to true while saving', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+            articleService.saveArticleVersion.mockReturnValue(NEVER);
+
+            spectator.component.save();
+
+            expect(spectator.component.isSaving()).toBe(true);
+        });
+
+        it('should navigate to article page on successful save', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            spectator.component.save();
+
+            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
+        });
+
+        it('should show success notification on successful save', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            spectator.component.save();
+
+            expect(notificationService.success).toHaveBeenCalledWith(
+                'Статья сохранена'
+            );
+        });
+
+        it('should set isSaving to false after successful save', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            spectator.component.save();
+
+            expect(spectator.component.isSaving()).toBe(false);
+        });
+
+        it('should show error notification on 401 error', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 401,
+                statusText: 'Unauthorized',
+            });
+            articleService.saveArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
+
+            spectator.component.save();
+
+            expect(notificationService.error).toHaveBeenCalledWith(
+                'Необходима авторизация'
+            );
+        });
+
+        it('should show error notification on 403 error', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 403,
+                statusText: 'Forbidden',
+            });
+            articleService.saveArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
+
+            spectator.component.save();
+
+            expect(notificationService.error).toHaveBeenCalledWith(
+                'Нет прав для сохранения'
+            );
+        });
+
+        it('should show custom error message from 403 response', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 403,
+                statusText: 'Forbidden',
+                error: { error: 'Статья заблокирована' },
+            });
+            articleService.saveArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
+
+            spectator.component.save();
+
+            expect(notificationService.error).toHaveBeenCalledWith(
+                'Статья заблокирована'
+            );
+        });
+
+        it('should show generic error message on other errors', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 500,
+                statusText: 'Server Error',
+            });
+            articleService.saveArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
+
+            spectator.component.save();
+
+            expect(notificationService.error).toHaveBeenCalledWith(
+                'Ошибка сохранения'
+            );
+        });
+
+        it('should show error message from response body', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 500,
+                statusText: 'Server Error',
+                error: { error: 'Внутренняя ошибка сервера' },
+            });
+            articleService.saveArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
+
+            spectator.component.save();
+
+            expect(notificationService.error).toHaveBeenCalledWith(
+                'Внутренняя ошибка сервера'
+            );
+        });
+
+        it('should set isSaving to false after error', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 500,
+                statusText: 'Server Error',
+            });
+            articleService.saveArticleVersion.mockReturnValue(
+                throwError(() => error)
+            );
+
+            spectator.component.save();
+
+            expect(spectator.component.isSaving()).toBe(false);
+        });
+    });
+
+    describe('cancel method', () => {
+        it('should navigate to article page when version exists', () => {
+            spectator.detectChanges();
+
+            spectator.component.cancel();
+
+            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
+        });
+
+        it('should navigate to home when version is undefined', () => {
+            spectator.component.cancel();
+
+            expect(router.navigate).toHaveBeenCalledWith(['/']);
         });
     });
 });

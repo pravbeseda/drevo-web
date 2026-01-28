@@ -258,6 +258,129 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('saveArticleVersion', () => {
+        const mockSaveResponse = {
+            success: true,
+            data: {
+                articleId: 123,
+                versionId: 999,
+                title: 'Updated Article',
+                content: 'New content',
+                author: 'Editor',
+                date: '2024-01-20T12:00:00+00:00',
+                approved: 0,
+            },
+        };
+
+        it('should call HTTP POST with correct URL and body', () => {
+            const request = { versionId: 456, content: 'New content' };
+
+            spectator.service.saveArticleVersion(request).subscribe(result => {
+                expect(result).toEqual(mockSaveResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/save');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual(request);
+            req.flush(mockSaveResponse);
+        });
+
+        it('should include optional info field in request body', () => {
+            const request = {
+                versionId: 456,
+                content: 'New content',
+                info: 'Version info',
+            };
+
+            spectator.service.saveArticleVersion(request).subscribe();
+
+            const req = httpController.expectOne('/api/articles/save');
+            expect(req.request.body).toEqual(request);
+            req.flush(mockSaveResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service
+                .saveArticleVersion({ versionId: 456, content: 'New content' })
+                .subscribe(result => {
+                    expect(result.articleId).toBe(123);
+                    expect(result.versionId).toBe(999);
+                    expect(result.title).toBe('Updated Article');
+                    expect(result.approved).toBe(0);
+                    done();
+                });
+
+            const req = httpController.expectOne('/api/articles/save');
+            req.flush(mockSaveResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service
+                .saveArticleVersion({ versionId: 456, content: 'New content' })
+                .subscribe({
+                    error: (err: Error) => {
+                        expect(err.message).toContain('Response data is undefined');
+                        done();
+                    },
+                });
+
+            const req = httpController.expectOne('/api/articles/save');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 401 errors', done => {
+            spectator.service
+                .saveArticleVersion({ versionId: 456, content: 'New content' })
+                .subscribe({
+                    error: err => {
+                        expect(err.status).toBe(401);
+                        done();
+                    },
+                });
+
+            const req = httpController.expectOne('/api/articles/save');
+            req.flush(
+                { success: false, error: 'Unauthorized' },
+                { status: 401, statusText: 'Unauthorized' }
+            );
+        });
+
+        it('should propagate HTTP 403 errors', done => {
+            spectator.service
+                .saveArticleVersion({ versionId: 456, content: 'New content' })
+                .subscribe({
+                    error: err => {
+                        expect(err.status).toBe(403);
+                        done();
+                    },
+                });
+
+            const req = httpController.expectOne('/api/articles/save');
+            req.flush(
+                { success: false, error: 'Forbidden' },
+                { status: 403, statusText: 'Forbidden' }
+            );
+        });
+
+        it('should propagate HTTP 500 errors', done => {
+            spectator.service
+                .saveArticleVersion({ versionId: 456, content: 'New content' })
+                .subscribe({
+                    error: err => {
+                        expect(err.status).toBe(500);
+                        done();
+                    },
+                });
+
+            const req = httpController.expectOne('/api/articles/save');
+            req.flush('Server error', {
+                status: 500,
+                statusText: 'Internal Server Error',
+            });
+        });
+    });
+
     describe('error handling', () => {
         it('should throw when response.data is undefined', done => {
             spectator.service.searchArticles('test').subscribe({
