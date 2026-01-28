@@ -1,24 +1,25 @@
+import { appRoutes } from './app.routes';
+import { environment } from '../environments/environment';
+import { authInterceptorProvider } from './interceptors/auth.interceptor';
+import {
+    provideHttpClient,
+    withFetch,
+    withInterceptorsFromDi,
+} from '@angular/common/http';
 import {
     ApplicationConfig,
     importProvidersFrom,
     provideZonelessChangeDetection,
 } from '@angular/core';
 import {
-    provideRouter,
-    RouterModule,
-    withComponentInputBinding,
-} from '@angular/router';
-import { appRoutes } from './app.routes';
-import {
     provideClientHydration,
     withEventReplay,
 } from '@angular/platform-browser';
 import {
-    provideHttpClient,
-    withFetch,
-    withInterceptorsFromDi,
-} from '@angular/common/http';
-import { authInterceptorProvider } from './interceptors/auth.interceptor';
+    provideRouter,
+    RouterModule,
+    withComponentInputBinding,
+} from '@angular/router';
 import {
     errorNotificationInterceptorProvider,
     provideLogProductionMode,
@@ -26,7 +27,6 @@ import {
     createIndexedDBLogProvider,
     createSentryLogProvider,
 } from '@drevo-web/core';
-import { environment } from '../environments/environment';
 
 const routesTracing = false;
 

@@ -1,9 +1,9 @@
+import { LogDatabase } from '../log-database';
 import {
     LogEntry,
     LogStorageProvider,
     GetLogsOptions,
 } from '../log-provider.interface';
-import { LogDatabase } from '../log-database';
 import { assertIsDefined } from '@drevo-web/shared';
 
 /** Default max storage size in bytes (10MB) */

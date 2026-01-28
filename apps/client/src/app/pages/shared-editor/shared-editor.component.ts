@@ -1,3 +1,7 @@
+import { IframeService } from '../../services/iframe/iframe.service';
+import { LinksService } from '../../services/links/links.service';
+import { AsyncPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -5,14 +9,10 @@ import {
     DestroyRef,
     inject,
 } from '@angular/core';
-import { EditorComponent } from '@drevo-web/editor';
-import { BehaviorSubject, first, Observable, Subject, map } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
-import { IframeService } from '../../services/iframe/iframe.service';
-import { LinksService } from '../../services/links/links.service';
-import { HttpClient } from '@angular/common/http';
-import { InsertTagCommand } from '@drevo-web/shared';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EditorComponent } from '@drevo-web/editor';
+import { InsertTagCommand } from '@drevo-web/shared';
+import { BehaviorSubject, first, Observable, Subject, map } from 'rxjs';
 
 interface EditorConfig {
     content: string;

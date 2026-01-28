@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AuthStatusComponent } from '../../components/auth-status/auth-status.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
-import { IconButtonComponent, ModalService } from '@drevo-web/ui';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { LogExportService } from '@drevo-web/core';
+import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-header',

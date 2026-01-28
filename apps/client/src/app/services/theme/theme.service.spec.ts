@@ -1,5 +1,5 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ThemeService } from './theme.service';
 
 describe('ThemeService', () => {

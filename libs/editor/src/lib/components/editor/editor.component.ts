@@ -1,3 +1,6 @@
+import { linksUpdatedEffect } from '../../constants/editor-effects';
+import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
+import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
 import {
     AfterViewInit,
     Component,
@@ -10,14 +13,10 @@ import {
     Output,
     ViewChild,
 } from '@angular/core';
-
-import { EditorView } from '@codemirror/view';
-import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
-import { linksUpdatedEffect } from '../../constants/editor-effects';
-import { BehaviorSubject, filter } from 'rxjs';
-import { InsertTagCommand } from '@drevo-web/shared';
-import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EditorView } from '@codemirror/view';
+import { InsertTagCommand } from '@drevo-web/shared';
+import { BehaviorSubject, filter } from 'rxjs';
 
 @Component({
     selector: 'lib-editor',

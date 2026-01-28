@@ -1,8 +1,7 @@
-import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-
-import { LayoutComponent } from './layout.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { LayoutComponent } from './layout.component';
 
 describe('LayoutComponent', () => {
     let spectator: Spectator<LayoutComponent>;

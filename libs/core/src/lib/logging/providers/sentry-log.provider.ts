@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/angular';
 import { LogEntry, LogProvider, LogLevel } from '../log-provider.interface';
+import * as Sentry from '@sentry/angular';
 
 /**
  * Configuration options for Sentry log provider

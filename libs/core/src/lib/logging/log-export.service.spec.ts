@@ -1,8 +1,8 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
-import { LogExportService } from './log-export.service';
-import { LogDispatcher } from './log-dispatcher.service';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { NotificationService } from '../services/notification.service';
+import { LogDispatcher } from './log-dispatcher.service';
+import { LogExportService } from './log-export.service';
 import { LogStorageProvider, LogEntry } from './log-provider.interface';
 
 describe('LogExportService', () => {

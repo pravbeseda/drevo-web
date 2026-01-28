@@ -1,6 +1,6 @@
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TextInputComponent } from './text-input.component';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TextInputComponent', () => {
     let spectator: Spectator<TextInputComponent>;

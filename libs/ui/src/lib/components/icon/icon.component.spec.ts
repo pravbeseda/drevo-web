@@ -1,6 +1,6 @@
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconComponent } from './icon.component';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('IconComponent', () => {
     let spectator: Spectator<IconComponent>;

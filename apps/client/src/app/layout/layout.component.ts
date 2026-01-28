@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
-import { RightSidebarComponent } from '@drevo-web/ui';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
+import { RightSidebarComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-layout',

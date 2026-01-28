@@ -1,6 +1,6 @@
+import { ArticleApiService } from './article-api.service';
+import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
     ArticleVersion,
     ArticleSearchResponseDto,
@@ -9,9 +9,12 @@ import {
     ArticleSearchResult,
     ArticleSearchParams,
     ArticleVersionDto,
+    SaveArticleVersionRequest,
+    SaveArticleVersionResult,
+    SaveArticleVersionResponseDto,
 } from '@drevo-web/shared';
-import { ArticleApiService } from './article-api.service';
-import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * Main service for article-related operations.
@@ -75,6 +78,20 @@ export class ArticleService {
             .pipe(map(response => this.mapSearchResponse(response)));
     }
 
+    /**
+     * Save article version
+     *
+     * @param request - Save request with versionId, content, and optional info
+     * @returns Observable with mapped save result
+     */
+    saveArticleVersion(
+        request: SaveArticleVersionRequest
+    ): Observable<SaveArticleVersionResult> {
+        return this.articleApiService
+            .saveArticleVersion(request)
+            .pipe(map(response => this.mapSaveResponse(response)));
+    }
+
     private mapArticleVersion(response: ArticleVersionDto): ArticleVersion {
         return {
             articleId: response.articleId,
@@ -120,6 +137,19 @@ export class ArticleService {
         return {
             id: item.id,
             title: item.title,
+        };
+    }
+
+    private mapSaveResponse(
+        response: SaveArticleVersionResponseDto
+    ): SaveArticleVersionResult {
+        return {
+            articleId: response.articleId,
+            versionId: response.versionId,
+            title: response.title,
+            author: response.author,
+            date: new Date(response.date),
+            approved: response.approved,
         };
     }
 }

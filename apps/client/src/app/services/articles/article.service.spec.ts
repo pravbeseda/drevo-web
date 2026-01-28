@@ -1,8 +1,12 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
-import { ArticleSearchResponseDto, ArticleVersionDto } from '@drevo-web/shared';
-import { ArticleService } from './article.service';
+import {
+    ArticleSearchResponseDto,
+    ArticleVersionDto,
+    SaveArticleVersionResponseDto,
+} from '@drevo-web/shared';
 import { ArticleApiService } from './article-api.service';
+import { ArticleService } from './article.service';
 
 describe('ArticleService', () => {
     let spectator: SpectatorService<ArticleService>;
@@ -398,6 +402,115 @@ describe('ArticleService', () => {
                     expect(result.total).toBe(0);
                     done();
                 });
+        });
+    });
+
+    describe('saveArticleVersion', () => {
+        const mockSaveResponse: SaveArticleVersionResponseDto = {
+            articleId: 123,
+            versionId: 999,
+            title: 'Test Article',
+            content: 'Updated content',
+            author: 'Test Author',
+            date: '2024-03-15T12:00:00+00:00',
+            approved: 0,
+        };
+
+        it('should call articleApiService.saveArticleVersion with correct request', () => {
+            articleApiService.saveArticleVersion.mockReturnValue(
+                of(mockSaveResponse)
+            );
+
+            spectator.service
+                .saveArticleVersion({
+                    versionId: 456,
+                    content: 'New content',
+                    info: 'Updated description',
+                })
+                .subscribe();
+
+            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith({
+                versionId: 456,
+                content: 'New content',
+                info: 'Updated description',
+            });
+        });
+
+        it('should map API response to frontend model', done => {
+            articleApiService.saveArticleVersion.mockReturnValue(
+                of(mockSaveResponse)
+            );
+
+            spectator.service
+                .saveArticleVersion({
+                    versionId: 456,
+                    content: 'New content',
+                })
+                .subscribe(result => {
+                    expect(result.articleId).toBe(123);
+                    expect(result.versionId).toBe(999);
+                    expect(result.title).toBe('Test Article');
+                    expect(result.author).toBe('Test Author');
+                    expect(result.approved).toBe(0);
+                    done();
+                });
+        });
+
+        it('should convert date string to Date object', done => {
+            articleApiService.saveArticleVersion.mockReturnValue(
+                of(mockSaveResponse)
+            );
+
+            spectator.service
+                .saveArticleVersion({
+                    versionId: 456,
+                    content: 'New content',
+                })
+                .subscribe(result => {
+                    expect(result.date).toBeInstanceOf(Date);
+                    expect(result.date.toISOString()).toBe(
+                        '2024-03-15T12:00:00.000Z'
+                    );
+                    done();
+                });
+        });
+
+        it('should handle approved=1 for moderators', done => {
+            const moderatorResponse: SaveArticleVersionResponseDto = {
+                ...mockSaveResponse,
+                approved: 1,
+            };
+            articleApiService.saveArticleVersion.mockReturnValue(
+                of(moderatorResponse)
+            );
+
+            spectator.service
+                .saveArticleVersion({
+                    versionId: 456,
+                    content: 'New content',
+                })
+                .subscribe(result => {
+                    expect(result.approved).toBe(1);
+                    done();
+                });
+        });
+
+        it('should work without optional info field', () => {
+            articleApiService.saveArticleVersion.mockReturnValue(
+                of(mockSaveResponse)
+            );
+
+            spectator.service
+                .saveArticleVersion({
+                    versionId: 456,
+                    content: 'New content',
+                })
+                .subscribe();
+
+            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith({
+                versionId: 456,
+                content: 'New content',
+            });
         });
     });
 });

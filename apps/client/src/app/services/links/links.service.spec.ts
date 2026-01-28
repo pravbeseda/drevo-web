@@ -1,7 +1,7 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { LinksService } from './links.service';
-import { IframeService } from '../iframe/iframe.service';
 import { HttpClient } from '@angular/common/http';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { IframeService } from '../iframe/iframe.service';
+import { LinksService } from './links.service';
 
 describe('LinksStateService', () => {
     let spectator: SpectatorService<LinksService>;

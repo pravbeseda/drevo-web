@@ -1,14 +1,14 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { provideHttpClient } from '@angular/common/http';
 import {
     HttpTestingController,
     provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { forkJoin } from 'rxjs';
-import { CsrfService } from './csrf.service';
-import { CsrfResponse } from '@drevo-web/shared';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { CsrfResponse } from '@drevo-web/shared';
+import { CsrfService } from './csrf.service';
 
 jest.mock('../../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api' },

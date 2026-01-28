@@ -4,10 +4,10 @@ import {
     input,
     output,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { MatFabButton, MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { SidebarActionPriority } from '@drevo-web/shared';
 
 export type ActionButtonVariant = 'default' | 'main' | 'menu' | 'speed-dial';

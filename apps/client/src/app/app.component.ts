@@ -1,14 +1,14 @@
+import { LayoutComponent } from './layout/layout.component';
 import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
     ActivatedRoute,
     NavigationEnd,
     Router,
     RouterModule,
 } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map, startWith } from 'rxjs/operators';
-import { LayoutComponent } from './layout/layout.component';
 import { LoggerService } from '@drevo-web/core';
+import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
     imports: [RouterModule, LayoutComponent],

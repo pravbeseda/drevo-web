@@ -1,5 +1,5 @@
-import { InjectionToken, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { InjectionToken, inject, PLATFORM_ID } from '@angular/core';
 
 /**
  * Injection token for the browser's Window object.

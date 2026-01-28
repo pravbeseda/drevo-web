@@ -1,8 +1,8 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PLATFORM_ID } from '@angular/core';
-import { StorageService } from './storage.service';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LoggerService } from '../logging/logger.service';
 import { WINDOW } from '../tokens/window.token';
+import { StorageService } from './storage.service';
 
 describe('StorageService', () => {
     let spectator: SpectatorService<StorageService>;

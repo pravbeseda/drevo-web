@@ -1,5 +1,5 @@
-import { ConsoleLogProvider } from './console-log.provider';
 import { LogEntry } from '../log-provider.interface';
+import { ConsoleLogProvider } from './console-log.provider';
 
 describe('ConsoleLogProvider', () => {
     let provider: ConsoleLogProvider;

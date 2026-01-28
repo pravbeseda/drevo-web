@@ -1,6 +1,6 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-import { ThemeToggleComponent } from './theme-toggle.component';
 import { ThemeService } from '../../services/theme/theme.service';
+import { ThemeToggleComponent } from './theme-toggle.component';
 
 describe('ThemeToggleComponent', () => {
     let spectator: Spectator<ThemeToggleComponent>;

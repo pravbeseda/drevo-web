@@ -1,17 +1,17 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { provideHttpClient } from '@angular/common/http';
 import {
     HttpTestingController,
     provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
-import { AuthService } from './auth.service';
-import { CsrfService } from './csrf.service';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthResponse, User } from '@drevo-web/shared';
+import { AuthService } from './auth.service';
+import { CsrfService } from './csrf.service';
 
 jest.mock('../../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api', production: false },

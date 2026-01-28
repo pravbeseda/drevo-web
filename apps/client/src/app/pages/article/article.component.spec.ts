@@ -1,10 +1,10 @@
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ArticleComponent } from './article.component';
-import { ArticleService } from '../../services/articles';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
 import { Article } from '@drevo-web/shared';
+import { ArticleService } from '../../services/articles';
+import { ArticleComponent } from './article.component';
 
 describe('ArticleComponent', () => {
     let spectator: Spectator<ArticleComponent>;

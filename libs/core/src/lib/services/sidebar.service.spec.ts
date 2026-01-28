@@ -1,6 +1,6 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { SidebarService } from './sidebar.service';
 import { SidebarAction } from '@drevo-web/shared';
+import { SidebarService } from './sidebar.service';
 
 describe('SidebarService', () => {
     let spectator: SpectatorService<SidebarService>;

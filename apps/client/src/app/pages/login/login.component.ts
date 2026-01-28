@@ -1,3 +1,5 @@
+import { AuthService } from '../../services/auth/auth.service';
+import { isPlatformBrowser } from '@angular/common';
 import {
     Component,
     signal,
@@ -7,7 +9,7 @@ import {
     OnInit,
     ChangeDetectionStrategy,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
     FormControl,
     FormGroup,
@@ -15,15 +17,13 @@ import {
     Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../services/auth/auth.service';
-import { finalize } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isValidReturnUrl } from '@drevo-web/shared';
 import {
     TextInputComponent,
     CheckboxComponent,
     ButtonComponent,
 } from '@drevo-web/ui';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'app-login',

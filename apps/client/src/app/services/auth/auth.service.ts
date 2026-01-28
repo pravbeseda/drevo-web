@@ -1,11 +1,26 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { CsrfService } from './csrf.service';
+import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 import {
     HttpClient,
     HttpContext,
     HttpErrorResponse,
 } from '@angular/common/http';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
+import {
+    LoggerService,
+    SKIP_ERROR_FOR_STATUSES,
+    StorageService,
+    WINDOW,
+} from '@drevo-web/core';
+import {
+    User,
+    AuthState,
+    AuthResponse,
+    LoginRequest,
+    isValidReturnUrl,
+} from '@drevo-web/shared';
 import {
     BehaviorSubject,
     Observable,
@@ -21,21 +36,7 @@ import {
     switchMap,
     take,
 } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import {
-    User,
-    AuthState,
-    AuthResponse,
-    LoginRequest,
-    isValidReturnUrl,
-} from '@drevo-web/shared';
-import { CsrfService } from './csrf.service';
-import {
-    LoggerService,
-    SKIP_ERROR_FOR_STATUSES,
-    StorageService,
-    WINDOW,
-} from '@drevo-web/core';
+
 
 @Injectable({
     providedIn: 'root',

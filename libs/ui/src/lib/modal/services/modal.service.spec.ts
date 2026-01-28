@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { Subject } from 'rxjs';
-
 import { ModalContainerComponent } from '../components/modal-container.component';
 import { ModalConfig } from '../models/modal.types';
 import { ModalService } from './modal.service';

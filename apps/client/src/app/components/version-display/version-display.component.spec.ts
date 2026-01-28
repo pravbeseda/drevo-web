@@ -1,7 +1,6 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-
-import { VersionDisplayComponent } from './version-display.component';
 import { VersionService } from '../../services/version/version.service';
+import { VersionDisplayComponent } from './version-display.component';
 
 describe('VersionDisplayComponent', () => {
     let spectator: Spectator<VersionDisplayComponent>;

@@ -1,10 +1,11 @@
 import {
     Directive,
-    Input,
     OnInit,
     OnDestroy,
     inject,
     ElementRef,
+    input,
+    effect,
 } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction, SidebarActionPriority } from '@drevo-web/shared';
@@ -24,29 +25,45 @@ export class SidebarActionDirective implements OnInit, OnDestroy {
     private readonly elementRef = inject(ElementRef);
     private readonly actionId = `sidebar-action-${nextId++}`;
 
-    @Input({ required: true }) icon!: string;
-    @Input() priority: SidebarActionPriority = 'secondary';
-    @Input() href?: string;
-    @Input() disabled?: boolean;
+    readonly icon = input.required<string>();
+    readonly priority = input<SidebarActionPriority>('secondary');
+    readonly href = input<string>();
+    readonly disabled = input<boolean>();
+
+    private label = '';
+    private initialized = false;
+
+    constructor() {
+        effect(() => {
+            if (this.initialized) {
+                this.registerAction(this.disabled());
+            }
+        });
+    }
 
     ngOnInit(): void {
-        const label = this.elementRef.nativeElement.textContent?.trim() || '';
-
-        const action: SidebarAction = {
-            id: this.actionId,
-            icon: this.icon,
-            label,
-            priority: this.priority,
-            href: this.href,
-            disabled: this.disabled,
-            action: this.href ? undefined : () => this.triggerClick(),
-        };
-
-        this.sidebarService.registerAction(action);
+        this.label = this.elementRef.nativeElement.textContent?.trim() || '';
+        this.registerAction(this.disabled());
+        this.initialized = true;
     }
 
     ngOnDestroy(): void {
         this.sidebarService.unregisterAction(this.actionId);
+    }
+
+    private registerAction(disabled: boolean | undefined): void {
+        const href = this.href();
+        const action: SidebarAction = {
+            id: this.actionId,
+            icon: this.icon(),
+            label: this.label,
+            priority: this.priority(),
+            href,
+            disabled,
+            action: href ? undefined : () => this.triggerClick(),
+        };
+
+        this.sidebarService.registerAction(action);
     }
 
     private triggerClick(): void {

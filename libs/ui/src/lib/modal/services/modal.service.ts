@@ -1,13 +1,12 @@
-import { Injectable, inject } from '@angular/core';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
-
 import { ModalContainerComponent } from '../components/modal-container.component';
 import {
     LazyComponentLoader,
     ModalConfig,
     ModalRef,
 } from '../models/modal.types';
+import { Injectable, inject } from '@angular/core';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ModalService {

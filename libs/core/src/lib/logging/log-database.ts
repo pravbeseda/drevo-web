@@ -1,5 +1,5 @@
-import Dexie, { Table } from 'dexie';
 import { LogEntry } from './log-provider.interface';
+import Dexie, { Table } from 'dexie';
 
 /**
  * IndexedDB table entry (LogEntry with required id)

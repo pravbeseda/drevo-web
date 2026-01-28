@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
-import { RangeSetBuilder, StateField } from '@codemirror/state';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
+import { Injectable } from '@angular/core';
+import { RangeSetBuilder, StateField } from '@codemirror/state';
+import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
 import { Subject } from 'rxjs';
 
 interface Match {

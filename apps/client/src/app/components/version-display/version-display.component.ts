@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { VersionService } from '../../services/version/version.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 @Component({
     selector: 'app-version-display',

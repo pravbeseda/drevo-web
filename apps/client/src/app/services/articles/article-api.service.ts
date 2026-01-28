@@ -1,15 +1,18 @@
+import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { environment } from '../../../environments/environment';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    SaveArticleVersionRequestDto,
+    SaveArticleVersionResponseDto,
     assertIsDefined,
 } from '@drevo-web/shared';
-import { environment } from '../../../environments/environment';
-import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * Low-level API service for article-related HTTP requests.
@@ -97,6 +100,32 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleSearchResponseDto>
             >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Save article version
+     *
+     * @param request - Save request with versionId, content, and optional info
+     * @returns Observable with raw API response
+     */
+    saveArticleVersion(
+        request: SaveArticleVersionRequestDto
+    ): Observable<SaveArticleVersionResponseDto> {
+        const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
+
+        return this.http
+            .post<
+                ApiResponse<SaveArticleVersionResponseDto>
+            >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true, context })
             .pipe(
                 map(response => {
                     assertIsDefined(

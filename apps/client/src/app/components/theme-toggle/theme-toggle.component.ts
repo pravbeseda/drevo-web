@@ -1,6 +1,6 @@
+import { ThemeService } from '../../services/theme/theme.service';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { IconButtonComponent } from '@drevo-web/ui';
-import { ThemeService } from '../../services/theme/theme.service';
 
 @Component({
     selector: 'app-theme-toggle',

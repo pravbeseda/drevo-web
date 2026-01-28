@@ -3,9 +3,9 @@ import {
     SpectatorDirective,
     SpyObject,
 } from '@ngneat/spectator/jest';
-import { SidebarActionDirective } from './sidebar-action.directive';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
+import { SidebarActionDirective } from './sidebar-action.directive';
 
 describe('SidebarActionDirective', () => {
     let spectator: SpectatorDirective<SidebarActionDirective>;
@@ -194,6 +194,55 @@ describe('SidebarActionDirective', () => {
 
             expect(action.href).toBe('/edit/123');
             expect(action.disabled).toBe(true);
+        });
+    });
+
+    describe('dynamic disabled changes', () => {
+        beforeEach(() => {
+            spectator = createDirective(
+                `<button sidebarAction icon="edit" [disabled]="isDisabled">Edit</button>`,
+                { hostProps: { isDisabled: false } }
+            );
+            sidebarService = spectator.inject(SidebarService);
+        });
+
+        it('should register action with initial disabled state', () => {
+            const action = sidebarService.registerAction.mock.calls[0][0];
+
+            expect(action.disabled).toBe(false);
+        });
+
+        it('should re-register action when disabled changes', () => {
+            const callsBefore = sidebarService.registerAction.mock.calls.length;
+
+            spectator.setHostInput({ isDisabled: true });
+
+            expect(sidebarService.registerAction.mock.calls.length).toBe(
+                callsBefore + 1
+            );
+        });
+
+        it('should register action with updated disabled state', () => {
+            spectator.setHostInput({ isDisabled: true });
+
+            const lastCall =
+                sidebarService.registerAction.mock.calls[
+                    sidebarService.registerAction.mock.calls.length - 1
+                ][0];
+
+            expect(lastCall.disabled).toBe(true);
+        });
+
+        it('should preserve action id when re-registering', () => {
+            const initialAction =
+                sidebarService.registerAction.mock.calls[0][0];
+
+            spectator.setHostInput({ isDisabled: true });
+
+            const calls = sidebarService.registerAction.mock.calls;
+            const updatedAction = calls[calls.length - 1][0];
+
+            expect(updatedAction.id).toBe(initialAction.id);
         });
     });
 });

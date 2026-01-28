@@ -1,4 +1,6 @@
-import { Injectable, inject, Injector } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { AuthService } from '../services/auth/auth.service';
+import { CsrfService } from '../services/auth/csrf.service';
 import {
     HttpInterceptor,
     HttpRequest,
@@ -7,6 +9,8 @@ import {
     HttpErrorResponse,
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
+import { Injectable, inject, Injector } from '@angular/core';
+import { LoggerService } from '@drevo-web/core';
 import { Observable, throwError } from 'rxjs';
 import {
     catchError,
@@ -16,10 +20,6 @@ import {
     switchMap,
     take,
 } from 'rxjs/operators';
-import { AuthService } from '../services/auth/auth.service';
-import { CsrfService } from '../services/auth/csrf.service';
-import { LoggerService } from '@drevo-web/core';
-import { environment } from '../../environments/environment';
 
 const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 const CSRF_ENDPOINTS = ['/api/auth/csrf'];

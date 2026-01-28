@@ -8,8 +8,8 @@ import {
     OnInit,
     ViewEncapsulation,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 
 /**

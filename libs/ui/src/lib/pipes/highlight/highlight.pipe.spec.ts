@@ -1,5 +1,4 @@
 import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator/jest';
-
 import { HighlightPipe } from './highlight.pipe';
 
 describe('HighlightPipe', () => {
