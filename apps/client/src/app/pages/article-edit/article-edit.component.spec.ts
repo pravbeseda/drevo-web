@@ -5,6 +5,7 @@ import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
 import { NotificationService } from '@drevo-web/core';
 import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
+import { LinksService } from '../../services/links/links.service';
 import { ArticleEditComponent } from './article-edit.component';
 
 describe('ArticleEditComponent', () => {
@@ -12,6 +13,7 @@ describe('ArticleEditComponent', () => {
     let articleService: jest.Mocked<ArticleService>;
     let notificationService: jest.Mocked<NotificationService>;
     let router: jest.Mocked<Router>;
+    let linksService: jest.Mocked<LinksService>;
     let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
     const mockVersion: ArticleVersion = {
@@ -30,6 +32,7 @@ describe('ArticleEditComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
+        componentProviders: [{ provide: LinksService, useValue: { getLinkStatuses: jest.fn() } }],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -51,6 +54,9 @@ describe('ArticleEditComponent', () => {
             NotificationService
         ) as jest.Mocked<NotificationService>;
         router = spectator.inject(Router) as jest.Mocked<Router>;
+        linksService = spectator.component[
+            'linksService'
+        ] as jest.Mocked<LinksService>;
         articleService.getArticleVersion.mockReturnValue(of(mockVersion));
     });
 
@@ -203,7 +209,7 @@ describe('ArticleEditComponent', () => {
     });
 
     describe('updateLinks method', () => {
-        it('should expose updateLinksState$ observable', () => {
+        it('should expose updateLinksState$ with empty initial value', () => {
             spectator.detectChanges();
 
             let emittedValue: Record<string, boolean> | undefined;
@@ -214,11 +220,41 @@ describe('ArticleEditComponent', () => {
             expect(emittedValue).toEqual({});
         });
 
-        it('should accept links array without throwing', () => {
+        it('should call linksService.getLinkStatuses with given links', () => {
+            linksService.getLinkStatuses.mockReturnValue(of({}));
+            spectator.detectChanges();
+
+            spectator.component.updateLinks(['link1', 'link2']);
+
+            expect(linksService.getLinkStatuses).toHaveBeenCalledWith([
+                'link1',
+                'link2',
+            ]);
+        });
+
+        it('should update updateLinksState$ with link statuses', () => {
+            const mockStatuses = { link1: true, link2: false };
+            linksService.getLinkStatuses.mockReturnValue(of(mockStatuses));
+            spectator.detectChanges();
+
+            let emittedValue: Record<string, boolean> | undefined;
+            spectator.component.updateLinksState$.subscribe(value => {
+                emittedValue = value;
+            });
+
+            spectator.component.updateLinks(['link1', 'link2']);
+
+            expect(emittedValue).toEqual(mockStatuses);
+        });
+
+        it('should not throw on error from linksService', () => {
+            linksService.getLinkStatuses.mockReturnValue(
+                throwError(() => new Error('Network error'))
+            );
             spectator.detectChanges();
 
             expect(() => {
-                spectator.component.updateLinks(['link1', 'link2']);
+                spectator.component.updateLinks(['link1']);
             }).not.toThrow();
         });
     });

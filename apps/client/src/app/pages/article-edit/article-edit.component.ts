@@ -1,4 +1,5 @@
 import { ArticleService } from '../../services/articles';
+import { LinksService } from '../../services/links/links.service';
 import { ErrorComponent } from '../error/error.component';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -16,9 +17,8 @@ import { NotificationService, LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
 import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, first } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
-// import { LinksService } from '../../services/links/links.service';
 
 @Component({
     selector: 'app-article-edit',
@@ -29,7 +29,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
         ErrorComponent,
         SidebarActionDirective,
     ],
-    // providers: [LinksService],
+    providers: [LinksService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,7 +39,7 @@ export class ArticleEditComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
     private readonly notificationService = inject(NotificationService);
-    // private readonly linksService = inject(LinksService);
+    private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext(
         'ArticleEditComponent'
@@ -112,13 +112,18 @@ export class ArticleEditComponent implements OnInit {
             });
     }
 
-    updateLinks(_links: string[]): void {
-        // this.linksService
-        //     .getLinkStatuses(links)
-        //     .pipe(first())
-        //     .subscribe(linksState => {
-        //         this.updateLinksStateSubject.next(linksState);
-        //     });
+    updateLinks(links: string[]): void {
+        this.linksService
+            .getLinkStatuses(links)
+            .pipe(first())
+            .subscribe({
+                next: linksState => {
+                    this.updateLinksStateSubject.next(linksState);
+                },
+                error: err => {
+                    this.logger.error('Failed to check link statuses', err);
+                },
+            });
     }
 
     contentChanged(content: string): void {

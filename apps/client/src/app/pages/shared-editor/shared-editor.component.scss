@@ -1,7 +1,5 @@
-@use 'colors';
-
 $skeleton-color: white;
-$skeleton-offset: colors.$skeleton-offset;
+$skeleton-offset: var(--themed-editor-skeleton-offset);
 
 .container {
     display: flex;

@@ -170,6 +170,7 @@ yarn nx affected -t lint,test,build
 10. **UI components from `@drevo-web/ui` only** — never use `mat-*` components (MatButton, MatIcon, etc.) directly outside the `libs/ui` library. Always use wrapper components from `@drevo-web/ui` instead
 11. **No `null`** — use `undefined` instead of `null` everywhere
 12. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
+13. **No magic numbers** — extract numeric literals into named constants (e.g. `const DEBOUNCE_MS = 300`)
 
 ## Unit Testing
 
