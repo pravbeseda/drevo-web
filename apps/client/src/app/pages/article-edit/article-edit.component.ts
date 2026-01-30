@@ -116,8 +116,13 @@ export class ArticleEditComponent implements OnInit {
         this.linksService
             .getLinkStatuses(links)
             .pipe(first())
-            .subscribe(linksState => {
-                this.updateLinksStateSubject.next(linksState);
+            .subscribe({
+                next: linksState => {
+                    this.updateLinksStateSubject.next(linksState);
+                },
+                error: err => {
+                    this.logger.error('Failed to check link statuses', err);
+                },
             });
     }
 

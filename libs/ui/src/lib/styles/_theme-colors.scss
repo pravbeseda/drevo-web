@@ -165,7 +165,7 @@ $theme-colors: (
     ),
     editor-footnote: (
         light: black,
-        dark: transparent,
+        dark: currentColor,
     ),
     editor-footnote-bg: (
         light: $md-grey-300,
