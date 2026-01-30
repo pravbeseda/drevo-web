@@ -1,7 +1,6 @@
 import { IframeService } from '../../services/iframe/iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { AsyncPipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -21,7 +20,7 @@ interface EditorConfig {
 @Component({
     selector: 'app-shared-editor',
     imports: [EditorComponent, AsyncPipe],
-    providers: [HttpClient, IframeService, LinksService],
+    providers: [IframeService, LinksService],
     templateUrl: './shared-editor.component.html',
     styleUrl: './shared-editor.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,5 +1,3 @@
-@use 'colors';
-
 :host ::ng-deep {
     .cm-editor {
         height: auto;
@@ -15,56 +13,54 @@
         background-color: rgba(0, 0, 0, 0.1) !important;
     }
 
-    //.cm-editor .cm-content {
-    //    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    //    font-size: 14px;
-    //}
-
     .cm-footnote {
-        background-color: colors.$footnote-bg;
-        color: colors.$footnote;
+        background-color: var(--themed-editor-footnote-bg);
+        color: var(--themed-editor-footnote);
         opacity: 0.7 !important;
     }
 
     .cm-quote {
-        color: colors.$quote;
+        color: var(--themed-editor-quote);
     }
 
     .cm-link {
-        background-color: colors.$link-bg;
-        color: colors.$link;
+        background-color: var(--themed-editor-link-bg);
+        color: var(--themed-editor-link);
     }
 
     .cm-map {
-        background-color: colors.$map-bg;
-        color: colors.$map;
+        background-color: var(--themed-editor-map-bg);
+        color: var(--themed-editor-map);
     }
 
     .cm-map-point {
-        background-color: colors.$map-point-bg;
-        color: colors.$map-point;
+        background-color: var(--themed-editor-map-point-bg);
+        color: var(--themed-editor-map-point);
     }
 
     .cm-link-pending {
-        background-color: colors.$link-pending-bg;
-        color: colors.$link-pending;
+        background-color: var(--themed-editor-link-pending-bg);
+        color: var(--themed-editor-link-pending);
     }
 
     .cm-link-exists {
-        background-color: colors.$link-exists-bg;
-        color: colors.$link-exists;
+        background-color: var(--themed-editor-link-exists-bg);
+        color: var(--themed-editor-link-exists);
     }
 
     .cm-link-missing {
-        background-color: colors.$link-missing-bg;
-        color: colors.$link-missing;
+        background-color: var(--themed-editor-link-missing-bg);
+        color: var(--themed-editor-link-missing);
     }
 
     .cm-searchMatch {
-        background-color: colors.$search-match-bg;
+        background-color: var(--themed-editor-search-match-bg);
 
         &.cm-searchMatch-selected {
-            background-color: colors.$search-match-selected-bg;
+            background-color: var(--themed-editor-search-match-selected-bg);
+            display: inline-block;
+            border: 1px solid white;
+            border-radius: 2px;
         }
 
         .cm-wikiHighlight {

@@ -114,6 +114,80 @@ $theme-colors: (
         dark: $md-grey-800,
     ),
 
+    // Editor colors
+    editor-link: (
+            light: $md-blue-900,
+            dark: $md-blue-200,
+        ),
+    editor-link-bg: (
+        light: $md-blue-50,
+        dark: transparent,
+    ),
+    editor-link-pending: (
+        light: black,
+        dark: $md-yellow-600,
+    ),
+    editor-link-pending-bg: (
+        light: $md-yellow-100,
+        dark: transparent,
+    ),
+    editor-link-exists: (
+        light: black,
+        dark: $md-green-200,
+    ),
+    editor-link-exists-bg: (
+        light: $md-green-A100,
+        dark: transparent,
+    ),
+    editor-link-missing: (
+        light: black,
+        dark: $md-red-200,
+    ),
+    editor-link-missing-bg: (
+        light: $md-red-100,
+        dark: transparent,
+    ),
+    editor-map: (
+        light: $md-cyan-900,
+        dark: $md-cyan-200,
+    ),
+    editor-map-bg: (
+        light: $md-cyan-50,
+        dark: transparent,
+    ),
+    editor-map-point: (
+        light: $md-cyan-900,
+        dark: $md-cyan-200,
+    ),
+    editor-map-point-bg: (
+        light: $md-cyan-50,
+        dark: transparent,
+    ),
+    editor-footnote: (
+        light: black,
+        dark: transparent,
+    ),
+    editor-footnote-bg: (
+        light: $md-grey-300,
+        dark: transparent,
+    ),
+    editor-quote: (
+        light: $md-deep-purple-500,
+        dark: $md-deep-purple-200,
+    ),
+    editor-search-match-bg: (
+        light: $md-yellow-400,
+        dark: $md-teal-900,
+    ),
+    editor-search-match-selected-bg: (
+        light: $md-orange-300,
+        dark: $md-blue-900,
+    ),
+    editor-skeleton-offset: (
+        light: $md-blue-50,
+        dark: $md-blue-400,
+    ),
+
     // Toast backgrounds (darker for better contrast with white text)
     toast-success-bg: (
             light: $md-green-700,

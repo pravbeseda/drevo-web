@@ -1,12 +1,12 @@
+import { HttpClient } from '@angular/common/http';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LinksApiService } from './links-api.service';
-import { LinksService } from './links.service';
 
-describe('LinksService', () => {
-    let spectator: SpectatorService<LinksService>;
+describe('LinksApiService', () => {
+    let spectator: SpectatorService<LinksApiService>;
     const createService = createServiceFactory({
-        service: LinksService,
-        mocks: [LinksApiService],
+        service: LinksApiService,
+        mocks: [HttpClient],
     });
 
     beforeEach(() => (spectator = createService()));
