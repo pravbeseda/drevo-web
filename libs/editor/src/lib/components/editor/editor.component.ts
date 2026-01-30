@@ -16,7 +16,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EditorView } from '@codemirror/view';
 import { InsertTagCommand } from '@drevo-web/shared';
-import { BehaviorSubject, filter } from 'rxjs';
+import { BehaviorSubject, debounceTime, filter } from 'rxjs';
+
+const LINKS_CHECK_DEBOUNCE_MS = 300;
 
 @Component({
     selector: 'lib-editor',
@@ -74,7 +76,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.wikiHighlighterService.updateLinks$
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
-                filter(links => links.length > 0)
+                filter(links => links.length > 0),
+                debounceTime(LINKS_CHECK_DEBOUNCE_MS)
             )
             .subscribe(links => {
                 this.updateLinksEvent.emit(links);
