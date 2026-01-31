@@ -8,7 +8,6 @@ import { finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'app-auth-status',
-    standalone: true,
     imports: [AsyncPipe, RouterLink],
     template: `
         @if (isLoading$ | async) {
