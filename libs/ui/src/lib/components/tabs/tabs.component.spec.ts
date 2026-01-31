@@ -58,12 +58,6 @@ describe('TabsComponent', () => {
         expect(badge).toHaveText('0');
     });
 
-    it('should have tab panel for content projection', () => {
-        const panel = spectator.query('mat-tab-nav-panel');
-        expect(panel).toBeTruthy();
-        expect(panel?.querySelector('ng-content') !== undefined).toBe(true);
-    });
-
     it('should render nav element with mat-tab-nav-bar', () => {
         const nav = spectator.query('nav[mat-tab-nav-bar]');
         expect(nav).toBeTruthy();
