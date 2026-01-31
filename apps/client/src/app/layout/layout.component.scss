@@ -8,11 +8,10 @@
 
     /* Mobile-first: single column */
     grid-template-columns: 1fr;
-    grid-template-rows: rem($header-height) 1fr rem($footer-height);
+    grid-template-rows: rem($header-height) 1fr;
     grid-template-areas:
         'header'
-        'main'
-        'footer';
+        'main';
 }
 
 .header {
@@ -37,22 +36,13 @@
     overflow-y: auto;
 }
 
-.footer {
-    grid-area: footer;
-    background-color: var(--themed-footer-bg);
-    transition: background-color 0.3s ease;
-    padding: 0 0.5rem;
-}
-
 .left {
     background-color: var(--themed-sidebar-bg);
     transition: background-color 0.3s ease;
-}
-
-/* Mobile behavior: keep sidebars accessible but not taking layout space */
-.left {
     display: none;
     padding: 1rem;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .right {
@@ -80,34 +70,32 @@
     }
 }
 
-/* Tablet: pin left sidebar full height, header/footer shift right */
+/* Tablet: pin left sidebar full height, header shifts right */
 @media (min-width: $breakpoint-tablet) {
     .layout {
         grid-template-columns:
             minmax(#{$sidebar-min-width-tablet}, rem($sidebar-width))
             1fr;
-        grid-template-rows: rem($header-height) 1fr rem($footer-height);
+        grid-template-rows: rem($header-height) 1fr;
         grid-template-areas:
             'left header'
-            'left main'
-            'left footer';
+            'left main';
     }
     .left {
-        display: block;
+        display: flex;
         grid-area: left;
     }
 }
 
-/* Desktop: left sidebar full height, right sidebar between header and footer */
+/* Desktop: left sidebar full height, right sidebar between header and main */
 @media (min-width: $breakpoint-desktop) {
     .layout {
         grid-template-columns:
             minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width))
             1fr auto;
-        grid-template-rows: rem($header-height) 1fr rem($footer-height);
+        grid-template-rows: rem($header-height) 1fr;
         grid-template-areas:
             'left header header'
-            'left main right'
-            'left footer footer';
+            'left main right';
     }
 }

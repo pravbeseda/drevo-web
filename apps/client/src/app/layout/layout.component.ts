@@ -1,12 +1,17 @@
-import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { VersionDisplayComponent } from '../components/version-display/version-display.component';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+} from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { RightSidebarComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-layout',
-    imports: [HeaderComponent, FooterComponent, RightSidebarComponent],
+    imports: [HeaderComponent, VersionDisplayComponent, RightSidebarComponent],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,5 +19,7 @@ import { RightSidebarComponent } from '@drevo-web/ui';
 export class LayoutComponent {
     private readonly sidebarService = inject(SidebarService);
 
-    readonly hasActions = computed(() => this.sidebarService.actions().length > 0);
+    readonly hasActions = computed(
+        () => this.sidebarService.actions().length > 0
+    );
 }
