@@ -1,0 +1,18 @@
+<div class="history-page">
+    <ui-tabs [tabs]="tabs">
+        @switch (activeTab()) {
+            @case ('articles') {
+                <app-articles-history />
+            }
+            @case ('news') {
+                <app-news-history />
+            }
+            @case ('pictures') {
+                <app-pictures />
+            }
+            @case ('forum') {
+                <app-forum-history />
+            }
+        }
+    </ui-tabs>
+</div>

@@ -28,6 +28,38 @@ export const appRoutes: Route[] = [
                     ).then(m => m.SharedEditorComponent),
             },
             {
+                path: 'articles/history',
+                loadComponent: () =>
+                    import('./pages/history/history.component').then(
+                        m => m.HistoryComponent
+                    ),
+                data: { activeTab: 'articles' },
+            },
+            {
+                path: 'news/history',
+                loadComponent: () =>
+                    import('./pages/history/history.component').then(
+                        m => m.HistoryComponent
+                    ),
+                data: { activeTab: 'news' },
+            },
+            {
+                path: 'pictures',
+                loadComponent: () =>
+                    import('./pages/history/history.component').then(
+                        m => m.HistoryComponent
+                    ),
+                data: { activeTab: 'pictures' },
+            },
+            {
+                path: 'forum/history',
+                loadComponent: () =>
+                    import('./pages/history/history.component').then(
+                        m => m.HistoryComponent
+                    ),
+                data: { activeTab: 'forum' },
+            },
+            {
                 path: 'articles/edit/:id',
                 loadComponent: () =>
                     import('./pages/article-edit/article-edit.component').then(

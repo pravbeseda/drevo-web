@@ -1,0 +1,31 @@
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--themed-text-secondary);
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        background-color: var(--themed-menu-hover-background);
+    }
+
+    &.active {
+        color: var(--themed-text-primary);
+        background-color: var(--themed-menu-hover-background);
+        font-weight: 500;
+    }
+}
+
+.nav-label {
+    font-size: 14px;
+    line-height: 1.4;
+}
