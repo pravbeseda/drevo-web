@@ -84,7 +84,7 @@ $theme-colors: (
         dark: $md-blue-200,
     ),
 
-    // wiki colors
+    // Wiki colors
     wiki-note-link: (
             light: $md-brown-600,
             dark: $md-brown-300,
@@ -114,7 +114,45 @@ $theme-colors: (
         dark: $md-grey-800,
     ),
 
-    // Editor colors
+    // Editor base (surface, chrome)
+    editor-selection-bg: (
+            light: $md-blue-100,
+            dark: rgba(white, 0.1),
+        ),
+    editor-active-line-bg: (
+        light: $md-grey-100,
+        dark: rgba(white, 0.05),
+    ),
+    editor-panel-bg: (
+        light: $md-grey-100,
+        dark: $md-grey-800,
+    ),
+    editor-panel-border: (
+        light: $md-grey-300,
+        dark: $md-grey-700,
+    ),
+    editor-button-bg: (
+        light: $md-grey-300,
+        dark: $md-grey-900,
+    ),
+    editor-active-button-bg: (
+        light: $md-grey-400,
+        dark: $md-grey-700,
+    ),
+    editor-skeleton-offset: (
+        light: $md-blue-50,
+        dark: $md-blue-400,
+    ),
+    editor-search-match-bg: (
+        light: $md-yellow-400,
+        dark: $md-teal-900,
+    ),
+    editor-search-match-selected-bg: (
+        light: $md-orange-300,
+        dark: $md-blue-900,
+    ),
+
+    // Editor decorations (syntax highlighting)
     editor-link: (
             light: $md-blue-900,
             dark: $md-blue-200,
@@ -174,42 +212,6 @@ $theme-colors: (
     editor-quote: (
         light: $md-deep-purple-500,
         dark: $md-deep-purple-200,
-    ),
-    editor-search-match-bg: (
-        light: $md-yellow-400,
-        dark: $md-teal-900,
-    ),
-    editor-search-match-selected-bg: (
-        light: $md-orange-300,
-        dark: $md-blue-900,
-    ),
-    editor-skeleton-offset: (
-        light: $md-blue-50,
-        dark: $md-blue-400,
-    ),
-    editor-selection-bg: (
-        light: $md-blue-100,
-        dark: rgba(white, 0.15),
-    ),
-    editor-active-line-bg: (
-        light: $md-grey-100,
-        dark: rgba(white, 0.05),
-    ),
-    editor-panel-bg: (
-        light: $md-grey-100,
-        dark: $md-grey-800,
-    ),
-    editor-button-bg: (
-        light: $md-grey-300,
-        dark: $md-grey-900,
-    ),
-    editor-active-button-bg: (
-        light: $md-grey-400,
-        dark: $md-grey-700,
-    ),
-    editor-panel-border: (
-        light: $md-grey-300,
-        dark: $md-grey-700,
     ),
 
     // Toast backgrounds (darker for better contrast with white text)
