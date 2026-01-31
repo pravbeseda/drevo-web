@@ -6,6 +6,8 @@ import {
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LinksApiService } from './links-api.service';
 
+const CHECK_URL = '/api/wiki-links/check';
+
 describe('LinksApiService', () => {
     let spectator: SpectatorService<LinksApiService>;
     let httpController: HttpTestingController;
@@ -29,45 +31,34 @@ describe('LinksApiService', () => {
     });
 
     describe('checkLinks', () => {
-        it('should send POST request to /api/links/check', () => {
+        it('should send POST request to /api/wiki-links/check', () => {
             spectator.service.checkLinks(['link1']).subscribe();
 
-            const req = httpController.expectOne('/api/links/check');
+            const req = httpController.expectOne(CHECK_URL);
             expect(req.request.method).toBe('POST');
-            req.flush({ link1: { isExist: true } });
+            req.flush({ success: true, data: { link1: { isExist: true } } });
         });
 
-        it('should send links as URL-encoded body with links[] keys', () => {
-            spectator.service
-                .checkLinks(['link1', 'link2'])
-                .subscribe();
+        it('should send links as JSON body', () => {
+            spectator.service.checkLinks(['link1', 'link2']).subscribe();
 
-            const req = httpController.expectOne('/api/links/check');
-            expect(req.request.body).toBe('links%5B%5D=link1&links%5B%5D=link2');
+            const req = httpController.expectOne(CHECK_URL);
+            expect(req.request.body).toEqual({ links: ['link1', 'link2'] });
             req.flush({
-                link1: { isExist: true },
-                link2: { isExist: false },
+                success: true,
+                data: {
+                    link1: { isExist: true },
+                    link2: { isExist: false },
+                },
             });
         });
 
-        it('should set Content-Type header to application/x-www-form-urlencoded', () => {
+        it('should send request with credentials', () => {
             spectator.service.checkLinks(['link1']).subscribe();
 
-            const req = httpController.expectOne('/api/links/check');
-            expect(req.request.headers.get('Content-Type')).toBe(
-                'application/x-www-form-urlencoded'
-            );
-            req.flush({ link1: { isExist: true } });
-        });
-
-        it('should set X-Requested-With header', () => {
-            spectator.service.checkLinks(['link1']).subscribe();
-
-            const req = httpController.expectOne('/api/links/check');
-            expect(req.request.headers.get('X-Requested-With')).toBe(
-                'XMLHttpRequest'
-            );
-            req.flush({ link1: { isExist: true } });
+            const req = httpController.expectOne(CHECK_URL);
+            expect(req.request.withCredentials).toBe(true);
+            req.flush({ success: true, data: { link1: { isExist: true } } });
         });
 
         it('should map response to Record<string, boolean>', () => {
@@ -76,23 +67,42 @@ describe('LinksApiService', () => {
                 result = r;
             });
 
-            httpController.expectOne('/api/links/check').flush({
-                link1: { isExist: true },
-                link2: { isExist: false },
+            httpController.expectOne(CHECK_URL).flush({
+                success: true,
+                data: {
+                    link1: { isExist: true },
+                    link2: { isExist: false },
+                },
             });
 
             expect(result).toEqual({ link1: true, link2: false });
         });
 
-        it('should handle empty response', () => {
+        it('should handle empty response data', () => {
             let result: Record<string, boolean> | undefined;
             spectator.service.checkLinks(['link1']).subscribe(r => {
                 result = r;
             });
 
-            httpController.expectOne('/api/links/check').flush({});
+            httpController.expectOne(CHECK_URL).flush({
+                success: true,
+                data: {},
+            });
 
             expect(result).toEqual({});
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.checkLinks(['link1']).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            httpController
+                .expectOne(CHECK_URL)
+                .flush({ success: true, data: undefined });
         });
     });
 });
