@@ -187,6 +187,38 @@ $theme-colors: (
         light: $md-blue-50,
         dark: $md-blue-400,
     ),
+    editor-bg: (
+        light: white,
+        dark: $md-grey-900,
+    ),
+    editor-text: (
+        light: $md-grey-900,
+        dark: $md-grey-300,
+    ),
+    editor-selection-bg: (
+        light: $md-blue-100,
+        dark: rgba(white, 0.15),
+    ),
+    editor-active-line-bg: (
+        light: $md-grey-100,
+        dark: rgba(white, 0.05),
+    ),
+    editor-panel-bg: (
+        light: $md-grey-100,
+        dark: $md-grey-800,
+    ),
+    editor-button-bg: (
+        light: $md-grey-300,
+        dark: $md-grey-900,
+    ),
+    editor-active-button-bg: (
+        light: $md-grey-400,
+        dark: $md-grey-700,
+    ),
+    editor-panel-border: (
+        light: $md-grey-300,
+        dark: $md-grey-700,
+    ),
 
     // Toast backgrounds (darker for better contrast with white text)
     toast-success-bg: (
