@@ -9,7 +9,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { label: 'Изменения', route: '/articles/history', icon: 'history' },
+    { label: 'Изменения', route: '/history/articles', icon: 'history' },
 ];
 
 @Component({

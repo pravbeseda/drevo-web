@@ -28,36 +28,46 @@ export const appRoutes: Route[] = [
                     ).then(m => m.SharedEditorComponent),
             },
             {
-                path: 'articles/history',
+                path: 'history',
                 loadComponent: () =>
                     import('./pages/history/history.component').then(
                         m => m.HistoryComponent
                     ),
-                data: { activeTab: 'articles' },
-            },
-            {
-                path: 'news/history',
-                loadComponent: () =>
-                    import('./pages/history/history.component').then(
-                        m => m.HistoryComponent
-                    ),
-                data: { activeTab: 'news' },
-            },
-            {
-                path: 'pictures',
-                loadComponent: () =>
-                    import('./pages/history/history.component').then(
-                        m => m.HistoryComponent
-                    ),
-                data: { activeTab: 'pictures' },
-            },
-            {
-                path: 'forum/history',
-                loadComponent: () =>
-                    import('./pages/history/history.component').then(
-                        m => m.HistoryComponent
-                    ),
-                data: { activeTab: 'forum' },
+                children: [
+                    {
+                        path: '',
+                        pathMatch: 'full',
+                        redirectTo: 'articles',
+                    },
+                    {
+                        path: 'articles',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/articles-history.component'
+                            ).then(m => m.ArticlesHistoryComponent),
+                    },
+                    {
+                        path: 'news',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/news-history.component'
+                            ).then(m => m.NewsHistoryComponent),
+                    },
+                    {
+                        path: 'forum',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/forum-history.component'
+                            ).then(m => m.ForumHistoryComponent),
+                    },
+                    {
+                        path: 'pictures',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/pictures.component'
+                            ).then(m => m.PicturesComponent),
+                    },
+                ],
             },
             {
                 path: 'articles/edit/:id',
