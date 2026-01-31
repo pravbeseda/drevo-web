@@ -1,4 +1,5 @@
 import { HeaderComponent } from './header/header.component';
+import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
 import { VersionDisplayComponent } from '../components/version-display/version-display.component';
 import {
     ChangeDetectionStrategy,
@@ -11,7 +12,7 @@ import { RightSidebarComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-layout',
-    imports: [HeaderComponent, VersionDisplayComponent, RightSidebarComponent],
+    imports: [HeaderComponent, SidebarNavComponent, VersionDisplayComponent, RightSidebarComponent],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

@@ -28,6 +28,48 @@ export const appRoutes: Route[] = [
                     ).then(m => m.SharedEditorComponent),
             },
             {
+                path: 'history',
+                loadComponent: () =>
+                    import('./pages/history/history.component').then(
+                        m => m.HistoryComponent
+                    ),
+                children: [
+                    {
+                        path: '',
+                        pathMatch: 'full',
+                        redirectTo: 'articles',
+                    },
+                    {
+                        path: 'articles',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/articles-history.component'
+                            ).then(m => m.ArticlesHistoryComponent),
+                    },
+                    {
+                        path: 'news',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/news-history.component'
+                            ).then(m => m.NewsHistoryComponent),
+                    },
+                    {
+                        path: 'forum',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/forum-history.component'
+                            ).then(m => m.ForumHistoryComponent),
+                    },
+                    {
+                        path: 'pictures',
+                        loadComponent: () =>
+                            import(
+                                './pages/history/tabs/pictures.component'
+                            ).then(m => m.PicturesComponent),
+                    },
+                ],
+            },
+            {
                 path: 'articles/edit/:id',
                 loadComponent: () =>
                     import('./pages/article-edit/article-edit.component').then(

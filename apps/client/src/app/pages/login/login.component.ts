@@ -27,7 +27,6 @@ import { finalize } from 'rxjs';
 
 @Component({
     selector: 'app-login',
-    standalone: true,
     imports: [
         ReactiveFormsModule,
         TextInputComponent,

@@ -171,6 +171,7 @@ yarn nx affected -t lint,test,build
 11. **No `null`** — use `undefined` instead of `null` everywhere
 12. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
 13. **No magic numbers** — extract numeric literals into named constants (e.g. `const DEBOUNCE_MS = 300`)
+14. **Readonly interface properties** — all interface properties must be `readonly` by default; mutable properties only with justified necessity
 
 ## Unit Testing
 

@@ -11,3 +11,4 @@ export * from './lib/components/right-sidebar/right-sidebar.component';
 export * from './lib/modal';
 export * from './lib/pipes/highlight/highlight.pipe';
 export * from './lib/directives/sidebar-action.directive';
+export * from './lib/components/tabs/tabs.component';

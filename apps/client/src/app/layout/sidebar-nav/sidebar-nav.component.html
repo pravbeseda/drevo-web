@@ -1,0 +1,11 @@
+<nav class="sidebar-nav">
+    @for (item of navItems; track item.route) {
+        <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active">
+            <ui-icon [name]="item.icon" size="small" />
+            <span class="nav-label">{{ item.label }}</span>
+        </a>
+    }
+</nav>

@@ -240,6 +240,16 @@ $theme-colors: (
     fab-secondary: (
         light: $md-grey-600,
         dark: $md-grey-400,
+    ),
+
+    // Tab badge
+    tab-badge-bg: (
+        light: $md-grey-200,
+        dark: $md-grey-700,
+    ),
+    tab-badge-text: (
+        light: $md-grey-800,
+        dark: $md-grey-200,
     )
 );
 
