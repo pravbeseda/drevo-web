@@ -4,14 +4,14 @@
     align-items: center;
     min-height: 100vh;
     padding: 1rem;
-    background-color: var(--themed-bg-primary);
+    background-color: var(--themed-primary-bg);
 }
 
 .login-card {
     width: 100%;
     max-width: 400px;
     padding: 2rem;
-    background-color: var(--themed-bg-primary);
+    background-color: var(--themed-primary-bg);
     border: 1px solid var(--themed-border-color);
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--themed-shadow-color);

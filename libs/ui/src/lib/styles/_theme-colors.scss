@@ -9,13 +9,13 @@
 // switch values based on the current theme.
 //
 // Usage:
-//   background: var(--themed-bg-primary);
+//   background: var(--themed-primary-bg);
 //   color: var(--themed-text-primary);
 // ============================================================================
 
 $theme-colors: (
     // Background colors
-    bg-primary: (
+    primary-bg: (
             light: white,
             dark: $md-grey-900,
         ),
@@ -186,14 +186,6 @@ $theme-colors: (
     editor-skeleton-offset: (
         light: $md-blue-50,
         dark: $md-blue-400,
-    ),
-    editor-bg: (
-        light: white,
-        dark: $md-grey-900,
-    ),
-    editor-text: (
-        light: $md-grey-900,
-        dark: $md-grey-300,
     ),
     editor-selection-bg: (
         light: $md-blue-100,
