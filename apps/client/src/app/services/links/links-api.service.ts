@@ -1,6 +1,7 @@
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { ApiResponse, assertIsDefined } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -27,26 +28,17 @@ export class LinksApiService {
      * @returns Observable with record of link existence statuses
      */
     checkLinks(links: string[]): Observable<Record<string, boolean>> {
-        let body = new HttpParams();
-        links.forEach(link => {
-            body = body.append('links[]', link);
-        });
-
         return this.http
-            .post<LinksCheckResponse>(
-                `${this.apiUrl}/api/links/check`,
-                body.toString(),
-                {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                }
+            .post<ApiResponse<LinksCheckResponse>>(
+                `${this.apiUrl}/api/wiki-links/check`,
+                { links },
+                { withCredentials: true }
             )
             .pipe(
-                map(raw => {
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
                     const result: Record<string, boolean> = {};
-                    Object.entries(raw).forEach(([key, value]) => {
+                    Object.entries(response.data).forEach(([key, value]) => {
                         result[key] = value.isExist;
                     });
                     return result;
