@@ -108,7 +108,7 @@ readonly user = toSignal(this.authService.user$);
 
 ```scss
 // Good
-background: var(--themed-bg-primary);
+background: var(--themed-primary-bg);
 color: var(--themed-text-secondary);
 
 // Bad

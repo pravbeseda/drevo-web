@@ -2,6 +2,16 @@
     .cm-editor {
         height: auto;
         width: 100%;
+        background-color: var(--themed-primary-bg);
+    }
+
+    .cm-editor .cm-content {
+        color: var(--themed-text-primary);
+        caret-color: var(--themed-text-primary);
+    }
+
+    .cm-editor .cm-line {
+        color: var(--themed-text-primary);
     }
 
     .cm-cursor,
@@ -9,8 +19,22 @@
         border-left-color: var(--themed-text-primary, black);
     }
 
+    .cm-activeLine {
+        background-color: var(--themed-editor-active-line-bg) !important;
+    }
+
+    .cm-selectionBackground {
+        background-color: var(--themed-editor-selection-bg) !important;
+    }
+
     .cm-content ::selection {
-        background-color: rgba(0, 0, 0, 0.1) !important;
+        background-color: var(--themed-editor-selection-bg) !important;
+    }
+
+    .cm-gutters {
+        background-color: var(--themed-primary-bg);
+        color: var(--themed-text-muted);
+        border-right-color: var(--themed-editor-panel-border);
     }
 
     .cm-footnote {
@@ -68,10 +92,35 @@
         }
     }
 
+    // Search panel
+    .cm-panels {
+        background-color: var(--themed-editor-panel-bg);
+        color: var(--themed-text-primary);
+        border-color: var(--themed-editor-panel-border);
+    }
+
     .cm-search {
         label:has(input[name='re']),
         button[name='select'] {
             display: none !important;
         }
+    }
+
+    .cm-button {
+        background-color: var(--themed-editor-button-bg);
+        color: var(--themed-text-primary);
+        border-color: var(--themed-editor-panel-border);
+        background-image: none;
+
+        &:active {
+            background-color: var(--themed-editor-active-button-bg);
+            background-image: none;
+        }
+    }
+
+    .cm-textfield {
+        background-color: var(--themed-primary-bg);
+        color: var(--themed-text-primary);
+        border-color: var(--themed-editor-panel-border);
     }
 }
