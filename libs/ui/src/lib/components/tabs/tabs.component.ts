@@ -3,9 +3,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 export interface TabItem {
-    label: string;
-    route: string;
-    badge?: number;
+    readonly label: string;
+    readonly route: string;
+    readonly badge?: number;
 }
 
 @Component({
