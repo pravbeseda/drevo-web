@@ -170,11 +170,12 @@ yarn nx affected -t lint,test,build
 10. **Angular Material as primary UI framework** — use Angular Material (M3) for UI decisions. Never use `mat-*` components (MatButton, MatIcon, etc.) or Angular Material styles/CSS classes directly outside the `libs/ui` library — always wrap them in `@drevo-web/ui` components and use `--themed-*` CSS variables instead
 11. **No `null`** — use `undefined` instead of `null` everywhere
 12. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
-13. **No magic numbers** — extract numeric literals into named constants (e.g. `const DEBOUNCE_MS = 300`)
+13. **No magic numbers** — extract numeric literals into named constants (e.g. `const DEBOUNCE_MS = 300`). Exception: in CSS, numeric values for `margin`, `padding`, and sizes of atomic UI components configured within those components are acceptable
 14. **Readonly interface properties** — all interface properties must be `readonly` by default; mutable properties only with justified necessity
 15. **No local size tokens in CSS** — never define local CSS custom properties for sizes (padding, margin, gap, border-radius, etc.) in component styles. All size tokens must be defined in `libs/ui/src/lib/styles/_tokens.scss`
 16. **Mobile first** — design and implement for mobile screens first, then progressively enhance for larger viewports using `min-width` media queries
 17. **TDD (Red-Green-Refactor)** — write tests for expected behavior first (tests fail), then implement the feature (tests pass). Test only public API (methods, properties, inputs/outputs), never internal implementation details. Prefer declarative test style. If existing tests break after implementation — do not rush to fix them; analyze the root cause first (the test may be wrong, or the change may have introduced an unintended side effect)
+18. **All pages require authentication** — every page/route must be protected from unauthorized access (auth guard). No public pages except the login page
 
 ## Unit Testing
 
