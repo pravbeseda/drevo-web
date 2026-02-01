@@ -3,8 +3,9 @@
         <a
             class="nav-item"
             [routerLink]="item.route"
+            [title]="item.label"
             routerLinkActive="active">
-            <ui-icon [name]="item.icon" size="small" />
+            <ui-icon [name]="item.icon" />
             <span class="nav-label">{{ item.label }}</span>
         </a>
     }

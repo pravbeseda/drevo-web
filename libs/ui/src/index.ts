@@ -12,3 +12,4 @@ export * from './lib/modal';
 export * from './lib/pipes/highlight/highlight.pipe';
 export * from './lib/directives/sidebar-action.directive';
 export * from './lib/components/tabs/tabs.component';
+export * from './lib/constants/breakpoints';

@@ -1,5 +1,27 @@
+@use 'index' as *;
+
 :host {
     display: flex;
+    flex: 1;
     align-items: center;
     justify-content: space-between;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: rem($brand-gap);
+}
+
+.brand-title {
+    font-size: rem($brand-font-size);
+    font-weight: 500;
+    color: var(--themed-text-primary);
+    user-select: none;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: rem($header-actions-gap);
 }

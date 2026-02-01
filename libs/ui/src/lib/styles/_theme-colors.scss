@@ -250,6 +250,12 @@ $theme-colors: (
     tab-badge-text: (
         light: $md-grey-800,
         dark: $md-grey-200,
+    ),
+
+    // Drawer
+    drawer-backdrop-bg: (
+        light: rgba(0, 0, 0, 0.4),
+        dark: rgba(0, 0, 0, 0.6),
     )
 );
 

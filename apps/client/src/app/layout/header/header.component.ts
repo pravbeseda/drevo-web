@@ -1,7 +1,7 @@
 import { AuthStatusComponent } from '../../components/auth-status/auth-status.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { LogExportService } from '@drevo-web/core';
+import { DrawerService, LogExportService } from '@drevo-web/core';
 import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
@@ -14,6 +14,11 @@ import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 export class HeaderComponent {
     private readonly modalService = inject(ModalService);
     private readonly logExportService = inject(LogExportService);
+    private readonly drawerService = inject(DrawerService);
+
+    toggleDrawer(): void {
+        this.drawerService.toggle();
+    }
 
     openSearch(): void {
         this.modalService.open(

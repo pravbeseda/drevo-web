@@ -1,12 +1,24 @@
 $root-font-size: 14px;
 
-// Breakpoints
+// Breakpoints — keep in sync with libs/ui/src/lib/constants/breakpoints.ts
 $breakpoint-tablet: 768px;
 $breakpoint-desktop: 1024px;
 
 // Layout dimensions
-$header-height: 60px;
+$header-height: 50px;
 $sidebar-width: 260px;
-$sidebar-min-width-tablet: 200px;
-$sidebar-min-width-desktop: 220px;
+$sidebar-collapsed-width: 50px;
 $layout-gap: 1px;
+
+// Drawer / Sidebar collapse
+$z-drawer-backdrop: 100;
+$z-drawer: 101;
+$sidebar-collapse-duration: 0.3s;
+$sidebar-collapsed-padding: 12px;
+
+// Typography
+$brand-font-size: 18px;
+
+// Spacing
+$brand-gap: 4px;
+$header-actions-gap: 8px;
