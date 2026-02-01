@@ -9,8 +9,9 @@ const poUsernameInput = 'input[type="text"], input[formcontrolname="username"]';
 const poPasswordInput = 'input[type="password"]';
 const poSubmitButton = 'button[type="submit"]';
 const poCheckbox = 'input[type="checkbox"]';
-const poAuthStatus = 'app-auth-status';
-const poLogoutButton = 'button:has-text("Выйти")';
+const poAccountDropdown = 'app-account-dropdown';
+const poAccountDropdownTrigger = 'app-account-dropdown button';
+const poLogoutMenuItem = 'ui-dropdown-menu-item:has-text("Выйти")';
 const poErrorMessage =
     '.error, [class*="error"], [class*="alert"], [role="alert"]';
 
@@ -29,7 +30,7 @@ const TEST_FORM_DATA = {
  *
  * Tests the frontend authentication flow with mocked backend:
  * - Login page functionality
- * - Auth status component states
+ * - Account dropdown component states
  * - Login/logout user flows
  *
  * These tests use Playwright fixtures to mock auth API endpoints,
@@ -125,7 +126,7 @@ test.describe('Authentication UI', () => {
         });
     });
 
-    test.describe('Auth Status Component', () => {
+    test.describe('Account Dropdown', () => {
         test('should redirect unauthenticated user to login', async ({
             unauthenticatedPage: page,
         }) => {
@@ -137,15 +138,19 @@ test.describe('Authentication UI', () => {
             });
         });
 
-        test('should show user info and logout button for authenticated user', async ({
+        test('should show account dropdown with logout option for authenticated user', async ({
             authenticatedPage: page,
         }) => {
             await page.goto('/');
 
-            await expect(page.locator(poAuthStatus)).toBeVisible({
+            await expect(page.locator(poAccountDropdown)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
-            await expect(page.locator(poLogoutButton)).toBeVisible({
+
+            // Open the dropdown menu
+            await page.locator(poAccountDropdownTrigger).click();
+
+            await expect(page.locator(poLogoutMenuItem)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
         });
@@ -175,7 +180,7 @@ test.describe('Authentication UI', () => {
             });
         });
 
-        test('should display auth status after login', async ({
+        test('should display account dropdown after login', async ({
             authMockedPage: page,
         }) => {
             await page.goto('/login');
@@ -196,8 +201,8 @@ test.describe('Authentication UI', () => {
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            // Auth status should be visible after login
-            await expect(page.locator(poAuthStatus)).toBeVisible({
+            // Account dropdown should be visible after login
+            await expect(page.locator(poAccountDropdown)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
         });
@@ -209,11 +214,18 @@ test.describe('Authentication UI', () => {
         }) => {
             await page.goto('/');
 
-            await expect(page.locator(poLogoutButton)).toBeVisible({
+            await expect(page.locator(poAccountDropdown)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page.locator(poLogoutButton).click();
+            // Open dropdown and click logout
+            await page.locator(poAccountDropdownTrigger).click();
+
+            await expect(page.locator(poLogoutMenuItem)).toBeVisible({
+                timeout: DEFAULT_WAIT_TIMEOUT,
+            });
+
+            await page.locator(poLogoutMenuItem).click();
 
             // Should be redirected to login page after logout
             await expect(page).toHaveURL(/\/login/, {

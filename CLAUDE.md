@@ -160,7 +160,7 @@ yarn nx affected -t lint,test,build
 
 1. **Strict TypeScript** — no implicit any, strict null checks
 2. **Standalone components** — always
-3. **Signals** for reactive state
+3. **Signals** for reactive state. Use "private writable + public readonly" strategy: writable `signal()` / `Subject` must be `private`, expose only `readonly` signals (`.asReadonly()`) and observables (`.asObservable()`) publicly
 4. **takeUntilDestroyed()** for subscription cleanup
 5. **Russian language** in UI, English in code
 6. **Lazy loading** for all pages
@@ -176,6 +176,7 @@ yarn nx affected -t lint,test,build
 16. **Mobile first** — design and implement for mobile screens first, then progressively enhance for larger viewports using `min-width` media queries
 17. **TDD (Red-Green-Refactor)** — write tests for expected behavior first (tests fail), then implement the feature (tests pass). Test only public API (methods, properties, inputs/outputs), never internal implementation details. Prefer declarative test style. If existing tests break after implementation — do not rush to fix them; analyze the root cause first (the test may be wrong, or the change may have introduced an unintended side effect)
 18. **All pages require authentication** — every page/route must be protected from unauthorized access (auth guard). No public pages except the login page
+19. **Log everything via LoggerService** — all user actions, navigation events, and errors must be logged through `LoggerService`. No silent failures or untracked interactions
 
 ## Unit Testing
 

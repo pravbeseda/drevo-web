@@ -1,0 +1,24 @@
+@use 'index' as *;
+
+:host {
+    display: flex;
+    align-items: center;
+    gap: rem($dropdown-item-gap);
+    padding: rem($dropdown-item-padding-v) rem($dropdown-item-padding-h);
+    font-size: rem($dropdown-item-font-size);
+    color: var(--themed-text-primary);
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--themed-menu-hover-background);
+    }
+}
+
+:host(.cdk-menu-item-disabled) {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+}

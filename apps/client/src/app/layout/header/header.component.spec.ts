@@ -33,16 +33,6 @@ describe('HeaderComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should call logExportService.downloadLogs when downloadLogs is called', () => {
-        spectator = createComponent();
-        const logExportService = spectator.inject(LogExportService);
-        jest.spyOn(logExportService, 'downloadLogs').mockResolvedValue();
-
-        spectator.component.downloadLogs();
-
-        expect(logExportService.downloadLogs).toHaveBeenCalled();
-    });
-
     it('should call drawerService.toggle when toggleDrawer is called', () => {
         spectator = createComponent();
         const drawerService = spectator.inject(DrawerService);

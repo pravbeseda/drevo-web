@@ -1,32 +1,32 @@
 import { User } from './user';
 
 export interface LoginRequest {
-    username: string;
-    password: string;
-    rememberMe?: boolean;
+    readonly username: string;
+    readonly password: string;
+    readonly rememberMe?: boolean;
 }
 
 export interface AuthResponse {
-    success: boolean;
-    data?: {
-        isAuthenticated: boolean;
-        user?: User;
-        csrfToken?: string;
+    readonly success: boolean;
+    readonly data?: {
+        readonly isAuthenticated: boolean;
+        readonly user?: User;
+        readonly csrfToken?: string;
     };
-    error?: string;
-    errorCode?: string;
+    readonly error?: string;
+    readonly errorCode?: string;
 }
 
 export interface CsrfResponse {
-    success: boolean;
-    data?: {
-        csrfToken: string;
+    readonly success: boolean;
+    readonly data?: {
+        readonly csrfToken: string;
     };
-    error?: string;
+    readonly error?: string;
 }
 
 export interface AuthState {
-    isAuthenticated: boolean;
-    user: User | undefined;
-    isLoading: boolean;
+    readonly isAuthenticated: boolean;
+    readonly user: User | undefined;
+    readonly isLoading: boolean;
 }

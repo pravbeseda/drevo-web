@@ -1,0 +1,29 @@
+@use 'index' as *;
+
+:host {
+    display: inline-flex;
+    align-items: center;
+}
+
+.dropdown-header {
+    display: flex;
+    flex-direction: column;
+    gap: rem($dropdown-user-info-gap);
+    padding: rem($dropdown-user-info-padding);
+}
+
+.dropdown-header-title {
+    font-weight: $dropdown-user-info-title-font-weight;
+    color: var(--themed-text-primary);
+}
+
+.dropdown-header-subtitle {
+    font-size: rem($dropdown-user-info-subtitle-font-size);
+    color: var(--themed-text-secondary);
+}
+
+.dropdown-divider {
+    border: none;
+    border-top: 1px solid var(--themed-border-color);
+    margin: 0;
+}

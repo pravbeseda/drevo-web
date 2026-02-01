@@ -26,12 +26,12 @@ describe('ThemeToggleComponent', () => {
 
     it('should show dark_mode icon when theme is light', () => {
         themeService.setTheme('light');
-        expect(spectator.component.icon).toBe('dark_mode');
+        expect(spectator.component.icon()).toBe('dark_mode');
     });
 
     it('should show light_mode icon when theme is dark', () => {
         themeService.setTheme('dark');
-        expect(spectator.component.icon).toBe('light_mode');
+        expect(spectator.component.icon()).toBe('light_mode');
     });
 
     it('should toggle theme when clicked', () => {
