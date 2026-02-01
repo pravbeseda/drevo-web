@@ -43,12 +43,6 @@ export class LayoutComponent implements OnInit {
     readonly isMobile = signal(false);
     readonly skipTransition = signal(false);
 
-    constructor() {
-        if (this.window && this.window.innerWidth >= BREAKPOINT_TABLET) {
-            this.drawerService.open();
-        }
-    }
-
     ngOnInit(): void {
         this.trackMobileBreakpoint();
         this.closeDrawerOnMobileNavigation();
@@ -69,6 +63,10 @@ export class LayoutComponent implements OnInit {
 
         this.isMobile.set(mediaQuery.matches);
 
+        if (!mediaQuery.matches) {
+            this.drawerService.open();
+        }
+
         const handler = (e: MediaQueryListEvent): void => {
             this.skipTransition.set(true);
             this.isMobile.set(e.matches);
@@ -79,7 +77,7 @@ export class LayoutComponent implements OnInit {
                 this.drawerService.open();
             }
 
-            setTimeout(() => this.skipTransition.set(false));
+            requestAnimationFrame(() => this.skipTransition.set(false));
         };
 
         mediaQuery.addEventListener('change', handler);
