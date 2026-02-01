@@ -13,10 +13,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { DrawerService, SidebarService, WINDOW } from '@drevo-web/core';
-import { RightSidebarComponent } from '@drevo-web/ui';
+import { BREAKPOINT_TABLET, RightSidebarComponent } from '@drevo-web/ui';
 import { filter } from 'rxjs';
-
-const MOBILE_BREAKPOINT = 768;
 
 @Component({
     selector: 'app-layout',
@@ -57,7 +55,7 @@ export class LayoutComponent implements OnInit {
     private updateMobileState(): void {
         if (this.window) {
             this.isMobile.set(
-                this.window.innerWidth < MOBILE_BREAKPOINT
+                this.window.innerWidth < BREAKPOINT_TABLET
             );
         }
     }
@@ -68,7 +66,7 @@ export class LayoutComponent implements OnInit {
         }
 
         const mediaQuery = this.window.matchMedia(
-            `(max-width: ${MOBILE_BREAKPOINT - 1}px)`
+            `(max-width: ${BREAKPOINT_TABLET - 1}px)`
         );
 
         const handler = (e: MediaQueryListEvent): void => {
