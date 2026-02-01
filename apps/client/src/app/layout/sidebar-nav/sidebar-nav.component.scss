@@ -3,15 +3,15 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: rem($sidebar-nav-gap);
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
+    gap: rem($sidebar-nav-item-gap);
+    padding: rem($sidebar-nav-item-padding-v) rem($sidebar-nav-item-padding-h);
+    border-radius: rem($sidebar-nav-item-radius);
     text-decoration: none;
     color: var(--themed-text-secondary);
     transition:
@@ -31,7 +31,7 @@
 }
 
 .nav-label {
-    font-size: 14px;
+    font-size: rem($sidebar-nav-label-font-size);
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
@@ -41,7 +41,7 @@
     :host(.compact) {
         .nav-item {
             justify-content: center;
-            padding: 8px;
+            padding: rem($sidebar-nav-item-padding-v);
         }
 
         .nav-label {

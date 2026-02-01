@@ -1,26 +1,46 @@
+import { IconComponent } from '../icon/icon.component';
+import { CdkMenuItem } from '@angular/cdk/menu';
 import {
     ChangeDetectionStrategy,
     Component,
+    DestroyRef,
+    effect,
+    inject,
     input,
     output,
 } from '@angular/core';
-import { MatIcon } from '@angular/material/icon';
-import { MatMenuItem } from '@angular/material/menu';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'ui-dropdown-menu-item',
-    imports: [MatMenuItem, MatIcon],
-    templateUrl: './dropdown-menu-item.component.html',
+    imports: [IconComponent],
+    hostDirectives: [CdkMenuItem],
+    template: `
+        @if (icon()) {
+            <ui-icon
+                [name]="icon()!"
+                size="small" />
+        }
+        <ng-content />
+    `,
     styleUrl: './dropdown-menu-item.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DropdownMenuItemComponent {
-    icon = input<string>();
-    disabled = input<boolean>(false);
+    private readonly cdkMenuItem = inject(CdkMenuItem);
+    private readonly destroyRef = inject(DestroyRef);
 
-    clicked = output<void>();
+    readonly icon = input<string>();
+    readonly disabled = input(false);
+    readonly clicked = output<void>();
 
-    onClick(): void {
-        this.clicked.emit();
+    constructor() {
+        effect(() => {
+            this.cdkMenuItem.disabled = this.disabled();
+        });
+
+        this.cdkMenuItem.triggered
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.clicked.emit());
     }
 }

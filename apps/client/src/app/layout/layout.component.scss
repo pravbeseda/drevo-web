@@ -79,27 +79,15 @@
 }
 
 .right {
-    position: static;
-    display: block;
     grid-area: right;
-    width: auto;
-    height: auto;
-    padding: 1rem;
-    background-color: var(--themed-primary-bg);
-    transition: background-color 0.3s ease;
-    overflow-y: auto;
+    position: absolute;
+    width: 0;
+    height: 0;
+    padding: 0;
+    overflow: visible;
 
     &:not(.has-actions) {
         display: none;
-    }
-
-    @media (max-width: $breakpoint-desktop) {
-        /* On mobile, keep in DOM but don't take space */
-        position: absolute;
-        width: 0;
-        height: 0;
-        padding: 0;
-        overflow: visible;
     }
 }
 
@@ -155,6 +143,21 @@
 
         &.sidebar-collapsed {
             grid-template-columns: rem($sidebar-collapsed-width) 1fr auto;
+        }
+    }
+
+    .right {
+        position: static;
+        display: block;
+        width: auto;
+        height: auto;
+        padding: 1rem;
+        background-color: var(--themed-primary-bg);
+        transition: background-color 0.3s ease;
+        overflow-y: auto;
+
+        &:not(.has-actions) {
+            display: none;
         }
     }
 }

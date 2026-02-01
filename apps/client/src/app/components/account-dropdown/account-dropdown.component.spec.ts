@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
@@ -29,7 +28,6 @@ describe('AccountDropdownComponent', () => {
 
     const createComponent = createComponentFactory({
         component: AccountDropdownComponent,
-        imports: [NoopAnimationsModule],
         providers: [
             provideRouter([]),
             MockProvider(LogExportService),
@@ -61,18 +59,19 @@ describe('AccountDropdownComponent', () => {
             isLoadingSubject.next(true);
             spectator = createComponent();
 
-            const iconButton = spectator.query('ui-icon-button');
-            expect(iconButton).toBeTruthy();
-
-            const button = spectator.query('ui-icon-button button') as HTMLButtonElement;
+            const button = spectator.query(
+                'ui-icon-button button'
+            ) as HTMLButtonElement;
             expect(button.disabled).toBe(true);
         });
 
-        it('should not render dropdown menu when loading', () => {
+        it('should not render trigger when loading', () => {
             isLoadingSubject.next(true);
             spectator = createComponent();
 
-            expect(spectator.query('ui-dropdown-menu')).toBeFalsy();
+            expect(
+                spectator.query('[aria-haspopup="menu"]')
+            ).toBeFalsy();
         });
     });
 
@@ -82,13 +81,10 @@ describe('AccountDropdownComponent', () => {
             spectator = createComponent();
         });
 
-        it('should show account icon button', () => {
-            const iconButton = spectator.query('ui-icon-button');
-            expect(iconButton).toBeTruthy();
-        });
-
-        it('should render dropdown menu', () => {
-            expect(spectator.query('ui-dropdown-menu')).toBeTruthy();
+        it('should show account icon button with trigger', () => {
+            expect(
+                spectator.query('[aria-haspopup="menu"]')
+            ).toBeTruthy();
         });
 
         it('should compute displayName from user name', () => {
@@ -138,8 +134,10 @@ describe('AccountDropdownComponent', () => {
             expect(spectator.component.isAuthenticated()).toBe(false);
         });
 
-        it('should render dropdown menu', () => {
-            expect(spectator.query('ui-dropdown-menu')).toBeTruthy();
+        it('should render trigger button', () => {
+            expect(
+                spectator.query('[aria-haspopup="menu"]')
+            ).toBeTruthy();
         });
     });
 
@@ -155,7 +153,9 @@ describe('AccountDropdownComponent', () => {
 
         it('should set isLoggingOut to true during logout', () => {
             const logoutSubject = new Subject<void>();
-            authServiceMock.logout = jest.fn().mockReturnValue(logoutSubject.asObservable());
+            authServiceMock.logout = jest
+                .fn()
+                .mockReturnValue(logoutSubject.asObservable());
 
             userSubject.next(mockUser);
             spectator = createComponent();
@@ -177,7 +177,9 @@ describe('AccountDropdownComponent', () => {
         it('should reset isLoggingOut to false after logout fails', () => {
             authServiceMock.logout = jest
                 .fn()
-                .mockReturnValue(throwError(() => new Error('Logout failed')));
+                .mockReturnValue(
+                    throwError(() => new Error('Logout failed'))
+                );
 
             userSubject.next(mockUser);
             spectator = createComponent();
@@ -218,9 +220,13 @@ describe('AccountDropdownComponent', () => {
             userSubject.next(mockUser);
             spectator = createComponent();
 
-            expect(spectator.query('ui-dropdown-menu')).toBeFalsy();
+            expect(
+                spectator.query('[aria-haspopup="menu"]')
+            ).toBeFalsy();
 
-            const button = spectator.query('ui-icon-button button') as HTMLButtonElement;
+            const button = spectator.query(
+                'ui-icon-button button'
+            ) as HTMLButtonElement;
             expect(button.disabled).toBe(true);
         });
     });

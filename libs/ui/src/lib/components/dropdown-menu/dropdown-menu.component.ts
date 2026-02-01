@@ -1,13 +1,13 @@
-import { ChangeDetectionStrategy, Component, viewChild } from '@angular/core';
-import { MatMenu } from '@angular/material/menu';
+import { CdkMenu } from '@angular/cdk/menu';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
     selector: 'ui-dropdown-menu',
-    imports: [MatMenu],
-    templateUrl: './dropdown-menu.component.html',
+    hostDirectives: [CdkMenu],
+    template: `
+        <ng-content />
+    `,
     styleUrl: './dropdown-menu.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DropdownMenuComponent {
-    readonly menu = viewChild.required<MatMenu>('menu');
-}
+export class DropdownMenuComponent {}

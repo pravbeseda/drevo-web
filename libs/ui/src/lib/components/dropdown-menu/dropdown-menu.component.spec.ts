@@ -1,12 +1,11 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { CdkMenu } from '@angular/cdk/menu';
 import { DropdownMenuComponent } from './dropdown-menu.component';
 
 describe('DropdownMenuComponent', () => {
     let spectator: Spectator<DropdownMenuComponent>;
     const createComponent = createComponentFactory({
         component: DropdownMenuComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {
@@ -17,7 +16,8 @@ describe('DropdownMenuComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should expose menu viewChild', () => {
-        expect(spectator.component.menu()).toBeTruthy();
+    it('should have CdkMenu host directive', () => {
+        const cdkMenu = spectator.inject(CdkMenu, true);
+        expect(cdkMenu).toBeTruthy();
     });
 });

@@ -1,7 +1,6 @@
-import { Component, viewChild } from '@angular/core';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { Component } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { MatMenuTrigger } from '@angular/material/menu';
+import { CdkMenuTrigger } from '@angular/cdk/menu';
 import { DropdownMenuComponent } from './dropdown-menu.component';
 import { DropdownMenuTriggerDirective } from './dropdown-menu-trigger.directive';
 
@@ -9,21 +8,20 @@ import { DropdownMenuTriggerDirective } from './dropdown-menu-trigger.directive'
     selector: 'ui-test-host',
     imports: [DropdownMenuComponent, DropdownMenuTriggerDirective],
     template: `
-        <button [uiDropdownMenuTriggerFor]="menu.menu()">Open</button>
-        <ui-dropdown-menu #menu>
-            <div class="test-content">Content</div>
-        </ui-dropdown-menu>
+        <button [uiDropdownMenuTriggerFor]="menuContent">Open</button>
+        <ng-template #menuContent>
+            <ui-dropdown-menu>
+                <div class="test-content">Content</div>
+            </ui-dropdown-menu>
+        </ng-template>
     `,
 })
-class TestHostComponent {
-    readonly menuRef = viewChild.required<DropdownMenuComponent>('menu');
-}
+class TestHostComponent {}
 
 describe('DropdownMenuTriggerDirective', () => {
     let spectator: Spectator<TestHostComponent>;
     const createComponent = createComponentFactory({
         component: TestHostComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {
@@ -34,11 +32,8 @@ describe('DropdownMenuTriggerDirective', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should apply MatMenuTrigger to the host element', () => {
-        const button = spectator.query('button');
-        expect(button).toBeTruthy();
-
-        const trigger = spectator.query(MatMenuTrigger);
+    it('should apply CdkMenuTrigger to the host element', () => {
+        const trigger = spectator.query(CdkMenuTrigger);
         expect(trigger).toBeTruthy();
     });
 });

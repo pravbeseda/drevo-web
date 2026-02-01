@@ -1,12 +1,12 @@
+import { CdkMenuTrigger } from '@angular/cdk/menu';
 import { Directive } from '@angular/core';
-import { MatMenuTrigger } from '@angular/material/menu';
 
 @Directive({
     selector: '[uiDropdownMenuTriggerFor]',
     hostDirectives: [
         {
-            directive: MatMenuTrigger,
-            inputs: ['matMenuTriggerFor: uiDropdownMenuTriggerFor'],
+            directive: CdkMenuTrigger,
+            inputs: ['cdkMenuTriggerFor: uiDropdownMenuTriggerFor'],
         },
     ],
 })

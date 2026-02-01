@@ -67,6 +67,8 @@ export class LayoutComponent implements OnInit {
             this.drawerService.open();
         }
 
+        let rafId = 0;
+
         const handler = (e: MediaQueryListEvent): void => {
             this.skipTransition.set(true);
             this.isMobile.set(e.matches);
@@ -77,11 +79,13 @@ export class LayoutComponent implements OnInit {
                 this.drawerService.open();
             }
 
-            requestAnimationFrame(() => this.skipTransition.set(false));
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => this.skipTransition.set(false));
         };
 
         mediaQuery.addEventListener('change', handler);
         this.destroyRef.onDestroy(() => {
+            cancelAnimationFrame(rafId);
             mediaQuery.removeEventListener('change', handler);
         });
     }

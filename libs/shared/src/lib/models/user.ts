@@ -8,16 +8,16 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export interface UserPermissions {
-    canEdit: boolean;
-    canModerate: boolean;
-    canAdmin: boolean;
+    readonly canEdit: boolean;
+    readonly canModerate: boolean;
+    readonly canAdmin: boolean;
 }
 
 export interface User {
-    id: number;
-    login: string;
-    name: string;
-    email: string;
-    role: UserRole;
-    permissions: UserPermissions;
+    readonly id: number;
+    readonly login: string;
+    readonly name: string;
+    readonly email: string;
+    readonly role: UserRole;
+    readonly permissions: UserPermissions;
 }
