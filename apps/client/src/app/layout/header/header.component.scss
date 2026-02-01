@@ -1,3 +1,5 @@
+@use 'index' as *;
+
 :host {
     display: flex;
     align-items: center;
@@ -7,12 +9,18 @@
 .header-brand {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: rem($brand-gap);
 }
 
 .brand-title {
-    font-size: 1.25rem;
+    font-size: rem($brand-font-size);
     font-weight: 500;
     color: var(--themed-text-primary);
     user-select: none;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: rem($header-actions-gap);
 }

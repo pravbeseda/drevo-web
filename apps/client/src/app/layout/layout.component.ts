@@ -41,10 +41,16 @@ export class LayoutComponent implements OnInit {
 
     readonly isDrawerOpen = this.drawerService.isOpen;
     readonly isMobile = signal(false);
+    readonly skipTransition = signal(false);
+
+    constructor() {
+        if (this.window && this.window.innerWidth >= BREAKPOINT_TABLET) {
+            this.drawerService.open();
+        }
+    }
 
     ngOnInit(): void {
-        this.updateMobileState();
-        this.listenToResize();
+        this.trackMobileBreakpoint();
         this.closeDrawerOnMobileNavigation();
     }
 
@@ -52,15 +58,7 @@ export class LayoutComponent implements OnInit {
         this.drawerService.close();
     }
 
-    private updateMobileState(): void {
-        if (this.window) {
-            this.isMobile.set(
-                this.window.innerWidth < BREAKPOINT_TABLET
-            );
-        }
-    }
-
-    private listenToResize(): void {
+    private trackMobileBreakpoint(): void {
         if (!this.window) {
             return;
         }
@@ -69,8 +67,19 @@ export class LayoutComponent implements OnInit {
             `(max-width: ${BREAKPOINT_TABLET - 1}px)`
         );
 
+        this.isMobile.set(mediaQuery.matches);
+
         const handler = (e: MediaQueryListEvent): void => {
+            this.skipTransition.set(true);
             this.isMobile.set(e.matches);
+
+            if (e.matches) {
+                this.drawerService.close();
+            } else {
+                this.drawerService.open();
+            }
+
+            setTimeout(() => this.skipTransition.set(false));
         };
 
         mediaQuery.addEventListener('change', handler);

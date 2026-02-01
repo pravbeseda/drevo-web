@@ -30,6 +30,12 @@
     overflow-y: auto;
 }
 
+// Suppress all transitions during breakpoint switch
+.layout.skip-transition,
+.layout.skip-transition .left {
+    transition: none !important;
+}
+
 // ===== MOBILE (< tablet): drawer overlay =====
 .left {
     background-color: var(--themed-sidebar-bg);
@@ -130,7 +136,7 @@
     }
 
     .layout.sidebar-collapsed .left {
-        padding: 12px;
+        padding: rem($sidebar-collapsed-padding);
     }
 
     .drawer-backdrop {

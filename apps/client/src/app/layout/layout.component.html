@@ -1,4 +1,7 @@
-<div class="layout" [class.sidebar-collapsed]="!isDrawerOpen()">
+<div
+    class="layout"
+    [class.sidebar-collapsed]="!isDrawerOpen()"
+    [class.skip-transition]="skipTransition()">
     <header class="header">
         <app-header></app-header>
     </header>

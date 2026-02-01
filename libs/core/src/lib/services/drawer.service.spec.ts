@@ -16,23 +16,23 @@ describe('DrawerService', () => {
         expect(spectator.service).toBeTruthy();
     });
 
-    it('should start with drawer open', () => {
-        expect(spectator.service.isOpen()).toBe(true);
+    it('should start with drawer closed', () => {
+        expect(spectator.service.isOpen()).toBe(false);
     });
 
     describe('toggle()', () => {
-        it('should close when open', () => {
-            spectator.service.toggle();
-
-            expect(spectator.service.isOpen()).toBe(false);
-        });
-
         it('should open when closed', () => {
-            spectator.service.close();
-
             spectator.service.toggle();
 
             expect(spectator.service.isOpen()).toBe(true);
+        });
+
+        it('should close when open', () => {
+            spectator.service.open();
+
+            spectator.service.toggle();
+
+            expect(spectator.service.isOpen()).toBe(false);
         });
     });
 

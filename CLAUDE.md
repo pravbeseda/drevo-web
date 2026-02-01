@@ -173,6 +173,8 @@ yarn nx affected -t lint,test,build
 13. **No magic numbers** — extract numeric literals into named constants (e.g. `const DEBOUNCE_MS = 300`)
 14. **Readonly interface properties** — all interface properties must be `readonly` by default; mutable properties only with justified necessity
 15. **No local size tokens in CSS** — never define local CSS custom properties for sizes (padding, margin, gap, border-radius, etc.) in component styles. All size tokens must be defined in `libs/ui/src/lib/styles/_tokens.scss`
+16. **Mobile first** — design and implement for mobile screens first, then progressively enhance for larger viewports using `min-width` media queries
+17. **TDD (Red-Green-Refactor)** — write tests for expected behavior first (tests fail), then implement the feature (tests pass). Test only public API (methods, properties, inputs/outputs), never internal implementation details. Prefer declarative test style. If existing tests break after implementation — do not rush to fix them; analyze the root cause first (the test may be wrong, or the change may have introduced an unintended side effect)
 
 ## Unit Testing
 

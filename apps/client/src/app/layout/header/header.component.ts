@@ -16,8 +16,6 @@ export class HeaderComponent {
     private readonly logExportService = inject(LogExportService);
     private readonly drawerService = inject(DrawerService);
 
-    readonly isDrawerOpen = this.drawerService.isOpen;
-
     toggleDrawer(): void {
         this.drawerService.toggle();
     }

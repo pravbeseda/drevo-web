@@ -4,7 +4,7 @@ import { Injectable, signal } from '@angular/core';
     providedIn: 'root',
 })
 export class DrawerService {
-    readonly isOpen = signal(true);
+    readonly isOpen = signal(false);
 
     toggle(): void {
         this.isOpen.update(v => !v);

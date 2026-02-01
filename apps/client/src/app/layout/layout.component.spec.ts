@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
@@ -15,7 +16,7 @@ describe('LayoutComponent', () => {
             provideHttpClientTesting(),
             provideRouter([]),
             MockProvider(DrawerService, {
-                isOpen: jest.fn().mockReturnValue(true) as unknown as DrawerService['isOpen'],
+                isOpen: signal(true),
                 close: jest.fn(),
             }),
         ],
@@ -28,12 +29,13 @@ describe('LayoutComponent', () => {
     });
 
     it('should apply sidebar-collapsed class when drawer is closed', () => {
-        const drawerService = {
-            isOpen: jest.fn().mockReturnValue(false) as unknown as DrawerService['isOpen'],
-            close: jest.fn(),
-        };
         spectator = createComponent({
-            providers: [MockProvider(DrawerService, drawerService)],
+            providers: [
+                MockProvider(DrawerService, {
+                    isOpen: signal(false),
+                    close: jest.fn(),
+                }),
+            ],
         });
 
         const layout = spectator.query('.layout');

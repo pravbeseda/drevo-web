@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
@@ -16,7 +17,7 @@ describe('HeaderComponent', () => {
             MockProvider(ModalService),
             MockProvider(LogExportService),
             MockProvider(DrawerService, {
-                isOpen: jest.fn().mockReturnValue(true) as unknown as DrawerService['isOpen'],
+                isOpen: signal(true),
                 toggle: jest.fn(),
             }),
             MockProvider(AuthService, {

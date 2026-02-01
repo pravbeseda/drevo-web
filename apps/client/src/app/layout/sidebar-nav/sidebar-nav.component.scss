@@ -17,8 +17,7 @@
     transition:
         background-color 0.15s ease,
         color 0.15s ease,
-        padding $sidebar-collapse-duration ease,
-        justify-content $sidebar-collapse-duration ease;
+        padding $sidebar-collapse-duration ease;
 
     &:hover {
         background-color: var(--themed-menu-hover-background);
@@ -36,7 +35,6 @@
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
-    transition: opacity $sidebar-collapse-duration ease;
 }
 
 @media (min-width: $breakpoint-tablet) {
