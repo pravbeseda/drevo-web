@@ -3,7 +3,6 @@ import { CdkMenuItem } from '@angular/cdk/menu';
 import {
     ChangeDetectionStrategy,
     Component,
-    DestroyRef,
     inject,
     input,
     output,
@@ -32,14 +31,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class DropdownMenuItemComponent {
     private readonly cdkMenuItem = inject(CdkMenuItem);
-    private readonly destroyRef = inject(DestroyRef);
 
     readonly icon = input<string>();
     readonly clicked = output<void>();
 
     constructor() {
         this.cdkMenuItem.triggered
-            .pipe(takeUntilDestroyed(this.destroyRef))
+            .pipe(takeUntilDestroyed())
             .subscribe(() => this.clicked.emit());
     }
 }
