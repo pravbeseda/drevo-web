@@ -1,0 +1,28 @@
+@if (isLoading()) {
+    <ui-icon-button icon="account_circle" label="Загрузка..." [disabled]="true" />
+} @else {
+    <ui-icon-button
+        icon="account_circle"
+        label="Аккаунт"
+        [uiDropdownMenuTriggerFor]="accountMenu.menu()" />
+
+    <ui-dropdown-menu #accountMenu>
+        @if (isAuthenticated()) {
+            <div class="dropdown-header">
+                <span class="user-name">{{ displayName() }}</span>
+                <span class="user-role">{{ roleLabel() }}</span>
+            </div>
+            <hr class="dropdown-divider" />
+            <ui-dropdown-menu-item icon="download" (clicked)="downloadLogs()">
+                Скачать логи
+            </ui-dropdown-menu-item>
+            <ui-dropdown-menu-item icon="logout" [disabled]="isLoggingOut()" (clicked)="logout()">
+                Выйти
+            </ui-dropdown-menu-item>
+        } @else {
+            <ui-dropdown-menu-item icon="login" (clicked)="navigateToLogin()">
+                Войти
+            </ui-dropdown-menu-item>
+        }
+    </ui-dropdown-menu>
+}

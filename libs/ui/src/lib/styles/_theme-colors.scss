@@ -252,6 +252,12 @@ $theme-colors: (
         dark: $md-grey-200,
     ),
 
+    // Dropdown
+    dropdown-panel-bg: (
+        light: white,
+        dark: $md-grey-800,
+    ),
+
     // Drawer
     drawer-backdrop-bg: (
         light: rgba(0, 0, 0, 0.4),

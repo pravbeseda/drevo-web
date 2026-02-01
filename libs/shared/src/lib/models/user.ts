@@ -1,5 +1,12 @@
 export type UserRole = 'guest' | 'user' | 'moder' | 'admin';
 
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+    guest: 'Гость',
+    user: 'Пользователь',
+    moder: 'Модератор',
+    admin: 'Администратор',
+};
+
 export interface UserPermissions {
     canEdit: boolean;
     canModerate: boolean;

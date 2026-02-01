@@ -1,0 +1,20 @@
+@use 'index' as *;
+
+:host {
+    display: inline-flex;
+    align-items: center;
+}
+
+// ::ng-deep required because mat-menu renders in CDK overlay outside component DOM
+// stylelint-disable-next-line selector-pseudo-element-no-unknown
+::ng-deep .ui-dropdown-menu-panel {
+    .user-name {
+        font-weight: 500;
+        color: var(--themed-text-primary);
+    }
+
+    .user-role {
+        font-size: rem(12px);
+        color: var(--themed-text-secondary);
+    }
+}

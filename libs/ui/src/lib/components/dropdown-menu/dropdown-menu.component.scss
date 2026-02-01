@@ -1,0 +1,21 @@
+@use 'index' as *;
+
+// ::ng-deep is required because mat-menu renders in CDK overlay outside component DOM
+// stylelint-disable-next-line selector-pseudo-element-no-unknown
+::ng-deep .ui-dropdown-menu-panel {
+    background: var(--themed-dropdown-panel-bg);
+    border: 1px solid var(--themed-border-color);
+
+    .dropdown-header {
+        display: flex;
+        flex-direction: column;
+        gap: rem($dropdown-user-info-gap);
+        padding: rem($dropdown-user-info-padding);
+    }
+
+    .dropdown-divider {
+        border: none;
+        border-top: 1px solid var(--themed-border-color);
+        margin: 0;
+    }
+}

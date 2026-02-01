@@ -1,19 +1,18 @@
-import { AuthStatusComponent } from '../../components/auth-status/auth-status.component';
+import { AccountDropdownComponent } from '../../components/account-dropdown/account-dropdown.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { DrawerService, LogExportService } from '@drevo-web/core';
+import { DrawerService } from '@drevo-web/core';
 import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-header',
-    imports: [AuthStatusComponent, ThemeToggleComponent, IconButtonComponent],
+    imports: [AccountDropdownComponent, ThemeToggleComponent, IconButtonComponent],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {
     private readonly modalService = inject(ModalService);
-    private readonly logExportService = inject(LogExportService);
     private readonly drawerService = inject(DrawerService);
 
     toggleDrawer(): void {
@@ -28,9 +27,5 @@ export class HeaderComponent {
                 ),
             { width: '600px', minHeight: '90vh' }
         );
-    }
-
-    downloadLogs(): void {
-        void this.logExportService.downloadLogs();
     }
 }
