@@ -3,6 +3,7 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { LogExportService } from '@drevo-web/core';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { User } from '@drevo-web/shared';
 import { AuthService } from '../../services/auth/auth.service';
 import { AccountDropdownComponent } from './account-dropdown.component';
@@ -31,6 +32,7 @@ describe('AccountDropdownComponent', () => {
         providers: [
             provideRouter([]),
             MockProvider(LogExportService),
+            mockLoggerProvider(),
             {
                 provide: AuthService,
                 useFactory: () => authServiceMock,
@@ -211,6 +213,37 @@ describe('AccountDropdownComponent', () => {
             spectator.component.navigateToLogin();
 
             expect(router.navigate).toHaveBeenCalledWith(['/login']);
+        });
+    });
+
+    describe('Dropdown menu rendering', () => {
+        function openMenu(): void {
+            const trigger = spectator.query(
+                '[aria-haspopup="menu"]'
+            ) as HTMLElement;
+            trigger.click();
+            spectator.detectChanges();
+        }
+
+        it('should render user info and menu items when authenticated', () => {
+            userSubject.next(mockUser);
+            spectator = createComponent();
+            openMenu();
+
+            const overlay = document.querySelector('.cdk-overlay-container')!;
+            expect(overlay.querySelector('.dropdown-header-title')?.textContent).toContain('Test User');
+            expect(overlay.querySelector('.dropdown-header-subtitle')?.textContent).toContain('Пользователь');
+            expect(overlay.querySelectorAll('ui-dropdown-menu-item').length).toBe(2);
+        });
+
+        it('should render login item when not authenticated', () => {
+            userSubject.next(undefined);
+            spectator = createComponent();
+            openMenu();
+
+            const overlay = document.querySelector('.cdk-overlay-container')!;
+            expect(overlay.querySelectorAll('ui-dropdown-menu-item').length).toBe(1);
+            expect(overlay.querySelector('ui-dropdown-menu-item')?.textContent).toContain('Войти');
         });
     });
 

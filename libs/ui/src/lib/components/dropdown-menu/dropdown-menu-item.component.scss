@@ -4,7 +4,7 @@
     display: flex;
     align-items: center;
     gap: rem($dropdown-item-gap);
-    padding: $dropdown-item-padding;
+    padding: rem($dropdown-item-padding-v) rem($dropdown-item-padding-h);
     font-size: rem($dropdown-item-font-size);
     color: var(--themed-text-primary);
     cursor: pointer;

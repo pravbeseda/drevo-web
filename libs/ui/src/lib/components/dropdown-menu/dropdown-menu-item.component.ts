@@ -4,7 +4,6 @@ import {
     ChangeDetectionStrategy,
     Component,
     DestroyRef,
-    effect,
     inject,
     input,
     output,
@@ -14,7 +13,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
     selector: 'ui-dropdown-menu-item',
     imports: [IconComponent],
-    hostDirectives: [CdkMenuItem],
+    hostDirectives: [
+        {
+            directive: CdkMenuItem,
+            inputs: ['cdkMenuItemDisabled: disabled'],
+        },
+    ],
     template: `
         @if (icon()) {
             <ui-icon
@@ -31,14 +35,9 @@ export class DropdownMenuItemComponent {
     private readonly destroyRef = inject(DestroyRef);
 
     readonly icon = input<string>();
-    readonly disabled = input(false);
     readonly clicked = output<void>();
 
     constructor() {
-        effect(() => {
-            this.cdkMenuItem.disabled = this.disabled();
-        });
-
         this.cdkMenuItem.triggered
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.clicked.emit());

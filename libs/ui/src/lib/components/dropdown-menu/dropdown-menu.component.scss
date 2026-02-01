@@ -5,7 +5,7 @@
     background: var(--themed-dropdown-panel-bg);
     border: 1px solid var(--themed-border-color);
     border-radius: rem($dropdown-panel-border-radius);
-    padding: $dropdown-panel-padding;
+    padding: rem($dropdown-panel-padding-v) 0;
     box-shadow: 0 4px 12px var(--themed-shadow-color);
     outline: none;
 }

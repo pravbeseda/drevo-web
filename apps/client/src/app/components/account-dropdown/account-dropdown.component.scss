@@ -13,12 +13,12 @@
 }
 
 .dropdown-header-title {
-    font-weight: 500;
+    font-weight: $dropdown-user-info-title-font-weight;
     color: var(--themed-text-primary);
 }
 
 .dropdown-header-subtitle {
-    font-size: rem(12px);
+    font-size: rem($dropdown-user-info-subtitle-font-size);
     color: var(--themed-text-secondary);
 }
 
