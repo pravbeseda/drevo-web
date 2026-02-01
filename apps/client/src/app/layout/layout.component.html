@@ -1,15 +1,26 @@
-<div class="layout">
+<div class="layout" [class.sidebar-collapsed]="!isDrawerOpen()">
     <header class="header">
         <app-header></app-header>
     </header>
 
+    @if (isMobile()) {
+        <div
+            class="drawer-backdrop"
+            [class.visible]="isDrawerOpen()"
+            (click)="closeDrawer()"
+            aria-hidden="true"></div>
+    }
+
     <aside
         class="left"
+        [class.drawer-open]="isDrawerOpen()"
         aria-label="Primary sidebar">
         <div class="left-content">
             <app-sidebar-nav />
         </div>
-        <app-version-display />
+        @if (isDrawerOpen()) {
+            <app-version-display />
+        }
     </aside>
 
     <main

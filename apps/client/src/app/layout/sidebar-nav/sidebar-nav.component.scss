@@ -1,3 +1,5 @@
+@use 'index' as *;
+
 .sidebar-nav {
     display: flex;
     flex-direction: column;
@@ -12,7 +14,11 @@
     border-radius: 8px;
     text-decoration: none;
     color: var(--themed-text-secondary);
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        padding $sidebar-collapse-duration ease,
+        justify-content $sidebar-collapse-duration ease;
 
     &:hover {
         background-color: var(--themed-menu-hover-background);
@@ -28,4 +34,20 @@
 .nav-label {
     font-size: 14px;
     line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity $sidebar-collapse-duration ease;
+}
+
+@media (min-width: $breakpoint-tablet) {
+    :host(.compact) {
+        .nav-item {
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .nav-label {
+            display: none;
+        }
+    }
 }

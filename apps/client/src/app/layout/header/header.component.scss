@@ -3,3 +3,16 @@
     align-items: center;
     justify-content: space-between;
 }
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.brand-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--themed-text-primary);
+    user-select: none;
+}

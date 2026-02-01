@@ -23,12 +23,6 @@
     transition: background-color 0.3s ease;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
 .main {
     grid-area: main;
     background-color: var(--themed-primary-bg);
@@ -36,13 +30,46 @@
     overflow-y: auto;
 }
 
+// ===== MOBILE (< tablet): drawer overlay =====
 .left {
     background-color: var(--themed-sidebar-bg);
-    transition: background-color 0.3s ease;
-    display: none;
+    display: flex;
     padding: 1rem;
     flex-direction: column;
     justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: rem($sidebar-width);
+    z-index: $z-drawer;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+        transform $sidebar-collapse-duration ease,
+        visibility $sidebar-collapse-duration ease,
+        background-color 0.3s ease;
+
+    &.drawer-open {
+        transform: translateX(0);
+        visibility: visible;
+        box-shadow: 4px 0 12px var(--themed-shadow-color);
+    }
+}
+
+.drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: var(--themed-drawer-backdrop-bg);
+    z-index: $z-drawer-backdrop;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity $sidebar-collapse-duration ease;
+
+    &.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 
 .right {
@@ -70,32 +97,58 @@
     }
 }
 
-/* Tablet: pin left sidebar full height, header shifts right */
+// ===== TABLET+ (>= 768px): compact sidebar =====
 @media (min-width: $breakpoint-tablet) {
     .layout {
-        grid-template-columns:
-            minmax(#{$sidebar-min-width-tablet}, rem($sidebar-width))
-            1fr;
+        grid-template-columns: rem($sidebar-width) 1fr;
         grid-template-rows: rem($header-height) 1fr;
         grid-template-areas:
             'left header'
             'left main';
+        transition: grid-template-columns $sidebar-collapse-duration ease;
+
+        &.sidebar-collapsed {
+            grid-template-columns: rem($sidebar-collapsed-width) 1fr;
+        }
     }
+
     .left {
-        display: flex;
+        position: static;
+        transform: none;
+        visibility: visible;
+        z-index: auto;
+        width: auto;
+        overflow: hidden;
         grid-area: left;
+        transition:
+            padding $sidebar-collapse-duration ease,
+            background-color 0.3s ease;
+
+        &.drawer-open {
+            box-shadow: none;
+        }
+    }
+
+    .layout.sidebar-collapsed .left {
+        padding: 12px;
+    }
+
+    .drawer-backdrop {
+        display: none !important;
     }
 }
 
-/* Desktop: left sidebar full height, right sidebar between header and main */
+// ===== DESKTOP (>= 1024px) =====
 @media (min-width: $breakpoint-desktop) {
     .layout {
-        grid-template-columns:
-            minmax(#{$sidebar-min-width-desktop}, rem($sidebar-width))
-            1fr auto;
+        grid-template-columns: rem($sidebar-width) 1fr auto;
         grid-template-rows: rem($header-height) 1fr;
         grid-template-areas:
             'left header header'
             'left main right';
+
+        &.sidebar-collapsed {
+            grid-template-columns: rem($sidebar-collapsed-width) 1fr auto;
+        }
     }
 }

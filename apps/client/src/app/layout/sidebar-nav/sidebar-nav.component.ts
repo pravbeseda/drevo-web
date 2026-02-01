@@ -1,5 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { DrawerService } from '@drevo-web/core';
 import { IconComponent } from '@drevo-web/ui';
 
 interface NavItem {
@@ -18,7 +24,13 @@ const NAV_ITEMS: NavItem[] = [
     templateUrl: './sidebar-nav.component.html',
     styleUrl: './sidebar-nav.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class.compact]': 'isCompact()',
+    },
 })
 export class SidebarNavComponent {
+    private readonly drawerService = inject(DrawerService);
+
     readonly navItems = NAV_ITEMS;
+    readonly isCompact = computed(() => !this.drawerService.isOpen());
 }

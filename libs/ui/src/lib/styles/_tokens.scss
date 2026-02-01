@@ -5,8 +5,14 @@ $breakpoint-tablet: 768px;
 $breakpoint-desktop: 1024px;
 
 // Layout dimensions
-$header-height: 60px;
+$header-height: 40px;
 $sidebar-width: 260px;
+$sidebar-collapsed-width: 50px;
 $sidebar-min-width-tablet: 200px;
 $sidebar-min-width-desktop: 220px;
 $layout-gap: 1px;
+
+// Drawer z-index
+$z-drawer-backdrop: 100;
+$z-drawer: 101;
+$sidebar-collapse-duration: 0.3s;
