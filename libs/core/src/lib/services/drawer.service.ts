@@ -4,17 +4,18 @@ import { Injectable, signal } from '@angular/core';
     providedIn: 'root',
 })
 export class DrawerService {
-    readonly isOpen = signal(false);
+    private readonly _isOpen = signal(false);
+    readonly isOpen = this._isOpen.asReadonly();
 
     toggle(): void {
-        this.isOpen.update(v => !v);
+        this._isOpen.update(v => !v);
     }
 
     open(): void {
-        this.isOpen.set(true);
+        this._isOpen.set(true);
     }
 
     close(): void {
-        this.isOpen.set(false);
+        this._isOpen.set(false);
     }
 }

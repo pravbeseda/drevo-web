@@ -6,13 +6,11 @@
         <app-header></app-header>
     </header>
 
-    @if (isMobile()) {
-        <div
-            class="drawer-backdrop"
-            [class.visible]="isDrawerOpen()"
-            (click)="closeDrawer()"
-            aria-hidden="true"></div>
-    }
+    <div
+        class="drawer-backdrop"
+        [class.visible]="isMobile() && isDrawerOpen()"
+        (click)="closeDrawer()"
+        aria-hidden="true"></div>
 
     <aside
         class="left"

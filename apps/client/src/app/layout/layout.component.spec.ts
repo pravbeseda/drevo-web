@@ -47,13 +47,20 @@ describe('LayoutComponent', () => {
             provideHttpClient(),
             provideHttpClientTesting(),
             provideRouter([{ path: '**', component: DummyComponent }]),
-            { provide: WINDOW, useFactory: () => createMockWindow(BREAKPOINT_TABLET) },
+            {
+                provide: WINDOW,
+                useFactory: () => createMockWindow(BREAKPOINT_TABLET),
+            },
             MockProvider(DrawerService, {
                 isOpen: signal(true),
                 open: jest.fn(),
                 close: jest.fn(),
             }),
         ],
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     it('should create', () => {
@@ -97,7 +104,10 @@ describe('LayoutComponent', () => {
         it('should set isMobile to true on mobile viewport', () => {
             spectator = createComponent({
                 providers: [
-                    { provide: WINDOW, useValue: createMockWindow(MOBILE_WIDTH) },
+                    {
+                        provide: WINDOW,
+                        useValue: createMockWindow(MOBILE_WIDTH),
+                    },
                     MockProvider(DrawerService, {
                         isOpen: signal(false),
                         open: jest.fn(),
@@ -125,7 +135,10 @@ describe('LayoutComponent', () => {
         it('should not open drawer on initial mobile load', () => {
             spectator = createComponent({
                 providers: [
-                    { provide: WINDOW, useValue: createMockWindow(MOBILE_WIDTH) },
+                    {
+                        provide: WINDOW,
+                        useValue: createMockWindow(MOBILE_WIDTH),
+                    },
                     MockProvider(DrawerService, {
                         isOpen: signal(false),
                         open: jest.fn(),
@@ -208,8 +221,6 @@ describe('LayoutComponent', () => {
 
             rafCallback!(0);
             expect(spectator.component.skipTransition()).toBe(false);
-
-            jest.restoreAllMocks();
         });
 
         it('should remove media query listener on destroy', () => {
@@ -254,7 +265,10 @@ describe('LayoutComponent', () => {
         it('should close drawer on navigation when mobile', async () => {
             spectator = createComponent({
                 providers: [
-                    { provide: WINDOW, useValue: createMockWindow(MOBILE_WIDTH) },
+                    {
+                        provide: WINDOW,
+                        useValue: createMockWindow(MOBILE_WIDTH),
+                    },
                     MockProvider(DrawerService, {
                         isOpen: signal(false),
                         open: jest.fn(),
