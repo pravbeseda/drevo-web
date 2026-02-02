@@ -26,4 +26,5 @@ Review all changes on the current branch compared to `standalone`.
    - **Warning** — missed edge cases, missing tests, convention violations (see CLAUDE.md)
    - **Suggestion** — code duplication, possible simplifications, other improvements
 4. Reference specific files and lines in every finding (`file_path:line_number`)
-5. **All review results must be in Russian**
+5. After the review, create a todo list with actionable tasks based on findings
+6. **All review results must be in Russian**
