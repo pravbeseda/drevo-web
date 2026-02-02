@@ -156,6 +156,13 @@ yarn nx affected -t lint,test,build
 - `apps/client/project.json` — Angular project config
 - `proxy.conf.json` — Dev proxy config
 
+## Design Principles
+
+- **SOLID, DRY, KISS** — follow SOLID principles, avoid code duplication, keep solutions as simple as possible
+- **Simple and extensible** — prefer straightforward solutions that are easy to maintain and extend in the future
+- **Decompose complex logic** — break down complex logic into small, focused, single-responsibility units (services, functions, components), but avoid over-engineering — don't create abstractions until they are clearly needed
+- **No anti-patterns** — follow Angular best practices, avoid known anti-patterns (god components, tight coupling, shared mutable state, deep inheritance hierarchies, etc.)
+
 ## Code Conventions
 
 1. **Strict TypeScript** — no implicit any, strict null checks
