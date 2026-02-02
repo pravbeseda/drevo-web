@@ -43,7 +43,7 @@ export const appRoutes: Route[] = [
                         path: 'articles',
                         loadComponent: () =>
                             import(
-                                './pages/history/tabs/articles-history.component'
+                                './pages/history/tabs/articles/articles-history.component'
                             ).then(m => m.ArticlesHistoryComponent),
                     },
                     {

@@ -5,6 +5,7 @@ import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
+    ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
     SaveArticleVersionRequestDto,
@@ -126,6 +127,48 @@ export class ArticleApiService {
             .post<
                 ApiResponse<SaveArticleVersionResponseDto>
             >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true, context })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Get article version history
+     *
+     * @param page - Page number (1-based)
+     * @param pageSize - Number of items per page
+     * @param approved - Optional approval status filter (-1, 0, 1)
+     * @param author - Optional author login filter
+     * @returns Observable with raw API response
+     */
+    getArticlesHistory(
+        page = 1,
+        pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
+        approved?: number,
+        author?: string
+    ): Observable<ArticleHistoryResponseDto> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('size', pageSize.toString());
+
+        if (approved !== undefined) {
+            params = params.set('approved', approved.toString());
+        }
+
+        if (author) {
+            params = params.set('author', author);
+        }
+
+        return this.http
+            .get<
+                ApiResponse<ArticleHistoryResponseDto>
+            >(`${this.apiUrl}/api/articles/history`, { params, withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(
