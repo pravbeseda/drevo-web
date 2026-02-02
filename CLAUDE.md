@@ -1,4 +1,4 @@
-# CLAUDE.md - Dive-in Instructions for Drevo-Web Project
+# CLAUDE.md - Drevo-Web Project Instructions
 
 ## Quick Overview
 
@@ -24,170 +24,211 @@
 apps/
   client/                    # Main Angular application
     src/app/
-      pages/                 # Pages (lazy-loaded)
-        login/               # Authentication
-        article/             # Article view
-        article-edit/        # Article editing
-        search/              # Search
-        main/                # Home page
-        shared-editor/       # Collaborative editing
-      services/              # Application services
+      pages/                 # Pages (lazy-loaded via app.routes.ts)
+      services/              # Domain services (grouped by feature in subdirectories)
+      components/            # Shared app-level components
       interceptors/          # HTTP interceptors
       guards/                # Route guards
-      layout/                # Layout components
-      models/                # Types
+      layout/                # Layout components (header, sidebar)
+      models/                # Types and API DTOs
     src/environments/        # Environment configs
   client-e2e/                # E2E tests (Playwright)
 
 libs/
-  core/                      # Core: HTTP, logging, notifications
-    http/                    # HTTP utilities, error mapper
-    logging/                 # IndexedDB + Sentry + Console logging
-    services/                # NotificationService, StorageService
-  shared/                    # Shared models and types
-    models/                  # User, Article, AuthState, etc.
+  core/                      # HTTP utilities, logging, notifications, DI tokens
+  shared/                    # Shared models, types, helpers
   editor/                    # CodeMirror editor component
-  ui/                        # UI components (button, input, spinner, etc.)
+  ui/                        # UI component library (see "Available UI Components")
 ```
+
+### Key Entry Points
+
+- **Routing**: `apps/client/src/app/app.routes.ts`
+- **App config**: `apps/client/src/app/app.config.ts`
+- **Proxy**: `apps/client/proxy.conf.json` (proxies `/api` and `/pictures` → `http://drevo-local.ru`)
+- **Path aliases**: `tsconfig.base.json`
+
+### Import Aliases
+
+```typescript
+import { ... } from '@drevo-web/core';
+import { ... } from '@drevo-web/core/testing';  // test mocks
+import { ... } from '@drevo-web/shared';
+import { ... } from '@drevo-web/ui';
+import { ... } from '@drevo-web/editor';
+```
+
+### Selector Prefixes
+
+- `app-` — application components (`apps/client/`)
+- `ui-` — UI library components (`libs/ui/`)
 
 ## Legacy Backend (Yii1)
 
 ```
 legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
   protected/
-    controllers/
-      api/                   # API controllers (only this folder is modified)
+    controllers/api/         # API controllers (only this folder is modified)
     models/                  # Data models (reference for data structures)
 ```
 
-- **Role**: Backend for the Angular app
-- **Policy**: If possible, do not modify existing code, only add new API endpoints
+- **Policy**: Do not modify existing code, only add new API endpoints
 - **Use as reference**: Data structures and business logic
 
-## Import Aliases
+## Available UI Components
 
-```typescript
-import { ... } from '@drevo-web/core';
-import { ... } from '@drevo-web/shared';
-import { ... } from '@drevo-web/ui';
-import { ... } from '@drevo-web/editor';
-```
+All accessed via `@drevo-web/ui`. Never use `mat-*` components directly outside `libs/ui`.
+
+| Component | Selector | Notes |
+|-----------|----------|-------|
+| Button | `ui-button` | |
+| IconButton | `ui-icon-button` | |
+| ActionButton | `ui-action-button` | |
+| TextInput | `ui-text-input` | |
+| Checkbox | `ui-checkbox` | |
+| Icon | `ui-icon` | |
+| Spinner | `ui-spinner` | |
+| Tabs | `ui-tabs` | |
+| DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |
+| VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
+| RightSidebar | `ui-right-sidebar` | |
+| Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
+| HighlightPipe | `highlight` | Pipe for text highlighting |
 
 ## Key Patterns
 
-### State Management — Signals
+### Signals — Private Writable + Public Readonly
 
 ```typescript
-readonly isLoading = signal(false);
-readonly data = signal<Data | undefined>(undefined);
+// Signal
+private readonly _isLoading = signal(false);
+readonly isLoading = this._isLoading.asReadonly();
+
+// Computed
 readonly hasData = computed(() => !!this.data());
 
-// Convert Observable to Signal
+// Observable → Signal
 readonly user = toSignal(this.authService.user$);
+
+// Subject (when Observable is needed)
+private readonly _eventSubject = new Subject<Event>();
+readonly event$ = this._eventSubject.asObservable();
 ```
 
-### HTTP & Authentication
+### HTTP Services — Two-Layer Pattern
 
-- **AuthInterceptor** (`interceptors/auth.interceptor.ts`) — CSRF tokens, 401/403 handling
-- **CSRF** — automatically added to POST/PUT/DELETE/PATCH
+API service (low-level HTTP) + Domain service (business logic, mapping):
+
+```typescript
+// article-api.service.ts — HTTP layer (internal, not used by components)
+@Injectable({ providedIn: 'root' })
+export class ArticleApiService {
+    private readonly apiUrl = environment.apiUrl;
+    private readonly http = inject(HttpClient);
+
+    getArticle(id: number): Observable<ArticleVersionDto> {
+        return this.http
+            .get<ApiResponse<ArticleVersionDto>>(
+                `${this.apiUrl}/api/articles/show/${id}`,
+                { withCredentials: true }
+            )
+            .pipe(map(response => {
+                assertIsDefined(response.data, 'Response data is undefined');
+                return response.data;
+            }));
+    }
+}
+
+// article.service.ts — Domain layer (used by components)
+@Injectable({ providedIn: 'root' })
+export class ArticleService {
+    private readonly articleApiService = inject(ArticleApiService);
+
+    getArticle(id: number): Observable<ArticleVersion> {
+        return this.articleApiService.getArticle(id).pipe(
+            map(dto => this.mapArticleVersion(dto))
+        );
+    }
+}
+```
+
+### Authentication & HTTP
+
+- **AuthInterceptor** — CSRF tokens (auto-added to POST/PUT/DELETE/PATCH), 401/403 handling
 - **Credentials** — `withCredentials: true` for all API requests
-- **API Proxy** — dev: `/api/*` → `http://drevo-local.ru`
+- **All routes protected** by `authGuard` except `/login`
 
 ### Components
 
-- **Standalone components** — always `standalone: true`
-- **Lazy loading** — routes use `loadComponent`
-- **Zoneless** — `provideZonelessChangeDetection()`
+- Always `standalone: true`
+- Lazy loading via `loadComponent` in routes
+- Zoneless: `provideZonelessChangeDetection()`
 
-### Styles
+## Styles
 
 - SCSS with Angular Material theming
 - Themes: `html` (light), `html.dark-theme` (dark)
-- Shared styles: `libs/ui/src/lib/styles/`
-- **Color tokens only** — use `--themed-*` CSS variables from `libs/ui/src/lib/styles/_theme-colors.scss`. Add new tokens there if needed, never use hardcoded colors or Angular Material color tokens directly.
+- Mobile first: `min-width` media queries for larger viewports
+
+### Color Tokens
+
+Use only `--themed-*` CSS variables from `libs/ui/src/lib/styles/_theme-colors.scss`:
 
 ```scss
 // Good
 background: var(--themed-primary-bg);
 color: var(--themed-text-secondary);
 
-// Bad
+// Bad — hardcoded colors
 background: #ffffff;
-color: grey;
-background: var(--mat-sys-surface);           // No direct Material tokens!
-color: var(--mat-sys-on-surface);             // No direct Material tokens!
+// Bad — direct Material tokens
+background: var(--mat-sys-surface);
 ```
 
-## Commands
+### Size Tokens
 
-```bash
-# Development
-yarn dev                    # Dev server at localhost:4200
+All size tokens defined in `libs/ui/src/lib/styles/_tokens.scss`. Key values:
 
-# Build
-yarn build                  # Production build
-yarn build:dev              # Development build
+- **Breakpoints**: `$breakpoint-tablet: 768px`, `$breakpoint-desktop: 1024px` (also in `@drevo-web/ui` → `breakpoints`)
+- **Layout**: `$header-height: 50px`, `$sidebar-width: 260px`, `$sidebar-collapsed-width: 50px`
 
-# Tests
-yarn nx test client         # Unit tests
-yarn nx e2e client-e2e      # E2E tests
-
-# Code quality
-yarn lint                   # ESLint
-yarn format:check           # Prettier check
-yarn format:fix             # Prettier fix
-
-# Affected (for CI)
-yarn nx affected -t lint,test,build
-```
-
-## Environments
-
-| Environment | Port | Base href |
-|-------------|------|-----------|
-| Production | 4002 | `/` |
-| Staging | 4001 | `/staging` |
-| Development | 4200 | `/` |
-
-## Key Configuration Files
-
-- `nx.json` — Nx workspace config
-- `tsconfig.base.json` — Base TS config with path aliases
-- `apps/client/project.json` — Angular project config
-- `proxy.conf.json` — Dev proxy config
-
-## Design Principles
-
-- **SOLID, DRY, KISS** — follow SOLID principles, avoid code duplication, keep solutions as simple as possible
-- **Simple and extensible** — prefer straightforward solutions that are easy to maintain and extend in the future
-- **Decompose complex logic** — break down complex logic into small, focused, single-responsibility units (services, functions, components), but avoid over-engineering — don't create abstractions until they are clearly needed
-- **No anti-patterns** — follow Angular best practices, avoid known anti-patterns (god components, tight coupling, shared mutable state, deep inheritance hierarchies, etc.)
+Never define local CSS custom properties for sizes in component styles — add new tokens to `_tokens.scss`.
 
 ## Code Conventions
 
+### TypeScript
+
 1. **Strict TypeScript** — no implicit any, strict null checks
-2. **Standalone components** — always
-3. **Signals** for reactive state. Use "private writable + public readonly" strategy: writable `signal()` / `Subject` must be `private`, expose only `readonly` signals (`.asReadonly()`) and observables (`.asObservable()`) publicly
-4. **takeUntilDestroyed()** for subscription cleanup
-5. **Russian language** in UI, English in code
-6. **Lazy loading** for all pages
-7. **Comments in English only** — and only where code doesn't explain itself
-8. **Unit tests** — Jest + Spectator only (no other testing utilities)
-9. **Color tokens only** — use `--themed-*` variables from `_theme-colors.scss`, no hardcoded colors or direct Angular Material tokens (`--mat-*`)
-10. **Angular Material as primary UI framework** — use Angular Material (M3) for UI decisions. Never use `mat-*` components (MatButton, MatIcon, etc.) or Angular Material styles/CSS classes directly outside the `libs/ui` library — always wrap them in `@drevo-web/ui` components and use `--themed-*` CSS variables instead
-11. **No `null`** — use `undefined` instead of `null` everywhere
-12. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
-13. **No magic numbers** — extract numeric literals into named constants (e.g. `const DEBOUNCE_MS = 300`). Exception: in CSS, numeric values for `margin`, `padding`, and sizes of atomic UI components configured within those components are acceptable
-14. **Readonly interface properties** — all interface properties must be `readonly` by default; mutable properties only with justified necessity
-15. **No local size tokens in CSS** — never define local CSS custom properties for sizes (padding, margin, gap, border-radius, etc.) in component styles. All size tokens must be defined in `libs/ui/src/lib/styles/_tokens.scss`
-16. **Mobile first** — design and implement for mobile screens first, then progressively enhance for larger viewports using `min-width` media queries
-17. **TDD (Red-Green-Refactor)** — write tests for expected behavior first (tests fail), then implement the feature (tests pass). Test only public API (methods, properties, inputs/outputs), never internal implementation details. Prefer declarative test style. If existing tests break after implementation — do not rush to fix them; analyze the root cause first (the test may be wrong, or the change may have introduced an unintended side effect)
-18. **All pages require authentication** — every page/route must be protected from unauthorized access (auth guard). No public pages except the login page
-19. **Log everything via LoggerService** — all user actions, navigation events, and errors must be logged through `LoggerService`. No silent failures or untracked interactions
+2. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
+3. **No `null`** — use `undefined` instead of `null` everywhere
+4. **Readonly interface properties** — all interface properties must be `readonly` by default
+5. **No magic numbers** — extract into named constants. Exception: CSS margin/padding/sizes of atomic UI components
+
+### Angular
+
+6. **Standalone components** — always
+7. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns)
+8. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for Subject, `event$` for its public Observable
+9. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
+10. **`takeUntilDestroyed()`** for subscription cleanup
+11. **Lazy loading** for all pages
+12. **Angular Material via `@drevo-web/ui` only** — never use `mat-*` components or `--mat-*` CSS tokens directly outside `libs/ui`
+13. **Auth guard on all routes** — no public pages except login
+
+### Styling
+
+14. **Color tokens only** — `--themed-*` variables, no hardcoded colors or `--mat-*` tokens
+15. **Size tokens in `_tokens.scss`** — no local CSS custom properties for sizes
+16. **Mobile first** — `min-width` media queries
+
+### Quality
+
+17. **Russian language** in UI, **English** in code and comments
+18. **Comments** — English only, only where code doesn't explain itself
+19. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
+20. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 
 ## Unit Testing
-
-Always use Jest with Spectator for unit tests:
 
 ```typescript
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
@@ -211,11 +252,6 @@ describe('MyComponent', () => {
 
 ## Logging
 
-Centralized logging via `LoggerService`:
-- Console (dev)
-- IndexedDB (browser storage)
-- Sentry (production errors)
-
 ```typescript
 import { LoggerService } from '@drevo-web/core';
 
@@ -225,15 +261,20 @@ this.logger.info('message', { data });
 this.logger.error('error', error);
 ```
 
-## Deployment
+## Commands
 
-- Atomic deployment via symlink switching
-- PM2 for process management
-- `scripts/deploy-*.sh` for deployment
+```bash
+yarn dev                           # Dev server at localhost:4200
+yarn build                         # Production build
+yarn build:dev                     # Development build
+yarn nx test client                # Unit tests
+yarn nx e2e client-e2e             # E2E tests
+yarn lint                          # ESLint
+yarn format:check                  # Prettier check
+yarn format:fix                    # Prettier fix
+```
 
-## Git Workflow
+## Design Principles
 
-- `main` — main branch for CI
-- `staging` — staging deployment
-- `production` — production deployment
-- Feature branches → PR to main
+- **Decompose complex logic** — small, focused, single-responsibility units, but avoid over-engineering
+- **No anti-patterns** — no god components, tight coupling, shared mutable state, deep inheritance hierarchies
