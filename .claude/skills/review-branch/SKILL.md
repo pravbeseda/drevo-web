@@ -19,8 +19,11 @@ Review all changes on the current branch compared to `standalone`.
 
 ## Instructions
 
-1. Summarize the scope of changes — what was added, modified, removed
-2. Review code quality against project conventions (see CLAUDE.md)
-3. Flag potential bugs, security issues, or missed edge cases
-4. Note missing tests if applicable
-5. Suggest improvements if any
+1. Read each changed file **in full** (not just the diff) to understand the surrounding context
+2. Summarize the scope of changes — what was added, modified, removed
+3. Review and report findings, categorized by severity:
+   - **Critical** — bugs, security issues, data loss risks
+   - **Warning** — missed edge cases, missing tests, convention violations (see CLAUDE.md)
+   - **Suggestion** — code duplication, possible simplifications, other improvements
+4. Reference specific files and lines in every finding (`file_path:line_number`)
+5. **All review results must be in Russian**
