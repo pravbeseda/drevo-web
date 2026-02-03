@@ -94,6 +94,7 @@ All accessed via `@drevo-web/ui`. Never use `mat-*` components directly outside 
 | RightSidebar | `ui-right-sidebar` | |
 | Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
 | HighlightPipe | `highlight` | Pipe for text highlighting |
+| FormatTimePipe | `formatTime` | Pipe for time formatting |
 
 ## Key Patterns
 
