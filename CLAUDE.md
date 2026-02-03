@@ -161,7 +161,6 @@ export class ArticleService {
 
 ### Components
 
-- Always `standalone: true`
 - Lazy loading via `loadComponent` in routes
 - Zoneless: `provideZonelessChangeDetection()`
 
@@ -207,7 +206,7 @@ Never define local CSS custom properties for sizes in component styles — add n
 
 ### Angular
 
-6. **Standalone components** — always
+6. **Standalone components** — always, but omit `standalone: true` (it's the default in Angular 21)
 7. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns)
 8. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for Subject, `event$` for its public Observable
 9. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
