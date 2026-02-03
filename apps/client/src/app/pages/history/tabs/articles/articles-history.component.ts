@@ -1,5 +1,6 @@
 import { ArticleService } from '../../../../services/articles/article.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { NgClass } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -47,6 +48,7 @@ type HistoryDisplayItem =
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
         RouterLink,
+        NgClass,
     ],
     templateUrl: './articles-history.component.html',
     styleUrl: './articles-history.component.scss',

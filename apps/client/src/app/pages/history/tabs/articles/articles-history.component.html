@@ -34,24 +34,38 @@
             [isLoading]="isLoadingMore()"
             [trackByFn]="trackByFn"
             (loadMore)="onLoadMore()">
-            <ng-template uiVirtualScrollerItem let-item>
+            <ng-template
+                uiVirtualScrollerItem
+                let-item>
                 @if (item.type === 'header') {
                     <div class="history-date-header">{{ item.date }}</div>
                 } @else {
-                    <div class="history-item" [class]="item.approvalClass">
-                        <span class="history-item-time">{{ item.formattedTime }}</span>
-                        <span class="history-item-icon">{{ item.data.isNew ? '+' : '~' }}</span>
+                    <div
+                        class="history-item"
+                        [ngClass]="item.approvalClass">
+                        <span class="history-item-time">
+                            {{ item.formattedTime }}
+                        </span>
+                        <span class="history-item-icon">
+                            {{ item.data.isNew ? '+' : '~' }}
+                        </span>
                         <a
                             class="history-item-title"
                             [routerLink]="['/articles', item.data.articleId]">
                             {{ item.data.title }}
                         </a>
-                        <span class="history-item-author">{{ item.data.author }}</span>
+                        <span class="history-item-author">
+                            {{ item.data.author }}
+                        </span>
                         @if (item.data.info) {
-                            <span class="history-item-info">{{ item.data.info }}</span>
+                            <span class="history-item-info">
+                                {{ item.data.info }}
+                            </span>
                         }
                         @if (item.data.comment) {
-                            <span class="history-item-comment">{{ item.data.comment }}</span>
+                            <span class="history-item-comment">
+                                {{ item.data.comment }}
+                            </span>
                         }
                     </div>
                 }
