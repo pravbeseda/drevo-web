@@ -78,6 +78,7 @@ export class ArticlesHistoryComponent implements OnInit {
 
     private readonly currentUser = toSignal(this.authService.user$);
 
+    readonly canFilterByAuthor = computed(() => !!this.currentUser());
     readonly hasItems = computed(() => this._historyItems().length > 0);
 
     readonly displayItems = computed<readonly HistoryDisplayItem[]>(() => {
@@ -152,6 +153,11 @@ export class ArticlesHistoryComponent implements OnInit {
         this._hasError.set(false);
 
         const params = this.buildParams();
+        if (!params) {
+            this._isLoading.set(false);
+            this._isLoadingMore.set(false);
+            return;
+        }
 
         this.articleService
             .getArticlesHistory(params)
@@ -165,22 +171,26 @@ export class ArticlesHistoryComponent implements OnInit {
                         ]);
                     } else {
                         this._historyItems.set(response.items);
+                        this._referenceDate.set(new Date());
                     }
                     this._totalItems.set(response.total);
-                    this._referenceDate.set(new Date());
                     this._isLoading.set(false);
                     this._isLoadingMore.set(false);
                 },
                 error: error => {
                     this.logger.error('Failed to load article history', error);
-                    this._isLoading.set(false);
-                    this._isLoadingMore.set(false);
-                    this._hasError.set(true);
+                    if (loadMore) {
+                        this._isLoadingMore.set(false);
+                        this._currentPage.update(p => p - 1);
+                    } else {
+                        this._isLoading.set(false);
+                        this._hasError.set(true);
+                    }
                 },
             });
     }
 
-    private buildParams(): ArticleHistoryParams {
+    private buildParams(): ArticleHistoryParams | undefined {
         const base: ArticleHistoryParams = {
             page: this._currentPage(),
         };
@@ -191,10 +201,11 @@ export class ArticlesHistoryComponent implements OnInit {
         }
         if (filter === 'my') {
             const user = this.currentUser();
-            if (user) {
-                return { ...base, author: user.login };
+            if (!user) {
+                this.logger.error('Cannot filter by author: user not loaded');
+                return undefined;
             }
-            this.logger.warn('Cannot filter by author: user not loaded');
+            return { ...base, author: user.login };
         }
 
         return base;

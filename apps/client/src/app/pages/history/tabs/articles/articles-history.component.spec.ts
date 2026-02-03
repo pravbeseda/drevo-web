@@ -252,6 +252,54 @@ describe('ArticlesHistoryComponent', () => {
         });
     });
 
+    describe('canFilterByAuthor', () => {
+        it('should be true when user is available', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            spectator.detectChanges();
+
+            expect(spectator.component.canFilterByAuthor()).toBe(true);
+        });
+
+        it('should be false when user is undefined', () => {
+            userSubject.next(undefined);
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            spectator.detectChanges();
+
+            expect(spectator.component.canFilterByAuthor()).toBe(false);
+        });
+
+        it('should hide "my" button when user is not available', () => {
+            userSubject.next(undefined);
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            spectator.detectChanges();
+
+            const buttons = spectator.queryAll('ui-button');
+            const buttonTexts = buttons.map(b =>
+                b.textContent?.trim()
+            );
+            expect(buttonTexts).not.toContain('Мои');
+        });
+
+        it('should show "my" button when user is available', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            spectator.detectChanges();
+
+            const buttons = spectator.queryAll('ui-button');
+            const buttonTexts = buttons.map(b =>
+                b.textContent?.trim()
+            );
+            expect(buttonTexts).toContain('Мои');
+        });
+    });
+
     describe('filters', () => {
         beforeEach(() => {
             articleService.getArticlesHistory.mockReturnValue(
@@ -302,6 +350,17 @@ describe('ArticlesHistoryComponent', () => {
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
         });
 
+        it('should not load when "my" filter selected and user not available', () => {
+            userSubject.next(undefined);
+            spectator.detectChanges();
+
+            articleService.getArticlesHistory.mockClear();
+            spectator.component.onFilterChange('my');
+            spectator.detectChanges();
+
+            expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
+        });
+
         it('should reset items and error state when changing filter', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 throwError(() => new Error('fail'))
@@ -345,6 +404,29 @@ describe('ArticlesHistoryComponent', () => {
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 2,
             });
+        });
+
+        it('should keep existing items when loadMore fails', () => {
+            const firstPage = [
+                createMockHistoryItem({ versionId: 1 }),
+                createMockHistoryItem({ versionId: 2 }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse(firstPage, 50))
+            );
+            spectator.detectChanges();
+
+            expect(spectator.component.hasItems()).toBe(true);
+
+            articleService.getArticlesHistory.mockReturnValue(
+                throwError(() => new Error('Network error'))
+            );
+            spectator.component.onLoadMore();
+            spectator.detectChanges();
+
+            expect(spectator.component.hasItems()).toBe(true);
+            expect(spectator.component.hasError()).toBe(false);
+            expect(spectator.component.isLoadingMore()).toBe(false);
         });
 
         it('should not load more when all items loaded', () => {

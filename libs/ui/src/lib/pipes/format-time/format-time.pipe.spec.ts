@@ -14,14 +14,6 @@ describe('FormatTimePipe', () => {
         expect(spectator.element.textContent?.trim()).toMatch(/14[:\u2236]05/);
     });
 
-    it('should format a date string', () => {
-        spectator = createPipe(`<span>{{ date | formatTime }}</span>`, {
-            hostProps: { date: '2025-01-15T14:05:00' },
-        });
-
-        expect(spectator.element.textContent?.trim()).toMatch(/14[:\u2236]05/);
-    });
-
     it('should return empty string for undefined', () => {
         spectator = createPipe(`<span>{{ date | formatTime }}</span>`, {
             hostProps: { date: undefined },

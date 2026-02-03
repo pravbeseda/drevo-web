@@ -10,11 +10,13 @@
             (click)="onFilterChange('unchecked')">
             Непроверенные
         </ui-button>
-        <ui-button
-            [variant]="activeFilter() === 'my' ? 'primary' : 'secondary'"
-            (click)="onFilterChange('my')">
-            Мои
-        </ui-button>
+        @if (canFilterByAuthor()) {
+            <ui-button
+                [variant]="activeFilter() === 'my' ? 'primary' : 'secondary'"
+                (click)="onFilterChange('my')">
+                Мои
+            </ui-button>
+        }
     </div>
 
     @if (isLoading()) {
