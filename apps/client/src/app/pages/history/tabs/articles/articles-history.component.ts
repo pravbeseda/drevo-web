@@ -18,6 +18,8 @@ import {
     ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryParams,
+    formatDateHeader,
+    formatTime,
 } from '@drevo-web/shared';
 import {
     ButtonComponent,
@@ -79,11 +81,12 @@ export class ArticlesHistoryComponent implements OnInit {
         const items = this._historyItems();
         if (items.length === 0) return [];
 
+        const now = new Date();
         const result: HistoryDisplayItem[] = [];
         let lastDateKey = '';
 
         for (const item of items) {
-            const dateKey = this.formatDateHeader(item.date);
+            const dateKey = formatDateHeader(item.date, now);
             if (dateKey !== lastDateKey) {
                 result.push({ type: 'header', date: dateKey });
                 lastDateKey = dateKey;
@@ -91,7 +94,7 @@ export class ArticlesHistoryComponent implements OnInit {
             result.push({
                 type: 'version',
                 data: item,
-                formattedTime: this.formatTime(item.date),
+                formattedTime: formatTime(item.date),
                 approvalClass: APPROVAL_CLASS[item.approved],
             });
         }
@@ -136,13 +139,6 @@ export class ArticlesHistoryComponent implements OnInit {
 
         this._currentPage.update(p => p + 1);
         this.loadHistory(true);
-    }
-
-    private formatTime(date: Date): string {
-        return date.toLocaleTimeString('ru-RU', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
     }
 
     private loadHistory(loadMore = false): void {
@@ -200,35 +196,5 @@ export class ArticlesHistoryComponent implements OnInit {
         }
 
         return base;
-    }
-
-    private formatDateHeader(date: Date): string {
-        const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (this.isSameDay(date, today)) {
-            return 'Сегодня';
-        }
-        if (this.isSameDay(date, yesterday)) {
-            return 'Вчера';
-        }
-
-        return date.toLocaleDateString('ru-RU', {
-            day: 'numeric',
-            month: 'long',
-            year:
-                date.getFullYear() !== today.getFullYear()
-                    ? 'numeric'
-                    : undefined,
-        });
-    }
-
-    private isSameDay(a: Date, b: Date): boolean {
-        return (
-            a.getDate() === b.getDate() &&
-            a.getMonth() === b.getMonth() &&
-            a.getFullYear() === b.getFullYear()
-        );
     }
 }

@@ -26,5 +26,9 @@ Review all changes on the current branch compared to `standalone`.
    - **Warning** — missed edge cases, missing tests, convention violations (see CLAUDE.md)
    - **Suggestion** — code duplication, possible simplifications, other improvements
 4. Reference specific files and lines in every finding (`file_path:line_number`)
-5. After the review, create a todo list with actionable tasks based on findings
-6. **All review results must be in Russian**
+5. After the review, proceed to fix findings interactively:
+   - Sort by severity (critical → warning → suggestion), group logically related items together
+   - For each group, describe the problem and proposed fix, then ask the user for approval before applying
+   - If multiple solutions exist, present options and let the user choose
+   - Wait for user confirmation before moving to the next group
+6. **All review results and conversation must be in Russian**
