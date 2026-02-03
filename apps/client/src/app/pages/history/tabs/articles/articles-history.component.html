@@ -44,7 +44,7 @@
                         class="history-item"
                         [ngClass]="item.approvalClass">
                         <span class="history-item-time">
-                            {{ item.formattedTime }}
+                            {{ item.data.date | formatTime }}
                         </span>
                         <span class="history-item-icon">
                             {{ item.data.isNew ? '+' : '~' }}

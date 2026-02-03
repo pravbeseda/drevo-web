@@ -229,11 +229,12 @@ describe('ArticlesHistoryComponent', () => {
             });
         });
 
-        it('should include formatted time in version items', () => {
+        it('should include date in version items for pipe formatting', () => {
+            const testDate = new Date('2025-01-15T14:30:00');
             const items = [
                 createMockHistoryItem({
                     versionId: 1,
-                    date: new Date('2025-01-15T14:30:00'),
+                    date: testDate,
                 }),
             ];
             articleService.getArticlesHistory.mockReturnValue(
@@ -245,7 +246,8 @@ describe('ArticlesHistoryComponent', () => {
             const versionItem = displayItems.find(i => i.type === 'version');
 
             expect(versionItem).toMatchObject({
-                formattedTime: expect.stringMatching(/\d{2}:\d{2}/),
+                type: 'version',
+                data: expect.objectContaining({ date: testDate }),
             });
         });
     });

@@ -20,10 +20,10 @@ import {
     ArticleHistoryItem,
     ArticleHistoryParams,
     formatDateHeader,
-    formatTime,
 } from '@drevo-web/shared';
 import {
     ButtonComponent,
+    FormatTimePipe,
     SpinnerComponent,
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
@@ -36,7 +36,6 @@ type HistoryDisplayItem =
     | {
           readonly type: 'version';
           readonly data: ArticleHistoryItem;
-          readonly formattedTime: string;
           readonly approvalClass: ApprovalClass;
       };
 
@@ -44,6 +43,7 @@ type HistoryDisplayItem =
     selector: 'app-articles-history',
     imports: [
         ButtonComponent,
+        FormatTimePipe,
         SpinnerComponent,
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
@@ -96,7 +96,6 @@ export class ArticlesHistoryComponent implements OnInit {
             result.push({
                 type: 'version',
                 data: item,
-                formattedTime: formatTime(item.date),
                 approvalClass: APPROVAL_CLASS[item.approved],
             });
         }
