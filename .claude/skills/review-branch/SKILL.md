@@ -30,5 +30,6 @@ Review all changes on the current branch compared to `standalone`.
    - Sort by severity (critical → warning → suggestion), group logically related items together
    - For each group, describe the problem and proposed fix, then ask the user for approval before applying
    - If multiple solutions exist, present options and let the user choose
+   - If the user asks a question instead of choosing an option, answer the question and re-present the options — never decide for the user
    - Wait for user confirmation before moving to the next group
 6. **All review results and conversation must be in Russian**
