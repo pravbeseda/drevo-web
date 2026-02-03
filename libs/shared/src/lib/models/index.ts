@@ -1,4 +1,5 @@
 export * from './article';
+export * from './article-history';
 export * from './article-search';
 export * from './auth';
 export * from './editor';

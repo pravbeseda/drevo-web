@@ -2,6 +2,11 @@ import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { Injectable, inject } from '@angular/core';
 import {
+    ArticleHistoryItem,
+    ArticleHistoryItemDto,
+    ArticleHistoryParams,
+    ArticleHistoryResponse,
+    ArticleHistoryResponseDto,
     ArticleVersion,
     ArticleSearchResponseDto,
     ArticleSearchResultDto,
@@ -92,6 +97,27 @@ export class ArticleService {
             .pipe(map(response => this.mapSaveResponse(response)));
     }
 
+    /**
+     * Get article version history
+     *
+     * @param params - History parameters (page, pageSize, approved, author)
+     * @returns Observable with mapped history response
+     */
+    getArticlesHistory(
+        params: ArticleHistoryParams = {}
+    ): Observable<ArticleHistoryResponse> {
+        const {
+            page = 1,
+            pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
+            approved,
+            author,
+        } = params;
+
+        return this.articleApiService
+            .getArticlesHistory(page, pageSize, approved, author)
+            .pipe(map(response => this.mapHistoryResponse(response)));
+    }
+
     private mapArticleVersion(response: ArticleVersionDto): ArticleVersion {
         return {
             articleId: response.articleId,
@@ -150,6 +176,32 @@ export class ArticleService {
             author: response.author,
             date: new Date(response.date),
             approved: response.approved,
+        };
+    }
+
+    private mapHistoryResponse(
+        response: ArticleHistoryResponseDto
+    ): ArticleHistoryResponse {
+        return {
+            items: response.items.map(item => this.mapHistoryItem(item)),
+            total: response.total,
+            page: response.page,
+            pageSize: response.pageSize,
+            totalPages: response.totalPages,
+        };
+    }
+
+    private mapHistoryItem(item: ArticleHistoryItemDto): ArticleHistoryItem {
+        return {
+            versionId: item.versionId,
+            articleId: item.articleId,
+            title: item.title,
+            author: item.author,
+            date: new Date(item.date),
+            approved: item.approved,
+            isNew: item.new,
+            info: item.info,
+            comment: item.comment,
         };
     }
 }

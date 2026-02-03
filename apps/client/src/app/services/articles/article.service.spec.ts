@@ -1,6 +1,7 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 import {
+    ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
     SaveArticleVersionResponseDto,
@@ -511,6 +512,131 @@ describe('ArticleService', () => {
                 versionId: 456,
                 content: 'New content',
             });
+        });
+    });
+
+    describe('getArticlesHistory', () => {
+        const mockApiResponse: ArticleHistoryResponseDto = {
+            items: [
+                {
+                    versionId: 1,
+                    articleId: 100,
+                    title: 'Test Article',
+                    author: 'Author',
+                    date: '2025-01-15T14:30:00+00:00',
+                    approved: 1,
+                    new: false,
+                    info: 'some info',
+                    comment: 'some comment',
+                },
+                {
+                    versionId: 2,
+                    articleId: 200,
+                    title: 'New Article',
+                    author: 'Author 2',
+                    date: '2025-01-14T10:00:00+00:00',
+                    approved: 0,
+                    new: true,
+                    info: '',
+                    comment: '',
+                },
+            ],
+            total: 50,
+            page: 1,
+            pageSize: 25,
+            totalPages: 2,
+        };
+
+        it('should call articleApiService.getArticlesHistory with default params', () => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service.getArticlesHistory({ page: 1 }).subscribe();
+
+            expect(
+                articleApiService.getArticlesHistory
+            ).toHaveBeenCalledWith(1, 25, undefined, undefined);
+        });
+
+        it('should pass custom params to API service', () => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service
+                .getArticlesHistory({
+                    page: 2,
+                    pageSize: 50,
+                    approved: 0,
+                    author: 'testuser',
+                })
+                .subscribe();
+
+            expect(
+                articleApiService.getArticlesHistory
+            ).toHaveBeenCalledWith(2, 50, 0, 'testuser');
+        });
+
+        it('should map API response to frontend model', done => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service
+                .getArticlesHistory({ page: 1 })
+                .subscribe(result => {
+                    expect(result.total).toBe(50);
+                    expect(result.page).toBe(1);
+                    expect(result.pageSize).toBe(25);
+                    expect(result.totalPages).toBe(2);
+                    expect(result.items).toHaveLength(2);
+                    done();
+                });
+        });
+
+        it('should convert date strings to Date objects', done => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service
+                .getArticlesHistory({ page: 1 })
+                .subscribe(result => {
+                    expect(result.items[0].date).toBeInstanceOf(Date);
+                    expect(result.items[0].date.toISOString()).toBe(
+                        '2025-01-15T14:30:00.000Z'
+                    );
+                    done();
+                });
+        });
+
+        it('should map "new" field to "isNew"', done => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service
+                .getArticlesHistory({ page: 1 })
+                .subscribe(result => {
+                    expect(result.items[0].isNew).toBe(false);
+                    expect(result.items[1].isNew).toBe(true);
+                    done();
+                });
+        });
+
+        it('should preserve approval status values', done => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service
+                .getArticlesHistory({ page: 1 })
+                .subscribe(result => {
+                    expect(result.items[0].approved).toBe(1);
+                    expect(result.items[1].approved).toBe(0);
+                    done();
+                });
         });
     });
 });

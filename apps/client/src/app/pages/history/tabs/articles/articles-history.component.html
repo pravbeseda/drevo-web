@@ -1,0 +1,81 @@
+<div class="history-container">
+    <div class="history-filters">
+        <ui-button
+            [variant]="activeFilter() === 'all' ? 'primary' : 'secondary'"
+            (click)="onFilterChange('all')">
+            Все
+        </ui-button>
+        <ui-button
+            [variant]="activeFilter() === 'unchecked' ? 'primary' : 'secondary'"
+            (click)="onFilterChange('unchecked')">
+            Непроверенные
+        </ui-button>
+        @if (canFilterByAuthor()) {
+            <ui-button
+                [variant]="activeFilter() === 'my' ? 'primary' : 'secondary'"
+                (click)="onFilterChange('my')">
+                Мои
+            </ui-button>
+        }
+    </div>
+
+    @if (isLoading()) {
+        <div class="history-loading">
+            <ui-spinner />
+        </div>
+    }
+
+    @if (!isLoading() && hasError()) {
+        <p class="history-error">Не удалось загрузить данные</p>
+    }
+
+    @if (!isLoading() && !hasError() && hasItems()) {
+        <ui-virtual-scroller
+            [items]="displayItems()"
+            [totalItems]="displayTotalItems()"
+            [isLoading]="isLoadingMore()"
+            [trackByFn]="trackByFn"
+            (loadMore)="onLoadMore()">
+            <ng-template
+                uiVirtualScrollerItem
+                let-item>
+                @if (item.type === 'header') {
+                    <div class="history-date-header">{{ item.date }}</div>
+                } @else {
+                    <div
+                        class="history-item"
+                        [ngClass]="item.approvalClass">
+                        <span class="history-item-time">
+                            {{ item.data.date | formatTime }}
+                        </span>
+                        <span class="history-item-icon">
+                            {{ item.data.isNew ? '+' : '~' }}
+                        </span>
+                        <a
+                            class="history-item-title"
+                            [routerLink]="['/articles', item.data.articleId]">
+                            {{ item.data.title }}
+                        </a>
+                        <span class="history-item-author">
+                            {{ item.data.author }}
+                        </span>
+                        @if (item.data.info) {
+                            <span class="history-item-info">
+                                {{ item.data.info }}
+                            </span>
+                        }
+                        @if (item.data.comment) {
+                            <span class="history-item-comment">
+                                {{ item.data.comment }}
+                            </span>
+                        }
+                    </div>
+                }
+            </ng-template>
+        </ui-virtual-scroller>
+    }
+
+    @if (!isLoading() && !hasError() && !hasItems()) {
+        <p class="history-empty">Нет записей</p>
+    }
+</div>

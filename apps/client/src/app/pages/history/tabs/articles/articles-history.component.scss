@@ -1,0 +1,115 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.history-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.history-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.history-loading {
+    display: flex;
+    justify-content: center;
+    padding: 32px 0;
+}
+
+.history-empty {
+    color: var(--themed-text-muted);
+    text-align: center;
+    padding: 32px 0;
+}
+
+.history-error {
+    color: var(--themed-text-error);
+    text-align: center;
+    padding: 32px 0;
+}
+
+ui-virtual-scroller {
+    flex: 1;
+    min-height: 0;
+}
+
+.history-date-header {
+    font-weight: 500;
+    color: var(--themed-text-secondary);
+    padding: 12px 0 4px;
+    border-bottom: 1px solid var(--themed-border-color);
+    margin-bottom: 4px;
+}
+
+.history-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 14px;
+    flex-wrap: wrap;
+
+    &.rejected {
+        .history-item-title {
+            text-decoration: line-through;
+            color: var(--themed-text-error);
+        }
+    }
+
+    &.pending {
+        .history-item-title {
+            color: var(--themed-text-muted);
+        }
+    }
+}
+
+.history-item-time {
+    color: var(--themed-text-muted);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.history-item-icon {
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+    color: var(--themed-text-muted);
+}
+
+.history-item-title {
+    color: var(--themed-link-color);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+        color: var(--themed-link-hover);
+        text-decoration: underline;
+    }
+}
+
+.history-item-author {
+    color: var(--themed-text-secondary);
+    flex-shrink: 0;
+}
+
+.history-item-info {
+    color: var(--themed-text-muted);
+    font-style: italic;
+}
+
+.history-item-comment {
+    color: var(--themed-text-secondary);
+    font-size: 12px;
+
+    &::before {
+        content: '— ';
+    }
+}

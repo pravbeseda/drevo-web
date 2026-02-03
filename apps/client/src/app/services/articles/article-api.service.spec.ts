@@ -381,6 +381,121 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('getArticlesHistory', () => {
+        const mockHistoryResponse = {
+            success: true,
+            data: {
+                items: [
+                    {
+                        versionId: 1,
+                        articleId: 100,
+                        title: 'Test',
+                        author: 'Author',
+                        date: '2025-01-15T14:30:00+00:00',
+                        approved: 1,
+                        new: false,
+                        info: '',
+                        comment: '',
+                    },
+                ],
+                total: 1,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            },
+        };
+
+        it('should call HTTP GET with correct URL and params', () => {
+            spectator.service
+                .getArticlesHistory(1, 25)
+                .subscribe(result => {
+                    expect(result).toEqual(mockHistoryResponse.data);
+                });
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/history' &&
+                    request.params.get('page') === '1' &&
+                    request.params.get('size') === '25'
+            );
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should include approved param when provided', () => {
+            spectator.service
+                .getArticlesHistory(1, 25, 0)
+                .subscribe();
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/history' &&
+                    request.params.get('approved') === '0'
+            );
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should include author param when provided', () => {
+            spectator.service
+                .getArticlesHistory(1, 25, undefined, 'testuser')
+                .subscribe();
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/history' &&
+                    request.params.get('author') === 'testuser'
+            );
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should not include approved param when undefined', () => {
+            spectator.service
+                .getArticlesHistory(1, 25)
+                .subscribe();
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/history' &&
+                    !request.params.has('approved')
+            );
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service
+                .getArticlesHistory(1, 25)
+                .subscribe(result => {
+                    expect(result.items).toHaveLength(1);
+                    expect(result.total).toBe(1);
+                    done();
+                });
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/history'
+            );
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service
+                .getArticlesHistory(1, 25)
+                .subscribe({
+                    error: (err: Error) => {
+                        expect(err.message).toContain(
+                            'Response data is undefined'
+                        );
+                        done();
+                    },
+                });
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/history'
+            );
+            req.flush({ success: true, data: undefined });
+        });
+    });
+
     describe('error handling', () => {
         it('should throw when response.data is undefined', done => {
             spectator.service.searchArticles('test').subscribe({
