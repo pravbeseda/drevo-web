@@ -109,7 +109,6 @@ describe('ArticlesHistoryComponent', () => {
             spectator.detectChanges();
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
-                pageSize: 25,
             });
         });
 
@@ -190,6 +189,67 @@ describe('ArticlesHistoryComponent', () => {
         });
     });
 
+    describe('display items', () => {
+        it('should include approval class in version items', () => {
+            const items = [
+                createMockHistoryItem({
+                    versionId: 1,
+                    approved: 1,
+                    date: new Date('2025-01-15T14:00:00'),
+                }),
+                createMockHistoryItem({
+                    versionId: 2,
+                    approved: -1,
+                    date: new Date('2025-01-15T13:00:00'),
+                }),
+                createMockHistoryItem({
+                    versionId: 3,
+                    approved: 0,
+                    date: new Date('2025-01-15T12:00:00'),
+                }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse(items, 3))
+            );
+            spectator.detectChanges();
+
+            const displayItems = spectator.component.displayItems();
+            const versionItems = displayItems.filter(
+                i => i.type === 'version'
+            );
+
+            expect(versionItems[0]).toMatchObject({
+                approvalClass: 'approved',
+            });
+            expect(versionItems[1]).toMatchObject({
+                approvalClass: 'rejected',
+            });
+            expect(versionItems[2]).toMatchObject({
+                approvalClass: 'pending',
+            });
+        });
+
+        it('should include formatted time in version items', () => {
+            const items = [
+                createMockHistoryItem({
+                    versionId: 1,
+                    date: new Date('2025-01-15T14:30:00'),
+                }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse(items, 1))
+            );
+            spectator.detectChanges();
+
+            const displayItems = spectator.component.displayItems();
+            const versionItem = displayItems.find(i => i.type === 'version');
+
+            expect(versionItem).toMatchObject({
+                formattedTime: expect.stringMatching(/\d{2}:\d{2}/),
+            });
+        });
+    });
+
     describe('filters', () => {
         beforeEach(() => {
             articleService.getArticlesHistory.mockReturnValue(
@@ -213,7 +273,6 @@ describe('ArticlesHistoryComponent', () => {
 
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
-                pageSize: 25,
                 approved: 0,
             });
         });
@@ -229,7 +288,6 @@ describe('ArticlesHistoryComponent', () => {
 
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
-                pageSize: 25,
                 author: 'testuser',
             });
         });
@@ -242,15 +300,23 @@ describe('ArticlesHistoryComponent', () => {
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
         });
 
-        it('should reset items when changing filter', () => {
-            const items = [createMockHistoryItem()];
+        it('should reset items and error state when changing filter', () => {
             articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 1))
+                throwError(() => new Error('fail'))
             );
             spectator.component.onFilterChange('unchecked');
             spectator.detectChanges();
 
-            expect(spectator.component.activeFilter()).toBe('unchecked');
+            expect(spectator.component.hasError()).toBe(true);
+
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse([createMockHistoryItem()], 1))
+            );
+            spectator.component.onFilterChange('all');
+            spectator.detectChanges();
+
+            expect(spectator.component.hasError()).toBe(false);
+            expect(spectator.component.activeFilter()).toBe('all');
         });
     });
 
@@ -276,7 +342,6 @@ describe('ArticlesHistoryComponent', () => {
 
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 2,
-                pageSize: 25,
             });
         });
 
@@ -295,7 +360,7 @@ describe('ArticlesHistoryComponent', () => {
     });
 
     describe('error handling', () => {
-        it('should log error and stop loading on failure', () => {
+        it('should log error and set error state on failure', () => {
             const error = new Error('Network error');
             articleService.getArticlesHistory.mockReturnValue(
                 throwError(() => error)
@@ -310,22 +375,17 @@ describe('ArticlesHistoryComponent', () => {
                 error
             );
             expect(spectator.component.isLoading()).toBe(false);
+            expect(spectator.component.hasError()).toBe(true);
         });
-    });
 
-    describe('approval classes', () => {
-        it('should return correct class for approved items', () => {
-            expect(spectator.component.getApprovalClass(1)).toBe('approved');
-            expect(spectator.component.getApprovalClass(-1)).toBe('rejected');
-            expect(spectator.component.getApprovalClass(0)).toBe('pending');
-        });
-    });
+        it('should show error message on failure', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                throwError(() => new Error('fail'))
+            );
+            spectator.detectChanges();
 
-    describe('time formatting', () => {
-        it('should format time as HH:mm', () => {
-            const date = new Date('2025-01-15T14:30:00');
-            const time = spectator.component.formatTime(date);
-            expect(time).toMatch(/\d{2}:\d{2}/);
+            expect(spectator.query('.history-error')).toBeTruthy();
+            expect(spectator.query('.history-empty')).toBeFalsy();
         });
     });
 });

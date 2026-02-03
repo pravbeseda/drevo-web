@@ -31,11 +31,16 @@ export interface ArticleVersionDto extends ArticlePageDto {
     readonly content: string; // can be formatted (/api/articles/show/{id}) or raw
     readonly author: string;
     readonly date: string; // ISO 8601 format
-    readonly approved: number; // 0, -1, 1
+    readonly approved: ApprovalStatusDto;
     readonly new: boolean;
     readonly info: string;
     readonly comment: string;
 }
+
+/**
+ * Article approval status: -1 (rejected), 0 (pending), 1 (approved)
+ */
+export type ApprovalStatusDto = -1 | 0 | 1;
 
 /**
  * Request body for saving article version
@@ -56,5 +61,5 @@ export interface SaveArticleVersionResponseDto {
     readonly content: string;
     readonly author: string;
     readonly date: string;
-    readonly approved: number;
+    readonly approved: ApprovalStatusDto;
 }

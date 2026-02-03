@@ -5,6 +5,7 @@ import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
+    ApprovalStatusDto,
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
@@ -150,7 +151,7 @@ export class ArticleApiService {
     getArticlesHistory(
         page = 1,
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
-        approved?: number,
+        approved?: ApprovalStatusDto,
         author?: string
     ): Observable<ArticleHistoryResponseDto> {
         let params = new HttpParams()

@@ -2,6 +2,8 @@
  * Frontend models for article version history
  */
 
+import { ApprovalStatus } from './article';
+
 /**
  * Single article history item (frontend model)
  */
@@ -11,8 +13,8 @@ export interface ArticleHistoryItem {
     readonly title: string;
     readonly author: string;
     readonly date: Date;
-    readonly approved: number; // -1, 0, 1
-    readonly isNew: boolean; // renamed from 'new' (reserved word)
+    readonly approved: ApprovalStatus;
+    readonly isNew: boolean;
     readonly info: string;
     readonly comment: string;
 }
@@ -34,6 +36,6 @@ export interface ArticleHistoryResponse {
 export interface ArticleHistoryParams {
     readonly page?: number;
     readonly pageSize?: number;
-    readonly approved?: number;
+    readonly approved?: ApprovalStatus;
     readonly author?: string;
 }

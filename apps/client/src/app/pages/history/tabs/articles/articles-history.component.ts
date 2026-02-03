@@ -12,7 +12,13 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ArticleHistoryItem } from '@drevo-web/shared';
+import {
+    APPROVAL_CLASS,
+    ApprovalClass,
+    ApprovalStatus,
+    ArticleHistoryItem,
+    ArticleHistoryParams,
+} from '@drevo-web/shared';
 import {
     ButtonComponent,
     SpinnerComponent,
@@ -24,9 +30,12 @@ type HistoryFilter = 'all' | 'unchecked' | 'my';
 
 type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }
-    | { readonly type: 'version'; readonly data: ArticleHistoryItem };
-
-const PAGE_SIZE = 25;
+    | {
+          readonly type: 'version';
+          readonly data: ArticleHistoryItem;
+          readonly formattedTime: string;
+          readonly approvalClass: ApprovalClass;
+      };
 
 @Component({
     selector: 'app-articles-history',
@@ -55,13 +64,14 @@ export class ArticlesHistoryComponent implements OnInit {
     private readonly _totalItems = signal(0);
     private readonly _currentPage = signal(1);
     private readonly _activeFilter = signal<HistoryFilter>('all');
+    private readonly _hasError = signal(false);
 
     readonly isLoading = this._isLoading.asReadonly();
     readonly isLoadingMore = this._isLoadingMore.asReadonly();
-    readonly totalItems = this._totalItems.asReadonly();
     readonly activeFilter = this._activeFilter.asReadonly();
+    readonly hasError = this._hasError.asReadonly();
 
-    readonly currentUser = toSignal(this.authService.user$);
+    private readonly currentUser = toSignal(this.authService.user$);
 
     readonly hasItems = computed(() => this._historyItems().length > 0);
 
@@ -78,7 +88,12 @@ export class ArticlesHistoryComponent implements OnInit {
                 result.push({ type: 'header', date: dateKey });
                 lastDateKey = dateKey;
             }
-            result.push({ type: 'version', data: item });
+            result.push({
+                type: 'version',
+                data: item,
+                formattedTime: this.formatTime(item.date),
+                approvalClass: APPROVAL_CLASS[item.approved],
+            });
         }
 
         return result;
@@ -88,12 +103,10 @@ export class ArticlesHistoryComponent implements OnInit {
     readonly displayTotalItems = computed(() => {
         const total = this._totalItems();
         if (total === 0) return 0;
-        // Estimate: headers add roughly 1 per ~10 items (loaded items determine actual headers)
-        // Use a high number so virtual scroller knows there's more to load
         const loadedDisplayCount = this.displayItems().length;
         const loadedItemCount = this._historyItems().length;
         if (loadedItemCount >= total) return loadedDisplayCount;
-        // More items to load — return a number larger than current display count
+        // Unloaded items counted 1:1; actual header count adjusts as items load
         return loadedDisplayCount + (total - loadedItemCount);
     });
 
@@ -112,6 +125,7 @@ export class ArticlesHistoryComponent implements OnInit {
         this._historyItems.set([]);
         this._currentPage.set(1);
         this._totalItems.set(0);
+        this._hasError.set(false);
         this.logger.info('Filter changed', { filter });
         this.loadHistory();
     }
@@ -124,18 +138,7 @@ export class ArticlesHistoryComponent implements OnInit {
         this.loadHistory(true);
     }
 
-    getApprovalClass(approved: number): string {
-        switch (approved) {
-            case 1:
-                return 'approved';
-            case -1:
-                return 'rejected';
-            default:
-                return 'pending';
-        }
-    }
-
-    formatTime(date: Date): string {
+    private formatTime(date: Date): string {
         return date.toLocaleTimeString('ru-RU', {
             hour: '2-digit',
             minute: '2-digit',
@@ -148,6 +151,8 @@ export class ArticlesHistoryComponent implements OnInit {
         } else {
             this._isLoading.set(true);
         }
+
+        this._hasError.set(false);
 
         const params = this.buildParams();
 
@@ -172,37 +177,29 @@ export class ArticlesHistoryComponent implements OnInit {
                     this.logger.error('Failed to load article history', error);
                     this._isLoading.set(false);
                     this._isLoadingMore.set(false);
+                    this._hasError.set(true);
                 },
             });
     }
 
-    private buildParams(): {
-        page: number;
-        pageSize: number;
-        approved?: number;
-        author?: string;
-    } {
-        const params: {
-            page: number;
-            pageSize: number;
-            approved?: number;
-            author?: string;
-        } = {
+    private buildParams(): ArticleHistoryParams {
+        const base: ArticleHistoryParams = {
             page: this._currentPage(),
-            pageSize: PAGE_SIZE,
         };
 
         const filter = this._activeFilter();
         if (filter === 'unchecked') {
-            params.approved = 0;
-        } else if (filter === 'my') {
+            return { ...base, approved: ApprovalStatus.Pending };
+        }
+        if (filter === 'my') {
             const user = this.currentUser();
             if (user) {
-                params.author = user.login;
+                return { ...base, author: user.login };
             }
+            this.logger.warn('Cannot filter by author: user not loaded');
         }
 
-        return params;
+        return base;
     }
 
     private formatDateHeader(date: Date): string {

@@ -23,7 +23,11 @@
         </div>
     }
 
-    @if (!isLoading() && hasItems()) {
+    @if (!isLoading() && hasError()) {
+        <p class="history-error">Не удалось загрузить данные</p>
+    }
+
+    @if (!isLoading() && !hasError() && hasItems()) {
         <ui-virtual-scroller
             [items]="displayItems()"
             [totalItems]="displayTotalItems()"
@@ -34,8 +38,8 @@
                 @if (item.type === 'header') {
                     <div class="history-date-header">{{ item.date }}</div>
                 } @else {
-                    <div class="history-item" [class]="getApprovalClass(item.data.approved)">
-                        <span class="history-item-time">{{ formatTime(item.data.date) }}</span>
+                    <div class="history-item" [class]="item.approvalClass">
+                        <span class="history-item-time">{{ item.formattedTime }}</span>
                         <span class="history-item-icon">{{ item.data.isNew ? '+' : '~' }}</span>
                         <a
                             class="history-item-title"
@@ -55,7 +59,7 @@
         </ui-virtual-scroller>
     }
 
-    @if (!isLoading() && !hasItems()) {
+    @if (!isLoading() && !hasError() && !hasItems()) {
         <p class="history-empty">Нет записей</p>
     }
 </div>

@@ -3,6 +3,8 @@
  * These interfaces represent the raw API response structure
  */
 
+import { ApprovalStatusDto } from './article.dto';
+
 /**
  * Single article history item from API
  */
@@ -12,7 +14,7 @@ export interface ArticleHistoryItemDto {
     readonly title: string;
     readonly author: string;
     readonly date: string; // ISO 8601
-    readonly approved: number; // -1, 0, 1
+    readonly approved: ApprovalStatusDto;
     readonly new: boolean;
     readonly info: string;
     readonly comment: string;

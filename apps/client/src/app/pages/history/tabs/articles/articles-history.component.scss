@@ -28,6 +28,12 @@
     padding: 32px 0;
 }
 
+.history-error {
+    color: var(--themed-text-error);
+    text-align: center;
+    padding: 32px 0;
+}
+
 ui-virtual-scroller {
     flex: 1;
     min-height: 0;
