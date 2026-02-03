@@ -69,6 +69,7 @@ export class ArticlesHistoryComponent implements OnInit {
     private readonly _currentPage = signal(1);
     private readonly _activeFilter = signal<HistoryFilter>('all');
     private readonly _hasError = signal(false);
+    private readonly _referenceDate = signal(new Date());
 
     readonly isLoading = this._isLoading.asReadonly();
     readonly isLoadingMore = this._isLoadingMore.asReadonly();
@@ -83,7 +84,7 @@ export class ArticlesHistoryComponent implements OnInit {
         const items = this._historyItems();
         if (items.length === 0) return [];
 
-        const now = new Date();
+        const now = this._referenceDate();
         const result: HistoryDisplayItem[] = [];
         let lastDateKey = '';
 
@@ -129,7 +130,6 @@ export class ArticlesHistoryComponent implements OnInit {
         this._historyItems.set([]);
         this._currentPage.set(1);
         this._totalItems.set(0);
-        this._hasError.set(false);
         this.logger.info('Filter changed', { filter });
         this.loadHistory();
     }
@@ -167,6 +167,7 @@ export class ArticlesHistoryComponent implements OnInit {
                         this._historyItems.set(response.items);
                     }
                     this._totalItems.set(response.total);
+                    this._referenceDate.set(new Date());
                     this._isLoading.set(false);
                     this._isLoadingMore.set(false);
                 },
