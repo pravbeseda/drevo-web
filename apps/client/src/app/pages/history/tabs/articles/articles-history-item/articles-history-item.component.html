@@ -38,7 +38,10 @@
             }
         </div>
         @if (item().comment) {
-            <div class="moderator-comment">{{ item().comment }}</div>
+            <div class="moderator-comment">
+                <b>Модератор:</b>
+                {{ item().comment }}
+            </div>
         }
     </div>
 </div>
