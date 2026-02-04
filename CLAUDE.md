@@ -226,7 +226,9 @@ Never define local CSS custom properties for sizes in component styles — add n
 17. **Russian language** in UI, **English** in code and comments
 18. **Comments** — English only, only where code doesn't explain itself
 19. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
-20. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
+20. **`autotest-selector` attributes for test selectors** — in tests, query elements only via `[autotest-selector="name"]` attributes. Add `autotest-selector` attributes to component templates only when actually needed by a test
+21. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
+22. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 
 ## Unit Testing
 
