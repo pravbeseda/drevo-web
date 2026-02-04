@@ -77,7 +77,6 @@
     }
 }
 
-// Meta row
 .meta-row {
     margin-top: 2px;
     line-height: 1.4;
@@ -95,7 +94,7 @@
     font-style: italic;
 
     &::before {
-        content: '\2014\00A0';
+        content: ' - ';
     }
 }
 
