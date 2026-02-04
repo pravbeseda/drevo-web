@@ -1,6 +1,6 @@
+import { ArticlesHistoryItemComponent } from './articles-history-item/articles-history-item.component';
 import { ArticleService } from '../../../../services/articles/article.service';
 import { AuthService } from '../../../../services/auth/auth.service';
-import { NgClass } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -11,11 +11,8 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import {
-    APPROVAL_CLASS,
-    ApprovalClass,
     ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryParams,
@@ -23,7 +20,6 @@ import {
 } from '@drevo-web/shared';
 import {
     ButtonComponent,
-    FormatTimePipe,
     SpinnerComponent,
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
@@ -33,22 +29,17 @@ type HistoryFilter = 'all' | 'unchecked' | 'my';
 
 type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }
-    | {
-          readonly type: 'version';
-          readonly data: ArticleHistoryItem;
-          readonly approvalClass: ApprovalClass;
-      };
+    | { readonly type: 'version'; readonly data: ArticleHistoryItem };
 
 @Component({
     selector: 'app-articles-history',
     imports: [
+        ArticlesHistoryItemComponent,
         ButtonComponent,
-        FormatTimePipe,
         SpinnerComponent,
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
-        RouterLink,
-        NgClass,
+        VirtualScrollerItemDirective,
     ],
     templateUrl: './articles-history.component.html',
     styleUrl: './articles-history.component.scss',
@@ -95,11 +86,7 @@ export class ArticlesHistoryComponent implements OnInit {
                 result.push({ type: 'header', date: dateKey });
                 lastDateKey = dateKey;
             }
-            result.push({
-                type: 'version',
-                data: item,
-                approvalClass: APPROVAL_CLASS[item.approved],
-            });
+            result.push({ type: 'version', data: item });
         }
 
         return result;

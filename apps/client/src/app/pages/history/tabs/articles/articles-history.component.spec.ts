@@ -219,13 +219,13 @@ describe('ArticlesHistoryComponent', () => {
             );
 
             expect(versionItems[0]).toMatchObject({
-                approvalClass: 'approved',
+                data: expect.objectContaining({ approved: 1 }),
             });
             expect(versionItems[1]).toMatchObject({
-                approvalClass: 'rejected',
+                data: expect.objectContaining({ approved: -1 }),
             });
             expect(versionItems[2]).toMatchObject({
-                approvalClass: 'pending',
+                data: expect.objectContaining({ approved: 0 }),
             });
         });
 

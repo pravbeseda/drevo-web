@@ -1,0 +1,45 @@
+<div class="time-sep">
+    <span class="time-text">{{ item().date | formatTime }}</span>
+</div>
+
+<div
+    class="hi"
+    [ngClass]="'hi--' + approvalClass()">
+    <div class="hi-left">
+        @if (item().isNew) {
+            <span class="type-icon"><ui-icon name="note_add" /></span>
+        } @else {
+            <button
+                class="diff-btn"
+                title="Просмотр изменений">
+                <ui-icon name="difference" />
+            </button>
+        }
+    </div>
+    <div class="hi-content">
+        <div class="hi-title-row">
+            <span
+                class="status-icon"
+                [ngClass]="'status-icon--' + approvalClass()"
+                [title]="statusTitle()">
+                <ui-icon
+                    [name]="statusIcon()"
+                    size="small" />
+            </span>
+            <a
+                class="hi-title text-link"
+                [routerLink]="['/articles', item().articleId]">
+                {{ item().title }}
+            </a>
+        </div>
+        <div class="hi-meta-row">
+            <span class="hi-author">{{ item().author }}</span>
+            @if (item().info) {
+                <span class="author-comment">{{ item().info }}</span>
+            }
+        </div>
+        @if (item().comment) {
+            <div class="moderator-comment">{{ item().comment }}</div>
+        }
+    </div>
+</div>

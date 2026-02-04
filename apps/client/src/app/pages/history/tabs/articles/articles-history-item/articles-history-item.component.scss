@@ -1,0 +1,163 @@
+:host {
+    display: block;
+}
+
+// Time separator
+.time-sep {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0 2px;
+}
+
+.time-text {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--themed-text-muted);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+// Type icon (non-clickable, disabled look)
+.type-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    color: var(--themed-icon-disabled);
+}
+
+// Diff button (clickable, active look)
+.diff-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+        background 0.15s,
+        color 0.15s;
+    flex-shrink: 0;
+    background: transparent;
+    color: var(--themed-icon-active);
+
+    &:hover {
+        background: var(--themed-icon-active-hover-bg);
+        color: var(--themed-icon-active-hover);
+    }
+}
+
+// History item
+.hi {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 10px;
+    padding: 6px 8px 8px 0;
+    border-right: 3px solid transparent;
+
+    &--approved {
+        border-right-color: var(--themed-status-approved);
+    }
+
+    &--pending {
+        border-right-color: var(--themed-status-pending);
+    }
+
+    &--rejected {
+        border-right-color: var(--themed-status-rejected);
+    }
+}
+
+.hi-left {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 1px;
+}
+
+.hi-content {
+    min-width: 0;
+}
+
+.hi-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hi-title {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.text-link {
+    color: var(--themed-link-color);
+    text-decoration: none;
+
+    &:hover {
+        color: var(--themed-link-hover);
+        text-decoration: underline;
+    }
+}
+
+// Status icon
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    &--approved {
+        color: var(--themed-status-approved);
+    }
+
+    &--pending {
+        color: var(--themed-status-pending);
+    }
+
+    &--rejected {
+        color: var(--themed-status-rejected);
+    }
+}
+
+// Meta row
+.hi-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.hi-author {
+    font-size: 12px;
+    color: var(--themed-text-secondary);
+    white-space: nowrap;
+}
+
+.author-comment {
+    font-size: 12px;
+    color: var(--themed-text-secondary);
+    font-style: italic;
+
+    &::before {
+        content: '\2014\00A0';
+    }
+}
+
+// Moderator comment
+.moderator-comment {
+    font-size: 12px;
+    color: var(--themed-moderator-comment-text);
+    background: var(--themed-moderator-comment-bg);
+    border-left: 3px solid var(--themed-moderator-comment-border);
+    padding: 4px 8px;
+    border-radius: 0 4px 4px 0;
+    margin-top: 4px;
+}
