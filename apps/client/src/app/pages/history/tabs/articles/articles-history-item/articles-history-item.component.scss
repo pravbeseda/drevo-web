@@ -59,7 +59,6 @@
     }
 }
 
-// Status icon
 .status-icon {
     display: inline-flex;
     align-items: center;
@@ -80,11 +79,8 @@
 
 // Meta row
 .meta-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
     margin-top: 2px;
+    line-height: 1.4;
 }
 
 .author {
