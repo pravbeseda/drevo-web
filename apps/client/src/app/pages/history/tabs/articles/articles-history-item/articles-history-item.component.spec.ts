@@ -1,6 +1,7 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticlesHistoryItemComponent } from './articles-history-item.component';
 import { ArticleHistoryItem } from '@drevo-web/shared';
+import { IconButtonComponent } from '@drevo-web/ui';
 import { provideRouter } from '@angular/router';
 
 function createMockItem(
@@ -35,13 +36,13 @@ describe('ArticlesHistoryItemComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    describe('time separator', () => {
-        it('should render time separator', () => {
+    describe('meta row', () => {
+        it('should render time and author', () => {
             spectator = createComponent({
                 props: { item: createMockItem() },
             });
-            expect(spectator.query('.time-sep')).toBeTruthy();
-            expect(spectator.query('.time-text')).toBeTruthy();
+            expect(spectator.query('.meta-row')).toBeTruthy();
+            expect(spectator.query('.time')).toBeTruthy();
         });
     });
 
@@ -71,44 +72,53 @@ describe('ArticlesHistoryItemComponent', () => {
         });
     });
 
-    describe('right border class', () => {
+    describe('approval class', () => {
         it('should apply approved class to history item', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 1 }) },
             });
-            expect(spectator.query('.hi--approved')).toBeTruthy();
+            expect(
+                spectator.query('.history-item--approved')
+            ).toBeTruthy();
         });
 
         it('should apply pending class to history item', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 0 }) },
             });
-            expect(spectator.query('.hi--pending')).toBeTruthy();
+            expect(
+                spectator.query('.history-item--pending')
+            ).toBeTruthy();
         });
 
         it('should apply rejected class to history item', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: -1 }) },
             });
-            expect(spectator.query('.hi--rejected')).toBeTruthy();
+            expect(
+                spectator.query('.history-item--rejected')
+            ).toBeTruthy();
         });
     });
 
     describe('type icon', () => {
-        it('should show note_add icon for new articles', () => {
+        it('should show disabled icon button for new articles', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ isNew: true }) },
             });
-            expect(spectator.query('.type-icon')).toBeTruthy();
-            expect(spectator.query('.diff-btn')).toBeFalsy();
+            const iconButton = spectator.query(IconButtonComponent);
+            expect(iconButton).toBeTruthy();
+            expect(iconButton?.icon()).toBe('note_add');
+            expect(iconButton?.disabled()).toBe(true);
         });
 
-        it('should show diff button for edited articles', () => {
+        it('should show diff icon button for edited articles', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ isNew: false }) },
             });
-            expect(spectator.query('.diff-btn')).toBeTruthy();
-            expect(spectator.query('.type-icon')).toBeFalsy();
+            const iconButton = spectator.query(IconButtonComponent);
+            expect(iconButton).toBeTruthy();
+            expect(iconButton?.icon()).toBe('difference');
         });
     });
 
@@ -162,7 +172,7 @@ describe('ArticlesHistoryItemComponent', () => {
                     }),
                 },
             });
-            const link = spectator.query('.hi-title');
+            const link = spectator.query('.title');
             expect(link).toBeTruthy();
             expect(link?.textContent?.trim()).toBe('My Article');
             expect(link?.getAttribute('href')).toBe('/articles/42');
@@ -174,7 +184,7 @@ describe('ArticlesHistoryItemComponent', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ author: 'Иванов А.' }) },
             });
-            const author = spectator.query('.hi-author');
+            const author = spectator.query('.author');
             expect(author?.textContent?.trim()).toBe('Иванов А.');
         });
     });
