@@ -1,23 +1,20 @@
-<div class="time-sep">
-    <span class="time-text">{{ item().date | formatTime }}</span>
-</div>
-
 <div
-    class="hi"
-    [ngClass]="'hi--' + approvalClass()">
-    <div class="hi-left">
+    class="history-item"
+    [ngClass]="'history-item--' + approvalClass()">
+    <div class="left-col">
         @if (item().isNew) {
-            <span class="type-icon"><ui-icon name="note_add" /></span>
+            <ui-icon-button
+                label="Новая редакция"
+                [disabled]="true"
+                icon="note_add" />
         } @else {
-            <button
-                class="diff-btn"
-                title="Просмотр изменений">
-                <ui-icon name="difference" />
-            </button>
+            <ui-icon-button
+                label="Просмотр изменений"
+                icon="difference" />
         }
     </div>
-    <div class="hi-content">
-        <div class="hi-title-row">
+    <div class="content-col">
+        <div class="title-row">
             <span
                 class="status-icon"
                 [ngClass]="'status-icon--' + approvalClass()"
@@ -27,13 +24,15 @@
                     size="small" />
             </span>
             <a
-                class="hi-title text-link"
+                class="title text-link"
                 [routerLink]="['/articles', item().articleId]">
                 {{ item().title }}
             </a>
         </div>
-        <div class="hi-meta-row">
-            <span class="hi-author">{{ item().author }}</span>
+        <div class="meta-row">
+            <span class="time">{{ item().date | formatTime }}</span>
+            ·
+            <span class="author">{{ item().author }}</span>
             @if (item().info) {
                 <span class="author-comment">{{ item().info }}</span>
             }

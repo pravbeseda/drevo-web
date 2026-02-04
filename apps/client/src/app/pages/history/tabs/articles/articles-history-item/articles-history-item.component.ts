@@ -11,7 +11,11 @@ import {
     type ApprovalClass,
     ArticleHistoryItem,
 } from '@drevo-web/shared';
-import { FormatTimePipe, IconComponent } from '@drevo-web/ui';
+import {
+    FormatTimePipe,
+    IconButtonComponent,
+    IconComponent,
+} from '@drevo-web/ui';
 
 const STATUS_ICONS: Record<ApprovalClass, string> = {
     approved: 'check_circle',
@@ -27,7 +31,13 @@ const STATUS_TITLES: Record<ApprovalClass, string> = {
 
 @Component({
     selector: 'app-articles-history-item',
-    imports: [IconComponent, RouterLink, FormatTimePipe, NgClass],
+    imports: [
+        IconComponent,
+        RouterLink,
+        FormatTimePipe,
+        NgClass,
+        IconButtonComponent,
+    ],
     templateUrl: './articles-history-item.component.html',
     styleUrl: './articles-history-item.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

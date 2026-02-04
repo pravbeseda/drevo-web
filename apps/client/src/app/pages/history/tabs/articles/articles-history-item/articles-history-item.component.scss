@@ -2,23 +2,13 @@
     display: block;
 }
 
-// Time separator
-.time-sep {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 0 2px;
-}
-
-.time-text {
+.time {
     font-size: 11px;
     font-variant-numeric: tabular-nums;
     color: var(--themed-text-muted);
     white-space: nowrap;
-    line-height: 1;
 }
 
-// Type icon (non-clickable, disabled look)
 .type-icon {
     display: inline-flex;
     align-items: center;
@@ -29,67 +19,29 @@
     color: var(--themed-icon-disabled);
 }
 
-// Diff button (clickable, active look)
-.diff-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    transition:
-        background 0.15s,
-        color 0.15s;
-    flex-shrink: 0;
-    background: transparent;
-    color: var(--themed-icon-active);
-
-    &:hover {
-        background: var(--themed-icon-active-hover-bg);
-        color: var(--themed-icon-active-hover);
-    }
-}
-
-// History item
-.hi {
+.history-item {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 0 10px;
     padding: 6px 8px 8px 0;
-    border-right: 3px solid transparent;
-
-    &--approved {
-        border-right-color: var(--themed-status-approved);
-    }
-
-    &--pending {
-        border-right-color: var(--themed-status-pending);
-    }
-
-    &--rejected {
-        border-right-color: var(--themed-status-rejected);
-    }
 }
 
-.hi-left {
+.left-col {
     display: flex;
-    align-items: flex-start;
-    padding-top: 1px;
+    flex-direction: column;
 }
 
-.hi-content {
+.content-col {
     min-width: 0;
 }
 
-.hi-title-row {
+.title-row {
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-.hi-title {
+.title {
     font-size: 14px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -127,7 +79,7 @@
 }
 
 // Meta row
-.hi-meta-row {
+.meta-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -135,7 +87,7 @@
     margin-top: 2px;
 }
 
-.hi-author {
+.author {
     font-size: 12px;
     color: var(--themed-text-secondary);
     white-space: nowrap;
@@ -151,7 +103,6 @@
     }
 }
 
-// Moderator comment
 .moderator-comment {
     font-size: 12px;
     color: var(--themed-moderator-comment-text);
