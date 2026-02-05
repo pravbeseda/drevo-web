@@ -94,7 +94,7 @@
     font-style: italic;
 
     &::before {
-        content: ' - ';
+        content: '\2014\00A0';
     }
 }
 
