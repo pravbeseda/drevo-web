@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
     computed,
     effect,
@@ -23,6 +23,7 @@ export class FontScaleService {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
     private readonly storage = inject(StorageService);
+    private readonly document = inject(DOCUMENT);
 
     private readonly _scale = signal<number>(this.getInitialScale());
     readonly scale = this._scale.asReadonly();
@@ -75,7 +76,7 @@ export class FontScaleService {
     }
 
     private applyScale(scale: number): void {
-        document.documentElement.style.fontSize = `${BASE_FONT_SIZE * scale}px`;
+        this.document.documentElement.style.fontSize = `${BASE_FONT_SIZE * scale}px`;
     }
 
     private saveScale(scale: number): void {

@@ -215,22 +215,23 @@ Never define local CSS custom properties for sizes in component styles — add n
 12. **Angular Material via `@drevo-web/ui` only** — never use `mat-*` components or `--mat-*` CSS tokens directly outside `libs/ui`
 13. **Auth guard on all routes** — no public pages except login
 14. **No direct `window` access** — use `WINDOW` token from `@drevo-web/core` for SSR compatibility
-15. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
+15. **No direct `document` access** — use `DOCUMENT` token from `@angular/common` for SSR compatibility
+16. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
 
 ### Styling
 
-16. **Color tokens only** — `--themed-*` variables, no hardcoded colors or `--mat-*` tokens
-17. **Size tokens in `_tokens.scss`** — no local CSS custom properties for sizes
-18. **Mobile first** — `min-width` media queries
+17. **Color tokens only** — `--themed-*` variables, no hardcoded colors or `--mat-*` tokens
+18. **Size tokens in `_tokens.scss`** — no local CSS custom properties for sizes
+19. **Mobile first** — `min-width` media queries
 
 ### Quality
 
-19. **Russian language** in UI, **English** in code and comments
-20. **Comments** — English only, only where code doesn't explain itself
-21. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
-22. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
-23. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
-24. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
+20. **Russian language** in UI, **English** in code and comments
+21. **Comments** — English only, only where code doesn't explain itself
+22. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
+23. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
+24. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
+25. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 
 ## Unit Testing
 

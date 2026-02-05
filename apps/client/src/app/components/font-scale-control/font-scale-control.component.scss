@@ -8,7 +8,7 @@
     padding: $font-scale-popup-padding;
     background-color: var(--themed-secondary-bg);
     border-radius: $dropdown-panel-border-radius;
-    box-shadow: var(--mat-sys-level2);
+    box-shadow: 0 4px 12px var(--themed-shadow-color);
 }
 
 .font-scale-stepper {

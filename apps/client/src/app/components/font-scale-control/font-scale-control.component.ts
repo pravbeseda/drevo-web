@@ -42,6 +42,12 @@ export class FontScaleControlComponent {
         this._isOpen.set(false);
     }
 
+    onOverlayKeydown(event: KeyboardEvent): void {
+        if (event.key === 'Escape') {
+            this.close();
+        }
+    }
+
     increase(): void {
         this.fontScaleService.increase();
     }

@@ -1,4 +1,6 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { MockProvider } from 'ng-mocks';
+import { StorageService } from '@drevo-web/core';
 import { FontScaleService } from '../../services/font-scale/font-scale.service';
 import { FontScaleControlComponent } from './font-scale-control.component';
 
@@ -8,17 +10,22 @@ describe('FontScaleControlComponent', () => {
 
     const createComponent = createComponentFactory({
         component: FontScaleControlComponent,
+        providers: [
+            MockProvider(StorageService, {
+                get: jest.fn(),
+                set: jest.fn(),
+                remove: jest.fn(),
+            }),
+        ],
     });
 
     beforeEach(() => {
-        localStorage.clear();
         document.documentElement.style.fontSize = '';
         spectator = createComponent();
         fontScaleService = spectator.inject(FontScaleService);
     });
 
     afterEach(() => {
-        localStorage.clear();
         document.documentElement.style.fontSize = '';
     });
 
@@ -44,6 +51,22 @@ describe('FontScaleControlComponent', () => {
 
         spectator.component.close();
         expect(spectator.component.isOpen()).toBe(false);
+    });
+
+    it('should close popup on Escape key', () => {
+        spectator.component.toggle();
+        expect(spectator.component.isOpen()).toBe(true);
+
+        spectator.component.onOverlayKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+        expect(spectator.component.isOpen()).toBe(false);
+    });
+
+    it('should not close popup on other keys', () => {
+        spectator.component.toggle();
+        expect(spectator.component.isOpen()).toBe(true);
+
+        spectator.component.onOverlayKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+        expect(spectator.component.isOpen()).toBe(true);
     });
 
     it('should display current scale percent', () => {

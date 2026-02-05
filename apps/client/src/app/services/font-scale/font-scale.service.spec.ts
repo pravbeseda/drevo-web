@@ -1,25 +1,35 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { MockProvider } from 'ng-mocks';
+import { StorageService } from '@drevo-web/core';
 import { FontScaleService } from './font-scale.service';
 
 const FONT_SCALE_KEY = 'drevo-font-scale';
 
 describe('FontScaleService', () => {
     let spectator: SpectatorService<FontScaleService>;
+    let storageService: StorageService;
+
     const createService = createServiceFactory({
         service: FontScaleService,
-        providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
+        providers: [
+            { provide: PLATFORM_ID, useValue: 'browser' },
+            MockProvider(StorageService, {
+                get: jest.fn(),
+                set: jest.fn(),
+                remove: jest.fn(),
+            }),
+        ],
     });
 
     beforeEach(() => {
-        localStorage.clear();
         document.documentElement.style.fontSize = '';
         spectator = createService();
+        storageService = spectator.inject(StorageService);
     });
 
     afterEach(() => {
-        localStorage.clear();
         document.documentElement.style.fontSize = '';
     });
 
@@ -108,53 +118,67 @@ describe('FontScaleService', () => {
         );
     });
 
-    it('should save scale to localStorage', () => {
+    it('should save scale to storage', () => {
         spectator.service.increase();
         TestBed.flushEffects();
-        expect(localStorage.getItem(FONT_SCALE_KEY)).toBe('1.1');
+        expect(storageService.set).toHaveBeenCalledWith(FONT_SCALE_KEY, 1.1);
     });
 
-    it('should remove from localStorage when reset to default', () => {
+    it('should remove from storage when reset to default', () => {
         spectator.service.increase();
         TestBed.flushEffects();
-        expect(localStorage.getItem(FONT_SCALE_KEY)).toBe('1.1');
 
         spectator.service.reset();
         TestBed.flushEffects();
-        expect(localStorage.getItem(FONT_SCALE_KEY)).toBeNull();
+        expect(storageService.remove).toHaveBeenCalledWith(FONT_SCALE_KEY);
     });
 });
 
 describe('FontScaleService with saved scale', () => {
     let spectator: SpectatorService<FontScaleService>;
+
     const createService = createServiceFactory({
         service: FontScaleService,
         providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
     });
 
     afterEach(() => {
-        localStorage.clear();
         document.documentElement.style.fontSize = '';
     });
 
-    it('should restore scale from localStorage', () => {
-        localStorage.setItem(FONT_SCALE_KEY, '1.2');
-        spectator = createService();
+    it('should restore scale from storage', () => {
+        spectator = createService({
+            providers: [
+                MockProvider(StorageService, {
+                    get: jest.fn().mockReturnValue(1.2),
+                }),
+            ],
+        });
 
         expect(spectator.service.scale()).toBe(1.2);
         expect(spectator.service.scalePercent()).toBe(120);
     });
 
-    it('should use default for invalid localStorage value', () => {
-        localStorage.setItem(FONT_SCALE_KEY, 'invalid');
-        spectator = createService();
+    it('should use default for undefined storage value', () => {
+        spectator = createService({
+            providers: [
+                MockProvider(StorageService, {
+                    get: jest.fn().mockReturnValue(undefined),
+                }),
+            ],
+        });
 
         expect(spectator.service.scale()).toBe(1);
     });
 
-    it('should clamp scale within valid range from localStorage', () => {
-        localStorage.setItem(FONT_SCALE_KEY, '2.0');
-        spectator = createService();
+    it('should use default for out-of-range storage value', () => {
+        spectator = createService({
+            providers: [
+                MockProvider(StorageService, {
+                    get: jest.fn().mockReturnValue(2.0),
+                }),
+            ],
+        });
 
         expect(spectator.service.scale()).toBe(1);
     });
