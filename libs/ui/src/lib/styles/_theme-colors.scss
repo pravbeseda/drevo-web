@@ -244,9 +244,9 @@ $theme-colors: (
 
     // Tab badge
     tab-badge-bg: (
-        light: $md-grey-200,
-        dark: $md-grey-700,
-    ),
+            light: $md-grey-200,
+            dark: $md-grey-700,
+        ),
     tab-badge-text: (
         light: $md-grey-800,
         dark: $md-grey-200,
@@ -254,21 +254,21 @@ $theme-colors: (
 
     // Dropdown
     dropdown-panel-bg: (
-        light: $md-white,
-        dark: $md-grey-800,
-    ),
+            light: $md-white,
+            dark: $md-grey-800,
+        ),
 
     // Drawer
     drawer-backdrop-bg: (
-        light: rgba(0, 0, 0, 0.4),
-        dark: rgba(0, 0, 0, 0.6),
-    ),
+            light: rgba(0, 0, 0, 0.4),
+            dark: rgba(0, 0, 0, 0.6),
+        ),
 
     // Status colors
     status-approved: (
-        light: $md-green-800,
-        dark: $md-green-400,
-    ),
+            light: $md-green-800,
+            dark: $md-green-400,
+        ),
     status-pending: (
         light: $md-orange-800,
         dark: $md-orange-400,
@@ -280,23 +280,23 @@ $theme-colors: (
 
     // Moderator comment
     moderator-comment-bg: (
-        light: #fff8e1,
-        dark: #3e2700,
-    ),
+            light: $md-amber-50,
+            dark: $md-blue-grey-900,
+        ),
     moderator-comment-border: (
         light: $md-amber-200,
-        dark: #6d4c00,
+        dark: $md-cyan-700,
     ),
     moderator-comment-text: (
-        light: #6d4c00,
-        dark: $md-amber-300,
+        light: $md-brown-600,
+        dark: $md-cyan-500,
     ),
 
     // Icon states
     icon-disabled: (
-        light: $md-grey-400,
-        dark: $md-grey-700,
-    ),
+            light: $md-grey-400,
+            dark: $md-grey-700,
+        ),
     icon-active: (
         light: $md-grey-700,
         dark: $md-grey-400,

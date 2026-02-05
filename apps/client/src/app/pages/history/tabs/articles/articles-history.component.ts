@@ -39,7 +39,6 @@ type HistoryDisplayItem =
         SpinnerComponent,
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
-        VirtualScrollerItemDirective,
     ],
     templateUrl: './articles-history.component.html',
     styleUrl: './articles-history.component.scss',

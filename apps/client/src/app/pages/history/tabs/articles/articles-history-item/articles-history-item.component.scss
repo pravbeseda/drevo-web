@@ -9,16 +9,6 @@
     white-space: nowrap;
 }
 
-.type-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    color: var(--themed-icon-disabled);
-}
-
 .history-item {
     display: grid;
     grid-template-columns: auto 1fr;
