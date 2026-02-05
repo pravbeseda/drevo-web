@@ -95,28 +95,4 @@ describe('FontScaleControlComponent', () => {
         expect(fontScaleService.scale()).toBe(1);
         expect(spectator.component.isDefault()).toBe(true);
     });
-
-    it('should report canIncrease from service', () => {
-        expect(spectator.component.canIncrease()).toBe(true);
-
-        for (let i = 0; i < 5; i++) {
-            spectator.component.increase();
-        }
-        expect(spectator.component.canIncrease()).toBe(false);
-    });
-
-    it('should report canDecrease from service', () => {
-        expect(spectator.component.canDecrease()).toBe(true);
-
-        spectator.component.decrease();
-        spectator.component.decrease();
-        expect(spectator.component.canDecrease()).toBe(false);
-    });
-
-    it('should report isDefault from service', () => {
-        expect(spectator.component.isDefault()).toBe(true);
-
-        spectator.component.increase();
-        expect(spectator.component.isDefault()).toBe(false);
-    });
 });

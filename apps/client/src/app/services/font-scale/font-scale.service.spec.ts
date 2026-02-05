@@ -3,9 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { StorageService } from '@drevo-web/core';
-import { FontScaleService } from './font-scale.service';
-
-const FONT_SCALE_KEY = 'drevo-font-scale';
+import { FontScaleService, FONT_SCALE_KEY } from './font-scale.service';
 
 describe('FontScaleService', () => {
     let spectator: SpectatorService<FontScaleService>;

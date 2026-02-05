@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { StorageService } from '@drevo-web/core';
 
-const FONT_SCALE_KEY = 'drevo-font-scale';
+export const FONT_SCALE_KEY = 'drevo-font-scale';
 const DEFAULT_SCALE = 1;
 const MIN_SCALE = 0.8;
 const MAX_SCALE = 1.5;

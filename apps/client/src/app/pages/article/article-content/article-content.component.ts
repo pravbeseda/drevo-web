@@ -42,7 +42,7 @@ interface ContentInteractionState {
 @Component({
     selector: 'app-article-content',
     template: '<div [innerHTML]="sanitizedContent"></div>',
-    styleUrls: ['./article-content.component.scss'],
+    styleUrl: './article-content.component.scss',
     encapsulation: ViewEncapsulation.None, // TODO remove after Formatter implementing
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
