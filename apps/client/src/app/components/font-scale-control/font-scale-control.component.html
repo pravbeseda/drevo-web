@@ -1,0 +1,38 @@
+<ui-icon-button
+    cdkOverlayOrigin
+    #trigger="cdkOverlayOrigin"
+    icon="text_fields"
+    label="Размер шрифта"
+    (clicked)="toggle()" />
+
+<ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="font-scale-backdrop"
+    (backdropClick)="close()">
+    <div class="font-scale-popup" data-testid="font-scale-popup">
+        <div class="font-scale-stepper">
+            <ui-icon-button
+                icon="remove"
+                label="Уменьшить"
+                [disabled]="!canDecrease()"
+                (clicked)="decrease()" />
+            <span class="font-scale-value" data-testid="font-scale-value">
+                {{ scalePercent() }}%
+            </span>
+            <ui-icon-button
+                icon="add"
+                label="Увеличить"
+                [disabled]="!canIncrease()"
+                (clicked)="increase()" />
+        </div>
+        <ui-button
+            variant="text"
+            [disabled]="isDefault()"
+            (clicked)="reset()">
+            Сбросить
+        </ui-button>
+    </div>
+</ng-template>

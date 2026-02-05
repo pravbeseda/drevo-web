@@ -1,4 +1,5 @@
 import { AccountDropdownComponent } from '../../components/account-dropdown/account-dropdown.component';
+import { FontScaleControlComponent } from '../../components/font-scale-control/font-scale-control.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DrawerService } from '@drevo-web/core';
@@ -8,6 +9,7 @@ import { IconButtonComponent, ModalService } from '@drevo-web/ui';
     selector: 'app-header',
     imports: [
         AccountDropdownComponent,
+        FontScaleControlComponent,
         ThemeToggleComponent,
         IconButtonComponent,
     ],

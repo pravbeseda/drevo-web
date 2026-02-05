@@ -14,6 +14,12 @@ class DummyComponent {}
 function createMockWindow(innerWidth: number): Window {
     return {
         innerWidth,
+        localStorage: {
+            getItem: jest.fn(),
+            setItem: jest.fn(),
+            removeItem: jest.fn(),
+            clear: jest.fn(),
+        },
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
         matchMedia: jest.fn(() => ({
