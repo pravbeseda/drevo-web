@@ -58,11 +58,24 @@ describe('IconButtonComponent', () => {
     it('should have matTooltip with label text', () => {
         spectator.setInput('label', 'Settings');
 
-        const tooltipDirective = spectator.query('button', {
+        const tooltipDirective = spectator.query('span', {
             read: MatTooltip,
         });
 
         expect(tooltipDirective).toBeTruthy();
         expect(tooltipDirective?.message).toBe('Settings');
+    });
+
+    it('should show tooltip even when button is disabled', () => {
+        spectator.setInput('label', 'Settings');
+        spectator.setInput('disabled', true);
+
+        const tooltipDirective = spectator.query('span', {
+            read: MatTooltip,
+        });
+
+        expect(tooltipDirective).toBeTruthy();
+        expect(tooltipDirective?.message).toBe('Settings');
+        expect(tooltipDirective?.disabled).toBe(false);
     });
 });

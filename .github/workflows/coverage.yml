@@ -1,119 +1,119 @@
 name: Test Coverage
 
 on:
-  push:
-    branches: [standalone]
-  workflow_dispatch:
+    push:
+        branches: [standalone]
+    workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+    contents: read
+    pages: write
+    id-token: write
 
 concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+    group: 'pages'
+    cancel-in-progress: true
 
 jobs:
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    coverage:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
 
-      - name: Run tests with coverage
-        run: yarn test:coverage
+            - name: Run tests with coverage
+              run: yarn test:coverage
 
-      - name: Merge coverage reports
-        run: |
-          mkdir -p coverage/merged
+            - name: Merge coverage reports
+              run: |
+                  mkdir -p coverage/merged
 
-          # Find all coverage directories and merge json-summary
-          TOTAL_LINES=0
-          COVERED_LINES=0
+                  # Find all coverage directories and merge json-summary
+                  TOTAL_LINES=0
+                  COVERED_LINES=0
 
-          for dir in coverage/apps/* coverage/libs/*; do
-            if [ -f "$dir/coverage-summary.json" ]; then
-              LINES=$(jq '.total.lines.total' "$dir/coverage-summary.json")
-              COVERED=$(jq '.total.lines.covered' "$dir/coverage-summary.json")
-              TOTAL_LINES=$((TOTAL_LINES + LINES))
-              COVERED_LINES=$((COVERED_LINES + COVERED))
-            fi
-          done
+                  for dir in coverage/apps/* coverage/libs/*; do
+                    if [ -f "$dir/coverage-summary.json" ]; then
+                      LINES=$(jq '.total.lines.total' "$dir/coverage-summary.json")
+                      COVERED=$(jq '.total.lines.covered' "$dir/coverage-summary.json")
+                      TOTAL_LINES=$((TOTAL_LINES + LINES))
+                      COVERED_LINES=$((COVERED_LINES + COVERED))
+                    fi
+                  done
 
-          if [ $TOTAL_LINES -gt 0 ]; then
-            PERCENTAGE=$(echo "scale=2; $COVERED_LINES * 100 / $TOTAL_LINES" | bc)
-          else
-            PERCENTAGE=0
-          fi
+                  if [ $TOTAL_LINES -gt 0 ]; then
+                    PERCENTAGE=$(echo "scale=2; $COVERED_LINES * 100 / $TOTAL_LINES" | bc)
+                  else
+                    PERCENTAGE=0
+                  fi
 
-          echo "Coverage: $PERCENTAGE%"
+                  echo "Coverage: $PERCENTAGE%"
 
-          # Create badge JSON for shields.io
-          if (( $(echo "$PERCENTAGE >= 80" | bc -l) )); then
-            COLOR="brightgreen"
-          elif (( $(echo "$PERCENTAGE >= 60" | bc -l) )); then
-            COLOR="yellow"
-          else
-            COLOR="red"
-          fi
+                  # Create badge JSON for shields.io
+                  if (( $(echo "$PERCENTAGE >= 80" | bc -l) )); then
+                    COLOR="brightgreen"
+                  elif (( $(echo "$PERCENTAGE >= 60" | bc -l) )); then
+                    COLOR="yellow"
+                  else
+                    COLOR="red"
+                  fi
 
-          cat > coverage/merged/badge.json << EOF
-          {
-            "schemaVersion": 1,
-            "label": "coverage",
-            "message": "${PERCENTAGE}%",
-            "color": "$COLOR"
-          }
-          EOF
+                  cat > coverage/merged/badge.json << EOF
+                  {
+                    "schemaVersion": 1,
+                    "label": "coverage",
+                    "message": "${PERCENTAGE}%",
+                    "color": "$COLOR"
+                  }
+                  EOF
 
-          # Create index.html that lists all coverage reports
-          cat > coverage/merged/index.html << 'HTMLEOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Coverage Reports</title>
-            <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-              h1 { color: #333; }
-              ul { list-style: none; padding: 0; }
-              li { margin: 10px 0; }
-              a { color: #0366d6; text-decoration: none; font-size: 18px; }
-              a:hover { text-decoration: underline; }
-            </style>
-          </head>
-          <body>
-            <h1>Coverage Reports</h1>
-            <ul>
-              <li><a href="apps/client/index.html">client</a></li>
-              <li><a href="libs/core/index.html">core</a></li>
-              <li><a href="libs/editor/index.html">editor</a></li>
-              <li><a href="libs/shared/index.html">shared</a></li>
-              <li><a href="libs/ui/index.html">ui</a></li>
-            </ul>
-          </body>
-          </html>
-          HTMLEOF
+                  # Create index.html that lists all coverage reports
+                  cat > coverage/merged/index.html << 'HTMLEOF'
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <title>Coverage Reports</title>
+                    <style>
+                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+                      h1 { color: #333; }
+                      ul { list-style: none; padding: 0; }
+                      li { margin: 10px 0; }
+                      a { color: #0366d6; text-decoration: none; font-size: 18px; }
+                      a:hover { text-decoration: underline; }
+                    </style>
+                  </head>
+                  <body>
+                    <h1>Coverage Reports</h1>
+                    <ul>
+                      <li><a href="apps/client/index.html">client</a></li>
+                      <li><a href="libs/core/index.html">core</a></li>
+                      <li><a href="libs/editor/index.html">editor</a></li>
+                      <li><a href="libs/shared/index.html">shared</a></li>
+                      <li><a href="libs/ui/index.html">ui</a></li>
+                    </ul>
+                  </body>
+                  </html>
+                  HTMLEOF
 
-          # Copy all HTML reports to merged directory
-          cp -r coverage/apps coverage/merged/ 2>/dev/null || true
-          cp -r coverage/libs coverage/merged/ 2>/dev/null || true
+                  # Copy all HTML reports to merged directory
+                  cp -r coverage/apps coverage/merged/ 2>/dev/null || true
+                  cp -r coverage/libs coverage/merged/ 2>/dev/null || true
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: coverage/merged
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: coverage/merged
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4

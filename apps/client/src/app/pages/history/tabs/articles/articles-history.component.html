@@ -42,34 +42,7 @@
                 @if (item.type === 'header') {
                     <div class="history-date-header">{{ item.date }}</div>
                 } @else {
-                    <div
-                        class="history-item"
-                        [ngClass]="item.approvalClass">
-                        <span class="history-item-time">
-                            {{ item.data.date | formatTime }}
-                        </span>
-                        <span class="history-item-icon">
-                            {{ item.data.isNew ? '+' : '~' }}
-                        </span>
-                        <a
-                            class="history-item-title"
-                            [routerLink]="['/articles', item.data.articleId]">
-                            {{ item.data.title }}
-                        </a>
-                        <span class="history-item-author">
-                            {{ item.data.author }}
-                        </span>
-                        @if (item.data.info) {
-                            <span class="history-item-info">
-                                {{ item.data.info }}
-                            </span>
-                        }
-                        @if (item.data.comment) {
-                            <span class="history-item-comment">
-                                {{ item.data.comment }}
-                            </span>
-                        }
-                    </div>
+                    <app-articles-history-item [item]="item.data" />
                 }
             </ng-template>
         </ui-virtual-scroller>

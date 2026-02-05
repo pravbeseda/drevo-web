@@ -1,0 +1,62 @@
+<div class="history-item">
+    <div class="left-col">
+        @if (item().isNew) {
+            <ui-icon-button
+                label="Новая редакция"
+                [disabled]="true"
+                icon="note_add" />
+        } @else {
+            <ui-icon-button
+                label="Просмотр изменений"
+                icon="difference" />
+        }
+    </div>
+    <div class="content-col">
+        <div class="title-row">
+            <span
+                class="status-icon"
+                [ngClass]="'status-icon--' + approvalClass()">
+                <ui-icon
+                    [name]="statusIcon()"
+                    [tooltip]="statusTitle()"
+                    size="small" />
+            </span>
+            <a
+                class="title"
+                data-testid="title"
+                [routerLink]="['/articles', item().articleId]">
+                {{ item().title }}
+            </a>
+        </div>
+        <div
+            class="meta-row"
+            data-testid="meta-row">
+            <span
+                class="time"
+                data-testid="time">
+                {{ item().date | formatTime }}
+            </span>
+            ·
+            <span
+                class="author"
+                data-testid="author">
+                {{ item().author }}
+            </span>
+            @if (item().info) {
+                <span
+                    class="author-comment"
+                    data-testid="author-comment">
+                    {{ item().info }}
+                </span>
+            }
+        </div>
+        @if (item().comment) {
+            <div
+                class="moderator-comment"
+                data-testid="moderator-comment">
+                <b>Модератор:</b>
+                {{ item().comment }}
+            </div>
+        }
+    </div>
+</div>

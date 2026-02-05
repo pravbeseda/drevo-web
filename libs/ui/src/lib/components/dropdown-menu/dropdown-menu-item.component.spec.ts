@@ -9,7 +9,10 @@ import { DropdownMenuItemComponent } from './dropdown-menu-item.component';
     imports: [DropdownMenuComponent, DropdownMenuItemComponent],
     template: `
         <ui-dropdown-menu>
-            <ui-dropdown-menu-item #item [icon]="icon" [disabled]="disabled">
+            <ui-dropdown-menu-item
+                #item
+                [icon]="icon"
+                [disabled]="disabled">
                 Test Label
             </ui-dropdown-menu-item>
         </ui-dropdown-menu>

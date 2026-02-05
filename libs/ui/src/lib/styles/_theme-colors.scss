@@ -262,6 +262,34 @@ $theme-colors: (
     drawer-backdrop-bg: (
         light: rgba(0, 0, 0, 0.4),
         dark: rgba(0, 0, 0, 0.6),
+    ),
+
+    // Status colors
+    status-approved: (
+        light: $md-green-800,
+        dark: $md-green-400,
+    ),
+    status-pending: (
+        light: $md-orange-800,
+        dark: $md-orange-400,
+    ),
+    status-rejected: (
+        light: $md-red-800,
+        dark: $md-red-400,
+    ),
+
+    // Moderator comment
+    moderator-comment-bg: (
+        light: $md-amber-50,
+        dark: $md-blue-grey-900,
+    ),
+    moderator-comment-border: (
+        light: $md-amber-200,
+        dark: $md-cyan-700,
+    ),
+    moderator-comment-text: (
+        light: $md-brown-600,
+        dark: $md-cyan-500,
     )
 );
 

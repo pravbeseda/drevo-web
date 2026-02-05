@@ -214,18 +214,16 @@ describe('ArticlesHistoryComponent', () => {
             spectator.detectChanges();
 
             const displayItems = spectator.component.displayItems();
-            const versionItems = displayItems.filter(
-                i => i.type === 'version'
-            );
+            const versionItems = displayItems.filter(i => i.type === 'version');
 
             expect(versionItems[0]).toMatchObject({
-                approvalClass: 'approved',
+                data: expect.objectContaining({ approved: 1 }),
             });
             expect(versionItems[1]).toMatchObject({
-                approvalClass: 'rejected',
+                data: expect.objectContaining({ approved: -1 }),
             });
             expect(versionItems[2]).toMatchObject({
-                approvalClass: 'pending',
+                data: expect.objectContaining({ approved: 0 }),
             });
         });
 
@@ -280,9 +278,7 @@ describe('ArticlesHistoryComponent', () => {
             spectator.detectChanges();
 
             const buttons = spectator.queryAll('ui-button');
-            const buttonTexts = buttons.map(b =>
-                b.textContent?.trim()
-            );
+            const buttonTexts = buttons.map(b => b.textContent?.trim());
             expect(buttonTexts).not.toContain('Мои');
         });
 
@@ -293,9 +289,7 @@ describe('ArticlesHistoryComponent', () => {
             spectator.detectChanges();
 
             const buttons = spectator.queryAll('ui-button');
-            const buttonTexts = buttons.map(b =>
-                b.textContent?.trim()
-            );
+            const buttonTexts = buttons.map(b => b.textContent?.trim());
             expect(buttonTexts).toContain('Мои');
         });
     });

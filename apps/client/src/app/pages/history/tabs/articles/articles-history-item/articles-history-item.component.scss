@@ -1,0 +1,95 @@
+:host {
+    display: block;
+}
+
+.time {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--themed-text-muted);
+    white-space: nowrap;
+}
+
+.history-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 10px;
+    padding: 6px 8px 8px 0;
+}
+
+.left-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.content-col {
+    min-width: 0;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.title {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--themed-link-color);
+    text-decoration: none;
+
+    &:hover {
+        color: var(--themed-link-hover);
+        text-decoration: underline;
+    }
+}
+
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    &--approved {
+        color: var(--themed-status-approved);
+    }
+
+    &--pending {
+        color: var(--themed-status-pending);
+    }
+
+    &--rejected {
+        color: var(--themed-status-rejected);
+    }
+}
+
+.meta-row {
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.author {
+    color: var(--themed-text-secondary);
+    white-space: nowrap;
+}
+
+.author-comment {
+    color: var(--themed-text-secondary);
+    font-style: italic;
+
+    &::before {
+        content: '\2014\00A0';
+    }
+}
+
+.moderator-comment {
+    font-size: 12px;
+    color: var(--themed-moderator-comment-text);
+    background: var(--themed-moderator-comment-bg);
+    border-left: 3px solid var(--themed-moderator-comment-border);
+    padding: 4px 8px;
+    border-radius: 0 4px 4px 0;
+    margin-top: 4px;
+}

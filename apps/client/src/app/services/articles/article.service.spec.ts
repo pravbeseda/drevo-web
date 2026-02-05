@@ -554,9 +554,12 @@ describe('ArticleService', () => {
 
             spectator.service.getArticlesHistory({ page: 1 }).subscribe();
 
-            expect(
-                articleApiService.getArticlesHistory
-            ).toHaveBeenCalledWith(1, 25, undefined, undefined);
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(
+                1,
+                25,
+                undefined,
+                undefined
+            );
         });
 
         it('should pass custom params to API service', () => {
@@ -573,9 +576,12 @@ describe('ArticleService', () => {
                 })
                 .subscribe();
 
-            expect(
-                articleApiService.getArticlesHistory
-            ).toHaveBeenCalledWith(2, 50, 0, 'testuser');
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(
+                2,
+                50,
+                0,
+                'testuser'
+            );
         });
 
         it('should map API response to frontend model', done => {

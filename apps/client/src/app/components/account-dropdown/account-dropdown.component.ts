@@ -36,7 +36,8 @@ export class AccountDropdownComponent {
     private readonly authService = inject(AuthService);
     private readonly logExportService = inject(LogExportService);
     private readonly router = inject(Router);
-    private readonly logger = inject(LoggerService).withContext('AccountDropdown');
+    private readonly logger =
+        inject(LoggerService).withContext('AccountDropdown');
 
     private readonly user = toSignal(this.authService.user$);
 

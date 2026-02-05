@@ -1,8 +1,9 @@
-<button
-    mat-icon-button
-    [disabled]="disabled()"
-    [matTooltip]="label()"
-    [attr.aria-label]="label()"
-    (click)="onClick()">
-    <mat-icon>{{ icon() }}</mat-icon>
-</button>
+<span [matTooltip]="label()">
+    <button
+        mat-icon-button
+        [disabled]="disabled()"
+        [attr.aria-label]="label()"
+        (click)="onClick()">
+        <mat-icon>{{ icon() }}</mat-icon>
+    </button>
+</span>

@@ -161,7 +161,6 @@ export class ArticleService {
 
 ### Components
 
-- Always `standalone: true`
 - Lazy loading via `loadComponent` in routes
 - Zoneless: `provideZonelessChangeDetection()`
 
@@ -207,7 +206,7 @@ Never define local CSS custom properties for sizes in component styles — add n
 
 ### Angular
 
-6. **Standalone components** — always
+6. **Standalone components** — always, but omit `standalone: true` (it's the default in Angular 21)
 7. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns)
 8. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for Subject, `event$` for its public Observable
 9. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
@@ -227,7 +226,9 @@ Never define local CSS custom properties for sizes in component styles — add n
 17. **Russian language** in UI, **English** in code and comments
 18. **Comments** — English only, only where code doesn't explain itself
 19. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
-20. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
+20. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
+21. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
+22. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 
 ## Unit Testing
 
