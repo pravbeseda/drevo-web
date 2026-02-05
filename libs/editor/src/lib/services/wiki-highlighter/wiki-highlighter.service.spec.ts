@@ -4,7 +4,6 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { WikiHighlighterService } from './wiki-highlighter.service';
 
-
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
 const missingSelector = '.cm-link-missing';

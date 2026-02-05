@@ -26,7 +26,8 @@ export const ApprovalStatus = {
     Approved: 1,
 } as const satisfies Record<string, ApprovalStatusDto>;
 
-export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus];
+export type ApprovalStatus =
+    (typeof ApprovalStatus)[keyof typeof ApprovalStatus];
 
 export type ApprovalClass = 'approved' | 'rejected' | 'pending';
 

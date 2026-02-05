@@ -320,7 +320,9 @@ describe('ArticleApiService', () => {
                 .saveArticleVersion({ versionId: 456, content: 'New content' })
                 .subscribe({
                     error: (err: Error) => {
-                        expect(err.message).toContain('Response data is undefined');
+                        expect(err.message).toContain(
+                            'Response data is undefined'
+                        );
                         done();
                     },
                 });
@@ -406,11 +408,9 @@ describe('ArticleApiService', () => {
         };
 
         it('should call HTTP GET with correct URL and params', () => {
-            spectator.service
-                .getArticlesHistory(1, 25)
-                .subscribe(result => {
-                    expect(result).toEqual(mockHistoryResponse.data);
-                });
+            spectator.service.getArticlesHistory(1, 25).subscribe(result => {
+                expect(result).toEqual(mockHistoryResponse.data);
+            });
 
             const req = httpController.expectOne(
                 request =>
@@ -424,9 +424,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should include approved param when provided', () => {
-            spectator.service
-                .getArticlesHistory(1, 25, 0)
-                .subscribe();
+            spectator.service.getArticlesHistory(1, 25, 0).subscribe();
 
             const req = httpController.expectOne(
                 request =>
@@ -450,9 +448,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should not include approved param when undefined', () => {
-            spectator.service
-                .getArticlesHistory(1, 25)
-                .subscribe();
+            spectator.service.getArticlesHistory(1, 25).subscribe();
 
             const req = httpController.expectOne(
                 request =>
@@ -463,13 +459,11 @@ describe('ArticleApiService', () => {
         });
 
         it('should extract data from response wrapper', done => {
-            spectator.service
-                .getArticlesHistory(1, 25)
-                .subscribe(result => {
-                    expect(result.items).toHaveLength(1);
-                    expect(result.total).toBe(1);
-                    done();
-                });
+            spectator.service.getArticlesHistory(1, 25).subscribe(result => {
+                expect(result.items).toHaveLength(1);
+                expect(result.total).toBe(1);
+                done();
+            });
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history'
@@ -478,16 +472,12 @@ describe('ArticleApiService', () => {
         });
 
         it('should throw when response.data is undefined', done => {
-            spectator.service
-                .getArticlesHistory(1, 25)
-                .subscribe({
-                    error: (err: Error) => {
-                        expect(err.message).toContain(
-                            'Response data is undefined'
-                        );
-                        done();
-                    },
-                });
+            spectator.service.getArticlesHistory(1, 25).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history'

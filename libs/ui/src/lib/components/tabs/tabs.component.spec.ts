@@ -52,7 +52,9 @@ describe('TabsComponent', () => {
     });
 
     it('should show badge with zero value', () => {
-        spectator.setInput('tabs', [{ label: 'Zero', route: '/zero', badge: 0 }]);
+        spectator.setInput('tabs', [
+            { label: 'Zero', route: '/zero', badge: 0 },
+        ]);
         const badge = spectator.query('.tab-badge');
         expect(badge).toBeTruthy();
         expect(badge).toHaveText('0');

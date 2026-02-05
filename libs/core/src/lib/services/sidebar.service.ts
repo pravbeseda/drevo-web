@@ -5,13 +5,9 @@ import { SidebarAction } from '@drevo-web/shared';
     providedIn: 'root',
 })
 export class SidebarService {
-    private readonly actionsMap = signal<Map<string, SidebarAction>>(
-        new Map()
-    );
+    private readonly actionsMap = signal<Map<string, SidebarAction>>(new Map());
 
-    readonly actions = computed(() =>
-        Array.from(this.actionsMap().values())
-    );
+    readonly actions = computed(() => Array.from(this.actionsMap().values()));
 
     readonly primaryActions = computed(() =>
         this.actions().filter(action => action.priority === 'primary')

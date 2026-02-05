@@ -1,6 +1,7 @@
 <div
     class="history-item"
-    [ngClass]="'history-item--' + approvalClass()">
+    [ngClass]="'history-item--' + approvalClass()"
+    data-testid="history-item">
     <div class="left-col">
         @if (item().isNew) {
             <ui-icon-button
@@ -25,20 +26,37 @@
             </span>
             <a
                 class="title text-link"
+                data-testid="title"
                 [routerLink]="['/articles', item().articleId]">
                 {{ item().title }}
             </a>
         </div>
-        <div class="meta-row">
-            <span class="time">{{ item().date | formatTime }}</span>
+        <div
+            class="meta-row"
+            data-testid="meta-row">
+            <span
+                class="time"
+                data-testid="time">
+                {{ item().date | formatTime }}
+            </span>
             ·
-            <span class="author">{{ item().author }}</span>
+            <span
+                class="author"
+                data-testid="author">
+                {{ item().author }}
+            </span>
             @if (item().info) {
-                <span class="author-comment">{{ item().info }}</span>
+                <span
+                    class="author-comment"
+                    data-testid="author-comment">
+                    {{ item().info }}
+                </span>
             }
         </div>
         @if (item().comment) {
-            <div class="moderator-comment">
+            <div
+                class="moderator-comment"
+                data-testid="moderator-comment">
                 <b>Модератор:</b>
                 {{ item().comment }}
             </div>

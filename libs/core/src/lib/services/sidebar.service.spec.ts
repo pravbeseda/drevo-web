@@ -119,8 +119,14 @@ describe('SidebarService', () => {
 
     describe('primaryActions', () => {
         it('should return only primary actions', () => {
-            const primary1 = createAction({ id: 'primary-1', priority: 'primary' });
-            const primary2 = createAction({ id: 'primary-2', priority: 'primary' });
+            const primary1 = createAction({
+                id: 'primary-1',
+                priority: 'primary',
+            });
+            const primary2 = createAction({
+                id: 'primary-2',
+                priority: 'primary',
+            });
             const secondary = createAction({
                 id: 'secondary',
                 priority: 'secondary',
@@ -154,15 +160,22 @@ describe('SidebarService', () => {
                 id: 'secondary-2',
                 priority: 'secondary',
             });
-            const primary = createAction({ id: 'primary', priority: 'primary' });
+            const primary = createAction({
+                id: 'primary',
+                priority: 'primary',
+            });
 
             spectator.service.registerAction(secondary1);
             spectator.service.registerAction(primary);
             spectator.service.registerAction(secondary2);
 
             expect(spectator.service.secondaryActions()).toHaveLength(2);
-            expect(spectator.service.secondaryActions()).toContainEqual(secondary1);
-            expect(spectator.service.secondaryActions()).toContainEqual(secondary2);
+            expect(spectator.service.secondaryActions()).toContainEqual(
+                secondary1
+            );
+            expect(spectator.service.secondaryActions()).toContainEqual(
+                secondary2
+            );
         });
 
         it('should return empty array when no secondary actions', () => {
@@ -189,7 +202,10 @@ describe('SidebarService', () => {
         });
 
         it('should update filtered signals when priorities change via re-registration', () => {
-            const action = createAction({ id: 'changeable', priority: 'primary' });
+            const action = createAction({
+                id: 'changeable',
+                priority: 'primary',
+            });
             spectator.service.registerAction(action);
 
             expect(spectator.service.primaryActions()).toHaveLength(1);

@@ -6,7 +6,11 @@ import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-header',
-    imports: [AccountDropdownComponent, ThemeToggleComponent, IconButtonComponent],
+    imports: [
+        AccountDropdownComponent,
+        ThemeToggleComponent,
+        IconButtonComponent,
+    ],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

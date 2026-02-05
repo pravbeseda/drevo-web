@@ -35,8 +35,12 @@ describe('RightSidebarComponent', () => {
         },
     ];
 
-    const mockPrimaryActions = mockActions.filter(a => a.priority === 'primary');
-    const mockSecondaryActions = mockActions.filter(a => a.priority === 'secondary');
+    const mockPrimaryActions = mockActions.filter(
+        a => a.priority === 'primary'
+    );
+    const mockSecondaryActions = mockActions.filter(
+        a => a.priority === 'secondary'
+    );
 
     const createComponent = createComponentFactory({
         component: RightSidebarComponent,
@@ -60,7 +64,9 @@ describe('RightSidebarComponent', () => {
 
     describe('desktop sidebar', () => {
         it('should render all actions in floating sidebar', () => {
-            const buttons = spectator.queryAll('.floating-sidebar ui-action-button');
+            const buttons = spectator.queryAll(
+                '.floating-sidebar ui-action-button'
+            );
 
             expect(buttons.length).toBe(3);
         });

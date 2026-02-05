@@ -29,6 +29,17 @@ describe('ArticlesHistoryItemComponent', () => {
         providers: [provideRouter([])],
     });
 
+    const getHistoryItem = () =>
+        spectator.query('[data-testid="history-item"]');
+    const getTitle = () => spectator.query('[data-testid="title"]');
+    const getMetaRow = () => spectator.query('[data-testid="meta-row"]');
+    const getTime = () => spectator.query('[data-testid="time"]');
+    const getAuthor = () => spectator.query('[data-testid="author"]');
+    const getAuthorComment = () =>
+        spectator.query('[data-testid="author-comment"]');
+    const getModeratorComment = () =>
+        spectator.query('[data-testid="moderator-comment"]');
+
     it('should create', () => {
         spectator = createComponent({
             props: { item: createMockItem() },
@@ -41,8 +52,8 @@ describe('ArticlesHistoryItemComponent', () => {
             spectator = createComponent({
                 props: { item: createMockItem() },
             });
-            expect(spectator.query('.meta-row')).toBeTruthy();
-            expect(spectator.query('.time')).toBeTruthy();
+            expect(getMetaRow()).toBeTruthy();
+            expect(getTime()).toBeTruthy();
         });
     });
 
@@ -77,27 +88,21 @@ describe('ArticlesHistoryItemComponent', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 1 }) },
             });
-            expect(
-                spectator.query('.history-item--approved')
-            ).toBeTruthy();
+            expect(getHistoryItem()).toHaveClass('history-item--approved');
         });
 
         it('should apply pending class to history item', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 0 }) },
             });
-            expect(
-                spectator.query('.history-item--pending')
-            ).toBeTruthy();
+            expect(getHistoryItem()).toHaveClass('history-item--pending');
         });
 
         it('should apply rejected class to history item', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: -1 }) },
             });
-            expect(
-                spectator.query('.history-item--rejected')
-            ).toBeTruthy();
+            expect(getHistoryItem()).toHaveClass('history-item--rejected');
         });
     });
 
@@ -129,16 +134,16 @@ describe('ArticlesHistoryItemComponent', () => {
                     item: createMockItem({ info: 'Added introduction' }),
                 },
             });
-            const comment = spectator.query('.author-comment');
-            expect(comment).toBeTruthy();
-            expect(comment?.textContent).toContain('Added introduction');
+            expect(getAuthorComment()?.textContent).toContain(
+                'Added introduction'
+            );
         });
 
         it('should not display author comment when info is empty', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ info: '' }) },
             });
-            expect(spectator.query('.author-comment')).toBeFalsy();
+            expect(getAuthorComment()).toBeFalsy();
         });
     });
 
@@ -149,16 +154,16 @@ describe('ArticlesHistoryItemComponent', () => {
                     item: createMockItem({ comment: 'Needs revision' }),
                 },
             });
-            const comment = spectator.query('.moderator-comment');
-            expect(comment).toBeTruthy();
-            expect(comment?.textContent).toContain('Needs revision');
+            expect(getModeratorComment()?.textContent).toContain(
+                'Needs revision'
+            );
         });
 
         it('should not display moderator comment when comment is empty', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ comment: '' }) },
             });
-            expect(spectator.query('.moderator-comment')).toBeFalsy();
+            expect(getModeratorComment()).toBeFalsy();
         });
     });
 
@@ -172,10 +177,8 @@ describe('ArticlesHistoryItemComponent', () => {
                     }),
                 },
             });
-            const link = spectator.query('.title');
-            expect(link).toBeTruthy();
-            expect(link?.textContent?.trim()).toBe('My Article');
-            expect(link?.getAttribute('href')).toBe('/articles/42');
+            expect(getTitle()?.textContent?.trim()).toBe('My Article');
+            expect(getTitle()?.getAttribute('href')).toBe('/articles/42');
         });
     });
 
@@ -184,8 +187,7 @@ describe('ArticlesHistoryItemComponent', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ author: 'Иванов А.' }) },
             });
-            const author = spectator.query('.author');
-            expect(author?.textContent?.trim()).toBe('Иванов А.');
+            expect(getAuthor()?.textContent?.trim()).toBe('Иванов А.');
         });
     });
 });

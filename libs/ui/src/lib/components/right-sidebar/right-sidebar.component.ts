@@ -1,5 +1,10 @@
 import { ActionButtonComponent } from '../action-button/action-button.component';
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import {
+    Component,
+    ChangeDetectionStrategy,
+    inject,
+    signal,
+} from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
 

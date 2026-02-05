@@ -1,4 +1,6 @@
-<nav mat-tab-nav-bar [tabPanel]="tabPanel">
+<nav
+    mat-tab-nav-bar
+    [tabPanel]="tabPanel">
     @for (tab of tabs(); track tab.route) {
         <a
             mat-tab-link

@@ -49,7 +49,6 @@ describe('ModalContainerComponent', () => {
     };
 
     it('should show spinner while component is loading', async () => {
-         
         let resolveLoader: (
             component: Type<TestModalComponent>
         ) => void = () => {};

@@ -32,7 +32,9 @@ describe('ArticleEditComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
-        componentProviders: [{ provide: LinksService, useValue: { getLinkStatuses: jest.fn() } }],
+        componentProviders: [
+            { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } },
+        ],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -280,7 +282,9 @@ describe('ArticleEditComponent', () => {
         };
 
         beforeEach(() => {
-            articleService.saveArticleVersion.mockReturnValue(of(mockSaveResult));
+            articleService.saveArticleVersion.mockReturnValue(
+                of(mockSaveResult)
+            );
         });
 
         it('should not save when version is undefined', () => {
