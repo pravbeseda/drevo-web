@@ -29,8 +29,6 @@ describe('ArticlesHistoryItemComponent', () => {
         providers: [provideRouter([])],
     });
 
-    const getHistoryItem = () =>
-        spectator.query('[data-testid="history-item"]');
     const getTitle = () => spectator.query('[data-testid="title"]');
     const getMetaRow = () => spectator.query('[data-testid="meta-row"]');
     const getTime = () => spectator.query('[data-testid="time"]');
@@ -84,25 +82,25 @@ describe('ArticlesHistoryItemComponent', () => {
     });
 
     describe('approval class', () => {
-        it('should apply approved class to history item', () => {
+        it('should return approved for approved items', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 1 }) },
             });
-            expect(getHistoryItem()).toHaveClass('history-item--approved');
+            expect(spectator.component.approvalClass()).toBe('approved');
         });
 
-        it('should apply pending class to history item', () => {
+        it('should return pending for pending items', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 0 }) },
             });
-            expect(getHistoryItem()).toHaveClass('history-item--pending');
+            expect(spectator.component.approvalClass()).toBe('pending');
         });
 
-        it('should apply rejected class to history item', () => {
+        it('should return rejected for rejected items', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: -1 }) },
             });
-            expect(getHistoryItem()).toHaveClass('history-item--rejected');
+            expect(spectator.component.approvalClass()).toBe('rejected');
         });
     });
 
