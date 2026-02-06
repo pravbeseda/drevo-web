@@ -17,6 +17,7 @@
 // ============================================================================
 html {
     height: 100%;
+    font-size: $root-font-size;
 
     // Angular Material light theme
     @include mat.theme(
@@ -59,7 +60,7 @@ body {
     background-color: var(--themed-border-color);
     color: var(--themed-text-primary);
     font: var(--mat-sys-body-medium);
-    font-size: $root-font-size;
+    font-size: 1rem;
 
     // Reset the user agent margin.
     margin: 0;
