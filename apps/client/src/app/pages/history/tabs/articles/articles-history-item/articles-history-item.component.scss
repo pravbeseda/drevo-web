@@ -1,9 +1,11 @@
+@use 'index' as *;
+
 :host {
     display: block;
 }
 
 .time {
-    font-size: 11px;
+    font-size: $font-size-md;
     font-variant-numeric: tabular-nums;
     color: var(--themed-text-muted);
     white-space: nowrap;
@@ -32,7 +34,7 @@
 }
 
 .title {
-    font-size: 14px;
+    font-size: 1rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -66,7 +68,7 @@
 
 .meta-row {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: $font-size-md;
     line-height: 1.4;
 }
 
@@ -85,7 +87,7 @@
 }
 
 .moderator-comment {
-    font-size: 12px;
+    font-size: $font-size-md;
     color: var(--themed-moderator-comment-text);
     background: var(--themed-moderator-comment-bg);
     border-left: 3px solid var(--themed-moderator-comment-border);

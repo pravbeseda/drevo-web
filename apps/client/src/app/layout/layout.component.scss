@@ -8,7 +8,7 @@
 
     /* Mobile-first: single column */
     grid-template-columns: 1fr;
-    grid-template-rows: rem($header-height) 1fr;
+    grid-template-rows: $header-height 1fr;
     grid-template-areas:
         'header'
         'main';
@@ -19,7 +19,7 @@
     background-color: var(--themed-header-bg);
     display: flex;
     align-items: center;
-    padding: 0 1rem;
+    padding: 0 14px;
     transition: background-color 0.3s ease;
 }
 
@@ -95,7 +95,7 @@
 @media (min-width: $breakpoint-tablet) {
     .layout {
         grid-template-columns: rem($sidebar-width) 1fr;
-        grid-template-rows: rem($header-height) 1fr;
+        grid-template-rows: $header-height 1fr;
         grid-template-areas:
             'left header'
             'left main';
@@ -136,7 +136,7 @@
 @media (min-width: $breakpoint-desktop) {
     .layout {
         grid-template-columns: rem($sidebar-width) 1fr auto;
-        grid-template-rows: rem($header-height) 1fr;
+        grid-template-rows: $header-height 1fr;
         grid-template-areas:
             'left header header'
             'left main right';
@@ -151,7 +151,7 @@
         display: block;
         width: auto;
         height: auto;
-        padding: 1rem;
+        padding: 14px;
         background-color: var(--themed-primary-bg);
         transition: background-color 0.3s ease;
         overflow-y: auto;

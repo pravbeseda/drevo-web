@@ -17,6 +17,10 @@ $sidebar-collapse-duration: 0.3s;
 $sidebar-collapsed-padding: 12px;
 
 // Typography
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.8rem;
+$font-size-md: 0.9rem;
+$font-size-lg: 1.1rem;
 $brand-font-size: 18px;
 
 // Dropdown
@@ -42,3 +46,9 @@ $sidebar-nav-label-font-size: 14px;
 // Spacing
 $brand-gap: 4px;
 $header-actions-gap: 8px;
+
+// Font scale popup
+$font-scale-popup-padding: 16px;
+$font-scale-popup-gap: 12px;
+$font-scale-stepper-gap: 8px;
+$font-scale-value-width: 48px;
