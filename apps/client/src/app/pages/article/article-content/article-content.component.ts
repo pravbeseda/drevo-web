@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -10,7 +11,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 
 /**
  * State interface for managing interactive content visibility
@@ -81,6 +82,8 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     }
 
     private readonly elementRef = inject(ElementRef<HTMLElement>);
+    private readonly document = inject(DOCUMENT);
+    private readonly window = inject(WINDOW);
     private readonly router = inject(Router);
     private readonly sanitizer = inject(DomSanitizer);
     private readonly logger =
@@ -208,16 +211,16 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private scrollToAnchor(anchorId: string): void {
         // Find element by id or name attribute
         const element =
-            document.getElementById(anchorId) ||
-            document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
+            this.document.getElementById(anchorId) ||
+            this.document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
 
         if (element) {
             // Use native scrollIntoView for smooth scrolling
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             // Add to browser history with full path to enable back/forward navigation
-            const url = `${window.location.pathname}${window.location.search}#${anchorId}`;
-            history.pushState(undefined, '', url);
+            const url = `${this.window?.location.pathname}${this.window?.location.search}#${anchorId}`;
+            this.window?.history.pushState(undefined, '', url);
         }
     }
 

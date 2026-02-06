@@ -38,8 +38,8 @@ export class FontScaleService {
             const currentScale = this._scale();
             if (this.isBrowser) {
                 this.applyScale(currentScale);
+                this.saveScale(currentScale);
             }
-            this.saveScale(currentScale);
         });
     }
 
