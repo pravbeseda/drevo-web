@@ -202,7 +202,11 @@ export class ArticleApiService {
         return this.http
             .get<
                 ApiResponse<VersionPairsResponseDto>
-            >(`${this.apiUrl}/api/articles/versionpairs`, { params, withCredentials: true })
+            >(`${this.apiUrl}/api/articles/versionpairs`, {
+                params,
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(

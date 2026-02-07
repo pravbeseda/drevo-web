@@ -103,7 +103,7 @@ export class DiffModalComponent implements OnInit {
     }
 
     formatDate(date: Date): string {
-        return date.toLocaleDateString('ru-RU', {
+        return date.toLocaleString('ru-RU', {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
