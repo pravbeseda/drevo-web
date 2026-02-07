@@ -294,6 +294,24 @@ $theme-colors: (
     moderator-comment-text: (
         light: $md-brown-600,
         dark: $md-cyan-500,
+    ),
+
+    // Diff colors
+    diff-insert-bg: (
+            light: $md-green-100,
+            dark: rgba($md-green-400, 0.2),
+        ),
+    diff-insert-text: (
+        light: $md-green-900,
+        dark: $md-green-300,
+    ),
+    diff-delete-bg: (
+        light: $md-red-100,
+        dark: rgba($md-red-400, 0.2),
+    ),
+    diff-delete-text: (
+        light: $md-red-900,
+        dark: $md-red-300,
     )
 );
 

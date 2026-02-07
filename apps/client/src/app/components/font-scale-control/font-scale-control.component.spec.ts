@@ -57,7 +57,9 @@ describe('FontScaleControlComponent', () => {
         spectator.component.toggle();
         expect(spectator.component.isOpen()).toBe(true);
 
-        spectator.component.onOverlayKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+        spectator.component.onOverlayKeydown(
+            new KeyboardEvent('keydown', { key: 'Escape' })
+        );
         expect(spectator.component.isOpen()).toBe(false);
     });
 
@@ -65,7 +67,9 @@ describe('FontScaleControlComponent', () => {
         spectator.component.toggle();
         expect(spectator.component.isOpen()).toBe(true);
 
-        spectator.component.onOverlayKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+        spectator.component.onOverlayKeydown(
+            new KeyboardEvent('keydown', { key: 'Enter' })
+        );
         expect(spectator.component.isOpen()).toBe(true);
     });
 

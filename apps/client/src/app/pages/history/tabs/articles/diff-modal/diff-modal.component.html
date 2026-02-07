@@ -1,0 +1,75 @@
+<div class="diff-modal">
+    <div class="diff-modal-header">
+        <ui-icon-button
+            icon="close"
+            label="Закрыть"
+            (clicked)="onClose()" />
+        <h2 class="diff-modal-title">Просмотр изменений</h2>
+        <div class="diff-modal-engine-selector">
+            <ui-icon-button
+                icon="tune"
+                [label]="selectedEngine().label"
+                [uiDropdownMenuTriggerFor]="engineMenu" />
+
+            <ng-template #engineMenu>
+                <ui-dropdown-menu>
+                    @for (engine of engines; track engine.id) {
+                        <ui-dropdown-menu-item
+                            [icon]="
+                                engine.id === selectedEngine().id ? 'check' : ''
+                            "
+                            (clicked)="onEngineChange(engine)">
+                            {{ engine.label }}
+                        </ui-dropdown-menu-item>
+                    }
+                </ui-dropdown-menu>
+            </ng-template>
+        </div>
+    </div>
+
+    @if (isLoading()) {
+        <div class="diff-modal-loading">
+            <ui-spinner />
+        </div>
+    }
+
+    @if (!isLoading() && error()) {
+        <div class="diff-modal-error">
+            <p>{{ error() }}</p>
+            <ui-button
+                variant="secondary"
+                (click)="onClose()">
+                Закрыть
+            </ui-button>
+        </div>
+    }
+
+    @if (!isLoading() && !error() && versionInfo(); as info) {
+        <div class="diff-modal-meta">
+            <div class="diff-modal-meta-title">{{ info.title }}</div>
+            <div class="diff-modal-meta-versions">
+                <span class="version-label">
+                    Версия {{ info.previous.versionId }} ({{
+                        info.previous.author
+                    }}, {{ formatDate(info.previous.date) }})
+                </span>
+                <span class="version-arrow">&rarr;</span>
+                <span class="version-label">
+                    Версия {{ info.current.versionId }} ({{
+                        info.current.author
+                    }}, {{ formatDate(info.current.date) }})
+                </span>
+            </div>
+            @if (info.current.info) {
+                <div class="diff-modal-meta-comment">
+                    {{ info.current.info }}
+                </div>
+            }
+        </div>
+        <div class="diff-modal-body">
+            <pre
+                class="diff-content"
+                [innerHTML]="diffHtml()"></pre>
+        </div>
+    }
+</div>

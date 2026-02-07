@@ -125,6 +125,30 @@ describe('ArticlesHistoryItemComponent', () => {
         });
     });
 
+    describe('viewDiff output', () => {
+        it('should emit versionId when diff button is clicked', () => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem({ isNew: false, versionId: 42 }),
+                },
+            });
+            const spy = jest.spyOn(spectator.component.viewDiff, 'emit');
+
+            spectator.component.onViewDiff();
+
+            expect(spy).toHaveBeenCalledWith(42);
+        });
+
+        it('should not show diff button for new articles', () => {
+            spectator = createComponent({
+                props: { item: createMockItem({ isNew: true }) },
+            });
+            const iconButton = spectator.query(IconButtonComponent);
+            expect(iconButton?.icon()).toBe('note_add');
+            expect(iconButton?.disabled()).toBe(true);
+        });
+    });
+
     describe('author comment', () => {
         it('should display author comment when info is present', () => {
             spectator = createComponent({

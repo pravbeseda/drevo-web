@@ -5,6 +5,7 @@ import {
     ArticleSearchResponseDto,
     ArticleVersionDto,
     SaveArticleVersionResponseDto,
+    VersionPairsResponseDto,
 } from '@drevo-web/shared';
 import { ArticleApiService } from './article-api.service';
 import { ArticleService } from './article.service';
@@ -511,6 +512,88 @@ describe('ArticleService', () => {
             expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith({
                 versionId: 456,
                 content: 'New content',
+            });
+        });
+    });
+
+    describe('getVersionPairs', () => {
+        const mockVersionPairsResponse: VersionPairsResponseDto = {
+            current: {
+                versionId: 10,
+                content: 'Current content',
+                author: 'Author A',
+                date: '2025-03-10T12:00:00+00:00',
+                title: 'Test Article',
+                info: 'Updated intro',
+            },
+            previous: {
+                versionId: 9,
+                content: 'Previous content',
+                author: 'Author B',
+                date: '2025-03-09T10:00:00+00:00',
+                title: 'Test Article',
+                info: 'Initial version',
+            },
+        };
+
+        it('should call articleApiService.getVersionPairs with version1', () => {
+            articleApiService.getVersionPairs.mockReturnValue(
+                of(mockVersionPairsResponse)
+            );
+
+            spectator.service.getVersionPairs(10).subscribe();
+
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(
+                10,
+                undefined
+            );
+        });
+
+        it('should call articleApiService.getVersionPairs with both versions', () => {
+            articleApiService.getVersionPairs.mockReturnValue(
+                of(mockVersionPairsResponse)
+            );
+
+            spectator.service.getVersionPairs(10, 9).subscribe();
+
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(
+                10,
+                9
+            );
+        });
+
+        it('should convert date strings to Date objects', done => {
+            articleApiService.getVersionPairs.mockReturnValue(
+                of(mockVersionPairsResponse)
+            );
+
+            spectator.service.getVersionPairs(10).subscribe(result => {
+                expect(result.current.date).toBeInstanceOf(Date);
+                expect(result.previous.date).toBeInstanceOf(Date);
+                expect(result.current.date.toISOString()).toBe(
+                    '2025-03-10T12:00:00.000Z'
+                );
+                expect(result.previous.date.toISOString()).toBe(
+                    '2025-03-09T10:00:00.000Z'
+                );
+                done();
+            });
+        });
+
+        it('should map all fields correctly', done => {
+            articleApiService.getVersionPairs.mockReturnValue(
+                of(mockVersionPairsResponse)
+            );
+
+            spectator.service.getVersionPairs(10).subscribe(result => {
+                expect(result.current.versionId).toBe(10);
+                expect(result.current.content).toBe('Current content');
+                expect(result.current.author).toBe('Author A');
+                expect(result.current.title).toBe('Test Article');
+                expect(result.current.info).toBe('Updated intro');
+                expect(result.previous.versionId).toBe(9);
+                expect(result.previous.content).toBe('Previous content');
+                done();
             });
         });
     });

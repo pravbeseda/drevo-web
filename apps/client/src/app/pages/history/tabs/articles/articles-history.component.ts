@@ -20,6 +20,7 @@ import {
 } from '@drevo-web/shared';
 import {
     ButtonComponent,
+    ModalService,
     SpinnerComponent,
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
@@ -48,6 +49,7 @@ export class ArticlesHistoryComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly articleService = inject(ArticleService);
     private readonly authService = inject(AuthService);
+    private readonly modalService = inject(ModalService);
     private readonly logger = inject(LoggerService).withContext(
         'ArticlesHistoryComponent'
     );
@@ -119,6 +121,24 @@ export class ArticlesHistoryComponent implements OnInit {
         this._totalItems.set(0);
         this.logger.info('Filter changed', { filter });
         this.loadHistory();
+    }
+
+    onViewDiff(versionId: number): void {
+        this.logger.info('Opening diff modal', { versionId });
+        this.modalService.open(
+            () =>
+                import('./diff-modal/diff-modal.component').then(
+                    m => m.DiffModalComponent
+                ),
+            {
+                data: { versionId },
+                width: '100vw',
+                maxWidth: '100vw',
+                minHeight: '100vh',
+                maxHeight: '100vh',
+                panelClass: 'diff-modal-panel',
+            }
+        );
     }
 
     onLoadMore(): void {

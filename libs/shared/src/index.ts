@@ -4,3 +4,4 @@ export * from './lib/helpers/assert';
 export * from './lib/helpers/date';
 export * from './lib/helpers/html';
 export * from './lib/helpers/url';
+export * from './lib/helpers/diff';
