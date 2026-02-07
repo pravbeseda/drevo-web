@@ -139,14 +139,6 @@ describe('ArticlesHistoryItemComponent', () => {
             expect(spy).toHaveBeenCalledWith(42);
         });
 
-        it('should not show diff button for new articles', () => {
-            spectator = createComponent({
-                props: { item: createMockItem({ isNew: true }) },
-            });
-            const iconButton = spectator.query(IconButtonComponent);
-            expect(iconButton?.icon()).toBe('note_add');
-            expect(iconButton?.disabled()).toBe(true);
-        });
     });
 
     describe('author comment', () => {

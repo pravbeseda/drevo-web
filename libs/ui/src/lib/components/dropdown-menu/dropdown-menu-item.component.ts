@@ -19,12 +19,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
         },
     ],
     template: `
-        <ng-content />
-        @if (icon()) {
-            <ui-icon
-                [name]="icon()!"
-                size="small" />
+        @if (icon() !== undefined) {
+            <span class="icon-slot">
+                @if (icon()) {
+                    <ui-icon
+                        [name]="icon()!"
+                        size="small" />
+                }
+            </span>
         }
+        <ng-content />
     `,
     styleUrl: './dropdown-menu-item.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
