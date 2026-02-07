@@ -154,3 +154,12 @@ html.dark-theme body {
 .font-scale-backdrop {
     background: transparent;
 }
+
+// ============================================================================
+// DIFF MODAL PANEL
+// ============================================================================
+
+.diff-modal-panel .mat-mdc-dialog-surface {
+    padding: 0;
+    border-radius: 0;
+}

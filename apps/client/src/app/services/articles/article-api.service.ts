@@ -11,6 +11,7 @@ import {
     ArticleVersionDto,
     SaveArticleVersionRequestDto,
     SaveArticleVersionResponseDto,
+    VersionPairsResponseDto,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
@@ -170,6 +171,42 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleHistoryResponseDto>
             >(`${this.apiUrl}/api/articles/history`, { params, withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Get two versions for diff comparison
+     *
+     * @param version1 - Primary version ID
+     * @param version2 - Optional secondary version ID (auto-detected if omitted)
+     * @returns Observable with version pairs DTO
+     */
+    getVersionPairs(
+        version1: number,
+        version2?: number
+    ): Observable<VersionPairsResponseDto> {
+        let params = new HttpParams().set('version1', version1.toString());
+
+        if (version2 !== undefined) {
+            params = params.set('version2', version2.toString());
+        }
+
+        return this.http
+            .get<
+                ApiResponse<VersionPairsResponseDto>
+            >(`${this.apiUrl}/api/articles/versionpairs`, {
+                params,
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(

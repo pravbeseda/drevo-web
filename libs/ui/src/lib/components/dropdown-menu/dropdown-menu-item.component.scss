@@ -17,6 +17,12 @@
     }
 }
 
+.icon-slot {
+    display: inline-flex;
+    width: 1rem;
+    flex-shrink: 0;
+}
+
 :host(.cdk-menu-item-disabled) {
     opacity: 0.5;
     cursor: default;

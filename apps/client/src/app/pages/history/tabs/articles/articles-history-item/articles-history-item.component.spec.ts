@@ -125,6 +125,22 @@ describe('ArticlesHistoryItemComponent', () => {
         });
     });
 
+    describe('viewDiff output', () => {
+        it('should emit versionId when diff button is clicked', () => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem({ isNew: false, versionId: 42 }),
+                },
+            });
+            const spy = jest.spyOn(spectator.component.viewDiff, 'emit');
+
+            spectator.component.onViewDiff();
+
+            expect(spy).toHaveBeenCalledWith(42);
+        });
+
+    });
+
     describe('author comment', () => {
         it('should display author comment when info is present', () => {
             spectator = createComponent({

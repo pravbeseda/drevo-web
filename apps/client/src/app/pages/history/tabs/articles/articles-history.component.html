@@ -42,7 +42,9 @@
                 @if (item.type === 'header') {
                     <div class="history-date-header">{{ item.date }}</div>
                 } @else {
-                    <app-articles-history-item [item]="item.data" />
+                    <app-articles-history-item
+                        [item]="item.data"
+                        (viewDiff)="onViewDiff($event)" />
                 }
             </ng-template>
         </ui-virtual-scroller>

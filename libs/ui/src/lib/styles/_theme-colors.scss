@@ -13,12 +13,13 @@
 //   color: var(--themed-text-primary);
 // ============================================================================
 
+// prettier-ignore
 $theme-colors: (
     // Background colors
     primary-bg: (
-            light: white,
-            dark: $md-grey-900,
-        ),
+        light: white,
+        dark: $md-grey-900,
+    ),
     secondary-bg: (
         light: $md-grey-100,
         dark: $md-grey-800,
@@ -33,9 +34,9 @@ $theme-colors: (
     ),
     // Text colors
     text-primary: (
-            light: $md-grey-900,
-            dark: $md-grey-300,
-        ),
+        light: $md-grey-900,
+        dark: $md-grey-300,
+    ),
     text-secondary: (
         light: $md-grey-700,
         dark: $md-grey-400,
@@ -50,9 +51,9 @@ $theme-colors: (
     ),
     // Menu
     menu-hover-background: (
-            light: $md-grey-300,
-            dark: $md-grey-900,
-        ),
+        light: $md-grey-300,
+        dark: $md-grey-900,
+    ),
     menu-border-color: (
         light: $md-grey-300,
         dark: $md-grey-900,
@@ -67,18 +68,18 @@ $theme-colors: (
     ),
     // Border & Shadow
     border-color: (
-            light: $md-grey-300,
-            dark: $md-grey-600,
-        ),
+        light: $md-grey-300,
+        dark: $md-grey-600,
+    ),
     shadow-color: (
         light: rgba(0, 0, 0, 0.1),
         dark: rgba(0, 0, 0, 0.4),
     ),
     // Links
     link-color: (
-            light: $md-blue-700,
-            dark: $md-blue-300,
-        ),
+        light: $md-blue-700,
+        dark: $md-blue-300,
+    ),
     link-hover: (
         light: $md-blue-800,
         dark: $md-blue-200,
@@ -86,9 +87,9 @@ $theme-colors: (
 
     // Wiki colors
     wiki-note-link: (
-            light: $md-brown-600,
-            dark: $md-brown-300,
-        ),
+        light: $md-brown-600,
+        dark: $md-brown-300,
+    ),
     wiki-external-link: (
         light: $md-green-800,
         dark: $md-green-200,
@@ -116,9 +117,9 @@ $theme-colors: (
 
     // Editor base (surface, chrome)
     editor-selection-bg: (
-            light: $md-blue-100,
-            dark: rgba(white, 0.1),
-        ),
+        light: $md-blue-100,
+        dark: rgba(white, 0.1),
+    ),
     editor-active-line-bg: (
         light: $md-grey-100,
         dark: rgba(white, 0.05),
@@ -154,9 +155,9 @@ $theme-colors: (
 
     // Editor decorations (syntax highlighting)
     editor-link: (
-            light: $md-blue-900,
-            dark: $md-blue-200,
-        ),
+        light: $md-blue-900,
+        dark: $md-blue-200,
+    ),
     editor-link-bg: (
         light: $md-blue-50,
         dark: transparent,
@@ -216,9 +217,9 @@ $theme-colors: (
 
     // Toast backgrounds (darker for better contrast with white text)
     toast-success-bg: (
-            light: $md-green-700,
-            dark: $md-green-800,
-        ),
+        light: $md-green-700,
+        dark: $md-green-800,
+    ),
     toast-error-bg: (
         light: $md-red-700,
         dark: $md-red-900,
@@ -230,9 +231,9 @@ $theme-colors: (
 
     // FAB (Floating Action Button)
     fab-primary-bg: (
-            light: $md-blue-700,
-            dark: $md-blue-300,
-        ),
+        light: $md-blue-700,
+        dark: $md-blue-300,
+    ),
     fab-primary: (
         light: white,
         dark: $md-grey-900,
@@ -248,9 +249,9 @@ $theme-colors: (
 
     // Tab badge
     tab-badge-bg: (
-            light: $md-grey-200,
-            dark: $md-grey-700,
-        ),
+        light: $md-grey-200,
+        dark: $md-grey-700,
+    ),
     tab-badge-text: (
         light: $md-grey-800,
         dark: $md-grey-200,
@@ -258,21 +259,21 @@ $theme-colors: (
 
     // Dropdown
     dropdown-panel-bg: (
-            light: $md-white,
-            dark: $md-grey-800,
-        ),
+        light: $md-white,
+        dark: $md-grey-800,
+    ),
 
     // Drawer
     drawer-backdrop-bg: (
-            light: rgba(0, 0, 0, 0.4),
-            dark: rgba(0, 0, 0, 0.6),
-        ),
+        light: rgba(0, 0, 0, 0.4),
+        dark: rgba(0, 0, 0, 0.6),
+    ),
 
     // Status colors
     status-approved: (
-            light: $md-green-800,
-            dark: $md-green-400,
-        ),
+        light: $md-green-800,
+        dark: $md-green-400,
+    ),
     status-pending: (
         light: $md-orange-800,
         dark: $md-orange-400,
@@ -284,9 +285,9 @@ $theme-colors: (
 
     // Moderator comment
     moderator-comment-bg: (
-            light: $md-amber-50,
-            dark: $md-blue-grey-900,
-        ),
+        light: $md-amber-50,
+        dark: $md-blue-grey-900,
+    ),
     moderator-comment-border: (
         light: $md-amber-200,
         dark: $md-cyan-700,
@@ -294,6 +295,24 @@ $theme-colors: (
     moderator-comment-text: (
         light: $md-brown-600,
         dark: $md-cyan-500,
+    ),
+
+    // Diff colors
+    diff-insert-bg: (
+        light: $md-green-100,
+        dark: rgba($md-green-400, 0.2),
+    ),
+    diff-insert-text: (
+        light: $md-green-900,
+        dark: $md-green-300,
+    ),
+    diff-delete-bg: (
+        light: $md-red-100,
+        dark: rgba($md-red-400, 0.2),
+    ),
+    diff-delete-text: (
+        light: $md-red-900,
+        dark: $md-red-300,
     )
 );
 

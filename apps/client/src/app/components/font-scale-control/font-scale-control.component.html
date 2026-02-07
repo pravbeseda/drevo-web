@@ -13,14 +13,18 @@
     cdkConnectedOverlayBackdropClass="font-scale-backdrop"
     (backdropClick)="close()"
     (overlayKeydown)="onOverlayKeydown($event)">
-    <div class="font-scale-popup" data-testid="font-scale-popup">
+    <div
+        class="font-scale-popup"
+        data-testid="font-scale-popup">
         <div class="font-scale-stepper">
             <ui-icon-button
                 icon="remove"
                 label="Уменьшить"
                 [disabled]="!canDecrease()"
                 (clicked)="decrease()" />
-            <span class="font-scale-value" data-testid="font-scale-value">
+            <span
+                class="font-scale-value"
+                data-testid="font-scale-value">
                 {{ scalePercent() }}%
             </span>
             <ui-icon-button

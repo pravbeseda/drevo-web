@@ -17,6 +17,9 @@ import {
     SaveArticleVersionRequest,
     SaveArticleVersionResult,
     SaveArticleVersionResponseDto,
+    VersionForDiff,
+    VersionForDiffDto,
+    VersionPairs,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -191,6 +194,25 @@ export class ArticleService {
         };
     }
 
+    /**
+     * Get two versions for diff comparison
+     *
+     * @param version1 - Primary version ID
+     * @param version2 - Optional secondary version ID (auto-detected if omitted)
+     * @returns Observable with mapped version pairs
+     */
+    getVersionPairs(
+        version1: number,
+        version2?: number
+    ): Observable<VersionPairs> {
+        return this.articleApiService.getVersionPairs(version1, version2).pipe(
+            map(response => ({
+                current: this.mapVersionForDiff(response.current),
+                previous: this.mapVersionForDiff(response.previous),
+            }))
+        );
+    }
+
     private mapHistoryItem(item: ArticleHistoryItemDto): ArticleHistoryItem {
         return {
             versionId: item.versionId,
@@ -202,6 +224,17 @@ export class ArticleService {
             isNew: item.new,
             info: item.info,
             comment: item.comment,
+        };
+    }
+
+    private mapVersionForDiff(dto: VersionForDiffDto): VersionForDiff {
+        return {
+            versionId: dto.versionId,
+            content: dto.content,
+            author: dto.author,
+            date: new Date(dto.date),
+            title: dto.title,
+            info: dto.info,
         };
     }
 }

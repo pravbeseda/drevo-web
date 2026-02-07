@@ -4,6 +4,7 @@ import {
     Component,
     computed,
     input,
+    output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -44,10 +45,15 @@ const STATUS_TITLES: Record<ApprovalClass, string> = {
 })
 export class ArticlesHistoryItemComponent {
     readonly item = input.required<ArticleHistoryItem>();
+    readonly viewDiff = output<number>();
 
     readonly approvalClass = computed(
         () => APPROVAL_CLASS[this.item().approved]
     );
     readonly statusIcon = computed(() => STATUS_ICONS[this.approvalClass()]);
     readonly statusTitle = computed(() => STATUS_TITLES[this.approvalClass()]);
+
+    onViewDiff(): void {
+        this.viewDiff.emit(this.item().versionId);
+    }
 }

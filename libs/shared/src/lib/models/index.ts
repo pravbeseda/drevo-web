@@ -1,6 +1,7 @@
 export * from './article';
 export * from './article-history';
 export * from './article-search';
+export * from './article-version-pairs';
 export * from './auth';
 export * from './editor';
 export * from './user';

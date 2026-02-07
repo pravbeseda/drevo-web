@@ -46,7 +46,10 @@ export class FontScaleService {
     increase(): void {
         if (this.canIncrease()) {
             this._scale.update(current =>
-                Math.min(MAX_SCALE, Math.round((current + SCALE_STEP) * 10) / 10)
+                Math.min(
+                    MAX_SCALE,
+                    Math.round((current + SCALE_STEP) * 10) / 10
+                )
             );
         }
     }
@@ -54,7 +57,10 @@ export class FontScaleService {
     decrease(): void {
         if (this.canDecrease()) {
             this._scale.update(current =>
-                Math.max(MIN_SCALE, Math.round((current - SCALE_STEP) * 10) / 10)
+                Math.max(
+                    MIN_SCALE,
+                    Math.round((current - SCALE_STEP) * 10) / 10
+                )
             );
         }
     }
