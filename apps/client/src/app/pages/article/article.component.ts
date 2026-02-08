@@ -81,7 +81,7 @@ export class ArticleComponent implements OnInit {
                         icon: 'link',
                     },
                 ],
-                align: 'end' as const,
+                align: 'end',
             },
         ];
     });

@@ -15,17 +15,7 @@ import { map } from 'rxjs/operators';
             <p>Раздел «{{ stubTitle() }}» в разработке</p>
         </div>
     `,
-    styles: `
-        .stub {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 3rem 1rem;
-            color: var(--themed-text-muted);
-        }
-    `,
+    styleUrl: './article-stub-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleStubTabComponent {

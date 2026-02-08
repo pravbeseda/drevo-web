@@ -25,20 +25,7 @@ import { SpinnerComponent } from '@drevo-web/ui';
             </div>
         }
     `,
-    styles: `
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 200px;
-        }
-
-        .error-text {
-            color: var(--themed-text-error);
-            text-align: center;
-            padding: 2rem;
-        }
-    `,
+    styleUrl: './version-redirect.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VersionRedirectComponent implements OnInit {

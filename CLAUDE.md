@@ -235,6 +235,7 @@ All accessed via `@drevo-web/ui`.
 | Icon | `ui-icon` | |
 | Spinner | `ui-spinner` | |
 | Tabs | `ui-tabs` | |
+| TabsGroup | `ui-tabs-group` | + `TabGroup`, `TabGroupItem` interfaces |
 | DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |
 | VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
 | RightSidebar | `ui-right-sidebar` | |

@@ -3,6 +3,7 @@ import { ArticleComponent } from './article.component';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ArticleVersion } from '@drevo-web/shared';
 
 const mockArticle: ArticleVersion = {
@@ -58,6 +59,7 @@ describe('ArticleComponent', () => {
         component: ArticleComponent,
         providers: [
             provideRouter([{ path: '**', children: [] }]),
+            mockLoggerProvider(),
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService(),
@@ -125,6 +127,7 @@ describe('ArticleComponent loading state', () => {
         component: ArticleComponent,
         providers: [
             provideRouter([{ path: '**', children: [] }]),
+            mockLoggerProvider(),
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService({
@@ -148,6 +151,7 @@ describe('ArticleComponent error state', () => {
         component: ArticleComponent,
         providers: [
             provideRouter([{ path: '**', children: [] }]),
+            mockLoggerProvider(),
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService({
@@ -170,6 +174,7 @@ describe('ArticleComponent no article ID', () => {
         component: ArticleComponent,
         providers: [
             provideRouter([{ path: '**', children: [] }]),
+            mockLoggerProvider(),
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService({

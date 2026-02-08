@@ -1,5 +1,6 @@
 import { ArticleContentComponent } from '../article-content/article-content.component';
 import { ArticlePageService } from '../article-page.service';
+import { DOCUMENT } from '@angular/common';
 import {
     afterNextRender,
     ChangeDetectionStrategy,
@@ -17,7 +18,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
     selector: 'app-article-content-tab',
     imports: [ArticleContentComponent],
     template: `
-        @if (pageService.article(); as article) {
+        @if (article(); as article) {
             <app-article-content
                 class="article-content"
                 [content]="article.content" />
@@ -26,7 +27,9 @@ import { distinctUntilChanged } from 'rxjs/operators';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleContentTabComponent {
-    readonly pageService = inject(ArticlePageService);
+    private readonly pageService = inject(ArticlePageService);
+    readonly article = this.pageService.article;
+    private readonly document = inject(DOCUMENT);
     private readonly route = inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
     private readonly injector = inject(Injector);
@@ -46,15 +49,15 @@ export class ArticleContentTabComponent {
     private scrollToFragment(): void {
         afterNextRender(
             () => {
-                if (!this.currentFragment || !this.pageService.article()) {
+                if (!this.currentFragment || !this.article()) {
                     return;
                 }
 
                 let targetElement: Element | undefined = undefined;
                 try {
                     targetElement =
-                        document.getElementById(this.currentFragment) ||
-                        document.querySelector(
+                        this.document.getElementById(this.currentFragment) ||
+                        this.document.querySelector(
                             `a[name="${CSS.escape(this.currentFragment)}"]`
                         ) ||
                         undefined;
@@ -70,7 +73,7 @@ export class ArticleContentTabComponent {
                     return;
                 }
 
-                const mainContainer = document.getElementById('content');
+                const mainContainer = this.document.getElementById('content');
                 if (mainContainer) {
                     const targetRect = targetElement.getBoundingClientRect();
                     const containerRect =
