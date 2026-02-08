@@ -119,6 +119,8 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 10. **No direct `document` access** — use `DOCUMENT` token from `@angular/common` for SSR compatibility
 11. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
 12. **Zoneless** — `provideZonelessChangeDetection()`, no `zone.js`
+13. **Styles in separate SCSS files** — no inline `styles` in component metadata, always use `styleUrl` pointing to a `.scss` file
+14. **Templates in separate HTML files** — use `templateUrl` for multi-element templates. Inline `template` is allowed only for single-element or single-line templates
 
 ### Quality
 

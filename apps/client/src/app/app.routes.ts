@@ -1,4 +1,5 @@
 import { authGuard } from './guards/auth.guard';
+import { ArticlePageService } from './pages/article/article-page.service';
 import { Route } from '@angular/router';
 
 export const appRoutes: Route[] = [
@@ -79,10 +80,9 @@ export const appRoutes: Route[] = [
             {
                 path: 'articles/version/:id',
                 loadComponent: () =>
-                    import('./pages/article/article.component').then(
-                        m => m.ArticleComponent
-                    ),
-                data: { isVersionView: true },
+                    import(
+                        './pages/article/version-redirect.component'
+                    ).then(m => m.VersionRedirectComponent),
             },
             {
                 path: 'articles/:id',
@@ -90,6 +90,56 @@ export const appRoutes: Route[] = [
                     import('./pages/article/article.component').then(
                         m => m.ArticleComponent
                     ),
+                providers: [ArticlePageService],
+                children: [
+                    {
+                        path: '',
+                        pathMatch: 'full',
+                        loadComponent: () =>
+                            import(
+                                './pages/article/tabs/article-content-tab.component'
+                            ).then(m => m.ArticleContentTabComponent),
+                    },
+                    {
+                        path: 'version/:versionId',
+                        loadComponent: () =>
+                            import(
+                                './pages/article/tabs/article-version-tab.component'
+                            ).then(m => m.ArticleVersionTabComponent),
+                    },
+                    {
+                        path: 'news',
+                        loadComponent: () =>
+                            import(
+                                './pages/article/tabs/article-stub-tab.component'
+                            ).then(m => m.ArticleStubTabComponent),
+                        data: { stubTitle: 'Новости' },
+                    },
+                    {
+                        path: 'forum',
+                        loadComponent: () =>
+                            import(
+                                './pages/article/tabs/article-stub-tab.component'
+                            ).then(m => m.ArticleStubTabComponent),
+                        data: { stubTitle: 'Обсуждение' },
+                    },
+                    {
+                        path: 'history',
+                        loadComponent: () =>
+                            import(
+                                './pages/article/tabs/article-stub-tab.component'
+                            ).then(m => m.ArticleStubTabComponent),
+                        data: { stubTitle: 'Версии' },
+                    },
+                    {
+                        path: 'linkedhere',
+                        loadComponent: () =>
+                            import(
+                                './pages/article/tabs/article-stub-tab.component'
+                            ).then(m => m.ArticleStubTabComponent),
+                        data: { stubTitle: 'Кто ссылается' },
+                    },
+                ],
             },
             {
                 path: '**',

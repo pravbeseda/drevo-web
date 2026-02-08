@@ -14,62 +14,12 @@
 }
 
 .article-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 
     .article-title {
         font-size: 1.75rem;
         font-weight: 500;
         line-height: 1.3;
         margin: 0;
-    }
-}
-
-.version-banner {
-    background: var(--themed-secondary-bg);
-    border: 1px solid var(--themed-border-color);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 1.5rem;
-    font-size: $font-size-md;
-
-    &__header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 500;
-    }
-
-    &__status {
-        display: inline-flex;
-        align-items: center;
-
-        &--approved {
-            color: var(--themed-status-approved);
-        }
-
-        &--pending {
-            color: var(--themed-status-pending);
-        }
-
-        &--rejected {
-            color: var(--themed-status-rejected);
-        }
-    }
-
-    &__meta {
-        color: var(--themed-text-secondary);
-        margin-top: 4px;
-    }
-
-    a {
-        color: var(--themed-link-color);
-        text-decoration: none;
-        display: inline-block;
-        margin-top: 4px;
-
-        &:hover {
-            color: var(--themed-link-hover);
-            text-decoration: underline;
-        }
     }
 }
