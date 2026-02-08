@@ -18,6 +18,19 @@
 | Monitoring | Sentry |
 | Package Manager | Yarn |
 
+## Commands
+
+```bash
+yarn dev                           # Dev server at localhost:4200
+yarn build                         # Production build
+yarn build:dev                     # Development build
+yarn nx test client                # Unit tests
+yarn nx e2e client-e2e             # E2E tests
+yarn lint                          # ESLint
+yarn format:check                  # Prettier check
+yarn format:fix                    # Prettier fix
+```
+
 ## Project Structure
 
 ```
@@ -75,26 +88,51 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 - **Policy**: Do not modify existing code, only add new API endpoints
 - **Use as reference**: Data structures and business logic
 
-## Available UI Components
+## Design Principles
 
-All accessed via `@drevo-web/ui`. Never use `mat-*` components directly outside `libs/ui`.
+- **Decompose complex logic** — small, focused, single-responsibility units, but avoid over-engineering
+- **No anti-patterns** — no god components, tight coupling, shared mutable state, deep inheritance hierarchies
+- **No logic duplication** — reuse existing services, utilities, and patterns; extract shared logic instead of copy-pasting
+- **Pre-implementation review** — before implementing any task, analyze the proposed solution for over-engineering, non-Angular-way patterns, anti-patterns, and scalability/extensibility issues. Report findings and propose alternatives **before** writing code
 
-| Component | Selector | Notes |
-|-----------|----------|-------|
-| Button | `ui-button` | |
-| IconButton | `ui-icon-button` | |
-| ActionButton | `ui-action-button` | |
-| TextInput | `ui-text-input` | |
-| Checkbox | `ui-checkbox` | |
-| Icon | `ui-icon` | |
-| Spinner | `ui-spinner` | |
-| Tabs | `ui-tabs` | |
-| DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |
-| VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
-| RightSidebar | `ui-right-sidebar` | |
-| Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
-| HighlightPipe | `highlight` | Pipe for text highlighting |
-| FormatTimePipe | `formatTime` | Pipe for time formatting |
+## Code Conventions
+
+### TypeScript
+
+1. **Strict TypeScript** — no implicit any, strict null checks
+2. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
+3. **No `null`** — use `undefined` instead of `null` everywhere
+4. **Readonly interface properties** — all interface properties must be `readonly` by default
+5. **No magic numbers** — extract into named constants. Exception: CSS margin/padding/sizes of atomic UI components
+
+### Angular
+
+1. **Standalone components** — always, but omit `standalone: true` (it's the default in Angular 21)
+2. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns)
+3. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for Subject, `event$` for its public Observable
+4. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
+5. **`takeUntilDestroyed()`** for subscription cleanup
+6. **Lazy loading** for all pages
+7. **Angular Material via `@drevo-web/ui` only** — never use `mat-*` components or `--mat-*` CSS tokens directly outside `libs/ui`
+8. **Auth guard on all routes** — no public pages except login
+9. **No direct `window` access** — use `WINDOW` token from `@drevo-web/core` for SSR compatibility
+10. **No direct `document` access** — use `DOCUMENT` token from `@angular/common` for SSR compatibility
+11. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
+
+### Styling
+
+1. **Color tokens only** — `--themed-*` variables, no hardcoded colors or `--mat-*` tokens
+2. **Size tokens in `_tokens.scss`** — no local CSS custom properties for sizes
+3. **Mobile first** — `min-width` media queries
+
+### Quality
+
+1. **Russian language** in UI, **English** in code and comments
+2. **Comments** — English only, only where code doesn't explain itself
+3. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
+4. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
+5. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
+6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 
 ## Key Patterns
 
@@ -194,44 +232,26 @@ All size tokens defined in `libs/ui/src/lib/styles/_tokens.scss`. Key values:
 
 Never define local CSS custom properties for sizes in component styles — add new tokens to `_tokens.scss`.
 
-## Code Conventions
+## Available UI Components
 
-### TypeScript
+All accessed via `@drevo-web/ui`. Never use `mat-*` components directly outside `libs/ui`.
 
-1. **Strict TypeScript** — no implicit any, strict null checks
-2. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
-3. **No `null`** — use `undefined` instead of `null` everywhere
-4. **Readonly interface properties** — all interface properties must be `readonly` by default
-5. **No magic numbers** — extract into named constants. Exception: CSS margin/padding/sizes of atomic UI components
-
-### Angular
-
-6. **Standalone components** — always, but omit `standalone: true` (it's the default in Angular 21)
-7. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns)
-8. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for Subject, `event$` for its public Observable
-9. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
-10. **`takeUntilDestroyed()`** for subscription cleanup
-11. **Lazy loading** for all pages
-12. **Angular Material via `@drevo-web/ui` only** — never use `mat-*` components or `--mat-*` CSS tokens directly outside `libs/ui`
-13. **Auth guard on all routes** — no public pages except login
-14. **No direct `window` access** — use `WINDOW` token from `@drevo-web/core` for SSR compatibility
-15. **No direct `document` access** — use `DOCUMENT` token from `@angular/common` for SSR compatibility
-16. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
-
-### Styling
-
-17. **Color tokens only** — `--themed-*` variables, no hardcoded colors or `--mat-*` tokens
-18. **Size tokens in `_tokens.scss`** — no local CSS custom properties for sizes
-19. **Mobile first** — `min-width` media queries
-
-### Quality
-
-20. **Russian language** in UI, **English** in code and comments
-21. **Comments** — English only, only where code doesn't explain itself
-22. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
-23. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
-24. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
-25. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
+| Component | Selector | Notes |
+|-----------|----------|-------|
+| Button | `ui-button` | |
+| IconButton | `ui-icon-button` | |
+| ActionButton | `ui-action-button` | |
+| TextInput | `ui-text-input` | |
+| Checkbox | `ui-checkbox` | |
+| Icon | `ui-icon` | |
+| Spinner | `ui-spinner` | |
+| Tabs | `ui-tabs` | |
+| DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |
+| VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
+| RightSidebar | `ui-right-sidebar` | |
+| Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
+| HighlightPipe | `highlight` | Pipe for text highlighting |
+| FormatTimePipe | `formatTime` | Pipe for time formatting |
 
 ## Unit Testing
 
@@ -265,23 +285,3 @@ private readonly logger = inject(LoggerService).withContext('MyService');
 this.logger.info('message', { data });
 this.logger.error('error', error);
 ```
-
-## Commands
-
-```bash
-yarn dev                           # Dev server at localhost:4200
-yarn build                         # Production build
-yarn build:dev                     # Development build
-yarn nx test client                # Unit tests
-yarn nx e2e client-e2e             # E2E tests
-yarn lint                          # ESLint
-yarn format:check                  # Prettier check
-yarn format:fix                    # Prettier fix
-```
-
-## Design Principles
-
-- **Decompose complex logic** — small, focused, single-responsibility units, but avoid over-engineering
-- **No anti-patterns** — no god components, tight coupling, shared mutable state, deep inheritance hierarchies
-- **No logic duplication** — reuse existing services, utilities, and patterns; extract shared logic instead of copy-pasting
-- **Pre-implementation review** — before implementing any task, analyze the proposed solution for over-engineering, non-Angular-way patterns, anti-patterns, and scalability/extensibility issues. Report findings and propose alternatives **before** writing code
