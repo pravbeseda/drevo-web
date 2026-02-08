@@ -1,0 +1,27 @@
+<div class="tabs-group-container">
+    @for (group of groups(); track $index) {
+        <nav
+            class="tab-group"
+            [class.tab-group--end]="group.align === 'end'">
+            @for (tab of group.items; track tab.route) {
+                <a
+                    class="tab-link"
+                    [routerLink]="tab.route"
+                    routerLinkActive="tab-link--active"
+                    [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }">
+                    <ui-icon
+                        class="tab-icon"
+                        [name]="tab.icon"
+                        size="small" />
+                    <span class="tab-label">{{ tab.label }}</span>
+                    @if (tab.badge !== undefined) {
+                        <span class="tab-badge">{{ tab.badge }}</span>
+                    }
+                </a>
+            }
+        </nav>
+    }
+</div>
+<div class="tabs-group-content">
+    <ng-content />
+</div>

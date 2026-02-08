@@ -193,7 +193,7 @@ describe('ArticlesHistoryItemComponent', () => {
             });
             expect(getTitle()?.textContent?.trim()).toBe('My Article');
             expect(getTitle()?.getAttribute('href')).toBe(
-                '/articles/version/42'
+                '/articles/100/version/42'
             );
         });
     });

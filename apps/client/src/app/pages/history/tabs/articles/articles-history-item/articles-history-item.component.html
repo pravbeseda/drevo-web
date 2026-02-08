@@ -25,7 +25,7 @@
             <a
                 class="title"
                 data-testid="title"
-                [routerLink]="['/articles/version', item().versionId]">
+                [routerLink]="['/articles', item().articleId, 'version', item().versionId]">
                 {{ item().title }}
             </a>
         </div>
