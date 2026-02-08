@@ -9,7 +9,8 @@ import {
 import { RouterLink } from '@angular/router';
 import {
     APPROVAL_CLASS,
-    type ApprovalClass,
+    APPROVAL_ICONS,
+    APPROVAL_TITLES,
     ArticleHistoryItem,
 } from '@drevo-web/shared';
 import {
@@ -17,18 +18,6 @@ import {
     IconButtonComponent,
     IconComponent,
 } from '@drevo-web/ui';
-
-const STATUS_ICONS: Record<ApprovalClass, string> = {
-    approved: 'check_circle',
-    pending: 'schedule',
-    rejected: 'cancel',
-};
-
-const STATUS_TITLES: Record<ApprovalClass, string> = {
-    approved: 'Одобрено',
-    pending: 'На проверке',
-    rejected: 'Отклонено',
-};
 
 @Component({
     selector: 'app-articles-history-item',
@@ -50,8 +39,10 @@ export class ArticlesHistoryItemComponent {
     readonly approvalClass = computed(
         () => APPROVAL_CLASS[this.item().approved]
     );
-    readonly statusIcon = computed(() => STATUS_ICONS[this.approvalClass()]);
-    readonly statusTitle = computed(() => STATUS_TITLES[this.approvalClass()]);
+    readonly statusIcon = computed(() => APPROVAL_ICONS[this.approvalClass()]);
+    readonly statusTitle = computed(
+        () => APPROVAL_TITLES[this.approvalClass()]
+    );
 
     onViewDiff(): void {
         this.viewDiff.emit(this.item().versionId);

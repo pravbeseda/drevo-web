@@ -55,6 +55,23 @@ export class ArticleService {
     }
 
     /**
+     * Get article version for viewing (with formatted HTML and transformed links)
+     *
+     * @param versionId - Version ID
+     * @returns Observable with mapped article version
+     */
+    getVersionShow(versionId: number): Observable<ArticleVersion> {
+        return this.articleApiService.getVersionShow(versionId).pipe(
+            map(response =>
+                this.mapArticleVersion({
+                    ...response,
+                    content: this.transformArticleLinks(response.content),
+                })
+            )
+        );
+    }
+
+    /**
      * Get article version by ID (for editing)
      *
      * @param versionId - Version ID

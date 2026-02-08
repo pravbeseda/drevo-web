@@ -28,6 +28,34 @@
         <header class="article-header">
             <h1 class="article-title">{{ article.title }}</h1>
         </header>
+        @if (isVersionView()) {
+            <div
+                class="version-banner"
+                data-testid="version-banner">
+                <div class="version-banner__header">
+                    @if (statusIcon(); as icon) {
+                        <span
+                            class="version-banner__status"
+                            [ngClass]="'version-banner__status--' + approvalClass()">
+                            <ui-icon
+                                [name]="icon"
+                                [tooltip]="statusTitle() ?? ''"
+                                size="small" />
+                        </span>
+                    }
+                    <span>Версия от {{ article.date | formatTime }}</span>
+                </div>
+                <div class="version-banner__meta">
+                    Автор: {{ article.author }}
+                    @if (article.info) {
+                        — {{ article.info }}
+                    }
+                </div>
+                @if (articleUrl(); as url) {
+                    <a [routerLink]="url">Перейти к текущей версии</a>
+                }
+            </div>
+        }
         <app-article-content
             class="article-content"
             [content]="article.content" />

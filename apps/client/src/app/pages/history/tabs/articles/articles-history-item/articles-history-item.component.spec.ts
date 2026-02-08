@@ -182,17 +182,19 @@ describe('ArticlesHistoryItemComponent', () => {
     });
 
     describe('article title link', () => {
-        it('should render article title as link', () => {
+        it('should render article title as link to version view', () => {
             spectator = createComponent({
                 props: {
                     item: createMockItem({
-                        articleId: 42,
+                        versionId: 42,
                         title: 'My Article',
                     }),
                 },
             });
             expect(getTitle()?.textContent?.trim()).toBe('My Article');
-            expect(getTitle()?.getAttribute('href')).toBe('/articles/42');
+            expect(getTitle()?.getAttribute('href')).toBe(
+                '/articles/version/42'
+            );
         });
     });
 

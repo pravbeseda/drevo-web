@@ -37,6 +37,18 @@ export const APPROVAL_CLASS: Record<ApprovalStatus, ApprovalClass> = {
     [ApprovalStatus.Rejected]: 'rejected',
 };
 
+export const APPROVAL_ICONS: Record<ApprovalClass, string> = {
+    approved: 'check_circle',
+    pending: 'schedule',
+    rejected: 'cancel',
+};
+
+export const APPROVAL_TITLES: Record<ApprovalClass, string> = {
+    approved: 'Одобрено',
+    pending: 'На проверке',
+    rejected: 'Отклонено',
+};
+
 /**
  * Request for saving article version
  */

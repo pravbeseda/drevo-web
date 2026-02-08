@@ -77,6 +77,14 @@ export const appRoutes: Route[] = [
                     ),
             },
             {
+                path: 'articles/version/:id',
+                loadComponent: () =>
+                    import('./pages/article/article.component').then(
+                        m => m.ArticleComponent
+                    ),
+                data: { isVersionView: true },
+            },
+            {
                 path: 'articles/:id',
                 loadComponent: () =>
                     import('./pages/article/article.component').then(
