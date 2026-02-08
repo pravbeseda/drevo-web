@@ -10,7 +10,6 @@
     display: flex;
     justify-content: space-between;
     border-bottom: 1px solid var(--themed-border-color);
-    padding: 0 16px;
     gap: 16px;
 }
 
@@ -32,7 +31,9 @@
     text-decoration: none;
     font-size: $font-size-md;
     border-bottom: 2px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    transition:
+        color 0.2s,
+        border-color 0.2s;
     cursor: pointer;
 
     &:hover {
@@ -66,10 +67,6 @@
 }
 
 @media (max-width: $breakpoint-tablet) {
-    .tabs-group-container {
-        padding: 0 8px;
-    }
-
     .tab-link {
         padding: 8px;
     }
