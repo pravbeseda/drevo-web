@@ -56,6 +56,28 @@ export class ArticleApiService {
     }
 
     /**
+     * Get article version for viewing (with formatted HTML content)
+     *
+     * @param versionId - Version ID
+     * @returns Observable with raw API response containing version details
+     */
+    getVersionShow(versionId: number): Observable<ArticleVersionDto> {
+        return this.http
+            .get<
+                ApiResponse<ArticleVersionDto>
+            >(`${this.apiUrl}/api/articles/version-show/${versionId}`, { withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(
+                        response.data,
+                        'Response data is undefined'
+                    );
+                    return response.data;
+                })
+            );
+    }
+
+    /**
      * Get article version by ID (for editing)
      *
      * @param versionId - Version ID

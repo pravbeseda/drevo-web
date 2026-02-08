@@ -119,6 +119,83 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('getVersionShow', () => {
+        const mockVersionShowResponse = {
+            success: true,
+            data: {
+                articleId: 123,
+                versionId: 789,
+                title: 'Test Article Version',
+                content: '<p>Formatted content</p>',
+                author: 'Version Author',
+                date: '2024-02-20T15:30:00+00:00',
+                redirect: 0,
+                new: true,
+                approved: 1,
+                info: 'Version info',
+                comment: 'Editor comment',
+            },
+        };
+
+        it('should call HTTP GET with correct URL', () => {
+            spectator.service.getVersionShow(789).subscribe(result => {
+                expect(result).toEqual(mockVersionShowResponse.data);
+            });
+
+            const req = httpController.expectOne(
+                '/api/articles/version-show/789'
+            );
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush(mockVersionShowResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service.getVersionShow(789).subscribe(result => {
+                expect(result.articleId).toBe(123);
+                expect(result.versionId).toBe(789);
+                expect(result.title).toBe('Test Article Version');
+                done();
+            });
+
+            const req = httpController.expectOne(
+                '/api/articles/version-show/789'
+            );
+            req.flush(mockVersionShowResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.getVersionShow(789).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(
+                '/api/articles/version-show/789'
+            );
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 404 errors', done => {
+            spectator.service.getVersionShow(999).subscribe({
+                error: err => {
+                    expect(err.status).toBe(404);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(
+                '/api/articles/version-show/999'
+            );
+            req.flush(
+                { success: false, error: 'Version not found' },
+                { status: 404, statusText: 'Not Found' }
+            );
+        });
+    });
+
     describe('getArticleVersion', () => {
         const mockVersionResponse = {
             success: true,

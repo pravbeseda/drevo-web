@@ -1,8 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import {
+    ActivatedRoute,
+    convertToParamMap,
+    provideRouter,
+} from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
-import { Article } from '@drevo-web/shared';
+import { ArticleVersion } from '@drevo-web/shared';
 import { ArticleService } from '../../services/articles';
 import { ArticleComponent } from './article.component';
 
@@ -11,8 +15,9 @@ describe('ArticleComponent', () => {
     let articleService: jest.Mocked<ArticleService>;
     let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
     let fragmentSubject: BehaviorSubject<string | undefined>;
+    let dataSubject: BehaviorSubject<Record<string, unknown>>;
 
-    const mockArticle: Article = {
+    const mockArticle: ArticleVersion = {
         articleId: 123,
         versionId: 456,
         title: 'Test Article Title',
@@ -20,17 +25,23 @@ describe('ArticleComponent', () => {
         author: 'Test Author',
         date: new Date('2024-01-15T10:00:00Z'),
         redirect: false,
+        new: false,
+        approved: 1,
+        info: '',
+        comment: '',
     };
 
     const createComponent = createComponentFactory({
         component: ArticleComponent,
-        mocks: [ArticleService, Router],
+        mocks: [ArticleService],
         providers: [
+            provideRouter([]),
             {
                 provide: ActivatedRoute,
                 useFactory: () => ({
                     paramMap: paramMapSubject.asObservable(),
                     fragment: fragmentSubject.asObservable(),
+                    data: dataSubject.asObservable(),
                 }),
             },
         ],
@@ -40,11 +51,13 @@ describe('ArticleComponent', () => {
     beforeEach(() => {
         paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '123' }));
         fragmentSubject = new BehaviorSubject<string | undefined>(undefined);
+        dataSubject = new BehaviorSubject<Record<string, unknown>>({});
         spectator = createComponent();
         articleService = spectator.inject(
             ArticleService
         ) as jest.Mocked<ArticleService>;
         articleService.getArticle.mockReturnValue(of(mockArticle));
+        articleService.getVersionShow.mockReturnValue(of(mockArticle));
     });
 
     it('should create', () => {
@@ -89,7 +102,7 @@ describe('ArticleComponent', () => {
 
             expect(articleService.getArticle).toHaveBeenCalledWith(123);
 
-            const anotherArticle: Article = {
+            const anotherArticle: ArticleVersion = {
                 ...mockArticle,
                 articleId: 456,
                 title: 'Another Article',
@@ -121,6 +134,14 @@ describe('ArticleComponent', () => {
             expect(articleService.getArticle).toHaveBeenCalledWith(456);
             expect(spectator.component.article()).toEqual(mockArticle);
             expect(spectator.component.error()).toBeUndefined();
+        });
+
+        it('should not show version banner in article mode', () => {
+            spectator.detectChanges();
+
+            expect(
+                spectator.query('[data-testid="version-banner"]')
+            ).toBeFalsy();
         });
     });
 
@@ -424,18 +445,108 @@ describe('ArticleComponent', () => {
             expect(spectator.component.error()).toBe('Ошибка загрузки статьи');
         });
     });
+
+    describe('version view mode', () => {
+        const mockVersion: ArticleVersion = {
+            articleId: 100,
+            versionId: 789,
+            title: 'Versioned Article',
+            content: '<p>Version content</p>',
+            author: 'Version Author',
+            date: new Date('2024-03-20T12:00:00Z'),
+            redirect: false,
+            new: false,
+            approved: 0,
+            info: 'Updated intro',
+            comment: '',
+        };
+
+        beforeEach(() => {
+            dataSubject.next({ isVersionView: true });
+            articleService.getVersionShow.mockReturnValue(of(mockVersion));
+        });
+
+        it('should call getVersionShow instead of getArticle', () => {
+            spectator.detectChanges();
+
+            expect(articleService.getVersionShow).toHaveBeenCalledWith(123);
+            expect(articleService.getArticle).not.toHaveBeenCalled();
+        });
+
+        it('should show version banner', () => {
+            spectator.detectChanges();
+
+            expect(
+                spectator.query('[data-testid="version-banner"]')
+            ).toBeTruthy();
+        });
+
+        it('should display author and info in banner', () => {
+            spectator.detectChanges();
+
+            const banner = spectator.query('[data-testid="version-banner"]');
+            expect(banner?.textContent).toContain('Version Author');
+            expect(banner?.textContent).toContain('Updated intro');
+        });
+
+        it('should show link to current article version', () => {
+            spectator.detectChanges();
+
+            const link = spectator.query(
+                '[data-testid="version-banner"] a'
+            ) as HTMLAnchorElement;
+            expect(link).toBeTruthy();
+            expect(link.textContent).toContain('Перейти к текущей версии');
+            expect(link.getAttribute('href')).toBe('/articles/100');
+        });
+
+        it('should show version-specific error for invalid ID', () => {
+            paramMapSubject.next(convertToParamMap({ id: 'invalid' }));
+            spectator.detectChanges();
+
+            expect(spectator.component.error()).toBe('Неверный ID версии');
+        });
+
+        it('should show version-specific 404 error', () => {
+            const error = new HttpErrorResponse({
+                status: 404,
+                statusText: 'Not Found',
+            });
+            articleService.getVersionShow.mockReturnValue(
+                throwError(() => error)
+            );
+            spectator.detectChanges();
+
+            expect(spectator.component.error()).toBe('Версия не найдена');
+        });
+
+        it('should show version-specific generic error', () => {
+            const error = new HttpErrorResponse({
+                status: 500,
+                statusText: 'Server Error',
+            });
+            articleService.getVersionShow.mockReturnValue(
+                throwError(() => error)
+            );
+            spectator.detectChanges();
+
+            expect(spectator.component.error()).toBe('Ошибка загрузки версии');
+        });
+    });
 });
 
 describe('ArticleComponent with invalid ID', () => {
     const createComponentWithInvalidId = createComponentFactory({
         component: ArticleComponent,
-        mocks: [ArticleService, Router],
+        mocks: [ArticleService],
         providers: [
+            provideRouter([]),
             {
                 provide: ActivatedRoute,
                 useFactory: () => ({
                     paramMap: of(convertToParamMap({ id: 'invalid' })),
                     fragment: of(undefined),
+                    data: of({}),
                 }),
             },
         ],
@@ -452,13 +563,15 @@ describe('ArticleComponent with invalid ID', () => {
 describe('ArticleComponent with negative ID', () => {
     const createComponentWithNegativeId = createComponentFactory({
         component: ArticleComponent,
-        mocks: [ArticleService, Router],
+        mocks: [ArticleService],
         providers: [
+            provideRouter([]),
             {
                 provide: ActivatedRoute,
                 useFactory: () => ({
                     paramMap: of(convertToParamMap({ id: '-5' })),
                     fragment: of(undefined),
+                    data: of({}),
                 }),
             },
         ],
@@ -474,13 +587,15 @@ describe('ArticleComponent with negative ID', () => {
 describe('ArticleComponent with zero ID', () => {
     const createComponentWithZeroId = createComponentFactory({
         component: ArticleComponent,
-        mocks: [ArticleService, Router],
+        mocks: [ArticleService],
         providers: [
+            provideRouter([]),
             {
                 provide: ActivatedRoute,
                 useFactory: () => ({
                     paramMap: of(convertToParamMap({ id: '0' })),
                     fragment: of(undefined),
+                    data: of({}),
                 }),
             },
         ],

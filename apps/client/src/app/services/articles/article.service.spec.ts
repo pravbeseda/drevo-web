@@ -148,6 +148,79 @@ describe('ArticleService', () => {
         });
     });
 
+    describe('getVersionShow', () => {
+        const mockApiResponse: ArticleVersionDto = {
+            articleId: 123,
+            versionId: 789,
+            title: 'Test Version',
+            content:
+                '<p>Content with <a href="/articles/8.html">link</a></p>',
+            author: 'Version Author',
+            date: '2024-02-20T15:30:00+00:00',
+            redirect: 0,
+            new: true,
+            approved: 1,
+            info: 'Version info text',
+            comment: 'Editor comment',
+        };
+
+        it('should call articleApiService.getVersionShow with correct versionId', () => {
+            articleApiService.getVersionShow.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service.getVersionShow(789).subscribe();
+
+            expect(articleApiService.getVersionShow).toHaveBeenCalledWith(789);
+        });
+
+        it('should map API response to frontend model', done => {
+            articleApiService.getVersionShow.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service.getVersionShow(789).subscribe(result => {
+                expect(result.articleId).toBe(123);
+                expect(result.versionId).toBe(789);
+                expect(result.title).toBe('Test Version');
+                expect(result.author).toBe('Version Author');
+                expect(result.redirect).toBe(false);
+                expect(result.new).toBe(true);
+                expect(result.approved).toBe(1);
+                expect(result.info).toBe('Version info text');
+                expect(result.comment).toBe('Editor comment');
+                done();
+            });
+        });
+
+        it('should transform article links (like getArticle)', done => {
+            articleApiService.getVersionShow.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service.getVersionShow(789).subscribe(result => {
+                expect(result.content).toBe(
+                    '<p>Content with <a href="/articles/8">link</a></p>'
+                );
+                done();
+            });
+        });
+
+        it('should convert date string to Date object', done => {
+            articleApiService.getVersionShow.mockReturnValue(
+                of(mockApiResponse)
+            );
+
+            spectator.service.getVersionShow(789).subscribe(result => {
+                expect(result.date).toBeInstanceOf(Date);
+                expect(result.date.toISOString()).toBe(
+                    '2024-02-20T15:30:00.000Z'
+                );
+                done();
+            });
+        });
+    });
+
     describe('getArticleVersion', () => {
         const mockApiResponse: ArticleVersionDto = {
             articleId: 123,
