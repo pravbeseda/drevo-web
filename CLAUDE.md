@@ -118,12 +118,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 9. **No direct `window` access** — use `WINDOW` token from `@drevo-web/core` for SSR compatibility
 10. **No direct `document` access** — use `DOCUMENT` token from `@angular/common` for SSR compatibility
 11. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
-
-### Styling
-
-1. **Color tokens only** — `--themed-*` variables, no hardcoded colors or `--mat-*` tokens
-2. **Size tokens in `_tokens.scss`** — no local CSS custom properties for sizes
-3. **Mobile first** — `min-width` media queries
+12. **Zoneless** — `provideZonelessChangeDetection()`, no `zone.js`
 
 ### Quality
 
@@ -195,18 +190,10 @@ export class ArticleService {
 
 - **AuthInterceptor** — CSRF tokens (auto-added to POST/PUT/DELETE/PATCH), 401/403 handling
 - **Credentials** — `withCredentials: true` for all API requests
-- **All routes protected** by `authGuard` except `/login`
-
-### Components
-
-- Lazy loading via `loadComponent` in routes
-- Zoneless: `provideZonelessChangeDetection()`
 
 ## Styles
 
-- SCSS with Angular Material theming
 - Themes: `html` (light), `html.dark-theme` (dark)
-- Mobile first: `min-width` media queries for larger viewports
 
 ### Color Tokens
 
@@ -234,7 +221,7 @@ Never define local CSS custom properties for sizes in component styles — add n
 
 ## Available UI Components
 
-All accessed via `@drevo-web/ui`. Never use `mat-*` components directly outside `libs/ui`.
+All accessed via `@drevo-web/ui`.
 
 | Component | Selector | Notes |
 |-----------|----------|-------|
