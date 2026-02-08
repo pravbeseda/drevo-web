@@ -283,3 +283,5 @@ yarn format:fix                    # Prettier fix
 
 - **Decompose complex logic** — small, focused, single-responsibility units, but avoid over-engineering
 - **No anti-patterns** — no god components, tight coupling, shared mutable state, deep inheritance hierarchies
+- **No logic duplication** — reuse existing services, utilities, and patterns; extract shared logic instead of copy-pasting
+- **Pre-implementation review** — before implementing any task, analyze the proposed solution for over-engineering, non-Angular-way patterns, anti-patterns, and scalability/extensibility issues. Report findings and propose alternatives **before** writing code
