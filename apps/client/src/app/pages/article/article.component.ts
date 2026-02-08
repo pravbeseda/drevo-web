@@ -19,7 +19,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import {
     APPROVAL_CLASS,
-    type ApprovalClass,
+    APPROVAL_ICONS,
+    APPROVAL_TITLES,
     ArticleVersion,
 } from '@drevo-web/shared';
 import {
@@ -30,18 +31,6 @@ import {
 } from '@drevo-web/ui';
 import { combineLatest } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
-
-const STATUS_ICONS: Record<ApprovalClass, string> = {
-    approved: 'check_circle',
-    pending: 'schedule',
-    rejected: 'cancel',
-};
-
-const STATUS_TITLES: Record<ApprovalClass, string> = {
-    approved: 'Одобрено',
-    pending: 'На проверке',
-    rejected: 'Отклонено',
-};
 
 @Component({
     selector: 'app-article',
@@ -85,11 +74,11 @@ export class ArticleComponent implements OnInit {
     });
     readonly statusIcon = computed(() => {
         const cls = this.approvalClass();
-        return cls ? STATUS_ICONS[cls] : undefined;
+        return cls ? APPROVAL_ICONS[cls] : undefined;
     });
     readonly statusTitle = computed(() => {
         const cls = this.approvalClass();
-        return cls ? STATUS_TITLES[cls] : undefined;
+        return cls ? APPROVAL_TITLES[cls] : undefined;
     });
     private currentFragment: string | undefined = undefined;
 
@@ -166,6 +155,12 @@ export class ArticleComponent implements OnInit {
             },
             error: (err: HttpErrorResponse) => {
                 this.article.set(undefined);
+                this.logger.error(
+                    isVersionView
+                        ? 'Failed to load version'
+                        : 'Failed to load article',
+                    { id, status: err.status }
+                );
                 if (err.status === 404) {
                     this.error.set(
                         isVersionView
