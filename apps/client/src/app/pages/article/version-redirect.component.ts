@@ -16,15 +16,7 @@ import { SpinnerComponent } from '@drevo-web/ui';
 @Component({
     selector: 'app-version-redirect',
     imports: [SpinnerComponent],
-    template: `
-        @if (error()) {
-            <p class="error-text">{{ error() }}</p>
-        } @else {
-            <div class="loading-container">
-                <ui-spinner [diameter]="48" />
-            </div>
-        }
-    `,
+    templateUrl: './version-redirect.component.html',
     styleUrl: './version-redirect.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

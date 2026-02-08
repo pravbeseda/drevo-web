@@ -1,0 +1,7 @@
+@if (error()) {
+    <p class="error-text">{{ error() }}</p>
+} @else {
+    <div class="loading-container">
+        <ui-spinner [diameter]="48" />
+    </div>
+}

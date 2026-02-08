@@ -7,14 +7,7 @@ import { map } from 'rxjs/operators';
 @Component({
     selector: 'app-article-stub-tab',
     imports: [IconComponent],
-    template: `
-        <div class="stub">
-            <ui-icon
-                name="construction"
-                size="large" />
-            <p>Раздел «{{ stubTitle() }}» в разработке</p>
-        </div>
-    `,
+    templateUrl: './article-stub-tab.component.html',
     styleUrl: './article-stub-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
