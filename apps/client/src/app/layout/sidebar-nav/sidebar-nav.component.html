@@ -3,7 +3,8 @@
         <a
             class="nav-item"
             [routerLink]="item.route"
-            routerLinkActive="active">
+            routerLinkActive="active"
+            [attr.aria-label]="item.label">
             <ui-icon
                 [name]="item.icon"
                 [tooltip]="item.label" />
