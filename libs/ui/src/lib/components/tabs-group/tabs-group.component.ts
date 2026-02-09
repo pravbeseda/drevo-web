@@ -1,5 +1,10 @@
 import { IconComponent } from '../icon/icon.component';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    input,
+    Signal,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 export interface TabGroupItem {
@@ -8,6 +13,7 @@ export interface TabGroupItem {
     readonly icon: string;
     readonly badge?: number;
     readonly exactRouteMatch?: boolean;
+    readonly isActive?: Signal<boolean>;
 }
 
 export interface TabGroup {

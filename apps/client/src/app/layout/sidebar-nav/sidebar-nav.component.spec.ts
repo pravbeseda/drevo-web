@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { DrawerService } from '@drevo-web/core';
+import { IconComponent } from '@drevo-web/ui';
 import { SidebarNavComponent } from './sidebar-nav.component';
 
 describe('SidebarNavComponent', () => {
@@ -33,12 +34,12 @@ describe('SidebarNavComponent', () => {
         expect(items[0]).toHaveText('Изменения');
     });
 
-    it('should set title attribute on nav items', () => {
+    it('should pass label as tooltip to icon', () => {
         spectator = createComponent();
 
-        const item = spectator.query('.nav-item');
+        const icon = spectator.query(IconComponent);
 
-        expect(item).toHaveAttribute('title', 'Изменения');
+        expect(icon?.tooltip()).toBe('Изменения');
     });
 
     it('should not have compact class when drawer is open', () => {

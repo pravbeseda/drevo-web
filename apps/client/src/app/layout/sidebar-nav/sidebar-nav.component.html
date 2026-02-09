@@ -3,9 +3,11 @@
         <a
             class="nav-item"
             [routerLink]="item.route"
-            [title]="item.label"
-            routerLinkActive="active">
-            <ui-icon [name]="item.icon" />
+            routerLinkActive="active"
+            [attr.aria-label]="item.label">
+            <ui-icon
+                [name]="item.icon"
+                [tooltip]="item.label" />
             <span class="nav-label">{{ item.label }}</span>
         </a>
     }

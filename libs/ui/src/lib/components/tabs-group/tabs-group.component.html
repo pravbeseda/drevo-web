@@ -7,11 +7,15 @@
                 <a
                     class="tab-link"
                     [routerLink]="tab.route"
-                    routerLinkActive="tab-link--active"
-                    [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }">
+                    routerLinkActive
+                    #rla="routerLinkActive"
+                    [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }"
+                    [class.tab-link--active]="tab.isActive ? tab.isActive() : rla.isActive"
+                    [attr.aria-label]="tab.label">
                     <ui-icon
                         class="tab-icon"
                         [name]="tab.icon"
+                        [tooltip]="tab.label"
                         size="small" />
                     <span class="tab-label">{{ tab.label }}</span>
                     @if (tab.badge !== undefined) {

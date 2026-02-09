@@ -8,7 +8,7 @@
 }
 
 .article {
-    max-width: 900px;
+    max-width: rem($article-max-width);
     margin: 0 auto;
     padding: 1rem;
 }

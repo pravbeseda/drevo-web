@@ -1,5 +1,6 @@
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { IconComponent } from '../icon/icon.component';
 import { TabGroup, TabsGroupComponent } from './tabs-group.component';
 
 const TEST_GROUPS: TabGroup[] = [
@@ -93,13 +94,18 @@ describe('TabsGroupComponent', () => {
         expect(navs[1]).toHaveClass('tab-group--end');
     });
 
-    it('should render icons for all tabs', () => {
-        const icons = spectator.queryAll('ui-icon');
-        expect(icons).toHaveLength(5);
-    });
-
     it('should render content area', () => {
         const content = spectator.query('.tabs-group-content');
         expect(content).toBeTruthy();
+    });
+
+    it('should render icons with tab labels as tooltips', () => {
+        const icons = spectator.queryAll(IconComponent);
+        expect(icons).toHaveLength(5);
+        expect(icons[0].tooltip()).toBe('Статья');
+        expect(icons[1].tooltip()).toBe('Новости');
+        expect(icons[2].tooltip()).toBe('Обсуждение');
+        expect(icons[3].tooltip()).toBe('Версии');
+        expect(icons[4].tooltip()).toBe('Кто ссылается');
     });
 });
