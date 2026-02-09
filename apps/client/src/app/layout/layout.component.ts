@@ -64,7 +64,7 @@ export class LayoutComponent implements OnInit {
         this.isMobile.set(mediaQuery.matches);
 
         if (!mediaQuery.matches) {
-            this.drawerService.open();
+            this.drawerService.restoreSaved();
         }
 
         let rafId = 0;
@@ -76,7 +76,7 @@ export class LayoutComponent implements OnInit {
             if (e.matches) {
                 this.drawerService.close();
             } else {
-                this.drawerService.open();
+                this.drawerService.restoreSaved();
             }
 
             cancelAnimationFrame(rafId);

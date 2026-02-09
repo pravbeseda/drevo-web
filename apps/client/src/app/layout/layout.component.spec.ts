@@ -30,6 +30,18 @@ function createMockWindow(innerWidth: number): Window {
     } as unknown as Window;
 }
 
+function createDrawerMock(
+    isOpen: boolean
+): InstanceType<typeof DrawerService> {
+    return {
+        isOpen: signal(isOpen),
+        open: jest.fn(),
+        close: jest.fn(),
+        toggle: jest.fn(),
+        restoreSaved: jest.fn(),
+    } as unknown as InstanceType<typeof DrawerService>;
+}
+
 function getMediaQueryList(mockWindow: Window): {
     addEventListener: jest.Mock;
     removeEventListener: jest.Mock;
@@ -57,11 +69,7 @@ describe('LayoutComponent', () => {
                 provide: WINDOW,
                 useFactory: () => createMockWindow(BREAKPOINT_TABLET),
             },
-            MockProvider(DrawerService, {
-                isOpen: signal(true),
-                open: jest.fn(),
-                close: jest.fn(),
-            }),
+            MockProvider(DrawerService, createDrawerMock(true)),
         ],
     });
 
@@ -78,11 +86,7 @@ describe('LayoutComponent', () => {
     it('should apply sidebar-collapsed class when drawer is closed', () => {
         spectator = createComponent({
             providers: [
-                MockProvider(DrawerService, {
-                    isOpen: signal(false),
-                    open: jest.fn(),
-                    close: jest.fn(),
-                }),
+                MockProvider(DrawerService, createDrawerMock(false)),
             ],
         });
 
@@ -114,11 +118,7 @@ describe('LayoutComponent', () => {
                         provide: WINDOW,
                         useValue: createMockWindow(MOBILE_WIDTH),
                     },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(false),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(false)),
                 ],
             });
 
@@ -131,30 +131,26 @@ describe('LayoutComponent', () => {
             expect(spectator.component.isMobile()).toBe(false);
         });
 
-        it('should open drawer on initial desktop load', () => {
+        it('should restore saved drawer state on initial desktop load', () => {
             spectator = createComponent();
             const drawerService = spectator.inject(DrawerService);
 
-            expect(drawerService.open).toHaveBeenCalled();
+            expect(drawerService.restoreSaved).toHaveBeenCalled();
         });
 
-        it('should not open drawer on initial mobile load', () => {
+        it('should not restore saved drawer state on initial mobile load', () => {
             spectator = createComponent({
                 providers: [
                     {
                         provide: WINDOW,
                         useValue: createMockWindow(MOBILE_WIDTH),
                     },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(false),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(false)),
                 ],
             });
             const drawerService = spectator.inject(DrawerService);
 
-            expect(drawerService.open).not.toHaveBeenCalled();
+            expect(drawerService.restoreSaved).not.toHaveBeenCalled();
         });
 
         it('should close drawer when viewport switches to mobile', () => {
@@ -162,11 +158,7 @@ describe('LayoutComponent', () => {
             spectator = createComponent({
                 providers: [
                     { provide: WINDOW, useValue: mockWindow },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(true),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(true)),
                 ],
             });
             const drawerService = spectator.inject(DrawerService);
@@ -178,16 +170,12 @@ describe('LayoutComponent', () => {
             expect(spectator.component.isMobile()).toBe(true);
         });
 
-        it('should open drawer when viewport switches to desktop', () => {
+        it('should restore saved drawer state when viewport switches to desktop', () => {
             const mockWindow = createMockWindow(MOBILE_WIDTH);
             spectator = createComponent({
                 providers: [
                     { provide: WINDOW, useValue: mockWindow },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(false),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(false)),
                 ],
             });
             const drawerService = spectator.inject(DrawerService);
@@ -195,7 +183,7 @@ describe('LayoutComponent', () => {
 
             handler({ matches: false });
 
-            expect(drawerService.open).toHaveBeenCalled();
+            expect(drawerService.restoreSaved).toHaveBeenCalled();
             expect(spectator.component.isMobile()).toBe(false);
         });
 
@@ -212,11 +200,7 @@ describe('LayoutComponent', () => {
             spectator = createComponent({
                 providers: [
                     { provide: WINDOW, useValue: mockWindow },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(true),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(true)),
                 ],
             });
             const handler = getMediaChangeHandler(mockWindow);
@@ -234,11 +218,7 @@ describe('LayoutComponent', () => {
             spectator = createComponent({
                 providers: [
                     { provide: WINDOW, useValue: mockWindow },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(true),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(true)),
                 ],
             });
             const mql = getMediaQueryList(mockWindow);
@@ -255,11 +235,7 @@ describe('LayoutComponent', () => {
             spectator = createComponent({
                 providers: [
                     { provide: WINDOW, useValue: undefined },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(false),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(false)),
                 ],
             });
 
@@ -275,11 +251,7 @@ describe('LayoutComponent', () => {
                         provide: WINDOW,
                         useValue: createMockWindow(MOBILE_WIDTH),
                     },
-                    MockProvider(DrawerService, {
-                        isOpen: signal(false),
-                        open: jest.fn(),
-                        close: jest.fn(),
-                    }),
+                    MockProvider(DrawerService, createDrawerMock(false)),
                 ],
             });
             const drawerService = spectator.inject(DrawerService);

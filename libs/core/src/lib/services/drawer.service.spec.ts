@@ -1,15 +1,19 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { DrawerService } from './drawer.service';
+import { StorageService } from './storage.service';
 
 describe('DrawerService', () => {
     let spectator: SpectatorService<DrawerService>;
+    let storage: jest.Mocked<StorageService>;
 
     const createService = createServiceFactory({
         service: DrawerService,
+        mocks: [StorageService],
     });
 
     beforeEach(() => {
         spectator = createService();
+        storage = spectator.inject(StorageService) as jest.Mocked<StorageService>;
     });
 
     it('should be created', () => {
@@ -34,6 +38,27 @@ describe('DrawerService', () => {
 
             expect(spectator.service.isOpen()).toBe(false);
         });
+
+        it('should save state to storage', () => {
+            spectator.service.toggle();
+
+            expect(storage.set).toHaveBeenCalledWith(
+                'drevo-sidebar-open',
+                true
+            );
+        });
+
+        it('should save false when toggling from open to closed', () => {
+            spectator.service.open();
+            storage.set.mockClear();
+
+            spectator.service.toggle();
+
+            expect(storage.set).toHaveBeenCalledWith(
+                'drevo-sidebar-open',
+                false
+            );
+        });
     });
 
     describe('open()', () => {
@@ -45,10 +70,10 @@ describe('DrawerService', () => {
             expect(spectator.service.isOpen()).toBe(true);
         });
 
-        it('should remain open when already open', () => {
+        it('should not save to storage', () => {
             spectator.service.open();
 
-            expect(spectator.service.isOpen()).toBe(true);
+            expect(storage.set).not.toHaveBeenCalled();
         });
     });
 
@@ -59,11 +84,36 @@ describe('DrawerService', () => {
             expect(spectator.service.isOpen()).toBe(false);
         });
 
-        it('should remain closed when already closed', () => {
-            spectator.service.close();
+        it('should not save to storage', () => {
             spectator.service.close();
 
+            expect(storage.set).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('restoreSaved()', () => {
+        it('should restore saved open state', () => {
+            storage.get.mockReturnValue(true);
+
+            spectator.service.restoreSaved();
+
+            expect(spectator.service.isOpen()).toBe(true);
+        });
+
+        it('should restore saved closed state', () => {
+            storage.get.mockReturnValue(false);
+
+            spectator.service.restoreSaved();
+
             expect(spectator.service.isOpen()).toBe(false);
+        });
+
+        it('should default to open when no saved state', () => {
+            storage.get.mockReturnValue(undefined);
+
+            spectator.service.restoreSaved();
+
+            expect(spectator.service.isOpen()).toBe(true);
         });
     });
 });
