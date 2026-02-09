@@ -7,7 +7,8 @@ import {
     inject,
     OnInit,
 } from '@angular/core';
-import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import {
     SidebarActionDirective,
@@ -15,6 +16,7 @@ import {
     TabGroup,
     TabsGroupComponent,
 } from '@drevo-web/ui';
+import { filter, map } from 'rxjs';
 
 @Component({
     selector: 'app-article',
@@ -32,8 +34,25 @@ import {
 export class ArticleComponent implements OnInit {
     private readonly pageService = inject(ArticlePageService);
     private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly logger =
         inject(LoggerService).withContext('ArticleComponent');
+
+    private readonly url = toSignal(
+        this.router.events.pipe(
+            filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+            map(e => e.urlAfterRedirects)
+        ),
+        { initialValue: this.router.url }
+    );
+
+    private readonly articleTabActive = computed(() => {
+        const url = this.url();
+        const id = this.pageService.articleId();
+        if (!id) return false;
+        const base = `/articles/${id}`;
+        return url === base || url.startsWith(`${base}/version/`);
+    });
 
     readonly article = this.pageService.article;
     readonly isLoading = this.pageService.isLoading;
@@ -54,7 +73,7 @@ export class ArticleComponent implements OnInit {
                         label: 'Статья',
                         route: base,
                         icon: 'article',
-                        exactRouteMatch: true,
+                        isActive: this.articleTabActive,
                     },
                     {
                         label: 'Новости',

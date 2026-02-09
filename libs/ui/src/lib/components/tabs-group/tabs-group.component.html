@@ -7,8 +7,10 @@
                 <a
                     class="tab-link"
                     [routerLink]="tab.route"
-                    routerLinkActive="tab-link--active"
-                    [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }">
+                    routerLinkActive
+                    #rla="routerLinkActive"
+                    [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }"
+                    [class.tab-link--active]="tab.isActive ? tab.isActive() : rla.isActive">
                     <ui-icon
                         class="tab-icon"
                         [name]="tab.icon"

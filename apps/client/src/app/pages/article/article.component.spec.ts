@@ -113,7 +113,7 @@ describe('ArticleComponent', () => {
         expect(groups[0].items).toHaveLength(3);
         expect(groups[0].items[0].route).toBe('/articles/123');
         expect(groups[0].items[0].label).toBe('Статья');
-        expect(groups[0].items[0].exactRouteMatch).toBe(true);
+        expect(groups[0].items[0].isActive).toBeTruthy();
         expect(groups[0].items[1].route).toBe('/articles/123/news');
         expect(groups[0].items[2].route).toBe('/articles/123/forum');
         expect(groups[1].items[0].route).toBe('/articles/123/history');
