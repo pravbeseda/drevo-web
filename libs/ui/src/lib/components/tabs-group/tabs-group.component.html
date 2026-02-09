@@ -12,6 +12,7 @@
                     <ui-icon
                         class="tab-icon"
                         [name]="tab.icon"
+                        [tooltip]="tab.label"
                         size="small" />
                     <span class="tab-label">{{ tab.label }}</span>
                     @if (tab.badge !== undefined) {
