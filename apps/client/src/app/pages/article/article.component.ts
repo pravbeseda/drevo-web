@@ -47,11 +47,13 @@ export class ArticleComponent implements OnInit {
     );
 
     private readonly articleTabActive = computed(() => {
-        const url = this.url();
+        const path = this.router.parseUrl(this.url()).root.children['primary']
+            ?.segments.map(s => s.path)
+            .join('/');
         const id = this.pageService.articleId();
         if (!id) return false;
-        const base = `/articles/${id}`;
-        return url === base || url.startsWith(`${base}/version/`);
+        const base = `articles/${id}`;
+        return path === base || path?.startsWith(`${base}/version/`);
     });
 
     readonly article = this.pageService.article;

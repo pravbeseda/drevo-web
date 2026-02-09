@@ -94,17 +94,12 @@ describe('TabsGroupComponent', () => {
         expect(navs[1]).toHaveClass('tab-group--end');
     });
 
-    it('should render icons for all tabs', () => {
-        const icons = spectator.queryAll('ui-icon');
-        expect(icons).toHaveLength(5);
-    });
-
     it('should render content area', () => {
         const content = spectator.query('.tabs-group-content');
         expect(content).toBeTruthy();
     });
 
-    it('should pass tab labels as tooltips to icons', () => {
+    it('should render icons with tab labels as tooltips', () => {
         const icons = spectator.queryAll(IconComponent);
         expect(icons).toHaveLength(5);
         expect(icons[0].tooltip()).toBe('Статья');

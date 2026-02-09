@@ -1,6 +1,6 @@
 import { ArticlePageService } from './article-page.service';
 import { ArticleComponent } from './article.component';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -119,6 +119,33 @@ describe('ArticleComponent', () => {
         expect(groups[1].items[0].route).toBe('/articles/123/history');
         expect(groups[1].items[1].route).toBe('/articles/123/linkedhere');
         expect(groups[1].align).toBe('end');
+    });
+
+    it('should mark article tab active on article URL', async () => {
+        const router = spectator.inject(Router);
+        await router.navigateByUrl('/articles/123');
+        spectator.detectChanges();
+
+        const isActive = spectator.component.tabGroups()[0].items[0].isActive;
+        expect(isActive?.()).toBe(true);
+    });
+
+    it('should mark article tab active on version URL', async () => {
+        const router = spectator.inject(Router);
+        await router.navigateByUrl('/articles/123/version/456');
+        spectator.detectChanges();
+
+        const isActive = spectator.component.tabGroups()[0].items[0].isActive;
+        expect(isActive?.()).toBe(true);
+    });
+
+    it('should mark article tab inactive on other sub-page', async () => {
+        const router = spectator.inject(Router);
+        await router.navigateByUrl('/articles/123/news');
+        spectator.detectChanges();
+
+        const isActive = spectator.component.tabGroups()[0].items[0].isActive;
+        expect(isActive?.()).toBe(false);
     });
 });
 
