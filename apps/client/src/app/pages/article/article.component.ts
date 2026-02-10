@@ -8,21 +8,19 @@ import {
     OnInit,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { LoggerService } from '@drevo-web/core';
 import {
-    SidebarActionDirective,
-    SpinnerComponent,
-    TabGroup,
-    TabsGroupComponent,
-} from '@drevo-web/ui';
+    ActivatedRoute,
+    NavigationEnd,
+    Router,
+    RouterOutlet,
+} from '@angular/router';
+import { SpinnerComponent, TabGroup, TabsGroupComponent } from '@drevo-web/ui';
 import { filter, map } from 'rxjs';
 
 @Component({
     selector: 'app-article',
     imports: [
         SpinnerComponent,
-        SidebarActionDirective,
         ErrorComponent,
         TabsGroupComponent,
         RouterOutlet,
@@ -35,8 +33,6 @@ export class ArticleComponent implements OnInit {
     private readonly pageService = inject(ArticlePageService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
-    private readonly logger =
-        inject(LoggerService).withContext('ArticleComponent');
 
     private readonly url = toSignal(
         this.router.events.pipe(
@@ -47,8 +43,9 @@ export class ArticleComponent implements OnInit {
     );
 
     private readonly articleTabActive = computed(() => {
-        const path = this.router.parseUrl(this.url()).root.children['primary']
-            ?.segments.map(s => s.path)
+        const path = this.router
+            .parseUrl(this.url())
+            .root.children['primary']?.segments.map(s => s.path)
             .join('/');
         const id = this.pageService.articleId();
         if (!id) return false;
@@ -59,7 +56,6 @@ export class ArticleComponent implements OnInit {
     readonly article = this.pageService.article;
     readonly isLoading = this.pageService.isLoading;
     readonly error = this.pageService.error;
-    readonly editUrl = this.pageService.editUrl;
     readonly title = this.pageService.title;
 
     readonly tabGroups = computed<TabGroup[]>(() => {
@@ -109,9 +105,5 @@ export class ArticleComponent implements OnInit {
 
     ngOnInit(): void {
         this.pageService.init(this.route);
-    }
-
-    openTableOfContents(): void {
-        this.logger.info('Open table of contents');
     }
 }

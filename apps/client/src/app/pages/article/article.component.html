@@ -7,23 +7,6 @@
         title="Ошибка"
         [message]="error()" />
 } @else if (article(); as article) {
-    <!-- Sidebar Actions -->
-    <button
-        sidebarAction
-        icon="toc"
-        priority="secondary"
-        (click)="openTableOfContents()">
-        Содержание
-    </button>
-    <button
-        sidebarAction
-        icon="edit"
-        priority="primary"
-        [disabled]="!editUrl()"
-        [href]="editUrl()">
-        Редактировать
-    </button>
-
     <article class="article">
         <header class="article-header">
             <h1 class="article-title">{{ article.title }}</h1>

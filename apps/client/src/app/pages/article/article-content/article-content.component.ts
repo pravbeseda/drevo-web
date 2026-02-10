@@ -1,3 +1,4 @@
+import { ArticlePageService } from '../article-page.service';
 import { DOCUMENT } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -12,6 +13,7 @@ import {
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
+import { SidebarActionDirective } from '@drevo-web/ui';
 
 /**
  * State interface for managing interactive content visibility
@@ -22,7 +24,6 @@ interface ContentInteractionState {
     rusVisible: boolean;
     cslVisible: boolean;
 }
-
 /**
  * Component for rendering article content with internal link handling.
  *
@@ -42,7 +43,8 @@ interface ContentInteractionState {
  */
 @Component({
     selector: 'app-article-content',
-    template: '<div [innerHTML]="sanitizedContent"></div>',
+    imports: [SidebarActionDirective],
+    templateUrl: './article-content.component.html',
     styleUrl: './article-content.component.scss',
     encapsulation: ViewEncapsulation.None, // TODO remove after Formatter implementing
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,6 +91,9 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly logger =
         inject(LoggerService).withContext('ArticleContent');
     private readonly notification = inject(NotificationService);
+    private readonly pageService = inject(ArticlePageService);
+
+    readonly editUrl = this.pageService.editUrl;
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
@@ -439,5 +444,9 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
     private showNotImplementedYet(): void {
         this.notification.info('Функция еще не реализована');
+    }
+
+    openTableOfContents(): void {
+        this.showNotImplementedYet();
     }
 }

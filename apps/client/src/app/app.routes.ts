@@ -86,7 +86,7 @@ export const appRoutes: Route[] = [
             {
                 path: 'articles/version/:id',
                 loadComponent: () =>
-                    import('./pages/article/version-redirect.component').then(
+                    import('./pages/article/version-redirect/version-redirect.component').then(
                         m => m.VersionRedirectComponent
                     ),
             },
