@@ -9,6 +9,7 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import {
     DIFF_ENGINES,
@@ -18,40 +19,32 @@ import {
     VersionPairs,
 } from '@drevo-web/shared';
 import {
-    ButtonComponent,
     DropdownMenuComponent,
     DropdownMenuItemComponent,
     DropdownMenuTriggerDirective,
     IconButtonComponent,
-    MODAL_DATA,
-    ModalData,
     SpinnerComponent,
 } from '@drevo-web/ui';
 
-export interface DiffModalData {
-    readonly versionId: number;
-}
-
 @Component({
-    selector: 'app-diff-modal',
+    selector: 'app-diff-page',
     imports: [
         SpinnerComponent,
         IconButtonComponent,
-        ButtonComponent,
         DropdownMenuComponent,
         DropdownMenuItemComponent,
         DropdownMenuTriggerDirective,
     ],
-    templateUrl: './diff-modal.component.html',
-    styleUrl: './diff-modal.component.scss',
+    templateUrl: './diff-page.component.html',
+    styleUrl: './diff-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DiffModalComponent implements OnInit {
-    private readonly modalData = inject<ModalData<DiffModalData>>(MODAL_DATA);
+export class DiffPageComponent implements OnInit {
+    private readonly route = inject(ActivatedRoute);
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger =
-        inject(LoggerService).withContext('DiffModalComponent');
+        inject(LoggerService).withContext('DiffPageComponent');
 
     private readonly _isLoading = signal(true);
     private readonly _error = signal<string | undefined>(undefined);
@@ -90,16 +83,22 @@ export class DiffModalComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        this.loadVersionPairs();
+        const idParam = this.route.snapshot.paramMap.get('id');
+        const versionId = idParam ? parseInt(idParam, 10) : NaN;
+
+        if (isNaN(versionId) || versionId <= 0) {
+            this._error.set('Неверный ID версии');
+            this._isLoading.set(false);
+            this.logger.error('Invalid version ID in route', idParam);
+            return;
+        }
+
+        this.loadVersionPairs(versionId);
     }
 
     onEngineChange(engine: DiffEngineEntry): void {
         this._selectedEngine.set(engine);
         this.logger.info('Diff engine changed', { engineId: engine.id });
-    }
-
-    onClose(): void {
-        this.modalData.close();
     }
 
     formatDate(date: Date): string {
@@ -112,9 +111,7 @@ export class DiffModalComponent implements OnInit {
         });
     }
 
-    private loadVersionPairs(): void {
-        const versionId = this.modalData.data.versionId;
-
+    private loadVersionPairs(versionId: number): void {
         this.articleService
             .getVersionPairs(versionId)
             .pipe(takeUntilDestroyed(this.destroyRef))

@@ -1,0 +1,54 @@
+<div class="history-filters">
+    <ui-button
+        [variant]="service.activeFilter() === 'all' ? 'primary' : 'secondary'"
+        (click)="service.onFilterChange('all')">
+        Все
+    </ui-button>
+    <ui-button
+        [variant]="service.activeFilter() === 'unchecked' ? 'primary' : 'secondary'"
+        (click)="service.onFilterChange('unchecked')">
+        Непроверенные
+    </ui-button>
+    @if (service.canFilterByAuthor()) {
+        <ui-button
+            [variant]="service.activeFilter() === 'my' ? 'primary' : 'secondary'"
+            (click)="service.onFilterChange('my')">
+            Мои
+        </ui-button>
+    }
+</div>
+
+@if (service.isLoading()) {
+    <div class="history-loading">
+        <ui-spinner />
+    </div>
+}
+
+@if (!service.isLoading() && service.hasError()) {
+    <p class="history-error">Не удалось загрузить данные</p>
+}
+
+@if (!service.isLoading() && !service.hasError() && service.hasItems()) {
+    <ui-virtual-scroller
+        [items]="service.displayItems()"
+        [totalItems]="service.displayTotalItems()"
+        [isLoading]="service.isLoadingMore()"
+        [trackByFn]="trackByFn"
+        (loadMore)="service.onLoadMore()">
+        <ng-template
+            uiVirtualScrollerItem
+            let-item>
+            @if (item.type === 'header') {
+                <div class="history-date-header">{{ item.date }}</div>
+            } @else {
+                <app-articles-history-item
+                    [item]="item.data"
+                    (viewDiff)="onViewDiff($event)" />
+            }
+        </ng-template>
+    </ui-virtual-scroller>
+}
+
+@if (!service.isLoading() && !service.hasError() && !service.hasItems()) {
+    <p class="history-empty">Нет записей</p>
+}

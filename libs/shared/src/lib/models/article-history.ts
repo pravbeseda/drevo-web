@@ -38,4 +38,5 @@ export interface ArticleHistoryParams {
     readonly pageSize?: number;
     readonly approved?: ApprovalStatus;
     readonly author?: string;
+    readonly articleId?: number;
 }

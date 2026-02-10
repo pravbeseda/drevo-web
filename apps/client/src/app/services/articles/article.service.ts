@@ -131,10 +131,11 @@ export class ArticleService {
             pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
             approved,
             author,
+            articleId,
         } = params;
 
         return this.articleApiService
-            .getArticlesHistory(page, pageSize, approved, author)
+            .getArticlesHistory(page, pageSize, approved, author, articleId)
             .pipe(map(response => this.mapHistoryResponse(response)));
     }
 

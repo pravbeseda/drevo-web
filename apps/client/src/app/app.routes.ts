@@ -23,9 +23,16 @@ export const appRoutes: Route[] = [
             {
                 path: 'editor',
                 loadComponent: () =>
-                    import(
-                        './pages/shared-editor/shared-editor.component'
-                    ).then(m => m.SharedEditorComponent),
+                    import('./pages/shared-editor/shared-editor.component').then(
+                        m => m.SharedEditorComponent
+                    ),
+            },
+            {
+                path: 'history/diff/:id',
+                loadComponent: () =>
+                    import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
+                        m => m.DiffPageComponent
+                    ),
             },
             {
                 path: 'history',
@@ -42,30 +49,30 @@ export const appRoutes: Route[] = [
                     {
                         path: 'articles',
                         loadComponent: () =>
-                            import(
-                                './pages/history/tabs/articles/articles-history.component'
-                            ).then(m => m.ArticlesHistoryComponent),
+                            import('./pages/history/tabs/articles/article-history/articles-history.component').then(
+                                m => m.ArticlesHistoryComponent
+                            ),
                     },
                     {
                         path: 'news',
                         loadComponent: () =>
-                            import(
-                                './pages/history/tabs/news-history.component'
-                            ).then(m => m.NewsHistoryComponent),
+                            import('./pages/history/tabs/news-history.component').then(
+                                m => m.NewsHistoryComponent
+                            ),
                     },
                     {
                         path: 'forum',
                         loadComponent: () =>
-                            import(
-                                './pages/history/tabs/forum-history.component'
-                            ).then(m => m.ForumHistoryComponent),
+                            import('./pages/history/tabs/forum-history.component').then(
+                                m => m.ForumHistoryComponent
+                            ),
                     },
                     {
                         path: 'pictures',
                         loadComponent: () =>
-                            import(
-                                './pages/history/tabs/pictures.component'
-                            ).then(m => m.PicturesComponent),
+                            import('./pages/history/tabs/pictures.component').then(
+                                m => m.PicturesComponent
+                            ),
                     },
                 ],
             },
@@ -79,9 +86,9 @@ export const appRoutes: Route[] = [
             {
                 path: 'articles/version/:id',
                 loadComponent: () =>
-                    import(
-                        './pages/article/version-redirect.component'
-                    ).then(m => m.VersionRedirectComponent),
+                    import('./pages/article/version-redirect.component').then(
+                        m => m.VersionRedirectComponent
+                    ),
             },
             {
                 path: 'articles/:id',
