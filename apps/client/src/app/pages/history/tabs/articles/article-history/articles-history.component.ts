@@ -6,11 +6,12 @@ import {
     inject,
     OnInit,
 } from '@angular/core';
+import { SidebarActionDirective } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-articles-history',
-    imports: [ArticleHistoryListComponent],
-    template: '<app-article-history-list />',
+    imports: [ArticleHistoryListComponent, SidebarActionDirective],
+    templateUrl: './articles-history.component.html',
     styleUrl: './articles-history.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [ArticleHistoryService],
@@ -20,5 +21,9 @@ export class ArticlesHistoryComponent implements OnInit {
 
     ngOnInit(): void {
         this.service.init();
+    }
+
+    openFilters(): void {
+        //
     }
 }
