@@ -50,4 +50,38 @@ describe('ArticlesHistoryComponent', () => {
         spectator.detectChanges();
         expect(spectator.query('app-article-history-list')).toBeTruthy();
     });
+
+    it('should render side panel', () => {
+        spectator.detectChanges();
+        expect(spectator.query('ui-side-panel')).toBeTruthy();
+    });
+
+    it('should toggle side panel on openFilters()', () => {
+        spectator.detectChanges();
+        expect(spectator.component.isSidePanelOpen()).toBe(false);
+
+        spectator.component.openFilters();
+        expect(spectator.component.isSidePanelOpen()).toBe(true);
+
+        spectator.component.openFilters();
+        expect(spectator.component.isSidePanelOpen()).toBe(false);
+    });
+
+    it('should delegate onFilterChange to service', () => {
+        spectator.detectChanges();
+
+        spectator.component.onFilterChange('unchecked');
+
+        expect(mockService.onFilterChange).toHaveBeenCalledWith('unchecked');
+    });
+
+    it('should expose activeFilter from service', () => {
+        spectator.detectChanges();
+        expect(spectator.component.activeFilter()).toBe('all');
+    });
+
+    it('should expose canFilterByAuthor from service', () => {
+        spectator.detectChanges();
+        expect(spectator.component.canFilterByAuthor()).toBe(true);
+    });
 });

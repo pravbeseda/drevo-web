@@ -17,7 +17,14 @@ import {
     formatDateHeader,
 } from '@drevo-web/shared';
 
-export type HistoryFilter = 'all' | 'unchecked' | 'my';
+export type HistoryFilter =
+    | 'all'
+    | 'unchecked'
+    | 'unfinished'
+    | 'unmarked'
+    | 'outside_dictionaries'
+    | 'required'
+    | 'my';
 
 export type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }
@@ -195,6 +202,17 @@ export class ArticleHistoryService {
         const filter = this._activeFilter();
         if (filter === 'unchecked') {
             return { ...base, approved: ApprovalStatus.Pending };
+        }
+        if (
+            filter === 'unfinished' ||
+            filter === 'unmarked' ||
+            filter === 'outside_dictionaries' ||
+            filter === 'required'
+        ) {
+            this.logger.info('Filter not yet supported by backend', {
+                filter,
+            });
+            return base;
         }
         if (filter === 'my') {
             const user = this.currentUser();

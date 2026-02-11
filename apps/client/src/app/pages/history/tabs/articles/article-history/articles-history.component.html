@@ -7,3 +7,13 @@
 </button>
 
 <app-article-history-list />
+
+<ui-side-panel
+    [open]="isSidePanelOpen()"
+    title="Фильтры"
+    (closed)="isSidePanelOpen.set(false)">
+    <app-article-filters
+        [activeFilter]="activeFilter()"
+        [canFilterByAuthor]="canFilterByAuthor()"
+        (filterChange)="onFilterChange($event)" />
+</ui-side-panel>

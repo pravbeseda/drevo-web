@@ -1,23 +1,3 @@
-<div class="history-filters">
-    <ui-button
-        [variant]="service.activeFilter() === 'all' ? 'primary' : 'secondary'"
-        (click)="service.onFilterChange('all')">
-        Все
-    </ui-button>
-    <ui-button
-        [variant]="service.activeFilter() === 'unchecked' ? 'primary' : 'secondary'"
-        (click)="service.onFilterChange('unchecked')">
-        Непроверенные
-    </ui-button>
-    @if (service.canFilterByAuthor()) {
-        <ui-button
-            [variant]="service.activeFilter() === 'my' ? 'primary' : 'secondary'"
-            (click)="service.onFilterChange('my')">
-            Мои
-        </ui-button>
-    }
-</div>
-
 @if (service.isLoading()) {
     <div class="history-loading">
         <ui-spinner />

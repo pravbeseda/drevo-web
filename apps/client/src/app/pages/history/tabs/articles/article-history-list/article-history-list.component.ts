@@ -6,7 +6,6 @@ import { ArticlesHistoryItemComponent } from '../articles-history-item/articles-
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-    ButtonComponent,
     SpinnerComponent,
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
@@ -16,7 +15,6 @@ import {
     selector: 'app-article-history-list',
     imports: [
         ArticlesHistoryItemComponent,
-        ButtonComponent,
         SpinnerComponent,
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,

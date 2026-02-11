@@ -263,8 +263,12 @@ $theme-colors: (
         dark: $md-grey-800,
     ),
 
-    // Drawer
+    // Drawer / Side panel
     drawer-backdrop-bg: (
+        light: rgba(0, 0, 0, 0.4),
+        dark: rgba(0, 0, 0, 0.6),
+    ),
+    side-panel-backdrop-bg: (
         light: rgba(0, 0, 0, 0.4),
         dark: rgba(0, 0, 0, 0.6),
     ),

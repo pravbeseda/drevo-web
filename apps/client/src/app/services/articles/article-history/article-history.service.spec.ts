@@ -400,6 +400,44 @@ describe('ArticleHistoryService', () => {
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
         });
 
+        it.each([
+            'unfinished',
+            'unmarked',
+            'outside_dictionaries',
+            'required',
+        ] as const)(
+            'should load without extra params for unsupported "%s" filter',
+            filter => {
+                articleService.getArticlesHistory.mockClear();
+                articleService.getArticlesHistory.mockReturnValue(
+                    of(createMockResponse())
+                );
+
+                spectator.service.onFilterChange(filter);
+
+                expect(
+                    articleService.getArticlesHistory
+                ).toHaveBeenCalledWith({ page: 1 });
+            }
+        );
+
+        it('should log info for unsupported filter', () => {
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+
+            spectator.service.onFilterChange('unfinished');
+
+            const loggerService = spectator.inject(
+                LoggerService
+            ) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.info).toHaveBeenCalledWith(
+                'Filter not yet supported by backend',
+                { filter: 'unfinished' }
+            );
+        });
+
         it('should reset items and error state when changing filter', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 throwError(() => new Error('fail'))

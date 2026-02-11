@@ -103,23 +103,6 @@ describe('ArticleHistoryListComponent', () => {
         expect(spectator.query('ui-virtual-scroller')).toBeTruthy();
     });
 
-    it('should show filter buttons', () => {
-        spectator.detectChanges();
-        const buttons = spectator.queryAll('ui-button');
-        const buttonTexts = buttons.map(b => b.textContent?.trim());
-        expect(buttonTexts).toContain('Все');
-        expect(buttonTexts).toContain('Непроверенные');
-        expect(buttonTexts).toContain('Мои');
-    });
-
-    it('should hide "Мои" button when canFilterByAuthor is false', () => {
-        (mockService.canFilterByAuthor as any).set(false);
-        spectator.detectChanges();
-        const buttons = spectator.queryAll('ui-button');
-        const buttonTexts = buttons.map(b => b.textContent?.trim());
-        expect(buttonTexts).not.toContain('Мои');
-    });
-
     it('should navigate to diff page on onViewDiff', () => {
         const router = spectator.inject(Router);
         spectator.detectChanges();

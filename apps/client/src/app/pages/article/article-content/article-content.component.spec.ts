@@ -1,4 +1,6 @@
+import { ArticlePageService } from '../article-page.service';
 import { Router } from '@angular/router';
+import { signal } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
@@ -12,7 +14,13 @@ describe('ArticleContentComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleContentComponent,
         mocks: [Router],
-        providers: [mockLoggerProvider()],
+        providers: [
+            mockLoggerProvider(),
+            {
+                provide: ArticlePageService,
+                useValue: { editUrl: signal(undefined) },
+            },
+        ],
     });
 
     beforeEach(() => {
