@@ -1,3 +1,4 @@
+import { ArticleFiltersComponent } from '../../../components/article-filters/article-filters.component';
 import {
     ArticleHistoryService,
     HistoryFilter,
@@ -12,7 +13,6 @@ import {
     signal,
 } from '@angular/core';
 import { SidebarActionDirective, SidePanelComponent } from '@drevo-web/ui';
-import { ArticleFiltersComponent } from '../../../components/article-filters/article-filters.component';
 
 @Component({
     selector: 'app-article-versions',
