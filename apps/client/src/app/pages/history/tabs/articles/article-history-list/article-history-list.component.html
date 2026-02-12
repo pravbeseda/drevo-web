@@ -5,7 +5,11 @@
 }
 
 @if (!service.isLoading() && service.hasError()) {
-    <p class="history-error">Не удалось загрузить данные</p>
+    <p
+        class="history-error"
+        data-testid="history-error">
+        Не удалось загрузить данные
+    </p>
 }
 
 @if (!service.isLoading() && !service.hasError() && service.hasItems()) {
@@ -30,5 +34,9 @@
 }
 
 @if (!service.isLoading() && !service.hasError() && !service.hasItems()) {
-    <p class="history-empty">Нет записей</p>
+    <p
+        class="history-empty"
+        data-testid="history-empty">
+        Нет записей
+    </p>
 }

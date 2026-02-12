@@ -40,32 +40,32 @@ describe('FiltersComponent', () => {
         });
 
         it('should render all filter buttons', () => {
-            const buttons = spectator.queryAll('.filter-item');
+            const buttons = spectator.queryAll('[data-testid="filter-item"]');
             const labels = buttons.map(b => b.textContent?.trim());
 
             expect(labels).toEqual(['Все', 'Непроверенные', 'Мои']);
         });
 
         it('should not render section headers', () => {
-            expect(spectator.query('.filter-section-header')).toBeFalsy();
+            expect(spectator.query('[data-testid="filter-section-header"]')).toBeFalsy();
         });
 
         it('should mark active filter with active class', () => {
             spectator.setInput('activeFilter', 'unchecked');
 
-            const activeButtons = spectator.queryAll('.filter-item.active');
+            const activeButtons = spectator.queryAll('[data-testid="filter-item"].active');
             expect(activeButtons.length).toBe(1);
             expect(activeButtons[0].textContent?.trim()).toBe('Непроверенные');
         });
 
         it('should set aria-checked on active filter', () => {
             const allButton = spectator
-                .queryAll('.filter-item')
+                .queryAll('[data-testid="filter-item"]')
                 .find(b => b.textContent?.trim() === 'Все');
             expect(allButton?.getAttribute('aria-checked')).toBe('true');
 
             const uncheckedButton = spectator
-                .queryAll('.filter-item')
+                .queryAll('[data-testid="filter-item"]')
                 .find(b => b.textContent?.trim() === 'Непроверенные');
             expect(uncheckedButton?.getAttribute('aria-checked')).toBe('false');
         });
@@ -75,7 +75,7 @@ describe('FiltersComponent', () => {
             spectator.component.filterChange.subscribe(filterChangeSpy);
 
             const uncheckedButton = spectator
-                .queryAll('.filter-item')
+                .queryAll('[data-testid="filter-item"]')
                 .find(b => b.textContent?.trim() === 'Непроверенные');
             spectator.click(uncheckedButton!);
 
@@ -96,12 +96,12 @@ describe('FiltersComponent', () => {
         });
 
         it('should render section header', () => {
-            const header = spectator.query('.filter-section-header');
+            const header = spectator.query('[data-testid="filter-section-header"]');
             expect(header?.textContent?.trim()).toBe('В работе');
         });
 
         it('should apply nested class to group items', () => {
-            const nestedButtons = spectator.queryAll('.filter-item.nested');
+            const nestedButtons = spectator.queryAll('[data-testid="filter-item"].nested');
             const labels = nestedButtons.map(b => b.textContent?.trim());
 
             expect(labels).toEqual(['Неоконченные', 'Неразмеченные']);
@@ -112,7 +112,7 @@ describe('FiltersComponent', () => {
             spectator.component.filterChange.subscribe(filterChangeSpy);
 
             const nestedButton = spectator
-                .queryAll('.filter-item.nested')
+                .queryAll('[data-testid="filter-item"].nested')
                 .find(b => b.textContent?.trim() === 'Неоконченные');
             spectator.click(nestedButton!);
 
@@ -120,14 +120,14 @@ describe('FiltersComponent', () => {
         });
 
         it('should render all buttons including grouped', () => {
-            const buttons = spectator.queryAll('.filter-item');
+            const buttons = spectator.queryAll('[data-testid="filter-item"]');
             expect(buttons.length).toBe(5);
         });
 
         it('should mark nested filter as active', () => {
             spectator.setInput('activeFilter', 'unmarked');
 
-            const activeButtons = spectator.queryAll('.filter-item.active');
+            const activeButtons = spectator.queryAll('[data-testid="filter-item"].active');
             expect(activeButtons.length).toBe(1);
             expect(activeButtons[0].textContent?.trim()).toBe('Неразмеченные');
         });

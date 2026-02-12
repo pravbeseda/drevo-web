@@ -77,18 +77,18 @@ describe('ArticleHistoryListComponent', () => {
     it('should show error message on error', () => {
         (mockService.hasError as any).set(true);
         spectator.detectChanges();
-        expect(spectator.query('.history-error')).toBeTruthy();
+        expect(spectator.query('[data-testid="history-error"]')).toBeTruthy();
     });
 
     it('should show empty message when no items', () => {
         spectator.detectChanges();
-        expect(spectator.query('.history-empty')).toBeTruthy();
+        expect(spectator.query('[data-testid="history-empty"]')).toBeTruthy();
     });
 
     it('should not show empty when loading', () => {
         (mockService.isLoading as any).set(true);
         spectator.detectChanges();
-        expect(spectator.query('.history-empty')).toBeFalsy();
+        expect(spectator.query('[data-testid="history-empty"]')).toBeFalsy();
     });
 
     it('should show virtual scroller when hasItems', () => {

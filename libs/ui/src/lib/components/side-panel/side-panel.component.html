@@ -1,25 +1,34 @@
 @if (open()) {
     <div
         class="side-panel-backdrop"
-        role="button"
+        data-testid="side-panel-backdrop"
+        role="none"
         tabindex="-1"
-        aria-label="Закрыть"
-        (click)="close()"
-        (keydown.enter)="close()"></div>
+        (click)="close()"></div>
 }
 <div
     class="side-panel"
+    data-testid="side-panel"
     [class.open]="open()"
     role="dialog"
-    aria-modal="true">
+    [attr.aria-modal]="open() || null"
+    [attr.aria-hidden]="!open()"
+    [attr.inert]="!open() || null"
+    [attr.aria-label]="title()">
     <div class="side-panel-header">
-        <span class="side-panel-title">{{ title() }}</span>
+        <span
+            class="side-panel-title"
+            data-testid="side-panel-title">
+            {{ title() }}
+        </span>
         <ui-icon-button
             icon="close"
             label="Закрыть"
             (clicked)="close()" />
     </div>
-    <div class="side-panel-content">
+    <div
+        class="side-panel-content"
+        data-testid="side-panel-content">
         <ng-content />
     </div>
 </div>

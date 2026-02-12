@@ -535,6 +535,30 @@ describe('ArticleApiService', () => {
             req.flush(mockHistoryResponse);
         });
 
+        it('should include articleId param when provided', () => {
+            spectator.service
+                .getArticlesHistory(1, 25, undefined, undefined, 42)
+                .subscribe();
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/history' &&
+                    request.params.get('articleId') === '42'
+            );
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should not include articleId param when undefined', () => {
+            spectator.service.getArticlesHistory(1, 25).subscribe();
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/history' &&
+                    !request.params.has('articleId')
+            );
+            req.flush(mockHistoryResponse);
+        });
+
         it('should extract data from response wrapper', done => {
             spectator.service.getArticlesHistory(1, 25).subscribe(result => {
                 expect(result.items).toHaveLength(1);

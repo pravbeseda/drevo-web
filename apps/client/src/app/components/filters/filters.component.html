@@ -4,11 +4,16 @@
     aria-label="Фильтры">
     @for (entry of filters(); track $index) {
         @if (isFilterGroup(entry)) {
-            <li class="filter-section-header">{{ entry.label }}</li>
+            <li
+                class="filter-section-header"
+                data-testid="filter-section-header">
+                {{ entry.label }}
+            </li>
             @for (item of entry.items; track item.key) {
                 <li>
                     <button
                         class="filter-item nested"
+                        data-testid="filter-item"
                         role="radio"
                         [attr.aria-checked]="activeFilter() === item.key"
                         [class.active]="activeFilter() === item.key"
@@ -21,6 +26,7 @@
             <li>
                 <button
                     class="filter-item"
+                    data-testid="filter-item"
                     role="radio"
                     [attr.aria-checked]="activeFilter() === entry.key"
                     [class.active]="activeFilter() === entry.key"
