@@ -4,7 +4,6 @@ import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { NEVER, of } from 'rxjs';
-import { WINDOW } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
 
 const mockVersionPairs: VersionPairs = {
@@ -42,10 +41,6 @@ describe('DiffPageComponent', () => {
                         paramMap: convertToParamMap({ id: '200' }),
                     },
                 },
-            },
-            {
-                provide: WINDOW,
-                useValue: { history: { back: jest.fn() } },
             },
         ],
         detectChanges: false,

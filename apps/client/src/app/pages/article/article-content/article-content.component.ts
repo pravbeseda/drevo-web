@@ -24,6 +24,7 @@ interface ContentInteractionState {
     rusVisible: boolean;
     cslVisible: boolean;
 }
+
 /**
  * Component for rendering article content with internal link handling.
  *

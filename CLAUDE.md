@@ -21,7 +21,7 @@
 ## Commands
 
 ```bash
-yarn dev                           # Dev server at localhost:4200
+yarn serve                         # Dev server at localhost:4200
 yarn build                         # Production build
 yarn build:dev                     # Development build
 yarn nx test client                # Unit tests
@@ -130,6 +130,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 4. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
 5. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
 6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
+7. **No `title` attribute** — use `matTooltip` for visual hints or `aria-label` for accessible name without visual hint
 
 ## Key Patterns
 
