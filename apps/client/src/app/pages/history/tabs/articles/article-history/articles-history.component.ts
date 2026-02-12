@@ -1,5 +1,5 @@
 import { FilterEntry } from '../../../../../components/filters/filter.model';
-import { FiltersComponent } from '../../../../../components/filters/filters.component';
+import { FiltersSidePanelComponent } from '../../../../../components/filters/filters-side-panel/filters-side-panel.component';
 import {
     ArticleHistoryService,
     HistoryFilter,
@@ -11,9 +11,7 @@ import {
     computed,
     inject,
     OnInit,
-    signal,
 } from '@angular/core';
-import { SidePanelComponent, SidebarActionDirective } from '@drevo-web/ui';
 
 const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
     { key: 'all', label: 'Все' },
@@ -31,12 +29,7 @@ const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
 
 @Component({
     selector: 'app-articles-history',
-    imports: [
-        FiltersComponent,
-        ArticleHistoryListComponent,
-        SidePanelComponent,
-        SidebarActionDirective,
-    ],
+    imports: [ArticleHistoryListComponent, FiltersSidePanelComponent],
     templateUrl: './articles-history.component.html',
     styleUrl: './articles-history.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,7 +38,6 @@ const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
 export class ArticlesHistoryComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
 
-    readonly isSidePanelOpen = signal(false);
     readonly activeFilter = this.service.activeFilter;
 
     readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
@@ -57,10 +49,6 @@ export class ArticlesHistoryComponent implements OnInit {
 
     ngOnInit(): void {
         this.service.init();
-    }
-
-    openFilters(): void {
-        this.isSidePanelOpen.update(v => !v);
     }
 
     onFilterChange(filter: HistoryFilter): void {

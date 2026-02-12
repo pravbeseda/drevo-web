@@ -1,5 +1,5 @@
 import { FilterEntry } from '../../../components/filters/filter.model';
-import { FiltersComponent } from '../../../components/filters/filters.component';
+import { FiltersSidePanelComponent } from '../../../components/filters/filters-side-panel/filters-side-panel.component';
 import {
     ArticleHistoryService,
     HistoryFilter,
@@ -12,18 +12,11 @@ import {
     computed,
     inject,
     OnInit,
-    signal,
 } from '@angular/core';
-import { SidebarActionDirective, SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-article-versions',
-    imports: [
-        ArticleHistoryListComponent,
-        SidebarActionDirective,
-        FiltersComponent,
-        SidePanelComponent,
-    ],
+    imports: [ArticleHistoryListComponent, FiltersSidePanelComponent],
     templateUrl: './article-versions.component.html',
     styleUrl: './article-versions.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,7 +26,6 @@ export class ArticleVersionsComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
     private readonly articlePageService = inject(ArticlePageService);
 
-    readonly isSidePanelOpen = signal(false);
     readonly activeFilter = this.service.activeFilter;
 
     readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
@@ -49,10 +41,6 @@ export class ArticleVersionsComponent implements OnInit {
 
     ngOnInit(): void {
         this.service.init({ articleId: this.articlePageService.articleId });
-    }
-
-    openFilters(): void {
-        this.isSidePanelOpen.update(v => !v);
     }
 
     onFilterChange(filter: HistoryFilter): void {

@@ -51,20 +51,9 @@ describe('ArticlesHistoryComponent', () => {
         expect(spectator.query('app-article-history-list')).toBeTruthy();
     });
 
-    it('should render side panel', () => {
+    it('should render filters-side-panel', () => {
         spectator.detectChanges();
-        expect(spectator.query('ui-side-panel')).toBeTruthy();
-    });
-
-    it('should toggle side panel on openFilters()', () => {
-        spectator.detectChanges();
-        expect(spectator.component.isSidePanelOpen()).toBe(false);
-
-        spectator.component.openFilters();
-        expect(spectator.component.isSidePanelOpen()).toBe(true);
-
-        spectator.component.openFilters();
-        expect(spectator.component.isSidePanelOpen()).toBe(false);
+        expect(spectator.query('app-filters-side-panel')).toBeTruthy();
     });
 
     it('should delegate onFilterChange to service', () => {
