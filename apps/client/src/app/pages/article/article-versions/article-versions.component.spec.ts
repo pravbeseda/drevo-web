@@ -14,7 +14,7 @@ describe('ArticleVersionsComponent', () => {
         isLoadingMore: signal(false),
         activeFilter: signal('all' as const),
         hasError: signal(false),
-        canFilterByAuthor: signal(true),
+        isAuthenticated: signal(true),
         hasItems: signal(false),
         displayItems: signal([]),
         displayTotalItems: signal(0),

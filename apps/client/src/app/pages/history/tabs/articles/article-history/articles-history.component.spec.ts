@@ -12,7 +12,7 @@ describe('ArticlesHistoryComponent', () => {
         isLoadingMore: signal(false),
         activeFilter: signal('all' as const),
         hasError: signal(false),
-        canFilterByAuthor: signal(true),
+        isAuthenticated: signal(true),
         hasItems: signal(false),
         displayItems: signal([]),
         displayTotalItems: signal(0),
@@ -78,10 +78,5 @@ describe('ArticlesHistoryComponent', () => {
     it('should expose activeFilter from service', () => {
         spectator.detectChanges();
         expect(spectator.component.activeFilter()).toBe('all');
-    });
-
-    it('should expose canFilterByAuthor from service', () => {
-        spectator.detectChanges();
-        expect(spectator.component.canFilterByAuthor()).toBe(true);
     });
 });

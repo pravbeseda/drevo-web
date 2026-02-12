@@ -1,4 +1,5 @@
-import { ArticleFiltersComponent } from '../../../../../components/article-filters/article-filters.component';
+import { FilterEntry } from '../../../../../components/filters/filter.model';
+import { FiltersComponent } from '../../../../../components/filters/filters.component';
 import {
     ArticleHistoryService,
     HistoryFilter,
@@ -7,16 +8,31 @@ import { ArticleHistoryListComponent } from '../article-history-list/article-his
 import {
     ChangeDetectionStrategy,
     Component,
+    computed,
     inject,
     OnInit,
     signal,
 } from '@angular/core';
 import { SidePanelComponent, SidebarActionDirective } from '@drevo-web/ui';
 
+const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
+    { key: 'all', label: 'Все' },
+    { key: 'unchecked', label: 'Непроверенные' },
+    {
+        label: 'В работе',
+        items: [
+            { key: 'unfinished', label: 'Неоконченные' },
+            { key: 'unmarked', label: 'Неразмеченные' },
+            { key: 'outside_dictionaries', label: 'Вне словников' },
+            { key: 'required', label: 'Требующиеся' },
+        ],
+    },
+];
+
 @Component({
     selector: 'app-articles-history',
     imports: [
-        ArticleFiltersComponent,
+        FiltersComponent,
         ArticleHistoryListComponent,
         SidePanelComponent,
         SidebarActionDirective,
@@ -31,7 +47,13 @@ export class ArticlesHistoryComponent implements OnInit {
 
     readonly isSidePanelOpen = signal(false);
     readonly activeFilter = this.service.activeFilter;
-    readonly canFilterByAuthor = this.service.canFilterByAuthor;
+
+    readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
+        if (this.service.isAuthenticated()) {
+            return [...BASE_FILTERS, { key: 'my', label: 'Мои' }];
+        }
+        return BASE_FILTERS;
+    });
 
     ngOnInit(): void {
         this.service.init();

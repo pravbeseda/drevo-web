@@ -94,7 +94,7 @@ export class ArticleHistoryService {
 
     private readonly currentUser = toSignal(this.authService.user$);
 
-    readonly canFilterByAuthor = computed(() => !!this.currentUser());
+    readonly isAuthenticated = computed(() => !!this.currentUser());
     readonly hasItems = computed(() => this._historyItems().length > 0);
 
     readonly displayItems = computed<readonly HistoryDisplayItem[]>(() =>

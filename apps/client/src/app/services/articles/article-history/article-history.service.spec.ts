@@ -322,14 +322,14 @@ describe('ArticleHistoryService', () => {
         });
     });
 
-    describe('canFilterByAuthor', () => {
+    describe('isAuthenticated', () => {
         it('should be true when user is available', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse())
             );
             spectator.service.init();
 
-            expect(spectator.service.canFilterByAuthor()).toBe(true);
+            expect(spectator.service.isAuthenticated()).toBe(true);
         });
 
         it('should be false when user is undefined', () => {
@@ -339,7 +339,7 @@ describe('ArticleHistoryService', () => {
             );
             spectator.service.init();
 
-            expect(spectator.service.canFilterByAuthor()).toBe(false);
+            expect(spectator.service.isAuthenticated()).toBe(false);
         });
     });
 

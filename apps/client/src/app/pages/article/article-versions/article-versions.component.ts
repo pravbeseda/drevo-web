@@ -1,4 +1,5 @@
-import { ArticleFiltersComponent } from '../../../components/article-filters/article-filters.component';
+import { FilterEntry } from '../../../components/filters/filter.model';
+import { FiltersComponent } from '../../../components/filters/filters.component';
 import {
     ArticleHistoryService,
     HistoryFilter,
@@ -8,6 +9,7 @@ import { ArticlePageService } from '../article-page.service';
 import {
     ChangeDetectionStrategy,
     Component,
+    computed,
     inject,
     OnInit,
     signal,
@@ -19,7 +21,7 @@ import { SidebarActionDirective, SidePanelComponent } from '@drevo-web/ui';
     imports: [
         ArticleHistoryListComponent,
         SidebarActionDirective,
-        ArticleFiltersComponent,
+        FiltersComponent,
         SidePanelComponent,
     ],
     templateUrl: './article-versions.component.html',
@@ -33,7 +35,17 @@ export class ArticleVersionsComponent implements OnInit {
 
     readonly isSidePanelOpen = signal(false);
     readonly activeFilter = this.service.activeFilter;
-    readonly canFilterByAuthor = this.service.canFilterByAuthor;
+
+    readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
+        const entries: FilterEntry<HistoryFilter>[] = [
+            { key: 'all', label: 'Все' },
+            { key: 'unchecked', label: 'Непроверенные' },
+        ];
+        if (this.service.isAuthenticated()) {
+            entries.push({ key: 'my', label: 'Мои' });
+        }
+        return entries;
+    });
 
     ngOnInit(): void {
         this.service.init({ articleId: this.articlePageService.articleId });
