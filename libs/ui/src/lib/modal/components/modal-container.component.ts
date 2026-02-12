@@ -26,9 +26,10 @@ interface LazyModalData<TData = unknown> {
     styleUrl: './modal-container.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModalContainerComponent<TData = unknown, TResult = unknown>
-    implements AfterViewInit
-{
+export class ModalContainerComponent<
+    TData = unknown,
+    TResult = unknown,
+> implements AfterViewInit {
     private readonly dialogRef =
         inject<MatDialogRef<ModalContainerComponent<TData, TResult>, TResult>>(
             MatDialogRef

@@ -79,9 +79,7 @@ describe('TabsGroupComponent', () => {
     it('should not show badge when badge is undefined', () => {
         spectator.setInput('groups', [
             {
-                items: [
-                    { label: 'No Badge', route: '/test', icon: 'article' },
-                ],
+                items: [{ label: 'No Badge', route: '/test', icon: 'article' }],
             },
         ]);
         const badge = spectator.query('.tab-badge');

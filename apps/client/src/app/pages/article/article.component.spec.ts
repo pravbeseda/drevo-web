@@ -36,16 +36,12 @@ function createMockPageService(
         ),
         isLoading: signal(overrides.isLoading ?? false),
         error: signal(overrides.error),
-        articleId: signal(
-            'articleId' in overrides ? overrides.articleId : 123
-        ),
+        articleId: signal('articleId' in overrides ? overrides.articleId : 123),
         title: signal(
             'title' in overrides ? overrides.title : 'Test Article Title'
         ),
         editUrl: signal(
-            'editUrl' in overrides
-                ? overrides.editUrl
-                : '/articles/edit/456'
+            'editUrl' in overrides ? overrides.editUrl : '/articles/edit/456'
         ),
         init: jest.fn(),
     };

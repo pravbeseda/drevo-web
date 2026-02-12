@@ -58,7 +58,10 @@ describe('ArticleContentTabComponent', () => {
                 mockLoggerProvider(),
                 {
                     provide: ArticlePageService,
-                    useValue: { article: signal(undefined), editUrl: signal(undefined) },
+                    useValue: {
+                        article: signal(undefined),
+                        editUrl: signal(undefined),
+                    },
                 },
                 {
                     provide: ActivatedRoute,
@@ -99,7 +102,10 @@ describe('ArticleContentTabComponent fragment scrolling', () => {
             mockLoggerProvider(),
             {
                 provide: ArticlePageService,
-                useValue: { article: signal(mockArticle), editUrl: signal(undefined) },
+                useValue: {
+                    article: signal(mockArticle),
+                    editUrl: signal(undefined),
+                },
             },
         ],
         detectChanges: false,

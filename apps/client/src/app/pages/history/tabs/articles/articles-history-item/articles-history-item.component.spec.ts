@@ -138,7 +138,6 @@ describe('ArticlesHistoryItemComponent', () => {
 
             expect(spy).toHaveBeenCalledWith(42);
         });
-
     });
 
     describe('author comment', () => {

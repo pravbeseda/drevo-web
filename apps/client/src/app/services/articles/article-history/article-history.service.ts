@@ -168,10 +168,7 @@ export class ArticleHistoryService {
                     this._isLoadingMore.set(false);
                 },
                 error: error => {
-                    this.logger.error(
-                        'Failed to load article history',
-                        error
-                    );
+                    this.logger.error('Failed to load article history', error);
                     if (loadMore) {
                         this._isLoadingMore.set(false);
                         this._currentPage.update(p => p - 1);
@@ -217,9 +214,7 @@ export class ArticleHistoryService {
         if (filter === 'my') {
             const user = this.currentUser();
             if (!user) {
-                this.logger.error(
-                    'Cannot filter by author: user not loaded'
-                );
+                this.logger.error('Cannot filter by author: user not loaded');
                 return undefined;
             }
             return { ...base, author: user.login };

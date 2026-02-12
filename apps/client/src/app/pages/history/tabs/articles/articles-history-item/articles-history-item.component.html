@@ -25,7 +25,12 @@
             <a
                 class="title"
                 data-testid="title"
-                [routerLink]="['/articles', item().articleId, 'version', item().versionId]">
+                [routerLink]="[
+                    '/articles',
+                    item().articleId,
+                    'version',
+                    item().versionId,
+                ]">
                 {{ item().title }}
             </a>
         </div>

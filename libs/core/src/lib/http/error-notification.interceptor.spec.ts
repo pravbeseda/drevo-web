@@ -157,9 +157,10 @@ describe('ErrorNotificationInterceptor', () => {
         });
 
         it('should show notification for non-skipped status codes', () => {
-            const context = new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [
-                404,
-            ]);
+            const context = new HttpContext().set(
+                SKIP_ERROR_FOR_STATUSES,
+                [404]
+            );
 
             spectator.service
                 .get('/api/test', context)

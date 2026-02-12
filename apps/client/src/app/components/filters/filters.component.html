@@ -1,4 +1,7 @@
-<ul class="filter-list" role="radiogroup" aria-label="Фильтры">
+<ul
+    class="filter-list"
+    role="radiogroup"
+    aria-label="Фильтры">
     @for (entry of filters(); track $index) {
         @if (isFilterGroup(entry)) {
             <li class="filter-section-header">{{ entry.label }}</li>

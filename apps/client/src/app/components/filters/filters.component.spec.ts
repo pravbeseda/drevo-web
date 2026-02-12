@@ -67,9 +67,7 @@ describe('FiltersComponent', () => {
             const uncheckedButton = spectator
                 .queryAll('.filter-item')
                 .find(b => b.textContent?.trim() === 'Непроверенные');
-            expect(uncheckedButton?.getAttribute('aria-checked')).toBe(
-                'false'
-            );
+            expect(uncheckedButton?.getAttribute('aria-checked')).toBe('false');
         });
 
         it('should emit filterChange when filter clicked', () => {

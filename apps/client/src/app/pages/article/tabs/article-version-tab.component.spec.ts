@@ -44,7 +44,10 @@ describe('ArticleVersionTabComponent', () => {
             },
             {
                 provide: ArticlePageService,
-                useValue: { articleId: signal(100), editUrl: signal(undefined) },
+                useValue: {
+                    articleId: signal(100),
+                    editUrl: signal(undefined),
+                },
             },
         ],
         detectChanges: false,
@@ -85,9 +88,7 @@ describe('ArticleVersionTabComponent', () => {
     it('should show version banner', () => {
         spectator.detectChanges();
 
-        expect(
-            spectator.query('[data-testid="version-banner"]')
-        ).toBeTruthy();
+        expect(spectator.query('[data-testid="version-banner"]')).toBeTruthy();
     });
 
     it('should display author and info in banner', () => {
@@ -150,12 +151,17 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
             {
                 provide: ArticleService,
                 useValue: {
-                    getVersionShow: jest.fn().mockReturnValue(of(mismatchedVersion)),
+                    getVersionShow: jest
+                        .fn()
+                        .mockReturnValue(of(mismatchedVersion)),
                 },
             },
             {
                 provide: ArticlePageService,
-                useValue: { articleId: signal(100), editUrl: signal(undefined) },
+                useValue: {
+                    articleId: signal(100),
+                    editUrl: signal(undefined),
+                },
             },
             {
                 provide: ActivatedRoute,
@@ -193,7 +199,10 @@ describe('ArticleVersionTabComponent with invalid ID', () => {
             },
             {
                 provide: ArticlePageService,
-                useValue: { articleId: signal(100), editUrl: signal(undefined) },
+                useValue: {
+                    articleId: signal(100),
+                    editUrl: signal(undefined),
+                },
             },
             {
                 provide: ActivatedRoute,

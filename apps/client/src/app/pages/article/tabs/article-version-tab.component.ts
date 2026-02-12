@@ -21,11 +21,7 @@ import {
     APPROVAL_TITLES,
     ArticleVersion,
 } from '@drevo-web/shared';
-import {
-    FormatTimePipe,
-    IconComponent,
-    SpinnerComponent,
-} from '@drevo-web/ui';
+import { FormatTimePipe, IconComponent, SpinnerComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({

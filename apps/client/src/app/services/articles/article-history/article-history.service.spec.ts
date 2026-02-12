@@ -287,9 +287,7 @@ describe('ArticleHistoryService', () => {
             spectator.service.init();
 
             const displayItems = spectator.service.displayItems();
-            const versionItems = displayItems.filter(
-                i => i.type === 'version'
-            );
+            const versionItems = displayItems.filter(i => i.type === 'version');
 
             expect(versionItems[0]).toMatchObject({
                 data: expect.objectContaining({ approved: 1 }),
@@ -415,9 +413,9 @@ describe('ArticleHistoryService', () => {
 
                 spectator.service.onFilterChange(filter);
 
-                expect(
-                    articleService.getArticlesHistory
-                ).toHaveBeenCalledWith({ page: 1 });
+                expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                    page: 1,
+                });
             }
         );
 

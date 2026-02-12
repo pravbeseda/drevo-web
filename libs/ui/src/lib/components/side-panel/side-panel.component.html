@@ -7,10 +7,16 @@
         (click)="close()"
         (keydown.enter)="close()"></div>
 }
-<div class="side-panel" [class.open]="open()" role="dialog" aria-modal="true">
+<div
+    class="side-panel"
+    [class.open]="open()"
+    role="dialog"
+    aria-modal="true">
     <div class="side-panel-header">
         <span class="side-panel-title">{{ title() }}</span>
-        <ui-icon-button icon="close" (clicked)="close()" />
+        <ui-icon-button
+            icon="close"
+            (clicked)="close()" />
     </div>
     <div class="side-panel-content">
         <ng-content />
