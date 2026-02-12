@@ -153,8 +153,7 @@ describe('ArticleService', () => {
             articleId: 123,
             versionId: 789,
             title: 'Test Version',
-            content:
-                '<p>Content with <a href="/articles/8.html">link</a></p>',
+            content: '<p>Content with <a href="/articles/8.html">link</a></p>',
             author: 'Version Author',
             date: '2024-02-20T15:30:00+00:00',
             redirect: 0,
@@ -714,6 +713,7 @@ describe('ArticleService', () => {
                 1,
                 25,
                 undefined,
+                undefined,
                 undefined
             );
         });
@@ -736,7 +736,8 @@ describe('ArticleService', () => {
                 2,
                 50,
                 0,
-                'testuser'
+                'testuser',
+                undefined
             );
         });
 

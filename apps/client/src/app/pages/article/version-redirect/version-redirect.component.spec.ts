@@ -1,4 +1,4 @@
-import { ArticleService } from '../../services/articles';
+import { ArticleService } from '../../../services/articles';
 import { VersionRedirectComponent } from './version-redirect.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import {

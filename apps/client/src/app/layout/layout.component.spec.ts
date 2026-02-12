@@ -30,9 +30,7 @@ function createMockWindow(innerWidth: number): Window {
     } as unknown as Window;
 }
 
-function createDrawerMock(
-    isOpen: boolean
-): InstanceType<typeof DrawerService> {
+function createDrawerMock(isOpen: boolean): InstanceType<typeof DrawerService> {
     return {
         isOpen: signal(isOpen),
         open: jest.fn(),
@@ -85,9 +83,7 @@ describe('LayoutComponent', () => {
 
     it('should apply sidebar-collapsed class when drawer is closed', () => {
         spectator = createComponent({
-            providers: [
-                MockProvider(DrawerService, createDrawerMock(false)),
-            ],
+            providers: [MockProvider(DrawerService, createDrawerMock(false))],
         });
 
         const layout = spectator.query('.layout');

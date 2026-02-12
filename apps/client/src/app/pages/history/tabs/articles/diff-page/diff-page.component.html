@@ -1,11 +1,7 @@
-<div class="diff-modal">
-    <div class="diff-modal-header">
-        <ui-icon-button
-            icon="close"
-            label="Закрыть"
-            (clicked)="onClose()" />
-        <h2 class="diff-modal-title">Просмотр изменений</h2>
-        <div class="diff-modal-engine-selector">
+<div class="diff-page">
+    <div class="diff-page-header">
+        <h2 class="diff-page-title">Просмотр изменений</h2>
+        <div class="diff-page-engine-selector">
             <ui-icon-button
                 icon="tune"
                 [label]="selectedEngine().label"
@@ -28,26 +24,21 @@
     </div>
 
     @if (isLoading()) {
-        <div class="diff-modal-loading">
+        <div class="diff-page-loading">
             <ui-spinner />
         </div>
     }
 
     @if (!isLoading() && error()) {
-        <div class="diff-modal-error">
+        <div class="diff-page-error">
             <p>{{ error() }}</p>
-            <ui-button
-                variant="secondary"
-                (click)="onClose()">
-                Закрыть
-            </ui-button>
         </div>
     }
 
     @if (!isLoading() && !error() && versionInfo(); as info) {
-        <div class="diff-modal-meta">
-            <div class="diff-modal-meta-title">{{ info.title }}</div>
-            <div class="diff-modal-meta-versions">
+        <div class="diff-page-meta">
+            <div class="diff-page-meta-title">{{ info.title }}</div>
+            <div class="diff-page-meta-versions">
                 <span>
                     Версия {{ info.previous.versionId }} ({{
                         info.previous.author
@@ -61,12 +52,12 @@
                 </span>
             </div>
             @if (info.current.info) {
-                <div class="diff-modal-meta-comment">
+                <div class="diff-page-meta-comment">
                     {{ info.current.info }}
                 </div>
             }
         </div>
-        <div class="diff-modal-body">
+        <div class="diff-page-body">
             <pre
                 class="diff-content"
                 [innerHTML]="diffHtml()"></pre>

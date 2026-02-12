@@ -175,7 +175,8 @@ export class ArticleApiService {
         page = 1,
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
         approved?: ApprovalStatusDto,
-        author?: string
+        author?: string,
+        articleId?: number
     ): Observable<ArticleHistoryResponseDto> {
         let params = new HttpParams()
             .set('page', page.toString())
@@ -187,6 +188,10 @@ export class ArticleApiService {
 
         if (author) {
             params = params.set('author', author);
+        }
+
+        if (articleId !== undefined) {
+            params = params.set('articleId', articleId.toString());
         }
 
         return this.http
@@ -222,13 +227,17 @@ export class ArticleApiService {
         }
 
         return this.http
-            .get<
-                ApiResponse<VersionPairsResponseDto>
-            >(`${this.apiUrl}/api/articles/versionpairs`, {
-                params,
-                withCredentials: true,
-                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
-            })
+            .get<ApiResponse<VersionPairsResponseDto>>(
+                `${this.apiUrl}/api/articles/versionpairs`,
+                {
+                    params,
+                    withCredentials: true,
+                    context: new HttpContext().set(
+                        SKIP_ERROR_NOTIFICATION,
+                        true
+                    ),
+                }
+            )
             .pipe(
                 map(response => {
                     assertIsDefined(

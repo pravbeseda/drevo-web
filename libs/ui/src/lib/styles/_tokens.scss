@@ -10,10 +10,15 @@ $sidebar-width: 220px;
 $sidebar-collapsed-width: 60px;
 $layout-gap: 1px;
 
-// Drawer / Sidebar collapse
+// Drawer (left sidebar on mobile)
 $z-drawer-backdrop: 100;
 $z-drawer: 101;
 $sidebar-collapse-duration: 0.3s;
+
+// Side panel (right overlay panel)
+$side-panel-width: 280px;
+$z-side-panel-backdrop: 200;
+$z-side-panel: 201;
 $sidebar-collapsed-padding: 12px;
 
 // Typography

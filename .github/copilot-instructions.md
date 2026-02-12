@@ -20,7 +20,7 @@ Nx monorepo migrating from Yii1 PHP to Angular 21 + Node.js. Uses zoneless chang
 ## Commands
 
 ```bash
-yarn dev                              # Dev server (proxies /api to PHP)
+yarn serve                            # Dev server (proxies /api to PHP)
 yarn nx test client                   # Unit tests
 yarn nx affected -t test,lint         # Run only for changed projects
 yarn nx e2e client-e2e               # Playwright E2E

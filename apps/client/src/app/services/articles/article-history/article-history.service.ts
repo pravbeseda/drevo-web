@@ -1,13 +1,11 @@
-import { ArticlesHistoryItemComponent } from './articles-history-item/articles-history-item.component';
-import { ArticleService } from '../../../../services/articles/article.service';
-import { AuthService } from '../../../../services/auth/auth.service';
+import { AuthService } from '../../auth/auth.service';
+import { ArticleService } from '../article.service';
 import {
-    ChangeDetectionStrategy,
-    Component,
     computed,
     DestroyRef,
     inject,
-    OnInit,
+    Injectable,
+    Signal,
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -18,40 +16,64 @@ import {
     ArticleHistoryParams,
     formatDateHeader,
 } from '@drevo-web/shared';
-import {
-    ButtonComponent,
-    ModalService,
-    SpinnerComponent,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-} from '@drevo-web/ui';
 
-type HistoryFilter = 'all' | 'unchecked' | 'my';
+export type HistoryFilter =
+    | 'all'
+    | 'unchecked'
+    | 'unfinished'
+    | 'unmarked'
+    | 'outside_dictionaries'
+    | 'required'
+    | 'my';
 
-type HistoryDisplayItem =
+export type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }
     | { readonly type: 'version'; readonly data: ArticleHistoryItem };
 
-@Component({
-    selector: 'app-articles-history',
-    imports: [
-        ArticlesHistoryItemComponent,
-        ButtonComponent,
-        SpinnerComponent,
-        VirtualScrollerComponent,
-        VirtualScrollerItemDirective,
-    ],
-    templateUrl: './articles-history.component.html',
-    styleUrl: './articles-history.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class ArticlesHistoryComponent implements OnInit {
+/**
+ * Builds display items with date headers inserted between date groups.
+ *
+ * @param items - Flat list of history items sorted by date descending
+ * @param referenceDate - Date used for relative date formatting (e.g. "Сегодня")
+ * @returns Items interleaved with date group headers
+ */
+export function buildDisplayItems(
+    items: readonly ArticleHistoryItem[],
+    referenceDate: Date
+): readonly HistoryDisplayItem[] {
+    if (items.length === 0) return [];
+
+    const result: HistoryDisplayItem[] = [];
+    let lastDateKey = '';
+
+    for (const item of items) {
+        const dateKey = formatDateHeader(item.date, referenceDate);
+        if (dateKey !== lastDateKey) {
+            result.push({ type: 'header', date: dateKey });
+            lastDateKey = dateKey;
+        }
+        result.push({ type: 'version', data: item });
+    }
+
+    return result;
+}
+
+export const trackByFn = (_index: number, item: HistoryDisplayItem): string => {
+    if (item.type === 'header') return `header-${item.date}`;
+    return `version-${item.data.versionId}`;
+};
+
+export interface ArticleHistoryConfig {
+    readonly articleId?: Signal<number | undefined>;
+}
+
+@Injectable()
+export class ArticleHistoryService {
     private readonly destroyRef = inject(DestroyRef);
     private readonly articleService = inject(ArticleService);
     private readonly authService = inject(AuthService);
-    private readonly modalService = inject(ModalService);
     private readonly logger = inject(LoggerService).withContext(
-        'ArticlesHistoryComponent'
+        'ArticleHistoryService'
     );
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -63,6 +85,8 @@ export class ArticlesHistoryComponent implements OnInit {
     private readonly _hasError = signal(false);
     private readonly _referenceDate = signal(new Date());
 
+    private articleId?: Signal<number | undefined>;
+
     readonly isLoading = this._isLoading.asReadonly();
     readonly isLoadingMore = this._isLoadingMore.asReadonly();
     readonly activeFilter = this._activeFilter.asReadonly();
@@ -70,46 +94,24 @@ export class ArticlesHistoryComponent implements OnInit {
 
     private readonly currentUser = toSignal(this.authService.user$);
 
-    readonly canFilterByAuthor = computed(() => !!this.currentUser());
+    readonly isAuthenticated = computed(() => !!this.currentUser());
     readonly hasItems = computed(() => this._historyItems().length > 0);
 
-    readonly displayItems = computed<readonly HistoryDisplayItem[]>(() => {
-        const items = this._historyItems();
-        if (items.length === 0) return [];
+    readonly displayItems = computed<readonly HistoryDisplayItem[]>(() =>
+        buildDisplayItems(this._historyItems(), this._referenceDate())
+    );
 
-        const now = this._referenceDate();
-        const result: HistoryDisplayItem[] = [];
-        let lastDateKey = '';
-
-        for (const item of items) {
-            const dateKey = formatDateHeader(item.date, now);
-            if (dateKey !== lastDateKey) {
-                result.push({ type: 'header', date: dateKey });
-                lastDateKey = dateKey;
-            }
-            result.push({ type: 'version', data: item });
-        }
-
-        return result;
-    });
-
-    /** Total count including header rows for the virtual scroller */
     readonly displayTotalItems = computed(() => {
         const total = this._totalItems();
         if (total === 0) return 0;
         const loadedDisplayCount = this.displayItems().length;
         const loadedItemCount = this._historyItems().length;
         if (loadedItemCount >= total) return loadedDisplayCount;
-        // Unloaded items counted 1:1; actual header count adjusts as items load
         return loadedDisplayCount + (total - loadedItemCount);
     });
 
-    readonly trackByFn = (_index: number, item: HistoryDisplayItem): string => {
-        if (item.type === 'header') return `header-${item.date}`;
-        return `version-${item.data.versionId}`;
-    };
-
-    ngOnInit(): void {
+    init(config?: ArticleHistoryConfig): void {
+        this.articleId = config?.articleId;
         this.loadHistory();
     }
 
@@ -121,24 +123,6 @@ export class ArticlesHistoryComponent implements OnInit {
         this._totalItems.set(0);
         this.logger.info('Filter changed', { filter });
         this.loadHistory();
-    }
-
-    onViewDiff(versionId: number): void {
-        this.logger.info('Opening diff modal', { versionId });
-        this.modalService.open(
-            () =>
-                import('./diff-modal/diff-modal.component').then(
-                    m => m.DiffModalComponent
-                ),
-            {
-                data: { versionId },
-                width: '100vw',
-                maxWidth: '100vw',
-                minHeight: '100vh',
-                maxHeight: '100vh',
-                panelClass: 'diff-modal-panel',
-            }
-        );
     }
 
     onLoadMore(): void {
@@ -197,13 +181,35 @@ export class ArticlesHistoryComponent implements OnInit {
     }
 
     private buildParams(): ArticleHistoryParams | undefined {
-        const base: ArticleHistoryParams = {
+        let base: ArticleHistoryParams = {
             page: this._currentPage(),
         };
+
+        if (this.articleId) {
+            const id = this.articleId();
+            if (!id) {
+                this.logger.error(
+                    'Cannot load history: article ID not available'
+                );
+                return undefined;
+            }
+            base = { ...base, articleId: id };
+        }
 
         const filter = this._activeFilter();
         if (filter === 'unchecked') {
             return { ...base, approved: ApprovalStatus.Pending };
+        }
+        if (
+            filter === 'unfinished' ||
+            filter === 'unmarked' ||
+            filter === 'outside_dictionaries' ||
+            filter === 'required'
+        ) {
+            this.logger.info('Filter not yet supported by backend', {
+                filter,
+            });
+            return base;
         }
         if (filter === 'my') {
             const user = this.currentUser();

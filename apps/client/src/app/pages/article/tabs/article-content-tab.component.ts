@@ -76,8 +76,7 @@ export class ArticleContentTabComponent {
                 const mainContainer = this.document.getElementById('content');
                 if (mainContainer) {
                     const targetRect = targetElement.getBoundingClientRect();
-                    const containerRect =
-                        mainContainer.getBoundingClientRect();
+                    const containerRect = mainContainer.getBoundingClientRect();
                     const scrollTop =
                         targetRect.top -
                         containerRect.top +

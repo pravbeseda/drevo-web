@@ -1,0 +1,40 @@
+.filter-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.filter-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: var(--themed-text-primary);
+    border-radius: 4px;
+
+    &:hover {
+        background: var(--themed-menu-hover-background);
+    }
+
+    &.active {
+        background: var(--themed-secondary-bg);
+        font-weight: 500;
+    }
+
+    &.nested {
+        padding-left: 32px;
+    }
+}
+
+.filter-section-header {
+    padding: 16px 16px 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--themed-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}

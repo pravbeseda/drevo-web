@@ -1,6 +1,7 @@
 export * from './lib/components/action-button/action-button.component';
 export * from './lib/components/button/button.component';
 export * from './lib/components/checkbox/checkbox.component';
+export * from './lib/components/side-panel/side-panel.component';
 export * from './lib/components/dropdown-menu/dropdown-menu.component';
 export * from './lib/components/dropdown-menu/dropdown-menu-item.component';
 export * from './lib/components/dropdown-menu/dropdown-menu-trigger.directive';

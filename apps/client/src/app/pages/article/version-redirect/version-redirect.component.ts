@@ -1,4 +1,4 @@
-import { ArticleService } from '../../services/articles';
+import { ArticleService } from '../../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,
@@ -50,12 +50,7 @@ export class VersionRedirectComponent implements OnInit {
                         articleId: article.articleId,
                     });
                     this.router.navigate(
-                        [
-                            '/articles',
-                            article.articleId,
-                            'version',
-                            versionId,
-                        ],
+                        ['/articles', article.articleId, 'version', versionId],
                         { replaceUrl: true }
                     );
                 },

@@ -1,7 +1,9 @@
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ArticlesHistoryComponent } from './articles-history.component';
-import { ArticleService } from '../../../../services/articles/article.service';
-import { AuthService } from '../../../../services/auth/auth.service';
+import {
+    ArticleHistoryService,
+    buildDisplayItems,
+} from './article-history.service';
+import { ArticleService } from '../article.service';
+import { AuthService } from '../../auth/auth.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService } from '@drevo-web/core';
 import {
@@ -9,6 +11,8 @@ import {
     ArticleHistoryResponse,
     User,
 } from '@drevo-web/shared';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { signal } from '@angular/core';
 import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
 
 const mockUser: User = {
@@ -50,13 +54,65 @@ function createMockResponse(
     };
 }
 
-describe('ArticlesHistoryComponent', () => {
-    let spectator: Spectator<ArticlesHistoryComponent>;
+describe('buildDisplayItems', () => {
+    const referenceDate = new Date('2025-01-16T12:00:00');
+
+    it('should return empty array for empty items', () => {
+        expect(buildDisplayItems([], referenceDate)).toEqual([]);
+    });
+
+    it('should insert date headers between groups', () => {
+        const items = [
+            createMockHistoryItem({
+                versionId: 1,
+                date: new Date('2025-01-15T14:30:00'),
+            }),
+            createMockHistoryItem({
+                versionId: 2,
+                date: new Date('2025-01-15T10:00:00'),
+            }),
+            createMockHistoryItem({
+                versionId: 3,
+                date: new Date('2025-01-14T09:00:00'),
+            }),
+        ];
+
+        const result = buildDisplayItems(items, referenceDate);
+
+        expect(result.length).toBe(5);
+        expect(result[0].type).toBe('header');
+        expect(result[1].type).toBe('version');
+        expect(result[2].type).toBe('version');
+        expect(result[3].type).toBe('header');
+        expect(result[4].type).toBe('version');
+    });
+
+    it('should not add duplicate headers for same date', () => {
+        const items = [
+            createMockHistoryItem({
+                versionId: 1,
+                date: new Date('2025-01-15T14:30:00'),
+            }),
+            createMockHistoryItem({
+                versionId: 2,
+                date: new Date('2025-01-15T10:00:00'),
+            }),
+        ];
+
+        const result = buildDisplayItems(items, referenceDate);
+        const headers = result.filter(i => i.type === 'header');
+
+        expect(headers.length).toBe(1);
+    });
+});
+
+describe('ArticleHistoryService', () => {
+    let spectator: SpectatorService<ArticleHistoryService>;
     let articleService: jest.Mocked<ArticleService>;
     let userSubject: BehaviorSubject<User | undefined>;
 
-    const createComponent = createComponentFactory({
-        component: ArticlesHistoryComponent,
+    const createService = createServiceFactory({
+        service: ArticleHistoryService,
         mocks: [ArticleService],
         providers: [
             mockLoggerProvider(),
@@ -77,39 +133,34 @@ describe('ArticlesHistoryComponent', () => {
                 },
             },
         ],
-        detectChanges: false,
     });
 
     beforeEach(() => {
-        spectator = createComponent();
+        spectator = createService();
         articleService = spectator.inject(
             ArticleService
         ) as jest.Mocked<ArticleService>;
     });
 
     it('should create', () => {
-        articleService.getArticlesHistory.mockReturnValue(
-            of(createMockResponse())
-        );
-        spectator.detectChanges();
-        expect(spectator.component).toBeTruthy();
+        expect(spectator.service).toBeTruthy();
     });
 
-    describe('initial loading', () => {
-        it('should show spinner while loading', () => {
-            articleService.getArticlesHistory.mockReturnValue(NEVER);
-            spectator.detectChanges();
-            expect(spectator.query('ui-spinner')).toBeTruthy();
-        });
-
+    describe('init() without articleId (global history mode)', () => {
         it('should load history on init', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse())
             );
-            spectator.detectChanges();
+            spectator.service.init();
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
             });
+        });
+
+        it('should set isLoading while loading', () => {
+            articleService.getArticlesHistory.mockReturnValue(NEVER);
+            spectator.service.init();
+            expect(spectator.service.isLoading()).toBe(true);
         });
 
         it('should display items after loading', () => {
@@ -120,19 +171,42 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(items, 2))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            expect(spectator.component.hasItems()).toBe(true);
-            expect(spectator.component.isLoading()).toBe(false);
+            expect(spectator.service.hasItems()).toBe(true);
+            expect(spectator.service.isLoading()).toBe(false);
         });
 
-        it('should show empty message when no items', () => {
+        it('should have empty state when no items', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse())
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            expect(spectator.query('.history-empty')).toBeTruthy();
+            expect(spectator.service.hasItems()).toBe(false);
+        });
+    });
+
+    describe('init() with articleId signal (article-scoped mode)', () => {
+        it('should load history with articleId', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            const articleId = signal<number | undefined>(100);
+            spectator.service.init({ articleId });
+
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 1,
+                articleId: 100,
+            });
+        });
+
+        it('should not load when articleId is undefined', () => {
+            const articleId = signal<number | undefined>(undefined);
+            spectator.service.init({ articleId });
+
+            expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
+            expect(spectator.service.isLoading()).toBe(false);
         });
     });
 
@@ -155,10 +229,9 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(items, 3))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            const displayItems = spectator.component.displayItems();
-            // Should have 2 headers + 3 version items = 5 total
+            const displayItems = spectator.service.displayItems();
             expect(displayItems.length).toBe(5);
             expect(displayItems[0].type).toBe('header');
             expect(displayItems[1].type).toBe('version');
@@ -181,16 +254,16 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(items, 2))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            const displayItems = spectator.component.displayItems();
+            const displayItems = spectator.service.displayItems();
             const headers = displayItems.filter(i => i.type === 'header');
             expect(headers.length).toBe(1);
         });
     });
 
     describe('display items', () => {
-        it('should include approval class in version items', () => {
+        it('should include approval status in version items', () => {
             const items = [
                 createMockHistoryItem({
                     versionId: 1,
@@ -211,9 +284,9 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(items, 3))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            const displayItems = spectator.component.displayItems();
+            const displayItems = spectator.service.displayItems();
             const versionItems = displayItems.filter(i => i.type === 'version');
 
             expect(versionItems[0]).toMatchObject({
@@ -230,17 +303,14 @@ describe('ArticlesHistoryComponent', () => {
         it('should include date in version items for pipe formatting', () => {
             const testDate = new Date('2025-01-15T14:30:00');
             const items = [
-                createMockHistoryItem({
-                    versionId: 1,
-                    date: testDate,
-                }),
+                createMockHistoryItem({ versionId: 1, date: testDate }),
             ];
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(items, 1))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            const displayItems = spectator.component.displayItems();
+            const displayItems = spectator.service.displayItems();
             const versionItem = displayItems.find(i => i.type === 'version');
 
             expect(versionItem).toMatchObject({
@@ -250,14 +320,14 @@ describe('ArticlesHistoryComponent', () => {
         });
     });
 
-    describe('canFilterByAuthor', () => {
+    describe('isAuthenticated', () => {
         it('should be true when user is available', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse())
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            expect(spectator.component.canFilterByAuthor()).toBe(true);
+            expect(spectator.service.isAuthenticated()).toBe(true);
         });
 
         it('should be false when user is undefined', () => {
@@ -265,32 +335,9 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse())
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            expect(spectator.component.canFilterByAuthor()).toBe(false);
-        });
-
-        it('should hide "my" button when user is not available', () => {
-            userSubject.next(undefined);
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
-            spectator.detectChanges();
-
-            const buttons = spectator.queryAll('ui-button');
-            const buttonTexts = buttons.map(b => b.textContent?.trim());
-            expect(buttonTexts).not.toContain('Мои');
-        });
-
-        it('should show "my" button when user is available', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
-            spectator.detectChanges();
-
-            const buttons = spectator.queryAll('ui-button');
-            const buttonTexts = buttons.map(b => b.textContent?.trim());
-            expect(buttonTexts).toContain('Мои');
+            expect(spectator.service.isAuthenticated()).toBe(false);
         });
     });
 
@@ -299,11 +346,11 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse())
             );
-            spectator.detectChanges();
+            spectator.service.init();
         });
 
         it('should default to "all" filter', () => {
-            expect(spectator.component.activeFilter()).toBe('all');
+            expect(spectator.service.activeFilter()).toBe('all');
         });
 
         it('should reload with approved=0 when unchecked filter selected', () => {
@@ -312,8 +359,7 @@ describe('ArticlesHistoryComponent', () => {
                 of(createMockResponse())
             );
 
-            spectator.component.onFilterChange('unchecked');
-            spectator.detectChanges();
+            spectator.service.onFilterChange('unchecked');
 
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
@@ -327,8 +373,7 @@ describe('ArticlesHistoryComponent', () => {
                 of(createMockResponse())
             );
 
-            spectator.component.onFilterChange('my');
-            spectator.detectChanges();
+            spectator.service.onFilterChange('my');
 
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
@@ -339,39 +384,96 @@ describe('ArticlesHistoryComponent', () => {
         it('should not reload when selecting same filter', () => {
             articleService.getArticlesHistory.mockClear();
 
-            spectator.component.onFilterChange('all');
+            spectator.service.onFilterChange('all');
 
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
         });
 
         it('should not load when "my" filter selected and user not available', () => {
             userSubject.next(undefined);
-            spectator.detectChanges();
 
             articleService.getArticlesHistory.mockClear();
-            spectator.component.onFilterChange('my');
-            spectator.detectChanges();
+            spectator.service.onFilterChange('my');
 
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            'unfinished',
+            'unmarked',
+            'outside_dictionaries',
+            'required',
+        ] as const)(
+            'should load without extra params for unsupported "%s" filter',
+            filter => {
+                articleService.getArticlesHistory.mockClear();
+                articleService.getArticlesHistory.mockReturnValue(
+                    of(createMockResponse())
+                );
+
+                spectator.service.onFilterChange(filter);
+
+                expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                    page: 1,
+                });
+            }
+        );
+
+        it('should log info for unsupported filter', () => {
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+
+            spectator.service.onFilterChange('unfinished');
+
+            const loggerService = spectator.inject(
+                LoggerService
+            ) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.info).toHaveBeenCalledWith(
+                'Filter not yet supported by backend',
+                { filter: 'unfinished' }
+            );
         });
 
         it('should reset items and error state when changing filter', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 throwError(() => new Error('fail'))
             );
-            spectator.component.onFilterChange('unchecked');
-            spectator.detectChanges();
+            spectator.service.onFilterChange('unchecked');
 
-            expect(spectator.component.hasError()).toBe(true);
+            expect(spectator.service.hasError()).toBe(true);
 
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse([createMockHistoryItem()], 1))
             );
-            spectator.component.onFilterChange('all');
-            spectator.detectChanges();
+            spectator.service.onFilterChange('all');
 
-            expect(spectator.component.hasError()).toBe(false);
-            expect(spectator.component.activeFilter()).toBe('all');
+            expect(spectator.service.hasError()).toBe(false);
+            expect(spectator.service.activeFilter()).toBe('all');
+        });
+    });
+
+    describe('filters with articleId', () => {
+        it('should include articleId in filter params', () => {
+            const articleId = signal<number | undefined>(100);
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            spectator.service.init({ articleId });
+
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+
+            spectator.service.onFilterChange('unchecked');
+
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 1,
+                articleId: 100,
+                approved: 0,
+            });
         });
     });
 
@@ -384,7 +486,7 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(firstPage, 50))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
             articleService.getArticlesHistory.mockClear();
             const secondPage = [createMockHistoryItem({ versionId: 3 })];
@@ -392,11 +494,37 @@ describe('ArticlesHistoryComponent', () => {
                 of({ ...createMockResponse(secondPage, 50), page: 2 })
             );
 
-            spectator.component.onLoadMore();
-            spectator.detectChanges();
+            spectator.service.onLoadMore();
 
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 2,
+            });
+        });
+
+        it('should load more with articleId', () => {
+            const articleId = signal<number | undefined>(100);
+            const firstPage = [
+                createMockHistoryItem({ versionId: 1, articleId: 100 }),
+                createMockHistoryItem({ versionId: 2, articleId: 100 }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse(firstPage, 50))
+            );
+            spectator.service.init({ articleId });
+
+            articleService.getArticlesHistory.mockClear();
+            const secondPage = [
+                createMockHistoryItem({ versionId: 3, articleId: 100 }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of({ ...createMockResponse(secondPage, 50), page: 2 })
+            );
+
+            spectator.service.onLoadMore();
+
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 2,
+                articleId: 100,
             });
         });
 
@@ -408,19 +536,18 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(firstPage, 50))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
-            expect(spectator.component.hasItems()).toBe(true);
+            expect(spectator.service.hasItems()).toBe(true);
 
             articleService.getArticlesHistory.mockReturnValue(
                 throwError(() => new Error('Network error'))
             );
-            spectator.component.onLoadMore();
-            spectator.detectChanges();
+            spectator.service.onLoadMore();
 
-            expect(spectator.component.hasItems()).toBe(true);
-            expect(spectator.component.hasError()).toBe(false);
-            expect(spectator.component.isLoadingMore()).toBe(false);
+            expect(spectator.service.hasItems()).toBe(true);
+            expect(spectator.service.hasError()).toBe(false);
+            expect(spectator.service.isLoadingMore()).toBe(false);
         });
 
         it('should not load more when all items loaded', () => {
@@ -428,12 +555,59 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(createMockResponse(items, 1))
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
             articleService.getArticlesHistory.mockClear();
-            spectator.component.onLoadMore();
+            spectator.service.onLoadMore();
 
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('displayTotalItems', () => {
+        it('should return 0 when no items', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse())
+            );
+            spectator.service.init();
+
+            expect(spectator.service.displayTotalItems()).toBe(0);
+        });
+
+        it('should return loaded display count when all loaded', () => {
+            const items = [
+                createMockHistoryItem({
+                    versionId: 1,
+                    date: new Date('2025-01-15T14:00:00'),
+                }),
+                createMockHistoryItem({
+                    versionId: 2,
+                    date: new Date('2025-01-15T13:00:00'),
+                }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse(items, 2))
+            );
+            spectator.service.init();
+
+            // 1 header + 2 versions = 3
+            expect(spectator.service.displayTotalItems()).toBe(3);
+        });
+
+        it('should estimate total with unloaded items', () => {
+            const items = [
+                createMockHistoryItem({
+                    versionId: 1,
+                    date: new Date('2025-01-15T14:00:00'),
+                }),
+            ];
+            articleService.getArticlesHistory.mockReturnValue(
+                of(createMockResponse(items, 50))
+            );
+            spectator.service.init();
+
+            // 1 header + 1 version = 2 loaded display + (50 - 1) unloaded = 51
+            expect(spectator.service.displayTotalItems()).toBe(51);
         });
     });
 
@@ -443,7 +617,7 @@ describe('ArticlesHistoryComponent', () => {
             articleService.getArticlesHistory.mockReturnValue(
                 throwError(() => error)
             );
-            spectator.detectChanges();
+            spectator.service.init();
 
             const loggerService = spectator.inject(
                 LoggerService
@@ -452,18 +626,20 @@ describe('ArticlesHistoryComponent', () => {
                 'Failed to load article history',
                 error
             );
-            expect(spectator.component.isLoading()).toBe(false);
-            expect(spectator.component.hasError()).toBe(true);
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(spectator.service.hasError()).toBe(true);
         });
 
-        it('should show error message on failure', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                throwError(() => new Error('fail'))
-            );
-            spectator.detectChanges();
+        it('should log error when articleId is not available', () => {
+            const articleId = signal<number | undefined>(undefined);
+            spectator.service.init({ articleId });
 
-            expect(spectator.query('.history-error')).toBeTruthy();
-            expect(spectator.query('.history-empty')).toBeFalsy();
+            const loggerService = spectator.inject(
+                LoggerService
+            ) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
+                'Cannot load history: article ID not available'
+            );
         });
     });
 });

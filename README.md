@@ -80,7 +80,7 @@ yarn playwright install --with-deps
 
 ```bash
 # Development server (localhost:4200)
-yarn dev
+yarn serve
 
 # Build
 yarn build                          # Production build

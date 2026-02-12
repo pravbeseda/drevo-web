@@ -13,7 +13,7 @@
         "build": "nx build client --configuration=production",
         "build:dev": "nx build client --configuration=development",
         "start": "node dist/apps/client/server/server.mjs",
-        "dev": "nx serve client"
+        "serve": "nx serve client"
     },
     "private": true,
     "dependencies": {
