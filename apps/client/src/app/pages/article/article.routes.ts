@@ -19,7 +19,7 @@ export const ARTICLE_ROUTES: Route[] = [
             {
                 path: 'version/:versionId',
                 loadComponent: () =>
-                    import('./tabs/article-version-tab.component').then(
+                    import('./tabs/article-version-tab/article-version-tab.component').then(
                         m => m.ArticleVersionTabComponent
                     ),
             },

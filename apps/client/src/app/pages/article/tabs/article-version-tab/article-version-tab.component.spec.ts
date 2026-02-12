@@ -1,5 +1,5 @@
-import { ArticleService } from '../../../services/articles';
-import { ArticlePageService } from '../article-page.service';
+import { ArticleService } from '../../../../services/articles';
+import { ArticlePageService } from '../../article-page.service';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import {

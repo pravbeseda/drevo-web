@@ -1,6 +1,6 @@
-import { ArticleService } from '../../../services/articles';
-import { ArticleContentComponent } from '../article-content/article-content.component';
-import { ArticlePageService } from '../article-page.service';
+import { ArticleService } from '../../../../services/articles';
+import { ArticleContentComponent } from '../../article-content/article-content.component';
+import { ArticlePageService } from '../../article-page.service';
 import { NgClass } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {

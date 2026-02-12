@@ -1,11 +1,8 @@
-@use 'index' as *;
-
-// The article page doesn't propagate height through flex
-// (.article has no height, .main is a scroll container),
-// so we use a viewport-based height for the virtual scroller.
 :host {
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - #{$header-height} - 140px);
+    flex: 1;
     min-height: 300px;
+    margin-top: 1rem;
+    padding-left: 1rem;
 }
