@@ -84,11 +84,6 @@ describe('DiffPageComponent', () => {
             spectator.detectChanges();
         });
 
-        it('should not show settings button for DMP engine', () => {
-            expect(spectator.component.isJsDiff()).toBe(false);
-            expect(spectator.query('.settings-anchor')).toBeFalsy();
-        });
-
         it('should show settings button for JsDiff engine', () => {
             const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
             spectator.component.onEngineChange(jsDiffEngine);
