@@ -1,28 +1,4 @@
 <div class="diff-page">
-    <div class="diff-page-header">
-        <h2 class="diff-page-title">Просмотр изменений</h2>
-        <div class="diff-page-engine-selector">
-            <ui-icon-button
-                icon="tune"
-                [label]="selectedEngine().label"
-                [uiDropdownMenuTriggerFor]="engineMenu" />
-
-            <ng-template #engineMenu>
-                <ui-dropdown-menu>
-                    @for (engine of engines; track engine.id) {
-                        <ui-dropdown-menu-item
-                            [icon]="
-                                engine.id === selectedEngine().id ? 'check' : ''
-                            "
-                            (clicked)="onEngineChange(engine)">
-                            {{ engine.label }}
-                        </ui-dropdown-menu-item>
-                    }
-                </ui-dropdown-menu>
-            </ng-template>
-        </div>
-    </div>
-
     @if (isLoading()) {
         <div class="diff-page-loading">
             <ui-spinner />
@@ -37,7 +13,31 @@
 
     @if (!isLoading() && !error() && versionInfo(); as info) {
         <div class="diff-page-meta">
-            <div class="diff-page-meta-title">{{ info.title }}</div>
+            <div class="diff-page-meta-title">
+                <span>{{ info.title }}</span>
+                <div class="diff-page-engine-selector">
+                    <ui-icon-button
+                        icon="tune"
+                        [label]="selectedEngine().label"
+                        [uiDropdownMenuTriggerFor]="engineMenu" />
+
+                    <ng-template #engineMenu>
+                        <ui-dropdown-menu>
+                            @for (engine of engines; track engine.id) {
+                                <ui-dropdown-menu-item
+                                    [icon]="
+                                        engine.id === selectedEngine().id
+                                            ? 'check'
+                                            : ''
+                                    "
+                                    (clicked)="onEngineChange(engine)">
+                                    {{ engine.label }}
+                                </ui-dropdown-menu-item>
+                            }
+                        </ui-dropdown-menu>
+                    </ng-template>
+                </div>
+            </div>
             <div class="diff-page-meta-versions">
                 <span>
                     Версия {{ info.previous.versionId }} ({{

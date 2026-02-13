@@ -12,24 +12,6 @@
     overflow: hidden;
 }
 
-.diff-page-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--themed-border-color);
-    background: var(--themed-header-bg);
-    flex-shrink: 0;
-}
-
-.diff-page-title {
-    flex: 1;
-    margin: 0;
-    font-size: $font-size-lg;
-    font-weight: 500;
-    color: var(--themed-text-primary);
-}
-
 .diff-page-engine-selector {
     flex-shrink: 0;
 }
@@ -54,15 +36,21 @@
 .diff-page-meta {
     padding: 12px 16px;
     border-bottom: 1px solid var(--themed-border-color);
-    background: var(--themed-secondary-bg);
     flex-shrink: 0;
 }
 
 .diff-page-meta-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 500;
     font-size: $font-size-lg;
     color: var(--themed-text-primary);
     margin-bottom: 4px;
+
+    span {
+        flex: 1;
+    }
 }
 
 .diff-page-meta-versions {
