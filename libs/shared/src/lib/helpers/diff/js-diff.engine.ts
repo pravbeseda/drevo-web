@@ -3,16 +3,18 @@ import { DEFAULT_JS_DIFF_OPTIONS } from './diff.types';
 import type { Change } from 'diff';
 import { diffChars, diffLines, diffSentences, diffWords, diffWordsWithSpace } from 'diff';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const IntlSegmenter = (Intl as any).Segmenter;
-
-function createWordSegmenter(): unknown {
-    return IntlSegmenter ? new IntlSegmenter(undefined, { granularity: 'word' }) : undefined;
+function createWordSegmenter(): Intl.Segmenter | undefined {
+    return typeof Intl.Segmenter !== 'undefined' ? new Intl.Segmenter(undefined, { granularity: 'word' }) : undefined;
 }
+
+// Workaround for jsdiff bug: Intl.Segmenter treats "space + combining mark" as a single
+// non-word segment, but diffWords' postProcess assumes space is always a separate suffix.
+// Orphaned combining marks (after whitespace) are wiki-markup artifacts with no visual effect.
+const stripOrphanedCombiningMarks = (text: string): string => text.replace(/(\s)[\u0300-\u036F\u0483-\u0489]+/g, '$1');
 
 export class JsDiffEngine implements DiffEngine {
     computeDiff(oldText: string, newText: string, options: JsDiffOptions = DEFAULT_JS_DIFF_OPTIONS): DiffChange[] {
-        const changes = this.computeChanges(oldText, newText, options);
+        const changes = this.computeChanges(stripOrphanedCombiningMarks(oldText), stripOrphanedCombiningMarks(newText), options);
 
         return changes.map(change => ({
             type: change.added ? 'insert' : change.removed ? 'delete' : 'equal',

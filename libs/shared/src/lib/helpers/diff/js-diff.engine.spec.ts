@@ -184,6 +184,27 @@ describe('JsDiffEngine', () => {
             expect(withoutWsHasChanges).toBe(false);
         });
 
+        it('should handle text with orphaned combining marks and intlSegmenter', () => {
+            // Orphaned combining mark (U+0300) after a space triggers a bug in jsdiff's
+            // diffWords postProcess: Intl.Segmenter treats " \u0300" as a single non-word
+            // segment, but dedupeWhitespaceInChangeObjects expects space to be a separate suffix.
+            // The bug manifests when \r\n is also present in the text.
+            const oldText = '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391\u03BD\u03B8\u03B9\u03BC\u03BF\u03BD next words';
+            const newText = '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391 changed text';
+
+            const result = engine.computeDiff(
+                oldText,
+                newText,
+                opts({ granularity: 'words', intlSegmenter: true })
+            );
+
+            expect(result.length).toBeGreaterThan(0);
+            const deleted = result.filter(c => c.type === 'delete').map(c => c.text).join('');
+            const inserted = result.filter(c => c.type === 'insert').map(c => c.text).join('');
+            expect(deleted).toContain('next');
+            expect(inserted).toContain('changed');
+        });
+
         it('should respect stripTrailingCr for lines', () => {
             const withCr = engine.computeDiff('line1\r\nline2\r\n', 'line1\nline2\n', opts({ granularity: 'lines' }));
             const withoutCr = engine.computeDiff(
