@@ -12,10 +12,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import {
+    DEFAULT_JS_DIFF_OPTIONS,
     DIFF_ENGINES,
     DiffChange,
     DiffEngineEntry,
     escapeHtml,
+    JsDiffGranularity,
+    JsDiffOptions,
     VersionPairs,
 } from '@drevo-web/shared';
 import {
@@ -52,21 +55,47 @@ export class DiffPageComponent implements OnInit {
         undefined
     );
     private readonly _selectedEngine = signal<DiffEngineEntry>(DIFF_ENGINES[0]);
+    private readonly _jsDiffOptions = signal<JsDiffOptions>(
+        DEFAULT_JS_DIFF_OPTIONS
+    );
+    private readonly _settingsOpen = signal(false);
 
     readonly isLoading = this._isLoading.asReadonly();
     readonly error = this._error.asReadonly();
     readonly versionPairs = this._versionPairs.asReadonly();
     readonly selectedEngine = this._selectedEngine.asReadonly();
     readonly engines = DIFF_ENGINES;
+    readonly settingsOpen = this._settingsOpen.asReadonly();
+    readonly jsDiffOptions = this._jsDiffOptions.asReadonly();
+
+    readonly isJsDiff = computed(
+        () => this._selectedEngine().id === 'js-diff'
+    );
+
+    readonly isIgnoreCaseAvailable = computed(() => {
+        const g = this._jsDiffOptions().granularity;
+        return g === 'chars' || g === 'words' || g === 'wordsWithSpace';
+    });
+
+    readonly isIntlSegmenterAvailable = computed(() => {
+        const g = this._jsDiffOptions().granularity;
+        return g === 'words' || g === 'wordsWithSpace';
+    });
+
+    readonly isLineOptionsAvailable = computed(
+        () => this._jsDiffOptions().granularity === 'lines'
+    );
 
     readonly diffHtml = computed(() => {
         const pairs = this._versionPairs();
         const engine = this._selectedEngine();
         if (!pairs) return '';
 
+        const options = this.isJsDiff() ? this._jsDiffOptions() : undefined;
         const changes = engine.engine.computeDiff(
             pairs.previous.content,
-            pairs.current.content
+            pairs.current.content,
+            options
         );
         return this.renderDiffHtml(changes);
     });
@@ -81,6 +110,17 @@ export class DiffPageComponent implements OnInit {
             current: pairs.current,
         };
     });
+
+    readonly granularityOptions: readonly {
+        readonly value: JsDiffGranularity;
+        readonly label: string;
+    }[] = [
+        { value: 'chars', label: 'Символы' },
+        { value: 'words', label: 'Слова' },
+        { value: 'wordsWithSpace', label: 'Слова с пробелами' },
+        { value: 'lines', label: 'Строки' },
+        { value: 'sentences', label: 'Предложения' },
+    ];
 
     ngOnInit(): void {
         const idParam = this.route.snapshot.paramMap.get('id');
@@ -99,6 +139,24 @@ export class DiffPageComponent implements OnInit {
     onEngineChange(engine: DiffEngineEntry): void {
         this._selectedEngine.set(engine);
         this.logger.info('Diff engine changed', { engineId: engine.id });
+    }
+
+    toggleSettings(): void {
+        this._settingsOpen.update(open => !open);
+    }
+
+    closeSettings(): void {
+        this._settingsOpen.set(false);
+    }
+
+    onGranularityChange(granularity: JsDiffGranularity): void {
+        this._jsDiffOptions.update(opts => ({ ...opts, granularity }));
+        this.logger.info('JsDiff granularity changed', { granularity });
+    }
+
+    onOptionChange(key: keyof JsDiffOptions, value: boolean): void {
+        this._jsDiffOptions.update(opts => ({ ...opts, [key]: value }));
+        this.logger.info('JsDiff option changed', { [key]: value });
     }
 
     formatDate(date: Date): string {
