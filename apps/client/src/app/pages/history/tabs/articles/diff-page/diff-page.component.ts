@@ -4,6 +4,7 @@ import {
     Component,
     computed,
     DestroyRef,
+    HostListener,
     inject,
     OnInit,
     signal,
@@ -154,9 +155,24 @@ export class DiffPageComponent implements OnInit {
         this.logger.info('JsDiff granularity changed', { granularity });
     }
 
-    onOptionChange(key: keyof JsDiffOptions, value: boolean): void {
+    onOptionChange(key: Exclude<keyof JsDiffOptions, 'granularity'>, value: boolean): void {
         this._jsDiffOptions.update(opts => ({ ...opts, [key]: value }));
         this.logger.info('JsDiff option changed', { [key]: value });
+    }
+
+    onCheckboxChange(
+        key: Exclude<keyof JsDiffOptions, 'granularity'>,
+        event: Event
+    ): void {
+        const checked = (event.target as HTMLInputElement).checked;
+        this.onOptionChange(key, checked);
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscapePress(): void {
+        if (this._settingsOpen()) {
+            this.closeSettings();
+        }
     }
 
     formatDate(date: Date): string {

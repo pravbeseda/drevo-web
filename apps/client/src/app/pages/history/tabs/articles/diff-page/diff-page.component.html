@@ -25,11 +25,7 @@
                         <ui-dropdown-menu>
                             @for (engine of engines; track engine.id) {
                                 <ui-dropdown-menu-item
-                                    [icon]="
-                                        engine.id === selectedEngine().id
-                                            ? 'check'
-                                            : ''
-                                    "
+                                    [icon]="engine.id === selectedEngine().id ? 'check' : ''"
                                     (clicked)="onEngineChange(engine)">
                                     {{ engine.label }}
                                 </ui-dropdown-menu-item>
@@ -51,28 +47,15 @@
                                     (click)="closeSettings()"></div>
                                 <div class="settings-popover">
                                     <div class="settings-section">
-                                        <div class="settings-section-title">
-                                            Гранулярность
-                                        </div>
-                                        @for (
-                                            option of granularityOptions;
-                                            track option.value
-                                        ) {
+                                        <div class="settings-section-title">Гранулярность</div>
+                                        @for (option of granularityOptions; track option.value) {
                                             <label class="settings-radio-item">
                                                 <input
                                                     type="radio"
                                                     name="granularity"
                                                     [value]="option.value"
-                                                    [checked]="
-                                                        jsDiffOptions()
-                                                            .granularity ===
-                                                        option.value
-                                                    "
-                                                    (change)="
-                                                        onGranularityChange(
-                                                            option.value
-                                                        )
-                                                    " />
+                                                    [checked]="jsDiffOptions().granularity === option.value"
+                                                    (change)="onGranularityChange(option.value)" />
                                                 {{ option.label }}
                                             </label>
                                         }
@@ -80,143 +63,66 @@
 
                                     <div
                                         class="settings-section"
-                                        [class.settings-disabled]="
-                                            !isIgnoreCaseAvailable()
-                                        ">
-                                        <div class="settings-section-title">
-                                            Общие
-                                        </div>
+                                        [class.settings-disabled]="!isIgnoreCaseAvailable()">
+                                        <div class="settings-section-title">Общие</div>
                                         <label class="settings-check-item">
                                             <input
                                                 type="checkbox"
-                                                [checked]="
-                                                    jsDiffOptions().ignoreCase
-                                                "
-                                                [disabled]="
-                                                    !isIgnoreCaseAvailable()
-                                                "
-                                                (change)="
-                                                    onOptionChange(
-                                                        'ignoreCase',
-                                                        $any($event.target)
-                                                            .checked
-                                                    )
-                                                " />
+                                                [checked]="jsDiffOptions().ignoreCase"
+                                                [disabled]="!isIgnoreCaseAvailable()"
+                                                (change)="onCheckboxChange('ignoreCase', $event)" />
                                             Игнорировать регистр
                                         </label>
                                     </div>
 
                                     <div
                                         class="settings-section"
-                                        [class.settings-disabled]="
-                                            !isIntlSegmenterAvailable()
-                                        ">
-                                        <div class="settings-section-title">
-                                            Слова
-                                        </div>
+                                        [class.settings-disabled]="!isIntlSegmenterAvailable()">
+                                        <div class="settings-section-title">Слова</div>
                                         <label class="settings-check-item">
                                             <input
                                                 type="checkbox"
-                                                [checked]="
-                                                    jsDiffOptions()
-                                                        .intlSegmenter
-                                                "
-                                                [disabled]="
-                                                    !isIntlSegmenterAvailable()
-                                                "
-                                                (change)="
-                                                    onOptionChange(
-                                                        'intlSegmenter',
-                                                        $any($event.target)
-                                                            .checked
-                                                    )
-                                                " />
+                                                [checked]="jsDiffOptions().intlSegmenter"
+                                                [disabled]="!isIntlSegmenterAvailable()"
+                                                (change)="onCheckboxChange('intlSegmenter', $event)" />
                                             Intl.Segmenter
                                         </label>
                                     </div>
 
                                     <div
                                         class="settings-section"
-                                        [class.settings-disabled]="
-                                            !isLineOptionsAvailable()
-                                        ">
-                                        <div class="settings-section-title">
-                                            Строки
-                                        </div>
+                                        [class.settings-disabled]="!isLineOptionsAvailable()">
+                                        <div class="settings-section-title">Строки</div>
                                         <label class="settings-check-item">
                                             <input
                                                 type="checkbox"
-                                                [checked]="
-                                                    jsDiffOptions()
-                                                        .stripTrailingCr
-                                                "
-                                                [disabled]="
-                                                    !isLineOptionsAvailable()
-                                                "
-                                                (change)="
-                                                    onOptionChange(
-                                                        'stripTrailingCr',
-                                                        $any($event.target)
-                                                            .checked
-                                                    )
-                                                " />
+                                                [checked]="jsDiffOptions().stripTrailingCr"
+                                                [disabled]="!isLineOptionsAvailable()"
+                                                (change)="onCheckboxChange('stripTrailingCr', $event)" />
                                             Убрать CR перед LF
                                         </label>
                                         <label class="settings-check-item">
                                             <input
                                                 type="checkbox"
-                                                [checked]="
-                                                    jsDiffOptions()
-                                                        .newlineIsToken
-                                                "
-                                                [disabled]="
-                                                    !isLineOptionsAvailable()
-                                                "
-                                                (change)="
-                                                    onOptionChange(
-                                                        'newlineIsToken',
-                                                        $any($event.target)
-                                                            .checked
-                                                    )
-                                                " />
+                                                [checked]="jsDiffOptions().newlineIsToken"
+                                                [disabled]="!isLineOptionsAvailable()"
+                                                (change)="onCheckboxChange('newlineIsToken', $event)" />
                                             Перенос как токен
                                         </label>
                                         <label class="settings-check-item">
                                             <input
                                                 type="checkbox"
-                                                [checked]="
-                                                    jsDiffOptions()
-                                                        .ignoreNewlineAtEof
-                                                "
-                                                [disabled]="
-                                                    !isLineOptionsAvailable()
-                                                "
-                                                (change)="
-                                                    onOptionChange(
-                                                        'ignoreNewlineAtEof',
-                                                        $any($event.target)
-                                                            .checked
-                                                    )
-                                                " />
+                                                [checked]="jsDiffOptions().ignoreNewlineAtEof"
+                                                [disabled]="!isLineOptionsAvailable()"
+                                                (change)="onCheckboxChange('ignoreNewlineAtEof', $event)" />
                                             Игнорировать перенос в конце
                                         </label>
                                         <label class="settings-check-item">
                                             <input
                                                 type="checkbox"
-                                                [checked]="
-                                                    jsDiffOptions()
-                                                        .ignoreWhitespace
-                                                "
-                                                [disabled]="
-                                                    !isLineOptionsAvailable()
-                                                "
-                                                (change)="
-                                                    onOptionChange(
-                                                        'ignoreWhitespace',
-                                                        $any($event.target)
-                                                            .checked
-                                                    )
-                                                " />
+                                                [checked]="jsDiffOptions().ignoreWhitespace"
+                                                [disabled]="!isLineOptionsAvailable()"
+                                                (change)="onCheckboxChange('ignoreWhitespace', $event)" />
                                             Игнорировать пробелы
                                         </label>
                                     </div>
@@ -228,15 +134,12 @@
             </div>
             <div class="diff-page-meta-versions">
                 <span>
-                    Версия {{ info.previous.versionId }} ({{
-                        info.previous.author
-                    }}, {{ formatDate(info.previous.date) }})
+                    Версия {{ info.previous.versionId }} ({{ info.previous.author }},
+                    {{ formatDate(info.previous.date) }})
                 </span>
                 <span class="version-arrow">&rarr;</span>
                 <span>
-                    Версия {{ info.current.versionId }} ({{
-                        info.current.author
-                    }}, {{ formatDate(info.current.date) }})
+                    Версия {{ info.current.versionId }} ({{ info.current.author }}, {{ formatDate(info.current.date) }})
                 </span>
             </div>
             @if (info.current.info) {

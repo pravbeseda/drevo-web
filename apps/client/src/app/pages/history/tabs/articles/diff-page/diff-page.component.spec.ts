@@ -130,6 +130,32 @@ describe('DiffPageComponent', () => {
             expect(spectator.query('.settings-popover')).toBeFalsy();
         });
 
+        it('should close settings on Escape key', () => {
+            const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
+            spectator.component.onEngineChange(jsDiffEngine);
+            spectator.component.toggleSettings();
+            spectator.detectChanges();
+
+            spectator.dispatchKeyboardEvent(document, 'keydown', 'Escape');
+            spectator.detectChanges();
+
+            expect(spectator.component.settingsOpen()).toBe(false);
+            expect(spectator.query('.settings-popover')).toBeFalsy();
+        });
+
+        it('should not close settings on Escape when already closed', () => {
+            spectator.component.onEscapePress();
+            expect(spectator.component.settingsOpen()).toBe(false);
+        });
+
+        it('should extract checked from checkbox event', () => {
+            const event = {
+                target: { checked: true },
+            } as unknown as Event;
+            spectator.component.onCheckboxChange('ignoreCase', event);
+            expect(spectator.component.jsDiffOptions().ignoreCase).toBe(true);
+        });
+
         it('should update granularity', () => {
             spectator.component.onGranularityChange('lines');
             expect(spectator.component.jsDiffOptions().granularity).toBe(

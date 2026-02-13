@@ -31,5 +31,5 @@ export interface DiffChange {
 }
 
 export interface DiffEngine {
-    computeDiff(oldText: string, newText: string, options?: object): DiffChange[];
+    computeDiff(oldText: string, newText: string, options?: JsDiffOptions): DiffChange[];
 }
