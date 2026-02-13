@@ -34,7 +34,9 @@
                     </ng-template>
 
                     @if (isJsDiff()) {
-                        <div class="settings-anchor">
+                        <div
+                            class="settings-anchor"
+                            data-testid="jsdiff-settings-anchor">
                             <ui-icon-button
                                 icon="settings"
                                 aria-label="Настройки JsDiff"
@@ -45,7 +47,9 @@
                                     class="settings-backdrop"
                                     role="none"
                                     (click)="closeSettings()"></div>
-                                <div class="settings-popover">
+                                <div
+                                    class="settings-popover"
+                                    data-testid="jsdiff-settings-popover">
                                     <div class="settings-section">
                                         <div class="settings-section-title">Гранулярность</div>
                                         @for (option of granularityOptions; track option.value) {

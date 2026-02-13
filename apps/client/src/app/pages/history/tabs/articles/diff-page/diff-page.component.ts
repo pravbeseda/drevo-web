@@ -126,6 +126,7 @@ export class DiffPageComponent implements OnInit {
 
     onEngineChange(engine: DiffEngineEntry): void {
         this._selectedEngine.set(engine);
+        this._settingsOpen.set(false);
         this.logger.info('Diff engine changed', { engineId: engine.id });
     }
 

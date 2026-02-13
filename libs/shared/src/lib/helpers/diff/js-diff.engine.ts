@@ -14,7 +14,11 @@ const stripOrphanedCombiningMarks = (text: string): string => text.replace(/(\s)
 
 export class JsDiffEngine implements DiffEngine {
     computeDiff(oldText: string, newText: string, options: JsDiffOptions = DEFAULT_JS_DIFF_OPTIONS): DiffChange[] {
-        const changes = this.computeChanges(stripOrphanedCombiningMarks(oldText), stripOrphanedCombiningMarks(newText), options);
+        const changes = this.computeChanges(
+            stripOrphanedCombiningMarks(oldText),
+            stripOrphanedCombiningMarks(newText),
+            options
+        );
 
         return changes.map(change => ({
             type: change.added ? 'insert' : change.removed ? 'delete' : 'equal',

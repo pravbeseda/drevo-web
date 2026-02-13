@@ -189,18 +189,22 @@ describe('JsDiffEngine', () => {
             // diffWords postProcess: Intl.Segmenter treats " \u0300" as a single non-word
             // segment, but dedupeWhitespaceInChangeObjects expects space to be a separate suffix.
             // The bug manifests when \r\n is also present in the text.
-            const oldText = '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391\u03BD\u03B8\u03B9\u03BC\u03BF\u03BD next words';
-            const newText = '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391 changed text';
+            const oldText =
+                '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391\u03BD\u03B8\u03B9\u03BC\u03BF\u03BD next words';
+            const newText =
+                '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391 changed text';
 
-            const result = engine.computeDiff(
-                oldText,
-                newText,
-                opts({ granularity: 'words', intlSegmenter: true })
-            );
+            const result = engine.computeDiff(oldText, newText, opts({ granularity: 'words', intlSegmenter: true }));
 
             expect(result.length).toBeGreaterThan(0);
-            const deleted = result.filter(c => c.type === 'delete').map(c => c.text).join('');
-            const inserted = result.filter(c => c.type === 'insert').map(c => c.text).join('');
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
             expect(deleted).toContain('next');
             expect(inserted).toContain('changed');
         });

@@ -90,7 +90,7 @@ describe('DiffPageComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.isJsDiff()).toBe(true);
-            expect(spectator.query('.settings-anchor')).toBeTruthy();
+            expect(spectator.query('[data-testid="jsdiff-settings-anchor"]')).toBeTruthy();
         });
 
         it('should toggle settings popover', () => {
@@ -99,13 +99,13 @@ describe('DiffPageComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.settingsOpen()).toBe(false);
-            expect(spectator.query('.settings-popover')).toBeFalsy();
+            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeFalsy();
 
             spectator.component.toggleSettings();
             spectator.detectChanges();
 
             expect(spectator.component.settingsOpen()).toBe(true);
-            expect(spectator.query('.settings-popover')).toBeTruthy();
+            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeTruthy();
         });
 
         it('should close settings on backdrop click', () => {
@@ -118,7 +118,7 @@ describe('DiffPageComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.settingsOpen()).toBe(false);
-            expect(spectator.query('.settings-popover')).toBeFalsy();
+            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeFalsy();
         });
 
         it('should close settings on Escape key', () => {
@@ -131,7 +131,7 @@ describe('DiffPageComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.settingsOpen()).toBe(false);
-            expect(spectator.query('.settings-popover')).toBeFalsy();
+            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeFalsy();
         });
 
         it('should not close settings on Escape when already closed', () => {
