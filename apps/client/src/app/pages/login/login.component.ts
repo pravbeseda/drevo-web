@@ -1,38 +1,16 @@
 import { AuthService } from '../../services/auth/auth.service';
 import { isPlatformBrowser } from '@angular/common';
-import {
-    Component,
-    signal,
-    inject,
-    PLATFORM_ID,
-    DestroyRef,
-    OnInit,
-    ChangeDetectionStrategy,
-} from '@angular/core';
+import { Component, signal, inject, PLATFORM_ID, DestroyRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-    FormControl,
-    FormGroup,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isValidReturnUrl } from '@drevo-web/shared';
-import {
-    TextInputComponent,
-    CheckboxComponent,
-    ButtonComponent,
-} from '@drevo-web/ui';
+import { TextInputComponent, CheckboxComponent, ButtonComponent } from '@drevo-web/ui';
 import { finalize } from 'rxjs';
 
 @Component({
     selector: 'app-login',
-    imports: [
-        ReactiveFormsModule,
-        TextInputComponent,
-        CheckboxComponent,
-        ButtonComponent,
-    ],
+    imports: [ReactiveFormsModule, TextInputComponent, CheckboxComponent, ButtonComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
@@ -111,10 +89,7 @@ export class LoginComponent implements OnInit {
             });
     }
 
-    private getErrorMessage(error: {
-        message?: string;
-        code?: string;
-    }): string {
+    private getErrorMessage(error: { message?: string; code?: string }): string {
         if (error.code === 'ACCOUNT_NOT_ACTIVE') {
             return 'Аккаунт не активирован. Проверьте email для подтверждения.';
         }

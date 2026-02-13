@@ -2,12 +2,7 @@ import { ArticleService } from '../../../../services/articles';
 import { ArticlePageService } from '../../article-page.service';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ActivatedRoute,
-    convertToParamMap,
-    provideRouter,
-    Router,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -54,9 +49,7 @@ describe('ArticleVersionTabComponent', () => {
     });
 
     beforeEach(() => {
-        paramMapSubject = new BehaviorSubject(
-            convertToParamMap({ versionId: '789' })
-        );
+        paramMapSubject = new BehaviorSubject(convertToParamMap({ versionId: '789' }));
         spectator = createComponent({
             providers: [
                 {
@@ -67,9 +60,7 @@ describe('ArticleVersionTabComponent', () => {
                 },
             ],
         });
-        articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         articleService.getVersionShow.mockReturnValue(of(mockVersion));
     });
 
@@ -102,9 +93,7 @@ describe('ArticleVersionTabComponent', () => {
     it('should show link to current article version', () => {
         spectator.detectChanges();
 
-        const link = spectator.query(
-            '[data-testid="version-banner"] a'
-        ) as HTMLAnchorElement;
+        const link = spectator.query('[data-testid="version-banner"] a') as HTMLAnchorElement;
         expect(link).toBeTruthy();
         expect(link.textContent).toContain('Перейти к текущей версии');
         expect(link.getAttribute('href')).toBe('/articles/100');
@@ -151,9 +140,7 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
             {
                 provide: ArticleService,
                 useValue: {
-                    getVersionShow: jest
-                        .fn()
-                        .mockReturnValue(of(mismatchedVersion)),
+                    getVersionShow: jest.fn().mockReturnValue(of(mismatchedVersion)),
                 },
             },
             {
@@ -179,10 +166,7 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
         jest.spyOn(router, 'navigate').mockResolvedValue(true);
         spectator.detectChanges();
 
-        expect(router.navigate).toHaveBeenCalledWith(
-            ['/articles', 200, 'version', 789],
-            { replaceUrl: true }
-        );
+        expect(router.navigate).toHaveBeenCalledWith(['/articles', 200, 'version', 789], { replaceUrl: true });
         expect(spectator.component.version()).toBeUndefined();
     });
 });

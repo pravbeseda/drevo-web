@@ -1,15 +1,7 @@
 import { HeaderComponent } from './header/header.component';
 import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
 import { VersionDisplayComponent } from '../components/version-display/version-display.component';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    inject,
-    OnInit,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { DrawerService, SidebarService, WINDOW } from '@drevo-web/core';
@@ -18,12 +10,7 @@ import { filter } from 'rxjs';
 
 @Component({
     selector: 'app-layout',
-    imports: [
-        HeaderComponent,
-        SidebarNavComponent,
-        VersionDisplayComponent,
-        RightSidebarComponent,
-    ],
+    imports: [HeaderComponent, SidebarNavComponent, VersionDisplayComponent, RightSidebarComponent],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,9 +22,7 @@ export class LayoutComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly window = inject(WINDOW);
 
-    readonly hasActions = computed(
-        () => this.sidebarService.actions().length > 0
-    );
+    readonly hasActions = computed(() => this.sidebarService.actions().length > 0);
 
     readonly isDrawerOpen = this.drawerService.isOpen;
     readonly isMobile = signal(false);
@@ -57,9 +42,7 @@ export class LayoutComponent implements OnInit {
             return;
         }
 
-        const mediaQuery = this.window.matchMedia(
-            `(max-width: ${BREAKPOINT_TABLET - 1}px)`
-        );
+        const mediaQuery = this.window.matchMedia(`(max-width: ${BREAKPOINT_TABLET - 1}px)`);
 
         this.isMobile.set(mediaQuery.matches);
 
@@ -93,10 +76,7 @@ export class LayoutComponent implements OnInit {
     private closeDrawerOnMobileNavigation(): void {
         this.router.events
             .pipe(
-                filter(
-                    (event): event is NavigationEnd =>
-                        event instanceof NavigationEnd
-                ),
+                filter((event): event is NavigationEnd => event instanceof NavigationEnd),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe(() => {

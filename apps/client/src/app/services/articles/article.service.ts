@@ -89,14 +89,8 @@ export class ArticleService {
      * @param params - Search parameters (query is optional - empty returns all articles)
      * @returns Observable with mapped search response
      */
-    searchArticles(
-        params: ArticleSearchParams = {}
-    ): Observable<ArticleSearchResponse> {
-        const {
-            query = '',
-            page = 1,
-            pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
-        } = params;
+    searchArticles(params: ArticleSearchParams = {}): Observable<ArticleSearchResponse> {
+        const { query = '', page = 1, pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } = params;
 
         return this.articleApiService
             .searchArticles(query, page, pageSize)
@@ -109,12 +103,8 @@ export class ArticleService {
      * @param request - Save request with versionId, content, and optional info
      * @returns Observable with mapped save result
      */
-    saveArticleVersion(
-        request: SaveArticleVersionRequest
-    ): Observable<SaveArticleVersionResult> {
-        return this.articleApiService
-            .saveArticleVersion(request)
-            .pipe(map(response => this.mapSaveResponse(response)));
+    saveArticleVersion(request: SaveArticleVersionRequest): Observable<SaveArticleVersionResult> {
+        return this.articleApiService.saveArticleVersion(request).pipe(map(response => this.mapSaveResponse(response)));
     }
 
     /**
@@ -123,16 +113,8 @@ export class ArticleService {
      * @param params - History parameters (page, pageSize, approved, author)
      * @returns Observable with mapped history response
      */
-    getArticlesHistory(
-        params: ArticleHistoryParams = {}
-    ): Observable<ArticleHistoryResponse> {
-        const {
-            page = 1,
-            pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
-            approved,
-            author,
-            articleId,
-        } = params;
+    getArticlesHistory(params: ArticleHistoryParams = {}): Observable<ArticleHistoryResponse> {
+        const { page = 1, pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE, approved, author, articleId } = params;
 
         return this.articleApiService
             .getArticlesHistory(page, pageSize, approved, author, articleId)
@@ -162,15 +144,10 @@ export class ArticleService {
      */
     private transformArticleLinks(content: string): string {
         // Match href attributes pointing to /articles/*.html with optional anchor
-        return content.replace(
-            /href="\/articles\/(\d+)\.html(#[^"]+)?"/g,
-            'href="/articles/$1$2"'
-        );
+        return content.replace(/href="\/articles\/(\d+)\.html(#[^"]+)?"/g, 'href="/articles/$1$2"');
     }
 
-    private mapSearchResponse(
-        response: ArticleSearchResponseDto
-    ): ArticleSearchResponse {
+    private mapSearchResponse(response: ArticleSearchResponseDto): ArticleSearchResponse {
         return {
             items: response.items.map(item => this.mapSearchResult(item)),
             total: response.total,
@@ -187,9 +164,7 @@ export class ArticleService {
         };
     }
 
-    private mapSaveResponse(
-        response: SaveArticleVersionResponseDto
-    ): SaveArticleVersionResult {
+    private mapSaveResponse(response: SaveArticleVersionResponseDto): SaveArticleVersionResult {
         return {
             articleId: response.articleId,
             versionId: response.versionId,
@@ -200,9 +175,7 @@ export class ArticleService {
         };
     }
 
-    private mapHistoryResponse(
-        response: ArticleHistoryResponseDto
-    ): ArticleHistoryResponse {
+    private mapHistoryResponse(response: ArticleHistoryResponseDto): ArticleHistoryResponse {
         return {
             items: response.items.map(item => this.mapHistoryItem(item)),
             total: response.total,
@@ -219,10 +192,7 @@ export class ArticleService {
      * @param version2 - Optional secondary version ID (auto-detected if omitted)
      * @returns Observable with mapped version pairs
      */
-    getVersionPairs(
-        version1: number,
-        version2?: number
-    ): Observable<VersionPairs> {
+    getVersionPairs(version1: number, version2?: number): Observable<VersionPairs> {
         return this.articleApiService.getVersionPairs(version1, version2).pipe(
             map(response => ({
                 current: this.mapVersionForDiff(response.current),

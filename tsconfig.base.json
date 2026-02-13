@@ -13,14 +13,12 @@
         "importHelpers": true,
         "target": "es2015",
         "module": "esnext",
-        "lib": ["es2020", "dom"],
+        "lib": ["es2022", "dom"],
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            "@angular/material/*": [
-                "node_modules/@angular/material/types/*.d.ts"
-            ],
+            "@angular/material/*": ["node_modules/@angular/material/types/*.d.ts"],
             "@drevo-web/editor": ["libs/editor/src/index.ts"],
             "@drevo-web/shared": ["libs/shared/src/index.ts"],
             "@drevo-web/ui": ["libs/ui/src/index.ts"],

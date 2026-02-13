@@ -4,10 +4,7 @@ import { ConsoleLogProvider } from './console-log.provider';
 describe('ConsoleLogProvider', () => {
     let provider: ConsoleLogProvider;
 
-    const createEntry = (
-        level: LogEntry['level'],
-        data?: unknown
-    ): LogEntry => ({
+    const createEntry = (level: LogEntry['level'], data?: unknown): LogEntry => ({
         level,
         message: 'Test message',
         context: 'TestContext',
@@ -43,51 +40,38 @@ describe('ConsoleLogProvider', () => {
         it('should output debug messages', () => {
             provider.log(createEntry('debug'));
 
-            expect(console.debug).toHaveBeenCalledWith(
-                expect.stringContaining('[TestContext] Test message')
-            );
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('[TestContext] Test message'));
         });
 
         it('should output info messages', () => {
             provider.log(createEntry('info'));
 
-            expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining('[TestContext] Test message')
-            );
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('[TestContext] Test message'));
         });
 
         it('should output warn messages', () => {
             provider.log(createEntry('warn'));
 
-            expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining('[TestContext] Test message')
-            );
+            expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('[TestContext] Test message'));
         });
 
         it('should output error messages', () => {
             provider.log(createEntry('error'));
 
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('[TestContext] Test message')
-            );
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[TestContext] Test message'));
         });
 
         it('should include data in output when provided', () => {
             const data = { key: 'value' };
             provider.log(createEntry('info', data));
 
-            expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining('Test message'),
-                data
-            );
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('Test message'), data);
         });
 
         it('should include timestamp in formatted message', () => {
             provider.log(createEntry('info'));
 
-            expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining('2026-01-18T10:00:00.000Z')
-            );
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('2026-01-18T10:00:00.000Z'));
         });
     });
 
@@ -121,9 +105,7 @@ describe('ConsoleLogProvider', () => {
         it('should output error messages', () => {
             provider.log(createEntry('error'));
 
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('[TestContext] Test message')
-            );
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[TestContext] Test message'));
         });
     });
 
@@ -157,12 +139,8 @@ describe('ConsoleLogProvider', () => {
 
             provider.log(entry);
 
-            expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining('No context message')
-            );
-            expect(console.info).toHaveBeenCalledWith(
-                expect.not.stringContaining('[')
-            );
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('No context message'));
+            expect(console.info).toHaveBeenCalledWith(expect.not.stringContaining('['));
         });
     });
 });

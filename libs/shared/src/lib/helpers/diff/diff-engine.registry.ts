@@ -9,10 +9,10 @@ export interface DiffEngineEntry {
 }
 
 export const DIFF_ENGINES: readonly DiffEngineEntry[] = [
+    { id: 'js-diff', label: 'JsDiff', engine: new JsDiffEngine() },
     {
         id: 'diff-match-patch',
         label: 'DiffMatchPatch',
         engine: new DiffMatchPatchEngine(),
     },
-    { id: 'js-diff', label: 'JsDiff', engine: new JsDiffEngine() },
 ];

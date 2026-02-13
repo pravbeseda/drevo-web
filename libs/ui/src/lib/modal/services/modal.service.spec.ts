@@ -23,9 +23,7 @@ describe('ModalService', () => {
     beforeEach(() => {
         afterClosedSubject = new Subject();
         dialogRefMock = {
-            afterClosed: jest
-                .fn()
-                .mockReturnValue(afterClosedSubject.asObservable()),
+            afterClosed: jest.fn().mockReturnValue(afterClosedSubject.asObservable()),
             close: jest.fn(),
         } as unknown as jest.Mocked<MatDialogRef<ModalContainerComponent>>;
 
@@ -206,9 +204,7 @@ describe('ModalService', () => {
         });
 
         it('should allow closing dialog via ref with result', () => {
-            const { ref } = spectator.service.openWithRef<void, string>(
-                mockLoader
-            );
+            const { ref } = spectator.service.openWithRef<void, string>(mockLoader);
 
             ref.close('success');
 
@@ -216,9 +212,7 @@ describe('ModalService', () => {
         });
 
         it('should emit result through closed observable', () => {
-            const { closed } = spectator.service.openWithRef<void, number>(
-                mockLoader
-            );
+            const { closed } = spectator.service.openWithRef<void, number>(mockLoader);
             const results: (number | undefined)[] = [];
 
             closed.subscribe(value => results.push(value));

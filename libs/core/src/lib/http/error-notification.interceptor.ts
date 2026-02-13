@@ -1,8 +1,4 @@
-import {
-    SKIP_ERROR_NOTIFICATION,
-    CUSTOM_ERROR_MESSAGE,
-    SKIP_ERROR_FOR_STATUSES,
-} from './http-context-tokens';
+import { SKIP_ERROR_NOTIFICATION, CUSTOM_ERROR_MESSAGE, SKIP_ERROR_FOR_STATUSES } from './http-context-tokens';
 import { HttpErrorMapperService } from './http-error-mapper.service';
 import { NotificationService } from '../services/notification.service';
 import {
@@ -45,10 +41,7 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
     private readonly notification = inject(NotificationService);
     private readonly errorMapper = inject(HttpErrorMapperService);
 
-    intercept(
-        request: HttpRequest<unknown>,
-        next: HttpHandler
-    ): Observable<HttpEvent<unknown>> {
+    intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
         return next.handle(request).pipe(
             catchError((error: unknown) => {
                 if (error instanceof HttpErrorResponse) {
@@ -61,10 +54,7 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
         );
     }
 
-    private handleError(
-        request: HttpRequest<unknown>,
-        error: HttpErrorResponse
-    ): void {
+    private handleError(request: HttpRequest<unknown>, error: HttpErrorResponse): void {
         // Check if notifications are completely skipped for this request
         if (request.context.get(SKIP_ERROR_NOTIFICATION)) {
             return;
@@ -78,8 +68,7 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
 
         // Determine the message to show
         const customMessage = request.context.get(CUSTOM_ERROR_MESSAGE);
-        const message =
-            customMessage || this.errorMapper.mapError(error).message;
+        const message = customMessage || this.errorMapper.mapError(error).message;
 
         this.notification.error(message);
     }

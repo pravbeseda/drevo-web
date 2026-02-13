@@ -4,8 +4,7 @@ import { Route } from '@angular/router';
 export const appRoutes: Route[] = [
     {
         path: 'login',
-        loadComponent: () =>
-            import('./pages/login/login.component').then(m => m.LoginComponent),
+        loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent),
         data: { layout: 'none' },
     },
     {
@@ -15,17 +14,12 @@ export const appRoutes: Route[] = [
             {
                 path: '',
                 pathMatch: 'full',
-                loadComponent: () =>
-                    import('./pages/main/main.component').then(
-                        m => m.MainComponent
-                    ),
+                loadComponent: () => import('./pages/main/main.component').then(m => m.MainComponent),
             },
             {
                 path: 'editor',
                 loadComponent: () =>
-                    import('./pages/shared-editor/shared-editor.component').then(
-                        m => m.SharedEditorComponent
-                    ),
+                    import('./pages/shared-editor/shared-editor.component').then(m => m.SharedEditorComponent),
             },
             {
                 path: 'history/diff/:id',
@@ -36,10 +30,7 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'history',
-                loadComponent: () =>
-                    import('./pages/history/history.component').then(
-                        m => m.HistoryComponent
-                    ),
+                loadComponent: () => import('./pages/history/history.component').then(m => m.HistoryComponent),
                 children: [
                     {
                         path: '',
@@ -56,32 +47,24 @@ export const appRoutes: Route[] = [
                     {
                         path: 'news',
                         loadComponent: () =>
-                            import('./pages/history/tabs/news-history.component').then(
-                                m => m.NewsHistoryComponent
-                            ),
+                            import('./pages/history/tabs/news-history.component').then(m => m.NewsHistoryComponent),
                     },
                     {
                         path: 'forum',
                         loadComponent: () =>
-                            import('./pages/history/tabs/forum-history.component').then(
-                                m => m.ForumHistoryComponent
-                            ),
+                            import('./pages/history/tabs/forum-history.component').then(m => m.ForumHistoryComponent),
                     },
                     {
                         path: 'pictures',
                         loadComponent: () =>
-                            import('./pages/history/tabs/pictures.component').then(
-                                m => m.PicturesComponent
-                            ),
+                            import('./pages/history/tabs/pictures.component').then(m => m.PicturesComponent),
                     },
                 ],
             },
             {
                 path: 'articles/edit/:id',
                 loadComponent: () =>
-                    import('./pages/article-edit/article-edit.component').then(
-                        m => m.ArticleEditComponent
-                    ),
+                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
             },
             {
                 path: 'articles/version/:id',
@@ -92,17 +75,11 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'articles/:id',
-                loadChildren: () =>
-                    import('./pages/article/article.routes').then(
-                        m => m.ARTICLE_ROUTES
-                    ),
+                loadChildren: () => import('./pages/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },
             {
                 path: '**',
-                loadComponent: () =>
-                    import('./pages/error/error.component').then(
-                        m => m.ErrorComponent
-                    ),
+                loadComponent: () => import('./pages/error/error.component').then(m => m.ErrorComponent),
                 data: { showHomeButton: true },
             },
         ],

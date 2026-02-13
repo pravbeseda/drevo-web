@@ -33,8 +33,7 @@ export class StorageService {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
     private readonly window = inject(WINDOW);
-    private readonly logger =
-        inject(LoggerService).withContext('StorageService');
+    private readonly logger = inject(LoggerService).withContext('StorageService');
 
     /**
      * Get value from localStorage
@@ -54,10 +53,7 @@ export class StorageService {
             }
             return JSON.parse(value) as T;
         } catch (error) {
-            this.logger.warn(
-                `Failed to parse localStorage value for key "${key}"`,
-                error
-            );
+            this.logger.warn(`Failed to parse localStorage value for key "${key}"`, error);
             return undefined;
         }
     }
@@ -90,19 +86,10 @@ export class StorageService {
             return true;
         } catch (error) {
             // Handle quota exceeded
-            if (
-                error instanceof DOMException &&
-                error.name === 'QuotaExceededError'
-            ) {
-                this.logger.error(
-                    `localStorage quota exceeded for key "${key}"`,
-                    error
-                );
+            if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+                this.logger.error(`localStorage quota exceeded for key "${key}"`, error);
             } else {
-                this.logger.error(
-                    `Failed to set localStorage value for key "${key}"`,
-                    error
-                );
+                this.logger.error(`Failed to set localStorage value for key "${key}"`, error);
             }
             return false;
         }
@@ -123,19 +110,10 @@ export class StorageService {
             this.window?.localStorage.setItem(key, value);
             return true;
         } catch (error) {
-            if (
-                error instanceof DOMException &&
-                error.name === 'QuotaExceededError'
-            ) {
-                this.logger.error(
-                    `localStorage quota exceeded for key "${key}"`,
-                    error
-                );
+            if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+                this.logger.error(`localStorage quota exceeded for key "${key}"`, error);
             } else {
-                this.logger.error(
-                    `Failed to set localStorage value for key "${key}"`,
-                    error
-                );
+                this.logger.error(`Failed to set localStorage value for key "${key}"`, error);
             }
             return false;
         }

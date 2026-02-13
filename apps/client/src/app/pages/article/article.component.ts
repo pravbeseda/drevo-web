@@ -1,30 +1,14 @@
 import { ArticlePageService } from './article-page.service';
 import { ErrorComponent } from '../error/error.component';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    inject,
-    OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-    ActivatedRoute,
-    NavigationEnd,
-    Router,
-    RouterOutlet,
-} from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SpinnerComponent, TabGroup, TabsGroupComponent } from '@drevo-web/ui';
 import { filter, map } from 'rxjs';
 
 @Component({
     selector: 'app-article',
-    imports: [
-        SpinnerComponent,
-        ErrorComponent,
-        TabsGroupComponent,
-        RouterOutlet,
-    ],
+    imports: [SpinnerComponent, ErrorComponent, TabsGroupComponent, RouterOutlet],
     templateUrl: './article.component.html',
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

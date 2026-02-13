@@ -1,12 +1,6 @@
 import { FilterEntry } from '../filter.model';
 import { FiltersComponent } from '../filters.component';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    input,
-    output,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { SidebarActionDirective, SidePanelComponent } from '@drevo-web/ui';
 
 @Component({

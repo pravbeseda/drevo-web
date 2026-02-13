@@ -26,19 +26,11 @@ interface LazyModalData<TData = unknown> {
     styleUrl: './modal-container.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModalContainerComponent<
-    TData = unknown,
-    TResult = unknown,
-> implements AfterViewInit {
-    private readonly dialogRef =
-        inject<MatDialogRef<ModalContainerComponent<TData, TResult>, TResult>>(
-            MatDialogRef
-        );
+export class ModalContainerComponent<TData = unknown, TResult = unknown> implements AfterViewInit {
+    private readonly dialogRef = inject<MatDialogRef<ModalContainerComponent<TData, TResult>, TResult>>(MatDialogRef);
     private readonly dialogData = inject<LazyModalData<TData>>(MAT_DIALOG_DATA);
     private readonly injector = inject(Injector);
-    private readonly logger = inject(LoggerService).withContext(
-        'ModalContainerComponent'
-    );
+    private readonly logger = inject(LoggerService).withContext('ModalContainerComponent');
 
     private readonly outlet = viewChild.required('outlet', {
         read: ViewContainerRef,

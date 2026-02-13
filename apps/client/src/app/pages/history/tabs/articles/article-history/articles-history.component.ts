@@ -5,13 +5,7 @@ import {
     HistoryFilter,
 } from '../../../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from '../article-history-list/article-history-list.component';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    inject,
-    OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 
 const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
     { key: 'all', label: 'Все' },

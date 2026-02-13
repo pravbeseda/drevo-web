@@ -1,13 +1,5 @@
 import { ArticleService } from '../../services/articles';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    inject,
-    OnInit,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ArticleSearchResult } from '@drevo-web/shared';
@@ -20,17 +12,7 @@ import {
     MODAL_DATA,
     ModalData,
 } from '@drevo-web/ui';
-import {
-    catchError,
-    debounceTime,
-    distinctUntilChanged,
-    map,
-    of,
-    startWith,
-    Subject,
-    switchMap,
-    tap,
-} from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
 
@@ -63,9 +45,7 @@ export class SearchComponent implements OnInit {
     readonly totalResults = signal(0);
     readonly currentPage = signal(1);
 
-    readonly hasResults = computed(
-        () => this.searchResults().length > 0 && !this.isLoading()
-    );
+    readonly hasResults = computed(() => this.searchResults().length > 0 && !this.isLoading());
     readonly showNoResults = computed(
         () =>
             this.searchQuery().length > 0 &&
@@ -74,8 +54,7 @@ export class SearchComponent implements OnInit {
             this.searchResults().length === 0
     );
 
-    readonly trackByFn = (_index: number, item: ArticleSearchResult): number =>
-        item.id;
+    readonly trackByFn = (_index: number, item: ArticleSearchResult): number => item.id;
 
     closeModal(): void {
         this.modalData?.close();
@@ -140,10 +119,7 @@ export class SearchComponent implements OnInit {
             )
             .subscribe(response => {
                 if (response.items.length > 0) {
-                    this.searchResults.set([
-                        ...currentResults,
-                        ...response.items,
-                    ]);
+                    this.searchResults.set([...currentResults, ...response.items]);
                     this.currentPage.set(nextPage);
                 }
                 this.isLoadingMore.set(false);

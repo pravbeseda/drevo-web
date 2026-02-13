@@ -57,10 +57,7 @@ export interface AuthFixtures {
 /**
  * Setup route mocking for authenticated user
  */
-async function setupAuthenticatedMocks(
-    page: Page,
-    user: User = mockUsers.authenticated
-): Promise<void> {
+async function setupAuthenticatedMocks(page: Page, user: User = mockUsers.authenticated): Promise<void> {
     // Mock /api/auth/me - return authenticated user
     await page.route(apiPatterns.authMe, async (route: Route) => {
         const response = authResponses.authenticatedMe(user);
@@ -249,8 +246,4 @@ export const test = base.extend<AuthFixtures>({
 export { expect } from '@playwright/test';
 
 // Export helper functions for custom scenarios
-export {
-    setupAuthenticatedMocks,
-    setupUnauthenticatedMocks,
-    setupStatefulAuthMocks,
-};
+export { setupAuthenticatedMocks, setupUnauthenticatedMocks, setupStatefulAuthMocks };

@@ -1,3 +1,5 @@
+import type { JsDiffOptions } from './diff.types';
+import { DEFAULT_JS_DIFF_OPTIONS } from './diff.types';
 import { JsDiffEngine } from './js-diff.engine';
 
 describe('JsDiffEngine', () => {
@@ -55,5 +57,171 @@ describe('JsDiffEngine', () => {
         const result = engine.computeDiff('line1\nline2', 'line1\nline3');
         const allText = result.map(c => c.text).join('');
         expect(allText).toContain('line1');
+    });
+
+    describe('granularity modes', () => {
+        const opts = (overrides: Partial<JsDiffOptions>): JsDiffOptions => ({
+            ...DEFAULT_JS_DIFF_OPTIONS,
+            ...overrides,
+        });
+
+        it('should diff by characters', () => {
+            const result = engine.computeDiff('abc', 'aXc', opts({ granularity: 'chars' }));
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
+            expect(deleted).toBe('b');
+            expect(inserted).toBe('X');
+        });
+
+        it('should diff by words', () => {
+            const result = engine.computeDiff('hello world foo', 'hello planet foo', opts({ granularity: 'words' }));
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
+            expect(deleted).toContain('world');
+            expect(inserted).toContain('planet');
+        });
+
+        it('should diff by wordsWithSpace', () => {
+            const result = engine.computeDiff('hello world', 'hello  world', opts({ granularity: 'wordsWithSpace' }));
+            // wordsWithSpace treats whitespace as significant
+            const hasChanges = result.some(c => c.type === 'insert' || c.type === 'delete');
+            expect(hasChanges).toBe(true);
+        });
+
+        it('should diff by lines', () => {
+            const result = engine.computeDiff(
+                'line1\nline2\nline3\n',
+                'line1\nchanged\nline3\n',
+                opts({ granularity: 'lines' })
+            );
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
+            expect(deleted).toContain('line2');
+            expect(inserted).toContain('changed');
+        });
+
+        it('should diff by sentences', () => {
+            const result = engine.computeDiff(
+                'First sentence. Second sentence.',
+                'First sentence. Changed sentence.',
+                opts({ granularity: 'sentences' })
+            );
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
+            expect(deleted).toContain('Second');
+            expect(inserted).toContain('Changed');
+        });
+    });
+
+    describe('options', () => {
+        const opts = (overrides: Partial<JsDiffOptions>): JsDiffOptions => ({
+            ...DEFAULT_JS_DIFF_OPTIONS,
+            ...overrides,
+        });
+
+        it('should respect ignoreCase for chars', () => {
+            const withCase = engine.computeDiff('Hello', 'hello', opts({ granularity: 'chars' }));
+            const withoutCase = engine.computeDiff('Hello', 'hello', opts({ granularity: 'chars', ignoreCase: true }));
+
+            const withCaseHasChanges = withCase.some(c => c.type !== 'equal');
+            const withoutCaseHasChanges = withoutCase.some(c => c.type !== 'equal');
+
+            expect(withCaseHasChanges).toBe(true);
+            expect(withoutCaseHasChanges).toBe(false);
+        });
+
+        it('should respect ignoreCase for words', () => {
+            const withCase = engine.computeDiff('Hello World', 'hello world', opts({ granularity: 'words' }));
+            const withoutCase = engine.computeDiff(
+                'Hello World',
+                'hello world',
+                opts({ granularity: 'words', ignoreCase: true })
+            );
+
+            const withCaseHasChanges = withCase.some(c => c.type !== 'equal');
+            const withoutCaseHasChanges = withoutCase.some(c => c.type !== 'equal');
+
+            expect(withCaseHasChanges).toBe(true);
+            expect(withoutCaseHasChanges).toBe(false);
+        });
+
+        it('should respect ignoreWhitespace for lines', () => {
+            const withWs = engine.computeDiff('line1\n  line2\n', 'line1\nline2\n', opts({ granularity: 'lines' }));
+            const withoutWs = engine.computeDiff(
+                'line1\n  line2\n',
+                'line1\nline2\n',
+                opts({ granularity: 'lines', ignoreWhitespace: true })
+            );
+
+            const withWsHasChanges = withWs.some(c => c.type !== 'equal');
+            const withoutWsHasChanges = withoutWs.some(c => c.type !== 'equal');
+
+            expect(withWsHasChanges).toBe(true);
+            expect(withoutWsHasChanges).toBe(false);
+        });
+
+        it('should handle text with orphaned combining marks and intlSegmenter', () => {
+            // Orphaned combining mark (U+0300) after a space triggers a bug in jsdiff's
+            // diffWords postProcess: Intl.Segmenter treats " \u0300" as a single non-word
+            // segment, but dedupeWhitespaceInChangeObjects expects space to be a separate suffix.
+            // The bug manifests when \r\n is also present in the text.
+            const oldText =
+                '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391\u03BD\u03B8\u03B9\u03BC\u03BF\u03BD next words';
+            const newText =
+                '* BHG, N 2029; \r\n* \u039B\u03CC\u03B3\u03BF\u03C2 \u03B5\u1F30\u03C2 \u03C4\u1F78\u03BD ... \u0300\u0391 changed text';
+
+            const result = engine.computeDiff(oldText, newText, opts({ granularity: 'words', intlSegmenter: true }));
+
+            expect(result.length).toBeGreaterThan(0);
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
+            expect(deleted).toContain('next');
+            expect(inserted).toContain('changed');
+        });
+
+        it('should respect stripTrailingCr for lines', () => {
+            const withCr = engine.computeDiff('line1\r\nline2\r\n', 'line1\nline2\n', opts({ granularity: 'lines' }));
+            const withoutCr = engine.computeDiff(
+                'line1\r\nline2\r\n',
+                'line1\nline2\n',
+                opts({ granularity: 'lines', stripTrailingCr: true })
+            );
+
+            const withCrHasChanges = withCr.some(c => c.type !== 'equal');
+            const withoutCrHasChanges = withoutCr.some(c => c.type !== 'equal');
+
+            expect(withCrHasChanges).toBe(true);
+            expect(withoutCrHasChanges).toBe(false);
+        });
     });
 });

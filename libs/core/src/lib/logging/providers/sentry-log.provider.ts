@@ -162,9 +162,7 @@ export class SentryLogProvider implements LogProvider {
     /**
      * Map LogLevel to Sentry severity level
      */
-    private mapToSentryLevel(
-        level: LogLevel
-    ): 'debug' | 'info' | 'warning' | 'error' {
+    private mapToSentryLevel(level: LogLevel): 'debug' | 'info' | 'warning' | 'error' {
         switch (level) {
             case 'debug':
                 return 'debug';

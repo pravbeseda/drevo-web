@@ -29,7 +29,5 @@ export function isValidReturnUrl(url?: string): boolean {
 
     // Must start with single slash (relative path)
     // Reject: //, /\, javascript:, data:, etc.
-    return (
-        url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\')
-    );
+    return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
 }

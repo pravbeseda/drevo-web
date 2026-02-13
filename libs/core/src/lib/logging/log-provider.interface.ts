@@ -68,12 +68,6 @@ export interface LogStorageProvider extends LogProvider {
 /**
  * Type guard to check if a provider supports storage operations
  */
-export function isStorageProvider(
-    provider: LogProvider
-): provider is LogStorageProvider {
-    return (
-        'getLogs' in provider &&
-        'clearLogs' in provider &&
-        'getStorageSize' in provider
-    );
+export function isStorageProvider(provider: LogProvider): provider is LogStorageProvider {
+    return 'getLogs' in provider && 'clearLogs' in provider && 'getStorageSize' in provider;
 }

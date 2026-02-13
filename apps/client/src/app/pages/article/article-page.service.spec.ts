@@ -45,9 +45,7 @@ describe('ArticlePageService', () => {
         } as unknown as ActivatedRoute;
 
         spectator = createService();
-        articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         articleService.getArticle.mockReturnValue(of(mockArticle));
     });
 

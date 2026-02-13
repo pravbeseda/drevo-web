@@ -1,25 +1,10 @@
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
 import { authInterceptorProvider } from './interceptors/auth.interceptor';
-import {
-    provideHttpClient,
-    withFetch,
-    withInterceptorsFromDi,
-} from '@angular/common/http';
-import {
-    ApplicationConfig,
-    importProvidersFrom,
-    provideZonelessChangeDetection,
-} from '@angular/core';
-import {
-    provideClientHydration,
-    withEventReplay,
-} from '@angular/platform-browser';
-import {
-    provideRouter,
-    RouterModule,
-    withComponentInputBinding,
-} from '@angular/router';
+import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import { ApplicationConfig, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideRouter, RouterModule, withComponentInputBinding } from '@angular/router';
 import {
     errorNotificationInterceptorProvider,
     provideLogProductionMode,
@@ -34,9 +19,7 @@ const routesTracing = false;
 const logProviders = [
     createIndexedDBLogProvider(),
     // Add Sentry provider only when DSN is configured
-    ...(environment.sentryDsn
-        ? [createSentryLogProvider(environment.production, true)]
-        : []),
+    ...(environment.sentryDsn ? [createSentryLogProvider(environment.production, true)] : []),
 ];
 
 export const appConfig: ApplicationConfig = {
@@ -47,9 +30,7 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withFetch(), withInterceptorsFromDi()),
         authInterceptorProvider,
         errorNotificationInterceptorProvider,
-        importProvidersFrom(
-            RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })
-        ),
+        importProvidersFrom(RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })),
         // Logging configuration
         provideLogProductionMode(environment.production),
         provideLogProviders(logProviders),

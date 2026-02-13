@@ -1,31 +1,15 @@
 import { russianPhrases } from '../../constants/editor-phrases';
-import {
-    continueLists,
-    decreaseListIndent,
-    increaseListIndent,
-} from '../../helpers/list-commands';
+import { continueLists, decreaseListIndent, increaseListIndent } from '../../helpers/list-commands';
 import { quoteKeymap } from '../../helpers/quote-commands';
 import { WikiHighlighterService } from '../wiki-highlighter/wiki-highlighter.service';
 import { isPlatformServer } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
-import {
-    bracketMatching,
-    defaultHighlightStyle,
-    indentOnInput,
-    syntaxHighlighting,
-} from '@codemirror/language';
+import { bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
 import { openSearchPanel, search, searchKeymap } from '@codemirror/search';
 import { EditorState } from '@codemirror/state';
-import {
-    drawSelection,
-    dropCursor,
-    EditorView,
-    highlightSpecialChars,
-    keymap,
-    ViewUpdate,
-} from '@codemirror/view';
+import { drawSelection, dropCursor, EditorView, highlightSpecialChars, keymap, ViewUpdate } from '@codemirror/view';
 
 @Injectable()
 export class EditorFactoryService {

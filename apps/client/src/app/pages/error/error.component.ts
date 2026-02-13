@@ -10,16 +10,13 @@ import { ButtonComponent, IconComponent } from '@drevo-web/ui';
 })
 export class ErrorComponent {
     private static readonly DEFAULT_TITLE = 'Страница не найдена';
-    private static readonly DEFAULT_MESSAGE =
-        'Запрашиваемая страница не существует или была удалена.';
+    private static readonly DEFAULT_MESSAGE = 'Запрашиваемая страница не существует или была удалена.';
 
     readonly title = input(ErrorComponent.DEFAULT_TITLE, {
-        transform: (value: string | undefined) =>
-            value ?? ErrorComponent.DEFAULT_TITLE,
+        transform: (value: string | undefined) => value ?? ErrorComponent.DEFAULT_TITLE,
     });
     readonly message = input(ErrorComponent.DEFAULT_MESSAGE, {
-        transform: (value: string | undefined) =>
-            value ?? ErrorComponent.DEFAULT_MESSAGE,
+        transform: (value: string | undefined) => value ?? ErrorComponent.DEFAULT_MESSAGE,
     });
     readonly showHomeButton = input(false);
 }

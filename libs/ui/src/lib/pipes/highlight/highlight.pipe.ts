@@ -7,10 +7,7 @@ import { escapeHtml } from '@drevo-web/shared';
     pure: true,
 })
 export class HighlightPipe implements PipeTransform {
-    transform(
-        text: string | null | undefined,
-        phrase: string | null | undefined
-    ): string {
+    transform(text: string | null | undefined, phrase: string | null | undefined): string {
         const raw = text ?? '';
         const term = (phrase ?? '').trim();
 
@@ -22,10 +19,7 @@ export class HighlightPipe implements PipeTransform {
         const escapedTerm = escapeHtml(term);
         const regex = new RegExp(`(${this.escapeRegex(escapedTerm)})`, 'gi');
 
-        return escapedText.replace(
-            regex,
-            '<mark class="highlighted-text">$1</mark>'
-        );
+        return escapedText.replace(regex, '<mark class="highlighted-text">$1</mark>');
     }
 
     private escapeRegex(str: string): string {

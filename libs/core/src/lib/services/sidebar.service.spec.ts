@@ -9,9 +9,7 @@ describe('SidebarService', () => {
         service: SidebarService,
     });
 
-    const createAction = (
-        overrides: Partial<SidebarAction> = {}
-    ): SidebarAction => ({
+    const createAction = (overrides: Partial<SidebarAction> = {}): SidebarAction => ({
         id: 'test-action',
         icon: 'edit',
         label: 'Test Action',
@@ -142,9 +140,7 @@ describe('SidebarService', () => {
         });
 
         it('should return empty array when no primary actions', () => {
-            spectator.service.registerAction(
-                createAction({ id: 'secondary', priority: 'secondary' })
-            );
+            spectator.service.registerAction(createAction({ id: 'secondary', priority: 'secondary' }));
 
             expect(spectator.service.primaryActions()).toEqual([]);
         });
@@ -170,18 +166,12 @@ describe('SidebarService', () => {
             spectator.service.registerAction(secondary2);
 
             expect(spectator.service.secondaryActions()).toHaveLength(2);
-            expect(spectator.service.secondaryActions()).toContainEqual(
-                secondary1
-            );
-            expect(spectator.service.secondaryActions()).toContainEqual(
-                secondary2
-            );
+            expect(spectator.service.secondaryActions()).toContainEqual(secondary1);
+            expect(spectator.service.secondaryActions()).toContainEqual(secondary2);
         });
 
         it('should return empty array when no secondary actions', () => {
-            spectator.service.registerAction(
-                createAction({ id: 'primary', priority: 'primary' })
-            );
+            spectator.service.registerAction(createAction({ id: 'primary', priority: 'primary' }));
 
             expect(spectator.service.secondaryActions()).toEqual([]);
         });

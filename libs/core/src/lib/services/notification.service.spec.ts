@@ -1,9 +1,5 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-    createServiceFactory,
-    SpectatorService,
-    SpyObject,
-} from '@ngneat/spectator/jest';
+import { createServiceFactory, SpectatorService, SpyObject } from '@ngneat/spectator/jest';
 import { NotificationService } from './notification.service';
 
 describe('NotificationService', () => {
@@ -47,17 +43,13 @@ describe('NotificationService', () => {
         it('should show success toast with 3000ms duration', () => {
             spectator.service.success('Success message');
 
-            expect(snackBar.open).toHaveBeenCalledWith(
-                'Success message',
-                'OK',
-                {
-                    duration: 3000,
-                    horizontalPosition: 'end',
-                    verticalPosition: 'top',
-                    panelClass: ['toast-success'],
-                    politeness: 'polite',
-                }
-            );
+            expect(snackBar.open).toHaveBeenCalledWith('Success message', 'OK', {
+                duration: 3000,
+                horizontalPosition: 'end',
+                verticalPosition: 'top',
+                panelClass: ['toast-success'],
+                politeness: 'polite',
+            });
         });
     });
 

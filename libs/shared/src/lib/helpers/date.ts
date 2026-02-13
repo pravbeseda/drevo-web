@@ -1,11 +1,7 @@
 const RUSSIAN_LOCALE = 'ru-RU';
 
 export function isSameDay(a: Date, b: Date): boolean {
-    return (
-        a.getDate() === b.getDate() &&
-        a.getMonth() === b.getMonth() &&
-        a.getFullYear() === b.getFullYear()
-    );
+    return a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 }
 
 export function formatTime(date: Date): string {
@@ -15,10 +11,7 @@ export function formatTime(date: Date): string {
     });
 }
 
-export function formatDateHeader(
-    date: Date,
-    referenceDate = new Date()
-): string {
+export function formatDateHeader(date: Date, referenceDate = new Date()): string {
     const yesterday = new Date(referenceDate);
     yesterday.setDate(yesterday.getDate() - 1);
 
@@ -32,9 +25,6 @@ export function formatDateHeader(
     return date.toLocaleDateString(RUSSIAN_LOCALE, {
         day: 'numeric',
         month: 'long',
-        year:
-            date.getFullYear() !== referenceDate.getFullYear()
-                ? 'numeric'
-                : undefined,
+        year: date.getFullYear() !== referenceDate.getFullYear() ? 'numeric' : undefined,
     });
 }

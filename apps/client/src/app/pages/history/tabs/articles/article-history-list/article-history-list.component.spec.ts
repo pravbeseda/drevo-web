@@ -8,9 +8,7 @@ import { signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ArticleHistoryItem } from '@drevo-web/shared';
 
-function createMockHistoryItem(
-    overrides: Partial<ArticleHistoryItem> = {}
-): ArticleHistoryItem {
+function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
         versionId: 1,
         articleId: 100,

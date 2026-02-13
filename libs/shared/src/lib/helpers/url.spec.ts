@@ -45,9 +45,7 @@ describe('isValidReturnUrl', () => {
         });
 
         it('should reject data: protocol', () => {
-            expect(
-                isValidReturnUrl('data:text/html,<script>alert(1)</script>')
-            ).toBe(false);
+            expect(isValidReturnUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
         });
 
         it('should reject vbscript: protocol', () => {
@@ -72,9 +70,7 @@ describe('isValidReturnUrl', () => {
 
         it('should reject null/undefined', () => {
             expect(isValidReturnUrl(null as unknown as string)).toBe(false);
-            expect(isValidReturnUrl(undefined as unknown as string)).toBe(
-                false
-            );
+            expect(isValidReturnUrl(undefined as unknown as string)).toBe(false);
         });
 
         it('should reject relative paths without leading slash', () => {

@@ -13,20 +13,15 @@ const allowedOrigins = [
 
 @Injectable()
 export class IframeService implements OnDestroy {
-    private readonly messageHandler = (event: MessageEvent): void =>
-        this.onMessage(event);
+    private readonly messageHandler = (event: MessageEvent): void => this.onMessage(event);
     private readonly platformId = inject<object>(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
     private readonly contentSubject = new ReplaySubject<string>(1);
-    private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(
-        undefined
-    );
+    private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(undefined);
     private readonly insertTagSubject = new Subject<InsertTagCommand>();
 
-    public readonly content$: Observable<string> =
-        this.contentSubject.asObservable();
-    public readonly csrfToken$: Observable<string | undefined> =
-        this.csrfTokenSubject.asObservable();
+    public readonly content$: Observable<string> = this.contentSubject.asObservable();
+    public readonly csrfToken$: Observable<string | undefined> = this.csrfTokenSubject.asObservable();
     public readonly insertTag$ = this.insertTagSubject.asObservable();
 
     constructor() {

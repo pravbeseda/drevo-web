@@ -1,8 +1,4 @@
-import {
-    createDirectiveFactory,
-    SpectatorDirective,
-    SpyObject,
-} from '@ngneat/spectator/jest';
+import { createDirectiveFactory, SpectatorDirective, SpyObject } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
 import { SidebarActionDirective } from './sidebar-action.directive';
@@ -18,9 +14,7 @@ describe('SidebarActionDirective', () => {
 
     describe('basic functionality', () => {
         beforeEach(() => {
-            spectator = createDirective(
-                `<button sidebarAction icon="edit">Edit</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="edit">Edit</button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -71,17 +65,14 @@ describe('SidebarActionDirective', () => {
 
             spectator.directive.ngOnDestroy();
 
-            expect(sidebarService.unregisterAction).toHaveBeenCalledWith(
-                action.id
-            );
+            expect(sidebarService.unregisterAction).toHaveBeenCalledWith(action.id);
         });
 
         it('should trigger click on host element when action is called', () => {
             const clickSpy = jest.fn();
             spectator.element.addEventListener('click', clickSpy);
 
-            const action = sidebarService.registerAction.mock
-                .calls[0][0] as SidebarAction;
+            const action = sidebarService.registerAction.mock.calls[0][0] as SidebarAction;
             action.action?.();
 
             expect(clickSpy).toHaveBeenCalled();
@@ -90,9 +81,7 @@ describe('SidebarActionDirective', () => {
 
     describe('primary priority', () => {
         beforeEach(() => {
-            spectator = createDirective(
-                `<button sidebarAction icon="add" priority="primary">Add</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="add" priority="primary">Add</button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -105,9 +94,7 @@ describe('SidebarActionDirective', () => {
 
     describe('secondary priority explicit', () => {
         beforeEach(() => {
-            spectator = createDirective(
-                `<button sidebarAction icon="delete" priority="secondary">Delete</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="delete" priority="secondary">Delete</button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -120,9 +107,7 @@ describe('SidebarActionDirective', () => {
 
     describe('unique ids across instances', () => {
         it('should generate unique id for first directive', () => {
-            spectator = createDirective(
-                `<button sidebarAction icon="edit">Edit</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="edit">Edit</button>`);
             sidebarService = spectator.inject(SidebarService);
 
             const action = sidebarService.registerAction.mock.calls[0][0];
@@ -133,9 +118,7 @@ describe('SidebarActionDirective', () => {
 
     describe('different inputs', () => {
         it('should register action with custom icon and label from content', () => {
-            spectator = createDirective(
-                `<button sidebarAction icon="delete">Remove Item</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="delete">Remove Item</button>`);
             sidebarService = spectator.inject(SidebarService);
 
             const action = sidebarService.registerAction.mock.calls[0][0];
@@ -147,9 +130,7 @@ describe('SidebarActionDirective', () => {
 
     describe('href', () => {
         beforeEach(() => {
-            spectator = createDirective(
-                `<button sidebarAction icon="edit" href="/edit/123">Edit</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="edit" href="/edit/123">Edit</button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -168,9 +149,7 @@ describe('SidebarActionDirective', () => {
 
     describe('disabled', () => {
         beforeEach(() => {
-            spectator = createDirective(
-                `<button sidebarAction icon="edit" [disabled]="true">Edit</button>`
-            );
+            spectator = createDirective(`<button sidebarAction icon="edit" [disabled]="true">Edit</button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -199,10 +178,9 @@ describe('SidebarActionDirective', () => {
 
     describe('dynamic disabled changes', () => {
         beforeEach(() => {
-            spectator = createDirective(
-                `<button sidebarAction icon="edit" [disabled]="isDisabled">Edit</button>`,
-                { hostProps: { isDisabled: false } }
-            );
+            spectator = createDirective(`<button sidebarAction icon="edit" [disabled]="isDisabled">Edit</button>`, {
+                hostProps: { isDisabled: false },
+            });
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -217,25 +195,20 @@ describe('SidebarActionDirective', () => {
 
             spectator.setHostInput({ isDisabled: true });
 
-            expect(sidebarService.registerAction.mock.calls.length).toBe(
-                callsBefore + 1
-            );
+            expect(sidebarService.registerAction.mock.calls.length).toBe(callsBefore + 1);
         });
 
         it('should register action with updated disabled state', () => {
             spectator.setHostInput({ isDisabled: true });
 
             const lastCall =
-                sidebarService.registerAction.mock.calls[
-                    sidebarService.registerAction.mock.calls.length - 1
-                ][0];
+                sidebarService.registerAction.mock.calls[sidebarService.registerAction.mock.calls.length - 1][0];
 
             expect(lastCall.disabled).toBe(true);
         });
 
         it('should preserve action id when re-registering', () => {
-            const initialAction =
-                sidebarService.registerAction.mock.calls[0][0];
+            const initialAction = sidebarService.registerAction.mock.calls[0][0];
 
             spectator.setHostInput({ isDisabled: true });
 

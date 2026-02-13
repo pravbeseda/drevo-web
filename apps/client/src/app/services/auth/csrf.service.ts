@@ -5,14 +5,7 @@ import { Injectable, Injector, PLATFORM_ID, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { CsrfResponse } from '@drevo-web/shared';
 import { Observable, of, throwError } from 'rxjs';
-import {
-    map,
-    catchError,
-    tap,
-    timeout,
-    retry,
-    shareReplay,
-} from 'rxjs/operators';
+import { map, catchError, tap, timeout, retry, shareReplay } from 'rxjs/operators';
 
 const CSRF_TIMEOUT_MS = 10000;
 const CSRF_RETRY_COUNT = 3;

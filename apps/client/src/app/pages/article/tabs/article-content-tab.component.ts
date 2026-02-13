@@ -1,14 +1,7 @@
 import { ArticleContentComponent } from '../article-content/article-content.component';
 import { ArticlePageService } from '../article-page.service';
 import { DOCUMENT } from '@angular/common';
-import {
-    afterNextRender,
-    ChangeDetectionStrategy,
-    Component,
-    DestroyRef,
-    inject,
-    Injector,
-} from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
@@ -33,17 +26,14 @@ export class ArticleContentTabComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
     private readonly injector = inject(Injector);
-    private readonly logger =
-        inject(LoggerService).withContext('ArticleContentTab');
+    private readonly logger = inject(LoggerService).withContext('ArticleContentTab');
     private currentFragment: string | undefined = undefined;
 
     constructor() {
-        this.route.fragment
-            .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-            .subscribe(fragment => {
-                this.currentFragment = fragment ?? undefined;
-                this.scrollToFragment();
-            });
+        this.route.fragment.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
+            this.currentFragment = fragment ?? undefined;
+            this.scrollToFragment();
+        });
     }
 
     private scrollToFragment(): void {
@@ -57,15 +47,10 @@ export class ArticleContentTabComponent {
                 try {
                     targetElement =
                         this.document.getElementById(this.currentFragment) ||
-                        this.document.querySelector(
-                            `a[name="${CSS.escape(this.currentFragment)}"]`
-                        ) ||
+                        this.document.querySelector(`a[name="${CSS.escape(this.currentFragment)}"]`) ||
                         undefined;
                 } catch (error) {
-                    this.logger.error(
-                        'scrollToFragment: querySelector failed',
-                        { error }
-                    );
+                    this.logger.error('scrollToFragment: querySelector failed', { error });
                     return;
                 }
 
@@ -77,10 +62,7 @@ export class ArticleContentTabComponent {
                 if (mainContainer) {
                     const targetRect = targetElement.getBoundingClientRect();
                     const containerRect = mainContainer.getBoundingClientRect();
-                    const scrollTop =
-                        targetRect.top -
-                        containerRect.top +
-                        mainContainer.scrollTop;
+                    const scrollTop = targetRect.top - containerRect.top + mainContainer.scrollTop;
 
                     mainContainer.scrollTo({
                         top: scrollTop,

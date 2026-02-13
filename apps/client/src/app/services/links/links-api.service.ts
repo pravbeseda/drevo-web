@@ -34,10 +34,7 @@ export class LinksApiService {
             >(`${this.apiUrl}/api/wiki-links/check`, { links }, { withCredentials: true })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     const result: Record<string, boolean> = {};
                     Object.entries(response.data).forEach(([key, value]) => {
                         result[key] = value.isExist;

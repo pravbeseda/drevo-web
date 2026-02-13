@@ -17,9 +17,7 @@ describe('VirtualScrollerComponent', () => {
     });
 
     it('should create', () => {
-        spectator = createHost(
-            `<ui-virtual-scroller [items]="[]" [totalItems]="0" />`
-        );
+        spectator = createHost(`<ui-virtual-scroller [items]="[]" [totalItems]="0" />`);
         expect(spectator.component).toBeTruthy();
     });
 
@@ -165,15 +163,10 @@ describe('VirtualScrollerComponent', () => {
             spectator.detectChanges();
 
             // Mock viewport to return rendered range near end (7 of 10 rendered = 3 remaining)
-            jest.spyOn(
-                spectator.component.viewport(),
-                'getRenderedRange'
-            ).mockReturnValue({ start: 0, end: 7 });
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 7 });
 
             // Access private method for testing
-            const shouldLoadMore = (
-                spectator.component as any
-            ).shouldLoadMore();
+            const shouldLoadMore = (spectator.component as any).shouldLoadMore();
             expect(shouldLoadMore).toBe(true);
         });
 
@@ -199,14 +192,9 @@ describe('VirtualScrollerComponent', () => {
             spectator.detectChanges();
 
             // Mock viewport: 5 of 20 rendered = 15 remaining > threshold 5
-            jest.spyOn(
-                spectator.component.viewport(),
-                'getRenderedRange'
-            ).mockReturnValue({ start: 0, end: 5 });
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 5 });
 
-            const shouldLoadMore = (
-                spectator.component as any
-            ).shouldLoadMore();
+            const shouldLoadMore = (spectator.component as any).shouldLoadMore();
             expect(shouldLoadMore).toBe(false);
         });
     });
@@ -238,14 +226,8 @@ describe('VirtualScrollerComponent', () => {
             spectator.output('loadMore').subscribe(loadMoreSpy);
 
             // Mock scroll observable and shouldLoadMore
-            jest.spyOn(
-                spectator.component.viewport(),
-                'elementScrolled'
-            ).mockReturnValue(scrollSubject.asObservable());
-            jest.spyOn(
-                spectator.component.viewport(),
-                'getRenderedRange'
-            ).mockReturnValue({ start: 0, end: 8 });
+            jest.spyOn(spectator.component.viewport(), 'elementScrolled').mockReturnValue(scrollSubject.asObservable());
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
 
             // Re-setup listener with mocked observable
             (spectator.component as any).setupScrollListener();
@@ -282,14 +264,8 @@ describe('VirtualScrollerComponent', () => {
             spectator.detectChanges();
             spectator.output('loadMore').subscribe(loadMoreSpy);
 
-            jest.spyOn(
-                spectator.component.viewport(),
-                'elementScrolled'
-            ).mockReturnValue(scrollSubject.asObservable());
-            jest.spyOn(
-                spectator.component.viewport(),
-                'getRenderedRange'
-            ).mockReturnValue({ start: 0, end: 8 });
+            jest.spyOn(spectator.component.viewport(), 'elementScrolled').mockReturnValue(scrollSubject.asObservable());
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
 
             (spectator.component as any).setupScrollListener();
 
@@ -324,15 +300,9 @@ describe('VirtualScrollerComponent', () => {
             spectator.detectChanges();
             spectator.output('loadMore').subscribe(loadMoreSpy);
 
-            jest.spyOn(
-                spectator.component.viewport(),
-                'elementScrolled'
-            ).mockReturnValue(scrollSubject.asObservable());
+            jest.spyOn(spectator.component.viewport(), 'elementScrolled').mockReturnValue(scrollSubject.asObservable());
             // 8 of 10 rendered = 2 remaining < threshold 5
-            jest.spyOn(
-                spectator.component.viewport(),
-                'getRenderedRange'
-            ).mockReturnValue({ start: 0, end: 8 });
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
 
             (spectator.component as any).setupScrollListener();
 

@@ -1,6 +1,1 @@
-export {
-    MockLogger,
-    MockLoggerService,
-    createMockLogger,
-    mockLoggerProvider,
-} from './logger.mock';
+export { MockLogger, MockLoggerService, createMockLogger, mockLoggerProvider } from './logger.mock';

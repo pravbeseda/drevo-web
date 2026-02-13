@@ -5,11 +5,7 @@
     [maxBufferPx]="400">
     @if (itemTemplate(); as template) {
         <div
-            *cdkVirtualFor="
-                let item of items();
-                let i = index;
-                trackBy: trackByFn()
-            "
+            *cdkVirtualFor="let item of items(); let i = index; trackBy: trackByFn()"
             class="virtual-scroller-item">
             <ng-container
                 [ngTemplateOutlet]="template"

@@ -41,15 +41,10 @@ export class ArticleApiService {
      */
     getArticle(id: number): Observable<ArticleVersionDto> {
         return this.http
-            .get<
-                ApiResponse<ArticleVersionDto>
-            >(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );
@@ -68,10 +63,7 @@ export class ArticleApiService {
             >(`${this.apiUrl}/api/articles/version-show/${versionId}`, { withCredentials: true })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );
@@ -90,10 +82,7 @@ export class ArticleApiService {
             >(`${this.apiUrl}/api/articles/version/${versionId}`, { withCredentials: true })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );
@@ -112,9 +101,7 @@ export class ArticleApiService {
         page = 1,
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE
     ): Observable<ArticleSearchResponseDto> {
-        let params = new HttpParams()
-            .set('page', page.toString())
-            .set('size', pageSize.toString());
+        let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
 
         const trimmedQuery = query.trim();
         if (trimmedQuery) {
@@ -127,10 +114,7 @@ export class ArticleApiService {
             >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );
@@ -142,9 +126,7 @@ export class ArticleApiService {
      * @param request - Save request with versionId, content, and optional info
      * @returns Observable with raw API response
      */
-    saveArticleVersion(
-        request: SaveArticleVersionRequestDto
-    ): Observable<SaveArticleVersionResponseDto> {
+    saveArticleVersion(request: SaveArticleVersionRequestDto): Observable<SaveArticleVersionResponseDto> {
         const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
 
         return this.http
@@ -153,10 +135,7 @@ export class ArticleApiService {
             >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true, context })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );
@@ -178,9 +157,7 @@ export class ArticleApiService {
         author?: string,
         articleId?: number
     ): Observable<ArticleHistoryResponseDto> {
-        let params = new HttpParams()
-            .set('page', page.toString())
-            .set('size', pageSize.toString());
+        let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
 
         if (approved !== undefined) {
             params = params.set('approved', approved.toString());
@@ -200,10 +177,7 @@ export class ArticleApiService {
             >(`${this.apiUrl}/api/articles/history`, { params, withCredentials: true })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );
@@ -216,10 +190,7 @@ export class ArticleApiService {
      * @param version2 - Optional secondary version ID (auto-detected if omitted)
      * @returns Observable with version pairs DTO
      */
-    getVersionPairs(
-        version1: number,
-        version2?: number
-    ): Observable<VersionPairsResponseDto> {
+    getVersionPairs(version1: number, version2?: number): Observable<VersionPairsResponseDto> {
         let params = new HttpParams().set('version1', version1.toString());
 
         if (version2 !== undefined) {
@@ -227,23 +198,14 @@ export class ArticleApiService {
         }
 
         return this.http
-            .get<ApiResponse<VersionPairsResponseDto>>(
-                `${this.apiUrl}/api/articles/versionpairs`,
-                {
-                    params,
-                    withCredentials: true,
-                    context: new HttpContext().set(
-                        SKIP_ERROR_NOTIFICATION,
-                        true
-                    ),
-                }
-            )
+            .get<ApiResponse<VersionPairsResponseDto>>(`${this.apiUrl}/api/articles/versionpairs`, {
+                params,
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
-                    assertIsDefined(
-                        response.data,
-                        'Response data is undefined'
-                    );
+                    assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
             );

@@ -1,9 +1,5 @@
 import { HttpHandler } from '@angular/common/http';
-import {
-    Spectator,
-    createComponentFactory,
-    mockProvider,
-} from '@ngneat/spectator/jest';
+import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
 import { SharedEditorComponent } from './shared-editor.component';
 
 describe('SharedEditorComponent', () => {

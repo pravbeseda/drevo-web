@@ -75,14 +75,7 @@ export class LogExportService {
 
     private generateCSV(logs: LogEntry[]): string {
         // CSV header
-        const headers = [
-            'timestamp',
-            'level',
-            'context',
-            'message',
-            'data',
-            'url',
-        ];
+        const headers = ['timestamp', 'level', 'context', 'message', 'data', 'url'];
         const rows: string[] = [headers.join(';')];
 
         // Add data rows (oldest first for chronological order)
@@ -94,9 +87,7 @@ export class LogExportService {
                 log.level.toUpperCase(),
                 this.escapeCSV(log.context ?? ''),
                 this.escapeCSV(log.message),
-                this.escapeCSV(
-                    log.data !== undefined ? JSON.stringify(log.data) : ''
-                ),
+                this.escapeCSV(log.data !== undefined ? JSON.stringify(log.data) : ''),
                 this.escapeCSV(log.url ?? ''),
             ];
             rows.push(row.join(';'));
@@ -111,11 +102,7 @@ export class LogExportService {
      * - Double quotes are escaped as ""
      */
     private escapeCSV(value: string): string {
-        if (
-            value.includes(';') ||
-            value.includes('"') ||
-            value.includes('\n')
-        ) {
+        if (value.includes(';') || value.includes('"') || value.includes('\n')) {
             return `"${value.replace(/"/g, '""')}"`;
         }
         return value;

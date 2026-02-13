@@ -1,21 +1,9 @@
 import { AuthService } from '../../auth/auth.service';
 import { ArticleService } from '../article.service';
-import {
-    computed,
-    DestroyRef,
-    inject,
-    Injectable,
-    Signal,
-    signal,
-} from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
-import {
-    ApprovalStatus,
-    ArticleHistoryItem,
-    ArticleHistoryParams,
-    formatDateHeader,
-} from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ArticleHistoryParams, formatDateHeader } from '@drevo-web/shared';
 
 export type HistoryFilter =
     | 'all'
@@ -72,9 +60,7 @@ export class ArticleHistoryService {
     private readonly destroyRef = inject(DestroyRef);
     private readonly articleService = inject(ArticleService);
     private readonly authService = inject(AuthService);
-    private readonly logger = inject(LoggerService).withContext(
-        'ArticleHistoryService'
-    );
+    private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
     private readonly _isLoading = signal(false);
@@ -155,10 +141,7 @@ export class ArticleHistoryService {
             .subscribe({
                 next: response => {
                     if (loadMore) {
-                        this._historyItems.update(items => [
-                            ...items,
-                            ...response.items,
-                        ]);
+                        this._historyItems.update(items => [...items, ...response.items]);
                     } else {
                         this._historyItems.set(response.items);
                         this._referenceDate.set(new Date());
@@ -188,9 +171,7 @@ export class ArticleHistoryService {
         if (this.articleId) {
             const id = this.articleId();
             if (!id) {
-                this.logger.error(
-                    'Cannot load history: article ID not available'
-                );
+                this.logger.error('Cannot load history: article ID not available');
                 return undefined;
             }
             base = { ...base, articleId: id };

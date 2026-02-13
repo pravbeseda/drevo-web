@@ -8,12 +8,8 @@ export interface FilterGroup<T extends string = string> {
     readonly items: readonly FilterOption<T>[];
 }
 
-export type FilterEntry<T extends string = string> =
-    | FilterOption<T>
-    | FilterGroup<T>;
+export type FilterEntry<T extends string = string> = FilterOption<T> | FilterGroup<T>;
 
-export function isFilterGroup<T extends string>(
-    entry: FilterEntry<T>
-): entry is FilterGroup<T> {
+export function isFilterGroup<T extends string>(entry: FilterEntry<T>): entry is FilterGroup<T> {
     return 'items' in entry;
 }

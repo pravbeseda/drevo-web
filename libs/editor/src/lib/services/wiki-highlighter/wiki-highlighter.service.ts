@@ -31,10 +31,7 @@ export class WikiHighlighterService {
     public wikiHighlighter = StateField.define<DecorationSet>({
         create: state => this.createDecorations(state.doc.toString()),
         update: (decorations, transaction) => {
-            if (
-                transaction.docChanged ||
-                transaction.effects.some(eff => eff.is(linksUpdatedEffect))
-            ) {
+            if (transaction.docChanged || transaction.effects.some(eff => eff.is(linksUpdatedEffect))) {
                 return this.createDecorations(transaction.newDoc.toString());
             }
             return decorations;
@@ -42,9 +39,7 @@ export class WikiHighlighterService {
         provide: f => EditorView.decorations.from(f),
     });
 
-    public async updateLinksState(
-        updateLinksState: Record<string, boolean>
-    ): Promise<boolean> {
+    public async updateLinksState(updateLinksState: Record<string, boolean>): Promise<boolean> {
         let changed = false;
         this.linksState = { ...this.linksState, ...updateLinksState };
         this.pendingLinks.length = 0;
@@ -58,8 +53,7 @@ export class WikiHighlighterService {
                 const linkText = this.extractLinkText(this.text, match);
                 if (linkText) {
                     const normalizedLink = this.normalizeLinkText(linkText);
-                    const status: boolean | undefined =
-                        this.linksState[normalizedLink];
+                    const status: boolean | undefined = this.linksState[normalizedLink];
                     let newClass: string | undefined;
 
                     if (status === true) {
@@ -89,9 +83,7 @@ export class WikiHighlighterService {
             return;
         }
 
-        const uniqueNormalized = new Set(
-            links.map(link => this.normalizeLinkText(link))
-        );
+        const uniqueNormalized = new Set(links.map(link => this.normalizeLinkText(link)));
 
         this.updateLinksSubject.next(Array.from(uniqueNormalized));
     }
@@ -128,11 +120,7 @@ export class WikiHighlighterService {
         return builder.finish();
     }
 
-    private collectMatches(
-        regex: RegExp,
-        className: string,
-        isBalancedCorrectionNeeded = false
-    ): void {
+    private collectMatches(regex: RegExp, className: string, isBalancedCorrectionNeeded = false): void {
         let match;
         // eslint-disable-next-line no-null/no-null
         while ((match = regex.exec(this.text)) !== null) {
@@ -204,10 +192,6 @@ export class WikiHighlighterService {
     }
 
     private normalizeLinkText(link: string): string {
-        return link
-            .trim()
-            .toUpperCase()
-            .replace(/Ё/g, 'Е')
-            .replace(/\s+/g, ' ');
+        return link.trim().toUpperCase().replace(/Ё/g, 'Е').replace(/\s+/g, ' ');
     }
 }

@@ -16,11 +16,7 @@ const mockSentry = Sentry as jest.Mocked<typeof Sentry>;
 describe('SentryLogProvider', () => {
     let provider: SentryLogProvider;
 
-    const createEntry = (
-        level: LogLevel,
-        message = 'Test message',
-        options: Partial<LogEntry> = {}
-    ): LogEntry => ({
+    const createEntry = (level: LogLevel, message = 'Test message', options: Partial<LogEntry> = {}): LogEntry => ({
         level,
         message,
         timestamp: new Date('2026-01-18T12:00:00Z'),

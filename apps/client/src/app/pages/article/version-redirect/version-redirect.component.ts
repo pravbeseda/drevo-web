@@ -1,13 +1,6 @@
 import { ArticleService } from '../../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    DestroyRef,
-    inject,
-    OnInit,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
@@ -25,8 +18,7 @@ export class VersionRedirectComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly logger =
-        inject(LoggerService).withContext('VersionRedirect');
+    private readonly logger = inject(LoggerService).withContext('VersionRedirect');
 
     readonly error = signal<string | undefined>(undefined);
 
@@ -49,21 +41,14 @@ export class VersionRedirectComponent implements OnInit {
                         versionId,
                         articleId: article.articleId,
                     });
-                    this.router.navigate(
-                        ['/articles', article.articleId, 'version', versionId],
-                        { replaceUrl: true }
-                    );
+                    this.router.navigate(['/articles', article.articleId, 'version', versionId], { replaceUrl: true });
                 },
                 error: (err: HttpErrorResponse) => {
                     this.logger.error('Failed to load version for redirect', {
                         versionId,
                         status: err.status,
                     });
-                    this.error.set(
-                        err.status === 404
-                            ? 'Версия не найдена'
-                            : 'Ошибка загрузки версии'
-                    );
+                    this.error.set(err.status === 404 ? 'Версия не найдена' : 'Ошибка загрузки версии');
                 },
             });
     }

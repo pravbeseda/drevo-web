@@ -1,15 +1,5 @@
-import {
-    PLATFORM_ID,
-    EnvironmentInjector,
-    runInInjectionContext,
-    Injectable,
-} from '@angular/core';
-import {
-    ActivatedRouteSnapshot,
-    Router,
-    RouterStateSnapshot,
-    UrlTree,
-} from '@angular/router';
+import { PLATFORM_ID, EnvironmentInjector, runInInjectionContext, Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { BehaviorSubject, isObservable, firstValueFrom } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
@@ -47,9 +37,7 @@ describe('authGuard in browser', () => {
     });
 
     const runGuard = () =>
-        runInInjectionContext(spectator.inject(EnvironmentInjector), () =>
-            authGuard(mockRoute, mockState)
-        );
+        runInInjectionContext(spectator.inject(EnvironmentInjector), () => authGuard(mockRoute, mockState));
 
     beforeEach(() => {
         authServiceMock = {
@@ -177,13 +165,8 @@ describe('authGuard on server (SSR)', () => {
     });
 
     it('should always allow access on server', () => {
-        const result = runInInjectionContext(
-            spectator.inject(EnvironmentInjector),
-            () =>
-                authGuard(
-                    {} as ActivatedRouteSnapshot,
-                    { url: '/some-page' } as RouterStateSnapshot
-                )
+        const result = runInInjectionContext(spectator.inject(EnvironmentInjector), () =>
+            authGuard({} as ActivatedRouteSnapshot, { url: '/some-page' } as RouterStateSnapshot)
         );
 
         expect(result).toBe(true);

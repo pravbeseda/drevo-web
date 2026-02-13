@@ -39,12 +39,7 @@ export {
 } from './auth.fixture';
 
 // Export mock data for use in tests
-export {
-    mockUsers,
-    authResponses,
-    apiPatterns,
-    articleResponses,
-} from './api-mocks';
+export { mockUsers, authResponses, apiPatterns, articleResponses } from './api-mocks';
 
 // Re-export types
 export type { AuthFixtures } from './auth.fixture';

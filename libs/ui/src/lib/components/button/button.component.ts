@@ -1,10 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    input,
-    output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
@@ -14,12 +9,7 @@ export type ButtonType = 'button' | 'submit' | 'reset';
 
 @Component({
     selector: 'ui-button',
-    imports: [
-        NgTemplateOutlet,
-        RouterLink,
-        MatButtonModule,
-        MatProgressSpinnerModule,
-    ],
+    imports: [NgTemplateOutlet, RouterLink, MatButtonModule, MatProgressSpinnerModule],
     templateUrl: './button.component.html',
     styleUrl: './button.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

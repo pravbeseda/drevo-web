@@ -1,9 +1,6 @@
 import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 import { SpinnerComponent } from '../spinner/spinner.component';
-import {
-    CdkVirtualForOf,
-    CdkVirtualScrollViewport,
-} from '@angular/cdk/scrolling';
+import { CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { CdkAutoSizeVirtualScroll } from '@angular/cdk-experimental/scrolling';
 import { NgTemplateOutlet } from '@angular/common';
 import {
@@ -38,13 +35,7 @@ export interface VirtualScrollerItemContext<T> {
 
 @Component({
     selector: 'ui-virtual-scroller',
-    imports: [
-        NgTemplateOutlet,
-        CdkVirtualScrollViewport,
-        CdkVirtualForOf,
-        CdkAutoSizeVirtualScroll,
-        SpinnerComponent,
-    ],
+    imports: [NgTemplateOutlet, CdkVirtualScrollViewport, CdkVirtualForOf, CdkAutoSizeVirtualScroll, SpinnerComponent],
     templateUrl: './virtual-scroller.component.html',
     styleUrl: './virtual-scroller.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,9 +56,7 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
     readonly isLoading = input<boolean>(false);
 
     /** Track by function for cdkVirtualFor */
-    readonly trackByFn = input<(index: number, item: T) => unknown>(
-        (index: number) => index
-    );
+    readonly trackByFn = input<(index: number, item: T) => unknown>((index: number) => index);
 
     /** Emitted when more items should be loaded */
     readonly loadMore = output<void>();
@@ -79,9 +68,7 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
     readonly itemTemplateDirective = contentChild(VirtualScrollerItemDirective);
 
     /** Get the template from the directive */
-    readonly itemTemplate = computed(
-        () => this.itemTemplateDirective()?.template
-    );
+    readonly itemTemplate = computed(() => this.itemTemplateDirective()?.template);
 
     /** Whether all items have been loaded */
     readonly allItemsLoaded = computed(() => {
@@ -91,9 +78,7 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
     });
 
     /** Whether the loading indicator should be shown */
-    readonly showLoadingIndicator = computed(
-        () => this.isLoading() && this.items().length > 0
-    );
+    readonly showLoadingIndicator = computed(() => this.isLoading() && this.items().length > 0);
 
     ngAfterViewInit(): void {
         this.setupScrollListener();

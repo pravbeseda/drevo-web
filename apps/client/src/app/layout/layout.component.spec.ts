@@ -47,9 +47,7 @@ function getMediaQueryList(mockWindow: Window): {
     return (mockWindow.matchMedia as jest.Mock).mock.results[0].value;
 }
 
-function getMediaChangeHandler(
-    mockWindow: Window
-): (e: Partial<MediaQueryListEvent>) => void {
+function getMediaChangeHandler(mockWindow: Window): (e: Partial<MediaQueryListEvent>) => void {
     return getMediaQueryList(mockWindow).addEventListener.mock.calls[0][1];
 }
 
@@ -185,12 +183,10 @@ describe('LayoutComponent', () => {
 
         it('should set skipTransition during breakpoint change', () => {
             let rafCallback: FrameRequestCallback | undefined;
-            jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(
-                cb => {
-                    rafCallback = cb;
-                    return 0;
-                }
-            );
+            jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(cb => {
+                rafCallback = cb;
+                return 0;
+            });
 
             const mockWindow = createMockWindow(BREAKPOINT_TABLET);
             spectator = createComponent({
@@ -221,10 +217,7 @@ describe('LayoutComponent', () => {
 
             spectator.fixture.destroy();
 
-            expect(mql.removeEventListener).toHaveBeenCalledWith(
-                'change',
-                expect.any(Function)
-            );
+            expect(mql.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
         });
 
         it('should not track breakpoints in SSR (no window)', () => {

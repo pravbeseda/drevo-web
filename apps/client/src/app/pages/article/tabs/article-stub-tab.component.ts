@@ -14,8 +14,5 @@ import { map } from 'rxjs/operators';
 export class ArticleStubTabComponent {
     private readonly route = inject(ActivatedRoute);
 
-    readonly stubTitle = toSignal(
-        this.route.data.pipe(map(data => data['stubTitle'] as string)),
-        { initialValue: '' }
-    );
+    readonly stubTitle = toSignal(this.route.data.pipe(map(data => data['stubTitle'] as string)), { initialValue: '' });
 }

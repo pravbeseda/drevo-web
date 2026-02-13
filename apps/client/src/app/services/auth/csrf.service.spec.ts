@@ -1,8 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-    HttpTestingController,
-    provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { forkJoin } from 'rxjs';
 import { LoggerService } from '@drevo-web/core';
@@ -21,11 +18,7 @@ describe('CsrfService', () => {
 
     const createService = createServiceFactory({
         service: CsrfService,
-        providers: [
-            provideHttpClient(),
-            provideHttpClientTesting(),
-            mockLoggerProvider(),
-        ],
+        providers: [provideHttpClient(), provideHttpClientTesting(), mockLoggerProvider()],
     });
 
     const mockCsrfResponse: CsrfResponse = {
@@ -36,9 +29,7 @@ describe('CsrfService', () => {
     beforeEach(() => {
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
-        loggerService = spectator.inject(
-            LoggerService
-        ) as unknown as MockLoggerService;
+        loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
 
     afterEach(() => {
@@ -52,9 +43,7 @@ describe('CsrfService', () => {
                 done();
             });
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             expect(req.request.withCredentials).toBe(true);
             req.flush(mockCsrfResponse);
         });
@@ -70,9 +59,7 @@ describe('CsrfService', () => {
             });
 
             // Only one request should be made
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush(mockCsrfResponse);
         });
 
@@ -90,9 +77,7 @@ describe('CsrfService', () => {
             });
 
             // Only one request should be made due to shareReplay
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush(mockCsrfResponse);
         });
 
@@ -104,9 +89,7 @@ describe('CsrfService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush({ success: false });
         });
 
@@ -125,16 +108,12 @@ describe('CsrfService', () => {
                         done();
                     });
 
-                    const retryReq = httpController.expectOne(
-                        'http://test-api/api/auth/csrf'
-                    );
+                    const retryReq = httpController.expectOne('http://test-api/api/auth/csrf');
                     retryReq.flush(mockCsrfResponse);
                 },
             });
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush({ success: false });
         });
     });
@@ -143,9 +122,7 @@ describe('CsrfService', () => {
         it('should fetch token on init', () => {
             spectator.service.initCsrfToken();
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush(mockCsrfResponse);
         });
 
@@ -158,9 +135,7 @@ describe('CsrfService', () => {
                 done();
             });
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush(mockCsrfResponse);
         });
     });
@@ -175,18 +150,14 @@ describe('CsrfService', () => {
                     done();
                 });
 
-                const refreshReq = httpController.expectOne(
-                    'http://test-api/api/auth/csrf'
-                );
+                const refreshReq = httpController.expectOne('http://test-api/api/auth/csrf');
                 refreshReq.flush({
                     success: true,
                     data: { csrfToken: 'new-csrf-token' },
                 });
             });
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush(mockCsrfResponse);
         });
     });
@@ -218,9 +189,7 @@ describe('CsrfService', () => {
                 });
             });
 
-            const req = httpController.expectOne(
-                'http://test-api/api/auth/csrf'
-            );
+            const req = httpController.expectOne('http://test-api/api/auth/csrf');
             req.flush(mockCsrfResponse);
         });
     });

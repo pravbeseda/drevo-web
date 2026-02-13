@@ -7,12 +7,7 @@ import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-header',
-    imports: [
-        AccountDropdownComponent,
-        FontScaleControlComponent,
-        ThemeToggleComponent,
-        IconButtonComponent,
-    ],
+    imports: [AccountDropdownComponent, FontScaleControlComponent, ThemeToggleComponent, IconButtonComponent],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,12 +21,9 @@ export class HeaderComponent {
     }
 
     openSearch(): void {
-        this.modalService.open(
-            () =>
-                import('../../pages/search/search.component').then(
-                    m => m.SearchComponent
-                ),
-            { width: '600px', minHeight: '90vh' }
-        );
+        this.modalService.open(() => import('../../pages/search/search.component').then(m => m.SearchComponent), {
+            width: '600px',
+            minHeight: '90vh',
+        });
     }
 }

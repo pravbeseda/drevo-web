@@ -27,12 +27,5 @@ export { LogDatabase } from './log-database';
 
 // Providers
 export { ConsoleLogProvider } from './providers/console-log.provider';
-export {
-    IndexedDBLogProvider,
-    createIndexedDBLogProvider,
-} from './providers/indexed-db-log.provider';
-export {
-    SentryLogProvider,
-    SentryLogProviderOptions,
-    createSentryLogProvider,
-} from './providers/sentry-log.provider';
+export { IndexedDBLogProvider, createIndexedDBLogProvider } from './providers/indexed-db-log.provider';
+export { SentryLogProvider, SentryLogProviderOptions, createSentryLogProvider } from './providers/sentry-log.provider';

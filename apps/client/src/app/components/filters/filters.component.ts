@@ -1,10 +1,5 @@
 import { FilterEntry, isFilterGroup } from './filter.model';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    input,
-    output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
     selector: 'app-filters',

@@ -11,9 +11,7 @@ const outerPairs: [string, string][] = [
 ];
 
 /** Flattened set of all individual quote chars */
-const allQuoteChars = new Set(
-    outerPairs.flatMap(([open, close]) => [open, close])
-);
+const allQuoteChars = new Set(outerPairs.flatMap(([open, close]) => [open, close]));
 
 /**
  * Handle a quote key press **only when there is a non-empty selection**:
@@ -53,10 +51,7 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
                 stripped = false;
                 for (const [open, close] of outerPairs) {
                     if (inner.startsWith(open) && inner.endsWith(close)) {
-                        inner = inner.slice(
-                            open.length,
-                            inner.length - close.length
-                        );
+                        inner = inner.slice(open.length, inner.length - close.length);
                         stripped = true;
                         break;
                     }

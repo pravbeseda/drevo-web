@@ -1,12 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import {
-    computed,
-    effect,
-    inject,
-    Injectable,
-    PLATFORM_ID,
-    signal,
-} from '@angular/core';
+import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { StorageService } from '@drevo-web/core';
 
 export const FONT_SCALE_KEY = 'drevo-font-scale';
@@ -45,23 +38,13 @@ export class FontScaleService {
 
     increase(): void {
         if (this.canIncrease()) {
-            this._scale.update(current =>
-                Math.min(
-                    MAX_SCALE,
-                    Math.round((current + SCALE_STEP) * 10) / 10
-                )
-            );
+            this._scale.update(current => Math.min(MAX_SCALE, Math.round((current + SCALE_STEP) * 10) / 10));
         }
     }
 
     decrease(): void {
         if (this.canDecrease()) {
-            this._scale.update(current =>
-                Math.max(
-                    MIN_SCALE,
-                    Math.round((current - SCALE_STEP) * 10) / 10
-                )
-            );
+            this._scale.update(current => Math.max(MIN_SCALE, Math.round((current - SCALE_STEP) * 10) / 10));
         }
     }
 
@@ -71,11 +54,7 @@ export class FontScaleService {
 
     private getInitialScale(): number {
         const savedScale = this.storage.get<number>(FONT_SCALE_KEY);
-        if (
-            savedScale !== undefined &&
-            savedScale >= MIN_SCALE &&
-            savedScale <= MAX_SCALE
-        ) {
+        if (savedScale !== undefined && savedScale >= MIN_SCALE && savedScale <= MAX_SCALE) {
             return savedScale;
         }
         return DEFAULT_SCALE;

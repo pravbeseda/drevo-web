@@ -98,37 +98,23 @@ export class HttpErrorMapperService {
      * Attempts to extract a message from the backend response.
      * Override for custom API response structures.
      */
-    protected extractBackendMessage(
-        err: HttpErrorResponse
-    ): string | undefined {
+    protected extractBackendMessage(err: HttpErrorResponse): string | undefined {
         const error = err.error;
 
         // Handle common API response structures
         if (typeof error === 'object' && error) {
             // { message: "..." }
-            if (
-                'message' in error &&
-                typeof error.message === 'string' &&
-                error.message.length > 0
-            ) {
+            if ('message' in error && typeof error.message === 'string' && error.message.length > 0) {
                 return error.message;
             }
             // { error: "..." }
-            if (
-                'error' in error &&
-                typeof error.error === 'string' &&
-                error.error.length > 0
-            ) {
+            if ('error' in error && typeof error.error === 'string' && error.error.length > 0) {
                 return error.error;
             }
         }
 
         // Handle plain string error
-        if (
-            typeof error === 'string' &&
-            error.length > 0 &&
-            error.length < 200
-        ) {
+        if (typeof error === 'string' && error.length > 0 && error.length < 200) {
             return error;
         }
 
@@ -138,36 +124,22 @@ export class HttpErrorMapperService {
     /**
      * Extracts validation error details for 422 responses.
      */
-    protected extractValidationMessage(
-        err: HttpErrorResponse
-    ): string | undefined {
+    protected extractValidationMessage(err: HttpErrorResponse): string | undefined {
         const error = err.error;
 
         if (typeof error === 'object' && error) {
             if ('errors' in error) {
                 const errors = error.errors;
-                if (
-                    Array.isArray(errors) &&
-                    errors.length > 0 &&
-                    typeof errors[0] === 'string'
-                ) {
+                if (Array.isArray(errors) && errors.length > 0 && typeof errors[0] === 'string') {
                     return errors[0];
                 }
                 if (typeof errors === 'object' && errors) {
                     const firstField = Object.keys(errors)[0];
                     if (firstField) {
-                        const fieldErrors = (errors as Record<string, unknown>)[
-                            firstField
-                        ];
-                        if (
-                            Array.isArray(fieldErrors) &&
-                            fieldErrors.length > 0
-                        ) {
+                        const fieldErrors = (errors as Record<string, unknown>)[firstField];
+                        if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
                             const firstFieldError = fieldErrors[0];
-                            if (
-                                typeof firstFieldError === 'string' &&
-                                firstFieldError.length > 0
-                            ) {
+                            if (typeof firstFieldError === 'string' && firstFieldError.length > 0) {
                                 return `${firstField}: ${firstFieldError}`;
                             }
                         }

@@ -88,8 +88,7 @@ describe('List commands tests', () => {
 
                 const result = continueLists(view);
 
-                const { doc: expectedDoc, pos: expectedPos } =
-                    parseCursor(next);
+                const { doc: expectedDoc, pos: expectedPos } = parseCursor(next);
                 // Serialize doc with visible newline markers for easier diffing
                 const rawActualDoc = view.state.doc.toString();
                 const actual = {
@@ -100,9 +99,7 @@ describe('List commands tests', () => {
                 const expectedObj = {
                     doc: expectedDoc,
                     pos: expectedPos,
-                    result: !(
-                        inputDoc === expectedDoc && inputPos === expectedPos
-                    ),
+                    result: !(inputDoc === expectedDoc && inputPos === expectedPos),
                 };
                 expect(actual).toEqual(expectedObj);
 

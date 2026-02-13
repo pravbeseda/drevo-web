@@ -6,10 +6,7 @@ import { isValidReturnUrl } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 
-export const authGuard: CanActivateFn = (
-    _route,
-    state
-): Observable<boolean | UrlTree> | boolean => {
+export const authGuard: CanActivateFn = (_route, state): Observable<boolean | UrlTree> | boolean => {
     const platformId = inject(PLATFORM_ID);
 
     if (!isPlatformBrowser(platformId)) {

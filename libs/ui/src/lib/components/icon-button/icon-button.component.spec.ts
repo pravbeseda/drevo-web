@@ -38,9 +38,7 @@ describe('IconButtonComponent', () => {
         spectator.setInput('label', 'Settings');
 
         expect(spectator.component.label()).toBe('Settings');
-        expect(spectator.query('button')?.getAttribute('aria-label')).toBe(
-            'Settings'
-        );
+        expect(spectator.query('button')?.getAttribute('aria-label')).toBe('Settings');
     });
 
     it('should disable button when disabled input is true', () => {

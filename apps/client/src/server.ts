@@ -13,8 +13,7 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 
 // Get base path from environment variable or default to '/'
 const BASE_PATH = process.env['BASE_PATH'] || '/';
-const normalizedBasePath =
-    BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
+const normalizedBasePath = BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
@@ -72,9 +71,7 @@ if (normalizedBasePath) {
     app.use(`${normalizedBasePath}/*`, (req, res, next) => {
         angularApp
             .handle(req)
-            .then(response =>
-                response ? writeResponseToNodeResponse(response, res) : next()
-            )
+            .then(response => (response ? writeResponseToNodeResponse(response, res) : next()))
             .catch(next);
     });
 
@@ -88,9 +85,7 @@ if (normalizedBasePath) {
     app.use('/*', (req, res, next) => {
         angularApp
             .handle(req)
-            .then(response =>
-                response ? writeResponseToNodeResponse(response, res) : next()
-            )
+            .then(response => (response ? writeResponseToNodeResponse(response, res) : next()))
             .catch(next);
     });
 }
@@ -103,16 +98,13 @@ if (normalizedBasePath) {
 // When running under PM2, isMainModule() returns false because process.argv[1] points to
 // PM2's ProcessContainerFork.js instead of our server file. We check for PM2_HOME as a
 // reliable fallback to detect PM2 execution environment.
-const shouldStartServer =
-    isMainModule(import.meta.url) || process.env['PM2_HOME'] !== undefined;
+const shouldStartServer = isMainModule(import.meta.url) || process.env['PM2_HOME'] !== undefined;
 
 if (shouldStartServer) {
     const port = process.env['PORT'] || 4000;
 
     app.listen(port, () => {
-        console.log(
-            `Node Express server listening on http://localhost:${port}`
-        );
+        console.log(`Node Express server listening on http://localhost:${port}`);
 
         // Send ready signal to PM2 if running under PM2
         if (process.send) {

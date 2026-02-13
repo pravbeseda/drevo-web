@@ -1,9 +1,5 @@
 import { signal } from '@angular/core';
-import {
-    createComponentFactory,
-    mockProvider,
-    Spectator,
-} from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
 import { RightSidebarComponent } from './right-sidebar.component';
@@ -35,12 +31,8 @@ describe('RightSidebarComponent', () => {
         },
     ];
 
-    const mockPrimaryActions = mockActions.filter(
-        a => a.priority === 'primary'
-    );
-    const mockSecondaryActions = mockActions.filter(
-        a => a.priority === 'secondary'
-    );
+    const mockPrimaryActions = mockActions.filter(a => a.priority === 'primary');
+    const mockSecondaryActions = mockActions.filter(a => a.priority === 'secondary');
 
     const createComponent = createComponentFactory({
         component: RightSidebarComponent,
@@ -64,9 +56,7 @@ describe('RightSidebarComponent', () => {
 
     describe('desktop sidebar', () => {
         it('should render all actions in floating sidebar', () => {
-            const buttons = spectator.queryAll(
-                '.floating-sidebar ui-action-button'
-            );
+            const buttons = spectator.queryAll('.floating-sidebar ui-action-button');
 
             expect(buttons.length).toBe(3);
         });
@@ -74,17 +64,13 @@ describe('RightSidebarComponent', () => {
 
     describe('mobile sidebar', () => {
         it('should render primary action button', () => {
-            const primaryButton = spectator.query(
-                '.fab-container ui-action-button[priority="primary"]'
-            );
+            const primaryButton = spectator.query('.fab-container ui-action-button[priority="primary"]');
 
             expect(primaryButton).toBeTruthy();
         });
 
         it('should render menu toggle button when secondary actions exist', () => {
-            const menuButton = spectator.query(
-                '.fab-container ui-action-button[variant="menu"]'
-            );
+            const menuButton = spectator.query('.fab-container ui-action-button[variant="menu"]');
 
             expect(menuButton).toBeTruthy();
         });
@@ -145,9 +131,7 @@ describe('RightSidebarComponent', () => {
 
     describe('action callbacks', () => {
         it('should call primary action when clicked', () => {
-            const primaryButton = spectator.query(
-                '.fab-container ui-action-button[variant="main"]'
-            );
+            const primaryButton = spectator.query('.fab-container ui-action-button[variant="main"]');
 
             spectator.dispatchFakeEvent(primaryButton!, 'clicked');
 

@@ -9,11 +9,7 @@ describe('AppComponent', () => {
 
     const createComponent = createComponentFactory({
         component: AppComponent,
-        providers: [
-            provideHttpClient(),
-            provideHttpClientTesting(),
-            provideRouter([]),
-        ],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
 
     beforeEach(() => {
