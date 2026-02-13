@@ -73,9 +73,7 @@ describe('ArticleContentTabComponent', () => {
     });
 });
 
-function mockRect(
-    overrides: Partial<DOMRect> = {}
-): ReturnType<Element['getBoundingClientRect']> {
+function mockRect(overrides: Partial<DOMRect> = {}): ReturnType<Element['getBoundingClientRect']> {
     return {
         top: 0,
         bottom: 0,
@@ -144,12 +142,8 @@ describe('ArticleContentTabComponent fragment scrolling', () => {
         mockElement.id = 'S26';
         mainContainer.appendChild(mockElement);
 
-        jest.spyOn(mockElement, 'getBoundingClientRect').mockReturnValue(
-            mockRect({ top: 300 })
-        );
-        jest.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue(
-            mockRect({ top: 100 })
-        );
+        jest.spyOn(mockElement, 'getBoundingClientRect').mockReturnValue(mockRect({ top: 300 }));
+        jest.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue(mockRect({ top: 100 }));
         Object.defineProperty(mainContainer, 'scrollTop', {
             value: 0,
             writable: true,
@@ -217,12 +211,8 @@ describe('ArticleContentTabComponent fragment scrolling', () => {
         mockAnchor.setAttribute('name', 'S26');
         mainContainer.appendChild(mockAnchor);
 
-        jest.spyOn(mockAnchor, 'getBoundingClientRect').mockReturnValue(
-            mockRect({ top: 300 })
-        );
-        jest.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue(
-            mockRect({ top: 100 })
-        );
+        jest.spyOn(mockAnchor, 'getBoundingClientRect').mockReturnValue(mockRect({ top: 300 }));
+        jest.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue(mockRect({ top: 100 }));
         Object.defineProperty(mainContainer, 'scrollTop', {
             value: 0,
             writable: true,

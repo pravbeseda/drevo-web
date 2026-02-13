@@ -1,12 +1,4 @@
-import {
-    Directive,
-    OnInit,
-    OnDestroy,
-    inject,
-    ElementRef,
-    input,
-    effect,
-} from '@angular/core';
+import { Directive, OnInit, OnDestroy, inject, ElementRef, input, effect } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction, SidebarActionPriority } from '@drevo-web/shared';
 

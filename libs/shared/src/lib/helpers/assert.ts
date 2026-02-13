@@ -1,16 +1,10 @@
-export function assert(
-    condition: boolean,
-    errorMessage: string
-): asserts condition {
+export function assert(condition: boolean, errorMessage: string): asserts condition {
     if (!condition) {
         throw new Error(getErrorMessage(errorMessage));
     }
 }
 
-export function assertIsDefined<T>(
-    value: T,
-    errorMsg: string
-): asserts value is NonNullable<T> {
+export function assertIsDefined<T>(value: T, errorMsg: string): asserts value is NonNullable<T> {
     assert(isDefined(value), errorMsg);
 }
 

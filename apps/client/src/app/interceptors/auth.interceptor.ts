@@ -12,14 +12,7 @@ import {
 import { Injectable, inject, Injector } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { Observable, throwError } from 'rxjs';
-import {
-    catchError,
-    filter,
-    finalize,
-    shareReplay,
-    switchMap,
-    take,
-} from 'rxjs/operators';
+import { catchError, filter, finalize, shareReplay, switchMap, take } from 'rxjs/operators';
 
 const STATE_CHANGING_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 const CSRF_ENDPOINTS = ['/api/auth/csrf'];
@@ -34,8 +27,7 @@ export class AuthInterceptor implements HttpInterceptor {
     private readonly apiUrl = environment.apiUrl;
     private readonly injector = inject(Injector);
     private readonly csrfService = inject(CsrfService);
-    private readonly logger =
-        inject(LoggerService).withContext('AuthInterceptor');
+    private readonly logger = inject(LoggerService).withContext('AuthInterceptor');
 
     // Lazy-loaded to avoid circular dependency (AuthService -> HttpClient -> HTTP_INTERCEPTORS)
     private _authService: AuthService | undefined;
@@ -49,10 +41,7 @@ export class AuthInterceptor implements HttpInterceptor {
     // Shared observable for token refresh to handle concurrent CSRF failures
     private refreshingToken$: Observable<string> | undefined;
 
-    intercept(
-        request: HttpRequest<unknown>,
-        next: HttpHandler
-    ): Observable<HttpEvent<unknown>> {
+    intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
         // Only intercept API requests
         if (!this.isApiRequest(request.url)) {
             return next.handle(request);
@@ -68,11 +57,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
         // For GET requests, just add credentials
         if (!this.isStateChangingMethod(request.method)) {
-            return next
-                .handle(request)
-                .pipe(
-                    catchError(error => this.handleError(error, request, next))
-                );
+            return next.handle(request).pipe(catchError(error => this.handleError(error, request, next)));
         }
 
         // For auth endpoints (login/logout), add CSRF directly without waiting
@@ -89,10 +74,7 @@ export class AuthInterceptor implements HttpInterceptor {
         );
     }
 
-    private addCsrfAndSend(
-        request: HttpRequest<unknown>,
-        next: HttpHandler
-    ): Observable<HttpEvent<unknown>> {
+    private addCsrfAndSend(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
         return this.csrfService.getCsrfToken().pipe(
             switchMap(csrfToken => {
                 const csrfRequest = request.clone({
@@ -100,13 +82,7 @@ export class AuthInterceptor implements HttpInterceptor {
                         'X-CSRF-Token': csrfToken,
                     },
                 });
-                return next
-                    .handle(csrfRequest)
-                    .pipe(
-                        catchError(error =>
-                            this.handleError(error, request, next)
-                        )
-                    );
+                return next.handle(csrfRequest).pipe(catchError(error => this.handleError(error, request, next)));
             }),
             catchError(error => {
                 this.logger.error('Failed to get CSRF token', error);
@@ -121,10 +97,7 @@ export class AuthInterceptor implements HttpInterceptor {
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
         // Handle 401 Unauthorized - redirect to login
-        if (
-            error.status === 401 &&
-            !this.isAuthCheckOrLoginEndpoint(request.url)
-        ) {
+        if (error.status === 401 && !this.isAuthCheckOrLoginEndpoint(request.url)) {
             this.authService.handleUnauthorized();
             return throwError(() => error);
         }
@@ -140,14 +113,12 @@ export class AuthInterceptor implements HttpInterceptor {
             // If no refresh is in progress, start one with shareReplay
             // so all concurrent failures share the same token refresh
             if (!this.refreshingToken$) {
-                this.refreshingToken$ = this.csrfService
-                    .refreshCsrfToken()
-                    .pipe(
-                        shareReplay(1),
-                        finalize(() => {
-                            this.refreshingToken$ = undefined;
-                        })
-                    );
+                this.refreshingToken$ = this.csrfService.refreshCsrfToken().pipe(
+                    shareReplay(1),
+                    finalize(() => {
+                        this.refreshingToken$ = undefined;
+                    })
+                );
             }
 
             return this.refreshingToken$.pipe(
@@ -174,9 +145,7 @@ export class AuthInterceptor implements HttpInterceptor {
         return throwError(() => error);
     }
 
-    private addCredentials(
-        request: HttpRequest<unknown>
-    ): HttpRequest<unknown> {
+    private addCredentials(request: HttpRequest<unknown>): HttpRequest<unknown> {
         return request.clone({
             withCredentials: true,
         });
@@ -223,22 +192,15 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     private isCsrfEndpoint(url: string): boolean {
-        return CSRF_ENDPOINTS.some(endpoint =>
-            this.matchesEndpoint(url, endpoint)
-        );
+        return CSRF_ENDPOINTS.some(endpoint => this.matchesEndpoint(url, endpoint));
     }
 
     private isAuthEndpoint(url: string): boolean {
-        return AUTH_ENDPOINTS.some(endpoint =>
-            this.matchesEndpoint(url, endpoint)
-        );
+        return AUTH_ENDPOINTS.some(endpoint => this.matchesEndpoint(url, endpoint));
     }
 
     private isAuthCheckOrLoginEndpoint(url: string): boolean {
-        return (
-            this.isAuthEndpoint(url) ||
-            this.matchesEndpoint(url, AUTH_CHECK_ENDPOINT)
-        );
+        return this.isAuthEndpoint(url) || this.matchesEndpoint(url, AUTH_CHECK_ENDPOINT);
     }
 }
 

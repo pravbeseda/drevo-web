@@ -48,9 +48,7 @@ describe('DiffPageComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent();
-        articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
     });
 
     it('should create', () => {
@@ -82,9 +80,7 @@ describe('DiffPageComponent', () => {
 
     describe('JsDiff settings', () => {
         beforeEach(() => {
-            articleService.getVersionPairs.mockReturnValue(
-                of(mockVersionPairs)
-            );
+            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
             spectator.detectChanges();
         });
 
@@ -158,9 +154,7 @@ describe('DiffPageComponent', () => {
 
         it('should update granularity', () => {
             spectator.component.onGranularityChange('lines');
-            expect(spectator.component.jsDiffOptions().granularity).toBe(
-                'lines'
-            );
+            expect(spectator.component.jsDiffOptions().granularity).toBe('lines');
         });
 
         it('should update boolean options', () => {
@@ -170,9 +164,7 @@ describe('DiffPageComponent', () => {
 
         it('should preserve JsDiff settings when switching engines', () => {
             const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
-            const dmpEngine = DIFF_ENGINES.find(
-                e => e.id === 'diff-match-patch'
-            )!;
+            const dmpEngine = DIFF_ENGINES.find(e => e.id === 'diff-match-patch')!;
 
             spectator.component.onEngineChange(jsDiffEngine);
             spectator.component.onGranularityChange('lines');
@@ -181,12 +173,8 @@ describe('DiffPageComponent', () => {
             spectator.component.onEngineChange(dmpEngine);
             spectator.component.onEngineChange(jsDiffEngine);
 
-            expect(spectator.component.jsDiffOptions().granularity).toBe(
-                'lines'
-            );
-            expect(spectator.component.jsDiffOptions().ignoreWhitespace).toBe(
-                true
-            );
+            expect(spectator.component.jsDiffOptions().granularity).toBe('lines');
+            expect(spectator.component.jsDiffOptions().ignoreWhitespace).toBe(true);
         });
 
         it('should compute availability based on granularity', () => {

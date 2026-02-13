@@ -3,14 +3,7 @@ import { LinksService } from '../../services/links/links.service';
 import { ErrorComponent } from '../error/error.component';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    DestroyRef,
-    inject,
-    OnInit,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationService, LoggerService } from '@drevo-web/core';
@@ -22,13 +15,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [
-        EditorComponent,
-        SpinnerComponent,
-        AsyncPipe,
-        ErrorComponent,
-        SidebarActionDirective,
-    ],
+    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent, SidebarActionDirective],
     providers: [LinksService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
@@ -41,15 +28,11 @@ export class ArticleEditComponent implements OnInit {
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly logger = inject(LoggerService).withContext(
-        'ArticleEditComponent'
-    );
+    private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
     private currentContent: string | undefined = undefined;
 
-    private readonly updateLinksStateSubject = new BehaviorSubject<
-        Record<string, boolean>
-    >({});
+    private readonly updateLinksStateSubject = new BehaviorSubject<Record<string, boolean>>({});
 
     readonly version = signal<ArticleVersion | undefined>(undefined);
     readonly isLoading = signal<boolean>(false);
@@ -175,8 +158,7 @@ export class ArticleEditComponent implements OnInit {
                     if (err.status === 401) {
                         errorMessage = 'Необходима авторизация';
                     } else if (err.status === 403) {
-                        errorMessage =
-                            err.error?.error || 'Нет прав для сохранения';
+                        errorMessage = err.error?.error || 'Нет прав для сохранения';
                     } else if (err.error?.error) {
                         errorMessage = err.error.error;
                     }

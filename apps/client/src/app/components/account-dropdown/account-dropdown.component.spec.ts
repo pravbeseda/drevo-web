@@ -61,9 +61,7 @@ describe('AccountDropdownComponent', () => {
             isLoadingSubject.next(true);
             spectator = createComponent();
 
-            const button = spectator.query(
-                'ui-icon-button button'
-            ) as HTMLButtonElement;
+            const button = spectator.query('ui-icon-button button') as HTMLButtonElement;
             expect(button.disabled).toBe(true);
         });
 
@@ -149,9 +147,7 @@ describe('AccountDropdownComponent', () => {
 
         it('should set isLoggingOut to true during logout', () => {
             const logoutSubject = new Subject<void>();
-            authServiceMock.logout = jest
-                .fn()
-                .mockReturnValue(logoutSubject.asObservable());
+            authServiceMock.logout = jest.fn().mockReturnValue(logoutSubject.asObservable());
 
             userSubject.next(mockUser);
             spectator = createComponent();
@@ -171,9 +167,7 @@ describe('AccountDropdownComponent', () => {
         });
 
         it('should reset isLoggingOut to false after logout fails', () => {
-            authServiceMock.logout = jest
-                .fn()
-                .mockReturnValue(throwError(() => new Error('Logout failed')));
+            authServiceMock.logout = jest.fn().mockReturnValue(throwError(() => new Error('Logout failed')));
 
             userSubject.next(mockUser);
             spectator = createComponent();
@@ -210,9 +204,7 @@ describe('AccountDropdownComponent', () => {
 
     describe('Dropdown menu rendering', () => {
         function openMenu(): void {
-            const trigger = spectator.query(
-                '[aria-haspopup="menu"]'
-            ) as HTMLElement;
+            const trigger = spectator.query('[aria-haspopup="menu"]') as HTMLElement;
             trigger.click();
             spectator.detectChanges();
         }
@@ -223,15 +215,9 @@ describe('AccountDropdownComponent', () => {
             openMenu();
 
             const overlay = document.querySelector('.cdk-overlay-container')!;
-            expect(
-                overlay.querySelector('.dropdown-header-title')?.textContent
-            ).toContain('Test User');
-            expect(
-                overlay.querySelector('.dropdown-header-subtitle')?.textContent
-            ).toContain('Пользователь');
-            expect(
-                overlay.querySelectorAll('ui-dropdown-menu-item').length
-            ).toBe(2);
+            expect(overlay.querySelector('.dropdown-header-title')?.textContent).toContain('Test User');
+            expect(overlay.querySelector('.dropdown-header-subtitle')?.textContent).toContain('Пользователь');
+            expect(overlay.querySelectorAll('ui-dropdown-menu-item').length).toBe(2);
         });
 
         it('should render login item when not authenticated', () => {
@@ -240,12 +226,8 @@ describe('AccountDropdownComponent', () => {
             openMenu();
 
             const overlay = document.querySelector('.cdk-overlay-container')!;
-            expect(
-                overlay.querySelectorAll('ui-dropdown-menu-item').length
-            ).toBe(1);
-            expect(
-                overlay.querySelector('ui-dropdown-menu-item')?.textContent
-            ).toContain('Войти');
+            expect(overlay.querySelectorAll('ui-dropdown-menu-item').length).toBe(1);
+            expect(overlay.querySelector('ui-dropdown-menu-item')?.textContent).toContain('Войти');
         });
     });
 
@@ -257,9 +239,7 @@ describe('AccountDropdownComponent', () => {
 
             expect(spectator.query('[aria-haspopup="menu"]')).toBeFalsy();
 
-            const button = spectator.query(
-                'ui-icon-button button'
-            ) as HTMLButtonElement;
+            const button = spectator.query('ui-icon-button button') as HTMLButtonElement;
             expect(button.disabled).toBe(true);
         });
     });

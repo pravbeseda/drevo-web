@@ -1,9 +1,4 @@
-export type JsDiffGranularity =
-    | 'chars'
-    | 'words'
-    | 'wordsWithSpace'
-    | 'lines'
-    | 'sentences';
+export type JsDiffGranularity = 'chars' | 'words' | 'wordsWithSpace' | 'lines' | 'sentences';
 
 export interface JsDiffOptions {
     readonly granularity: JsDiffGranularity;
@@ -18,7 +13,7 @@ export interface JsDiffOptions {
 export const DEFAULT_JS_DIFF_OPTIONS: JsDiffOptions = {
     granularity: 'words',
     ignoreCase: false,
-    intlSegmenter: false,
+    intlSegmenter: true,
     stripTrailingCr: false,
     newlineIsToken: false,
     ignoreNewlineAtEof: false,

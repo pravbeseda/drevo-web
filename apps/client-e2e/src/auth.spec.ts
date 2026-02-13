@@ -12,8 +12,7 @@ const poCheckbox = 'input[type="checkbox"]';
 const poAccountDropdown = 'app-account-dropdown';
 const poAccountDropdownTrigger = 'app-account-dropdown button';
 const poLogoutMenuItem = 'ui-dropdown-menu-item:has-text("Выйти")';
-const poErrorMessage =
-    '.error, [class*="error"], [class*="alert"], [role="alert"]';
+const poErrorMessage = '.error, [class*="error"], [class*="alert"], [role="alert"]';
 
 // Test Data
 const TEST_INVALID_CREDENTIALS = {
@@ -39,9 +38,7 @@ const TEST_FORM_DATA = {
 
 test.describe('Authentication UI', () => {
     test.describe('Login Page', () => {
-        test('should display login form with all elements', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should display login form with all elements', async ({ unauthenticatedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
@@ -53,9 +50,7 @@ test.describe('Authentication UI', () => {
             await expect(page.locator(poCheckbox)).toBeVisible();
         });
 
-        test('should disable submit button when form is empty', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should disable submit button when form is empty', async ({ unauthenticatedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
@@ -64,27 +59,20 @@ test.describe('Authentication UI', () => {
             await expect(page.locator(poSubmitButton)).toBeDisabled();
         });
 
-        test('should enable submit button when form is filled', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should enable submit button when form is filled', async ({ unauthenticatedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page
-                .locator(poUsernameInput)
-                .first()
-                .fill(TEST_FORM_DATA.username);
+            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
             await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
 
             await expect(page.locator(poSubmitButton)).toBeEnabled();
         });
 
-        test('should keep submit disabled with empty username', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should keep submit disabled with empty username', async ({ unauthenticatedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
@@ -102,22 +90,15 @@ test.describe('Authentication UI', () => {
             await expect(page.locator(poSubmitButton)).toBeDisabled();
         });
 
-        test('should show error message for invalid credentials', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should show error message for invalid credentials', async ({ unauthenticatedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page
-                .locator(poUsernameInput)
-                .first()
-                .fill(TEST_INVALID_CREDENTIALS.username);
-            await page
-                .locator(poPasswordInput)
-                .fill(TEST_INVALID_CREDENTIALS.password);
+            await page.locator(poUsernameInput).first().fill(TEST_INVALID_CREDENTIALS.username);
+            await page.locator(poPasswordInput).fill(TEST_INVALID_CREDENTIALS.password);
             await page.locator(poSubmitButton).click();
 
             await expect(page.locator(poErrorMessage).first()).toBeVisible({
@@ -127,9 +108,7 @@ test.describe('Authentication UI', () => {
     });
 
     test.describe('Account Dropdown', () => {
-        test('should redirect unauthenticated user to login', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should redirect unauthenticated user to login', async ({ unauthenticatedPage: page }) => {
             await page.goto('/');
 
             // Unauthenticated users are redirected to login page
@@ -157,9 +136,7 @@ test.describe('Authentication UI', () => {
     });
 
     test.describe('Login Flow', () => {
-        test('should redirect to home after successful login', async ({
-            authMockedPage: page,
-        }) => {
+        test('should redirect to home after successful login', async ({ authMockedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
@@ -167,10 +144,7 @@ test.describe('Authentication UI', () => {
             });
 
             // Fill in valid credentials
-            await page
-                .locator(poUsernameInput)
-                .first()
-                .fill(TEST_FORM_DATA.username);
+            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
             await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
             await page.locator(poSubmitButton).click();
 
@@ -180,19 +154,14 @@ test.describe('Authentication UI', () => {
             });
         });
 
-        test('should display account dropdown after login', async ({
-            authMockedPage: page,
-        }) => {
+        test('should display account dropdown after login', async ({ authMockedPage: page }) => {
             await page.goto('/login');
 
             await expect(page.locator(poForm)).toBeVisible({
                 timeout: DEFAULT_WAIT_TIMEOUT,
             });
 
-            await page
-                .locator(poUsernameInput)
-                .first()
-                .fill(TEST_FORM_DATA.username);
+            await page.locator(poUsernameInput).first().fill(TEST_FORM_DATA.username);
             await page.locator(poPasswordInput).fill(TEST_FORM_DATA.password);
             await page.locator(poSubmitButton).click();
 
@@ -209,9 +178,7 @@ test.describe('Authentication UI', () => {
     });
 
     test.describe('Logout Flow', () => {
-        test('should redirect to login after logout', async ({
-            authenticatedPage: page,
-        }) => {
+        test('should redirect to login after logout', async ({ authenticatedPage: page }) => {
             await page.goto('/');
 
             await expect(page.locator(poAccountDropdown)).toBeVisible({
@@ -245,18 +212,14 @@ test.describe('Authentication UI', () => {
             await expect(page).toHaveURL(/\/login/);
         });
 
-        test('should allow authenticated user to access protected routes', async ({
-            authenticatedPage: page,
-        }) => {
+        test('should allow authenticated user to access protected routes', async ({ authenticatedPage: page }) => {
             await page.goto('/');
 
             // Should NOT be redirected to login
             await expect(page).not.toHaveURL(/\/login/);
         });
 
-        test('should preserve return URL when redirecting to login', async ({
-            unauthenticatedPage: page,
-        }) => {
+        test('should preserve return URL when redirecting to login', async ({ unauthenticatedPage: page }) => {
             // Try to access a specific protected route
             await page.goto('/articles/123');
 

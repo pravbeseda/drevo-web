@@ -76,13 +76,7 @@ describe('formatDateHeader', () => {
 
     it('should use current date as default referenceDate', () => {
         const today = new Date();
-        const todayMorning = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate(),
-            8,
-            0
-        );
+        const todayMorning = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0);
         expect(formatDateHeader(todayMorning)).toBe('Сегодня');
     });
 });

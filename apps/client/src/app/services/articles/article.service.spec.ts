@@ -21,9 +21,7 @@ describe('ArticleService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        articleApiService = spectator.inject(
-            ArticleApiService
-        ) as jest.Mocked<ArticleApiService>;
+        articleApiService = spectator.inject(ArticleApiService) as jest.Mocked<ArticleApiService>;
     });
 
     describe('getArticle', () => {
@@ -64,9 +62,7 @@ describe('ArticleService', () => {
 
             spectator.service.getArticle(123).subscribe(result => {
                 expect(result.date).toBeInstanceOf(Date);
-                expect(result.date.toISOString()).toBe(
-                    '2024-01-15T10:00:00.000Z'
-                );
+                expect(result.date.toISOString()).toBe('2024-01-15T10:00:00.000Z');
                 done();
             });
         });
@@ -87,15 +83,12 @@ describe('ArticleService', () => {
         it('should transform article links removing .html extension', done => {
             const articleWithLinks: ArticleVersionDto = {
                 ...mockApiResponse,
-                content:
-                    '<a class="existlink" href="/articles/8.html">Link</a>',
+                content: '<a class="existlink" href="/articles/8.html">Link</a>',
             };
             articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
 
             spectator.service.getArticle(123).subscribe(result => {
-                expect(result.content).toBe(
-                    '<a class="existlink" href="/articles/8">Link</a>'
-                );
+                expect(result.content).toBe('<a class="existlink" href="/articles/8">Link</a>');
                 done();
             });
         });
@@ -103,8 +96,7 @@ describe('ArticleService', () => {
         it('should transform multiple article links', done => {
             const articleWithLinks: ArticleVersionDto = {
                 ...mockApiResponse,
-                content:
-                    '<p><a href="/articles/1.html">First</a> and <a href="/articles/999.html">Second</a></p>',
+                content: '<p><a href="/articles/1.html">First</a> and <a href="/articles/999.html">Second</a></p>',
             };
             articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
 
@@ -119,8 +111,7 @@ describe('ArticleService', () => {
         it('should not transform non-article links', done => {
             const articleWithLinks: ArticleVersionDto = {
                 ...mockApiResponse,
-                content:
-                    '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
+                content: '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
             };
             articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
 
@@ -140,9 +131,7 @@ describe('ArticleService', () => {
             articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
 
             spectator.service.getArticle(123).subscribe(result => {
-                expect(result.content).toBe(
-                    '<a href="/articles/8#S22">Link with anchor</a>'
-                );
+                expect(result.content).toBe('<a href="/articles/8#S22">Link with anchor</a>');
                 done();
             });
         });
@@ -164,9 +153,7 @@ describe('ArticleService', () => {
         };
 
         it('should call articleApiService.getVersionShow with correct versionId', () => {
-            articleApiService.getVersionShow.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getVersionShow.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getVersionShow(789).subscribe();
 
@@ -174,9 +161,7 @@ describe('ArticleService', () => {
         });
 
         it('should map API response to frontend model', done => {
-            articleApiService.getVersionShow.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getVersionShow.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getVersionShow(789).subscribe(result => {
                 expect(result.articleId).toBe(123);
@@ -193,28 +178,20 @@ describe('ArticleService', () => {
         });
 
         it('should transform article links (like getArticle)', done => {
-            articleApiService.getVersionShow.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getVersionShow.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getVersionShow(789).subscribe(result => {
-                expect(result.content).toBe(
-                    '<p>Content with <a href="/articles/8">link</a></p>'
-                );
+                expect(result.content).toBe('<p>Content with <a href="/articles/8">link</a></p>');
                 done();
             });
         });
 
         it('should convert date string to Date object', done => {
-            articleApiService.getVersionShow.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getVersionShow.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getVersionShow(789).subscribe(result => {
                 expect(result.date).toBeInstanceOf(Date);
-                expect(result.date.toISOString()).toBe(
-                    '2024-02-20T15:30:00.000Z'
-                );
+                expect(result.date.toISOString()).toBe('2024-02-20T15:30:00.000Z');
                 done();
             });
         });
@@ -225,8 +202,7 @@ describe('ArticleService', () => {
             articleId: 123,
             versionId: 789,
             title: 'Test Article Version',
-            content:
-                '<p>Raw content with <a href="/articles/8.html">link</a></p>',
+            content: '<p>Raw content with <a href="/articles/8.html">link</a></p>',
             author: 'Version Author',
             date: '2024-02-20T15:30:00+00:00',
             redirect: 0,
@@ -237,21 +213,15 @@ describe('ArticleService', () => {
         };
 
         it('should call articleApiService.getArticleVersion with correct versionId', () => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe();
 
-            expect(articleApiService.getArticleVersion).toHaveBeenCalledWith(
-                789
-            );
+            expect(articleApiService.getArticleVersion).toHaveBeenCalledWith(789);
         });
 
         it('should map API response to frontend model', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.articleId).toBe(123);
@@ -264,36 +234,26 @@ describe('ArticleService', () => {
         });
 
         it('should NOT transform article links (unlike getArticle)', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
-                expect(result.content).toBe(
-                    '<p>Raw content with <a href="/articles/8.html">link</a></p>'
-                );
+                expect(result.content).toBe('<p>Raw content with <a href="/articles/8.html">link</a></p>');
                 done();
             });
         });
 
         it('should convert date string to Date object', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.date).toBeInstanceOf(Date);
-                expect(result.date.toISOString()).toBe(
-                    '2024-02-20T15:30:00.000Z'
-                );
+                expect(result.date.toISOString()).toBe('2024-02-20T15:30:00.000Z');
                 done();
             });
         });
 
         it('should map new field correctly', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.new).toBe(true);
@@ -302,9 +262,7 @@ describe('ArticleService', () => {
         });
 
         it('should map approved field correctly', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.approved).toBe(1);
@@ -313,9 +271,7 @@ describe('ArticleService', () => {
         });
 
         it('should map info field correctly', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.info).toBe('Version info text');
@@ -324,9 +280,7 @@ describe('ArticleService', () => {
         });
 
         it('should map comment field correctly', done => {
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.comment).toBe('Editor comment');
@@ -339,9 +293,7 @@ describe('ArticleService', () => {
                 ...mockApiResponse,
                 redirect: 1,
             };
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(redirectVersion)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(redirectVersion));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.redirect).toBe(true);
@@ -354,9 +306,7 @@ describe('ArticleService', () => {
                 ...mockApiResponse,
                 new: false,
             };
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(existingVersion)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(existingVersion));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.new).toBe(false);
@@ -369,9 +319,7 @@ describe('ArticleService', () => {
                 ...mockApiResponse,
                 approved: -1,
             };
-            articleApiService.getArticleVersion.mockReturnValue(
-                of(unapprovedVersion)
-            );
+            articleApiService.getArticleVersion.mockReturnValue(of(unapprovedVersion));
 
             spectator.service.getArticleVersion(789).subscribe(result => {
                 expect(result.approved).toBe(-1);
@@ -389,17 +337,11 @@ describe('ArticleService', () => {
                 pageSize: 25,
                 totalPages: 1,
             };
-            articleApiService.searchArticles.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.searchArticles.mockReturnValue(of(mockApiResponse));
 
             spectator.service.searchArticles({ query: 'test' }).subscribe();
 
-            expect(articleApiService.searchArticles).toHaveBeenCalledWith(
-                'test',
-                1,
-                25
-            );
+            expect(articleApiService.searchArticles).toHaveBeenCalledWith('test', 1, 25);
         });
 
         it('should use custom page and pageSize when provided', () => {
@@ -410,19 +352,11 @@ describe('ArticleService', () => {
                 pageSize: 50,
                 totalPages: 0,
             };
-            articleApiService.searchArticles.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.searchArticles.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .searchArticles({ query: 'test', page: 2, pageSize: 50 })
-                .subscribe();
+            spectator.service.searchArticles({ query: 'test', page: 2, pageSize: 50 }).subscribe();
 
-            expect(articleApiService.searchArticles).toHaveBeenCalledWith(
-                'test',
-                2,
-                50
-            );
+            expect(articleApiService.searchArticles).toHaveBeenCalledWith('test', 2, 50);
         });
 
         it('should map API response to frontend model', done => {
@@ -436,25 +370,21 @@ describe('ArticleService', () => {
                 pageSize: 25,
                 totalPages: 4,
             };
-            articleApiService.searchArticles.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.searchArticles.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .searchArticles({ query: 'test' })
-                .subscribe(result => {
-                    expect(result).toEqual({
-                        items: [
-                            { id: 1, title: 'Article 1' },
-                            { id: 2, title: 'Article 2' },
-                        ],
-                        total: 100,
-                        page: 1,
-                        pageSize: 25,
-                        totalPages: 4,
-                    });
-                    done();
+            spectator.service.searchArticles({ query: 'test' }).subscribe(result => {
+                expect(result).toEqual({
+                    items: [
+                        { id: 1, title: 'Article 1' },
+                        { id: 2, title: 'Article 2' },
+                    ],
+                    total: 100,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 4,
                 });
+                done();
+            });
         });
 
         it('should handle empty results', done => {
@@ -465,17 +395,13 @@ describe('ArticleService', () => {
                 pageSize: 25,
                 totalPages: 0,
             };
-            articleApiService.searchArticles.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.searchArticles.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .searchArticles({ query: 'nonexistent' })
-                .subscribe(result => {
-                    expect(result.items).toHaveLength(0);
-                    expect(result.total).toBe(0);
-                    done();
-                });
+            spectator.service.searchArticles({ query: 'nonexistent' }).subscribe(result => {
+                expect(result.items).toHaveLength(0);
+                expect(result.total).toBe(0);
+                done();
+            });
         });
     });
 
@@ -491,9 +417,7 @@ describe('ArticleService', () => {
         };
 
         it('should call articleApiService.saveArticleVersion with correct request', () => {
-            articleApiService.saveArticleVersion.mockReturnValue(
-                of(mockSaveResponse)
-            );
+            articleApiService.saveArticleVersion.mockReturnValue(of(mockSaveResponse));
 
             spectator.service
                 .saveArticleVersion({
@@ -511,9 +435,7 @@ describe('ArticleService', () => {
         });
 
         it('should map API response to frontend model', done => {
-            articleApiService.saveArticleVersion.mockReturnValue(
-                of(mockSaveResponse)
-            );
+            articleApiService.saveArticleVersion.mockReturnValue(of(mockSaveResponse));
 
             spectator.service
                 .saveArticleVersion({
@@ -531,9 +453,7 @@ describe('ArticleService', () => {
         });
 
         it('should convert date string to Date object', done => {
-            articleApiService.saveArticleVersion.mockReturnValue(
-                of(mockSaveResponse)
-            );
+            articleApiService.saveArticleVersion.mockReturnValue(of(mockSaveResponse));
 
             spectator.service
                 .saveArticleVersion({
@@ -542,9 +462,7 @@ describe('ArticleService', () => {
                 })
                 .subscribe(result => {
                     expect(result.date).toBeInstanceOf(Date);
-                    expect(result.date.toISOString()).toBe(
-                        '2024-03-15T12:00:00.000Z'
-                    );
+                    expect(result.date.toISOString()).toBe('2024-03-15T12:00:00.000Z');
                     done();
                 });
         });
@@ -554,9 +472,7 @@ describe('ArticleService', () => {
                 ...mockSaveResponse,
                 approved: 1,
             };
-            articleApiService.saveArticleVersion.mockReturnValue(
-                of(moderatorResponse)
-            );
+            articleApiService.saveArticleVersion.mockReturnValue(of(moderatorResponse));
 
             spectator.service
                 .saveArticleVersion({
@@ -570,9 +486,7 @@ describe('ArticleService', () => {
         });
 
         it('should work without optional info field', () => {
-            articleApiService.saveArticleVersion.mockReturnValue(
-                of(mockSaveResponse)
-            );
+            articleApiService.saveArticleVersion.mockReturnValue(of(mockSaveResponse));
 
             spectator.service
                 .saveArticleVersion({
@@ -609,53 +523,35 @@ describe('ArticleService', () => {
         };
 
         it('should call articleApiService.getVersionPairs with version1', () => {
-            articleApiService.getVersionPairs.mockReturnValue(
-                of(mockVersionPairsResponse)
-            );
+            articleApiService.getVersionPairs.mockReturnValue(of(mockVersionPairsResponse));
 
             spectator.service.getVersionPairs(10).subscribe();
 
-            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(
-                10,
-                undefined
-            );
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(10, undefined);
         });
 
         it('should call articleApiService.getVersionPairs with both versions', () => {
-            articleApiService.getVersionPairs.mockReturnValue(
-                of(mockVersionPairsResponse)
-            );
+            articleApiService.getVersionPairs.mockReturnValue(of(mockVersionPairsResponse));
 
             spectator.service.getVersionPairs(10, 9).subscribe();
 
-            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(
-                10,
-                9
-            );
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(10, 9);
         });
 
         it('should convert date strings to Date objects', done => {
-            articleApiService.getVersionPairs.mockReturnValue(
-                of(mockVersionPairsResponse)
-            );
+            articleApiService.getVersionPairs.mockReturnValue(of(mockVersionPairsResponse));
 
             spectator.service.getVersionPairs(10).subscribe(result => {
                 expect(result.current.date).toBeInstanceOf(Date);
                 expect(result.previous.date).toBeInstanceOf(Date);
-                expect(result.current.date.toISOString()).toBe(
-                    '2025-03-10T12:00:00.000Z'
-                );
-                expect(result.previous.date.toISOString()).toBe(
-                    '2025-03-09T10:00:00.000Z'
-                );
+                expect(result.current.date.toISOString()).toBe('2025-03-10T12:00:00.000Z');
+                expect(result.previous.date.toISOString()).toBe('2025-03-09T10:00:00.000Z');
                 done();
             });
         });
 
         it('should map all fields correctly', done => {
-            articleApiService.getVersionPairs.mockReturnValue(
-                of(mockVersionPairsResponse)
-            );
+            articleApiService.getVersionPairs.mockReturnValue(of(mockVersionPairsResponse));
 
             spectator.service.getVersionPairs(10).subscribe(result => {
                 expect(result.current.versionId).toBe(10);
@@ -703,25 +599,15 @@ describe('ArticleService', () => {
         };
 
         it('should call articleApiService.getArticlesHistory with default params', () => {
-            articleApiService.getArticlesHistory.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
             spectator.service.getArticlesHistory({ page: 1 }).subscribe();
 
-            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(
-                1,
-                25,
-                undefined,
-                undefined,
-                undefined
-            );
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(1, 25, undefined, undefined, undefined);
         });
 
         it('should pass custom params to API service', () => {
-            articleApiService.getArticlesHistory.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
             spectator.service
                 .getArticlesHistory({
@@ -732,74 +618,50 @@ describe('ArticleService', () => {
                 })
                 .subscribe();
 
-            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(
-                2,
-                50,
-                0,
-                'testuser',
-                undefined
-            );
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(2, 50, 0, 'testuser', undefined);
         });
 
         it('should map API response to frontend model', done => {
-            articleApiService.getArticlesHistory.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .getArticlesHistory({ page: 1 })
-                .subscribe(result => {
-                    expect(result.total).toBe(50);
-                    expect(result.page).toBe(1);
-                    expect(result.pageSize).toBe(25);
-                    expect(result.totalPages).toBe(2);
-                    expect(result.items).toHaveLength(2);
-                    done();
-                });
+            spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                expect(result.total).toBe(50);
+                expect(result.page).toBe(1);
+                expect(result.pageSize).toBe(25);
+                expect(result.totalPages).toBe(2);
+                expect(result.items).toHaveLength(2);
+                done();
+            });
         });
 
         it('should convert date strings to Date objects', done => {
-            articleApiService.getArticlesHistory.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .getArticlesHistory({ page: 1 })
-                .subscribe(result => {
-                    expect(result.items[0].date).toBeInstanceOf(Date);
-                    expect(result.items[0].date.toISOString()).toBe(
-                        '2025-01-15T14:30:00.000Z'
-                    );
-                    done();
-                });
+            spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                expect(result.items[0].date).toBeInstanceOf(Date);
+                expect(result.items[0].date.toISOString()).toBe('2025-01-15T14:30:00.000Z');
+                done();
+            });
         });
 
         it('should map "new" field to "isNew"', done => {
-            articleApiService.getArticlesHistory.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .getArticlesHistory({ page: 1 })
-                .subscribe(result => {
-                    expect(result.items[0].isNew).toBe(false);
-                    expect(result.items[1].isNew).toBe(true);
-                    done();
-                });
+            spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                expect(result.items[0].isNew).toBe(false);
+                expect(result.items[1].isNew).toBe(true);
+                done();
+            });
         });
 
         it('should preserve approval status values', done => {
-            articleApiService.getArticlesHistory.mockReturnValue(
-                of(mockApiResponse)
-            );
+            articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .getArticlesHistory({ page: 1 })
-                .subscribe(result => {
-                    expect(result.items[0].approved).toBe(1);
-                    expect(result.items[1].approved).toBe(0);
-                    done();
-                });
+            spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                expect(result.items[0].approved).toBe(1);
+                expect(result.items[1].approved).toBe(0);
+                done();
+            });
         });
     });
 });

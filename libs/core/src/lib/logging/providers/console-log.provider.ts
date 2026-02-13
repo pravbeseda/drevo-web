@@ -46,9 +46,7 @@ export class ConsoleLogProvider implements LogProvider {
         }
     }
 
-    private getConsoleMethod(
-        level: LogEntry['level']
-    ): (...args: unknown[]) => void {
+    private getConsoleMethod(level: LogEntry['level']): (...args: unknown[]) => void {
         switch (level) {
             case 'debug':
                 return console.debug.bind(console);

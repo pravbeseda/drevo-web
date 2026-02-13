@@ -1,12 +1,7 @@
 import { ArticleService } from '../../../services/articles';
 import { VersionRedirectComponent } from './version-redirect.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ActivatedRoute,
-    convertToParamMap,
-    provideRouter,
-    Router,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticleVersion } from '@drevo-web/shared';
@@ -53,9 +48,7 @@ describe('VersionRedirectComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent();
-        articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
     });
 
     it('should create', () => {
@@ -71,10 +64,7 @@ describe('VersionRedirectComponent', () => {
 
         spectator.detectChanges();
 
-        expect(navigateSpy).toHaveBeenCalledWith(
-            ['/articles', 100, 'version', 789],
-            { replaceUrl: true }
-        );
+        expect(navigateSpy).toHaveBeenCalledWith(['/articles', 100, 'version', 789], { replaceUrl: true });
     });
 
     it('should show 404 error', () => {

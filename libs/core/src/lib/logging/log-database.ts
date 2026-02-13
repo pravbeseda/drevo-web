@@ -59,16 +59,14 @@ export class LogDatabase extends Dexie {
      * Add multiple log entries (for batch writes)
      */
     async addLogs(entries: LogEntry[]): Promise<void> {
-        const tableEntries: Omit<LogTableEntry, 'id'>[] = entries.map(
-            entry => ({
-                level: entry.level,
-                message: entry.message,
-                context: entry.context,
-                data: entry.data,
-                timestamp: entry.timestamp.getTime(),
-                url: entry.url,
-            })
-        );
+        const tableEntries: Omit<LogTableEntry, 'id'>[] = entries.map(entry => ({
+            level: entry.level,
+            message: entry.message,
+            context: entry.context,
+            data: entry.data,
+            timestamp: entry.timestamp.getTime(),
+            url: entry.url,
+        }));
 
         await this.logs.bulkAdd(tableEntries as LogTableEntry[]);
     }
@@ -99,9 +97,7 @@ export class LogDatabase extends Dexie {
             collection = collection.filter(log => levels.includes(log.level));
         }
 
-        const entries = await (options?.limit
-            ? collection.limit(options.limit).toArray()
-            : collection.toArray());
+        const entries = await (options?.limit ? collection.limit(options.limit).toArray() : collection.toArray());
 
         // Convert back to LogEntry format
         return entries.map(entry => ({
@@ -138,10 +134,7 @@ export class LogDatabase extends Dexie {
         const deleteCount = Math.floor(count * percentage);
 
         if (deleteCount > 0) {
-            const oldestLogs = await this.logs
-                .orderBy('timestamp')
-                .limit(deleteCount)
-                .primaryKeys();
+            const oldestLogs = await this.logs.orderBy('timestamp').limit(deleteCount).primaryKeys();
 
             await this.logs.bulkDelete(oldestLogs);
         }

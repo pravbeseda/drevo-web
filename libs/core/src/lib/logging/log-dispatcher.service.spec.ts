@@ -1,17 +1,10 @@
 import { PLATFORM_ID } from '@angular/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import {
-    LogDispatcher,
-    LOG_PRODUCTION_MODE,
-    LOG_PROVIDERS,
-} from './log-dispatcher.service';
+import { LogDispatcher, LOG_PRODUCTION_MODE, LOG_PROVIDERS } from './log-dispatcher.service';
 import { LogProvider, LogEntry } from './log-provider.interface';
 
 describe('LogDispatcher', () => {
-    const createMockProvider = (
-        name: string,
-        isAvailable = true
-    ): jest.Mocked<LogProvider> => ({
+    const createMockProvider = (name: string, isAvailable = true): jest.Mocked<LogProvider> => ({
         name,
         isAvailable,
         log: jest.fn(),
@@ -119,12 +112,8 @@ describe('LogDispatcher', () => {
 
             const after = new Date();
             const call = mockProvider.log.mock.calls[0][0] as LogEntry;
-            expect(call.timestamp.getTime()).toBeGreaterThanOrEqual(
-                before.getTime()
-            );
-            expect(call.timestamp.getTime()).toBeLessThanOrEqual(
-                after.getTime()
-            );
+            expect(call.timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
+            expect(call.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
         });
 
         it('should include URL in log entries', () => {
@@ -159,9 +148,7 @@ describe('LogDispatcher', () => {
             jest.spyOn(console, 'error').mockImplementation();
 
             // Should not throw
-            expect(() =>
-                spectator.service.dispatch('info', 'Test')
-            ).not.toThrow();
+            expect(() => spectator.service.dispatch('info', 'Test')).not.toThrow();
 
             expect(console.error).toHaveBeenCalledWith(
                 expect.stringContaining('LogDispatcher: Error in provider'),

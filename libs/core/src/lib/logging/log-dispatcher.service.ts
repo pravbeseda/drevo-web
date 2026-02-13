@@ -1,10 +1,4 @@
-import {
-    LogEntry,
-    LogLevel,
-    LogProvider,
-    LogStorageProvider,
-    isStorageProvider,
-} from './log-provider.interface';
+import { LogEntry, LogLevel, LogProvider, LogStorageProvider, isStorageProvider } from './log-provider.interface';
 import { sanitizeLogEntry } from './log-sanitizer';
 import { ConsoleLogProvider } from './providers/console-log.provider';
 import { isPlatformBrowser } from '@angular/common';
@@ -19,10 +13,10 @@ export const LOG_PROVIDERS = new InjectionToken<LogProvider[]>('LOG_PROVIDERS');
 /**
  * Injection token for production mode flag
  */
-export const LOG_PRODUCTION_MODE = new InjectionToken<boolean>(
-    'LOG_PRODUCTION_MODE',
-    { providedIn: 'root', factory: () => false }
-);
+export const LOG_PRODUCTION_MODE = new InjectionToken<boolean>('LOG_PRODUCTION_MODE', {
+    providedIn: 'root',
+    factory: () => false,
+});
 
 /**
  * Central log dispatcher service
@@ -42,9 +36,7 @@ export class LogDispatcher {
 
     constructor() {
         // Always add console provider
-        this.providers.push(
-            new ConsoleLogProvider(this.isProduction, this.isBrowser)
-        );
+        this.providers.push(new ConsoleLogProvider(this.isProduction, this.isBrowser));
 
         // Add any injected providers
         if (this.injectedProviders) {
@@ -87,21 +79,13 @@ export class LogDispatcher {
      * Get the first available storage provider (for log export)
      */
     getStorageProvider(): LogStorageProvider | undefined {
-        return this.providers.find(
-            (p): p is LogStorageProvider =>
-                isStorageProvider(p) && p.isAvailable
-        );
+        return this.providers.find((p): p is LogStorageProvider => isStorageProvider(p) && p.isAvailable);
     }
 
     /**
      * Dispatch a log entry to all available providers
      */
-    dispatch(
-        level: LogLevel,
-        message: string,
-        context?: string,
-        data?: unknown
-    ): void {
+    dispatch(level: LogLevel, message: string, context?: string, data?: unknown): void {
         // Update current URL on each log (in case of navigation)
         if (this.isBrowser) {
             this.currentUrl = window.location.pathname;
@@ -126,10 +110,7 @@ export class LogDispatcher {
                     provider.log(sanitizedEntry);
                 } catch (error) {
                     // Avoid infinite loops - don't log provider errors
-                    console.error(
-                        `LogDispatcher: Error in provider '${provider.name}'`,
-                        error
-                    );
+                    console.error(`LogDispatcher: Error in provider '${provider.name}'`, error);
                 }
             }
         }
@@ -141,8 +122,7 @@ export class LogDispatcher {
     async flush(): Promise<void> {
         const flushPromises = this.providers
             .filter(
-                (p): p is LogProvider & { flush: () => Promise<void> } =>
-                    p.isAvailable && typeof p.flush === 'function'
+                (p): p is LogProvider & { flush: () => Promise<void> } => p.isAvailable && typeof p.flush === 'function'
             )
             .map(p => p.flush());
 

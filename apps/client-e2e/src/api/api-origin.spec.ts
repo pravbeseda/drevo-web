@@ -1,11 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    API_BASE_URL,
-    apiPost,
-    getCsrfToken,
-    ALLOWED_ORIGINS,
-    TEST_DISALLOWED_ORIGIN,
-} from './api-test-helpers';
+import { API_BASE_URL, apiPost, getCsrfToken, ALLOWED_ORIGINS, TEST_DISALLOWED_ORIGIN } from './api-test-helpers';
 
 /**
  * API Integration Tests - Origin/Referer Validation
@@ -31,24 +25,19 @@ test.describe('Origin/Referer Validation', () => {
     const allowedOrigin = ALLOWED_ORIGINS[0];
 
     test.describe('POST without Origin/Referer', () => {
-        test('should reject POST without Origin and Referer headers', async ({
-            request,
-        }) => {
+        test('should reject POST without Origin and Referer headers', async ({ request }) => {
             // Get CSRF token first
             const csrfToken = await getCsrfToken(request);
 
             // POST without Origin or Referer
-            const response = await request.post(
-                `${API_BASE_URL}/api/auth/logout`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-CSRF-Token': csrfToken,
-                        // No Origin, no Referer
-                    },
-                }
-            );
+            const response = await request.post(`${API_BASE_URL}/api/auth/logout`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    // No Origin, no Referer
+                },
+            });
 
             const body = await response.json();
 
@@ -59,19 +48,13 @@ test.describe('Origin/Referer Validation', () => {
     });
 
     test.describe('POST with disallowed Origin', () => {
-        test('should reject POST from disallowed origin', async ({
-            request,
-        }) => {
+        test('should reject POST from disallowed origin', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
-            const { response, body } = await apiPost(
-                request,
-                '/api/auth/logout',
-                {
-                    origin: TEST_DISALLOWED_ORIGIN,
-                    csrfToken,
-                }
-            );
+            const { response, body } = await apiPost(request, '/api/auth/logout', {
+                origin: TEST_DISALLOWED_ORIGIN,
+                csrfToken,
+            });
 
             expect(response.status()).toBe(403);
             expect(body.success).toBe(false);
@@ -81,14 +64,10 @@ test.describe('Origin/Referer Validation', () => {
         test('should reject POST from random origin', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
-            const { response, body } = await apiPost(
-                request,
-                '/api/auth/logout',
-                {
-                    origin: 'https://attacker-site.com',
-                    csrfToken,
-                }
-            );
+            const { response, body } = await apiPost(request, '/api/auth/logout', {
+                origin: 'https://attacker-site.com',
+                csrfToken,
+            });
 
             expect(response.status()).toBe(403);
             expect(body.success).toBe(false);
@@ -101,14 +80,10 @@ test.describe('Origin/Referer Validation', () => {
             const csrfToken = await getCsrfToken(request);
 
             // Use configured allowed origin
-            const { response, body } = await apiPost(
-                request,
-                '/api/auth/logout',
-                {
-                    origin: allowedOrigin,
-                    csrfToken,
-                }
-            );
+            const { response, body } = await apiPost(request, '/api/auth/logout', {
+                origin: allowedOrigin,
+                csrfToken,
+            });
 
             expect(response.status()).toBe(200);
             expect(body.success).toBe(true);
@@ -116,26 +91,21 @@ test.describe('Origin/Referer Validation', () => {
     });
 
     test.describe('POST with Referer (fallback)', () => {
-        test('should accept POST with valid Referer when Origin is missing', async ({
-            request,
-        }) => {
+        test('should accept POST with valid Referer when Origin is missing', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
             // Parse allowed origin to use as Referer
             const refererUrl = new URL(allowedOrigin);
 
-            const response = await request.post(
-                `${API_BASE_URL}/api/auth/logout`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-CSRF-Token': csrfToken,
-                        Referer: `${refererUrl.origin}/some/page`,
-                        // No Origin header
-                    },
-                }
-            );
+            const response = await request.post(`${API_BASE_URL}/api/auth/logout`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    Referer: `${refererUrl.origin}/some/page`,
+                    // No Origin header
+                },
+            });
 
             const body = await response.json();
 
@@ -143,23 +113,18 @@ test.describe('Origin/Referer Validation', () => {
             expect(body.success).toBe(true);
         });
 
-        test('should reject POST with invalid Referer when Origin is missing', async ({
-            request,
-        }) => {
+        test('should reject POST with invalid Referer when Origin is missing', async ({ request }) => {
             const csrfToken = await getCsrfToken(request);
 
-            const response = await request.post(
-                `${API_BASE_URL}/api/auth/logout`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-CSRF-Token': csrfToken,
-                        Referer: 'https://evil-site.com/attack',
-                        // No Origin header
-                    },
-                }
-            );
+            const response = await request.post(`${API_BASE_URL}/api/auth/logout`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    Referer: 'https://evil-site.com/attack',
+                    // No Origin header
+                },
+            });
 
             const body = await response.json();
 

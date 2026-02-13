@@ -20,9 +20,7 @@ import { HttpContextToken } from '@angular/common/http';
  * When true, the error notification interceptor will NOT show a toast for this request.
  * Useful for requests where you handle errors manually (e.g., form validation, silent retries).
  */
-export const SKIP_ERROR_NOTIFICATION = new HttpContextToken<boolean>(
-    () => false
-);
+export const SKIP_ERROR_NOTIFICATION = new HttpContextToken<boolean>(() => false);
 
 /**
  * Custom error message to show instead of the auto-mapped message.

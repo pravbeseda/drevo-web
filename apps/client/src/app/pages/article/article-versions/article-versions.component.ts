@@ -6,13 +6,7 @@ import {
 } from '../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from '../../history/tabs/articles/article-history-list/article-history-list.component';
 import { ArticlePageService } from '../article-page.service';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    inject,
-    OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 
 @Component({
     selector: 'app-article-versions',

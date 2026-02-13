@@ -1,12 +1,6 @@
 import { ArticleService } from '../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    computed,
-    DestroyRef,
-    inject,
-    Injectable,
-    signal,
-} from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
@@ -17,8 +11,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 export class ArticlePageService {
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly logger =
-        inject(LoggerService).withContext('ArticlePageService');
+    private readonly logger = inject(LoggerService).withContext('ArticlePageService');
 
     private readonly _article = signal<ArticleVersion | undefined>(undefined);
     private readonly _isLoading = signal(false);
@@ -85,11 +78,7 @@ export class ArticlePageService {
                         id,
                         status: err.status,
                     });
-                    this._error.set(
-                        err.status === 404
-                            ? 'Статья не найдена'
-                            : 'Ошибка загрузки статьи'
-                    );
+                    this._error.set(err.status === 404 ? 'Статья не найдена' : 'Ошибка загрузки статьи');
                     this._isLoading.set(false);
                 },
             });

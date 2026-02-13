@@ -26,9 +26,7 @@ describe('ArticleContentComponent', () => {
     beforeEach(() => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
-        logger = spectator.inject(
-            LoggerService
-        ) as unknown as MockLoggerService;
+        logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
 
     afterEach(() => {
@@ -48,10 +46,7 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should render links in content', () => {
-            spectator.setInput(
-                'content',
-                '<a href="/articles/123">Article Link</a>'
-            );
+            spectator.setInput('content', '<a href="/articles/123">Article Link</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -60,10 +55,7 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should preserve id attributes in content', () => {
-            spectator.setInput(
-                'content',
-                '<div id="section1"><p>Content with ID</p></div>'
-            );
+            spectator.setInput('content', '<div id="section1"><p>Content with ID</p></div>');
             spectator.detectChanges();
 
             const div = spectator.query('#section1') as HTMLDivElement;
@@ -72,29 +64,19 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should preserve name attributes in anchors', () => {
-            spectator.setInput(
-                'content',
-                '<a name="anchor1">Anchor with name</a>'
-            );
+            spectator.setInput('content', '<a name="anchor1">Anchor with name</a>');
             spectator.detectChanges();
 
-            const anchor = spectator.query(
-                'a[name="anchor1"]'
-            ) as HTMLAnchorElement;
+            const anchor = spectator.query('a[name="anchor1"]') as HTMLAnchorElement;
             expect(anchor).toBeTruthy();
             expect(anchor.getAttribute('name')).toBe('anchor1');
         });
 
         it('should preserve both id and name attributes', () => {
-            spectator.setInput(
-                'content',
-                '<a name="S26" id="section26">Section</a><div id="content">Content</div>'
-            );
+            spectator.setInput('content', '<a name="S26" id="section26">Section</a><div id="content">Content</div>');
             spectator.detectChanges();
 
-            const anchor = spectator.query(
-                'a[name="S26"]'
-            ) as HTMLAnchorElement;
+            const anchor = spectator.query('a[name="S26"]') as HTMLAnchorElement;
             expect(anchor).toBeTruthy();
             expect(anchor.getAttribute('name')).toBe('S26');
             expect(anchor.id).toBe('section26');
@@ -107,10 +89,7 @@ describe('ArticleContentComponent', () => {
 
     describe('internal link navigation', () => {
         it('should navigate using router for internal links', () => {
-            spectator.setInput(
-                'content',
-                '<a href="/articles/123">Article Link</a>'
-            );
+            spectator.setInput('content', '<a href="/articles/123">Article Link</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -120,10 +99,7 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should prevent default browser navigation for internal links', () => {
-            spectator.setInput(
-                'content',
-                '<a href="/articles/456">Article Link</a>'
-            );
+            spectator.setInput('content', '<a href="/articles/456">Article Link</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -139,10 +115,7 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should handle nested elements inside links', () => {
-            spectator.setInput(
-                'content',
-                '<a href="/articles/789"><span>Nested Text</span></a>'
-            );
+            spectator.setInput('content', '<a href="/articles/789"><span>Nested Text</span></a>');
             spectator.detectChanges();
 
             const span = spectator.query('span') as HTMLSpanElement;
@@ -154,10 +127,7 @@ describe('ArticleContentComponent', () => {
 
     describe('external link handling', () => {
         it('should not intercept external http links', () => {
-            spectator.setInput(
-                'content',
-                '<a href="https://example.com">External</a>'
-            );
+            spectator.setInput('content', '<a href="https://example.com">External</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -167,10 +137,7 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should not intercept mailto links', () => {
-            spectator.setInput(
-                'content',
-                '<a href="mailto:test@example.com">Email</a>'
-            );
+            spectator.setInput('content', '<a href="mailto:test@example.com">Email</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -222,10 +189,7 @@ describe('ArticleContentComponent', () => {
             const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
             const pushStateSpy = jest.spyOn(history, 'pushState');
 
-            spectator.setInput(
-                'content',
-                '<a href="#section1">Go to section</a>'
-            );
+            spectator.setInput('content', '<a href="#section1">Go to section</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -235,11 +199,7 @@ describe('ArticleContentComponent', () => {
                 behavior: 'smooth',
                 block: 'start',
             });
-            expect(pushStateSpy).toHaveBeenCalledWith(
-                undefined,
-                '',
-                expect.stringContaining('#section1')
-            );
+            expect(pushStateSpy).toHaveBeenCalledWith(undefined, '', expect.stringContaining('#section1'));
         });
 
         it('should handle anchor IDs with special characters safely', () => {
@@ -252,10 +212,7 @@ describe('ArticleContentComponent', () => {
 
             const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
 
-            spectator.setInput(
-                'content',
-                `<a href="#${safeId}">Go to section</a>`
-            );
+            spectator.setInput('content', `<a href="#${safeId}">Go to section</a>`);
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -267,10 +224,7 @@ describe('ArticleContentComponent', () => {
         it('should not throw error when anchor target does not exist', () => {
             const pushStateSpy = jest.spyOn(history, 'pushState');
 
-            spectator.setInput(
-                'content',
-                '<a href="#nonexistent">Go nowhere</a>'
-            );
+            spectator.setInput('content', '<a href="#nonexistent">Go nowhere</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -282,17 +236,11 @@ describe('ArticleContentComponent', () => {
 
     describe('cleanup', () => {
         it('should remove event listener on destroy', () => {
-            const removeEventListenerSpy = jest.spyOn(
-                spectator.element,
-                'removeEventListener'
-            );
+            const removeEventListenerSpy = jest.spyOn(spectator.element, 'removeEventListener');
 
             spectator.component.ngOnDestroy();
 
-            expect(removeEventListenerSpy).toHaveBeenCalledWith(
-                'click',
-                expect.any(Function)
-            );
+            expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
         });
     });
 
@@ -372,9 +320,7 @@ describe('ArticleContentComponent', () => {
 
                 expect(rusElement.style.display).toBe('none');
                 expect(cslElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe(
-                    'Показать русский перевод'
-                );
+                expect(link.textContent?.trim()).toBe('Показать русский перевод');
 
                 // Click to show Russian
                 link.click();
@@ -424,17 +370,13 @@ describe('ArticleContentComponent', () => {
 
                 expect(cslElement.style.display).toBe('none');
                 expect(rusElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe(
-                    'Показать церковнославянский перевод'
-                );
+                expect(link.textContent?.trim()).toBe('Показать церковнославянский перевод');
 
                 // Click to show Church Slavonic
                 link.click();
 
                 expect(cslElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe(
-                    'Скрыть церковнославянский перевод'
-                );
+                expect(link.textContent?.trim()).toBe('Скрыть церковнославянский перевод');
             });
 
             it('should ensure Russian is visible when hiding Church Slavonic', () => {
@@ -459,10 +401,7 @@ describe('ArticleContentComponent', () => {
 
         describe('javascript: link handling', () => {
             it('should prevent default for javascript: links', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="javascript:toggleAll()">Toggle</a>'
-                );
+                spectator.setInput('content', '<a href="javascript:toggleAll()">Toggle</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -478,10 +417,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should not call router.navigateByUrl for javascript: links', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="javascript:toggleAll()">Toggle</a>'
-                );
+                spectator.setInput('content', '<a href="javascript:toggleAll()">Toggle</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -491,10 +427,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should handle javascript: links with uppercase (JavaScript:)', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="JavaScript:toggleAll()">Toggle</a>'
-                );
+                spectator.setInput('content', '<a href="JavaScript:toggleAll()">Toggle</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -511,10 +444,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should handle javascript: links with mixed case', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="JaVaScRiPt:toggleRus()">Toggle</a>'
-                );
+                spectator.setInput('content', '<a href="JaVaScRiPt:toggleRus()">Toggle</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -531,10 +461,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should handle javascript: links with whitespace', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="  javascript:toggleCsl()  ">Toggle</a>'
-                );
+                spectator.setInput('content', '<a href="  javascript:toggleCsl()  ">Toggle</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -551,10 +478,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should reject invalid javascript: patterns with special characters', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="javascript:alert(\'xss\')">Invalid</a>'
-                );
+                spectator.setInput('content', '<a href="javascript:alert(\'xss\')">Invalid</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -578,10 +502,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should reject unknown javascript: actions', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="javascript:unknownAction()">Unknown</a>'
-                );
+                spectator.setInput('content', '<a href="javascript:unknownAction()">Unknown</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -602,10 +523,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should reject data: protocol links', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="data:text/html,<script>alert(1)</script>">XSS</a>'
-                );
+                spectator.setInput('content', '<a href="data:text/html,<script>alert(1)</script>">XSS</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -622,10 +540,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should reject vbscript: protocol links', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="vbscript:msgbox(1)">XSS</a>'
-                );
+                spectator.setInput('content', '<a href="vbscript:msgbox(1)">XSS</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -642,10 +557,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should warn on invalid javascript action format', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="javascript:console.log(\'test\')">Invalid</a>'
-                );
+                spectator.setInput('content', '<a href="javascript:console.log(\'test\')">Invalid</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -691,10 +603,7 @@ describe('ArticleContentComponent', () => {
             });
 
             it('should warn when toggleGroup called without parameter', () => {
-                spectator.setInput(
-                    'content',
-                    '<a href="javascript:toggleGroup()">Invalid</a>'
-                );
+                spectator.setInput('content', '<a href="javascript:toggleGroup()">Invalid</a>');
                 spectator.detectChanges();
 
                 const link = spectator.query('a') as HTMLAnchorElement;
@@ -722,9 +631,7 @@ describe('ArticleContentComponent', () => {
 
                 // onclick should be converted to data-onclick
                 expect(table.getAttribute('onclick')).toBeNull();
-                expect(table.getAttribute('data-onclick')).toContain(
-                    'javascript:toggleGroup'
-                );
+                expect(table.getAttribute('data-onclick')).toContain('javascript:toggleGroup');
 
                 // Initial state
                 expect(content.style.display).toBe('');
@@ -747,9 +654,7 @@ describe('ArticleContentComponent', () => {
                 const div = spectator.query('#clickable') as HTMLDivElement;
 
                 expect(div.getAttribute('onclick')).toBeNull();
-                expect(div.getAttribute('data-onclick')).toContain(
-                    'javascript:toggleAll'
-                );
+                expect(div.getAttribute('data-onclick')).toContain('javascript:toggleAll');
             });
 
             it('should handle onclick on nested elements', () => {

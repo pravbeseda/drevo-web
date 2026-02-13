@@ -14,9 +14,7 @@ describe('LinksService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        linksApiService = spectator.inject(
-            LinksApiService
-        ) as jest.Mocked<LinksApiService>;
+        linksApiService = spectator.inject(LinksApiService) as jest.Mocked<LinksApiService>;
     });
 
     it('should be created', () => {
@@ -39,16 +37,11 @@ describe('LinksService', () => {
             linksApiService.checkLinks.mockReturnValue(of(mockResult));
 
             let result: Record<string, boolean> | undefined;
-            spectator.service
-                .getLinkStatuses(['link1', 'link2'])
-                .subscribe(r => {
-                    result = r;
-                });
+            spectator.service.getLinkStatuses(['link1', 'link2']).subscribe(r => {
+                result = r;
+            });
 
-            expect(linksApiService.checkLinks).toHaveBeenCalledWith([
-                'link1',
-                'link2',
-            ]);
+            expect(linksApiService.checkLinks).toHaveBeenCalledWith(['link1', 'link2']);
             expect(result).toEqual(mockResult);
         });
     });

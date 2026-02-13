@@ -111,9 +111,7 @@ describe('FontScaleService', () => {
     it('should apply scale to document font size', () => {
         spectator.service.increase();
         TestBed.flushEffects();
-        expect(parseFloat(document.documentElement.style.fontSize)).toBeCloseTo(
-            15.4
-        );
+        expect(parseFloat(document.documentElement.style.fontSize)).toBeCloseTo(15.4);
     });
 
     it('should save scale to storage', () => {

@@ -4,9 +4,7 @@ import { ArticleHistoryItem } from '@drevo-web/shared';
 import { IconButtonComponent } from '@drevo-web/ui';
 import { provideRouter } from '@angular/router';
 
-function createMockItem(
-    overrides: Partial<ArticleHistoryItem> = {}
-): ArticleHistoryItem {
+function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
         versionId: 1,
         articleId: 100,
@@ -33,10 +31,8 @@ describe('ArticlesHistoryItemComponent', () => {
     const getMetaRow = () => spectator.query('[data-testid="meta-row"]');
     const getTime = () => spectator.query('[data-testid="time"]');
     const getAuthor = () => spectator.query('[data-testid="author"]');
-    const getAuthorComment = () =>
-        spectator.query('[data-testid="author-comment"]');
-    const getModeratorComment = () =>
-        spectator.query('[data-testid="moderator-comment"]');
+    const getAuthorComment = () => spectator.query('[data-testid="author-comment"]');
+    const getModeratorComment = () => spectator.query('[data-testid="moderator-comment"]');
 
     it('should create', () => {
         spectator = createComponent({
@@ -147,9 +143,7 @@ describe('ArticlesHistoryItemComponent', () => {
                     item: createMockItem({ info: 'Added introduction' }),
                 },
             });
-            expect(getAuthorComment()?.textContent).toContain(
-                'Added introduction'
-            );
+            expect(getAuthorComment()?.textContent).toContain('Added introduction');
         });
 
         it('should not display author comment when info is empty', () => {
@@ -167,9 +161,7 @@ describe('ArticlesHistoryItemComponent', () => {
                     item: createMockItem({ comment: 'Needs revision' }),
                 },
             });
-            expect(getModeratorComment()?.textContent).toContain(
-                'Needs revision'
-            );
+            expect(getModeratorComment()?.textContent).toContain('Needs revision');
         });
 
         it('should not display moderator comment when comment is empty', () => {
@@ -191,9 +183,7 @@ describe('ArticlesHistoryItemComponent', () => {
                 },
             });
             expect(getTitle()?.textContent?.trim()).toBe('My Article');
-            expect(getTitle()?.getAttribute('href')).toBe(
-                '/articles/100/version/42'
-            );
+            expect(getTitle()?.getAttribute('href')).toBe('/articles/100/version/42');
         });
     });
 

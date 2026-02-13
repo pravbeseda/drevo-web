@@ -1,9 +1,5 @@
 import { ModalContainerComponent } from '../components/modal-container.component';
-import {
-    LazyComponentLoader,
-    ModalConfig,
-    ModalRef,
-} from '../models/modal.types';
+import { LazyComponentLoader, ModalConfig, ModalRef } from '../models/modal.types';
 import { Injectable, inject } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
@@ -32,11 +28,10 @@ export class ModalService {
             restoreFocus: true,
         };
 
-        const dialogRef = this.dialog.open<
-            ModalContainerComponent<TData, TResult>,
-            unknown,
-            TResult
-        >(ModalContainerComponent, dialogConfig);
+        const dialogRef = this.dialog.open<ModalContainerComponent<TData, TResult>, unknown, TResult>(
+            ModalContainerComponent,
+            dialogConfig
+        );
 
         return dialogRef.afterClosed();
     }
@@ -60,11 +55,10 @@ export class ModalService {
             restoreFocus: true,
         };
 
-        const dialogRef = this.dialog.open<
-            ModalContainerComponent<TData, TResult>,
-            unknown,
-            TResult
-        >(ModalContainerComponent, dialogConfig);
+        const dialogRef = this.dialog.open<ModalContainerComponent<TData, TResult>, unknown, TResult>(
+            ModalContainerComponent,
+            dialogConfig
+        );
 
         return {
             closed: dialogRef.afterClosed(),

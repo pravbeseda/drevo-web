@@ -31,18 +31,12 @@ function createMockPageService(
     }> = {}
 ) {
     return {
-        article: signal(
-            'article' in overrides ? overrides.article : mockArticle
-        ),
+        article: signal('article' in overrides ? overrides.article : mockArticle),
         isLoading: signal(overrides.isLoading ?? false),
         error: signal(overrides.error),
         articleId: signal('articleId' in overrides ? overrides.articleId : 123),
-        title: signal(
-            'title' in overrides ? overrides.title : 'Test Article Title'
-        ),
-        editUrl: signal(
-            'editUrl' in overrides ? overrides.editUrl : '/articles/edit/456'
-        ),
+        title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
+        editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/edit/456'),
         init: jest.fn(),
     };
 }
@@ -66,9 +60,7 @@ describe('ArticleComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent();
-        mockService = spectator.inject(
-            ArticlePageService
-        ) as unknown as ReturnType<typeof createMockPageService>;
+        mockService = spectator.inject(ArticlePageService) as unknown as ReturnType<typeof createMockPageService>;
     });
 
     it('should create', () => {
@@ -84,9 +76,7 @@ describe('ArticleComponent', () => {
     it('should display article title when loaded', () => {
         spectator.detectChanges();
 
-        expect(spectator.query('.article-title')).toHaveText(
-            'Test Article Title'
-        );
+        expect(spectator.query('.article-title')).toHaveText('Test Article Title');
     });
 
     it('should render tabs-group', () => {

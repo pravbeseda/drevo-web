@@ -72,8 +72,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         this._content = value;
         // Convert onclick="javascript:..." to data-onclick before sanitizing
         const processedValue = this.preprocessContent(value);
-        this._sanitizedContent =
-            this.sanitizer.bypassSecurityTrustHtml(processedValue);
+        this._sanitizedContent = this.sanitizer.bypassSecurityTrustHtml(processedValue);
     }
 
     get content(): string {
@@ -89,8 +88,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly window = inject(WINDOW);
     private readonly router = inject(Router);
     private readonly sanitizer = inject(DomSanitizer);
-    private readonly logger =
-        inject(LoggerService).withContext('ArticleContent');
+    private readonly logger = inject(LoggerService).withContext('ArticleContent');
     private readonly notification = inject(NotificationService);
     private readonly pageService = inject(ArticlePageService);
 
@@ -146,10 +144,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     };
 
     ngOnInit(): void {
-        this.elementRef.nativeElement.addEventListener(
-            'click',
-            this.clickHandler
-        );
+        this.elementRef.nativeElement.addEventListener('click', this.clickHandler);
     }
 
     /**
@@ -164,10 +159,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
         let processed = this.removeMapElements(html);
 
         // Convert onclick to data-onclick
-        processed = processed.replace(
-            /\s+onclick=(["'])(javascript:[\s\S]*?)\1/gi,
-            ' data-onclick=$1$2$1'
-        );
+        processed = processed.replace(/\s+onclick=(["'])(javascript:[\s\S]*?)\1/gi, ' data-onclick=$1$2$1');
 
         return processed;
     }
@@ -178,17 +170,11 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private removeMapElements(html: string): string {
         // Remove paired tags like <div class="map">...</div>
         // This regex matches opening tag with class="map", content, and closing tag
-        return html.replace(
-            /<(\w+)[^>]*\sclass="map"[^>]*>[\s\S]*?<\/\1>|<\w+[^>]*\sclass="map"[^>]*\/>/gi,
-            ''
-        );
+        return html.replace(/<(\w+)[^>]*\sclass="map"[^>]*>[\s\S]*?<\/\1>|<\w+[^>]*\sclass="map"[^>]*\/>/gi, '');
     }
 
     ngOnDestroy(): void {
-        this.elementRef.nativeElement.removeEventListener(
-            'click',
-            this.clickHandler
-        );
+        this.elementRef.nativeElement.removeEventListener('click', this.clickHandler);
     }
 
     /**
@@ -217,8 +203,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private scrollToAnchor(anchorId: string): void {
         // Find element by id or name attribute
         const element =
-            this.document.getElementById(anchorId) ||
-            this.document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
+            this.document.getElementById(anchorId) || this.document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
 
         if (element) {
             // Use native scrollIntoView for smooth scrolling
@@ -240,9 +225,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private isJavaScriptProtocol(value: string): boolean {
         const normalized = value.trim().toLowerCase().replace(/\s+/g, '');
         return (
-            normalized.startsWith('javascript:') ||
-            normalized.startsWith('data:') ||
-            normalized.startsWith('vbscript:')
+            normalized.startsWith('javascript:') || normalized.startsWith('data:') || normalized.startsWith('vbscript:')
         );
     }
 
@@ -253,14 +236,8 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private executeJavaScriptAction(value: string): void {
         // Extract action name and parameter using regex
         // Supports: toggleAll(), toggleGroup('class'), gmap=googleMap();return false;
-        const matchWithParam =
-            /^javascript:\s*(?:\w+=)?([a-zA-Z]+)\('([a-zA-Z0-9_-]+)'\)(?:;.*)?$/i.exec(
-                value.trim()
-            );
-        const matchSimple =
-            /^javascript:\s*(?:\w+=)?([a-zA-Z]+)(?:\(\))?(?:;.*)?$/i.exec(
-                value.trim()
-            );
+        const matchWithParam = /^javascript:\s*(?:\w+=)?([a-zA-Z]+)\('([a-zA-Z0-9_-]+)'\)(?:;.*)?$/i.exec(value.trim());
+        const matchSimple = /^javascript:\s*(?:\w+=)?([a-zA-Z]+)(?:\(\))?(?:;.*)?$/i.exec(value.trim());
 
         let action: string;
         let param: string | undefined;
@@ -289,10 +266,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
                 if (param) {
                     this.toggleGroup(param);
                 } else {
-                    this.logger.warn(
-                        'toggleGroup requires a class name parameter',
-                        { value }
-                    );
+                    this.logger.warn('toggleGroup requires a class name parameter', { value });
                 }
                 break;
             case 'toggleYandexMap':
@@ -314,9 +288,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private toggleAll(): void {
         const host = this.elementRef.nativeElement;
         const comments = host.querySelectorAll('.cmnt');
-        const links = Array.from(
-            host.querySelectorAll('.LinkComment')
-        ) as HTMLElement[];
+        const links = Array.from(host.querySelectorAll('.LinkComment')) as HTMLElement[];
 
         // Check current state from first link
         const isExpanded = links[0]?.textContent?.trim() === 'Свернуть';
@@ -341,12 +313,8 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      */
     private toggleRus(): void {
         const host = this.elementRef.nativeElement;
-        const rusElements = Array.from(
-            host.querySelectorAll('.BibleRus')
-        ) as HTMLElement[];
-        const cslElements = Array.from(
-            host.querySelectorAll('.BibleCsl')
-        ) as HTMLElement[];
+        const rusElements = Array.from(host.querySelectorAll('.BibleRus')) as HTMLElement[];
+        const cslElements = Array.from(host.querySelectorAll('.BibleCsl')) as HTMLElement[];
 
         // Toggle Russian elements
         const willBeHidden = rusElements[0]?.style.display !== 'none';
@@ -373,12 +341,8 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      */
     private toggleCsl(): void {
         const host = this.elementRef.nativeElement;
-        const cslElements = Array.from(
-            host.querySelectorAll('.BibleCsl')
-        ) as HTMLElement[];
-        const rusElements = Array.from(
-            host.querySelectorAll('.BibleRus')
-        ) as HTMLElement[];
+        const cslElements = Array.from(host.querySelectorAll('.BibleCsl')) as HTMLElement[];
+        const rusElements = Array.from(host.querySelectorAll('.BibleRus')) as HTMLElement[];
 
         // Toggle Church Slavonic elements
         const willBeHidden = cslElements[0]?.style.display !== 'none';
@@ -405,9 +369,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      */
     private toggleGroup(className: string): void {
         const host = this.elementRef.nativeElement;
-        const elements = Array.from(
-            host.querySelectorAll(`.${CSS.escape(className)}`)
-        ) as HTMLElement[];
+        const elements = Array.from(host.querySelectorAll(`.${CSS.escape(className)}`)) as HTMLElement[];
 
         elements.forEach(el => {
             el.style.display = el.style.display === 'none' ? '' : 'none';
@@ -420,16 +382,10 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      */
     private updateBibleLinks(): void {
         const host = this.elementRef.nativeElement;
-        const rusLinks = Array.from(
-            host.querySelectorAll('.toggleRus')
-        ) as HTMLElement[];
-        const cslLinks = Array.from(
-            host.querySelectorAll('.toggleCsl')
-        ) as HTMLElement[];
+        const rusLinks = Array.from(host.querySelectorAll('.toggleRus')) as HTMLElement[];
+        const cslLinks = Array.from(host.querySelectorAll('.toggleCsl')) as HTMLElement[];
 
-        const rusText = this.interactionState.rusVisible
-            ? 'Скрыть русский перевод'
-            : 'Показать русский перевод';
+        const rusText = this.interactionState.rusVisible ? 'Скрыть русский перевод' : 'Показать русский перевод';
         const cslText = this.interactionState.cslVisible
             ? 'Скрыть церковнославянский перевод'
             : 'Показать церковнославянский перевод';

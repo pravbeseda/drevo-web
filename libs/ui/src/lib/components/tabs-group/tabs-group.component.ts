@@ -1,10 +1,5 @@
 import { IconComponent } from '../icon/icon.component';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    input,
-    Signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, Signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 export interface TabGroupItem {

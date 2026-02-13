@@ -13,9 +13,7 @@ describe('DrawerService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        storage = spectator.inject(
-            StorageService
-        ) as jest.Mocked<StorageService>;
+        storage = spectator.inject(StorageService) as jest.Mocked<StorageService>;
     });
 
     it('should be created', () => {
@@ -44,10 +42,7 @@ describe('DrawerService', () => {
         it('should save state to storage', () => {
             spectator.service.toggle();
 
-            expect(storage.set).toHaveBeenCalledWith(
-                'drevo-sidebar-open',
-                true
-            );
+            expect(storage.set).toHaveBeenCalledWith('drevo-sidebar-open', true);
         });
 
         it('should save false when toggling from open to closed', () => {
@@ -56,10 +51,7 @@ describe('DrawerService', () => {
 
             spectator.service.toggle();
 
-            expect(storage.set).toHaveBeenCalledWith(
-                'drevo-sidebar-open',
-                false
-            );
+            expect(storage.set).toHaveBeenCalledWith('drevo-sidebar-open', false);
         });
     });
 

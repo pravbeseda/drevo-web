@@ -1,8 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-    HttpTestingController,
-    provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LinksApiService } from './links-api.service';
 
@@ -100,9 +97,7 @@ describe('LinksApiService', () => {
                 },
             });
 
-            httpController
-                .expectOne(CHECK_URL)
-                .flush({ success: true, data: undefined });
+            httpController.expectOne(CHECK_URL).flush({ success: true, data: undefined });
         });
     });
 });

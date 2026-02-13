@@ -1,9 +1,4 @@
-import {
-    HttpRequest,
-    HttpHandler,
-    HttpResponse,
-    HttpErrorResponse,
-} from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -32,26 +27,18 @@ describe('AuthInterceptor', () => {
     });
 
     const createMockHandler = (response: unknown = { success: true }) => ({
-        handle: jest
-            .fn()
-            .mockReturnValue(of(new HttpResponse({ body: response }))),
+        handle: jest.fn().mockReturnValue(of(new HttpResponse({ body: response }))),
     });
 
     const createErrorHandler = (status: number, error: unknown = {}) => ({
-        handle: jest
-            .fn()
-            .mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status, error }))
-            ),
+        handle: jest.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status, error }))),
     });
 
     beforeEach(() => {
         spectator = createService();
         authService = spectator.inject(AuthService) as jest.Mocked<AuthService>;
         csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
-        loggerService = spectator.inject(
-            LoggerService
-        ) as unknown as MockLoggerService;
+        loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
         mockHandler = createMockHandler() as jest.Mocked<HttpHandler>;
 
         // Default mocks
@@ -65,10 +52,7 @@ describe('AuthInterceptor', () => {
 
     describe('Non-API requests', () => {
         it('should pass through non-API requests without modification', done => {
-            const request = new HttpRequest(
-                'GET',
-                'https://external-site.com/data'
-            );
+            const request = new HttpRequest('GET', 'https://external-site.com/data');
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -88,8 +72,7 @@ describe('AuthInterceptor', () => {
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
                     expect(passedRequest.withCredentials).toBe(true);
                     done();
                 },
@@ -101,8 +84,7 @@ describe('AuthInterceptor', () => {
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
                     expect(passedRequest.withCredentials).toBe(true);
                     done();
                 },
@@ -112,19 +94,13 @@ describe('AuthInterceptor', () => {
 
     describe('CSRF endpoint', () => {
         it('should skip CSRF token for /api/auth/csrf endpoint', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/auth/csrf'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/auth/csrf');
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
                     expect(passedRequest.withCredentials).toBe(true);
-                    expect(passedRequest.headers.has('X-CSRF-Token')).toBe(
-                        false
-                    );
+                    expect(passedRequest.headers.has('X-CSRF-Token')).toBe(false);
                     expect(csrfService.getCsrfToken).not.toHaveBeenCalled();
                     done();
                 },
@@ -132,19 +108,12 @@ describe('AuthInterceptor', () => {
         });
 
         it('should skip CSRF token for POST to /api/auth/csrf endpoint', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/csrf',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/csrf', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
-                    expect(passedRequest.headers.has('X-CSRF-Token')).toBe(
-                        false
-                    );
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
+                    expect(passedRequest.headers.has('X-CSRF-Token')).toBe(false);
                     expect(csrfService.getCsrfToken).not.toHaveBeenCalled();
                     done();
                 },
@@ -152,11 +121,7 @@ describe('AuthInterceptor', () => {
         });
 
         it('should NOT match CSRF endpoint for similar URLs like /api/auth/csrf-test', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/csrf-test',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/csrf-test', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -168,11 +133,7 @@ describe('AuthInterceptor', () => {
         });
 
         it('should NOT match CSRF endpoint for URLs with /api/auth/csrf as prefix', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/csrf/something',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/csrf/something', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -184,10 +145,7 @@ describe('AuthInterceptor', () => {
         });
 
         it('should skip CSRF token for /api/auth/csrf with query parameters', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/auth/csrf?timestamp=123'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/auth/csrf?timestamp=123');
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -204,19 +162,15 @@ describe('AuthInterceptor', () => {
             // Start with auth operation in progress
             authOperationInProgress$.next(true);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/login',
-                { username: 'test', password: 'test' }
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/login', {
+                username: 'test',
+                password: 'test',
+            });
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
-                    expect(passedRequest.headers.get('X-CSRF-Token')).toBe(
-                        'test-csrf-token'
-                    );
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
+                    expect(passedRequest.headers.get('X-CSRF-Token')).toBe('test-csrf-token');
                     expect(passedRequest.withCredentials).toBe(true);
                     done();
                 },
@@ -227,19 +181,12 @@ describe('AuthInterceptor', () => {
             // Start with auth operation in progress
             authOperationInProgress$.next(true);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/logout',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/logout', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
-                    expect(passedRequest.headers.get('X-CSRF-Token')).toBe(
-                        'test-csrf-token'
-                    );
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
+                    expect(passedRequest.headers.get('X-CSRF-Token')).toBe('test-csrf-token');
                     expect(passedRequest.withCredentials).toBe(true);
                     done();
                 },
@@ -250,11 +197,7 @@ describe('AuthInterceptor', () => {
             // Auth operation in progress - if it's NOT an auth endpoint, it should wait
             authOperationInProgress$.next(true);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/login-test',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/login-test', {});
 
             let requestCompleted = false;
             spectator.service.intercept(request, mockHandler).subscribe({
@@ -277,11 +220,7 @@ describe('AuthInterceptor', () => {
             // Auth operation in progress - if it's NOT an auth endpoint, it should wait
             authOperationInProgress$.next(true);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/logout/session',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/logout/session', {});
 
             let requestCompleted = false;
             spectator.service.intercept(request, mockHandler).subscribe({
@@ -303,11 +242,10 @@ describe('AuthInterceptor', () => {
             // Auth operation in progress - auth endpoints should NOT wait
             authOperationInProgress$.next(true);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/login?redirect=/dashboard',
-                { username: 'test', password: 'test' }
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/login?redirect=/dashboard', {
+                username: 'test',
+                password: 'test',
+            });
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -325,11 +263,8 @@ describe('AuthInterceptor', () => {
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
-                    const passedRequest = mockHandler.handle.mock
-                        .calls[0][0] as HttpRequest<unknown>;
-                    expect(passedRequest.headers.has('X-CSRF-Token')).toBe(
-                        false
-                    );
+                    const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
+                    expect(passedRequest.headers.has('X-CSRF-Token')).toBe(false);
                     expect(csrfService.getCsrfToken).not.toHaveBeenCalled();
                     done();
                 },
@@ -342,19 +277,12 @@ describe('AuthInterceptor', () => {
 
         methods.forEach(method => {
             it(`should add CSRF token for ${method} requests`, done => {
-                const request = new HttpRequest(
-                    method,
-                    'http://test-api/api/resource',
-                    {}
-                );
+                const request = new HttpRequest(method, 'http://test-api/api/resource', {});
 
                 spectator.service.intercept(request, mockHandler).subscribe({
                     next: () => {
-                        const passedRequest = mockHandler.handle.mock
-                            .calls[0][0] as HttpRequest<unknown>;
-                        expect(passedRequest.headers.get('X-CSRF-Token')).toBe(
-                            'test-csrf-token'
-                        );
+                        const passedRequest = mockHandler.handle.mock.calls[0][0] as HttpRequest<unknown>;
+                        expect(passedRequest.headers.get('X-CSRF-Token')).toBe('test-csrf-token');
                         expect(csrfService.getCsrfToken).toHaveBeenCalled();
                         done();
                     },
@@ -363,11 +291,7 @@ describe('AuthInterceptor', () => {
         });
 
         it('should handle lowercase method names', done => {
-            const request = new HttpRequest(
-                'post' as 'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('post' as 'POST', 'http://test-api/api/resource', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -383,11 +307,7 @@ describe('AuthInterceptor', () => {
             // Start with auth operation in progress
             authOperationInProgress$.next(true);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
 
             let requestCompleted = false;
             spectator.service.intercept(request, mockHandler).subscribe({
@@ -411,11 +331,7 @@ describe('AuthInterceptor', () => {
             // Auth operation not in progress
             authOperationInProgress$.next(false);
 
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 next: () => {
@@ -444,22 +360,13 @@ describe('AuthInterceptor', () => {
     describe('CSRF token fetch failure', () => {
         it('should propagate error when CSRF token fetch fails', done => {
             const tokenError = new Error('Network error');
-            csrfService.getCsrfToken.mockReturnValue(
-                throwError(() => tokenError)
-            );
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            csrfService.getCsrfToken.mockReturnValue(throwError(() => tokenError));
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
                 error: error => {
                     expect(error).toBe(tokenError);
-                    expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
-                        'Failed to get CSRF token',
-                        tokenError
-                    );
+                    expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to get CSRF token', tokenError);
                     done();
                 },
             });
@@ -468,35 +375,27 @@ describe('AuthInterceptor', () => {
 
     describe('CSRF validation failure (403) - single request', () => {
         it('should retry request with refreshed token on CSRF validation failure', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
 
             let callCount = 0;
             const handler: HttpHandler = {
-                handle: jest
-                    .fn()
-                    .mockImplementation((_req: HttpRequest<unknown>) => {
-                        callCount++;
-                        if (callCount === 1) {
-                            // First call - CSRF error
-                            return throwError(
-                                () =>
-                                    new HttpErrorResponse({
-                                        status: 403,
-                                        error: {
-                                            errorCode: 'CSRF_VALIDATION_FAILED',
-                                        },
-                                    })
-                            );
-                        }
-                        // Second call - success
-                        return of(
-                            new HttpResponse({ body: { success: true } })
+                handle: jest.fn().mockImplementation((_req: HttpRequest<unknown>) => {
+                    callCount++;
+                    if (callCount === 1) {
+                        // First call - CSRF error
+                        return throwError(
+                            () =>
+                                new HttpErrorResponse({
+                                    status: 403,
+                                    error: {
+                                        errorCode: 'CSRF_VALIDATION_FAILED',
+                                    },
+                                })
                         );
-                    }),
+                    }
+                    // Second call - success
+                    return of(new HttpResponse({ body: { success: true } }));
+                }),
             };
 
             spectator.service.intercept(request, handler).subscribe({
@@ -505,16 +404,11 @@ describe('AuthInterceptor', () => {
                     expect(handler.handle).toHaveBeenCalledTimes(2);
 
                     // Verify second request has new token
-                    const retryRequest = (handler.handle as jest.Mock).mock
-                        .calls[1][0] as HttpRequest<unknown>;
-                    expect(retryRequest.headers.get('X-CSRF-Token')).toBe(
-                        'new-csrf-token'
-                    );
+                    const retryRequest = (handler.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    expect(retryRequest.headers.get('X-CSRF-Token')).toBe('new-csrf-token');
                     expect(retryRequest.withCredentials).toBe(true);
                     // Verify retry marker header is set
-                    expect(retryRequest.headers.get('X-CSRF-Retry')).toBe(
-                        'true'
-                    );
+                    expect(retryRequest.headers.get('X-CSRF-Retry')).toBe('true');
                     done();
                 },
             });
@@ -527,9 +421,7 @@ describe('AuthInterceptor', () => {
                 'http://test-api/api/resource',
                 {},
                 {
-                    headers: new (jest.requireActual(
-                        '@angular/common/http'
-                    ).HttpHeaders)({
+                    headers: new (jest.requireActual('@angular/common/http').HttpHeaders)({
                         'X-CSRF-Retry': 'true',
                     }),
                 }
@@ -539,116 +431,75 @@ describe('AuthInterceptor', () => {
                 errorCode: 'CSRF_VALIDATION_FAILED',
             });
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        // Should NOT retry - error should be propagated
-                        expect(error.status).toBe(403);
-                        expect(
-                            csrfService.refreshCsrfToken
-                        ).not.toHaveBeenCalled();
-                        expect(handler.handle).toHaveBeenCalledTimes(1);
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    // Should NOT retry - error should be propagated
+                    expect(error.status).toBe(403);
+                    expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
+                    expect(handler.handle).toHaveBeenCalledTimes(1);
+                    done();
+                },
+            });
         });
 
         it('should not retry on 403 without CSRF_VALIDATION_FAILED errorCode', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
             const handler = createErrorHandler(403, {
                 errorCode: 'ACCESS_DENIED',
             });
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(403);
-                        expect(
-                            csrfService.refreshCsrfToken
-                        ).not.toHaveBeenCalled();
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(403);
+                    expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
+                    done();
+                },
+            });
         });
 
         it('should not retry CSRF failure for GET requests', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/resource'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/resource');
             const handler = createErrorHandler(403, {
                 errorCode: 'CSRF_VALIDATION_FAILED',
             });
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(403);
-                        expect(
-                            csrfService.refreshCsrfToken
-                        ).not.toHaveBeenCalled();
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(403);
+                    expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
+                    done();
+                },
+            });
         });
 
         it('should return original error if token refresh fails', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
             const originalError = new HttpErrorResponse({
                 status: 403,
                 error: { errorCode: 'CSRF_VALIDATION_FAILED' },
             });
             const handler = {
-                handle: jest
-                    .fn()
-                    .mockReturnValue(throwError(() => originalError)),
+                handle: jest.fn().mockReturnValue(throwError(() => originalError)),
             };
-            csrfService.refreshCsrfToken.mockReturnValue(
-                throwError(() => new Error('Refresh failed'))
-            );
+            csrfService.refreshCsrfToken.mockReturnValue(throwError(() => new Error('Refresh failed')));
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(403);
-                        expect(error.error.errorCode).toBe(
-                            'CSRF_VALIDATION_FAILED'
-                        );
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(403);
+                    expect(error.error.errorCode).toBe('CSRF_VALIDATION_FAILED');
+                    done();
+                },
+            });
         });
     });
 
     describe('Concurrent CSRF failures - shared token refresh', () => {
         it('should share token refresh for concurrent CSRF failures', done => {
             const tokenSubject = new Subject<string>();
-            csrfService.refreshCsrfToken.mockReturnValue(
-                tokenSubject.asObservable().pipe(take(1))
-            );
+            csrfService.refreshCsrfToken.mockReturnValue(tokenSubject.asObservable().pipe(take(1)));
 
-            const request1 = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource1',
-                {}
-            );
-            const request2 = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource2',
-                {}
-            );
+            const request1 = new HttpRequest('POST', 'http://test-api/api/resource1', {});
+            const request2 = new HttpRequest('POST', 'http://test-api/api/resource2', {});
 
             let handler1CallCount = 0;
             let handler2CallCount = 0;
@@ -694,32 +545,20 @@ describe('AuthInterceptor', () => {
                 completedCount++;
                 if (completedCount === 2) {
                     // refreshCsrfToken should only be called once
-                    expect(csrfService.refreshCsrfToken).toHaveBeenCalledTimes(
-                        1
-                    );
+                    expect(csrfService.refreshCsrfToken).toHaveBeenCalledTimes(1);
 
                     // Both retry requests should have the same new token
-                    const retry1 = (handler1.handle as jest.Mock).mock
-                        .calls[1][0] as HttpRequest<unknown>;
-                    const retry2 = (handler2.handle as jest.Mock).mock
-                        .calls[1][0] as HttpRequest<unknown>;
-                    expect(retry1.headers.get('X-CSRF-Token')).toBe(
-                        'shared-new-token'
-                    );
-                    expect(retry2.headers.get('X-CSRF-Token')).toBe(
-                        'shared-new-token'
-                    );
+                    const retry1 = (handler1.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    const retry2 = (handler2.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    expect(retry1.headers.get('X-CSRF-Token')).toBe('shared-new-token');
+                    expect(retry2.headers.get('X-CSRF-Token')).toBe('shared-new-token');
                     done();
                 }
             };
 
             // Start both requests
-            spectator.service
-                .intercept(request1, handler1)
-                .subscribe({ next: checkComplete });
-            spectator.service
-                .intercept(request2, handler2)
-                .subscribe({ next: checkComplete });
+            spectator.service.intercept(request1, handler1).subscribe({ next: checkComplete });
+            spectator.service.intercept(request2, handler2).subscribe({ next: checkComplete });
 
             // Emit the new token for both waiting requests
             tokenSubject.next('shared-new-token');
@@ -729,59 +568,43 @@ describe('AuthInterceptor', () => {
 
     describe('Other HTTP errors', () => {
         it('should propagate 401 errors', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/resource'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/resource');
             const handler = createErrorHandler(401, {
                 message: 'Unauthorized',
             });
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(401);
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(401);
+                    done();
+                },
+            });
         });
 
         it('should propagate 500 errors', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
             const handler = createErrorHandler(500, {
                 message: 'Server error',
             });
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(500);
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(500);
+                    done();
+                },
+            });
         });
 
         it('should propagate network errors (status 0)', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/resource'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/resource');
             const handler = createErrorHandler(0);
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(0);
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(0);
+                    done();
+                },
+            });
         });
     });
 
@@ -791,93 +614,64 @@ describe('AuthInterceptor', () => {
         });
 
         it('should call handleUnauthorized on 401 from protected endpoint', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/articles'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/articles');
             const handler = createErrorHandler(401);
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(401);
-                        expect(
-                            authService.handleUnauthorized
-                        ).toHaveBeenCalled();
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(401);
+                    expect(authService.handleUnauthorized).toHaveBeenCalled();
+                    done();
+                },
+            });
         });
 
         it('should NOT call handleUnauthorized on 401 from /api/auth/login', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/login',
-                { username: 'test', password: 'test' }
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/login', {
+                username: 'test',
+                password: 'test',
+            });
             const handler = createErrorHandler(401);
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(401);
-                        expect(
-                            authService.handleUnauthorized
-                        ).not.toHaveBeenCalled();
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(401);
+                    expect(authService.handleUnauthorized).not.toHaveBeenCalled();
+                    done();
+                },
+            });
         });
 
         it('should NOT call handleUnauthorized on 401 from /api/auth/me', done => {
-            const request = new HttpRequest(
-                'GET',
-                'http://test-api/api/auth/me'
-            );
+            const request = new HttpRequest('GET', 'http://test-api/api/auth/me');
             const handler = createErrorHandler(401);
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(401);
-                        expect(
-                            authService.handleUnauthorized
-                        ).not.toHaveBeenCalled();
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(401);
+                    expect(authService.handleUnauthorized).not.toHaveBeenCalled();
+                    done();
+                },
+            });
         });
 
         it('should NOT call handleUnauthorized on 401 from /api/auth/logout', done => {
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/auth/logout',
-                {}
-            );
+            const request = new HttpRequest('POST', 'http://test-api/api/auth/logout', {});
             const handler = createErrorHandler(401);
 
-            spectator.service
-                .intercept(request, handler as HttpHandler)
-                .subscribe({
-                    error: (error: HttpErrorResponse) => {
-                        expect(error.status).toBe(401);
-                        expect(
-                            authService.handleUnauthorized
-                        ).not.toHaveBeenCalled();
-                        done();
-                    },
-                });
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: (error: HttpErrorResponse) => {
+                    expect(error.status).toBe(401);
+                    expect(authService.handleUnauthorized).not.toHaveBeenCalled();
+                    done();
+                },
+            });
         });
     });
 
     describe('authInterceptorProvider', () => {
         it('should provide correct configuration', () => {
-            expect(authInterceptorProvider.provide.toString()).toContain(
-                'HTTP_INTERCEPTORS'
-            );
+            expect(authInterceptorProvider.provide.toString()).toContain('HTTP_INTERCEPTORS');
             expect(authInterceptorProvider.useClass).toBe(AuthInterceptor);
             expect(authInterceptorProvider.multi).toBe(true);
         });

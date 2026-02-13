@@ -50,21 +50,16 @@ describe('WikiHighlighterService', () => {
             sample: 'текст ((Имя (Фамилия)=Другое имя (Фамилия)))) текст',
             result: 'Имя (Фамилия)',
         },
-    ])(
-        'should highlight links as pending by default for "$sample"',
-        ({ sample, result }) => {
-            const view = getView(sample);
+    ])('should highlight links as pending by default for "$sample"', ({ sample, result }) => {
+        const view = getView(sample);
 
-            const linkElement = view.dom.querySelector(pendingSelector);
-            expect(linkElement).not.toBeNull();
-            expect(linkElement?.textContent).toBe(result);
-        }
-    );
+        const linkElement = view.dom.querySelector(pendingSelector);
+        expect(linkElement).not.toBeNull();
+        expect(linkElement?.textContent).toBe(result);
+    });
 
     it('should show links as exists and missing', async () => {
-        const view = getView(
-            '[[Пример сноски]] и ((ссылка)) и ((неизвестная))'
-        );
+        const view = getView('[[Пример сноски]] и ((ссылка)) и ((неизвестная))');
         service.updateLinksState({
             ['ССЫЛКА']: true,
             ['НЕИЗВЕСТНАЯ']: false,
@@ -117,29 +112,23 @@ describe('WikiHighlighterService', () => {
                     normalized: 'ЕЛКА НОВОГОДНЯЯ',
                     description: 'combine ё + spaces normalization',
                 },
-            ])(
-                'should $description: "$input" -> "$normalized"',
-                async ({ input, normalized }) => {
-                    const view = getView(`((${input}))`);
+            ])('should $description: "$input" -> "$normalized"', async ({ input, normalized }) => {
+                const view = getView(`((${input}))`);
 
-                    await service.updateLinksState({ [normalized]: true });
-                    view.dispatch({
-                        effects: linksUpdatedEffect.of(undefined),
-                    });
+                await service.updateLinksState({ [normalized]: true });
+                view.dispatch({
+                    effects: linksUpdatedEffect.of(undefined),
+                });
 
-                    const existsElement =
-                        view.dom.querySelector(existsSelector);
-                    expect(existsElement).not.toBeNull();
-                    expect(existsElement?.textContent).toBe(input);
-                }
-            );
+                const existsElement = view.dom.querySelector(existsSelector);
+                expect(existsElement).not.toBeNull();
+                expect(existsElement?.textContent).toBe(input);
+            });
 
             it('should handle empty strings without errors', async () => {
                 getView('((   ))');
 
-                await expect(
-                    service.updateLinksState({ '': true })
-                ).resolves.not.toThrow();
+                await expect(service.updateLinksState({ '': true })).resolves.not.toThrow();
             });
         });
 
@@ -151,8 +140,7 @@ describe('WikiHighlighterService', () => {
                     expected: ['ЕЛКА'],
                 },
                 {
-                    description:
-                        'deduplicate multiple variants to single normalized key',
+                    description: 'deduplicate multiple variants to single normalized key',
                     text: '((Ёлка)) ((  ЕЛКА  )) ((ёлка)) ((Елка))',
                     expected: ['ЕЛКА'],
                 },
@@ -187,8 +175,7 @@ describe('WikiHighlighterService', () => {
                 await service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
-                const existsElements =
-                    view.dom.querySelectorAll(existsSelector);
+                const existsElements = view.dom.querySelectorAll(existsSelector);
                 expect(existsElements.length).toBe(2);
             });
 
@@ -198,8 +185,7 @@ describe('WikiHighlighterService', () => {
                 await service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
-                const existsElements =
-                    view.dom.querySelectorAll(existsSelector);
+                const existsElements = view.dom.querySelectorAll(existsSelector);
                 expect(existsElements.length).toBe(3);
                 expect(existsElements[0]?.textContent).toBe('Ёлка');
                 expect(existsElements[1]?.textContent).toBe('елка  ');
@@ -223,8 +209,7 @@ describe('WikiHighlighterService', () => {
                 await service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
-                const existsElements =
-                    view.dom.querySelectorAll(existsSelector);
+                const existsElements = view.dom.querySelectorAll(existsSelector);
                 expect(existsElements.length).toBe(2);
             });
         });

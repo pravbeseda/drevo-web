@@ -9,13 +9,9 @@ export class SidebarService {
 
     readonly actions = computed(() => Array.from(this.actionsMap().values()));
 
-    readonly primaryActions = computed(() =>
-        this.actions().filter(action => action.priority === 'primary')
-    );
+    readonly primaryActions = computed(() => this.actions().filter(action => action.priority === 'primary'));
 
-    readonly secondaryActions = computed(() =>
-        this.actions().filter(action => action.priority === 'secondary')
-    );
+    readonly secondaryActions = computed(() => this.actions().filter(action => action.priority === 'secondary'));
 
     registerAction(action: SidebarAction): void {
         this.actionsMap.update(map => {

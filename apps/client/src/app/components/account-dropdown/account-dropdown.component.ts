@@ -1,12 +1,5 @@
 import { AuthService } from '../../services/auth/auth.service';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    inject,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { LogExportService, LoggerService } from '@drevo-web/core';
@@ -21,12 +14,7 @@ import { finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'app-account-dropdown',
-    imports: [
-        IconButtonComponent,
-        DropdownMenuComponent,
-        DropdownMenuItemComponent,
-        DropdownMenuTriggerDirective,
-    ],
+    imports: [IconButtonComponent, DropdownMenuComponent, DropdownMenuItemComponent, DropdownMenuTriggerDirective],
     templateUrl: './account-dropdown.component.html',
     styleUrl: './account-dropdown.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,8 +24,7 @@ export class AccountDropdownComponent {
     private readonly authService = inject(AuthService);
     private readonly logExportService = inject(LogExportService);
     private readonly router = inject(Router);
-    private readonly logger =
-        inject(LoggerService).withContext('AccountDropdown');
+    private readonly logger = inject(LoggerService).withContext('AccountDropdown');
 
     private readonly user = toSignal(this.authService.user$);
 

@@ -1,12 +1,6 @@
 import { IconComponent } from '../icon/icon.component';
 import { CdkMenuItem } from '@angular/cdk/menu';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    inject,
-    input,
-    output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -40,8 +34,6 @@ export class DropdownMenuItemComponent {
     readonly clicked = output<void>();
 
     constructor() {
-        this.cdkMenuItem.triggered
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.clicked.emit());
+        this.cdkMenuItem.triggered.pipe(takeUntilDestroyed()).subscribe(() => this.clicked.emit());
     }
 }

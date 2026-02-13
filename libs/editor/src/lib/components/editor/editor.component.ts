@@ -92,9 +92,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
             parent: this.editorContainer.nativeElement,
         });
 
-        this.editorFactory.setChangeHandler(text =>
-            this.contentChanged.emit(text)
-        );
+        this.editorFactory.setChangeHandler(text => this.contentChanged.emit(text));
 
         this.editor.contentDOM.setAttribute('spellcheck', 'true');
         this.editor.contentDOM.setAttribute('autocorrect', 'on');
@@ -109,8 +107,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         const { state } = view;
         const { from, to } = state.selection.main;
 
-        const selectedText =
-            from === to ? command.sampleText : state.doc.sliceString(from, to);
+        const selectedText = from === to ? command.sampleText : state.doc.sliceString(from, to);
 
         const taggedText = `${command.tagOpen}${selectedText}${command.tagClose}`;
 

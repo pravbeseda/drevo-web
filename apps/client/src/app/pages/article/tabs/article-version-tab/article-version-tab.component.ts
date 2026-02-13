@@ -3,37 +3,17 @@ import { ArticleContentComponent } from '../../article-content/article-content.c
 import { ArticlePageService } from '../../article-page.service';
 import { NgClass } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    inject,
-    OnInit,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import {
-    APPROVAL_CLASS,
-    APPROVAL_ICONS,
-    APPROVAL_TITLES,
-    ArticleVersion,
-} from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ArticleVersion } from '@drevo-web/shared';
 import { FormatTimePipe, IconComponent, SpinnerComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-version-tab',
-    imports: [
-        ArticleContentComponent,
-        NgClass,
-        RouterLink,
-        FormatTimePipe,
-        IconComponent,
-        SpinnerComponent,
-    ],
+    imports: [ArticleContentComponent, NgClass, RouterLink, FormatTimePipe, IconComponent, SpinnerComponent],
     templateUrl: './article-version-tab.component.html',
     styleUrl: './article-version-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,8 +24,7 @@ export class ArticleVersionTabComponent implements OnInit {
     private readonly articleService = inject(ArticleService);
     private readonly pageService = inject(ArticlePageService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly logger =
-        inject(LoggerService).withContext('ArticleVersionTab');
+    private readonly logger = inject(LoggerService).withContext('ArticleVersionTab');
 
     readonly version = signal<ArticleVersion | undefined>(undefined);
     readonly isLoading = signal(false);
@@ -105,27 +84,15 @@ export class ArticleVersionTabComponent implements OnInit {
             .subscribe({
                 next: version => {
                     const expectedArticleId = this.pageService.articleId();
-                    if (
-                        expectedArticleId &&
-                        version.articleId !== expectedArticleId
-                    ) {
-                        this.logger.info(
-                            'Version belongs to different article, redirecting',
-                            {
-                                versionId: version.versionId,
-                                urlArticleId: expectedArticleId,
-                                actualArticleId: version.articleId,
-                            }
-                        );
-                        this.router.navigate(
-                            [
-                                '/articles',
-                                version.articleId,
-                                'version',
-                                version.versionId,
-                            ],
-                            { replaceUrl: true }
-                        );
+                    if (expectedArticleId && version.articleId !== expectedArticleId) {
+                        this.logger.info('Version belongs to different article, redirecting', {
+                            versionId: version.versionId,
+                            urlArticleId: expectedArticleId,
+                            actualArticleId: version.articleId,
+                        });
+                        this.router.navigate(['/articles', version.articleId, 'version', version.versionId], {
+                            replaceUrl: true,
+                        });
                         return;
                     }
 
@@ -142,11 +109,7 @@ export class ArticleVersionTabComponent implements OnInit {
                         versionId,
                         status: err.status,
                     });
-                    this.error.set(
-                        err.status === 404
-                            ? 'Версия не найдена'
-                            : 'Ошибка загрузки версии'
-                    );
+                    this.error.set(err.status === 404 ? 'Версия не найдена' : 'Ошибка загрузки версии');
                     this.isLoading.set(false);
                 },
             });

@@ -29,10 +29,7 @@ describe('ModalContainerComponent', () => {
         providers: [mockLoggerProvider()],
     });
 
-    const setup = (
-        loader: LazyComponentLoader<TestModalComponent>,
-        data?: TestData
-    ) => {
+    const setup = (loader: LazyComponentLoader<TestModalComponent>, data?: TestData) => {
         dialogRef = { close: jest.fn() };
         spectator = createComponent({
             providers: [
@@ -49,9 +46,7 @@ describe('ModalContainerComponent', () => {
     };
 
     it('should show spinner while component is loading', async () => {
-        let resolveLoader: (
-            component: Type<TestModalComponent>
-        ) => void = () => {};
+        let resolveLoader: (component: Type<TestModalComponent>) => void = () => {};
         const loaderPromise = new Promise<Type<TestModalComponent>>(resolve => {
             resolveLoader = resolve;
         });
@@ -79,13 +74,10 @@ describe('ModalContainerComponent', () => {
         await spectator.fixture.whenStable();
         spectator.detectChanges();
 
-        const modalDebug = spectator.fixture.debugElement.query(
-            By.directive(TestModalComponent)
-        );
+        const modalDebug = spectator.fixture.debugElement.query(By.directive(TestModalComponent));
         expect(modalDebug).toBeTruthy();
 
-        const modalInstance =
-            modalDebug.componentInstance as TestModalComponent;
+        const modalInstance = modalDebug.componentInstance as TestModalComponent;
         expect(modalInstance.modalData.data).toEqual(data);
 
         modalInstance.modalData.close('done');
@@ -103,13 +95,8 @@ describe('ModalContainerComponent', () => {
         await spectator.fixture.whenStable();
         spectator.detectChanges();
 
-        const loggerService = spectator.inject(
-            LoggerService
-        ) as unknown as MockLoggerService;
-        expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
-            'Failed to load modal component:',
-            error
-        );
+        const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to load modal component:', error);
         expect(dialogRef.close).toHaveBeenCalled();
     });
 });

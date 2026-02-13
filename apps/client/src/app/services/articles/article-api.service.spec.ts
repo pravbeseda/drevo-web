@@ -1,8 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-    HttpTestingController,
-    provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ArticleApiService } from './article-api.service';
 
@@ -24,12 +21,7 @@ describe('ArticleApiService', () => {
         httpController.verify();
     });
 
-    const createMockSearchResponse = (
-        items: unknown[] = [],
-        page = 1,
-        pageSize = 25,
-        total = 0
-    ) => ({
+    const createMockSearchResponse = (items: unknown[] = [], page = 1, pageSize = 25, total = 0) => ({
         success: true,
         data: {
             items,
@@ -112,10 +104,7 @@ describe('ArticleApiService', () => {
             });
 
             const req = httpController.expectOne('/api/articles/show/999');
-            req.flush(
-                { success: false, error: 'Article not found' },
-                { status: 404, statusText: 'Not Found' }
-            );
+            req.flush({ success: false, error: 'Article not found' }, { status: 404, statusText: 'Not Found' });
         });
     });
 
@@ -142,9 +131,7 @@ describe('ArticleApiService', () => {
                 expect(result).toEqual(mockVersionShowResponse.data);
             });
 
-            const req = httpController.expectOne(
-                '/api/articles/version-show/789'
-            );
+            const req = httpController.expectOne('/api/articles/version-show/789');
             expect(req.request.method).toBe('GET');
             expect(req.request.withCredentials).toBe(true);
             req.flush(mockVersionShowResponse);
@@ -158,9 +145,7 @@ describe('ArticleApiService', () => {
                 done();
             });
 
-            const req = httpController.expectOne(
-                '/api/articles/version-show/789'
-            );
+            const req = httpController.expectOne('/api/articles/version-show/789');
             req.flush(mockVersionShowResponse);
         });
 
@@ -172,9 +157,7 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                '/api/articles/version-show/789'
-            );
+            const req = httpController.expectOne('/api/articles/version-show/789');
             req.flush({ success: true, data: undefined });
         });
 
@@ -186,13 +169,8 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                '/api/articles/version-show/999'
-            );
-            req.flush(
-                { success: false, error: 'Version not found' },
-                { status: 404, statusText: 'Not Found' }
-            );
+            const req = httpController.expectOne('/api/articles/version-show/999');
+            req.flush({ success: false, error: 'Version not found' }, { status: 404, statusText: 'Not Found' });
         });
     });
 
@@ -262,10 +240,7 @@ describe('ArticleApiService', () => {
             });
 
             const req = httpController.expectOne('/api/articles/version/999');
-            req.flush(
-                { success: false, error: 'Version not found' },
-                { status: 404, statusText: 'Not Found' }
-            );
+            req.flush({ success: false, error: 'Version not found' }, { status: 404, statusText: 'Not Found' });
         });
     });
 
@@ -279,11 +254,9 @@ describe('ArticleApiService', () => {
                 totalPages: 1,
             };
 
-            spectator.service
-                .searchArticles('test', 1, 25)
-                .subscribe(result => {
-                    expect(result).toEqual(mockData);
-                });
+            spectator.service.searchArticles('test', 1, 25).subscribe(result => {
+                expect(result).toEqual(mockData);
+            });
 
             const req = expectSearchRequest(
                 { q: 'test', page: '1', size: '25' },
@@ -378,79 +351,61 @@ describe('ArticleApiService', () => {
         });
 
         it('should extract data from response wrapper', done => {
-            spectator.service
-                .saveArticleVersion({ versionId: 456, content: 'New content' })
-                .subscribe(result => {
-                    expect(result.articleId).toBe(123);
-                    expect(result.versionId).toBe(999);
-                    expect(result.title).toBe('Updated Article');
-                    expect(result.approved).toBe(0);
-                    done();
-                });
+            spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe(result => {
+                expect(result.articleId).toBe(123);
+                expect(result.versionId).toBe(999);
+                expect(result.title).toBe('Updated Article');
+                expect(result.approved).toBe(0);
+                done();
+            });
 
             const req = httpController.expectOne('/api/articles/save');
             req.flush(mockSaveResponse);
         });
 
         it('should throw when response.data is undefined', done => {
-            spectator.service
-                .saveArticleVersion({ versionId: 456, content: 'New content' })
-                .subscribe({
-                    error: (err: Error) => {
-                        expect(err.message).toContain(
-                            'Response data is undefined'
-                        );
-                        done();
-                    },
-                });
+            spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
 
             const req = httpController.expectOne('/api/articles/save');
             req.flush({ success: true, data: undefined });
         });
 
         it('should propagate HTTP 401 errors', done => {
-            spectator.service
-                .saveArticleVersion({ versionId: 456, content: 'New content' })
-                .subscribe({
-                    error: err => {
-                        expect(err.status).toBe(401);
-                        done();
-                    },
-                });
+            spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(401);
+                    done();
+                },
+            });
 
             const req = httpController.expectOne('/api/articles/save');
-            req.flush(
-                { success: false, error: 'Unauthorized' },
-                { status: 401, statusText: 'Unauthorized' }
-            );
+            req.flush({ success: false, error: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
         });
 
         it('should propagate HTTP 403 errors', done => {
-            spectator.service
-                .saveArticleVersion({ versionId: 456, content: 'New content' })
-                .subscribe({
-                    error: err => {
-                        expect(err.status).toBe(403);
-                        done();
-                    },
-                });
+            spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(403);
+                    done();
+                },
+            });
 
             const req = httpController.expectOne('/api/articles/save');
-            req.flush(
-                { success: false, error: 'Forbidden' },
-                { status: 403, statusText: 'Forbidden' }
-            );
+            req.flush({ success: false, error: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
         });
 
         it('should propagate HTTP 500 errors', done => {
-            spectator.service
-                .saveArticleVersion({ versionId: 456, content: 'New content' })
-                .subscribe({
-                    error: err => {
-                        expect(err.status).toBe(500);
-                        done();
-                    },
-                });
+            spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(500);
+                    done();
+                },
+            });
 
             const req = httpController.expectOne('/api/articles/save');
             req.flush('Server error', {
@@ -504,22 +459,16 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25, 0).subscribe();
 
             const req = httpController.expectOne(
-                request =>
-                    request.url === '/api/articles/history' &&
-                    request.params.get('approved') === '0'
+                request => request.url === '/api/articles/history' && request.params.get('approved') === '0'
             );
             req.flush(mockHistoryResponse);
         });
 
         it('should include author param when provided', () => {
-            spectator.service
-                .getArticlesHistory(1, 25, undefined, 'testuser')
-                .subscribe();
+            spectator.service.getArticlesHistory(1, 25, undefined, 'testuser').subscribe();
 
             const req = httpController.expectOne(
-                request =>
-                    request.url === '/api/articles/history' &&
-                    request.params.get('author') === 'testuser'
+                request => request.url === '/api/articles/history' && request.params.get('author') === 'testuser'
             );
             req.flush(mockHistoryResponse);
         });
@@ -528,22 +477,16 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25).subscribe();
 
             const req = httpController.expectOne(
-                request =>
-                    request.url === '/api/articles/history' &&
-                    !request.params.has('approved')
+                request => request.url === '/api/articles/history' && !request.params.has('approved')
             );
             req.flush(mockHistoryResponse);
         });
 
         it('should include articleId param when provided', () => {
-            spectator.service
-                .getArticlesHistory(1, 25, undefined, undefined, 42)
-                .subscribe();
+            spectator.service.getArticlesHistory(1, 25, undefined, undefined, 42).subscribe();
 
             const req = httpController.expectOne(
-                request =>
-                    request.url === '/api/articles/history' &&
-                    request.params.get('articleId') === '42'
+                request => request.url === '/api/articles/history' && request.params.get('articleId') === '42'
             );
             req.flush(mockHistoryResponse);
         });
@@ -552,9 +495,7 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25).subscribe();
 
             const req = httpController.expectOne(
-                request =>
-                    request.url === '/api/articles/history' &&
-                    !request.params.has('articleId')
+                request => request.url === '/api/articles/history' && !request.params.has('articleId')
             );
             req.flush(mockHistoryResponse);
         });
@@ -566,9 +507,7 @@ describe('ArticleApiService', () => {
                 done();
             });
 
-            const req = httpController.expectOne(
-                request => request.url === '/api/articles/history'
-            );
+            const req = httpController.expectOne(request => request.url === '/api/articles/history');
             req.flush(mockHistoryResponse);
         });
 
@@ -580,9 +519,7 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                request => request.url === '/api/articles/history'
-            );
+            const req = httpController.expectOne(request => request.url === '/api/articles/history');
             req.flush({ success: true, data: undefined });
         });
     });
@@ -596,9 +533,7 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                request => request.url === '/api/articles/search'
-            );
+            const req = httpController.expectOne(request => request.url === '/api/articles/search');
             req.flush({ success: true, data: undefined });
         });
 
@@ -610,9 +545,7 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                request => request.url === '/api/articles/search'
-            );
+            const req = httpController.expectOne(request => request.url === '/api/articles/search');
             req.flush({ success: false, error: 'Not found' });
         });
 
@@ -624,9 +557,7 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                request => request.url === '/api/articles/search'
-            );
+            const req = httpController.expectOne(request => request.url === '/api/articles/search');
             req.flush('Server error', {
                 status: 500,
                 statusText: 'Internal Server Error',
@@ -641,9 +572,7 @@ describe('ArticleApiService', () => {
                 },
             });
 
-            const req = httpController.expectOne(
-                request => request.url === '/api/articles/search'
-            );
+            const req = httpController.expectOne(request => request.url === '/api/articles/search');
             req.flush('Not found', {
                 status: 404,
                 statusText: 'Not Found',

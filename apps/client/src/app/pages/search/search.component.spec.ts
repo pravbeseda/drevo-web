@@ -24,10 +24,7 @@ describe('SearchComponent', () => {
 
     const createComponent = createComponentFactory({
         component: SearchComponent,
-        providers: [
-            { provide: ArticleService, useValue: mockArticleService },
-            provideRouter([]),
-        ],
+        providers: [{ provide: ArticleService, useValue: mockArticleService }, provideRouter([])],
     });
 
     beforeEach(() => {
@@ -288,9 +285,7 @@ describe('SearchComponent', () => {
             query: 'success',
             page: 1,
         });
-        expect(spectator.component.searchResults()).toEqual(
-            successResponse.items
-        );
+        expect(spectator.component.searchResults()).toEqual(successResponse.items);
         expect(spectator.component.totalResults()).toBe(1);
         expect(spectator.component.isLoading()).toBe(false);
     });
@@ -349,18 +344,14 @@ describe('SearchComponent', () => {
         jest.advanceTimersByTime(50);
 
         // Results should be the all articles response
-        expect(spectator.component.searchResults()).toEqual(
-            emptyQueryResponse.items
-        );
+        expect(spectator.component.searchResults()).toEqual(emptyQueryResponse.items);
         expect(spectator.component.isLoading()).toBe(false);
 
         // Now let the slow request "complete" - it should have been cancelled
         jest.advanceTimersByTime(1000);
 
         // Results should still be the all articles - stale response was cancelled
-        expect(spectator.component.searchResults()).toEqual(
-            emptyQueryResponse.items
-        );
+        expect(spectator.component.searchResults()).toEqual(emptyQueryResponse.items);
     });
 
     it('should cancel previous request when typing new query quickly', () => {
@@ -411,17 +402,13 @@ describe('SearchComponent', () => {
         jest.advanceTimersByTime(100);
 
         // Should have fresh results, not stale
-        expect(spectator.component.searchResults()).toEqual(
-            freshResponse.items
-        );
+        expect(spectator.component.searchResults()).toEqual(freshResponse.items);
 
         // Wait for stale request to "complete"
         jest.advanceTimersByTime(1000);
 
         // Results should still be fresh - stale response was cancelled
-        expect(spectator.component.searchResults()).toEqual(
-            freshResponse.items
-        );
+        expect(spectator.component.searchResults()).toEqual(freshResponse.items);
     });
 
     describe('onLoadMore', () => {
@@ -468,9 +455,7 @@ describe('SearchComponent', () => {
             spectator.component.onSearchChange('test');
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
-            expect(spectator.component.searchResults()).toEqual(
-                firstPageResponse.items
-            );
+            expect(spectator.component.searchResults()).toEqual(firstPageResponse.items);
             expect(spectator.component.currentPage()).toBe(1);
 
             // Load more
@@ -546,9 +531,7 @@ describe('SearchComponent', () => {
             mockArticleService.searchArticles
                 .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
                 .mockReturnValueOnce(of(firstPageResponse)) // search
-                .mockReturnValueOnce(
-                    throwError(() => new Error('Pagination failed'))
-                ); // load more error
+                .mockReturnValueOnce(throwError(() => new Error('Pagination failed'))); // load more error
             spectator = createComponent();
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 
@@ -563,9 +546,7 @@ describe('SearchComponent', () => {
             spectator.component.onLoadMore();
 
             // Existing results should be preserved
-            expect(spectator.component.searchResults()).toEqual(
-                existingResults
-            );
+            expect(spectator.component.searchResults()).toEqual(existingResults);
             expect(spectator.component.isLoadingMore()).toBe(false);
         });
 
@@ -574,9 +555,7 @@ describe('SearchComponent', () => {
             mockArticleService.searchArticles
                 .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
                 .mockReturnValueOnce(of(firstPageResponse)) // search
-                .mockReturnValueOnce(
-                    throwError(() => new Error('Pagination failed'))
-                ); // load more error
+                .mockReturnValueOnce(throwError(() => new Error('Pagination failed'))); // load more error
             spectator = createComponent();
             jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
 

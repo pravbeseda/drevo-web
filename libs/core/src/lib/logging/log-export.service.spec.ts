@@ -50,17 +50,15 @@ describe('LogExportService', () => {
             originalCreateElement = document.createElement.bind(document);
 
             // Mock createElement to capture anchor element
-            jest.spyOn(document, 'createElement').mockImplementation(
-                (tagName: string) => {
-                    const element = originalCreateElement(tagName);
-                    if (tagName === 'a') {
-                        createdLink = element as HTMLAnchorElement;
-                        // Mock click to prevent actual navigation
-                        jest.spyOn(createdLink, 'click').mockImplementation();
-                    }
-                    return element;
+            jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+                const element = originalCreateElement(tagName);
+                if (tagName === 'a') {
+                    createdLink = element as HTMLAnchorElement;
+                    // Mock click to prevent actual navigation
+                    jest.spyOn(createdLink, 'click').mockImplementation();
                 }
-            );
+                return element;
+            });
 
             // Mock URL methods
             URL.createObjectURL = jest.fn().mockReturnValue('blob:test');
@@ -77,15 +75,11 @@ describe('LogExportService', () => {
 
         describe('downloadLogs()', () => {
             it('should show info notification when no storage provider', async () => {
-                mockDispatcher.getStorageProvider.mockReturnValueOnce(
-                    undefined
-                );
+                mockDispatcher.getStorageProvider.mockReturnValueOnce(undefined);
 
                 await spectator.service.downloadLogs();
 
-                expect(mockNotification.info).toHaveBeenCalledWith(
-                    'Хранилище логов недоступно'
-                );
+                expect(mockNotification.info).toHaveBeenCalledWith('Хранилище логов недоступно');
             });
 
             it('should show info notification when no logs', async () => {
@@ -93,9 +87,7 @@ describe('LogExportService', () => {
 
                 await spectator.service.downloadLogs();
 
-                expect(mockNotification.info).toHaveBeenCalledWith(
-                    'Нет логов для экспорта'
-                );
+                expect(mockNotification.info).toHaveBeenCalledWith('Нет логов для экспорта');
             });
 
             it('should flush dispatcher before getting logs', async () => {
@@ -122,24 +114,18 @@ describe('LogExportService', () => {
 
                 expect(createdLink).not.toBeNull();
                 expect(createdLink!.getAttribute('href')).toBe('blob:test');
-                expect(createdLink!.getAttribute('download')).toMatch(
-                    /^drevo-logs-\d{4}-\d{2}-\d{2}\.csv$/
-                );
+                expect(createdLink!.getAttribute('download')).toMatch(/^drevo-logs-\d{4}-\d{2}-\d{2}\.csv$/);
                 expect(createdLink!.click).toHaveBeenCalled();
                 expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test');
             });
 
             it('should show error notification on failure', async () => {
-                mockStorageProvider.getLogs.mockRejectedValueOnce(
-                    new Error('DB error')
-                );
+                mockStorageProvider.getLogs.mockRejectedValueOnce(new Error('DB error'));
                 jest.spyOn(console, 'error').mockImplementation();
 
                 await spectator.service.downloadLogs();
 
-                expect(mockNotification.error).toHaveBeenCalledWith(
-                    'Не удалось скачать логи'
-                );
+                expect(mockNotification.error).toHaveBeenCalledWith('Не удалось скачать логи');
                 expect(console.error).toHaveBeenCalled();
             });
 
@@ -167,9 +153,7 @@ describe('LogExportService', () => {
                 // Verify download was triggered
                 expect(createdLink).not.toBeNull();
                 expect(createdLink!.click).toHaveBeenCalled();
-                expect(URL.createObjectURL).toHaveBeenCalledWith(
-                    expect.any(Blob)
-                );
+                expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
             });
 
             it('should handle logs with special CSV characters', async () => {
@@ -198,22 +182,16 @@ describe('LogExportService', () => {
             });
 
             it('should handle no storage provider', async () => {
-                mockDispatcher.getStorageProvider.mockReturnValueOnce(
-                    undefined
-                );
+                mockDispatcher.getStorageProvider.mockReturnValueOnce(undefined);
 
                 // Should not throw
-                await expect(
-                    spectator.service.clearLogs()
-                ).resolves.not.toThrow();
+                await expect(spectator.service.clearLogs()).resolves.not.toThrow();
             });
         });
 
         describe('getStorageSize()', () => {
             it('should return storage size from provider', async () => {
-                mockStorageProvider.getStorageSize.mockResolvedValueOnce(
-                    1024 * 1024
-                );
+                mockStorageProvider.getStorageSize.mockResolvedValueOnce(1024 * 1024);
 
                 const size = await spectator.service.getStorageSize();
 
@@ -221,9 +199,7 @@ describe('LogExportService', () => {
             });
 
             it('should return 0 when no storage provider', async () => {
-                mockDispatcher.getStorageProvider.mockReturnValueOnce(
-                    undefined
-                );
+                mockDispatcher.getStorageProvider.mockReturnValueOnce(undefined);
 
                 const size = await spectator.service.getStorageSize();
 

@@ -47,18 +47,13 @@ export class DiffPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly logger =
-        inject(LoggerService).withContext('DiffPageComponent');
+    private readonly logger = inject(LoggerService).withContext('DiffPageComponent');
 
     private readonly _isLoading = signal(true);
     private readonly _error = signal<string | undefined>(undefined);
-    private readonly _versionPairs = signal<VersionPairs | undefined>(
-        undefined
-    );
+    private readonly _versionPairs = signal<VersionPairs | undefined>(undefined);
     private readonly _selectedEngine = signal<DiffEngineEntry>(DIFF_ENGINES[0]);
-    private readonly _jsDiffOptions = signal<JsDiffOptions>(
-        DEFAULT_JS_DIFF_OPTIONS
-    );
+    private readonly _jsDiffOptions = signal<JsDiffOptions>(DEFAULT_JS_DIFF_OPTIONS);
     private readonly _settingsOpen = signal(false);
 
     readonly isLoading = this._isLoading.asReadonly();
@@ -69,9 +64,7 @@ export class DiffPageComponent implements OnInit {
     readonly settingsOpen = this._settingsOpen.asReadonly();
     readonly jsDiffOptions = this._jsDiffOptions.asReadonly();
 
-    readonly isJsDiff = computed(
-        () => this._selectedEngine().id === 'js-diff'
-    );
+    readonly isJsDiff = computed(() => this._selectedEngine().id === 'js-diff');
 
     readonly isIgnoreCaseAvailable = computed(() => {
         const g = this._jsDiffOptions().granularity;
@@ -83,9 +76,7 @@ export class DiffPageComponent implements OnInit {
         return g === 'words' || g === 'wordsWithSpace';
     });
 
-    readonly isLineOptionsAvailable = computed(
-        () => this._jsDiffOptions().granularity === 'lines'
-    );
+    readonly isLineOptionsAvailable = computed(() => this._jsDiffOptions().granularity === 'lines');
 
     readonly diffHtml = computed(() => {
         const pairs = this._versionPairs();
@@ -93,11 +84,7 @@ export class DiffPageComponent implements OnInit {
         if (!pairs) return '';
 
         const options = this.isJsDiff() ? this._jsDiffOptions() : undefined;
-        const changes = engine.engine.computeDiff(
-            pairs.previous.content,
-            pairs.current.content,
-            options
-        );
+        const changes = engine.engine.computeDiff(pairs.previous.content, pairs.current.content, options);
         return this.renderDiffHtml(changes);
     });
 
@@ -160,10 +147,7 @@ export class DiffPageComponent implements OnInit {
         this.logger.info('JsDiff option changed', { [key]: value });
     }
 
-    onCheckboxChange(
-        key: Exclude<keyof JsDiffOptions, 'granularity'>,
-        event: Event
-    ): void {
+    onCheckboxChange(key: Exclude<keyof JsDiffOptions, 'granularity'>, event: Event): void {
         const checked = (event.target as HTMLInputElement).checked;
         this.onOptionChange(key, checked);
     }

@@ -1,10 +1,5 @@
 import { environment } from '../environments/environment';
-import {
-    ApplicationConfig,
-    ErrorHandler,
-    inject,
-    provideAppInitializer,
-} from '@angular/core';
+import { ApplicationConfig, ErrorHandler, inject, provideAppInitializer } from '@angular/core';
 import { Router } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 

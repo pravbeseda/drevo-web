@@ -1,9 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import {
-    HttpErrorMapperService,
-    MappedHttpError,
-} from './http-error-mapper.service';
+import { HttpErrorMapperService, MappedHttpError } from './http-error-mapper.service';
 
 describe('HttpErrorMapperService', () => {
     let spectator: SpectatorService<HttpErrorMapperService>;
@@ -15,11 +12,7 @@ describe('HttpErrorMapperService', () => {
         spectator = createService();
     });
 
-    const createHttpError = (
-        status: number,
-        error: unknown = undefined,
-        statusText = 'Error'
-    ): HttpErrorResponse => {
+    const createHttpError = (status: number, error: unknown = undefined, statusText = 'Error'): HttpErrorResponse => {
         return new HttpErrorResponse({
             status,
             statusText,
@@ -71,9 +64,7 @@ describe('HttpErrorMapperService', () => {
             const error = createHttpError(409);
             const result = spectator.service.mapError(error);
 
-            expect(result.message).toBe(
-                'Объект уже существует или был модифицирован.'
-            );
+            expect(result.message).toBe('Объект уже существует или был модифицирован.');
         });
 
         it('should map 422 validation error with generic message', () => {
@@ -105,9 +96,7 @@ describe('HttpErrorMapperService', () => {
             const error = createHttpError(429);
             const result = spectator.service.mapError(error);
 
-            expect(result.message).toBe(
-                'Слишком много запросов. Подождите и повторите запрос позже.'
-            );
+            expect(result.message).toBe('Слишком много запросов. Подождите и повторите запрос позже.');
         });
 
         it('should map 500 server error', () => {

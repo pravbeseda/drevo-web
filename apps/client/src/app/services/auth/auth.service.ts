@@ -1,41 +1,13 @@
 import { CsrfService } from './csrf.service';
 import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
-import {
-    HttpClient,
-    HttpContext,
-    HttpErrorResponse,
-} from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-    LoggerService,
-    SKIP_ERROR_FOR_STATUSES,
-    StorageService,
-    WINDOW,
-} from '@drevo-web/core';
-import {
-    User,
-    AuthState,
-    AuthResponse,
-    LoginRequest,
-    isValidReturnUrl,
-} from '@drevo-web/shared';
-import {
-    BehaviorSubject,
-    Observable,
-    of,
-    throwError,
-    combineLatest,
-} from 'rxjs';
-import {
-    map,
-    catchError,
-    tap,
-    finalize,
-    switchMap,
-    take,
-} from 'rxjs/operators';
+import { LoggerService, SKIP_ERROR_FOR_STATUSES, StorageService, WINDOW } from '@drevo-web/core';
+import { User, AuthState, AuthResponse, LoginRequest, isValidReturnUrl } from '@drevo-web/shared';
+import { BehaviorSubject, Observable, of, throwError, combineLatest } from 'rxjs';
+import { map, catchError, tap, finalize, switchMap, take } from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root',
@@ -48,28 +20,19 @@ export class AuthService {
     private readonly isBrowser = isPlatformBrowser(this.platformId);
 
     // Auth state
-    private readonly userSubject = new BehaviorSubject<User | undefined>(
-        undefined
-    );
+    private readonly userSubject = new BehaviorSubject<User | undefined>(undefined);
     private readonly isLoadingSubject = new BehaviorSubject<boolean>(true);
-    private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(
-        false
-    );
+    private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
 
     // Lock for auth operations (login/logout)
-    private readonly authOperationInProgressSubject =
-        new BehaviorSubject<boolean>(false);
+    private readonly authOperationInProgressSubject = new BehaviorSubject<boolean>(false);
 
     readonly user$ = this.userSubject.asObservable();
     readonly isLoading$ = this.isLoadingSubject.asObservable();
     readonly isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
-    readonly isAuthOperationInProgress$ =
-        this.authOperationInProgressSubject.asObservable();
+    readonly isAuthOperationInProgress$ = this.authOperationInProgressSubject.asObservable();
 
-    readonly authState$: Observable<AuthState> = combineLatest([
-        this.user$,
-        this.isLoading$,
-    ]).pipe(
+    readonly authState$: Observable<AuthState> = combineLatest([this.user$, this.isLoading$]).pipe(
         map(([user, isLoading]) => ({
             isAuthenticated: !!user,
             user,
@@ -90,8 +53,7 @@ export class AuthService {
             this.checkAuth()
                 .pipe(take(1))
                 .subscribe({
-                    error: error =>
-                        this.logger.error('Initial auth check failed', error),
+                    error: error => this.logger.error('Initial auth check failed', error),
                 });
             this.initCrossTabSync();
         } else {
@@ -108,11 +70,7 @@ export class AuthService {
                     .pipe(take(1))
                     .subscribe(state => {
                         // If user was logged in and now logged out, redirect to login
-                        if (
-                            wasAuthenticated &&
-                            !state.isAuthenticated &&
-                            this.router.url !== '/login'
-                        ) {
+                        if (wasAuthenticated && !state.isAuthenticated && this.router.url !== '/login') {
                             this.router.navigate(['/login']);
                         }
                     });
@@ -121,10 +79,7 @@ export class AuthService {
     }
 
     private notifyOtherTabs(): void {
-        this.storage.setString(
-            AuthService.AUTH_SYNC_KEY,
-            Date.now().toString()
-        );
+        this.storage.setString(AuthService.AUTH_SYNC_KEY, Date.now().toString());
     }
 
     /**
@@ -147,11 +102,7 @@ export class AuthService {
             })
             .pipe(
                 map(response => {
-                    if (
-                        response.success &&
-                        response.data?.isAuthenticated &&
-                        response.data.user
-                    ) {
+                    if (response.success && response.data?.isAuthenticated && response.data.user) {
                         this.userSubject.next(response.data.user);
                         this.isAuthenticatedSubject.next(true);
                         return {
@@ -171,21 +122,13 @@ export class AuthService {
                 catchError((error: HttpErrorResponse) => {
                     // Log different error types appropriately
                     if (error.status === 0) {
-                        this.logger.warn(
-                            'Auth check failed: network error or server unavailable'
-                        );
+                        this.logger.warn('Auth check failed: network error or server unavailable');
                     } else if (error.status >= 500) {
-                        this.logger.error(
-                            `Auth check failed: server error (${error.status})`,
-                            error
-                        );
+                        this.logger.error(`Auth check failed: server error (${error.status})`, error);
                     } else if (error.status === 401 || error.status === 403) {
                         this.logger.debug('Auth check: user not authenticated');
                     } else {
-                        this.logger.error(
-                            `Auth check failed: unexpected error (${error.status})`,
-                            error
-                        );
+                        this.logger.error(`Auth check failed: unexpected error (${error.status})`, error);
                     }
 
                     this.userSubject.next(undefined);
@@ -205,9 +148,7 @@ export class AuthService {
      */
     login(request: LoginRequest): Observable<User> {
         if (!this.isBrowser) {
-            return throwError(
-                () => new Error('Login is only available in browser')
-            );
+            return throwError(() => new Error('Login is only available in browser'));
         }
 
         // Set lock
@@ -215,28 +156,19 @@ export class AuthService {
 
         return this.csrfService.getCsrfToken().pipe(
             switchMap(csrfToken =>
-                this.http.post<AuthResponse>(
-                    `${this.apiUrl}/api/auth/login`,
-                    request,
-                    {
-                        withCredentials: true,
-                        headers: {
-                            'X-CSRF-Token': csrfToken,
-                        },
-                        context: new HttpContext().set(
-                            SKIP_ERROR_FOR_STATUSES,
-                            [401]
-                        ),
-                    }
-                )
+                this.http.post<AuthResponse>(`${this.apiUrl}/api/auth/login`, request, {
+                    withCredentials: true,
+                    headers: {
+                        'X-CSRF-Token': csrfToken,
+                    },
+                    context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [401]),
+                })
             ),
             map(response => {
                 if (response.success && response.data?.user) {
                     // Update CSRF token from response
                     if (response.data.csrfToken) {
-                        this.csrfService.updateCsrfToken(
-                            response.data.csrfToken
-                        );
+                        this.csrfService.updateCsrfToken(response.data.csrfToken);
                     }
 
                     this.userSubject.next(response.data.user);
@@ -247,8 +179,7 @@ export class AuthService {
                 throw new Error(response.error || 'Login failed');
             }),
             catchError((error: HttpErrorResponse) => {
-                const errorMessage =
-                    error.error?.error || error.message || 'Login failed';
+                const errorMessage = error.error?.error || error.message || 'Login failed';
                 const errorCode = error.error?.errorCode;
                 return throwError(() => ({
                     message: errorMessage,
@@ -331,10 +262,7 @@ export class AuthService {
         this.notifyOtherTabs();
 
         // Validate external URL; fall back to router.url if invalid
-        const returnUrl =
-            currentUrl && isValidReturnUrl(currentUrl)
-                ? currentUrl
-                : this.router.url;
+        const returnUrl = currentUrl && isValidReturnUrl(currentUrl) ? currentUrl : this.router.url;
         if (returnUrl && returnUrl !== '/login') {
             this.router.navigate(['/login'], {
                 queryParams: { returnUrl },

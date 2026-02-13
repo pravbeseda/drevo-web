@@ -1,11 +1,5 @@
 import { IconButtonComponent } from '../icon-button/icon-button.component';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    HostListener,
-    input,
-    output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, input, output } from '@angular/core';
 
 @Component({
     selector: 'ui-side-panel',

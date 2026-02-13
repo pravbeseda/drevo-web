@@ -28,9 +28,7 @@ describe('CheckboxComponent', () => {
         const valueChangedSpy = jest.fn();
         spectator.component.valueChanged.subscribe(valueChangedSpy);
 
-        const checkbox = spectator.query(
-            'mat-checkbox input'
-        ) as HTMLInputElement;
+        const checkbox = spectator.query('mat-checkbox input') as HTMLInputElement;
         checkbox.click();
         spectator.detectChanges();
 

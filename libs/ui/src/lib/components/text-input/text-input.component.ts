@@ -1,16 +1,5 @@
-import {
-    ChangeDetectionStrategy,
-    Component,
-    input,
-    output,
-    forwardRef,
-    signal,
-} from '@angular/core';
-import {
-    ControlValueAccessor,
-    NG_VALUE_ACCESSOR,
-    ReactiveFormsModule,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, input, output, forwardRef, signal } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -33,9 +22,7 @@ export class TextInputComponent implements ControlValueAccessor {
     placeholder = input<string>('');
     hint = input<string>('');
     errorMessage = input<string>('');
-    type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url'>(
-        'text'
-    );
+    type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url'>('text');
     autocomplete = input<string>('off');
     disabled = input<boolean>(false);
     readonly = input<boolean>(false);

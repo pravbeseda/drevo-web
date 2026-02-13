@@ -32,9 +32,7 @@ describe('ArticleEditComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
-        componentProviders: [
-            { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } },
-        ],
+        componentProviders: [{ provide: LinksService, useValue: { getLinkStatuses: jest.fn() } }],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -49,16 +47,10 @@ describe('ArticleEditComponent', () => {
     beforeEach(() => {
         paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '456' }));
         spectator = createComponent();
-        articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
-        notificationService = spectator.inject(
-            NotificationService
-        ) as jest.Mocked<NotificationService>;
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
         router = spectator.inject(Router) as jest.Mocked<Router>;
-        linksService = spectator.component[
-            'linksService'
-        ] as jest.Mocked<LinksService>;
+        linksService = spectator.component['linksService'] as jest.Mocked<LinksService>;
         articleService.getArticleVersion.mockReturnValue(of(mockVersion));
     });
 
@@ -83,9 +75,7 @@ describe('ArticleEditComponent', () => {
             expect(articleService.getArticleVersion).toHaveBeenCalledWith(456);
             expect(spectator.component.version()).toEqual(mockVersion);
             expect(spectator.component.isLoading()).toBe(false);
-            expect(spectator.query('.article-edit-title')).toHaveText(
-                'Test Article Title'
-            );
+            expect(spectator.query('.article-edit-title')).toHaveText('Test Article Title');
         });
 
         it('should render editor component with version content', () => {
@@ -105,9 +95,7 @@ describe('ArticleEditComponent', () => {
                 versionId: 789,
                 title: 'Another Version',
             };
-            articleService.getArticleVersion.mockReturnValue(
-                of(anotherVersion)
-            );
+            articleService.getArticleVersion.mockReturnValue(of(anotherVersion));
 
             paramMapSubject.next(convertToParamMap({ id: '789' }));
 
@@ -130,9 +118,7 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Ошибка загрузки версии');
@@ -153,16 +139,12 @@ describe('ArticleEditComponent', () => {
                 status: 404,
                 statusText: 'Not Found',
             });
-            articleService.getArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Версия не найдена');
             expect(spectator.component.isLoading()).toBe(false);
-            expect(spectator.query('.error-message')).toHaveText(
-                'Версия не найдена'
-            );
+            expect(spectator.query('.error-message')).toHaveText('Версия не найдена');
         });
 
         it('should display access denied message for 403 error', () => {
@@ -170,9 +152,7 @@ describe('ArticleEditComponent', () => {
                 status: 403,
                 statusText: 'Forbidden',
             });
-            articleService.getArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Доступ запрещён');
@@ -184,9 +164,7 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
             spectator.detectChanges();
 
             expect(spectator.component.error()).toBe('Ошибка загрузки версии');
@@ -200,9 +178,7 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.getArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
 
             paramMapSubject.next(convertToParamMap({ id: '789' }));
 
@@ -228,10 +204,7 @@ describe('ArticleEditComponent', () => {
 
             spectator.component.updateLinks(['link1', 'link2']);
 
-            expect(linksService.getLinkStatuses).toHaveBeenCalledWith([
-                'link1',
-                'link2',
-            ]);
+            expect(linksService.getLinkStatuses).toHaveBeenCalledWith(['link1', 'link2']);
         });
 
         it('should update updateLinksState$ with link statuses', () => {
@@ -250,9 +223,7 @@ describe('ArticleEditComponent', () => {
         });
 
         it('should not throw on error from linksService', () => {
-            linksService.getLinkStatuses.mockReturnValue(
-                throwError(() => new Error('Network error'))
-            );
+            linksService.getLinkStatuses.mockReturnValue(throwError(() => new Error('Network error')));
             spectator.detectChanges();
 
             expect(() => {
@@ -282,9 +253,7 @@ describe('ArticleEditComponent', () => {
         };
 
         beforeEach(() => {
-            articleService.saveArticleVersion.mockReturnValue(
-                of(mockSaveResult)
-            );
+            articleService.saveArticleVersion.mockReturnValue(of(mockSaveResult));
         });
 
         it('should not save when version is undefined', () => {
@@ -309,9 +278,7 @@ describe('ArticleEditComponent', () => {
 
             spectator.component.save();
 
-            expect(notificationService.info).toHaveBeenCalledWith(
-                'Нет изменений для сохранения'
-            );
+            expect(notificationService.info).toHaveBeenCalledWith('Нет изменений для сохранения');
             expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
         });
 
@@ -352,9 +319,7 @@ describe('ArticleEditComponent', () => {
 
             spectator.component.save();
 
-            expect(notificationService.success).toHaveBeenCalledWith(
-                'Статья сохранена'
-            );
+            expect(notificationService.success).toHaveBeenCalledWith('Статья сохранена');
         });
 
         it('should set isSaving to false after successful save', () => {
@@ -374,15 +339,11 @@ describe('ArticleEditComponent', () => {
                 status: 401,
                 statusText: 'Unauthorized',
             });
-            articleService.saveArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
 
             spectator.component.save();
 
-            expect(notificationService.error).toHaveBeenCalledWith(
-                'Необходима авторизация'
-            );
+            expect(notificationService.error).toHaveBeenCalledWith('Необходима авторизация');
         });
 
         it('should show error notification on 403 error', () => {
@@ -393,15 +354,11 @@ describe('ArticleEditComponent', () => {
                 status: 403,
                 statusText: 'Forbidden',
             });
-            articleService.saveArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
 
             spectator.component.save();
 
-            expect(notificationService.error).toHaveBeenCalledWith(
-                'Нет прав для сохранения'
-            );
+            expect(notificationService.error).toHaveBeenCalledWith('Нет прав для сохранения');
         });
 
         it('should show custom error message from 403 response', () => {
@@ -413,15 +370,11 @@ describe('ArticleEditComponent', () => {
                 statusText: 'Forbidden',
                 error: { error: 'Статья заблокирована' },
             });
-            articleService.saveArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
 
             spectator.component.save();
 
-            expect(notificationService.error).toHaveBeenCalledWith(
-                'Статья заблокирована'
-            );
+            expect(notificationService.error).toHaveBeenCalledWith('Статья заблокирована');
         });
 
         it('should show generic error message on other errors', () => {
@@ -432,15 +385,11 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.saveArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
 
             spectator.component.save();
 
-            expect(notificationService.error).toHaveBeenCalledWith(
-                'Ошибка сохранения'
-            );
+            expect(notificationService.error).toHaveBeenCalledWith('Ошибка сохранения');
         });
 
         it('should show error message from response body', () => {
@@ -452,15 +401,11 @@ describe('ArticleEditComponent', () => {
                 statusText: 'Server Error',
                 error: { error: 'Внутренняя ошибка сервера' },
             });
-            articleService.saveArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
 
             spectator.component.save();
 
-            expect(notificationService.error).toHaveBeenCalledWith(
-                'Внутренняя ошибка сервера'
-            );
+            expect(notificationService.error).toHaveBeenCalledWith('Внутренняя ошибка сервера');
         });
 
         it('should set isSaving to false after error', () => {
@@ -471,9 +416,7 @@ describe('ArticleEditComponent', () => {
                 status: 500,
                 statusText: 'Server Error',
             });
-            articleService.saveArticleVersion.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
 
             spectator.component.save();
 
@@ -521,9 +464,7 @@ describe('ArticleEditComponent with invalid ID', () => {
 
     it('should not call articleService for invalid ID', () => {
         const spectator = createComponentWithInvalidId();
-        const articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
+        const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
 
         expect(articleService.getArticleVersion).not.toHaveBeenCalled();
     });

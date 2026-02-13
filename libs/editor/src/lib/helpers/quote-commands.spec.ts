@@ -63,40 +63,34 @@ const testCases: TestCase[] = [
     },
 ];
 
-describe.each(["'", '"'] as QuoteChar[])(
-    'handleQuote with %s wrapper',
-    wrapper => {
-        afterEach(() => {
-            document.body.innerHTML = '';
+describe.each(["'", '"'] as QuoteChar[])('handleQuote with %s wrapper', wrapper => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    test.each(testCases)('should $title → wrap with %s', ({ input, expectedPattern }) => {
+        const { doc, from, to } = parseSelection(input);
+
+        const view = new EditorView({
+            state: EditorState.create({
+                doc,
+                selection: { anchor: from, head: to },
+                extensions: [keymap.of([])],
+            }),
+            parent: document.body,
         });
 
-        test.each(testCases)(
-            'should $title → wrap with %s',
-            ({ input, expectedPattern }) => {
-                const { doc, from, to } = parseSelection(input);
+        handleQuote(view, wrapper);
+        const output = view.state.doc.toString();
 
-                const view = new EditorView({
-                    state: EditorState.create({
-                        doc,
-                        selection: { anchor: from, head: to },
-                        extensions: [keymap.of([])],
-                    }),
-                    parent: document.body,
-                });
+        // Replace ^ placeholders with the actual quote character
+        const expected = expectedPattern.replace(/\^/g, wrapper);
 
-                handleQuote(view, wrapper);
-                const output = view.state.doc.toString();
+        expect(output).toBe(expected);
 
-                // Replace ^ placeholders with the actual quote character
-                const expected = expectedPattern.replace(/\^/g, wrapper);
-
-                expect(output).toBe(expected);
-
-                view.destroy();
-            }
-        );
-    }
-);
+        view.destroy();
+    });
+});
 
 /**
  * Parse a string with '<' and '>' markers.

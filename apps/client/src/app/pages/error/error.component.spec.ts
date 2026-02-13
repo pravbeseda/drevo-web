@@ -18,15 +18,11 @@ describe('ErrorComponent', () => {
     });
 
     it('should display default title', () => {
-        expect(spectator.query('.error-title')).toHaveText(
-            'Страница не найдена'
-        );
+        expect(spectator.query('.error-title')).toHaveText('Страница не найдена');
     });
 
     it('should display default message', () => {
-        expect(spectator.query('.error-message')).toHaveText(
-            'Запрашиваемая страница не существует или была удалена.'
-        );
+        expect(spectator.query('.error-message')).toHaveText('Запрашиваемая страница не существует или была удалена.');
     });
 
     it('should display custom title', () => {
@@ -40,9 +36,7 @@ describe('ErrorComponent', () => {
         spectator = createComponent({
             props: { message: 'Произошла ошибка при загрузке данных' },
         });
-        expect(spectator.query('.error-message')).toHaveText(
-            'Произошла ошибка при загрузке данных'
-        );
+        expect(spectator.query('.error-message')).toHaveText('Произошла ошибка при загрузке данных');
     });
 
     it('should not show home button by default', () => {
@@ -65,9 +59,6 @@ describe('ErrorComponent', () => {
         expect(homeButton).toBeTruthy();
         expect(homeButton).toHaveAttribute('href', '/');
         expect(homeButton).toHaveText('На главную');
-        expect(spectator.query('.home-button ui-icon')).toHaveAttribute(
-            'name',
-            'home'
-        );
+        expect(spectator.query('.home-button ui-icon')).toHaveAttribute('name', 'home');
     });
 });

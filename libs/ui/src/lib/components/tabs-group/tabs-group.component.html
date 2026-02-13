@@ -10,9 +10,7 @@
                     routerLinkActive
                     #rla="routerLinkActive"
                     [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }"
-                    [class.tab-link--active]="
-                        tab.isActive ? tab.isActive() : rla.isActive
-                    "
+                    [class.tab-link--active]="tab.isActive ? tab.isActive() : rla.isActive"
                     [attr.aria-label]="tab.label">
                     <ui-icon
                         class="tab-icon"

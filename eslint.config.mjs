@@ -19,16 +19,7 @@ export default [
             'import/order': [
                 'error',
                 {
-                    groups: [
-                        [
-                            'builtin',
-                            'external',
-                            'internal',
-                            'parent',
-                            'sibling',
-                            'index',
-                        ],
-                    ],
+                    groups: [['builtin', 'external', 'internal', 'parent', 'sibling', 'index']],
                     'newlines-between': 'never',
                     alphabetize: {
                         order: 'asc',
@@ -63,12 +54,7 @@ export default [
         },
     },
     {
-        files: [
-            '**/*.spec.ts',
-            '**/*.spec.tsx',
-            '**/*.test.ts',
-            '**/*.test.tsx',
-        ],
+        files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
         rules: {
             '@typescript-eslint/no-empty-function': 'off',
             '@typescript-eslint/no-non-null-assertion': 'off',
@@ -76,22 +62,8 @@ export default [
         },
     },
     {
-        files: [
-            '**/*.ts',
-            '**/*.tsx',
-            '**/*.cts',
-            '**/*.mts',
-            '**/*.js',
-            '**/*.jsx',
-            '**/*.cjs',
-            '**/*.mjs',
-        ],
-        ignores: [
-            '**/*.spec.ts',
-            '**/*.spec.tsx',
-            '**/*.test.ts',
-            '**/*.test.tsx',
-        ],
+        files: ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
+        ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
         plugins: {
             'no-null': noNull,
         },

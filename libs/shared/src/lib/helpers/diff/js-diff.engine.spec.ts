@@ -60,43 +60,43 @@ describe('JsDiffEngine', () => {
     });
 
     describe('granularity modes', () => {
-        const opts = (
-            overrides: Partial<JsDiffOptions>
-        ): JsDiffOptions => ({
+        const opts = (overrides: Partial<JsDiffOptions>): JsDiffOptions => ({
             ...DEFAULT_JS_DIFF_OPTIONS,
             ...overrides,
         });
 
         it('should diff by characters', () => {
             const result = engine.computeDiff('abc', 'aXc', opts({ granularity: 'chars' }));
-            const deleted = result.filter(c => c.type === 'delete').map(c => c.text).join('');
-            const inserted = result.filter(c => c.type === 'insert').map(c => c.text).join('');
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
             expect(deleted).toBe('b');
             expect(inserted).toBe('X');
         });
 
         it('should diff by words', () => {
-            const result = engine.computeDiff(
-                'hello world foo',
-                'hello planet foo',
-                opts({ granularity: 'words' })
-            );
-            const deleted = result.filter(c => c.type === 'delete').map(c => c.text).join('');
-            const inserted = result.filter(c => c.type === 'insert').map(c => c.text).join('');
+            const result = engine.computeDiff('hello world foo', 'hello planet foo', opts({ granularity: 'words' }));
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
             expect(deleted).toContain('world');
             expect(inserted).toContain('planet');
         });
 
         it('should diff by wordsWithSpace', () => {
-            const result = engine.computeDiff(
-                'hello world',
-                'hello  world',
-                opts({ granularity: 'wordsWithSpace' })
-            );
+            const result = engine.computeDiff('hello world', 'hello  world', opts({ granularity: 'wordsWithSpace' }));
             // wordsWithSpace treats whitespace as significant
-            const hasChanges = result.some(
-                c => c.type === 'insert' || c.type === 'delete'
-            );
+            const hasChanges = result.some(c => c.type === 'insert' || c.type === 'delete');
             expect(hasChanges).toBe(true);
         });
 
@@ -106,8 +106,14 @@ describe('JsDiffEngine', () => {
                 'line1\nchanged\nline3\n',
                 opts({ granularity: 'lines' })
             );
-            const deleted = result.filter(c => c.type === 'delete').map(c => c.text).join('');
-            const inserted = result.filter(c => c.type === 'insert').map(c => c.text).join('');
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
             expect(deleted).toContain('line2');
             expect(inserted).toContain('changed');
         });
@@ -118,69 +124,53 @@ describe('JsDiffEngine', () => {
                 'First sentence. Changed sentence.',
                 opts({ granularity: 'sentences' })
             );
-            const deleted = result.filter(c => c.type === 'delete').map(c => c.text).join('');
-            const inserted = result.filter(c => c.type === 'insert').map(c => c.text).join('');
+            const deleted = result
+                .filter(c => c.type === 'delete')
+                .map(c => c.text)
+                .join('');
+            const inserted = result
+                .filter(c => c.type === 'insert')
+                .map(c => c.text)
+                .join('');
             expect(deleted).toContain('Second');
             expect(inserted).toContain('Changed');
         });
     });
 
     describe('options', () => {
-        const opts = (
-            overrides: Partial<JsDiffOptions>
-        ): JsDiffOptions => ({
+        const opts = (overrides: Partial<JsDiffOptions>): JsDiffOptions => ({
             ...DEFAULT_JS_DIFF_OPTIONS,
             ...overrides,
         });
 
         it('should respect ignoreCase for chars', () => {
             const withCase = engine.computeDiff('Hello', 'hello', opts({ granularity: 'chars' }));
-            const withoutCase = engine.computeDiff(
-                'Hello',
-                'hello',
-                opts({ granularity: 'chars', ignoreCase: true })
-            );
+            const withoutCase = engine.computeDiff('Hello', 'hello', opts({ granularity: 'chars', ignoreCase: true }));
 
-            const withCaseHasChanges = withCase.some(
-                c => c.type !== 'equal'
-            );
-            const withoutCaseHasChanges = withoutCase.some(
-                c => c.type !== 'equal'
-            );
+            const withCaseHasChanges = withCase.some(c => c.type !== 'equal');
+            const withoutCaseHasChanges = withoutCase.some(c => c.type !== 'equal');
 
             expect(withCaseHasChanges).toBe(true);
             expect(withoutCaseHasChanges).toBe(false);
         });
 
         it('should respect ignoreCase for words', () => {
-            const withCase = engine.computeDiff(
-                'Hello World',
-                'hello world',
-                opts({ granularity: 'words' })
-            );
+            const withCase = engine.computeDiff('Hello World', 'hello world', opts({ granularity: 'words' }));
             const withoutCase = engine.computeDiff(
                 'Hello World',
                 'hello world',
                 opts({ granularity: 'words', ignoreCase: true })
             );
 
-            const withCaseHasChanges = withCase.some(
-                c => c.type !== 'equal'
-            );
-            const withoutCaseHasChanges = withoutCase.some(
-                c => c.type !== 'equal'
-            );
+            const withCaseHasChanges = withCase.some(c => c.type !== 'equal');
+            const withoutCaseHasChanges = withoutCase.some(c => c.type !== 'equal');
 
             expect(withCaseHasChanges).toBe(true);
             expect(withoutCaseHasChanges).toBe(false);
         });
 
         it('should respect ignoreWhitespace for lines', () => {
-            const withWs = engine.computeDiff(
-                'line1\n  line2\n',
-                'line1\nline2\n',
-                opts({ granularity: 'lines' })
-            );
+            const withWs = engine.computeDiff('line1\n  line2\n', 'line1\nline2\n', opts({ granularity: 'lines' }));
             const withoutWs = engine.computeDiff(
                 'line1\n  line2\n',
                 'line1\nline2\n',
@@ -188,20 +178,14 @@ describe('JsDiffEngine', () => {
             );
 
             const withWsHasChanges = withWs.some(c => c.type !== 'equal');
-            const withoutWsHasChanges = withoutWs.some(
-                c => c.type !== 'equal'
-            );
+            const withoutWsHasChanges = withoutWs.some(c => c.type !== 'equal');
 
             expect(withWsHasChanges).toBe(true);
             expect(withoutWsHasChanges).toBe(false);
         });
 
         it('should respect stripTrailingCr for lines', () => {
-            const withCr = engine.computeDiff(
-                'line1\r\nline2\r\n',
-                'line1\nline2\n',
-                opts({ granularity: 'lines' })
-            );
+            const withCr = engine.computeDiff('line1\r\nline2\r\n', 'line1\nline2\n', opts({ granularity: 'lines' }));
             const withoutCr = engine.computeDiff(
                 'line1\r\nline2\r\n',
                 'line1\nline2\n',
@@ -209,9 +193,7 @@ describe('JsDiffEngine', () => {
             );
 
             const withCrHasChanges = withCr.some(c => c.type !== 'equal');
-            const withoutCrHasChanges = withoutCr.some(
-                c => c.type !== 'equal'
-            );
+            const withoutCrHasChanges = withoutCr.some(c => c.type !== 'equal');
 
             expect(withCrHasChanges).toBe(true);
             expect(withoutCrHasChanges).toBe(false);

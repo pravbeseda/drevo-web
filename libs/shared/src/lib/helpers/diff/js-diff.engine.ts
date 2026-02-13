@@ -7,17 +7,11 @@ import { diffChars, diffLines, diffSentences, diffWords, diffWordsWithSpace } fr
 const IntlSegmenter = (Intl as any).Segmenter;
 
 function createWordSegmenter(): unknown {
-    return IntlSegmenter
-        ? new IntlSegmenter(undefined, { granularity: 'word' })
-        : undefined;
+    return IntlSegmenter ? new IntlSegmenter(undefined, { granularity: 'word' }) : undefined;
 }
 
 export class JsDiffEngine implements DiffEngine {
-    computeDiff(
-        oldText: string,
-        newText: string,
-        options: JsDiffOptions = DEFAULT_JS_DIFF_OPTIONS
-    ): DiffChange[] {
+    computeDiff(oldText: string, newText: string, options: JsDiffOptions = DEFAULT_JS_DIFF_OPTIONS): DiffChange[] {
         const changes = this.computeChanges(oldText, newText, options);
 
         return changes.map(change => ({
@@ -26,11 +20,7 @@ export class JsDiffEngine implements DiffEngine {
         }));
     }
 
-    private computeChanges(
-        oldText: string,
-        newText: string,
-        options: JsDiffOptions
-    ): Change[] {
+    private computeChanges(oldText: string, newText: string, options: JsDiffOptions): Change[] {
         switch (options.granularity) {
             case 'chars':
                 return diffChars(oldText, newText, {
@@ -39,16 +29,12 @@ export class JsDiffEngine implements DiffEngine {
             case 'words':
                 return diffWords(oldText, newText, {
                     ignoreCase: options.ignoreCase,
-                    intlSegmenter: options.intlSegmenter
-                        ? createWordSegmenter()
-                        : undefined,
+                    intlSegmenter: options.intlSegmenter ? createWordSegmenter() : undefined,
                 });
             case 'wordsWithSpace':
                 return diffWordsWithSpace(oldText, newText, {
                     ignoreCase: options.ignoreCase,
-                    intlSegmenter: options.intlSegmenter
-                        ? createWordSegmenter()
-                        : undefined,
+                    intlSegmenter: options.intlSegmenter ? createWordSegmenter() : undefined,
                 });
             case 'lines':
                 return diffLines(oldText, newText, {

@@ -194,10 +194,7 @@ describe('StorageService (quota exceeded handling)', () => {
 
     describe('set()', () => {
         it('should return false and log quota error when QuotaExceededError is thrown', () => {
-            const quotaError = new DOMException(
-                'Quota exceeded',
-                'QuotaExceededError'
-            );
+            const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');
             mockLocalStorage.setItem.mockImplementation(() => {
                 throw quotaError;
             });
@@ -229,10 +226,7 @@ describe('StorageService (quota exceeded handling)', () => {
 
     describe('setString()', () => {
         it('should return false and log quota error when QuotaExceededError is thrown', () => {
-            const quotaError = new DOMException(
-                'Quota exceeded',
-                'QuotaExceededError'
-            );
+            const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');
             mockLocalStorage.setItem.mockImplementation(() => {
                 throw quotaError;
             });

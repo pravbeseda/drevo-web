@@ -1,16 +1,9 @@
-import {
-    ArticleHistoryService,
-    buildDisplayItems,
-} from './article-history.service';
+import { ArticleHistoryService, buildDisplayItems } from './article-history.service';
 import { ArticleService } from '../article.service';
 import { AuthService } from '../../auth/auth.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService } from '@drevo-web/core';
-import {
-    ArticleHistoryItem,
-    ArticleHistoryResponse,
-    User,
-} from '@drevo-web/shared';
+import { ArticleHistoryItem, ArticleHistoryResponse, User } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
@@ -24,9 +17,7 @@ const mockUser: User = {
     permissions: { canEdit: true, canModerate: false, canAdmin: false },
 };
 
-function createMockHistoryItem(
-    overrides: Partial<ArticleHistoryItem> = {}
-): ArticleHistoryItem {
+function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
         versionId: 1,
         articleId: 100,
@@ -41,10 +32,7 @@ function createMockHistoryItem(
     };
 }
 
-function createMockResponse(
-    items: readonly ArticleHistoryItem[] = [],
-    total = 0
-): ArticleHistoryResponse {
+function createMockResponse(items: readonly ArticleHistoryItem[] = [], total = 0): ArticleHistoryResponse {
     return {
         items,
         total,
@@ -119,9 +107,7 @@ describe('ArticleHistoryService', () => {
             {
                 provide: AuthService,
                 useFactory: () => {
-                    userSubject = new BehaviorSubject<User | undefined>(
-                        mockUser
-                    );
+                    userSubject = new BehaviorSubject<User | undefined>(mockUser);
                     return {
                         user$: userSubject.asObservable(),
                         get currentUser() {
@@ -137,9 +123,7 @@ describe('ArticleHistoryService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        articleService = spectator.inject(
-            ArticleService
-        ) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
     });
 
     it('should create', () => {
@@ -148,9 +132,7 @@ describe('ArticleHistoryService', () => {
 
     describe('init() without articleId (global history mode)', () => {
         it('should load history on init', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
             expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                 page: 1,
@@ -168,9 +150,7 @@ describe('ArticleHistoryService', () => {
                 createMockHistoryItem({ versionId: 1, title: 'Article One' }),
                 createMockHistoryItem({ versionId: 2, title: 'Article Two' }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 2))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 2)));
             spectator.service.init();
 
             expect(spectator.service.hasItems()).toBe(true);
@@ -178,9 +158,7 @@ describe('ArticleHistoryService', () => {
         });
 
         it('should have empty state when no items', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
 
             expect(spectator.service.hasItems()).toBe(false);
@@ -189,9 +167,7 @@ describe('ArticleHistoryService', () => {
 
     describe('init() with articleId signal (article-scoped mode)', () => {
         it('should load history with articleId', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             const articleId = signal<number | undefined>(100);
             spectator.service.init({ articleId });
 
@@ -226,9 +202,7 @@ describe('ArticleHistoryService', () => {
                     date: new Date('2025-01-14T09:00:00'),
                 }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 3))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 3)));
             spectator.service.init();
 
             const displayItems = spectator.service.displayItems();
@@ -251,9 +225,7 @@ describe('ArticleHistoryService', () => {
                     date: new Date('2025-01-15T10:00:00'),
                 }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 2))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 2)));
             spectator.service.init();
 
             const displayItems = spectator.service.displayItems();
@@ -281,9 +253,7 @@ describe('ArticleHistoryService', () => {
                     date: new Date('2025-01-15T12:00:00'),
                 }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 3))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 3)));
             spectator.service.init();
 
             const displayItems = spectator.service.displayItems();
@@ -302,12 +272,8 @@ describe('ArticleHistoryService', () => {
 
         it('should include date in version items for pipe formatting', () => {
             const testDate = new Date('2025-01-15T14:30:00');
-            const items = [
-                createMockHistoryItem({ versionId: 1, date: testDate }),
-            ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 1))
-            );
+            const items = [createMockHistoryItem({ versionId: 1, date: testDate })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
             spectator.service.init();
 
             const displayItems = spectator.service.displayItems();
@@ -322,9 +288,7 @@ describe('ArticleHistoryService', () => {
 
     describe('isAuthenticated', () => {
         it('should be true when user is available', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
 
             expect(spectator.service.isAuthenticated()).toBe(true);
@@ -332,9 +296,7 @@ describe('ArticleHistoryService', () => {
 
         it('should be false when user is undefined', () => {
             userSubject.next(undefined);
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
 
             expect(spectator.service.isAuthenticated()).toBe(false);
@@ -343,9 +305,7 @@ describe('ArticleHistoryService', () => {
 
     describe('filters', () => {
         beforeEach(() => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
         });
 
@@ -355,9 +315,7 @@ describe('ArticleHistoryService', () => {
 
         it('should reload with approved=0 when unchecked filter selected', () => {
             articleService.getArticlesHistory.mockClear();
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
 
             spectator.service.onFilterChange('unchecked');
 
@@ -369,9 +327,7 @@ describe('ArticleHistoryService', () => {
 
         it('should reload with author when "my" filter selected', () => {
             articleService.getArticlesHistory.mockClear();
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
 
             spectator.service.onFilterChange('my');
 
@@ -398,18 +354,11 @@ describe('ArticleHistoryService', () => {
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
         });
 
-        it.each([
-            'unfinished',
-            'unmarked',
-            'outside_dictionaries',
-            'required',
-        ] as const)(
+        it.each(['unfinished', 'unmarked', 'outside_dictionaries', 'required'] as const)(
             'should load without extra params for unsupported "%s" filter',
             filter => {
                 articleService.getArticlesHistory.mockClear();
-                articleService.getArticlesHistory.mockReturnValue(
-                    of(createMockResponse())
-                );
+                articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
 
                 spectator.service.onFilterChange(filter);
 
@@ -421,32 +370,23 @@ describe('ArticleHistoryService', () => {
 
         it('should log info for unsupported filter', () => {
             articleService.getArticlesHistory.mockClear();
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
 
             spectator.service.onFilterChange('unfinished');
 
-            const loggerService = spectator.inject(
-                LoggerService
-            ) as unknown as MockLoggerService;
-            expect(loggerService.mockLogger.info).toHaveBeenCalledWith(
-                'Filter not yet supported by backend',
-                { filter: 'unfinished' }
-            );
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.info).toHaveBeenCalledWith('Filter not yet supported by backend', {
+                filter: 'unfinished',
+            });
         });
 
         it('should reset items and error state when changing filter', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                throwError(() => new Error('fail'))
-            );
+            articleService.getArticlesHistory.mockReturnValue(throwError(() => new Error('fail')));
             spectator.service.onFilterChange('unchecked');
 
             expect(spectator.service.hasError()).toBe(true);
 
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse([createMockHistoryItem()], 1))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse([createMockHistoryItem()], 1)));
             spectator.service.onFilterChange('all');
 
             expect(spectator.service.hasError()).toBe(false);
@@ -457,15 +397,11 @@ describe('ArticleHistoryService', () => {
     describe('filters with articleId', () => {
         it('should include articleId in filter params', () => {
             const articleId = signal<number | undefined>(100);
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init({ articleId });
 
             articleService.getArticlesHistory.mockClear();
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
 
             spectator.service.onFilterChange('unchecked');
 
@@ -479,20 +415,13 @@ describe('ArticleHistoryService', () => {
 
     describe('infinite scroll', () => {
         it('should load more items when triggered', () => {
-            const firstPage = [
-                createMockHistoryItem({ versionId: 1 }),
-                createMockHistoryItem({ versionId: 2 }),
-            ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(firstPage, 50))
-            );
+            const firstPage = [createMockHistoryItem({ versionId: 1 }), createMockHistoryItem({ versionId: 2 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(firstPage, 50)));
             spectator.service.init();
 
             articleService.getArticlesHistory.mockClear();
             const secondPage = [createMockHistoryItem({ versionId: 3 })];
-            articleService.getArticlesHistory.mockReturnValue(
-                of({ ...createMockResponse(secondPage, 50), page: 2 })
-            );
+            articleService.getArticlesHistory.mockReturnValue(of({ ...createMockResponse(secondPage, 50), page: 2 }));
 
             spectator.service.onLoadMore();
 
@@ -507,18 +436,12 @@ describe('ArticleHistoryService', () => {
                 createMockHistoryItem({ versionId: 1, articleId: 100 }),
                 createMockHistoryItem({ versionId: 2, articleId: 100 }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(firstPage, 50))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(firstPage, 50)));
             spectator.service.init({ articleId });
 
             articleService.getArticlesHistory.mockClear();
-            const secondPage = [
-                createMockHistoryItem({ versionId: 3, articleId: 100 }),
-            ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of({ ...createMockResponse(secondPage, 50), page: 2 })
-            );
+            const secondPage = [createMockHistoryItem({ versionId: 3, articleId: 100 })];
+            articleService.getArticlesHistory.mockReturnValue(of({ ...createMockResponse(secondPage, 50), page: 2 }));
 
             spectator.service.onLoadMore();
 
@@ -529,20 +452,13 @@ describe('ArticleHistoryService', () => {
         });
 
         it('should keep existing items when loadMore fails', () => {
-            const firstPage = [
-                createMockHistoryItem({ versionId: 1 }),
-                createMockHistoryItem({ versionId: 2 }),
-            ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(firstPage, 50))
-            );
+            const firstPage = [createMockHistoryItem({ versionId: 1 }), createMockHistoryItem({ versionId: 2 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(firstPage, 50)));
             spectator.service.init();
 
             expect(spectator.service.hasItems()).toBe(true);
 
-            articleService.getArticlesHistory.mockReturnValue(
-                throwError(() => new Error('Network error'))
-            );
+            articleService.getArticlesHistory.mockReturnValue(throwError(() => new Error('Network error')));
             spectator.service.onLoadMore();
 
             expect(spectator.service.hasItems()).toBe(true);
@@ -552,9 +468,7 @@ describe('ArticleHistoryService', () => {
 
         it('should not load more when all items loaded', () => {
             const items = [createMockHistoryItem({ versionId: 1 })];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 1))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
             spectator.service.init();
 
             articleService.getArticlesHistory.mockClear();
@@ -566,9 +480,7 @@ describe('ArticleHistoryService', () => {
 
     describe('displayTotalItems', () => {
         it('should return 0 when no items', () => {
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse())
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
 
             expect(spectator.service.displayTotalItems()).toBe(0);
@@ -585,9 +497,7 @@ describe('ArticleHistoryService', () => {
                     date: new Date('2025-01-15T13:00:00'),
                 }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 2))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 2)));
             spectator.service.init();
 
             // 1 header + 2 versions = 3
@@ -601,9 +511,7 @@ describe('ArticleHistoryService', () => {
                     date: new Date('2025-01-15T14:00:00'),
                 }),
             ];
-            articleService.getArticlesHistory.mockReturnValue(
-                of(createMockResponse(items, 50))
-            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 50)));
             spectator.service.init();
 
             // 1 header + 1 version = 2 loaded display + (50 - 1) unloaded = 51
@@ -614,18 +522,11 @@ describe('ArticleHistoryService', () => {
     describe('error handling', () => {
         it('should log error and set error state on failure', () => {
             const error = new Error('Network error');
-            articleService.getArticlesHistory.mockReturnValue(
-                throwError(() => error)
-            );
+            articleService.getArticlesHistory.mockReturnValue(throwError(() => error));
             spectator.service.init();
 
-            const loggerService = spectator.inject(
-                LoggerService
-            ) as unknown as MockLoggerService;
-            expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
-                'Failed to load article history',
-                error
-            );
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to load article history', error);
             expect(spectator.service.isLoading()).toBe(false);
             expect(spectator.service.hasError()).toBe(true);
         });
@@ -634,9 +535,7 @@ describe('ArticleHistoryService', () => {
             const articleId = signal<number | undefined>(undefined);
             spectator.service.init({ articleId });
 
-            const loggerService = spectator.inject(
-                LoggerService
-            ) as unknown as MockLoggerService;
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                 'Cannot load history: article ID not available'
             );
