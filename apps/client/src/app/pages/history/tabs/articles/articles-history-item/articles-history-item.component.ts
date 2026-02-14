@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ArticleHistoryItem } from '@drevo-web/shared';
 import { FormatTimePipe, IconButtonComponent, IconComponent } from '@drevo-web/ui';
@@ -13,13 +13,9 @@ import { FormatTimePipe, IconButtonComponent, IconComponent } from '@drevo-web/u
 })
 export class ArticlesHistoryItemComponent {
     readonly item = input.required<ArticleHistoryItem>();
-    readonly viewDiff = output<number>();
 
     readonly approvalClass = computed(() => APPROVAL_CLASS[this.item().approved]);
     readonly statusIcon = computed(() => APPROVAL_ICONS[this.approvalClass()]);
     readonly statusTitle = computed(() => APPROVAL_TITLES[this.approvalClass()]);
-
-    onViewDiff(): void {
-        this.viewDiff.emit(this.item().versionId);
-    }
+    readonly diffLink = computed(() => ['/history/diff', this.item().versionId]);
 }

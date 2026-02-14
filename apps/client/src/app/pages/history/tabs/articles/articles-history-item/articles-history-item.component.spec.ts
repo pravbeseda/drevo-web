@@ -121,18 +121,15 @@ describe('ArticlesHistoryItemComponent', () => {
         });
     });
 
-    describe('viewDiff output', () => {
-        it('should emit versionId when diff button is clicked', () => {
+    describe('diffLink', () => {
+        it('should compute link to diff page from versionId', () => {
             spectator = createComponent({
                 props: {
                     item: createMockItem({ isNew: false, versionId: 42 }),
                 },
             });
-            const spy = jest.spyOn(spectator.component.viewDiff, 'emit');
 
-            spectator.component.onViewDiff();
-
-            expect(spy).toHaveBeenCalledWith(42);
+            expect(spectator.component.diffLink()).toEqual(['/history/diff', 42]);
         });
     });
 
