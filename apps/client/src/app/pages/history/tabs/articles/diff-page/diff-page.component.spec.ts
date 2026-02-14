@@ -66,7 +66,7 @@ describe('DiffPageComponent', () => {
     it('should load version pairs on init', () => {
         articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
         spectator.detectChanges();
-        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200);
+        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, undefined);
     });
 
     it('should display version info after loading', () => {
@@ -188,5 +188,38 @@ describe('DiffPageComponent', () => {
             expect(spectator.component.isIntlSegmenterAvailable()).toBe(false);
             expect(spectator.component.isLineOptionsAvailable()).toBe(false);
         });
+    });
+});
+
+describe('DiffPageComponent (two-param route)', () => {
+    let spectator: Spectator<DiffPageComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+
+    const createComponent = createComponentFactory({
+        component: DiffPageComponent,
+        mocks: [ArticleService],
+        providers: [
+            mockLoggerProvider(),
+            {
+                provide: ActivatedRoute,
+                useValue: {
+                    snapshot: {
+                        paramMap: convertToParamMap({ id1: '100', id2: '200' }),
+                    },
+                },
+            },
+        ],
+        detectChanges: false,
+    });
+
+    beforeEach(() => {
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+    });
+
+    it('should load version pairs with both IDs sorted (newer first, older second)', () => {
+        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+        spectator.detectChanges();
+        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, 100);
     });
 });

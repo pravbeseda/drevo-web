@@ -33,6 +33,9 @@ describe('ArticlesHistoryItemComponent', () => {
     const getAuthor = () => spectator.query('[data-testid="author"]');
     const getAuthorComment = () => spectator.query('[data-testid="author-comment"]');
     const getModeratorComment = () => spectator.query('[data-testid="moderator-comment"]');
+    const getOverlay = () => spectator.query('[data-testid="selection-overlay"]');
+    const getCompareButton = () => spectator.query('[data-testid="compare-button"]');
+    const getSelectionHint = () => spectator.query('[data-testid="selection-hint"]');
 
     it('should create', () => {
         spectator = createComponent({
@@ -129,7 +132,101 @@ describe('ArticlesHistoryItemComponent', () => {
                 },
             });
 
-            expect(spectator.component.diffLink()).toEqual(['/history/diff', 42]);
+            expect(spectator.component.diffLink()).toEqual(['/history/articles/diff', 42]);
+        });
+    });
+
+    describe('selection', () => {
+        it('should not be selectable by default', () => {
+            spectator = createComponent({
+                props: { item: createMockItem() },
+            });
+            expect(spectator.component.selectable()).toBe(false);
+            expect(spectator.component.selected()).toBe(false);
+        });
+
+        it('should emit select on click when selectable', () => {
+            const item = createMockItem();
+            spectator = createComponent({
+                props: { item, selectable: true },
+            });
+            const selectSpy = jest.fn();
+            spectator.output('selectItem').subscribe(selectSpy);
+
+            spectator.click('.history-item');
+
+            expect(selectSpy).toHaveBeenCalledWith(item);
+        });
+
+        it('should not emit select on click when not selectable', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selectable: false },
+            });
+            const selectSpy = jest.fn();
+            spectator.output('selectItem').subscribe(selectSpy);
+
+            spectator.click('.history-item');
+
+            expect(selectSpy).not.toHaveBeenCalled();
+        });
+
+        it('should apply selected class when selected', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selected: true },
+            });
+            expect(spectator.query('.history-item--selected')).toBeTruthy();
+        });
+
+        it('should apply selectable class when selectable', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selectable: true },
+            });
+            expect(spectator.query('.history-item--selectable')).toBeTruthy();
+        });
+
+        it('should show overlay when selected', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selected: true },
+            });
+            expect(getOverlay()).toBeTruthy();
+        });
+
+        it('should not show overlay when not selected', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selected: false },
+            });
+            expect(getOverlay()).toBeFalsy();
+        });
+
+        it('should show hint in overlay when selected but cannot compare', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selected: true, canCompare: false },
+            });
+            expect(getSelectionHint()?.textContent).toContain('Выберите ещё одну версию');
+            expect(getCompareButton()).toBeFalsy();
+        });
+
+        it('should show compare button in overlay when selected and can compare', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selected: true, canCompare: true },
+            });
+            expect(getCompareButton()).toBeTruthy();
+            expect(getSelectionHint()).toBeFalsy();
+        });
+
+        it('should emit compare on compare button click', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), selected: true, canCompare: true, selectable: true },
+            });
+            const compareSpy = jest.fn();
+            const selectSpy = jest.fn();
+            spectator.output('compare').subscribe(compareSpy);
+            spectator.output('selectItem').subscribe(selectSpy);
+
+            spectator.click('[data-testid="compare-button"]');
+
+            expect(compareSpy).toHaveBeenCalled();
+            expect(selectSpy).not.toHaveBeenCalled();
         });
     });
 

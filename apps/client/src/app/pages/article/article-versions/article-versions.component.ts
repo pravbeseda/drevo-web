@@ -6,7 +6,9 @@ import {
 } from '../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from '../../history/tabs/articles/article-history-list/article-history-list.component';
 import { ArticlePageService } from '../article-page.service';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { ArticleHistoryItem } from '@drevo-web/shared';
 
 @Component({
     selector: 'app-article-versions',
@@ -19,6 +21,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 export class ArticleVersionsComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
     private readonly articlePageService = inject(ArticlePageService);
+    private readonly router = inject(Router);
+
+    private readonly _selectedVersionIds = signal<readonly number[]>([]);
+    readonly selectedVersionIds = computed(() => new Set(this._selectedVersionIds()));
+    readonly selectedCount = computed(() => this._selectedVersionIds().length);
+    readonly canCompare = computed(() => this.selectedCount() === 2);
 
     readonly activeFilter = this.service.activeFilter;
 
@@ -39,5 +47,25 @@ export class ArticleVersionsComponent implements OnInit {
 
     onFilterChange(filter: HistoryFilter): void {
         this.service.onFilterChange(filter);
+    }
+
+    onSelectItem(item: ArticleHistoryItem): void {
+        const ids = this._selectedVersionIds();
+        const index = ids.indexOf(item.versionId);
+
+        if (index !== -1) {
+            this._selectedVersionIds.set(ids.filter(id => id !== item.versionId));
+        } else if (ids.length < 2) {
+            this._selectedVersionIds.set([...ids, item.versionId]);
+        } else {
+            const minId = Math.min(...ids);
+            const remaining = ids.find(id => id !== minId) ?? ids[0];
+            this._selectedVersionIds.set([remaining, item.versionId]);
+        }
+    }
+
+    onCompare(): void {
+        const [older, newer] = [...this._selectedVersionIds()].sort((a, b) => a - b);
+        this.router.navigate(['/history/articles/diff', older, newer]);
     }
 }

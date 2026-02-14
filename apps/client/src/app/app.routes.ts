@@ -22,42 +22,59 @@ export const appRoutes: Route[] = [
                     import('./pages/shared-editor/shared-editor.component').then(m => m.SharedEditorComponent),
             },
             {
-                path: 'history/diff/:id',
-                loadComponent: () =>
-                    import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
-                        m => m.DiffPageComponent
-                    ),
-            },
-            {
                 path: 'history',
-                loadComponent: () => import('./pages/history/history.component').then(m => m.HistoryComponent),
                 children: [
                     {
-                        path: '',
-                        pathMatch: 'full',
-                        redirectTo: 'articles',
-                    },
-                    {
-                        path: 'articles',
+                        path: 'articles/diff/:id',
                         loadComponent: () =>
-                            import('./pages/history/tabs/articles/article-history/articles-history.component').then(
-                                m => m.ArticlesHistoryComponent
+                            import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
+                                m => m.DiffPageComponent
                             ),
                     },
                     {
-                        path: 'news',
+                        path: 'articles/diff/:id1/:id2',
                         loadComponent: () =>
-                            import('./pages/history/tabs/news-history.component').then(m => m.NewsHistoryComponent),
+                            import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
+                                m => m.DiffPageComponent
+                            ),
                     },
                     {
-                        path: 'forum',
+                        path: '',
                         loadComponent: () =>
-                            import('./pages/history/tabs/forum-history.component').then(m => m.ForumHistoryComponent),
-                    },
-                    {
-                        path: 'pictures',
-                        loadComponent: () =>
-                            import('./pages/history/tabs/pictures.component').then(m => m.PicturesComponent),
+                            import('./pages/history/history.component').then(m => m.HistoryComponent),
+                        children: [
+                            {
+                                path: '',
+                                pathMatch: 'full',
+                                redirectTo: 'articles',
+                            },
+                            {
+                                path: 'articles',
+                                loadComponent: () =>
+                                    import(
+                                        './pages/history/tabs/articles/article-history/articles-history.component'
+                                    ).then(m => m.ArticlesHistoryComponent),
+                            },
+                            {
+                                path: 'news',
+                                loadComponent: () =>
+                                    import('./pages/history/tabs/news-history.component').then(
+                                        m => m.NewsHistoryComponent
+                                    ),
+                            },
+                            {
+                                path: 'forum',
+                                loadComponent: () =>
+                                    import('./pages/history/tabs/forum-history.component').then(
+                                        m => m.ForumHistoryComponent
+                                    ),
+                            },
+                            {
+                                path: 'pictures',
+                                loadComponent: () =>
+                                    import('./pages/history/tabs/pictures.component').then(m => m.PicturesComponent),
+                            },
+                        ],
                     },
                 ],
             },

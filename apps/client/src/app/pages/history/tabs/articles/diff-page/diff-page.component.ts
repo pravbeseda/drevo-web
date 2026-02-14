@@ -111,17 +111,32 @@ export class DiffPageComponent implements OnInit {
     ];
 
     ngOnInit(): void {
-        const idParam = this.route.snapshot.paramMap.get('id');
-        const versionId = idParam ? parseInt(idParam, 10) : NaN;
+        const paramMap = this.route.snapshot.paramMap;
+        const id1Param = paramMap.get('id1') ?? paramMap.get('id');
+        const id2Param = paramMap.get('id2');
 
-        if (isNaN(versionId) || versionId <= 0) {
+        const version1 = id1Param ? parseInt(id1Param, 10) : NaN;
+
+        if (isNaN(version1) || version1 <= 0) {
             this._error.set('Неверный ID версии');
             this._isLoading.set(false);
-            this.logger.error('Invalid version ID in route', idParam);
+            this.logger.error('Invalid version ID in route', id1Param);
             return;
         }
 
-        this.loadVersionPairs(versionId);
+        if (id2Param) {
+            const version2 = parseInt(id2Param, 10);
+            if (isNaN(version2) || version2 <= 0) {
+                this._error.set('Неверный ID версии');
+                this._isLoading.set(false);
+                this.logger.error('Invalid version2 ID in route', id2Param);
+                return;
+            }
+            const [older, newer] = [version1, version2].sort((a, b) => a - b);
+            this.loadVersionPairs(newer, older);
+        } else {
+            this.loadVersionPairs(version1);
+        }
     }
 
     onEngineChange(engine: DiffEngineEntry): void {
@@ -170,9 +185,9 @@ export class DiffPageComponent implements OnInit {
         });
     }
 
-    private loadVersionPairs(versionId: number): void {
+    private loadVersionPairs(versionId: number, version2?: number): void {
         this.articleService
-            .getVersionPairs(versionId)
+            .getVersionPairs(versionId, version2)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: pairs => {

@@ -98,4 +98,14 @@ describe('ArticleHistoryListComponent', () => {
         spectator.detectChanges();
         expect(spectator.query('ui-virtual-scroller')).toBeTruthy();
     });
+
+    it('should have selectable false by default', () => {
+        spectator.detectChanges();
+        expect(spectator.component.selectable()).toBe(false);
+    });
+
+    it('should have empty selectedVersionIds by default', () => {
+        spectator.detectChanges();
+        expect(spectator.component.selectedVersionIds().size).toBe(0);
+    });
 });
