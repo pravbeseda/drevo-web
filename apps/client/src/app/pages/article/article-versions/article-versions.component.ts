@@ -6,7 +6,7 @@ import {
 } from '../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from '../../history/tabs/articles/article-history-list/article-history-list.component';
 import { ArticlePageService } from '../article-page.service';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ArticleHistoryItem } from '@drevo-web/shared';
 
@@ -61,6 +61,13 @@ export class ArticleVersionsComponent implements OnInit {
             const minId = Math.min(...ids);
             const remaining = ids.find(id => id !== minId) ?? ids[0];
             this._selectedVersionIds.set([remaining, item.versionId]);
+        }
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscapePress(): void {
+        if (this.selectedCount() > 0) {
+            this._selectedVersionIds.set([]);
         }
     }
 

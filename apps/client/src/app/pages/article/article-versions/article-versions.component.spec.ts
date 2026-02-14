@@ -121,6 +121,22 @@ describe('ArticleVersionsComponent', () => {
             expect(spectator.component.selectedVersionIds().has(30)).toBe(true);
         });
 
+        it('should clear selection on Escape key', () => {
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 20 }));
+            expect(spectator.component.selectedCount()).toBe(2);
+
+            spectator.dispatchKeyboardEvent(document, 'keydown', 'Escape');
+
+            expect(spectator.component.selectedCount()).toBe(0);
+            expect(spectator.component.canCompare()).toBe(false);
+        });
+
+        it('should not error on Escape when nothing is selected', () => {
+            spectator.dispatchKeyboardEvent(document, 'keydown', 'Escape');
+            expect(spectator.component.selectedCount()).toBe(0);
+        });
+
         it('should navigate to diff page on compare', () => {
             const router = spectator.inject(Router);
             jest.spyOn(router, 'navigate').mockResolvedValue(true);
