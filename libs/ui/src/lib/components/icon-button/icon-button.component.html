@@ -1,9 +1,18 @@
 <span [matTooltip]="label()">
-    <button
-        mat-icon-button
-        [disabled]="disabled()"
-        [attr.aria-label]="label()"
-        (click)="onClick()">
-        <mat-icon>{{ icon() }}</mat-icon>
-    </button>
+    @if (link() && !disabled()) {
+        <a
+            mat-icon-button
+            [routerLink]="link()"
+            [attr.aria-label]="label()">
+            <mat-icon>{{ icon() }}</mat-icon>
+        </a>
+    } @else {
+        <button
+            mat-icon-button
+            [disabled]="disabled()"
+            [attr.aria-label]="label()"
+            (click)="onClick()">
+            <mat-icon>{{ icon() }}</mat-icon>
+        </button>
+    }
 </span>

@@ -5,7 +5,6 @@ import {
 import { ArticleHistoryListComponent } from './article-history-list.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { ArticleHistoryItem } from '@drevo-web/shared';
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
@@ -53,7 +52,6 @@ describe('ArticleHistoryListComponent', () => {
                 },
             },
         ],
-        mocks: [Router],
         detectChanges: false,
     });
 
@@ -99,14 +97,5 @@ describe('ArticleHistoryListComponent', () => {
         (mockService.displayTotalItems as any).set(2);
         spectator.detectChanges();
         expect(spectator.query('ui-virtual-scroller')).toBeTruthy();
-    });
-
-    it('should navigate to diff page on onViewDiff', () => {
-        const router = spectator.inject(Router);
-        spectator.detectChanges();
-
-        spectator.component.onViewDiff(42);
-
-        expect(router.navigate).toHaveBeenCalledWith(['/history/diff', 42]);
     });
 });
