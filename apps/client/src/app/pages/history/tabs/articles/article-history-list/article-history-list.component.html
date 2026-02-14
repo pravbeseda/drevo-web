@@ -25,7 +25,13 @@
             @if (item.type === 'header') {
                 <div class="history-date-header">{{ item.date }}</div>
             } @else {
-                <app-articles-history-item [item]="item.data" />
+                <app-articles-history-item
+                    [item]="item.data"
+                    [selectable]="selectable()"
+                    [selected]="selectedVersionIds().has(item.data.versionId)"
+                    [canCompare]="canCompare()"
+                    (selectItem)="selectItem.emit($event)"
+                    (compare)="compareItems.emit()" />
             }
         </ng-template>
     </ui-virtual-scroller>
