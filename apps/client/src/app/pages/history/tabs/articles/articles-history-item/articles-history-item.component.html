@@ -6,7 +6,8 @@
     role="option"
     [attr.aria-selected]="selected()"
     (click)="onItemClick()"
-    (keydown.enter)="onItemClick()">
+    (keydown.enter)="onItemClick()"
+    (keydown.space)="onItemClick(); $event.preventDefault()">
     <div class="left-col">
         @if (item().isNew) {
             <ui-icon-button
