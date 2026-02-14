@@ -98,5 +98,4 @@ describe('ArticleHistoryListComponent', () => {
         spectator.detectChanges();
         expect(spectator.query('ui-virtual-scroller')).toBeTruthy();
     });
-
 });

@@ -15,7 +15,7 @@ export class IconButtonComponent {
     readonly icon = input.required<string>();
     readonly label = input('');
     readonly disabled = input(false);
-    readonly link = input<string | readonly unknown[]>();
+    readonly link = input<string | readonly (string | number)[]>();
 
     readonly clicked = output<void>();
 
