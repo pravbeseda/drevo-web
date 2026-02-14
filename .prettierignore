@@ -1,7 +1,8 @@
 # Add files here to ignore them from prettier formatting
 /dist
 /coverage
-/.*
+/.nx
+/.yarn
 .angular
 *.md
 docs/**
