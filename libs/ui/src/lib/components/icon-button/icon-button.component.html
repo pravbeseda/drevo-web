@@ -1,5 +1,5 @@
 <span [matTooltip]="label()">
-    @if (link()) {
+    @if (link() && !disabled()) {
         <a
             mat-icon-button
             [routerLink]="link()"

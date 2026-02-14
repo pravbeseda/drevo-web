@@ -123,4 +123,23 @@ describe('IconButtonComponent', () => {
             expect(tooltipDirective?.message).toBe('View diff');
         });
     });
+
+    describe('disabled link', () => {
+        beforeEach(() => {
+            spectator = createComponent({
+                props: {
+                    icon: 'difference',
+                    label: 'View diff',
+                    link: ['/history/diff', 42],
+                    disabled: true,
+                },
+            });
+        });
+
+        it('should render a disabled button instead of a link when disabled is true', () => {
+            expect(spectator.query('a')).toBeFalsy();
+            expect(spectator.query('button')).toBeTruthy();
+            expect(spectator.query('button')?.hasAttribute('disabled')).toBe(true);
+        });
+    });
 });
