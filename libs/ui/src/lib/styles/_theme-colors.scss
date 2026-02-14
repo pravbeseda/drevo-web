@@ -314,6 +314,10 @@ $theme-colors: (
         light: rgba($md-grey-400, 0.5),
         dark: rgba($md-grey-800, 0.5),
     ),
+    selection-hint-bg: (
+        light: $md-yellow-100,
+        dark: $md-blue-grey-800,
+    ),
 
     // Diff colors
     diff-insert-bg: (

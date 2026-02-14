@@ -49,6 +49,9 @@
 .selection-hint {
     font-size: $font-size-md;
     color: var(--themed-text-secondary);
+    background-color: var(--themed-selection-hint-bg);
+    padding: 8px 12px;
+    border-radius: 8px;
     font-style: italic;
 }
 
