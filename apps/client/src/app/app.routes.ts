@@ -40,8 +40,7 @@ export const appRoutes: Route[] = [
                     },
                     {
                         path: '',
-                        loadComponent: () =>
-                            import('./pages/history/history.component').then(m => m.HistoryComponent),
+                        loadComponent: () => import('./pages/history/history.component').then(m => m.HistoryComponent),
                         children: [
                             {
                                 path: '',
@@ -51,9 +50,9 @@ export const appRoutes: Route[] = [
                             {
                                 path: 'articles',
                                 loadComponent: () =>
-                                    import(
-                                        './pages/history/tabs/articles/article-history/articles-history.component'
-                                    ).then(m => m.ArticlesHistoryComponent),
+                                    import('./pages/history/tabs/articles/article-history/articles-history.component').then(
+                                        m => m.ArticlesHistoryComponent
+                                    ),
                             },
                             {
                                 path: 'news',
