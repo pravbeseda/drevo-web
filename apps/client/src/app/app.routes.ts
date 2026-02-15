@@ -25,17 +25,31 @@ export const appRoutes: Route[] = [
                 path: 'history',
                 children: [
                     {
-                        path: 'articles/diff/:id',
+                        path: 'articles/diff2/:id',
                         loadComponent: () =>
                             import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
                                 m => m.DiffPageComponent
                             ),
                     },
                     {
-                        path: 'articles/diff/:id1/:id2',
+                        path: 'articles/diff2/:id1/:id2',
                         loadComponent: () =>
                             import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
                                 m => m.DiffPageComponent
+                            ),
+                    },
+                    {
+                        path: 'articles/diff/:id',
+                        loadComponent: () =>
+                            import('./pages/history/tabs/articles/cm-diff-page/cm-diff-page.component').then(
+                                m => m.CmDiffPageComponent
+                            ),
+                    },
+                    {
+                        path: 'articles/diff/:id1/:id2',
+                        loadComponent: () =>
+                            import('./pages/history/tabs/articles/cm-diff-page/cm-diff-page.component').then(
+                                m => m.CmDiffPageComponent
                             ),
                     },
                     {

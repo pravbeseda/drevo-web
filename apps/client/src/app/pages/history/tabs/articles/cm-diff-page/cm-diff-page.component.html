@@ -1,0 +1,67 @@
+<div class="cm-diff-page">
+    @if (data.isLoading()) {
+        <div
+            class="cm-diff-page-loading"
+            data-testid="loading">
+            <ui-spinner />
+        </div>
+    }
+
+    @if (!data.isLoading() && data.error()) {
+        <div
+            class="cm-diff-page-error"
+            data-testid="error">
+            <p data-testid="error-message">{{ data.error() }}</p>
+        </div>
+    }
+
+    @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
+        <div class="cm-diff-page-meta">
+            <div class="cm-diff-page-meta-title">
+                <span>{{ pairs.current.title }}</span>
+                <div class="cm-diff-page-controls">
+                    <ui-icon-button
+                        icon="arrow_upward"
+                        aria-label="Предыдущее изменение"
+                        data-testid="prev-change-button"
+                        (clicked)="goToPrevious()" />
+                    <ui-icon-button
+                        icon="arrow_downward"
+                        aria-label="Следующее изменение"
+                        data-testid="next-change-button"
+                        (clicked)="goToNext()" />
+                    <ui-icon-button
+                        [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
+                        [aria-label]="
+                            viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'
+                        "
+                        data-testid="toggle-view-button"
+                        (clicked)="toggleViewMode()" />
+                </div>
+            </div>
+            <div
+                class="cm-diff-page-meta-versions"
+                data-testid="version-info">
+                <span>
+                    Версия {{ pairs.previous.versionId }} ({{ pairs.previous.author }},
+                    {{ pairs.previous.date | formatDate }})
+                </span>
+                <span class="version-arrow">&rarr;</span>
+                <span>
+                    Версия {{ pairs.current.versionId }} ({{ pairs.current.author }},
+                    {{ pairs.current.date | formatDate }})
+                </span>
+            </div>
+            @if (pairs.current.info) {
+                <div
+                    class="cm-diff-page-meta-comment"
+                    data-testid="version-comment">
+                    {{ pairs.current.info }}
+                </div>
+            }
+        </div>
+        <div
+            class="cm-diff-page-editor"
+            #editorContainer></div>
+    }
+</div>
