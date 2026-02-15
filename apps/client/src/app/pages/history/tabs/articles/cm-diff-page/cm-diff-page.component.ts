@@ -30,6 +30,39 @@ const diffConfig: DiffConfig = {
     timeout: 15000,
 };
 
+const cmTheme = EditorView.theme({
+    '.cm-content': {
+        fontFamily: 'monospace',
+    },
+    '.cm-gutters': {
+        backgroundColor: 'var(--themed-secondary-bg)',
+        borderRight: '1px solid var(--themed-border-color)',
+        color: 'var(--themed-text-muted)',
+    },
+    '.cm-activeLineGutter': {
+        backgroundColor: 'var(--themed-hover-bg)',
+    },
+    '.cm-changedLine': {
+        backgroundColor: 'var(--themed-diff-insert-bg) !important',
+    },
+    '.cm-deletedChunk': {
+        backgroundColor: 'var(--themed-diff-delete-bg)',
+    },
+    '.cm-insertedLine': {
+        backgroundColor: 'var(--themed-diff-insert-bg) !important',
+    },
+    '.cm-deletedLine': {
+        backgroundColor: 'var(--themed-diff-delete-bg) !important',
+    },
+    '.cm-changedText': {
+        background: 'none',
+        fontWeight: 'bold',
+    },
+    '.cm-collapsedLines': {
+        color: 'var(--themed-text-muted)',
+    },
+});
+
 @Component({
     selector: 'app-cm-diff-page',
     imports: [SpinnerComponent, IconButtonComponent, FormatDatePipe],
@@ -107,7 +140,7 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
             EditorState.readOnly.of(true),
             EditorView.lineWrapping,
             EditorState.phrases.of(ruPhrases),
-            this.createThemeExtension(),
+            cmTheme,
             lineNumbers(),
         ];
 
@@ -160,38 +193,4 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
         }
     }
 
-    private createThemeExtension() {
-        return EditorView.theme({
-            '.cm-content': {
-                fontFamily: 'monospace',
-            },
-            '.cm-gutters': {
-                backgroundColor: 'var(--themed-secondary-bg)',
-                borderRight: '1px solid var(--themed-border-color)',
-                color: 'var(--themed-text-muted)',
-            },
-            '.cm-activeLineGutter': {
-                backgroundColor: 'var(--themed-hover-bg)',
-            },
-            '.cm-changedLine': {
-                backgroundColor: 'var(--themed-diff-insert-bg) !important',
-            },
-            '.cm-deletedChunk': {
-                backgroundColor: 'var(--themed-diff-delete-bg)',
-            },
-            '.cm-insertedLine': {
-                backgroundColor: 'var(--themed-diff-insert-bg) !important',
-            },
-            '.cm-deletedLine': {
-                backgroundColor: 'var(--themed-diff-delete-bg) !important',
-            },
-            '.cm-changedText': {
-                background: 'none',
-                fontWeight: 'bold',
-            },
-            '.cm-collapsedLines': {
-                color: 'var(--themed-text-muted)',
-            },
-        });
-    }
 }
