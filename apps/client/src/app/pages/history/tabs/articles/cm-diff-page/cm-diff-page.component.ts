@@ -16,7 +16,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
+import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView, DiffConfig } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
@@ -27,6 +27,11 @@ type ViewMode = 'unified' | 'side-by-side';
 
 const ruPhrases = {
     '$ unchanged lines': 'Строки без изменений: $',
+};
+
+const diffConfig: DiffConfig = {
+    scanLimit: 10_000_000,
+    timeout: 15000,
 };
 
 @Component({
@@ -195,6 +200,7 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
                 extensions: [
                     ...commonExtensions,
                     unifiedMergeView({
+                        diffConfig,
                         original: pairs.previous.content,
                         highlightChanges: true,
                         allowInlineDiffs: true,
@@ -207,6 +213,7 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
             });
         } else {
             this.mergeView = new MergeView({
+                diffConfig,
                 a: {
                     doc: pairs.previous.content,
                     extensions: commonExtensions,
