@@ -1,11 +1,11 @@
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { LoggerService } from '@drevo-web/core';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { VersionPairs } from '@drevo-web/shared';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { NEVER, of, throwError } from 'rxjs';
 import { ArticleService } from '../../../../../services/articles/article.service';
 import { CmDiffPageComponent } from './cm-diff-page.component';
-import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { NEVER, of, throwError } from 'rxjs';
-import { VersionPairs } from '@drevo-web/shared';
-import { LoggerService } from '@drevo-web/core';
 
 const mockVersionPairs: VersionPairs = {
     current: {
@@ -282,125 +282,5 @@ describe('CmDiffPageComponent (two-param route)', () => {
         expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, 100);
     });
 
-    it('should handle reversed order of IDs', () => {
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-        spectator.detectChanges();
-
-        // Even though id1=100 and id2=200, it should sort them: newer=200, older=100
-        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, 100);
-    });
 });
 
-describe('CmDiffPageComponent (invalid second param)', () => {
-    let spectator: Spectator<CmDiffPageComponent>;
-
-    const createComponent = createComponentFactory({
-        component: CmDiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id1: '100', id2: 'abc' }),
-                    },
-                },
-            },
-        ],
-        detectChanges: false,
-    });
-
-    it('should show error for invalid second version ID', () => {
-        spectator = createComponent();
-        spectator.detectChanges();
-
-        expect(spectator.component.data.error()).toBe('Неверный ID версии');
-        expect(spectator.component.data.isLoading()).toBe(false);
-    });
-});
-
-describe('CmDiffPageComponent (invalid version ID)', () => {
-    let spectator: Spectator<CmDiffPageComponent>;
-
-    const createComponent = createComponentFactory({
-        component: CmDiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id: 'abc' }),
-                    },
-                },
-            },
-        ],
-        detectChanges: false,
-    });
-
-    it('should show error for non-numeric version ID', () => {
-        spectator = createComponent();
-        spectator.detectChanges();
-
-        expect(spectator.component.data.error()).toBe('Неверный ID версии');
-        expect(spectator.component.data.isLoading()).toBe(false);
-    });
-});
-
-describe('CmDiffPageComponent (zero version ID)', () => {
-    let spectator: Spectator<CmDiffPageComponent>;
-
-    const createComponent = createComponentFactory({
-        component: CmDiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id: '0' }),
-                    },
-                },
-            },
-        ],
-        detectChanges: false,
-    });
-
-    it('should show error for zero version ID', () => {
-        spectator = createComponent();
-        spectator.detectChanges();
-
-        expect(spectator.component.data.error()).toBe('Неверный ID версии');
-    });
-});
-
-describe('CmDiffPageComponent (negative version ID)', () => {
-    let spectator: Spectator<CmDiffPageComponent>;
-
-    const createComponent = createComponentFactory({
-        component: CmDiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id: '-5' }),
-                    },
-                },
-            },
-        ],
-        detectChanges: false,
-    });
-
-    it('should show error for negative version ID', () => {
-        spectator = createComponent();
-        spectator.detectChanges();
-
-        expect(spectator.component.data.error()).toBe('Неверный ID версии');
-    });
-});

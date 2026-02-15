@@ -12,7 +12,7 @@ import {
     signal,
     viewChild,
 } from '@angular/core';
-import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView, DiffConfig } from '@codemirror/merge';
+import { DiffConfig, MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';

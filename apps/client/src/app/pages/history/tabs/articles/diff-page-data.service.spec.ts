@@ -1,11 +1,9 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of, throwError } from 'rxjs';
-
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
-
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { of, throwError } from 'rxjs';
 import { ArticleService } from '../../../../services/articles/article.service';
 import { DiffPageDataService } from './diff-page-data.service';
 
