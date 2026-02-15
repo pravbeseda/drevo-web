@@ -2,7 +2,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
     name: 'formatDate',
-    pure: true,
 })
 export class FormatDatePipe implements PipeTransform {
     transform(value: Date | undefined): string {
