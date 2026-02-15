@@ -1,17 +1,17 @@
 <div class="diff-page">
-    @if (isLoading()) {
+    @if (data.isLoading()) {
         <div class="diff-page-loading">
             <ui-spinner />
         </div>
     }
 
-    @if (!isLoading() && error()) {
+    @if (!data.isLoading() && data.error()) {
         <div class="diff-page-error">
-            <p>{{ error() }}</p>
+            <p>{{ data.error() }}</p>
         </div>
     }
 
-    @if (!isLoading() && !error() && versionInfo(); as info) {
+    @if (!data.isLoading() && !data.error() && data.versionInfo(); as info) {
         <div class="diff-page-meta">
             <div class="diff-page-meta-title">
                 <span>{{ info.title }}</span>
@@ -139,11 +139,12 @@
             <div class="diff-page-meta-versions">
                 <span>
                     Версия {{ info.previous.versionId }} ({{ info.previous.author }},
-                    {{ formatDate(info.previous.date) }})
+                    {{ data.formatDate(info.previous.date) }})
                 </span>
                 <span class="version-arrow">&rarr;</span>
                 <span>
-                    Версия {{ info.current.versionId }} ({{ info.current.author }}, {{ formatDate(info.current.date) }})
+                    Версия {{ info.current.versionId }} ({{ info.current.author }},
+                    {{ data.formatDate(info.current.date) }})
                 </span>
             </div>
             @if (info.current.info) {

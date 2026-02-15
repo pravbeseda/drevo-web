@@ -1,5 +1,5 @@
 <div class="cm-diff-page">
-    @if (isLoading()) {
+    @if (data.isLoading()) {
         <div
             class="cm-diff-page-loading"
             data-testid="loading">
@@ -7,15 +7,15 @@
         </div>
     }
 
-    @if (!isLoading() && error()) {
+    @if (!data.isLoading() && data.error()) {
         <div
             class="cm-diff-page-error"
             data-testid="error">
-            <p data-testid="error-message">{{ error() }}</p>
+            <p data-testid="error-message">{{ data.error() }}</p>
         </div>
     }
 
-    @if (!isLoading() && !error() && versionInfo(); as info) {
+    @if (!data.isLoading() && !data.error() && data.versionInfo(); as info) {
         <div class="cm-diff-page-meta">
             <div class="cm-diff-page-meta-title">
                 <span>{{ info.title }}</span>
@@ -44,11 +44,12 @@
                 data-testid="version-info">
                 <span>
                     Версия {{ info.previous.versionId }} ({{ info.previous.author }},
-                    {{ formatDate(info.previous.date) }})
+                    {{ data.formatDate(info.previous.date) }})
                 </span>
                 <span class="version-arrow">&rarr;</span>
                 <span>
-                    Версия {{ info.current.versionId }} ({{ info.current.author }}, {{ formatDate(info.current.date) }})
+                    Версия {{ info.current.versionId }} ({{ info.current.author }},
+                    {{ data.formatDate(info.current.date) }})
                 </span>
             </div>
             @if (info.current.info) {

@@ -95,9 +95,9 @@ describe('CmDiffPageComponent', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
             spectator.detectChanges();
 
-            expect(spectator.component.isLoading()).toBe(false);
-            expect(spectator.component.versionInfo()).toBeTruthy();
-            expect(spectator.component.versionInfo()?.title).toBe('Test Article');
+            expect(spectator.component.data.isLoading()).toBe(false);
+            expect(spectator.component.data.versionInfo()).toBeTruthy();
+            expect(spectator.component.data.versionInfo()?.title).toBe('Test Article');
         });
 
         it('should display article title', () => {
@@ -146,7 +146,7 @@ describe('CmDiffPageComponent', () => {
             );
             spectator.detectChanges();
 
-            expect(spectator.component.error()).toBe('Предыдущая версия не найдена');
+            expect(spectator.component.data.error()).toBe('Предыдущая версия не найдена');
             const errorEl = spectator.query('[data-testid="error-message"]');
             expect(errorEl?.textContent?.trim()).toBe('Предыдущая версия не найдена');
         });
@@ -155,7 +155,7 @@ describe('CmDiffPageComponent', () => {
             articleService.getVersionPairs.mockReturnValue(throwError(() => ({ error: { errorCode: 'UNKNOWN' } })));
             spectator.detectChanges();
 
-            expect(spectator.component.error()).toBe('Ошибка загрузки данных');
+            expect(spectator.component.data.error()).toBe('Ошибка загрузки данных');
         });
 
         it('should log error on API failure', () => {
@@ -219,29 +219,19 @@ describe('CmDiffPageComponent', () => {
         });
     });
 
-    describe('formatDate', () => {
-        it('should format date in Russian locale', () => {
-            const date = new Date('2025-01-15T14:30:00');
-            const formatted = spectator.component.formatDate(date);
-
-            expect(formatted).toContain('2025');
-            expect(formatted).toContain('14:30');
-        });
-    });
-
     describe('versionInfo computed', () => {
         it('should return undefined when no version pairs', () => {
             articleService.getVersionPairs.mockReturnValue(NEVER);
             spectator.detectChanges();
 
-            expect(spectator.component.versionInfo()).toBeUndefined();
+            expect(spectator.component.data.versionInfo()).toBeUndefined();
         });
 
         it('should return version info with correct structure', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
             spectator.detectChanges();
 
-            const info = spectator.component.versionInfo();
+            const info = spectator.component.data.versionInfo();
             expect(info).toEqual({
                 title: 'Test Article',
                 previous: mockVersionPairs.previous,
@@ -325,8 +315,8 @@ describe('CmDiffPageComponent (invalid second param)', () => {
         spectator = createComponent();
         spectator.detectChanges();
 
-        expect(spectator.component.error()).toBe('Неверный ID версии');
-        expect(spectator.component.isLoading()).toBe(false);
+        expect(spectator.component.data.error()).toBe('Неверный ID версии');
+        expect(spectator.component.data.isLoading()).toBe(false);
     });
 });
 
@@ -354,8 +344,8 @@ describe('CmDiffPageComponent (invalid version ID)', () => {
         spectator = createComponent();
         spectator.detectChanges();
 
-        expect(spectator.component.error()).toBe('Неверный ID версии');
-        expect(spectator.component.isLoading()).toBe(false);
+        expect(spectator.component.data.error()).toBe('Неверный ID версии');
+        expect(spectator.component.data.isLoading()).toBe(false);
     });
 });
 
@@ -383,7 +373,7 @@ describe('CmDiffPageComponent (zero version ID)', () => {
         spectator = createComponent();
         spectator.detectChanges();
 
-        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(spectator.component.data.error()).toBe('Неверный ID версии');
     });
 });
 
@@ -411,6 +401,6 @@ describe('CmDiffPageComponent (negative version ID)', () => {
         spectator = createComponent();
         spectator.detectChanges();
 
-        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(spectator.component.data.error()).toBe('Неверный ID версии');
     });
 });
