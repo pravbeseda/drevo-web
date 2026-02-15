@@ -60,16 +60,6 @@ export class DiffPageDataService {
         }
     }
 
-    formatDate(date: Date): string {
-        return date.toLocaleString('ru-RU', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    }
-
     private loadVersionPairs(versionId: number, version2?: number): void {
         this.articleService
             .getVersionPairs(versionId, version2)

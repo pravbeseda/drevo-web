@@ -17,7 +17,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
-import { IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
+import { FormatDatePipe, IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
 
 type ViewMode = 'unified' | 'side-by-side';
 
@@ -32,7 +32,7 @@ const diffConfig: DiffConfig = {
 
 @Component({
     selector: 'app-cm-diff-page',
-    imports: [SpinnerComponent, IconButtonComponent],
+    imports: [SpinnerComponent, IconButtonComponent, FormatDatePipe],
     providers: [DiffPageDataService],
     templateUrl: './cm-diff-page.component.html',
     styleUrl: './cm-diff-page.component.scss',

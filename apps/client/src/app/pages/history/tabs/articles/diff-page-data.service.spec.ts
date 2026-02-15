@@ -241,19 +241,6 @@ describe('DiffPageDataService', () => {
         });
     });
 
-    describe('formatDate', () => {
-        it('should format date in Russian locale', () => {
-            setupRoute({});
-            spectator = createService();
-
-            const date = new Date('2025-06-15T14:30:00');
-            const result = spectator.service.formatDate(date);
-
-            expect(result).toContain('2025');
-            expect(result).toMatch(/14:30|02:30/);
-        });
-    });
-
     describe('initial state', () => {
         it('should start with isLoading true', () => {
             setupRoute({});

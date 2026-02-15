@@ -44,12 +44,12 @@
                 data-testid="version-info">
                 <span>
                     Версия {{ info.previous.versionId }} ({{ info.previous.author }},
-                    {{ data.formatDate(info.previous.date) }})
+                    {{ info.previous.date | formatDate }})
                 </span>
                 <span class="version-arrow">&rarr;</span>
                 <span>
                     Версия {{ info.current.versionId }} ({{ info.current.author }},
-                    {{ data.formatDate(info.current.date) }})
+                    {{ info.current.date | formatDate }})
                 </span>
             </div>
             @if (info.current.info) {
