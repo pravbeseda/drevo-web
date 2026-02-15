@@ -96,8 +96,8 @@ describe('CmDiffPageComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.data.isLoading()).toBe(false);
-            expect(spectator.component.data.versionInfo()).toBeTruthy();
-            expect(spectator.component.data.versionInfo()?.title).toBe('Test Article');
+            expect(spectator.component.data.versionPairs()).toBeTruthy();
+            expect(spectator.component.data.versionPairs()?.current.title).toBe('Test Article');
         });
 
         it('should display article title', () => {
@@ -216,27 +216,6 @@ describe('CmDiffPageComponent', () => {
             expect(spectator.query('[data-testid="prev-change-button"]')).toBeTruthy();
             expect(spectator.query('[data-testid="next-change-button"]')).toBeTruthy();
             expect(spectator.query('[data-testid="toggle-view-button"]')).toBeTruthy();
-        });
-    });
-
-    describe('versionInfo computed', () => {
-        it('should return undefined when no version pairs', () => {
-            articleService.getVersionPairs.mockReturnValue(NEVER);
-            spectator.detectChanges();
-
-            expect(spectator.component.data.versionInfo()).toBeUndefined();
-        });
-
-        it('should return version info with correct structure', () => {
-            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-            spectator.detectChanges();
-
-            const info = spectator.component.data.versionInfo();
-            expect(info).toEqual({
-                title: 'Test Article',
-                previous: mockVersionPairs.previous,
-                current: mockVersionPairs.current,
-            });
         });
     });
 

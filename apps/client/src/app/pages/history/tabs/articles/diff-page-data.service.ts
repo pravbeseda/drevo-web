@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../../services/articles/article.service';
-import { DestroyRef, inject, Injectable, signal, computed } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
@@ -19,17 +19,6 @@ export class DiffPageDataService {
     readonly isLoading = this._isLoading.asReadonly();
     readonly error = this._error.asReadonly();
     readonly versionPairs = this._versionPairs.asReadonly();
-
-    readonly versionInfo = computed(() => {
-        const pairs = this._versionPairs();
-        if (!pairs) return undefined;
-
-        return {
-            title: pairs.current.title,
-            previous: pairs.previous,
-            current: pairs.current,
-        };
-    });
 
     loadFromRoute(): void {
         const paramMap = this.route.snapshot.paramMap;

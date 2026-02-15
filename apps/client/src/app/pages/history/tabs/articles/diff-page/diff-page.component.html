@@ -11,10 +11,10 @@
         </div>
     }
 
-    @if (!data.isLoading() && !data.error() && data.versionInfo(); as info) {
+    @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
         <div class="diff-page-meta">
             <div class="diff-page-meta-title">
-                <span>{{ info.title }}</span>
+                <span>{{ pairs.current.title }}</span>
                 <div class="diff-page-engine-selector">
                     <ui-icon-button
                         icon="tune"
@@ -138,18 +138,18 @@
             </div>
             <div class="diff-page-meta-versions">
                 <span>
-                    Версия {{ info.previous.versionId }} ({{ info.previous.author }},
-                    {{ info.previous.date | formatDate }})
+                    Версия {{ pairs.previous.versionId }} ({{ pairs.previous.author }},
+                    {{ pairs.previous.date | formatDate }})
                 </span>
                 <span class="version-arrow">&rarr;</span>
                 <span>
-                    Версия {{ info.current.versionId }} ({{ info.current.author }},
-                    {{ info.current.date | formatDate }})
+                    Версия {{ pairs.current.versionId }} ({{ pairs.current.author }},
+                    {{ pairs.current.date | formatDate }})
                 </span>
             </div>
-            @if (info.current.info) {
+            @if (pairs.current.info) {
                 <div class="diff-page-meta-comment">
-                    {{ info.current.info }}
+                    {{ pairs.current.info }}
                 </div>
             }
         </div>

@@ -74,8 +74,8 @@ describe('DiffPageComponent', () => {
         spectator.detectChanges();
 
         expect(spectator.component.data.isLoading()).toBe(false);
-        expect(spectator.component.data.versionInfo()).toBeTruthy();
-        expect(spectator.component.data.versionInfo()?.title).toBe('Test Article');
+        expect(spectator.component.data.versionPairs()).toBeTruthy();
+        expect(spectator.component.data.versionPairs()?.current.title).toBe('Test Article');
     });
 
     describe('JsDiff settings', () => {

@@ -215,32 +215,6 @@ describe('DiffPageDataService', () => {
         });
     });
 
-    describe('versionInfo computed', () => {
-        it('should return undefined when no version pairs loaded', () => {
-            setupRoute({});
-            spectator = createService();
-
-            expect(spectator.service.versionInfo()).toBeUndefined();
-        });
-
-        it('should return version info after loading', () => {
-            setupRoute({ id: '10' });
-            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
-            spectator = createService({
-                providers: [{ provide: ArticleService, useValue: articleService }],
-            });
-
-            spectator.service.loadFromRoute();
-
-            const info = spectator.service.versionInfo();
-            expect(info).toEqual({
-                title: 'Test Article',
-                previous: MOCK_VERSION_PAIRS.previous,
-                current: MOCK_VERSION_PAIRS.current,
-            });
-        });
-    });
-
     describe('initial state', () => {
         it('should start with isLoading true', () => {
             setupRoute({});
