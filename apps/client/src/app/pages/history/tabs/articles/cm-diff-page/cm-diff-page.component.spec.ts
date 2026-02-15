@@ -217,6 +217,20 @@ describe('CmDiffPageComponent', () => {
             expect(spectator.query('[data-testid="next-change-button"]')).toBeTruthy();
             expect(spectator.query('[data-testid="toggle-view-button"]')).toBeTruthy();
         });
+
+        it('should not throw when goToNext is called without editor', () => {
+            articleService.getVersionPairs.mockReturnValue(NEVER);
+            spectator.detectChanges();
+
+            expect(() => spectator.component.goToNext()).not.toThrow();
+        });
+
+        it('should not throw when goToPrevious is called without editor', () => {
+            articleService.getVersionPairs.mockReturnValue(NEVER);
+            spectator.detectChanges();
+
+            expect(() => spectator.component.goToPrevious()).not.toThrow();
+        });
     });
 
     describe('cleanup', () => {
