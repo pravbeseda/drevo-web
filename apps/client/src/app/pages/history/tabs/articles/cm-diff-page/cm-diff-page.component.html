@@ -1,13 +1,17 @@
 <div class="cm-diff-page">
     @if (isLoading()) {
-        <div class="cm-diff-page-loading">
+        <div
+            class="cm-diff-page-loading"
+            data-testid="loading">
             <ui-spinner />
         </div>
     }
 
     @if (!isLoading() && error()) {
-        <div class="cm-diff-page-error">
-            <p>{{ error() }}</p>
+        <div
+            class="cm-diff-page-error"
+            data-testid="error">
+            <p data-testid="error-message">{{ error() }}</p>
         </div>
     }
 
@@ -19,30 +23,38 @@
                     <ui-icon-button
                         icon="arrow_upward"
                         aria-label="Предыдущее изменение"
+                        data-testid="prev-change-button"
                         (clicked)="goToPrevious()" />
                     <ui-icon-button
                         icon="arrow_downward"
                         aria-label="Следующее изменение"
+                        data-testid="next-change-button"
                         (clicked)="goToNext()" />
                     <ui-icon-button
                         [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
-                        [aria-label]="viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'"
+                        [aria-label]="
+                            viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'
+                        "
+                        data-testid="toggle-view-button"
                         (clicked)="toggleViewMode()" />
                 </div>
             </div>
-            <div class="cm-diff-page-meta-versions">
+            <div
+                class="cm-diff-page-meta-versions"
+                data-testid="version-info">
                 <span>
                     Версия {{ info.previous.versionId }} ({{ info.previous.author }},
                     {{ formatDate(info.previous.date) }})
                 </span>
                 <span class="version-arrow">&rarr;</span>
                 <span>
-                    Версия {{ info.current.versionId }} ({{ info.current.author }},
-                    {{ formatDate(info.current.date) }})
+                    Версия {{ info.current.versionId }} ({{ info.current.author }}, {{ formatDate(info.current.date) }})
                 </span>
             </div>
             @if (info.current.info) {
-                <div class="cm-diff-page-meta-comment">
+                <div
+                    class="cm-diff-page-meta-comment"
+                    data-testid="version-comment">
                     {{ info.current.info }}
                 </div>
             }
