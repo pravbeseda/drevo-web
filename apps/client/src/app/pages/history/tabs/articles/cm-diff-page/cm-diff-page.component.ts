@@ -18,7 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
 import { IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
@@ -186,6 +186,7 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
             EditorView.lineWrapping,
             EditorState.phrases.of(ruPhrases),
             this.createThemeExtension(),
+            lineNumbers(),
         ];
 
         if (mode === 'unified') {
