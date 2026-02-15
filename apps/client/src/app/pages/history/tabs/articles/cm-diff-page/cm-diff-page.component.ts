@@ -1,11 +1,11 @@
 import { ArticleService } from '../../../../../services/articles/article.service';
 import { isPlatformBrowser } from '@angular/common';
 import {
-    AfterViewInit,
     ChangeDetectionStrategy,
     Component,
     computed,
     DestroyRef,
+    effect,
     ElementRef,
     inject,
     OnDestroy,
@@ -18,12 +18,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
-import { EditorView, lineNumbers } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
 import { IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
 
 type ViewMode = 'unified' | 'side-by-side';
+
+const ruPhrases = {
+    '$ unchanged lines': 'Строки без изменений: $',
+};
 
 @Component({
     selector: 'app-cm-diff-page',
@@ -32,7 +36,7 @@ type ViewMode = 'unified' | 'side-by-side';
     styleUrl: './cm-diff-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class CmDiffPageComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
@@ -65,6 +69,19 @@ export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
         };
     });
 
+    constructor() {
+        effect(() => {
+            const container = this.editorContainer();
+            const pairs = this._versionPairs();
+            const mode = this._viewMode();
+
+            if (container && pairs && isPlatformBrowser(this.platformId)) {
+                this.destroyEditorView();
+                this.createEditorView(pairs, container.nativeElement, mode);
+            }
+        });
+    }
+
     ngOnInit(): void {
         const paramMap = this.route.snapshot.paramMap;
         const id1Param = paramMap.get('id1') ?? paramMap.get('id');
@@ -94,15 +111,6 @@ export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    ngAfterViewInit(): void {
-        if (!isPlatformBrowser(this.platformId)) return;
-
-        const pairs = this._versionPairs();
-        if (pairs) {
-            this.createEditorView(pairs);
-        }
-    }
-
     ngOnDestroy(): void {
         this.destroyEditorView();
     }
@@ -111,12 +119,6 @@ export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const newMode: ViewMode = this._viewMode() === 'unified' ? 'side-by-side' : 'unified';
         this._viewMode.set(newMode);
         this.logger.info('View mode changed', { mode: newMode });
-
-        const pairs = this._versionPairs();
-        if (pairs && isPlatformBrowser(this.platformId)) {
-            this.destroyEditorView();
-            this.createEditorView(pairs);
-        }
     }
 
     goToNext(): void {
@@ -163,10 +165,6 @@ export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
                         currentId: pairs.current.versionId,
                         previousId: pairs.previous.versionId,
                     });
-
-                    if (isPlatformBrowser(this.platformId) && this.editorContainer()) {
-                        this.createEditorView(pairs);
-                    }
                 },
                 error: error => {
                     const errorCode = error?.error?.errorCode;
@@ -181,21 +179,16 @@ export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
             });
     }
 
-    private createEditorView(pairs: VersionPairs): void {
-        const container = this.editorContainer()?.nativeElement;
-        if (!container) return;
-
-        this.destroyEditorView();
-
+    private createEditorView(pairs: VersionPairs, container: HTMLElement, mode: ViewMode): void {
         const commonExtensions = [
             EditorView.editable.of(false),
             EditorState.readOnly.of(true),
             EditorView.lineWrapping,
-            lineNumbers(),
+            EditorState.phrases.of(ruPhrases),
             this.createThemeExtension(),
         ];
 
-        if (this._viewMode() === 'unified') {
+        if (mode === 'unified') {
             this.unifiedView = new EditorView({
                 doc: pairs.current.content,
                 extensions: [
@@ -244,9 +237,6 @@ export class CmDiffPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private createThemeExtension() {
         return EditorView.theme({
-            '&': {
-                fontSize: '13px',
-            },
             '.cm-content': {
                 fontFamily: 'monospace',
             },
