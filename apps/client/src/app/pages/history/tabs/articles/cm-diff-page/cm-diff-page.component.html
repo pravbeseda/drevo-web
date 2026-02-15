@@ -1,0 +1,54 @@
+<div class="cm-diff-page">
+    @if (isLoading()) {
+        <div class="cm-diff-page-loading">
+            <ui-spinner />
+        </div>
+    }
+
+    @if (!isLoading() && error()) {
+        <div class="cm-diff-page-error">
+            <p>{{ error() }}</p>
+        </div>
+    }
+
+    @if (!isLoading() && !error() && versionInfo(); as info) {
+        <div class="cm-diff-page-meta">
+            <div class="cm-diff-page-meta-title">
+                <span>{{ info.title }}</span>
+                <div class="cm-diff-page-controls">
+                    <ui-icon-button
+                        icon="arrow_upward"
+                        aria-label="Предыдущее изменение"
+                        (clicked)="goToPrevious()" />
+                    <ui-icon-button
+                        icon="arrow_downward"
+                        aria-label="Следующее изменение"
+                        (clicked)="goToNext()" />
+                    <ui-icon-button
+                        [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
+                        [aria-label]="viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'"
+                        (clicked)="toggleViewMode()" />
+                </div>
+            </div>
+            <div class="cm-diff-page-meta-versions">
+                <span>
+                    Версия {{ info.previous.versionId }} ({{ info.previous.author }},
+                    {{ formatDate(info.previous.date) }})
+                </span>
+                <span class="version-arrow">&rarr;</span>
+                <span>
+                    Версия {{ info.current.versionId }} ({{ info.current.author }},
+                    {{ formatDate(info.current.date) }})
+                </span>
+            </div>
+            @if (info.current.info) {
+                <div class="cm-diff-page-meta-comment">
+                    {{ info.current.info }}
+                </div>
+            }
+        </div>
+        <div
+            class="cm-diff-page-editor"
+            #editorContainer></div>
+    }
+</div>

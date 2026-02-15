@@ -1,0 +1,101 @@
+@use 'tokens' as *;
+
+:host {
+    display: block;
+    height: 100%;
+}
+
+.cm-diff-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.cm-diff-page-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.cm-diff-page-error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 16px;
+    color: var(--themed-text-secondary);
+}
+
+.cm-diff-page-meta {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--themed-border-color);
+    flex-shrink: 0;
+}
+
+.cm-diff-page-meta-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    font-size: $font-size-lg;
+    color: var(--themed-text-primary);
+    margin-bottom: 4px;
+
+    span {
+        flex: 1;
+    }
+}
+
+.cm-diff-page-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 2px;
+}
+
+.cm-diff-page-meta-versions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+}
+
+.version-arrow {
+    color: var(--themed-text-muted);
+}
+
+.cm-diff-page-meta-comment {
+    margin-top: 4px;
+    font-size: $font-size-sm;
+    color: var(--themed-text-muted);
+    font-style: italic;
+}
+
+.cm-diff-page-editor {
+    flex: 1;
+    overflow: auto;
+}
+
+// CodeMirror overrides
+:host ::ng-deep {
+    .cm-editor {
+        height: 100%;
+    }
+
+    .cm-mergeView {
+        height: 100%;
+    }
+
+    .cm-scroller {
+        overflow: auto;
+    }
+
+    .cm-merge-revert {
+        display: none;
+    }
+}
