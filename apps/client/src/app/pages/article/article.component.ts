@@ -1,8 +1,9 @@
 import { ArticlePageService } from './article-page.service';
 import { ErrorComponent } from '../error/error.component';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ArticleVersion } from '@drevo-web/shared';
 import { SpinnerComponent, TabGroup, TabsGroupComponent } from '@drevo-web/ui';
 import { filter, map } from 'rxjs';
 
@@ -13,10 +14,27 @@ import { filter, map } from 'rxjs';
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleComponent implements OnInit {
+export class ArticleComponent {
     private readonly pageService = inject(ArticlePageService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+
+    constructor() {
+        const destroyRef = inject(DestroyRef);
+
+        this.route.data
+            .pipe(
+                map(data => data['article'] as ArticleVersion | undefined),
+                takeUntilDestroyed(destroyRef)
+            )
+            .subscribe(article => {
+                if (article) {
+                    this.pageService.setArticle(article);
+                } else {
+                    this.pageService.setError('Ошибка загрузки статьи');
+                }
+            });
+    }
 
     private readonly url = toSignal(
         this.router.events.pipe(
@@ -86,8 +104,4 @@ export class ArticleComponent implements OnInit {
             },
         ];
     });
-
-    ngOnInit(): void {
-        this.pageService.init(this.route);
-    }
 }
