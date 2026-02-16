@@ -4,6 +4,7 @@ import { Route } from '@angular/router';
 export const appRoutes: Route[] = [
     {
         path: 'login',
+        title: 'Вход',
         loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent),
         data: { layout: 'none' },
     },
@@ -14,18 +15,22 @@ export const appRoutes: Route[] = [
             {
                 path: '',
                 pathMatch: 'full',
+                title: 'Главная',
                 loadComponent: () => import('./pages/main/main.component').then(m => m.MainComponent),
             },
             {
                 path: 'editor',
+                title: 'Редактор',
                 loadComponent: () =>
                     import('./pages/shared-editor/shared-editor.component').then(m => m.SharedEditorComponent),
             },
             {
                 path: 'history',
+                title: 'История изменений',
                 children: [
                     {
                         path: 'articles/diff2/:id',
+                        title: 'Сравнение версий',
                         loadComponent: () =>
                             import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
                                 m => m.DiffPageComponent
@@ -33,6 +38,7 @@ export const appRoutes: Route[] = [
                     },
                     {
                         path: 'articles/diff2/:id1/:id2',
+                        title: 'Сравнение версий',
                         loadComponent: () =>
                             import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
                                 m => m.DiffPageComponent
@@ -40,6 +46,7 @@ export const appRoutes: Route[] = [
                     },
                     {
                         path: 'articles/diff/:id',
+                        title: 'Сравнение версий',
                         loadComponent: () =>
                             import('./pages/history/tabs/articles/cm-diff-page/cm-diff-page.component').then(
                                 m => m.CmDiffPageComponent
@@ -47,6 +54,7 @@ export const appRoutes: Route[] = [
                     },
                     {
                         path: 'articles/diff/:id1/:id2',
+                        title: 'Сравнение версий',
                         loadComponent: () =>
                             import('./pages/history/tabs/articles/cm-diff-page/cm-diff-page.component').then(
                                 m => m.CmDiffPageComponent
@@ -70,6 +78,7 @@ export const appRoutes: Route[] = [
                             },
                             {
                                 path: 'news',
+                                title: 'История новостей',
                                 loadComponent: () =>
                                     import('./pages/history/tabs/news-history.component').then(
                                         m => m.NewsHistoryComponent
@@ -77,6 +86,7 @@ export const appRoutes: Route[] = [
                             },
                             {
                                 path: 'forum',
+                                title: 'История обсуждений',
                                 loadComponent: () =>
                                     import('./pages/history/tabs/forum-history.component').then(
                                         m => m.ForumHistoryComponent
@@ -84,6 +94,7 @@ export const appRoutes: Route[] = [
                             },
                             {
                                 path: 'pictures',
+                                title: 'История изображений',
                                 loadComponent: () =>
                                     import('./pages/history/tabs/pictures.component').then(m => m.PicturesComponent),
                             },
@@ -93,11 +104,13 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'articles/edit/:id',
+                title: 'Редактирование статьи',
                 loadComponent: () =>
                     import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
             },
             {
                 path: 'articles/version/:id',
+                title: 'Перенаправление',
                 loadComponent: () =>
                     import('./pages/article/version-redirect/version-redirect.component').then(
                         m => m.VersionRedirectComponent
@@ -105,10 +118,12 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'articles/:id',
+                title: 'Статья',
                 loadChildren: () => import('./pages/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },
             {
                 path: '**',
+                title: 'Страница не найдена',
                 loadComponent: () => import('./pages/error/error.component').then(m => m.ErrorComponent),
                 data: { showHomeButton: true },
             },

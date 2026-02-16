@@ -1,6 +1,7 @@
 import { AccountDropdownComponent } from '../../components/account-dropdown/account-dropdown.component';
 import { FontScaleControlComponent } from '../../components/font-scale-control/font-scale-control.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
+import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DrawerService } from '@drevo-web/core';
 import { IconButtonComponent, ModalService } from '@drevo-web/ui';
@@ -15,6 +16,8 @@ import { IconButtonComponent, ModalService } from '@drevo-web/ui';
 export class HeaderComponent {
     private readonly modalService = inject(ModalService);
     private readonly drawerService = inject(DrawerService);
+    private readonly pageTitleStrategy = inject(PageTitleStrategy);
+    readonly pageTitle = this.pageTitleStrategy.pageTitle;
 
     toggleDrawer(): void {
         this.drawerService.toggle();

@@ -1,10 +1,11 @@
 import { appRoutes } from './app.routes';
-import { environment } from '../environments/environment';
 import { authInterceptorProvider } from './interceptors/auth.interceptor';
+import { PageTitleStrategy } from './services/page-title.strategy';
+import { environment } from '../environments/environment';
 import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
-import { ApplicationConfig, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideRouter, RouterModule, withComponentInputBinding } from '@angular/router';
+import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router';
 import {
     errorNotificationInterceptorProvider,
     provideLogProductionMode,
@@ -12,8 +13,6 @@ import {
     createIndexedDBLogProvider,
     createSentryLogProvider,
 } from '@drevo-web/core';
-
-const routesTracing = false;
 
 // Build log providers array based on environment
 const logProviders = [
@@ -30,7 +29,8 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withFetch(), withInterceptorsFromDi()),
         authInterceptorProvider,
         errorNotificationInterceptorProvider,
-        importProvidersFrom(RouterModule.forRoot(appRoutes, { enableTracing: routesTracing })),
+        PageTitleStrategy,
+        { provide: TitleStrategy, useExisting: PageTitleStrategy },
         // Logging configuration
         provideLogProductionMode(environment.production),
         provideLogProviders(logProviders),
