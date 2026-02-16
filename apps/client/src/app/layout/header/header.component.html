@@ -3,7 +3,11 @@
         icon="menu"
         label="Меню"
         (clicked)="toggleDrawer()" />
-    <span class="brand-title">Древо</span>
+    <span
+        class="page-title"
+        data-testid="page-title">
+        {{ pageTitle() }}
+    </span>
 </div>
 
 <div class="header-actions">

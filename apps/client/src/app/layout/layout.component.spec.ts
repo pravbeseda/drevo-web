@@ -6,6 +6,7 @@ import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { DrawerService, WINDOW } from '@drevo-web/core';
 import { BREAKPOINT_TABLET } from '@drevo-web/ui';
+import { PageTitleStrategy } from '../services/page-title.strategy';
 import { LayoutComponent } from './layout.component';
 
 @Component({ template: '', standalone: true })
@@ -66,6 +67,9 @@ describe('LayoutComponent', () => {
                 useFactory: () => createMockWindow(BREAKPOINT_TABLET),
             },
             MockProvider(DrawerService, createDrawerMock(true)),
+            MockProvider(PageTitleStrategy, {
+                pageTitle: signal('Древо'),
+            }),
         ],
     });
 

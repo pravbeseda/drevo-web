@@ -22,21 +22,25 @@ export const ARTICLE_ROUTES: Route[] = [
             },
             {
                 path: 'news',
+                title: 'Новости',
                 loadComponent: () => import('./tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
                 data: { stubTitle: 'Новости' },
             },
             {
                 path: 'forum',
+                title: 'Обсуждение',
                 loadComponent: () => import('./tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
                 data: { stubTitle: 'Обсуждение' },
             },
             {
                 path: 'history',
+                title: 'История версий',
                 loadComponent: () =>
                     import('./article-versions/article-versions.component').then(m => m.ArticleVersionsComponent),
             },
             {
                 path: 'linkedhere',
+                title: 'Кто ссылается',
                 loadComponent: () => import('./tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
                 data: { stubTitle: 'Кто ссылается' },
             },

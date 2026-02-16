@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { DrawerService, LogExportService } from '@drevo-web/core';
 import { ModalService } from '@drevo-web/ui';
 import { AuthService } from '../../services/auth/auth.service';
+import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { HeaderComponent } from './header.component';
 
 describe('HeaderComponent', () => {
@@ -16,6 +17,9 @@ describe('HeaderComponent', () => {
             provideRouter([]),
             MockProvider(ModalService),
             MockProvider(LogExportService),
+            MockProvider(PageTitleStrategy, {
+                pageTitle: signal('Древо'),
+            }),
             MockProvider(DrawerService, {
                 isOpen: signal(true),
                 toggle: jest.fn(),
@@ -40,5 +44,11 @@ describe('HeaderComponent', () => {
         spectator.component.toggleDrawer();
 
         expect(drawerService.toggle).toHaveBeenCalled();
+    });
+
+    it('should display page title from PageTitleStrategy', () => {
+        spectator = createComponent();
+
+        expect(spectator.query('[data-testid="page-title"]')?.textContent?.trim()).toBe('Древо');
     });
 });
