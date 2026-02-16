@@ -1,10 +1,11 @@
 import { ArticlePageService } from './article-page.service';
 import { ArticleComponent } from './article.component';
-import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ArticleVersion } from '@drevo-web/shared';
+import { BehaviorSubject } from 'rxjs';
 
 const mockArticle: ArticleVersion = {
     articleId: 123,
@@ -37,13 +38,15 @@ function createMockPageService(
         articleId: signal('articleId' in overrides ? overrides.articleId : 123),
         title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
         editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/edit/456'),
-        init: jest.fn(),
+        setArticle: jest.fn(),
+        setError: jest.fn(),
     };
 }
 
 describe('ArticleComponent', () => {
     let spectator: Spectator<ArticleComponent>;
     let mockService: ReturnType<typeof createMockPageService>;
+    let dataSubject: BehaviorSubject<Record<string, unknown>>;
 
     const createComponent = createComponentFactory({
         component: ArticleComponent,
@@ -59,7 +62,18 @@ describe('ArticleComponent', () => {
     });
 
     beforeEach(() => {
-        spectator = createComponent();
+        dataSubject = new BehaviorSubject<Record<string, unknown>>({ article: mockArticle });
+        spectator = createComponent({
+            providers: [
+                {
+                    provide: ActivatedRoute,
+                    useValue: {
+                        data: dataSubject.asObservable(),
+                        snapshot: { data: {} },
+                    },
+                },
+            ],
+        });
         mockService = spectator.inject(ArticlePageService) as unknown as ReturnType<typeof createMockPageService>;
     });
 
@@ -68,9 +82,25 @@ describe('ArticleComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should call pageService.init on ngOnInit', () => {
+    it('should call setArticle when route data has article', () => {
         spectator.detectChanges();
-        expect(mockService.init).toHaveBeenCalled();
+        expect(mockService.setArticle).toHaveBeenCalledWith(mockArticle);
+    });
+
+    it('should call setError when route data has no article', () => {
+        dataSubject.next({ article: undefined });
+        spectator.detectChanges();
+
+        expect(mockService.setError).toHaveBeenCalledWith('Ошибка загрузки статьи');
+    });
+
+    it('should call setArticle again when route data changes', () => {
+        spectator.detectChanges();
+
+        const newArticle = { ...mockArticle, articleId: 999, title: 'New Article' };
+        dataSubject.next({ article: newArticle });
+
+        expect(mockService.setArticle).toHaveBeenCalledWith(newArticle);
     });
 
     it('should display article title when loaded', () => {
@@ -148,6 +178,13 @@ describe('ArticleComponent loading state', () => {
                     article: undefined,
                 }),
             },
+            {
+                provide: ActivatedRoute,
+                useValue: {
+                    data: new BehaviorSubject({ article: undefined }),
+                    snapshot: { data: {} },
+                },
+            },
         ],
     });
 
@@ -172,6 +209,13 @@ describe('ArticleComponent error state', () => {
                     article: undefined,
                 }),
             },
+            {
+                provide: ActivatedRoute,
+                useValue: {
+                    data: new BehaviorSubject({ article: undefined }),
+                    snapshot: { data: {} },
+                },
+            },
         ],
     });
 
@@ -194,6 +238,13 @@ describe('ArticleComponent no article ID', () => {
                     articleId: undefined,
                     article: undefined,
                 }),
+            },
+            {
+                provide: ActivatedRoute,
+                useValue: {
+                    data: new BehaviorSubject({ article: undefined }),
+                    snapshot: { data: {} },
+                },
             },
         ],
     });
