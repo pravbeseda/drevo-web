@@ -11,7 +11,6 @@ export class ArticlePageService {
 
     readonly article = this._article.asReadonly();
     readonly error = this._error.asReadonly();
-    readonly isLoading = signal(false).asReadonly();
     readonly articleId = computed(() => this.article()?.articleId);
 
     readonly title = computed(() => this.article()?.title);
@@ -32,5 +31,6 @@ export class ArticlePageService {
     setError(message: string): void {
         this._article.set(undefined);
         this._error.set(message);
+        this.logger.error('Article error', { message });
     }
 }

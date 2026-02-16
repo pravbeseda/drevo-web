@@ -1,20 +1,8 @@
 import { createArticleTabTitleResolver } from './article-tab-title.resolver';
+import { createMockArticle } from '../pages/article/article-testing.helper';
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { ArticleVersion } from '@drevo-web/shared';
 
-const mockArticle: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
-    title: 'Фотосинтез',
-    content: '<p>Content</p>',
-    author: 'Author',
-    date: new Date('2024-01-15'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle({ title: 'Фотосинтез' });
 
 function createRouteSnapshot(parentData?: Record<string, unknown>): ActivatedRouteSnapshot {
     const parent = parentData ? ({ data: parentData } as ActivatedRouteSnapshot) : undefined;

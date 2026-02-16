@@ -1,4 +1,4 @@
-import { ArticleService } from '../../services/articles';
+import { ArticleService } from '../services/articles';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -9,10 +9,7 @@ import { catchError, map } from 'rxjs/operators';
  * Calls ArticleService.getArticle(id) directly — in-flight cache in ArticleService
  * guarantees a single HTTP request when used alongside articleResolver.
  */
-export function resolveArticleTitle(
-    articleService: ArticleService,
-    route: ActivatedRouteSnapshot
-): Observable<string> {
+export function resolveArticleTitle(articleService: ArticleService, route: ActivatedRouteSnapshot): Observable<string> {
     const id = Number(route.paramMap.get('id'));
 
     if (isNaN(id) || id <= 0) {
@@ -25,5 +22,4 @@ export function resolveArticleTitle(
     );
 }
 
-export const articleTitleResolver: ResolveFn<string> = route =>
-    resolveArticleTitle(inject(ArticleService), route);
+export const articleTitleResolver: ResolveFn<string> = route => resolveArticleTitle(inject(ArticleService), route);

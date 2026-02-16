@@ -1,21 +1,9 @@
 import { ArticlePageService } from './article-page.service';
+import { createMockArticle } from './article-testing.helper';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ArticleVersion } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
-const mockArticle: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
-    title: 'Test Article',
-    content: '<p>Content</p>',
-    author: 'Author',
-    date: new Date('2024-01-15'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle();
 
 describe('ArticlePageService', () => {
     let spectator: SpectatorService<ArticlePageService>;
@@ -35,10 +23,6 @@ describe('ArticlePageService', () => {
 
     it('should have undefined article initially', () => {
         expect(spectator.service.article()).toBeUndefined();
-    });
-
-    it('should have isLoading always false', () => {
-        expect(spectator.service.isLoading()).toBe(false);
     });
 
     it('should have undefined error initially', () => {

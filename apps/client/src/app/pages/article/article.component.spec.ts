@@ -1,5 +1,6 @@
 import { ArticlePageService } from './article-page.service';
 import { ArticleComponent } from './article.component';
+import { createMockArticle } from './article-testing.helper';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -7,24 +8,11 @@ import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ArticleVersion } from '@drevo-web/shared';
 import { BehaviorSubject } from 'rxjs';
 
-const mockArticle: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
-    title: 'Test Article Title',
-    content: '<p>Test article content</p>',
-    author: 'Test Author',
-    date: new Date('2024-01-15T10:00:00Z'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle({ title: 'Test Article Title' });
 
 function createMockPageService(
     overrides: Partial<{
         article: ArticleVersion | undefined;
-        isLoading: boolean;
         error: string | undefined;
         articleId: number | undefined;
         title: string | undefined;
@@ -33,7 +21,6 @@ function createMockPageService(
 ) {
     return {
         article: signal('article' in overrides ? overrides.article : mockArticle),
-        isLoading: signal(overrides.isLoading ?? false),
         error: signal(overrides.error),
         articleId: signal('articleId' in overrides ? overrides.articleId : 123),
         title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
@@ -162,37 +149,6 @@ describe('ArticleComponent', () => {
 
         const isActive = spectator.component.tabGroups()[0].items[0].isActive;
         expect(isActive?.()).toBe(false);
-    });
-});
-
-describe('ArticleComponent loading state', () => {
-    const createComponent = createComponentFactory({
-        component: ArticleComponent,
-        providers: [
-            provideRouter([{ path: '**', children: [] }]),
-            mockLoggerProvider(),
-            {
-                provide: ArticlePageService,
-                useValue: createMockPageService({
-                    isLoading: true,
-                    article: undefined,
-                }),
-            },
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    data: new BehaviorSubject({ article: undefined }),
-                    snapshot: { data: {} },
-                },
-            },
-        ],
-    });
-
-    it('should display spinner while loading', () => {
-        const spectator = createComponent();
-
-        expect(spectator.query('ui-spinner')).toBeTruthy();
-        expect(spectator.query('.article')).toBeFalsy();
     });
 });
 

@@ -1,22 +1,10 @@
 import { resolveArticle } from './article.resolver';
+import { createMockArticle } from '../pages/article/article-testing.helper';
 import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
-import { ArticleService } from '../../services/articles';
-import { ArticleVersion } from '@drevo-web/shared';
+import { ArticleService } from '../services/articles';
 import { of, throwError } from 'rxjs';
 
-const mockArticle: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
-    title: 'Test Article',
-    content: '<p>Content</p>',
-    author: 'Author',
-    date: new Date('2024-01-15'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle();
 
 function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
     return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;

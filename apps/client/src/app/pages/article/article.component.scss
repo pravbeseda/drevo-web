@@ -13,13 +13,6 @@
     }
 }
 
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-}
-
 .article {
     max-width: rem($article-max-width);
     margin: 0 auto;

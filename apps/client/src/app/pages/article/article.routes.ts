@@ -1,7 +1,7 @@
 import { ArticlePageService } from './article-page.service';
-import { createArticleTabTitleResolver } from './article-tab-title.resolver';
-import { articleTitleResolver } from './article-title.resolver';
-import { articleResolver } from './article.resolver';
+import { createArticleTabTitleResolver } from '../../resolvers/article-tab-title.resolver';
+import { articleTitleResolver } from '../../resolvers/article-title.resolver';
+import { articleResolver } from '../../resolvers/article.resolver';
 import { Route } from '@angular/router';
 
 export const ARTICLE_ROUTES: Route[] = [

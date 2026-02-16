@@ -1,8 +1,4 @@
-@if (isLoading()) {
-    <div class="loading-container">
-        <ui-spinner [diameter]="48" />
-    </div>
-} @else if (error()) {
+@if (error()) {
     <app-error
         title="Ошибка"
         [message]="error()" />
