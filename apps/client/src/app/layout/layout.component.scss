@@ -16,6 +16,7 @@
 
 .header {
     grid-area: header;
+    position: relative;
     background-color: var(--themed-header-bg);
     display: flex;
     align-items: center;

@@ -1,9 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter, Router } from '@angular/router';
+import { Event as RouterEvent, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, provideRouter, Router } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
+import { Subject } from 'rxjs';
 import { DrawerService, WINDOW } from '@drevo-web/core';
 import { BREAKPOINT_TABLET } from '@drevo-web/ui';
 import { PageTitleStrategy } from '../services/page-title.strategy';
@@ -233,6 +234,95 @@ describe('LayoutComponent', () => {
             });
 
             expect(spectator.component.isMobile()).toBe(false);
+        });
+    });
+
+    describe('isNavigating', () => {
+        it('should have isNavigating false initially', () => {
+            spectator = createComponent();
+            expect(spectator.component.isNavigating()).toBe(false);
+        });
+
+        it('should render ui-navigation-progress in header', () => {
+            spectator = createComponent();
+            const progressBar = spectator.query('.header ui-navigation-progress');
+            expect(progressBar).toExist();
+        });
+
+        describe('debounce logic', () => {
+            const routerEvents$ = new Subject<RouterEvent>();
+
+            const createDebounceComponent = createComponentFactory({
+                component: LayoutComponent,
+                shallow: true,
+                providers: [
+                    MockProvider(Router, { events: routerEvents$, routerState: { root: {} } }),
+                    {
+                        provide: WINDOW,
+                        useFactory: () => createMockWindow(BREAKPOINT_TABLET),
+                    },
+                    MockProvider(DrawerService, createDrawerMock(true)),
+                    MockProvider(PageTitleStrategy, {
+                        pageTitle: signal('Древо'),
+                    }),
+                ],
+            });
+
+            beforeEach(() => {
+                jest.useFakeTimers();
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            it('should set isNavigating to true after NavigationStart with debounce', () => {
+                const s = createDebounceComponent();
+                routerEvents$.next(new NavigationStart(1, '/test'));
+                jest.advanceTimersByTime(50);
+                expect(s.component.isNavigating()).toBe(false);
+
+                jest.advanceTimersByTime(50);
+                expect(s.component.isNavigating()).toBe(true);
+            });
+
+            it('should not show progress bar when navigation completes before debounce', () => {
+                const s = createDebounceComponent();
+                routerEvents$.next(new NavigationStart(1, '/test'));
+                jest.advanceTimersByTime(50);
+                routerEvents$.next(new NavigationEnd(1, '/test', '/test'));
+                jest.advanceTimersByTime(50);
+
+                expect(s.component.isNavigating()).toBe(false);
+            });
+
+            it('should set isNavigating to false on NavigationEnd', () => {
+                const s = createDebounceComponent();
+                routerEvents$.next(new NavigationStart(1, '/test'));
+                jest.advanceTimersByTime(100);
+                expect(s.component.isNavigating()).toBe(true);
+
+                routerEvents$.next(new NavigationEnd(1, '/test', '/test'));
+                expect(s.component.isNavigating()).toBe(false);
+            });
+
+            it('should set isNavigating to false on NavigationCancel', () => {
+                const s = createDebounceComponent();
+                routerEvents$.next(new NavigationStart(1, '/test'));
+                jest.advanceTimersByTime(100);
+
+                routerEvents$.next(new NavigationCancel(1, '/test', ''));
+                expect(s.component.isNavigating()).toBe(false);
+            });
+
+            it('should set isNavigating to false on NavigationError', () => {
+                const s = createDebounceComponent();
+                routerEvents$.next(new NavigationStart(1, '/test'));
+                jest.advanceTimersByTime(100);
+
+                routerEvents$.next(new NavigationError(1, '/test', new Error('fail')));
+                expect(s.component.isNavigating()).toBe(false);
+            });
         });
     });
 
