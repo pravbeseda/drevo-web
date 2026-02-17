@@ -25,10 +25,12 @@ export class LineClampComponent {
     readonly lines = input(2);
     readonly tooltip = input('');
 
-    protected readonly isTruncated = signal(false);
-    protected readonly contentEl = viewChild.required<ElementRef<HTMLElement>>('content');
+    private readonly _isTruncated = signal(false);
+    private readonly contentEl = viewChild.required<ElementRef<HTMLElement>>('content');
 
     private readonly destroyRef = inject(DestroyRef);
+
+    readonly isTruncated = this._isTruncated.asReadonly();
 
     constructor() {
         afterNextRender(() => {
@@ -44,6 +46,6 @@ export class LineClampComponent {
 
     private checkTruncation(): void {
         const el = this.contentEl().nativeElement;
-        this.isTruncated.set(el.scrollHeight > el.clientHeight);
+        this._isTruncated.set(el.scrollHeight > el.clientHeight);
     }
 }
