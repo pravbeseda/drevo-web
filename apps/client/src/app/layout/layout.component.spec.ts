@@ -268,12 +268,16 @@ describe('LayoutComponent', () => {
                 ],
             });
 
+            let getElementByIdSpy: jest.SpyInstance;
+
             beforeEach(() => {
                 jest.useFakeTimers();
+                getElementByIdSpy = jest.spyOn(document, 'getElementById').mockReturnValue(null);
             });
 
             afterEach(() => {
                 jest.useRealTimers();
+                getElementByIdSpy.mockRestore();
             });
 
             it('should set isNavigating to true after NavigationStart with debounce', () => {
@@ -355,6 +359,38 @@ describe('LayoutComponent', () => {
             await router.navigateByUrl('/test');
 
             expect(drawerService.close).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('scrollToTopOnNavigation', () => {
+        it('should scroll content to top on navigation', async () => {
+            spectator = createComponent();
+            const mockContentElement = { scrollTo: jest.fn() };
+            jest.spyOn(document, 'getElementById').mockReturnValue(mockContentElement as unknown as HTMLElement);
+
+            const router = spectator.inject(Router);
+            await router.navigateByUrl('/test');
+
+            expect(mockContentElement.scrollTo).toHaveBeenCalledWith(0, 0);
+        });
+
+        it('should not scroll to top when navigating to a fragment', async () => {
+            spectator = createComponent();
+            const mockContentElement = { scrollTo: jest.fn() };
+            jest.spyOn(document, 'getElementById').mockReturnValue(mockContentElement as unknown as HTMLElement);
+
+            const router = spectator.inject(Router);
+            await router.navigateByUrl('/test#section');
+
+            expect(mockContentElement.scrollTo).not.toHaveBeenCalled();
+        });
+
+        it('should not throw when content element is not found', async () => {
+            spectator = createComponent();
+            jest.spyOn(document, 'getElementById').mockReturnValue(null);
+
+            const router = spectator.inject(Router);
+            await expect(router.navigateByUrl('/test')).resolves.toBeTruthy();
         });
     });
 });

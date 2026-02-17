@@ -1,6 +1,7 @@
 import { HeaderComponent } from './header/header.component';
 import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
 import { VersionDisplayComponent } from '../components/version-display/version-display.component';
+import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -29,6 +30,7 @@ export class LayoutComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
     private readonly window = inject(WINDOW);
+    private readonly document = inject(DOCUMENT);
 
     readonly hasActions = computed(() => this.sidebarService.actions().length > 0);
 
@@ -56,6 +58,7 @@ export class LayoutComponent implements OnInit {
     ngOnInit(): void {
         this.trackMobileBreakpoint();
         this.closeDrawerOnMobileNavigation();
+        this.scrollToTopOnNavigation();
     }
 
     closeDrawer(): void {
@@ -108,6 +111,23 @@ export class LayoutComponent implements OnInit {
                 if (this.isMobile()) {
                     this.drawerService.close();
                 }
+            });
+    }
+
+    private scrollToTopOnNavigation(): void {
+        if (!this.window) {
+            return;
+        }
+
+        this.router.events
+            .pipe(
+                filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+                filter(event => !event.urlAfterRedirects.includes('#')),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(() => {
+                const content = this.document.getElementById('content');
+                content?.scrollTo(0, 0);
             });
     }
 }
