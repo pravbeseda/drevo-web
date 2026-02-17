@@ -4,8 +4,8 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
-import { PageTitleStrategy } from './services/page-title.strategy';
 import { AppComponent } from './app.component';
+import { PageTitleStrategy } from './services/page-title.strategy';
 
 describe('AppComponent', () => {
     let spectator: Spectator<AppComponent>;
@@ -37,4 +37,5 @@ describe('AppComponent', () => {
     it('should render app-layout when showLayout is true', () => {
         expect(spectator.query('app-layout')).toExist();
     });
+
 });

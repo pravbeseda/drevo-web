@@ -236,6 +236,19 @@ describe('LayoutComponent', () => {
         });
     });
 
+    describe('isNavigating', () => {
+        it('should have isNavigating false initially', () => {
+            spectator = createComponent();
+            expect(spectator.component.isNavigating()).toBe(false);
+        });
+
+        it('should render ui-navigation-progress in header', () => {
+            spectator = createComponent();
+            const progressBar = spectator.query('.header ui-navigation-progress');
+            expect(progressBar).toExist();
+        });
+    });
+
     describe('closeDrawerOnMobileNavigation', () => {
         it('should close drawer on navigation when mobile', async () => {
             spectator = createComponent({

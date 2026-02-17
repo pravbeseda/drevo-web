@@ -2,15 +2,23 @@ import { HeaderComponent } from './header/header.component';
 import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
 import { VersionDisplayComponent } from '../components/version-display/version-display.component';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router } from '@angular/router';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import {
+    NavigationCancel,
+    NavigationEnd,
+    NavigationError,
+    NavigationStart,
+    Router,
+} from '@angular/router';
 import { DrawerService, SidebarService, WINDOW } from '@drevo-web/core';
-import { BREAKPOINT_TABLET, RightSidebarComponent } from '@drevo-web/ui';
-import { filter } from 'rxjs';
+import { BREAKPOINT_TABLET, NavigationProgressComponent, RightSidebarComponent } from '@drevo-web/ui';
+import { filter, map, of, switchMap, timer } from 'rxjs';
+
+const NAVIGATION_DEBOUNCE_MS = 100;
 
 @Component({
     selector: 'app-layout',
-    imports: [HeaderComponent, SidebarNavComponent, VersionDisplayComponent, RightSidebarComponent],
+    imports: [HeaderComponent, SidebarNavComponent, VersionDisplayComponent, RightSidebarComponent, NavigationProgressComponent],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +31,23 @@ export class LayoutComponent implements OnInit {
     private readonly window = inject(WINDOW);
 
     readonly hasActions = computed(() => this.sidebarService.actions().length > 0);
+
+    readonly isNavigating = toSignal(
+        this.router.events.pipe(
+            filter(
+                e =>
+                    e instanceof NavigationStart ||
+                    e instanceof NavigationEnd ||
+                    e instanceof NavigationCancel ||
+                    e instanceof NavigationError
+            ),
+            map(e => e instanceof NavigationStart),
+            switchMap(navigating =>
+                navigating ? timer(NAVIGATION_DEBOUNCE_MS).pipe(map(() => true)) : of(false)
+            )
+        ),
+        { initialValue: false }
+    );
 
     readonly isDrawerOpen = this.drawerService.isOpen;
     readonly isMobile = signal(false);
