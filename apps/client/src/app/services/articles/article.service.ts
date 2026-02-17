@@ -22,7 +22,7 @@ import {
     VersionPairs,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { finalize, map, shareReplay } from 'rxjs/operators';
 
 /**
  * Main service for article-related operations.
@@ -36,22 +36,34 @@ import { map } from 'rxjs/operators';
 })
 export class ArticleService {
     private readonly articleApiService = inject(ArticleApiService);
+    private readonly inflight = new Map<number, Observable<ArticleVersion>>();
 
     /**
-     * Get article by ID
+     * Get article by ID.
+     * Uses in-flight cache to deduplicate concurrent requests for the same article
+     * (e.g. when articleResolver and articleTitleResolver run in parallel).
      *
      * @param id - Article ID
      * @returns Observable with mapped article
      */
     getArticle(id: number): Observable<ArticleVersion> {
-        return this.articleApiService.getArticle(id).pipe(
+        const existing = this.inflight.get(id);
+        if (existing) {
+            return existing;
+        }
+
+        const obs$ = this.articleApiService.getArticle(id).pipe(
             map(response =>
                 this.mapArticleVersion({
                     ...response,
                     content: this.transformArticleLinks(response.content),
                 })
-            )
+            ),
+            shareReplay({ bufferSize: 1, refCount: false }),
+            finalize(() => this.inflight.delete(id))
         );
+        this.inflight.set(id, obs$);
+        return obs$;
     }
 
     /**

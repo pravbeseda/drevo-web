@@ -118,7 +118,6 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'articles/:id',
-                title: 'Статья',
                 loadChildren: () => import('./pages/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },
             {

@@ -1,25 +1,13 @@
 import { ArticleService } from '../../../services/articles';
 import { VersionRedirectComponent } from './version-redirect.component';
+import { createMockArticle } from '../article-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ArticleVersion } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
 
-const mockArticle: ArticleVersion = {
-    articleId: 100,
-    versionId: 789,
-    title: 'Article',
-    content: '<p>Content</p>',
-    author: 'Author',
-    date: new Date('2024-01-15'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle({ articleId: 100, versionId: 789, title: 'Article' });
 
 describe('VersionRedirectComponent', () => {
     let spectator: Spectator<VersionRedirectComponent>;

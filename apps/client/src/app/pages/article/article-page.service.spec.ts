@@ -1,122 +1,96 @@
 import { ArticlePageService } from './article-page.service';
-import { ArticleService } from '../../services/articles';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { createMockArticle } from './article-testing.helper';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ArticleVersion } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { BehaviorSubject, of, throwError, NEVER } from 'rxjs';
 
-const mockArticle: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
-    title: 'Test Article',
-    content: '<p>Content</p>',
-    author: 'Author',
-    date: new Date('2024-01-15'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle();
 
 describe('ArticlePageService', () => {
     let spectator: SpectatorService<ArticlePageService>;
-    let articleService: jest.Mocked<ArticleService>;
-    let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
-    let route: ActivatedRoute;
 
     const createService = createServiceFactory({
         service: ArticlePageService,
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ArticleService,
-                useValue: { getArticle: jest.fn() },
-            },
-        ],
+        providers: [mockLoggerProvider()],
     });
 
     beforeEach(() => {
-        paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '123' }));
-        route = {
-            paramMap: paramMapSubject.asObservable(),
-        } as unknown as ActivatedRoute;
-
         spectator = createService();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-        articleService.getArticle.mockReturnValue(of(mockArticle));
     });
 
     it('should be created', () => {
         expect(spectator.service).toBeTruthy();
     });
 
-    it('should load article on init', () => {
-        spectator.service.init(route);
-
-        expect(articleService.getArticle).toHaveBeenCalledWith(123);
-        expect(spectator.service.article()).toEqual(mockArticle);
-        expect(spectator.service.isLoading()).toBe(false);
-        expect(spectator.service.articleId()).toBe(123);
+    it('should have undefined article initially', () => {
+        expect(spectator.service.article()).toBeUndefined();
     });
 
-    it('should set loading state during load', () => {
-        articleService.getArticle.mockReturnValue(NEVER);
-
-        spectator.service.init(route);
-
-        expect(spectator.service.isLoading()).toBe(true);
+    it('should have undefined error initially', () => {
+        expect(spectator.service.error()).toBeUndefined();
     });
 
-    it('should handle invalid ID', () => {
-        paramMapSubject.next(convertToParamMap({ id: 'invalid' }));
+    describe('setArticle', () => {
+        it('should set article signal', () => {
+            spectator.service.setArticle(mockArticle);
 
-        spectator.service.init(route);
+            expect(spectator.service.article()).toEqual(mockArticle);
+        });
 
-        expect(spectator.service.error()).toBe('Неверный ID статьи');
-        expect(spectator.service.isLoading()).toBe(false);
+        it('should clear error when setting article', () => {
+            spectator.service.setError('some error');
+            spectator.service.setArticle(mockArticle);
+
+            expect(spectator.service.error()).toBeUndefined();
+        });
     });
 
-    it('should handle 404 error', () => {
-        const error = new HttpErrorResponse({ status: 404 });
-        articleService.getArticle.mockReturnValue(throwError(() => error));
+    describe('setError', () => {
+        it('should set error signal', () => {
+            spectator.service.setError('Ошибка загрузки статьи');
 
-        spectator.service.init(route);
+            expect(spectator.service.error()).toBe('Ошибка загрузки статьи');
+        });
 
-        expect(spectator.service.error()).toBe('Статья не найдена');
+        it('should clear article when setting error', () => {
+            spectator.service.setArticle(mockArticle);
+            spectator.service.setError('Error');
+
+            expect(spectator.service.article()).toBeUndefined();
+        });
     });
 
-    it('should handle generic error', () => {
-        const error = new HttpErrorResponse({ status: 500 });
-        articleService.getArticle.mockReturnValue(throwError(() => error));
+    describe('computed signals', () => {
+        it('should compute articleId from article', () => {
+            expect(spectator.service.articleId()).toBeUndefined();
 
-        spectator.service.init(route);
+            spectator.service.setArticle(mockArticle);
 
-        expect(spectator.service.error()).toBe('Ошибка загрузки статьи');
-    });
+            expect(spectator.service.articleId()).toBe(123);
+        });
 
-    it('should reload when route params change', () => {
-        spectator.service.init(route);
+        it('should compute title from article', () => {
+            expect(spectator.service.title()).toBeUndefined();
 
-        const anotherArticle = { ...mockArticle, articleId: 456 };
-        articleService.getArticle.mockReturnValue(of(anotherArticle));
-        paramMapSubject.next(convertToParamMap({ id: '456' }));
+            spectator.service.setArticle(mockArticle);
 
-        expect(articleService.getArticle).toHaveBeenCalledWith(456);
-        expect(spectator.service.article()).toEqual(anotherArticle);
-    });
+            expect(spectator.service.title()).toBe('Test Article');
+        });
 
-    it('should compute title from article', () => {
-        spectator.service.init(route);
+        it('should compute editUrl from article versionId', () => {
+            expect(spectator.service.editUrl()).toBeUndefined();
 
-        expect(spectator.service.title()).toBe('Test Article');
-    });
+            spectator.service.setArticle(mockArticle);
 
-    it('should compute editUrl from article', () => {
-        spectator.service.init(route);
+            expect(spectator.service.editUrl()).toBe('/articles/edit/456');
+        });
 
-        expect(spectator.service.editUrl()).toBe('/articles/edit/456');
+        it('should clear computed values after setError', () => {
+            spectator.service.setArticle(mockArticle);
+            spectator.service.setError('Error');
+
+            expect(spectator.service.articleId()).toBeUndefined();
+            expect(spectator.service.title()).toBeUndefined();
+            expect(spectator.service.editUrl()).toBeUndefined();
+        });
     });
 });

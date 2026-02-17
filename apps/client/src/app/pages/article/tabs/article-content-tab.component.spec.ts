@@ -1,25 +1,13 @@
 import { ArticlePageService } from '../article-page.service';
 import { ArticleContentTabComponent } from './article-content-tab.component';
+import { createMockArticle } from '../article-testing.helper';
 import { ActivatedRoute } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ArticleVersion } from '@drevo-web/shared';
 import { BehaviorSubject, of } from 'rxjs';
 
-const mockArticle: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
-    title: 'Test Article',
-    content: '<p>Test content</p>',
-    author: 'Author',
-    date: new Date('2024-01-15'),
-    redirect: false,
-    new: false,
-    approved: 1,
-    info: '',
-    comment: '',
-};
+const mockArticle = createMockArticle({ content: '<p>Test content</p>' });
 
 describe('ArticleContentTabComponent', () => {
     let spectator: Spectator<ArticleContentTabComponent>;
