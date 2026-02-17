@@ -20,7 +20,7 @@
     background-color: var(--themed-header-bg);
     display: flex;
     align-items: center;
-    padding: 0 14px;
+    padding: 0 4px;
     transition: background-color 0.3s ease;
 }
 
@@ -29,6 +29,7 @@
     background-color: var(--themed-primary-bg);
     transition: background-color 0.3s ease;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 // Suppress all transitions during breakpoint switch

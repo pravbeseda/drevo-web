@@ -357,4 +357,28 @@ describe('LayoutComponent', () => {
             expect(drawerService.close).not.toHaveBeenCalled();
         });
     });
+
+    describe('scrollToTopOnNavigation', () => {
+        it('should scroll content to top on navigation', async () => {
+            spectator = createComponent();
+            const contentEl = spectator.query('.main') as HTMLElement;
+            contentEl.scrollTo = jest.fn();
+
+            const router = spectator.inject(Router);
+            await router.navigateByUrl('/test');
+
+            expect(contentEl.scrollTo).toHaveBeenCalledWith(0, 0);
+        });
+
+        it('should not scroll to top when navigating to a fragment', async () => {
+            spectator = createComponent();
+            const contentEl = spectator.query('.main') as HTMLElement;
+            contentEl.scrollTo = jest.fn();
+
+            const router = spectator.inject(Router);
+            await router.navigateByUrl('/test#section');
+
+            expect(contentEl.scrollTo).not.toHaveBeenCalled();
+        });
+    });
 });

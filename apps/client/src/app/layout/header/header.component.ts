@@ -4,11 +4,11 @@ import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle
 import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DrawerService } from '@drevo-web/core';
-import { IconButtonComponent, ModalService } from '@drevo-web/ui';
+import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-header',
-    imports: [AccountDropdownComponent, FontScaleControlComponent, ThemeToggleComponent, IconButtonComponent],
+    imports: [AccountDropdownComponent, FontScaleControlComponent, LineClampComponent, ThemeToggleComponent, IconButtonComponent],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

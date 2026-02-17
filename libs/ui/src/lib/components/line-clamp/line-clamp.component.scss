@@ -1,0 +1,12 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.line-clamp-content {
+    display: -webkit-box;
+    -webkit-line-clamp: var(--lines, 2);
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
