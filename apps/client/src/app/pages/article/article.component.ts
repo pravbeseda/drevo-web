@@ -55,7 +55,6 @@ export class ArticleComponent {
 
     readonly article = this.pageService.article;
     readonly error = this.pageService.error;
-    readonly title = this.pageService.title;
 
     readonly tabGroups = computed<TabGroup[]>(() => {
         const id = this.pageService.articleId();

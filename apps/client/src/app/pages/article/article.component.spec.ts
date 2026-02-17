@@ -90,12 +90,6 @@ describe('ArticleComponent', () => {
         expect(mockService.setArticle).toHaveBeenCalledWith(newArticle);
     });
 
-    it('should display article title when loaded', () => {
-        spectator.detectChanges();
-
-        expect(spectator.query('.article-title')).toHaveText('Test Article Title');
-    });
-
     it('should render tabs-group', () => {
         spectator.detectChanges();
 
