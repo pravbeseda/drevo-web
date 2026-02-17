@@ -12,46 +12,36 @@
 
 ```
 Router.events
-    ↓ NavigationStart  → показать progress bar
-    ↓ NavigationEnd    → скрыть progress bar
-    ↓ NavigationCancel → скрыть progress bar
-    ↓ NavigationError  → скрыть progress bar
+    ↓ NavigationStart  → debounce 100ms → показать progress bar
+    ↓ NavigationEnd    → скрыть progress bar (немедленно)
+    ↓ NavigationCancel → скрыть progress bar (немедленно)
+    ↓ NavigationError  → скрыть progress bar (немедленно)
 
-NavigationProgressComponent (в AppComponent, над router-outlet)
-    ↓ подписка на Router.events
-    ↓ signal isNavigating → CSS-анимация
+NavigationProgressComponent (в libs/ui, используется в AppComponent над router-outlet)
+    ↓ input isNavigating → управляет видимостью
+    ↓ Angular Material mat-progress-bar (mode="indeterminate")
 ```
+
+Debounce применяется только к показу (NavigationStart): если навигация завершается быстрее 100ms, progress bar не появляется. Скрытие — мгновенное.
 
 ## Шаги реализации
 
-### 1. Создать `NavigationProgressComponent`
+### 1. Создать `NavigationProgressComponent` в `libs/ui`
 
-Файл: `apps/client/src/app/components/navigation-progress/navigation-progress.component.ts`
+Файл: `libs/ui/src/lib/components/navigation-progress/navigation-progress.component.ts`
 
-Standalone компонент с подпиской на `Router.events`:
+Standalone UI-компонент с input-сигналом. Логика навигации остаётся в `AppComponent` — UI-компонент только отображает progress bar:
 
 ```typescript
 @Component({
-    selector: 'app-navigation-progress',
+    selector: 'ui-navigation-progress',
     templateUrl: './navigation-progress.component.html',
     styleUrl: './navigation-progress.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatProgressBarModule],
 })
 export class NavigationProgressComponent {
-    private readonly router = inject(Router);
-
-    readonly isNavigating = toSignal(
-        this.router.events.pipe(
-            filter(e =>
-                e instanceof NavigationStart ||
-                e instanceof NavigationEnd ||
-                e instanceof NavigationCancel ||
-                e instanceof NavigationError
-            ),
-            map(e => e instanceof NavigationStart)
-        ),
-        { initialValue: false }
-    );
+    readonly isNavigating = input.required<boolean>();
 }
 ```
 
@@ -60,58 +50,80 @@ export class NavigationProgressComponent {
 ```html
 <!-- navigation-progress.component.html -->
 @if (isNavigating()) {
-    <div class="navigation-progress" data-testid="navigation-progress">
-        <div class="navigation-progress__bar"></div>
-    </div>
+    <mat-progress-bar
+        mode="indeterminate"
+        data-testid="navigation-progress"
+    />
 }
 ```
 
 ```scss
 // navigation-progress.component.scss
-.navigation-progress {
+:host {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 9999;
-    height: 3px;
-    overflow: hidden;
-
-    &__bar {
-        height: 100%;
-        background: var(--themed-primary);
-        animation: progress 2s ease-in-out infinite;
-    }
-}
-
-@keyframes progress {
-    0% {
-        width: 0;
-        margin-left: 0;
-    }
-    50% {
-        width: 70%;
-        margin-left: 15%;
-    }
-    100% {
-        width: 0;
-        margin-left: 100%;
-    }
 }
 ```
 
-### 3. Добавить в `AppComponent`
+### 3. Экспортировать из `libs/ui`
+
+Добавить в `libs/ui/src/index.ts`:
+
+```typescript
+export * from './lib/components/navigation-progress/navigation-progress.component';
+```
+
+### 4. Использовать в `AppComponent`
+
+```typescript
+// app.component.ts
+import { NavigationProgressComponent } from '@drevo-web/ui';
+
+const NAVIGATION_DEBOUNCE_MS = 100;
+
+// В конструкторе или как поле класса:
+private readonly router = inject(Router);
+
+readonly isNavigating = toSignal(
+    this.router.events.pipe(
+        filter(e =>
+            e instanceof NavigationStart ||
+            e instanceof NavigationEnd ||
+            e instanceof NavigationCancel ||
+            e instanceof NavigationError
+        ),
+        map(e => e instanceof NavigationStart),
+        switchMap(navigating =>
+            navigating
+                ? timer(NAVIGATION_DEBOUNCE_MS).pipe(map(() => true))
+                : of(false)
+        )
+    ),
+    { initialValue: false }
+);
+```
 
 ```html
-<app-navigation-progress />
+<!-- app.component.html -->
+<ui-navigation-progress [isNavigating]="isNavigating()" />
 <!-- остальной контент -->
 ```
 
-### 4. Написать тесты
+SSR: на сервере `toSignal` начинает с `initialValue: false`, Router events с debounce не эмитят — progress bar не появится.
 
-- Проверить что `isNavigating()` = `true` при `NavigationStart`
+### 5. Написать тесты
+
+#### UI-компонент (`libs/ui`)
+- Проверить что `mat-progress-bar` рендерится при `isNavigating = true`
+- Проверить что `mat-progress-bar` не рендерится при `isNavigating = false`
+
+#### AppComponent (интеграция)
+- Проверить что `isNavigating()` = `true` при `NavigationStart` после 100ms debounce
 - Проверить что `isNavigating()` = `false` при `NavigationEnd`, `NavigationCancel`, `NavigationError`
-- Проверить что `[data-testid="navigation-progress"]` рендерится при `isNavigating()` = `true`
+- Проверить что progress bar не появляется, если навигация завершается быстрее 100ms
 
 ---
 
@@ -119,20 +131,15 @@ export class NavigationProgressComponent {
 
 | Файл | Назначение |
 |------|-----------|
-| `apps/client/src/app/components/navigation-progress/navigation-progress.component.ts` | Компонент progress bar |
-| `apps/client/src/app/components/navigation-progress/navigation-progress.component.html` | Шаблон |
-| `apps/client/src/app/components/navigation-progress/navigation-progress.component.scss` | Стили |
-| `apps/client/src/app/components/navigation-progress/navigation-progress.component.spec.ts` | Тесты |
+| `libs/ui/src/lib/components/navigation-progress/navigation-progress.component.ts` | UI-компонент progress bar |
+| `libs/ui/src/lib/components/navigation-progress/navigation-progress.component.html` | Шаблон (mat-progress-bar) |
+| `libs/ui/src/lib/components/navigation-progress/navigation-progress.component.scss` | Стили (позиционирование) |
+| `libs/ui/src/lib/components/navigation-progress/navigation-progress.component.spec.ts` | Тесты UI-компонента |
 
 ## Файлы для изменения
 
 | Файл | Что меняется |
 |------|-------------|
-| `apps/client/src/app/app.component.html` | Добавить `<app-navigation-progress />` |
-| `apps/client/src/app/app.component.ts` | Добавить `NavigationProgressComponent` в imports |
-
-## Открытые вопросы
-
-1. **Debounce**: стоит ли добавить debounce (например 100ms) чтобы не мигать при быстрой навигации без resolver-ов?
-2. **Angular Material progress bar**: использовать `mat-progress-bar` (mode="indeterminate") через `@drevo-web/ui` или свой CSS? Material даёт accessibility из коробки.
-3. **SSR**: компонент должен рендериться только в browser (`isPlatformBrowser`), т.к. на сервере навигация всегда синхронная.
+| `libs/ui/src/index.ts` | Экспорт `NavigationProgressComponent` |
+| `apps/client/src/app/app.component.html` | Добавить `<ui-navigation-progress />` |
+| `apps/client/src/app/app.component.ts` | Добавить `NavigationProgressComponent` в imports, логику `isNavigating` |
