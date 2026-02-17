@@ -2,19 +2,23 @@
     <ui-icon-button
         icon="menu"
         label="Меню"
-        (clicked)="toggleDrawer()" />
-    <span
+        (clicked)="toggleDrawer()"
+    />
+    <ui-line-clamp
         class="page-title"
-        data-testid="page-title">
+        data-testid="page-title"
+        [tooltip]="pageTitle()"
+    >
         {{ pageTitle() }}
-    </span>
+    </ui-line-clamp>
 </div>
 
 <div class="header-actions">
     <ui-icon-button
         icon="search"
         label="Словник"
-        (clicked)="openSearch()" />
+        (clicked)="openSearch()"
+    />
     <app-font-scale-control></app-font-scale-control>
     <app-theme-toggle></app-theme-toggle>
     <app-account-dropdown></app-account-dropdown>

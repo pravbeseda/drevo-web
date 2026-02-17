@@ -6,6 +6,7 @@ export * from './lib/components/dropdown-menu/dropdown-menu.component';
 export * from './lib/components/dropdown-menu/dropdown-menu-item.component';
 export * from './lib/components/dropdown-menu/dropdown-menu-trigger.directive';
 export * from './lib/components/icon/icon.component';
+export * from './lib/components/line-clamp/line-clamp.component';
 export * from './lib/components/icon-button/icon-button.component';
 export * from './lib/components/navigation-progress/navigation-progress.component';
 export * from './lib/components/spinner/spinner.component';
