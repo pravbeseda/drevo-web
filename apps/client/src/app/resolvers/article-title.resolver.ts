@@ -10,8 +10,12 @@ import { catchError, map } from 'rxjs/operators';
  * guarantees a single HTTP request when used alongside articleResolver.
  */
 export function resolveArticleTitle(articleService: ArticleService, route: ActivatedRouteSnapshot): Observable<string> {
-    const id = Number(route.paramMap.get('id'));
+    const idParam = route.paramMap.get('id');
+    if (!idParam) {
+        return of('Статья');
+    }
 
+    const id = Number(idParam);
     if (isNaN(id) || id <= 0) {
         return of('Статья');
     }

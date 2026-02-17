@@ -13,8 +13,12 @@ export function resolveArticle(
     articleService: ArticleService,
     route: ActivatedRouteSnapshot
 ): Observable<ArticleVersion | undefined> {
-    const id = Number(route.paramMap.get('id'));
+    const idParam = route.paramMap.get('id');
+    if (!idParam) {
+        return of(undefined);
+    }
 
+    const id = Number(idParam);
     if (isNaN(id) || id <= 0) {
         return of(undefined);
     }
