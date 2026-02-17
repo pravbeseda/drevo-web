@@ -19,18 +19,20 @@ export class ArticleComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
 
-    private readonly articleSubscription = this.route.data
-        .pipe(
-            map(data => data['article'] as ArticleVersion | undefined),
-            takeUntilDestroyed()
-        )
-        .subscribe(article => {
-            if (article) {
-                this.pageService.setArticle(article);
-            } else {
-                this.pageService.setError('Ошибка загрузки статьи');
-            }
-        });
+    constructor() {
+        this.route.data
+            .pipe(
+                map(data => data['article'] as ArticleVersion | undefined),
+                takeUntilDestroyed()
+            )
+            .subscribe(article => {
+                if (article) {
+                    this.pageService.setArticle(article);
+                } else {
+                    this.pageService.setError('Ошибка загрузки статьи');
+                }
+            });
+    }
 
     private readonly url = toSignal(
         this.router.events.pipe(
