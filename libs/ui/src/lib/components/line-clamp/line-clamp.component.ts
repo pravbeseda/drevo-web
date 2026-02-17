@@ -26,7 +26,7 @@ export class LineClampComponent {
     readonly tooltip = input('');
 
     private readonly _isTruncated = signal(false);
-    private readonly contentEl = viewChild.required<ElementRef<HTMLElement>>('content');
+    protected readonly contentEl = viewChild.required<ElementRef<HTMLElement>>('content');
 
     private readonly destroyRef = inject(DestroyRef);
 
