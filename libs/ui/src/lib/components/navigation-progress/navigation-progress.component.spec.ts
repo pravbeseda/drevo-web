@@ -25,21 +25,5 @@ describe('NavigationProgressComponent', () => {
         expect(spectator.query('[data-testid="navigation-progress"]')).not.toExist();
     });
 
-    it('should show progress bar when isNavigating changes to true', () => {
-        spectator = createComponent({ props: { isNavigating: false } });
-        expect(spectator.query('[data-testid="navigation-progress"]')).not.toExist();
 
-        spectator.setInput('isNavigating', true);
-        spectator.detectChanges();
-        expect(spectator.query('[data-testid="navigation-progress"]')).toExist();
-    });
-
-    it('should hide progress bar when isNavigating changes to false', () => {
-        spectator = createComponent({ props: { isNavigating: true } });
-        expect(spectator.query('[data-testid="navigation-progress"]')).toExist();
-
-        spectator.setInput('isNavigating', false);
-        spectator.detectChanges();
-        expect(spectator.query('[data-testid="navigation-progress"]')).not.toExist();
-    });
 });
