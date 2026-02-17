@@ -110,7 +110,7 @@ export class LayoutComponent implements OnInit {
                     this.drawerService.close();
                 }
 
-                if (!event.urlAfterRedirects.includes('#')) {
+                if (!new URL(event.urlAfterRedirects, 'http://_').hash) {
                     this.contentEl()?.nativeElement.scrollTo?.(0, 0);
                 }
             });
