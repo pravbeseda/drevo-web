@@ -1,6 +1,6 @@
-import { ErrorComponent } from '../../../../pages/error/error.component';
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
+import { ErrorComponent } from '../../../error/error.component';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';

@@ -5,7 +5,7 @@ export const appRoutes: Route[] = [
     {
         path: 'login',
         title: 'Вход',
-        loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent),
+        loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent),
         data: { layout: 'none' },
     },
     {
@@ -16,13 +16,13 @@ export const appRoutes: Route[] = [
                 path: '',
                 pathMatch: 'full',
                 title: 'Главная',
-                loadComponent: () => import('./pages/main/main.component').then(m => m.MainComponent),
+                loadComponent: () => import('./features/main/main.component').then(m => m.MainComponent),
             },
             {
                 path: 'editor',
                 title: 'Редактор',
                 loadComponent: () =>
-                    import('./pages/shared-editor/shared-editor.component').then(m => m.SharedEditorComponent),
+                    import('./features/editor/shared-editor.component').then(m => m.SharedEditorComponent),
             },
             {
                 path: 'history',
@@ -51,7 +51,7 @@ export const appRoutes: Route[] = [
             {
                 path: '**',
                 title: 'Страница не найдена',
-                loadComponent: () => import('./pages/error/error.component').then(m => m.ErrorComponent),
+                loadComponent: () => import('./features/error/error.component').then(m => m.ErrorComponent),
                 data: { showHomeButton: true },
             },
         ],
