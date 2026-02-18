@@ -6,7 +6,21 @@ import { Route } from '@angular/router';
 
 export const ARTICLE_ROUTES: Route[] = [
     {
-        path: '',
+        path: 'edit/:id',
+        title: 'Редактирование статьи',
+        loadComponent: () =>
+            import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+    },
+    {
+        path: 'version/:id',
+        title: 'Перенаправление',
+        loadComponent: () =>
+            import('./pages/version-redirect/version-redirect.component').then(
+                m => m.VersionRedirectComponent
+            ),
+    },
+    {
+        path: ':id',
         loadComponent: () =>
             import('./pages/article-page/article.component').then(m => m.ArticleComponent),
         providers: [ArticlePageService],

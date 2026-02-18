@@ -31,21 +31,7 @@ export const appRoutes: Route[] = [
                     import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),
             },
             {
-                path: 'articles/edit/:id',
-                title: 'Редактирование статьи',
-                loadComponent: () =>
-                    import('./features/article/pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
-            },
-            {
-                path: 'articles/version/:id',
-                title: 'Перенаправление',
-                loadComponent: () =>
-                    import('./features/article/pages/version-redirect/version-redirect.component').then(
-                        m => m.VersionRedirectComponent
-                    ),
-            },
-            {
-                path: 'articles/:id',
+                path: 'articles',
                 loadChildren: () => import('./features/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },
             {
