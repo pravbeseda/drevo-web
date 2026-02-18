@@ -1,5 +1,5 @@
-import { isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
+import { WINDOW } from '@drevo-web/core';
 import { InsertTagCommand } from '@drevo-web/shared';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 
@@ -14,8 +14,7 @@ const allowedOrigins = [
 @Injectable()
 export class IframeService implements OnDestroy {
     private readonly messageHandler = (event: MessageEvent): void => this.onMessage(event);
-    private readonly platformId = inject<object>(PLATFORM_ID);
-    private readonly isBrowser = isPlatformBrowser(this.platformId);
+    private readonly window = inject(WINDOW);
     private readonly contentSubject = new ReplaySubject<string>(1);
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(undefined);
     private readonly insertTagSubject = new Subject<InsertTagCommand>();
@@ -25,21 +24,15 @@ export class IframeService implements OnDestroy {
     public readonly insertTag$ = this.insertTagSubject.asObservable();
 
     constructor() {
-        if (this.isBrowser) {
-            window.addEventListener('message', this.messageHandler);
-        }
+        this.window?.addEventListener('message', this.messageHandler);
     }
 
     ngOnDestroy(): void {
-        if (this.isBrowser) {
-            window.removeEventListener('message', this.messageHandler);
-        }
+        this.window?.removeEventListener('message', this.messageHandler);
     }
 
     sendMessage(message: unknown): void {
-        if (this.isBrowser) {
-            window.parent.postMessage(message, '*');
-        }
+        this.window?.parent.postMessage(message, '*');
     }
 
     private onMessage(event: MessageEvent): void {

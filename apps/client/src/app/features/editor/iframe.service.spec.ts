@@ -1,5 +1,5 @@
-import { PLATFORM_ID } from '@angular/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { WINDOW } from '@drevo-web/core';
 import { IframeService } from './iframe.service';
 
 const allowedOrigin = 'http://drevo-local.ru';
@@ -10,8 +10,8 @@ describe('IframeService - Browser Platform', () => {
         service: IframeService,
         providers: [
             {
-                provide: PLATFORM_ID,
-                useValue: 'browser',
+                provide: WINDOW,
+                useValue: window,
             },
         ],
     });
@@ -61,7 +61,6 @@ describe('IframeService - Browser Platform', () => {
             })
         );
 
-        // Используем небольшой таймаут, чтобы дать возможность событию пройти асинхронно
         setTimeout(() => {
             expect(spy).not.toHaveBeenCalled();
             done();
@@ -72,7 +71,6 @@ describe('IframeService - Browser Platform', () => {
         const spy = jest.fn();
         spectator.service.content$.subscribe(spy);
 
-        // Отправляем событие без свойства article в data
         window.dispatchEvent(
             new MessageEvent('message', {
                 data: {},
@@ -88,7 +86,6 @@ describe('IframeService - Browser Platform', () => {
 
     it('should remove event listener on destroy', () => {
         spectator.service.ngOnDestroy();
-        // При уничтожении сервиса должен удаляться обработчик события "message"
         expect(window.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
     });
 });
@@ -99,8 +96,8 @@ describe('IframeService — Non-Browser Platform', () => {
         service: IframeService,
         providers: [
             {
-                provide: PLATFORM_ID,
-                useValue: 'server', // Любое значение, кроме "browser", заставляет isPlatformBrowser вернуть false
+                provide: WINDOW,
+                useValue: undefined,
             },
         ],
     });
