@@ -1,4 +1,4 @@
-import { FontScaleService } from '../../../services/font-scale/font-scale.service';
+import { FontScaleService } from '../../services/font-scale.service';
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ButtonComponent, IconButtonComponent } from '@drevo-web/ui';

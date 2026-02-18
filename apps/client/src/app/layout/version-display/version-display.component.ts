@@ -1,4 +1,4 @@
-import { VersionService } from '../../services/version/version.service';
+import { VersionService } from '../services/version.service';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 @Component({

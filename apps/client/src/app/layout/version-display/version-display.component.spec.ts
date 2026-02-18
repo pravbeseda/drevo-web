@@ -1,5 +1,5 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-import { VersionService } from '../../services/version/version.service';
+import { VersionService } from '../services/version.service';
 import { VersionDisplayComponent } from './version-display.component';
 
 describe('VersionDisplayComponent', () => {

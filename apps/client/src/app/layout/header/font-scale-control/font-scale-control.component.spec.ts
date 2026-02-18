@@ -1,7 +1,7 @@
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { StorageService } from '@drevo-web/core';
-import { FontScaleService } from '../../../services/font-scale/font-scale.service';
+import { FontScaleService } from '../../services/font-scale.service';
 import { FontScaleControlComponent } from './font-scale-control.component';
 
 describe('FontScaleControlComponent', () => {
