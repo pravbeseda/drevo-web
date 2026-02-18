@@ -1,6 +1,6 @@
 import { HeaderComponent } from './header/header.component';
 import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
-import { VersionDisplayComponent } from '../components/version-display/version-display.component';
+import { VersionDisplayComponent } from './version-display/version-display.component';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {

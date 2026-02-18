@@ -5,7 +5,7 @@ import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { LogExportService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { User } from '@drevo-web/shared';
-import { AuthService } from '../../services/auth/auth.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { AccountDropdownComponent } from './account-dropdown.component';
 
 describe('AccountDropdownComponent', () => {

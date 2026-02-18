@@ -1,6 +1,6 @@
-import { AccountDropdownComponent } from '../../components/account-dropdown/account-dropdown.component';
-import { FontScaleControlComponent } from '../../components/font-scale-control/font-scale-control.component';
-import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
+import { AccountDropdownComponent } from './account-dropdown/account-dropdown.component';
+import { FontScaleControlComponent } from './font-scale-control/font-scale-control.component';
+import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DrawerService } from '@drevo-web/core';

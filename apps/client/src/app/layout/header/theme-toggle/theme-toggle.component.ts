@@ -1,4 +1,4 @@
-import { ThemeService } from '../../services/theme/theme.service';
+import { ThemeService } from '../../../services/theme/theme.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { IconButtonComponent } from '@drevo-web/ui';
 
