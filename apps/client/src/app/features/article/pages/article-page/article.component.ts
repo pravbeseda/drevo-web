@@ -1,5 +1,5 @@
-import { ArticlePageService } from './article-page.service';
-import { ErrorComponent } from '../error/error.component';
+import { ErrorComponent } from '../../../../pages/error/error.component';
+import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';

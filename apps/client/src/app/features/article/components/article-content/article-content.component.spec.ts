@@ -1,4 +1,4 @@
-import { ArticlePageService } from '../article-page.service';
+import { ArticlePageService } from '../../services/article-page.service';
 import { Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';

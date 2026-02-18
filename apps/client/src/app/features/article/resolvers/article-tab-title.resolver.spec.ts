@@ -1,5 +1,5 @@
 import { createArticleTabTitleResolver } from './article-tab-title.resolver';
-import { createMockArticle } from '../pages/article/article-testing.helper';
+import { createMockArticle } from '../services/article-testing.helper';
 import { ActivatedRouteSnapshot } from '@angular/router';
 
 const mockArticle = createMockArticle({ title: 'Фотосинтез' });

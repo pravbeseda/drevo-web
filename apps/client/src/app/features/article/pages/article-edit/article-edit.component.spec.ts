@@ -4,8 +4,8 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
 import { NotificationService } from '@drevo-web/core';
 import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
-import { ArticleService } from '../../services/articles';
-import { LinksService } from '../../services/links/links.service';
+import { ArticleService } from '../../../../services/articles';
+import { LinksService } from '../../../../services/links/links.service';
 import { ArticleEditComponent } from './article-edit.component';
 
 describe('ArticleEditComponent', () => {

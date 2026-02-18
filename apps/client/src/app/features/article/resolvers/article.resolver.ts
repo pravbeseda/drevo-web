@@ -1,4 +1,4 @@
-import { ArticleService } from '../services/articles';
+import { ArticleService } from '../../../services/articles';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
 import { ArticleVersion } from '@drevo-web/shared';

@@ -1,6 +1,6 @@
-import { ArticleHistoryService } from '../../../services/articles/article-history/article-history.service';
+import { ArticleHistoryService } from '../../../../services/articles/article-history/article-history.service';
 import { ArticleVersionsComponent } from './article-versions.component';
-import { ArticlePageService } from '../article-page.service';
+import { ArticlePageService } from '../../services/article-page.service';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';

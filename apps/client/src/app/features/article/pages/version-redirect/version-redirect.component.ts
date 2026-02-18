@@ -1,4 +1,4 @@
-import { ArticleService } from '../../../services/articles';
+import { ArticleService } from '../../../../services/articles';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

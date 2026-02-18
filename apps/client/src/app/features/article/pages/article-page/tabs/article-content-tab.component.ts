@@ -1,5 +1,5 @@
-import { ArticleContentComponent } from '../article-content/article-content.component';
-import { ArticlePageService } from '../article-page.service';
+import { ArticleContentComponent } from '../../../components/article-content/article-content.component';
+import { ArticlePageService } from '../../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

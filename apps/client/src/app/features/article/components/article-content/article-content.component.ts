@@ -1,4 +1,4 @@
-import { ArticlePageService } from '../article-page.service';
+import { ArticlePageService } from '../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
 import {
     ChangeDetectionStrategy,

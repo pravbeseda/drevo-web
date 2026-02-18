@@ -1,7 +1,7 @@
 import { resolveArticleTitle } from './article-title.resolver';
-import { createMockArticle } from '../pages/article/article-testing.helper';
+import { createMockArticle } from '../services/article-testing.helper';
 import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
-import { ArticleService } from '../services/articles';
+import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle({ title: 'Фотосинтез' });

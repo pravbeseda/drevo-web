@@ -106,19 +106,19 @@ export const appRoutes: Route[] = [
                 path: 'articles/edit/:id',
                 title: 'Редактирование статьи',
                 loadComponent: () =>
-                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+                    import('./features/article/pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
             },
             {
                 path: 'articles/version/:id',
                 title: 'Перенаправление',
                 loadComponent: () =>
-                    import('./pages/article/version-redirect/version-redirect.component').then(
+                    import('./features/article/pages/version-redirect/version-redirect.component').then(
                         m => m.VersionRedirectComponent
                     ),
             },
             {
                 path: 'articles/:id',
-                loadChildren: () => import('./pages/article/article.routes').then(m => m.ARTICLE_ROUTES),
+                loadChildren: () => import('./features/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },
             {
                 path: '**',
