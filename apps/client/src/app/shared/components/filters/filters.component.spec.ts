@@ -1,4 +1,4 @@
-import { FilterEntry } from './filter.model';
+import { FilterEntry } from '../../models/filter.model';
 import { FiltersComponent } from './filters.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 

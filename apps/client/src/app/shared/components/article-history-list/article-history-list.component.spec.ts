@@ -1,7 +1,7 @@
 import {
     ArticleHistoryService,
     HistoryDisplayItem,
-} from '../../../../../services/articles/article-history/article-history.service';
+} from '../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from './article-history-list.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';

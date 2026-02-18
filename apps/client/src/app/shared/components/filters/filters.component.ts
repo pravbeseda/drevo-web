@@ -1,4 +1,4 @@
-import { FilterEntry, isFilterGroup } from './filter.model';
+import { FilterEntry, isFilterGroup } from '../../models/filter.model';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
