@@ -1,4 +1,4 @@
-import { IframeService } from '../../services/iframe/iframe.service';
+import { IframeService } from './iframe.service';
 import { LinksService } from '../../services/links/links.service';
 import { AsyncPipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
