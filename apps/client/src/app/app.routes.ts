@@ -37,7 +37,8 @@ export const appRoutes: Route[] = [
             {
                 path: '**',
                 title: 'Страница не найдена',
-                loadComponent: () => import('./features/error/error.component').then(m => m.ErrorComponent),
+                loadComponent: () =>
+                    import('./shared/components/error/error.component').then(m => m.ErrorComponent),
                 data: { showHomeButton: true },
             },
         ],

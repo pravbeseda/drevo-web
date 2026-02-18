@@ -1,4 +1,4 @@
-import { ErrorComponent } from '../../../error/error.component';
+import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';

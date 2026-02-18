@@ -1,6 +1,6 @@
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
-import { ErrorComponent } from '../../../error/error.component';
+import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
@@ -9,7 +9,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationService, LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
-import { SpinnerComponent, SidebarActionDirective } from '@drevo-web/ui';
+import { SidebarActionDirective, SpinnerComponent } from '@drevo-web/ui';
 import { BehaviorSubject, first } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
