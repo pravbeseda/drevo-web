@@ -4,7 +4,7 @@ import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
-import { ArticleService } from '../../../../services/articles/article.service';
+import { ArticleService } from '../../../services/articles/article.service';
 import { DiffPageDataService } from './diff-page-data.service';
 
 const MOCK_VERSION_PAIRS: VersionPairs = {

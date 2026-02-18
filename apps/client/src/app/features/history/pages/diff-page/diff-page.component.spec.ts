@@ -1,4 +1,4 @@
-import { ArticleService } from '../../../../../services/articles/article.service';
+import { ArticleService } from '../../../../services/articles/article.service';
 import { DiffPageComponent } from './diff-page.component';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';

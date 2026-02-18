@@ -27,80 +27,8 @@ export const appRoutes: Route[] = [
             {
                 path: 'history',
                 title: 'История изменений',
-                children: [
-                    {
-                        path: 'articles/diff2/:id',
-                        title: 'Сравнение версий',
-                        loadComponent: () =>
-                            import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
-                                m => m.DiffPageComponent
-                            ),
-                    },
-                    {
-                        path: 'articles/diff2/:id1/:id2',
-                        title: 'Сравнение версий',
-                        loadComponent: () =>
-                            import('./pages/history/tabs/articles/diff-page/diff-page.component').then(
-                                m => m.DiffPageComponent
-                            ),
-                    },
-                    {
-                        path: 'articles/diff/:id',
-                        title: 'Сравнение версий',
-                        loadComponent: () =>
-                            import('./pages/history/tabs/articles/cm-diff-page/cm-diff-page.component').then(
-                                m => m.CmDiffPageComponent
-                            ),
-                    },
-                    {
-                        path: 'articles/diff/:id1/:id2',
-                        title: 'Сравнение версий',
-                        loadComponent: () =>
-                            import('./pages/history/tabs/articles/cm-diff-page/cm-diff-page.component').then(
-                                m => m.CmDiffPageComponent
-                            ),
-                    },
-                    {
-                        path: '',
-                        loadComponent: () => import('./pages/history/history.component').then(m => m.HistoryComponent),
-                        children: [
-                            {
-                                path: '',
-                                pathMatch: 'full',
-                                redirectTo: 'articles',
-                            },
-                            {
-                                path: 'articles',
-                                loadComponent: () =>
-                                    import('./pages/history/tabs/articles/article-history/articles-history.component').then(
-                                        m => m.ArticlesHistoryComponent
-                                    ),
-                            },
-                            {
-                                path: 'news',
-                                title: 'История новостей',
-                                loadComponent: () =>
-                                    import('./pages/history/tabs/news-history.component').then(
-                                        m => m.NewsHistoryComponent
-                                    ),
-                            },
-                            {
-                                path: 'forum',
-                                title: 'История обсуждений',
-                                loadComponent: () =>
-                                    import('./pages/history/tabs/forum-history.component').then(
-                                        m => m.ForumHistoryComponent
-                                    ),
-                            },
-                            {
-                                path: 'pictures',
-                                title: 'История изображений',
-                                loadComponent: () =>
-                                    import('./pages/history/tabs/pictures.component').then(m => m.PicturesComponent),
-                            },
-                        ],
-                    },
-                ],
+                loadChildren: () =>
+                    import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),
             },
             {
                 path: 'articles/edit/:id',

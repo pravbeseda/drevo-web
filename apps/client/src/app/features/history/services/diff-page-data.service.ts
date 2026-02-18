@@ -1,4 +1,4 @@
-import { ArticleService } from '../../../../services/articles/article.service';
+import { ArticleService } from '../../../services/articles/article.service';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';

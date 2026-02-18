@@ -1,4 +1,4 @@
-import { DiffPageDataService } from '../diff-page-data.service';
+import { DiffPageDataService } from '../../services/diff-page-data.service';
 import {
     ChangeDetectionStrategy,
     Component,

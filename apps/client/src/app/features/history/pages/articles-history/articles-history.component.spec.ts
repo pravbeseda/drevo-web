@@ -1,4 +1,4 @@
-import { ArticleHistoryService } from '../../../../../services/articles/article-history/article-history.service';
+import { ArticleHistoryService } from '../../../../services/articles/article-history/article-history.service';
 import { ArticlesHistoryComponent } from './articles-history.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
