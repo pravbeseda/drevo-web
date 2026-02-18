@@ -1,12 +1,14 @@
 <ul
     class="filter-list"
     role="radiogroup"
-    aria-label="Фильтры">
+    aria-label="Фильтры"
+>
     @for (entry of filters(); track $index) {
         @if (isFilterGroup(entry)) {
             <li
                 class="filter-section-header"
-                data-testid="filter-section-header">
+                data-testid="filter-section-header"
+            >
                 {{ entry.label }}
             </li>
             @for (item of entry.items; track item.key) {
@@ -17,7 +19,8 @@
                         role="radio"
                         [attr.aria-checked]="activeFilter() === item.key"
                         [class.active]="activeFilter() === item.key"
-                        (click)="onSelect(item.key)">
+                        (click)="onSelect(item.key)"
+                    >
                         {{ item.label }}
                     </button>
                 </li>
@@ -30,7 +33,8 @@
                     role="radio"
                     [attr.aria-checked]="activeFilter() === entry.key"
                     [class.active]="activeFilter() === entry.key"
-                    (click)="onSelect(entry.key)">
+                    (click)="onSelect(entry.key)"
+                >
                     {{ entry.label }}
                 </button>
             </li>

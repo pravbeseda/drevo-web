@@ -8,21 +8,17 @@ export const ARTICLE_ROUTES: Route[] = [
     {
         path: 'edit/:id',
         title: 'Редактирование статьи',
-        loadComponent: () =>
-            import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+        loadComponent: () => import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
     },
     {
         path: 'version/:id',
         title: 'Перенаправление',
         loadComponent: () =>
-            import('./pages/version-redirect/version-redirect.component').then(
-                m => m.VersionRedirectComponent
-            ),
+            import('./pages/version-redirect/version-redirect.component').then(m => m.VersionRedirectComponent),
     },
     {
         path: ':id',
-        loadComponent: () =>
-            import('./pages/article-page/article.component').then(m => m.ArticleComponent),
+        loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
         providers: [ArticlePageService],
         resolve: { article: articleResolver },
         title: articleTitleResolver,
@@ -46,18 +42,14 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: 'news',
                 title: createArticleTabTitleResolver('Новости'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent
-                    ),
+                    import('./pages/article-page/tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
                 data: { stubTitle: 'Новости' },
             },
             {
                 path: 'forum',
                 title: createArticleTabTitleResolver('Обсуждение'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent
-                    ),
+                    import('./pages/article-page/tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
                 data: { stubTitle: 'Обсуждение' },
             },
             {
@@ -72,9 +64,7 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: 'linkedhere',
                 title: createArticleTabTitleResolver('Кто ссылается'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent
-                    ),
+                    import('./pages/article-page/tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
                 data: { stubTitle: 'Кто ссылается' },
             },
         ],

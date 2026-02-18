@@ -12,7 +12,8 @@ import { DropdownMenuItemComponent } from './dropdown-menu-item.component';
             <ui-dropdown-menu-item
                 #item
                 [icon]="icon"
-                [disabled]="disabled">
+                [disabled]="disabled"
+            >
                 Test Label
             </ui-dropdown-menu-item>
         </ui-dropdown-menu>

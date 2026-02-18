@@ -8,7 +8,13 @@ import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-we
 
 @Component({
     selector: 'app-header',
-    imports: [AccountDropdownComponent, FontScaleControlComponent, LineClampComponent, ThemeToggleComponent, IconButtonComponent],
+    imports: [
+        AccountDropdownComponent,
+        FontScaleControlComponent,
+        LineClampComponent,
+        ThemeToggleComponent,
+        IconButtonComponent,
+    ],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

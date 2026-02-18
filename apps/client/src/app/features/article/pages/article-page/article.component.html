@@ -1,7 +1,8 @@
 @if (error()) {
     <app-error
         title="Ошибка"
-        [message]="error()" />
+        [message]="error()"
+    />
 } @else if (article(); as article) {
     <article class="article">
         <ui-tabs-group [groups]="tabGroups()">

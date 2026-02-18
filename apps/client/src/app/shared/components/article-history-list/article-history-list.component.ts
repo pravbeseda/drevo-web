@@ -1,7 +1,4 @@
-import {
-    ArticleHistoryService,
-    trackByFn,
-} from '../../../services/articles/article-history/article-history.service';
+import { ArticleHistoryService, trackByFn } from '../../../services/articles/article-history/article-history.service';
 import { ArticlesHistoryItemComponent } from '../articles-history-item/articles-history-item.component';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { ArticleHistoryItem } from '@drevo-web/shared';

@@ -37,5 +37,4 @@ describe('AppComponent', () => {
     it('should render app-layout when showLayout is true', () => {
         expect(spectator.query('app-layout')).toExist();
     });
-
 });

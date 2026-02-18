@@ -2,16 +2,19 @@
     sidebarAction
     icon="filter_list"
     priority="secondary"
-    (click)="openFilters()">
+    (click)="openFilters()"
+>
     Фильтры
 </button>
 
 <ui-side-panel
     [open]="isSidePanelOpen()"
     aria-label="Фильтры"
-    (closed)="isSidePanelOpen.set(false)">
+    (closed)="isSidePanelOpen.set(false)"
+>
     <app-filters
         [filters]="filters()"
         [activeFilter]="activeFilter()"
-        (filterChange)="onFilterChange($event)" />
+        (filterChange)="onFilterChange($event)"
+    />
 </ui-side-panel>

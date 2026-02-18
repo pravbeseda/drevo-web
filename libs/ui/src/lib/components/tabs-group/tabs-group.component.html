@@ -2,7 +2,8 @@
     @for (group of groups(); track $index) {
         <nav
             class="tab-group"
-            [class.tab-group--end]="group.align === 'end'">
+            [class.tab-group--end]="group.align === 'end'"
+        >
             @for (tab of group.items; track tab.route) {
                 <a
                     class="tab-link"
@@ -11,12 +12,14 @@
                     #rla="routerLinkActive"
                     [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }"
                     [class.tab-link--active]="tab.isActive ? tab.isActive() : rla.isActive"
-                    [attr.aria-label]="tab.label">
+                    [attr.aria-label]="tab.label"
+                >
                     <ui-icon
                         class="tab-icon"
                         [name]="tab.icon"
                         [tooltip]="tab.label"
-                        size="small" />
+                        size="small"
+                    />
                     <span class="tab-label">{{ tab.label }}</span>
                     @if (tab.badge !== undefined) {
                         <span class="tab-badge">{{ tab.badge }}</span>

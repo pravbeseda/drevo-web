@@ -14,7 +14,8 @@ import { distinctUntilChanged } from 'rxjs/operators';
         @if (article(); as article) {
             <app-article-content
                 class="article-content"
-                [content]="article.content" />
+                [content]="article.content"
+            />
         }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,

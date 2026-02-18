@@ -2,19 +2,23 @@
     class="virtual-scroller-viewport"
     autosize
     [minBufferPx]="200"
-    [maxBufferPx]="400">
+    [maxBufferPx]="400"
+>
     @if (itemTemplate(); as template) {
         <div
             *cdkVirtualFor="let item of items(); let i = index; trackBy: trackByFn()"
-            class="virtual-scroller-item">
+            class="virtual-scroller-item"
+        >
             <ng-container
                 [ngTemplateOutlet]="template"
-                [ngTemplateOutletContext]="{ $implicit: item, index: i }" />
+                [ngTemplateOutletContext]="{ $implicit: item, index: i }"
+            />
         </div>
     } @else {
         <div
             *cdkVirtualFor="let item of items(); trackBy: trackByFn()"
-            class="virtual-scroller-item virtual-scroller-item--default">
+            class="virtual-scroller-item virtual-scroller-item--default"
+        >
             {{ item }}
         </div>
     }
@@ -23,7 +27,8 @@
         <div class="virtual-scroller-loading">
             <ui-spinner
                 [diameter]="24"
-                [strokeWidth]="3" />
+                [strokeWidth]="3"
+            />
         </div>
     }
 </cdk-virtual-scroll-viewport>

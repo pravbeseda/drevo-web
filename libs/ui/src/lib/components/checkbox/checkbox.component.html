@@ -2,6 +2,7 @@
     [checked]="checked()"
     [disabled]="disabled() || isDisabled()"
     (change)="onCheckboxChange($event.checked)"
-    (blur)="onBlur()">
+    (blur)="onBlur()"
+>
     {{ label() }}
 </mat-checkbox>

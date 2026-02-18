@@ -192,5 +192,4 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
             this.mergeView = undefined;
         }
     }
-
 }

@@ -7,16 +7,19 @@
 } @else if (version(); as version) {
     <div
         class="version-banner"
-        data-testid="version-banner">
+        data-testid="version-banner"
+    >
         <div class="version-banner__header">
             @if (statusIcon(); as icon) {
                 <span
                     class="version-banner__status"
-                    [ngClass]="'version-banner__status--' + approvalClass()">
+                    [ngClass]="'version-banner__status--' + approvalClass()"
+                >
                     <ui-icon
                         [name]="icon"
                         [tooltip]="statusTitle() ?? ''"
-                        size="small" />
+                        size="small"
+                    />
                 </span>
             }
             <span>Версия от {{ version.date | formatTime }}</span>
@@ -33,5 +36,6 @@
     </div>
     <app-article-content
         class="article-content"
-        [content]="version.content" />
+        [content]="version.content"
+    />
 }

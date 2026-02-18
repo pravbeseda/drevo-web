@@ -24,6 +24,4 @@ describe('NavigationProgressComponent', () => {
         spectator = createComponent({ props: { isNavigating: false } });
         expect(spectator.query('[data-testid="navigation-progress"]')).not.toExist();
     });
-
-
 });

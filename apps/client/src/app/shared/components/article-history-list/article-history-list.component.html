@@ -7,7 +7,8 @@
 @if (!service.isLoading() && service.hasError()) {
     <p
         class="history-error"
-        data-testid="history-error">
+        data-testid="history-error"
+    >
         Не удалось загрузить данные
     </p>
 }
@@ -18,10 +19,12 @@
         [totalItems]="service.displayTotalItems()"
         [isLoading]="service.isLoadingMore()"
         [trackByFn]="trackByFn"
-        (loadMore)="service.onLoadMore()">
+        (loadMore)="service.onLoadMore()"
+    >
         <ng-template
             uiVirtualScrollerItem
-            let-item>
+            let-item
+        >
             @if (item.type === 'header') {
                 <div class="history-date-header">{{ item.date }}</div>
             } @else {
@@ -31,7 +34,8 @@
                     [selected]="selectedVersionIds().has(item.data.versionId)"
                     [canCompare]="canCompare()"
                     (selectItem)="selectItem.emit($event)"
-                    (compare)="compareItems.emit()" />
+                    (compare)="compareItems.emit()"
+                />
             }
         </ng-template>
     </ui-virtual-scroller>
@@ -40,7 +44,8 @@
 @if (!service.isLoading() && !service.hasError() && !service.hasItems()) {
     <p
         class="history-empty"
-        data-testid="history-empty">
+        data-testid="history-empty"
+    >
         Нет записей
     </p>
 }

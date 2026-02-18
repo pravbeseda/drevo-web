@@ -3,7 +3,8 @@
     sidebarAction
     icon="toc"
     priority="secondary"
-    (click)="openTableOfContents()">
+    (click)="openTableOfContents()"
+>
     Содержание
 </button>
 <button
@@ -11,7 +12,8 @@
     icon="edit"
     priority="primary"
     [disabled]="!editUrl()"
-    [href]="editUrl()">
+    [href]="editUrl()"
+>
     Редактировать
 </button>
 

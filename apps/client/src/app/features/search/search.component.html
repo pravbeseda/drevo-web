@@ -2,7 +2,8 @@
     <ui-text-input
         label="Поиск"
         placeholder="Введите запрос..."
-        (valueChanged)="onSearchChange($event)" />
+        (valueChanged)="onSearchChange($event)"
+    />
 
     @if (isLoading()) {
         <ui-spinner />
@@ -17,15 +18,18 @@
                 [totalItems]="totalResults()"
                 [isLoading]="isLoadingMore()"
                 [trackByFn]="trackByFn"
-                (loadMore)="onLoadMore()">
+                (loadMore)="onLoadMore()"
+            >
                 <ng-template
                     uiVirtualScrollerItem
-                    let-result>
+                    let-result
+                >
                     <a
                         class="search-result-item"
                         [routerLink]="['/articles', result.id]"
                         (click)="closeModal()"
-                        [innerHTML]="result.title | highlight: searchQuery()"></a>
+                        [innerHTML]="result.title | highlight: searchQuery()"
+                    ></a>
                 </ng-template>
             </ui-virtual-scroller>
         </div>

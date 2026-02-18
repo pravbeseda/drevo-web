@@ -1,11 +1,13 @@
 <app-filters-side-panel
     [filters]="filters()"
     [activeFilter]="activeFilter()"
-    (filterChange)="onFilterChange($event)" />
+    (filterChange)="onFilterChange($event)"
+/>
 
 <app-article-history-list
     [selectable]="true"
     [selectedVersionIds]="selectedVersionIds()"
     [canCompare]="canCompare()"
     (selectItem)="onSelectItem($event)"
-    (compareItems)="onCompare()" />
+    (compareItems)="onCompare()"
+/>

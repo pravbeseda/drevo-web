@@ -27,8 +27,7 @@ export const appRoutes: Route[] = [
             {
                 path: 'history',
                 title: 'История изменений',
-                loadChildren: () =>
-                    import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),
+                loadChildren: () => import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),
             },
             {
                 path: 'articles',
@@ -37,8 +36,7 @@ export const appRoutes: Route[] = [
             {
                 path: '**',
                 title: 'Страница не найдена',
-                loadComponent: () =>
-                    import('./shared/components/error/error.component').then(m => m.ErrorComponent),
+                loadComponent: () => import('./shared/components/error/error.component').then(m => m.ErrorComponent),
                 data: { showHomeButton: true },
             },
         ],

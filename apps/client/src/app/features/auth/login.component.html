@@ -4,26 +4,31 @@
 
         <form
             [formGroup]="loginForm"
-            (ngSubmit)="onSubmit()">
+            (ngSubmit)="onSubmit()"
+        >
             <ui-text-input
                 label="Логин"
                 autocomplete="username"
-                formControlName="username" />
+                formControlName="username"
+            />
 
             <ui-text-input
                 label="Пароль"
                 type="password"
                 autocomplete="current-password"
-                formControlName="password" />
+                formControlName="password"
+            />
 
             <ui-checkbox
                 label="Запомнить меня"
-                formControlName="rememberMe" />
+                formControlName="rememberMe"
+            />
 
             @if (errorMessage()) {
                 <div
                     class="error-message"
-                    role="alert">
+                    role="alert"
+                >
                     {{ errorMessage() }}
                 </div>
             }
@@ -32,7 +37,8 @@
                 type="submit"
                 [loading]="isSubmitting()"
                 [disabled]="loginForm.invalid"
-                [fullWidth]="true">
+                [fullWidth]="true"
+            >
                 Войти
             </ui-button>
         </form>

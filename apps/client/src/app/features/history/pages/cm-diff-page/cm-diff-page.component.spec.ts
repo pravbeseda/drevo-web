@@ -274,6 +274,4 @@ describe('CmDiffPageComponent (two-param route)', () => {
         spectator.detectChanges();
         expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, 100);
     });
-
 });
-

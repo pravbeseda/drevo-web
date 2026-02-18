@@ -1,13 +1,15 @@
 <nav
     mat-tab-nav-bar
-    [tabPanel]="tabPanel">
+    [tabPanel]="tabPanel"
+>
     @for (tab of tabs(); track tab.route) {
         <a
             mat-tab-link
             [routerLink]="tab.route"
             routerLinkActive
             #rla="routerLinkActive"
-            [active]="rla.isActive">
+            [active]="rla.isActive"
+        >
             {{ tab.label }}
             @if (tab.badge !== undefined) {
                 <span class="tab-badge">{{ tab.badge }}</span>

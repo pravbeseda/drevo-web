@@ -2,12 +2,14 @@
     <ui-icon-button
         icon="account_circle"
         label="Загрузка..."
-        [disabled]="true" />
+        [disabled]="true"
+    />
 } @else {
     <ui-icon-button
         icon="account_circle"
         label="Аккаунт"
-        [uiDropdownMenuTriggerFor]="menuContent" />
+        [uiDropdownMenuTriggerFor]="menuContent"
+    />
 
     <ng-template #menuContent>
         <ui-dropdown-menu>
@@ -23,19 +25,22 @@
                 <hr class="dropdown-divider" />
                 <ui-dropdown-menu-item
                     icon="download"
-                    (clicked)="downloadLogs()">
+                    (clicked)="downloadLogs()"
+                >
                     Скачать логи
                 </ui-dropdown-menu-item>
                 <ui-dropdown-menu-item
                     icon="logout"
                     [disabled]="isLoggingOut()"
-                    (clicked)="logout()">
+                    (clicked)="logout()"
+                >
                     Выйти
                 </ui-dropdown-menu-item>
             } @else {
                 <ui-dropdown-menu-item
                     icon="login"
-                    (clicked)="navigateToLogin()">
+                    (clicked)="navigateToLogin()"
+                >
                     Войти
                 </ui-dropdown-menu-item>
             }

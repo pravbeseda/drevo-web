@@ -15,7 +15,8 @@
         [attr.maxlength]="maxLength()"
         [attr.minlength]="minLength()"
         (input)="onInput($event)"
-        (blur)="onBlur()" />
+        (blur)="onBlur()"
+    />
 
     @if (hint() && !errorMessage()) {
         <mat-hint>{{ hint() }}</mat-hint>

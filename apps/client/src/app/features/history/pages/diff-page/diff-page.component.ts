@@ -1,13 +1,5 @@
 import { DiffPageDataService } from '../../services/diff-page-data.service';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    HostListener,
-    inject,
-    OnInit,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import {
     DEFAULT_JS_DIFF_OPTIONS,

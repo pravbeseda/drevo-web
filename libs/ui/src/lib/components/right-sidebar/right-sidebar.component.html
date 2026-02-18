@@ -7,7 +7,8 @@
             [priority]="action.priority"
             [href]="action.href"
             [disabled]="action.disabled"
-            (clicked)="action.href ? undefined : action.action?.()" />
+            (clicked)="action.href ? undefined : action.action?.()"
+        />
     }
 </div>
 
@@ -22,7 +23,8 @@
             [showTooltip]="false"
             [href]="primaryActions()[0].href"
             [disabled]="primaryActions()[0].disabled"
-            (clicked)="primaryActions()[0].href ? undefined : primaryActions()[0].action?.()" />
+            (clicked)="primaryActions()[0].href ? undefined : primaryActions()[0].action?.()"
+        />
     }
 
     @if (secondaryActions().length > 0) {
@@ -31,11 +33,13 @@
             label="Дополнительные действия"
             variant="menu"
             [showTooltip]="false"
-            (clicked)="toggleMenu()" />
+            (clicked)="toggleMenu()"
+        />
 
         <div
             class="speed-dial"
-            [class.open]="menuOpen()">
+            [class.open]="menuOpen()"
+        >
             @for (action of secondaryActions(); track action.id) {
                 <ui-action-button
                     [icon]="action.icon"
@@ -46,7 +50,8 @@
                     [showLabel]="true"
                     [href]="action.href"
                     [disabled]="action.disabled"
-                    (clicked)="action.href ? undefined : handleSpeedDialAction(action)" />
+                    (clicked)="action.href ? undefined : handleSpeedDialAction(action)"
+                />
             }
         </div>
     }
