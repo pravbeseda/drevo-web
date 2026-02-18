@@ -29,24 +29,24 @@ This guide explains the different scripts available for building, deploying, and
 
 ---
 
-### 📦 NPM Scripts
+### 📦 Yarn Scripts
 
 #### Build Scripts
 ```bash
 # Build for production (default)
-npm run build              # Build with production configuration
+yarn build              # Build with production configuration
 
 # Build for development
-npm run build:dev          # Build with development configuration
+yarn build:dev          # Build with development configuration
 ```
 
 #### Start & Dev Scripts
 ```bash
 # Start production server
-npm run start              # Start the SSR server
+yarn start              # Start the SSR server
 
 # Local development
-npm run dev                # Start Nx dev server with HMR
+yarn serve                # Start Nx dev server with HMR
 ```
 
 ---
@@ -54,7 +54,7 @@ npm run dev                # Start Nx dev server with HMR
 ## 🎯 When to Use Which Script
 
 ### Local Development
-- **Use**: `npm run dev`
+- **Use**: `yarn serve`
 - **For**: Active development with hot module replacement
 - **Result**: Local dev server running on port 4200
 
@@ -64,7 +64,7 @@ npm run dev                # Start Nx dev server with HMR
 - **Result**: Atomic deployment with PM2 management
 
 ### Manual Build & Test
-- **Use**: `npm run build` + `npm run start`
+- **Use**: `yarn build` + `yarn start`
 - **For**: Testing production build locally
 - **Result**: SSR server running on default port
 
@@ -87,14 +87,14 @@ Each environment uses different paths and ports:
 
 ```bash
 # 🔧 LOCAL DEVELOPMENT
-npm run dev                # Start dev server (http://localhost:4200)
+yarn serve                # Start dev server (http://localhost:4200)
 
 # 🚀 PRODUCTION DEPLOYMENT  
 ./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
 ./scripts/deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
 
 # 📦 MANUAL BUILD + START
-npm run build && npm run start
+yarn build && yarn start
 ```
 
 ---
@@ -102,6 +102,6 @@ npm run build && npm run start
 ## ⚠️ Important Notes
 
 - **deploy.sh**: Production deployment only, uses atomic symlinks and PM2
-- **npm run dev**: For local development with HMR
-- **npm run build + start**: For testing production SSR locally
+- **yarn serve**: For local development with HMR
+- **yarn build + start**: For testing production SSR locally
 - Staging uses `--base-href=/staging/` passed via CI/CD pipeline
