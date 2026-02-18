@@ -1,5 +1,5 @@
 import { resolveArticle } from './article.resolver';
-import { createMockArticle } from '../services/article-testing.helper';
+import { createMockArticle } from '../testing/article-testing.helper';
 import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';

@@ -1,6 +1,6 @@
 import { ArticlePageService } from '../../services/article-page.service';
 import { ArticleComponent } from './article.component';
-import { createMockArticle } from '../../services/article-testing.helper';
+import { createMockArticle } from '../../testing/article-testing.helper';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';

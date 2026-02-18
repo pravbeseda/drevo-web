@@ -1,6 +1,6 @@
 import { ArticleService } from '../../../../services/articles';
 import { VersionRedirectComponent } from './version-redirect.component';
-import { createMockArticle } from '../../services/article-testing.helper';
+import { createMockArticle } from '../../testing/article-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';

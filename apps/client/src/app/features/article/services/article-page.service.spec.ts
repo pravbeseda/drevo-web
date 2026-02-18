@@ -1,5 +1,5 @@
 import { ArticlePageService } from './article-page.service';
-import { createMockArticle } from './article-testing.helper';
+import { createMockArticle } from '../testing/article-testing.helper';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
