@@ -1,6 +1,6 @@
-import { AccountDropdownComponent } from '../../components/account-dropdown/account-dropdown.component';
-import { FontScaleControlComponent } from '../../components/font-scale-control/font-scale-control.component';
-import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
+import { AccountDropdownComponent } from './account-dropdown/account-dropdown.component';
+import { FontScaleControlComponent } from './font-scale-control/font-scale-control.component';
+import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DrawerService } from '@drevo-web/core';
@@ -8,7 +8,13 @@ import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-we
 
 @Component({
     selector: 'app-header',
-    imports: [AccountDropdownComponent, FontScaleControlComponent, LineClampComponent, ThemeToggleComponent, IconButtonComponent],
+    imports: [
+        AccountDropdownComponent,
+        FontScaleControlComponent,
+        LineClampComponent,
+        ThemeToggleComponent,
+        IconButtonComponent,
+    ],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,7 +30,7 @@ export class HeaderComponent {
     }
 
     openSearch(): void {
-        this.modalService.open(() => import('../../pages/search/search.component').then(m => m.SearchComponent), {
+        this.modalService.open(() => import('../../features/search/search.component').then(m => m.SearchComponent), {
             width: '600px',
             minHeight: '90vh',
         });

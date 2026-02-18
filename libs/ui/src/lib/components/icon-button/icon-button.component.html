@@ -3,7 +3,8 @@
         <a
             mat-icon-button
             [routerLink]="link()"
-            [attr.aria-label]="label()">
+            [attr.aria-label]="label()"
+        >
             <mat-icon>{{ icon() }}</mat-icon>
         </a>
     } @else {
@@ -11,7 +12,8 @@
             mat-icon-button
             [disabled]="disabled()"
             [attr.aria-label]="label()"
-            (click)="onClick()">
+            (click)="onClick()"
+        >
             <mat-icon>{{ icon() }}</mat-icon>
         </button>
     }

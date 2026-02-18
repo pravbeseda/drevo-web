@@ -1,0 +1,49 @@
+@if (isLoading()) {
+    <ui-icon-button
+        icon="account_circle"
+        label="Загрузка..."
+        [disabled]="true"
+    />
+} @else {
+    <ui-icon-button
+        icon="account_circle"
+        label="Аккаунт"
+        [uiDropdownMenuTriggerFor]="menuContent"
+    />
+
+    <ng-template #menuContent>
+        <ui-dropdown-menu>
+            @if (isAuthenticated()) {
+                <div class="dropdown-header">
+                    <span class="dropdown-header-title">
+                        {{ displayName() }}
+                    </span>
+                    <span class="dropdown-header-subtitle">
+                        {{ roleLabel() }}
+                    </span>
+                </div>
+                <hr class="dropdown-divider" />
+                <ui-dropdown-menu-item
+                    icon="download"
+                    (clicked)="downloadLogs()"
+                >
+                    Скачать логи
+                </ui-dropdown-menu-item>
+                <ui-dropdown-menu-item
+                    icon="logout"
+                    [disabled]="isLoggingOut()"
+                    (clicked)="logout()"
+                >
+                    Выйти
+                </ui-dropdown-menu-item>
+            } @else {
+                <ui-dropdown-menu-item
+                    icon="login"
+                    (clicked)="navigateToLogin()"
+                >
+                    Войти
+                </ui-dropdown-menu-item>
+            }
+        </ui-dropdown-menu>
+    </ng-template>
+}

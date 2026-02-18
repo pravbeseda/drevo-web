@@ -35,24 +35,113 @@ yarn format:fix                    # Prettier fix
 
 ```
 apps/
-  client/                    # Main Angular application
+  client/
     src/app/
-      pages/                 # Pages (lazy-loaded via app.routes.ts)
-      services/              # Domain services (grouped by feature in subdirectories)
-      components/            # Shared app-level components
-      interceptors/          # HTTP interceptors
-      guards/                # Route guards
-      layout/                # Layout components (header, sidebar)
-      models/                # Types and API DTOs
+      guards/                # Route guards (app-level)
+      interceptors/          # HTTP interceptors (app-level)
+      services/              # Global services: domain (ArticleService), infra (PageTitleStrategy)
+      layout/                # Layout shell (header, sidebar, version-display)
+      features/              # Feature modules (see "Feature Architecture")
+      shared/                # Code shared across multiple features
     src/environments/        # Environment configs
   client-e2e/                # E2E tests (Playwright)
 
 libs/
   core/                      # HTTP utilities, logging, notifications, DI tokens
-  shared/                    # Shared models, types, helpers
+  shared/                    # Shared models, types, helpers (cross-app)
   editor/                    # CodeMirror editor component
   ui/                        # UI component library (see "Available UI Components")
 ```
+
+### Feature Architecture
+
+Each feature is a self-contained domain folder under `apps/client/src/app/features/`:
+
+```
+app/features/
+  article/
+    pages/                   # Routed (lazy-loaded) components
+    components/              # Non-routed components used within this feature
+    services/                # Feature-scoped services (not providedIn: 'root')
+    resolvers/               # Route resolvers
+    models/                  # Feature-local types and interfaces
+    article.routes.ts        # Feature routes
+  history/
+    pages/
+    components/
+    services/
+    history.routes.ts
+  auth/
+    pages/
+    services/
+    auth.routes.ts
+  ...
+```
+
+#### Feature rules
+
+1. **No cross-feature imports** — `features/X/` must NEVER import from `features/Y/`. Extract shared components/models to `app/shared/`, shared services to `app/services/`
+2. **`pages/`** — only routed (lazy-loaded) components. One subfolder per route entry point
+3. **`components/`** — non-routed components used within this feature only
+4. **`services/`** — only feature-scoped services (provided in component or route `providers`, not `providedIn: 'root'`). Global domain services live in `app/services/`
+5. **`resolvers/`** — route resolvers belonging to this feature
+6. **`models/`** — feature-local types, interfaces, constants. Created only when needed
+7. **Feature routes file** — each feature has its own `*.routes.ts`, imported lazily from `app.routes.ts`
+8. **Small features** — if a feature is a single component (no subcomponents, services, or resolvers), files live directly in `features/X/` without `pages/` subfolder. Add `pages/`, `components/`, `services/` as the feature grows
+
+#### Where types and models live
+
+| Scope | Location | Example |
+|-------|----------|---------|
+| Cross-app (shared between libs/apps) | `@drevo-web/shared` | `Article`, `User`, `ApiResponse` |
+| Cross-feature (shared between 2+ features) | `app/shared/models/` | `FilterEntry`, `FilterGroup` |
+| Feature-local | `features/X/models/` | `ArticleApi` |
+
+#### `shared/` rules
+
+- **Only code used by 2+ features** — do not preemptively move code to shared
+- Contains `components/` and `models/` subdirectories
+- If a shared item starts being used by only one feature, move it into that feature
+
+#### Layout structure
+
+`layout/` has its own `services/` for layout-specific services (ThemeService, FontScaleService, VersionService):
+
+```
+app/layout/
+  header/
+    account-dropdown/
+    font-scale-control/
+    theme-toggle/
+    header.component.*
+  sidebar-nav/
+  version-display/
+  services/                  # ThemeService, FontScaleService, VersionService
+  layout.component.*
+```
+
+#### Import direction rules
+
+```
+features/X/      →  app/services/, app/shared/, @drevo-web/*
+app/shared/      →  app/services/, @drevo-web/*
+layout/          →  layout/services/, app/services/, app/shared/, @drevo-web/*
+app/services/    →  @drevo-web/*
+guards/          →  app/services/, @drevo-web/*
+interceptors/    →  app/services/, @drevo-web/*
+```
+
+- Features, shared, layout, guards, and interceptors may import from `app/services/` and libs
+- Features and layout may import from `app/shared/`
+- Features must NEVER import from other features, `layout/`, `guards/`, or `interceptors/`
+- `app/shared/` must NEVER import from features or layout
+
+#### App-level folders (outside features)
+
+- **`layout/`** — layout shell and its subcomponents (header, sidebar, etc.). Not a feature — it wraps all features
+- **`guards/`** — route guards (auth guard, etc.)
+- **`interceptors/`** — HTTP interceptors
+- **`services/`** — all `providedIn: 'root'` services: domain services (ArticleService, AuthService, LinksService), infrastructure services (PageTitleStrategy). Grouped by domain in subdirectories (e.g. `services/articles/`, `services/auth/`)
 
 ### Key Entry Points
 
@@ -154,10 +243,10 @@ readonly event$ = this._eventSubject.asObservable();
 
 ### HTTP Services — Two-Layer Pattern
 
-API service (low-level HTTP) + Domain service (business logic, mapping):
+API service (low-level HTTP) + Domain service (business logic, mapping). Both live in `app/services/` with `providedIn: 'root'`:
 
 ```typescript
-// article-api.service.ts — HTTP layer (internal, not used by components)
+// app/services/articles/article-api.service.ts — HTTP layer
 @Injectable({ providedIn: 'root' })
 export class ArticleApiService {
     private readonly apiUrl = environment.apiUrl;
@@ -176,7 +265,7 @@ export class ArticleApiService {
     }
 }
 
-// article.service.ts — Domain layer (used by components)
+// app/services/articles/article.service.ts — Domain layer (used by features)
 @Injectable({ providedIn: 'root' })
 export class ArticleService {
     private readonly articleApiService = inject(ArticleApiService);

@@ -1,0 +1,21 @@
+<div class="error-container">
+    <ui-icon
+        name="error_outline"
+        size="xlarge"
+        class="error-icon"
+    />
+    <h1 class="error-title">{{ title() }}</h1>
+    <p class="error-message">{{ message() }}</p>
+    @if (showHomeButton()) {
+        <ui-button
+            href="/"
+            class="home-button"
+        >
+            <ui-icon
+                name="home"
+                size="small"
+            />
+            На главную
+        </ui-button>
+    }
+</div>

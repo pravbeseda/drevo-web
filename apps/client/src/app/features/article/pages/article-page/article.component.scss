@@ -1,0 +1,19 @@
+@use 'index' as *;
+
+// When the history tab is active, lock `:host` and `.article` to a fixed height
+// so the virtual scroller can fill the remaining space via flex.
+// Other tabs keep normal flow — `.main` scrolls their content as before.
+:host:has(app-article-versions) {
+    height: 100%;
+
+    .article {
+        display: grid;
+        grid-template-rows: 1fr;
+        height: 100%;
+    }
+}
+
+.article {
+    max-width: rem($article-max-width);
+    margin: 0 auto;
+}

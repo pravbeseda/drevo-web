@@ -1,7 +1,8 @@
 <div
     class="layout"
     [class.sidebar-collapsed]="!isDrawerOpen()"
-    [class.skip-transition]="skipTransition()">
+    [class.skip-transition]="skipTransition()"
+>
     <header class="header">
         <app-header></app-header>
         <ui-navigation-progress [isNavigating]="isNavigating()" />
@@ -11,12 +12,14 @@
         class="drawer-backdrop"
         [class.visible]="isMobile() && isDrawerOpen()"
         (click)="closeDrawer()"
-        aria-hidden="true"></div>
+        aria-hidden="true"
+    ></div>
 
     <aside
         class="left"
         [class.drawer-open]="isDrawerOpen()"
-        aria-label="Primary sidebar">
+        aria-label="Primary sidebar"
+    >
         <div class="left-content">
             <app-sidebar-nav />
         </div>
@@ -28,14 +31,16 @@
     <main
         #contentEl
         class="main"
-        id="content">
+        id="content"
+    >
         <ng-content></ng-content>
     </main>
 
     <aside
         class="right"
         [class.has-actions]="hasActions()"
-        aria-label="Secondary sidebar">
+        aria-label="Secondary sidebar"
+    >
         <ui-right-sidebar />
     </aside>
 </div>

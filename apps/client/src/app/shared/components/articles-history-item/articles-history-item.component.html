@@ -1,0 +1,108 @@
+<div
+    class="history-item"
+    [class.history-item--selected]="selected()"
+    [class.history-item--selectable]="selectable()"
+    [attr.tabindex]="selectable() ? 0 : undefined"
+    role="option"
+    [attr.aria-selected]="selected()"
+    (click)="onItemClick()"
+    (keydown.enter)="onItemClick()"
+    (keydown.space)="onItemClick(); $event.preventDefault()"
+>
+    <div class="left-col">
+        @if (item().isNew) {
+            <ui-icon-button
+                label="Новая редакция"
+                [disabled]="true"
+                icon="note_add"
+                (click)="$event.stopPropagation()"
+            />
+        } @else {
+            <ui-icon-button
+                label="Просмотр изменений"
+                icon="difference"
+                [link]="diffLink()"
+                (click)="$event.stopPropagation()"
+            />
+        }
+    </div>
+    <div class="content-col">
+        <div class="title-row">
+            <span
+                class="status-icon"
+                [ngClass]="'status-icon--' + approvalClass()"
+            >
+                <ui-icon
+                    [name]="statusIcon()"
+                    [tooltip]="statusTitle()"
+                    size="small"
+                />
+            </span>
+            <a
+                class="title"
+                data-testid="title"
+                [routerLink]="['/articles', item().articleId, 'version', item().versionId]"
+                (click)="$event.stopPropagation()"
+            >
+                {{ item().title }}
+            </a>
+        </div>
+        <div
+            class="meta-row"
+            data-testid="meta-row"
+        >
+            <span
+                class="time"
+                data-testid="time"
+            >
+                {{ item().date | formatTime }}
+            </span>
+            ·
+            <span
+                class="author"
+                data-testid="author"
+            >
+                {{ item().author }}
+            </span>
+            @if (item().info) {
+                <span
+                    class="author-comment"
+                    data-testid="author-comment"
+                >
+                    {{ item().info }}
+                </span>
+            }
+        </div>
+        @if (item().comment) {
+            <div
+                class="moderator-comment"
+                data-testid="moderator-comment"
+            >
+                <b>Модератор:</b>
+                {{ item().comment }}
+            </div>
+        }
+    </div>
+    @if (selected()) {
+        <div
+            class="selection-overlay"
+            data-testid="selection-overlay"
+        >
+            @if (canCompare()) {
+                <ui-button
+                    data-testid="compare-button"
+                    (click)="onCompareClick($event)"
+                >
+                    Сравнить
+                </ui-button>
+            } @else {
+                <span
+                    class="selection-hint"
+                    data-testid="selection-hint"
+                >
+                    Выберите ещё одну версию для сравнения
+                </span>
+            }
+        </div>
+    }
+</div>

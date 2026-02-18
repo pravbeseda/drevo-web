@@ -1,15 +1,19 @@
 import { HeaderComponent } from './header/header.component';
 import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
-import { VersionDisplayComponent } from '../components/version-display/version-display.component';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { VersionDisplayComponent } from './version-display/version-display.component';
 import {
-    NavigationCancel,
-    NavigationEnd,
-    NavigationError,
-    NavigationStart,
-    Router,
-} from '@angular/router';
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    ElementRef,
+    inject,
+    OnInit,
+    signal,
+    viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router';
 import { DrawerService, SidebarService, WINDOW } from '@drevo-web/core';
 import { BREAKPOINT_TABLET, NavigationProgressComponent, RightSidebarComponent } from '@drevo-web/ui';
 import { filter, map, of, switchMap, timer } from 'rxjs';
@@ -18,7 +22,13 @@ const NAVIGATION_DEBOUNCE_MS = 100;
 
 @Component({
     selector: 'app-layout',
-    imports: [HeaderComponent, SidebarNavComponent, VersionDisplayComponent, RightSidebarComponent, NavigationProgressComponent],
+    imports: [
+        HeaderComponent,
+        SidebarNavComponent,
+        VersionDisplayComponent,
+        RightSidebarComponent,
+        NavigationProgressComponent,
+    ],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,9 +53,7 @@ export class LayoutComponent implements OnInit {
                     e instanceof NavigationError
             ),
             map(e => e instanceof NavigationStart),
-            switchMap(navigating =>
-                navigating ? timer(NAVIGATION_DEBOUNCE_MS).pipe(map(() => true)) : of(false)
-            )
+            switchMap(navigating => (navigating ? timer(NAVIGATION_DEBOUNCE_MS).pipe(map(() => true)) : of(false)))
         ),
         { initialValue: false }
     );

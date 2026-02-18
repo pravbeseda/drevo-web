@@ -1,0 +1,78 @@
+import {
+    ArticleHistoryService,
+    HistoryFilter,
+} from '../../../../services/articles/article-history/article-history.service';
+import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
+import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
+import { FilterEntry } from '../../../../shared/models/filter.model';
+import { ArticlePageService } from '../../services/article-page.service';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { ArticleHistoryItem } from '@drevo-web/shared';
+
+@Component({
+    selector: 'app-article-versions',
+    imports: [ArticleHistoryListComponent, FiltersSidePanelComponent],
+    templateUrl: './article-versions.component.html',
+    styleUrl: './article-versions.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [ArticleHistoryService],
+})
+export class ArticleVersionsComponent implements OnInit {
+    private readonly service = inject(ArticleHistoryService);
+    private readonly articlePageService = inject(ArticlePageService);
+    private readonly router = inject(Router);
+
+    private readonly _selectedVersionIds = signal<readonly number[]>([]);
+    readonly selectedVersionIds = computed(() => new Set(this._selectedVersionIds()));
+    readonly selectedCount = computed(() => this._selectedVersionIds().length);
+    readonly canCompare = computed(() => this.selectedCount() === 2);
+
+    readonly activeFilter = this.service.activeFilter;
+
+    readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
+        const entries: FilterEntry<HistoryFilter>[] = [
+            { key: 'all', label: 'Все' },
+            { key: 'unchecked', label: 'Непроверенные' },
+        ];
+        if (this.service.isAuthenticated()) {
+            entries.push({ key: 'my', label: 'Мои' });
+        }
+        return entries;
+    });
+
+    ngOnInit(): void {
+        this.service.init({ articleId: this.articlePageService.articleId });
+    }
+
+    onFilterChange(filter: HistoryFilter): void {
+        this.service.onFilterChange(filter);
+    }
+
+    onSelectItem(item: ArticleHistoryItem): void {
+        const ids = this._selectedVersionIds();
+        const index = ids.indexOf(item.versionId);
+
+        if (index !== -1) {
+            this._selectedVersionIds.set(ids.filter(id => id !== item.versionId));
+        } else if (ids.length < 2) {
+            this._selectedVersionIds.set([...ids, item.versionId]);
+        } else {
+            const minId = Math.min(...ids);
+            const remaining = ids.find(id => id !== minId) ?? ids[0];
+            this._selectedVersionIds.set([remaining, item.versionId]);
+        }
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscapePress(): void {
+        if (this.selectedCount() > 0) {
+            this._selectedVersionIds.set([]);
+        }
+    }
+
+    onCompare(): void {
+        const [older, newer] = [...this._selectedVersionIds()].sort((a, b) => a - b);
+        this.router.navigate(['/history/articles/diff', older, newer]);
+    }
+}

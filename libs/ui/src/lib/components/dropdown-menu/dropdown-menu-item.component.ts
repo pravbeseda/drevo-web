@@ -18,7 +18,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
                 @if (icon()) {
                     <ui-icon
                         [name]="icon()!"
-                        size="small" />
+                        size="small"
+                    />
                 }
             </span>
         }

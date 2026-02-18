@@ -11,7 +11,8 @@
             [class.action-button--speed-dial]="variant() === 'speed-dial'"
             [attr.aria-label]="label()"
             [matTooltip]="showTooltip() ? label() : ''"
-            matTooltipPosition="left">
+            matTooltipPosition="left"
+        >
             <mat-icon>{{ icon() }}</mat-icon>
             @if (showLabel()) {
                 <span class="action-button__label">{{ label() }}</span>
@@ -30,7 +31,8 @@
             [matTooltip]="showTooltip() ? label() : ''"
             matTooltipPosition="left"
             [disabled]="disabled()"
-            (click)="onClick()">
+            (click)="onClick()"
+        >
             <mat-icon>{{ icon() }}</mat-icon>
             @if (showLabel()) {
                 <span class="action-button__label">{{ label() }}</span>
@@ -50,7 +52,8 @@
             [class.action-button--speed-dial]="variant() === 'speed-dial'"
             [attr.aria-label]="label()"
             [matTooltip]="showTooltip() ? label() : ''"
-            matTooltipPosition="left">
+            matTooltipPosition="left"
+        >
             <mat-icon>{{ icon() }}</mat-icon>
             @if (showLabel()) {
                 <span class="action-button__label">{{ label() }}</span>
@@ -69,7 +72,8 @@
             [matTooltip]="showTooltip() ? label() : ''"
             matTooltipPosition="left"
             [disabled]="disabled()"
-            (click)="onClick()">
+            (click)="onClick()"
+        >
             <mat-icon>{{ icon() }}</mat-icon>
             @if (showLabel()) {
                 <span class="action-button__label">{{ label() }}</span>

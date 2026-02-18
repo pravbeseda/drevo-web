@@ -4,7 +4,8 @@
         data-testid="side-panel-backdrop"
         role="none"
         tabindex="-1"
-        (click)="close()"></div>
+        (click)="close()"
+    ></div>
 }
 <div
     class="side-panel"
@@ -14,21 +15,25 @@
     [attr.aria-modal]="open() || null"
     [attr.aria-hidden]="!open()"
     [attr.inert]="!open() || null"
-    [attr.aria-label]="title()">
+    [attr.aria-label]="title()"
+>
     <div class="side-panel-header">
         <span
             class="side-panel-title"
-            data-testid="side-panel-title">
+            data-testid="side-panel-title"
+        >
             {{ title() }}
         </span>
         <ui-icon-button
             icon="close"
             label="Закрыть"
-            (clicked)="close()" />
+            (clicked)="close()"
+        />
     </div>
     <div
         class="side-panel-content"
-        data-testid="side-panel-content">
+        data-testid="side-panel-content"
+    >
         <ng-content />
     </div>
 </div>

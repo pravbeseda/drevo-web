@@ -1,0 +1,19 @@
+@if (editorConfig$ | async; as editorConfig) {
+    @if (editorConfig.content !== null) {
+        <div class="container">
+            <div class="content">
+                <lib-editor
+                    [content]="editorConfig.content"
+                    [linksStatus]="(updateLinksState$ | async) ?? {}"
+                    [insertTagCommand]="insertTagCommand$ | async"
+                    (updateLinksEvent)="updateLinks($event)"
+                    (contentChanged)="contentChanged($event)"
+                ></lib-editor>
+            </div>
+        </div>
+    } @else {
+        <div class="skeleton-textarea"></div>
+    }
+} @else {
+    <div class="skeleton-textarea"></div>
+}

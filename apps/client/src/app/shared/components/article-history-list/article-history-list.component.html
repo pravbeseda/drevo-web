@@ -1,0 +1,51 @@
+@if (service.isLoading()) {
+    <div class="history-loading">
+        <ui-spinner />
+    </div>
+}
+
+@if (!service.isLoading() && service.hasError()) {
+    <p
+        class="history-error"
+        data-testid="history-error"
+    >
+        Не удалось загрузить данные
+    </p>
+}
+
+@if (!service.isLoading() && !service.hasError() && service.hasItems()) {
+    <ui-virtual-scroller
+        [items]="service.displayItems()"
+        [totalItems]="service.displayTotalItems()"
+        [isLoading]="service.isLoadingMore()"
+        [trackByFn]="trackByFn"
+        (loadMore)="service.onLoadMore()"
+    >
+        <ng-template
+            uiVirtualScrollerItem
+            let-item
+        >
+            @if (item.type === 'header') {
+                <div class="history-date-header">{{ item.date }}</div>
+            } @else {
+                <app-articles-history-item
+                    [item]="item.data"
+                    [selectable]="selectable()"
+                    [selected]="selectedVersionIds().has(item.data.versionId)"
+                    [canCompare]="canCompare()"
+                    (selectItem)="selectItem.emit($event)"
+                    (compare)="compareItems.emit()"
+                />
+            }
+        </ng-template>
+    </ui-virtual-scroller>
+}
+
+@if (!service.isLoading() && !service.hasError() && !service.hasItems()) {
+    <p
+        class="history-empty"
+        data-testid="history-empty"
+    >
+        Нет записей
+    </p>
+}
