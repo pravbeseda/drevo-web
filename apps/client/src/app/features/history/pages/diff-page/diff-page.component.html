@@ -12,6 +12,13 @@
     }
 
     @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
+        <a
+            sidebarAction
+            icon="looks_two"
+            [href]="diffAlternateUrl()"
+        >
+            Способ сравнения 2
+        </a>
         <div class="diff-page-meta">
             <div class="diff-page-meta-title">
                 <span>{{ pairs.current.title }}</span>

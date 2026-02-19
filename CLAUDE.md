@@ -183,6 +183,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 - **No anti-patterns** — no god components, tight coupling, shared mutable state, deep inheritance hierarchies
 - **No logic duplication** — reuse existing services, utilities, and patterns; extract shared logic instead of copy-pasting
 - **Pre-implementation review** — before implementing any task, analyze the proposed solution for over-engineering, non-Angular-way patterns, anti-patterns, and scalability/extensibility issues. Report findings and propose alternatives **before** writing code
+- **Declarative over imperative** — prefer declarative patterns: Angular template syntax over manual DOM manipulation, reactive streams over manual subscriptions, `computed()`/`toSignal()` over manual state sync, `*ngIf`/`@if` over hidden-flag toggling. Avoid imperative loops and side-effectful logic where a declarative expression suffices
 
 ## Code Conventions
 
