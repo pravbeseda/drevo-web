@@ -5,7 +5,7 @@
             [icon]="action.icon"
             [label]="action.label"
             [priority]="action.priority"
-            [href]="action.link"
+            [link]="action.link"
             [disabled]="action.disabled"
             (clicked)="action.link ? undefined : action.action?.()"
         />
@@ -21,7 +21,7 @@
             priority="primary"
             variant="main"
             [showTooltip]="false"
-            [href]="primaryActions()[0].link"
+            [link]="primaryActions()[0].link"
             [disabled]="primaryActions()[0].disabled"
             (clicked)="primaryActions()[0].link ? undefined : primaryActions()[0].action?.()"
         />
@@ -48,7 +48,7 @@
                     variant="speed-dial"
                     [showTooltip]="false"
                     [showLabel]="true"
-                    [href]="action.link"
+                    [link]="action.link"
                     [disabled]="action.disabled"
                     (clicked)="action.link ? undefined : handleSpeedDialAction(action)"
                 />

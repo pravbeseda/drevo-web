@@ -43,7 +43,9 @@ export class DiffPageComponent implements OnInit {
     private readonly logger = inject(LoggerService).withContext('DiffPageComponent');
     private readonly router = inject(Router);
 
-    readonly diffAlternateUrl = computed(() => this.router.url.replace('/diff2/', '/diff/'));
+    get diffAlternateUrl(): string {
+        return this.router.url.replace('/diff2/', '/diff/');
+    }
 
     private readonly _selectedEngine = signal<DiffEngineEntry>(DIFF_ENGINES[0]);
     private readonly _jsDiffOptions = signal<JsDiffOptions>(DEFAULT_JS_DIFF_OPTIONS);

@@ -1,8 +1,8 @@
 @if (size() === 'mini') {
-    @if (href() && !disabled()) {
+    @if (link() && !disabled()) {
         <a
             mat-mini-fab
-            [routerLink]="href()"
+            [routerLink]="link()"
             class="action-button"
             [class.action-button--primary]="priority() === 'primary'"
             [class.action-button--secondary]="priority() === 'secondary'"
@@ -40,10 +40,10 @@
         </button>
     }
 } @else {
-    @if (href() && !disabled()) {
+    @if (link() && !disabled()) {
         <a
             mat-fab
-            [routerLink]="href()"
+            [routerLink]="link()"
             class="action-button"
             [class.action-button--primary]="priority() === 'primary'"
             [class.action-button--secondary]="priority() === 'secondary'"

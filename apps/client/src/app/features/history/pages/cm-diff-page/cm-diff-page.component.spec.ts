@@ -209,13 +209,12 @@ describe('CmDiffPageComponent', () => {
     });
 
     describe('navigation buttons', () => {
-        it('should render navigation buttons', () => {
+        it('should register sidebar actions when data is loaded', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
             spectator.detectChanges();
 
-            expect(spectator.query('[data-testid="prev-change-button"]')).toBeTruthy();
-            expect(spectator.query('[data-testid="next-change-button"]')).toBeTruthy();
-            expect(spectator.query('[data-testid="toggle-view-button"]')).toBeTruthy();
+            const actions = spectator.queryAll('ui-sidebar-action');
+            expect(actions.length).toBeGreaterThanOrEqual(3);
         });
 
         it('should not throw when goToNext is called without editor', () => {

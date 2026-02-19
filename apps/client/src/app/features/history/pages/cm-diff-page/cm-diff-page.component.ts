@@ -3,7 +3,6 @@ import { isPlatformBrowser } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
-    computed,
     effect,
     ElementRef,
     inject,
@@ -80,7 +79,9 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly router = inject(Router);
 
-    readonly diffAlternateUrl = computed(() => this.router.url.replace('/diff/', '/diff2/'));
+    get diffAlternateUrl(): string {
+        return this.router.url.replace('/diff/', '/diff2/');
+    }
 
     private readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
 

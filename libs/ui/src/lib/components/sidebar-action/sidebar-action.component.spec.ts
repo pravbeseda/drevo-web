@@ -1,7 +1,7 @@
 import { createComponentFactory, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
-import { SidebarActionComponent } from './sidebar-action.directive';
+import { SidebarActionComponent } from './sidebar-action.component';
 
 describe('SidebarActionComponent', () => {
     let spectator: Spectator<SidebarActionComponent>;
