@@ -13,7 +13,7 @@ import {
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
-import { SidebarActionDirective } from '@drevo-web/ui';
+import { SidebarActionComponent } from '@drevo-web/ui';
 
 /**
  * State interface for managing interactive content visibility
@@ -44,7 +44,7 @@ interface ContentInteractionState {
  */
 @Component({
     selector: 'app-article-content',
-    imports: [SidebarActionDirective],
+    imports: [SidebarActionComponent],
     templateUrl: './article-content.component.html',
     styleUrl: './article-content.component.scss',
     encapsulation: ViewEncapsulation.None, // TODO remove after Formatter implementing

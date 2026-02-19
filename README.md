@@ -24,29 +24,31 @@ Nx monorepo with Angular 21 application for the Drevo project. Gradual migration
 apps/
   client/                    # Main Angular application
     src/app/
-      pages/                 # Pages (lazy-loaded)
-        login/               # Authentication
-        article/             # Article view
-        article-edit/        # Article editing
-        search/              # Search
+      features/              # Feature modules (lazy-loaded)
+        article/             # Article view, editing, versions
+        auth/                # Authentication (login)
+        editor/              # Collaborative editing (CodeMirror)
+        history/             # Change history, diffs
         main/                # Home page
-        shared-editor/       # Collaborative editing
-        error/               # Error page
-      services/              # Application services
-      components/            # Reusable components
+        search/              # Search
+      services/              # Global domain services (articles, auth, links)
+      shared/                # Code shared across features
+        components/          # Shared components (error, filters, etc.)
+        models/              # Cross-feature types
       interceptors/          # HTTP interceptors
       guards/                # Route guards
-      layout/                # Layout (header, footer)
-      models/                # Types
+      layout/                # Layout shell (header, sidebar-nav, version-display)
     src/environments/        # Environment configs
   client-e2e/                # E2E tests (Playwright)
 
 libs/
-  core/                      # Core: HTTP, logging, notifications
+  core/                      # HTTP utilities, logging, notifications, DI tokens
     http/                    # HTTP utilities, error mapper
     logging/                 # IndexedDB + Sentry + Console logging
     services/                # NotificationService, SidebarService, StorageService
-  shared/                    # Shared models, types, helpers
+    tokens/                  # DI tokens (WINDOW, etc.)
+    testing/                 # Test mocks (mockLoggerProvider, etc.)
+  shared/                    # Shared models, types, helpers (cross-app)
     models/                  # User, Article, AuthState, etc.
     helpers/                 # URL, HTML, assert utilities
   editor/                    # CodeMirror 6 editor component
@@ -110,8 +112,8 @@ The project uses GitHub Actions for CI/CD.
 ### Branches
 
 - **`standalone`** — default branch, active development of the standalone Angular application
-- `main` — frozen, iframe-based editor embedded in the legacy Yii1 app
-- `staging` — frozen, staging deployment of the iframe version
+- `main` — PR target branch for standalone development
+- `staging` — staging deployment
 
 ### Workflows
 
@@ -139,7 +141,7 @@ Automated security scanning to prevent secrets from being committed:
 
 ### Branch Protection
 
-- Protected branches: `stanalone`, `staging`, `main`
+- Protected branches: `standalone`, `staging`, `main`
 - Required pull request reviews and passing status checks
 - Feature branches deleted after merge
 

@@ -5,9 +5,9 @@
             [icon]="action.icon"
             [label]="action.label"
             [priority]="action.priority"
-            [href]="action.href"
+            [link]="action.link"
             [disabled]="action.disabled"
-            (clicked)="action.href ? undefined : action.action?.()"
+            (clicked)="action.link ? undefined : action.action?.()"
         />
     }
 </div>
@@ -21,9 +21,9 @@
             priority="primary"
             variant="main"
             [showTooltip]="false"
-            [href]="primaryActions()[0].href"
+            [link]="primaryActions()[0].link"
             [disabled]="primaryActions()[0].disabled"
-            (clicked)="primaryActions()[0].href ? undefined : primaryActions()[0].action?.()"
+            (clicked)="primaryActions()[0].link ? undefined : primaryActions()[0].action?.()"
         />
     }
 
@@ -48,9 +48,9 @@
                     variant="speed-dial"
                     [showTooltip]="false"
                     [showLabel]="true"
-                    [href]="action.href"
+                    [link]="action.link"
                     [disabled]="action.disabled"
-                    (clicked)="action.href ? undefined : handleSpeedDialAction(action)"
+                    (clicked)="action.link ? undefined : handleSpeedDialAction(action)"
                 />
             }
         </div>

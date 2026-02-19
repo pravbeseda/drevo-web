@@ -1,5 +1,6 @@
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import {
     DEFAULT_JS_DIFF_OPTIONS,
@@ -16,6 +17,7 @@ import {
     DropdownMenuTriggerDirective,
     FormatDatePipe,
     IconButtonComponent,
+    SidebarActionComponent,
     SpinnerComponent,
 } from '@drevo-web/ui';
 
@@ -28,6 +30,7 @@ import {
         DropdownMenuItemComponent,
         DropdownMenuTriggerDirective,
         FormatDatePipe,
+        SidebarActionComponent,
     ],
     providers: [DiffPageDataService],
     templateUrl: './diff-page.component.html',
@@ -38,6 +41,11 @@ export class DiffPageComponent implements OnInit {
     readonly data = inject(DiffPageDataService);
 
     private readonly logger = inject(LoggerService).withContext('DiffPageComponent');
+    private readonly router = inject(Router);
+
+    get diffAlternateUrl(): string {
+        return this.router.url.replace('/diff2/', '/diff/');
+    }
 
     private readonly _selectedEngine = signal<DiffEngineEntry>(DIFF_ENGINES[0]);
     private readonly _jsDiffOptions = signal<JsDiffOptions>(DEFAULT_JS_DIFF_OPTIONS);

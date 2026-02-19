@@ -5,7 +5,7 @@ export interface SidebarAction {
     icon: string;
     label: string;
     priority: SidebarActionPriority;
-    href?: string;
+    link?: string;
     disabled?: boolean;
     action?: () => void;
 }

@@ -18,7 +18,7 @@ export * from './lib/modal';
 export * from './lib/pipes/format-date/format-date.pipe';
 export * from './lib/pipes/format-time/format-time.pipe';
 export * from './lib/pipes/highlight/highlight.pipe';
-export * from './lib/directives/sidebar-action.directive';
+export * from './lib/components/sidebar-action/sidebar-action.component';
 export * from './lib/components/tabs/tabs.component';
 export * from './lib/components/tabs-group/tabs-group.component';
 export * from './lib/constants/breakpoints';

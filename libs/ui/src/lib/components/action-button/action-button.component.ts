@@ -23,7 +23,7 @@ export class ActionButtonComponent {
     size = input<ActionButtonSize>('default');
     showTooltip = input<boolean>(true);
     showLabel = input<boolean>(false);
-    href = input<string>();
+    link = input<string>();
     disabled = input<boolean>();
 
     clicked = output<void>();

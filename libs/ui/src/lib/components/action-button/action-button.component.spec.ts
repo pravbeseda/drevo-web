@@ -126,15 +126,15 @@ describe('ActionButtonComponent', () => {
         });
     });
 
-    describe('href', () => {
-        it('should render anchor when href is provided', () => {
-            spectator.setInput('href', '/edit/123');
+    describe('link', () => {
+        it('should render anchor when link is provided', () => {
+            spectator.setInput('link', '/edit/123');
 
             expect(spectator.query('a')).toBeTruthy();
             expect(spectator.query('button')).toBeFalsy();
         });
 
-        it('should render button when href is not provided', () => {
+        it('should render button when link is not provided', () => {
             expect(spectator.query('button')).toBeTruthy();
             expect(spectator.query('a')).toBeFalsy();
         });
@@ -157,16 +157,16 @@ describe('ActionButtonComponent', () => {
             expect(button?.hasAttribute('disabled')).toBe(false);
         });
 
-        it('should render button instead of anchor when href is provided but disabled', () => {
-            spectator.setInput('href', '/edit/123');
+        it('should render button instead of anchor when link is provided but disabled', () => {
+            spectator.setInput('link', '/edit/123');
             spectator.setInput('disabled', true);
 
             expect(spectator.query('button')).toBeTruthy();
             expect(spectator.query('a')).toBeFalsy();
         });
 
-        it('should have disabled attribute when href is provided but disabled', () => {
-            spectator.setInput('href', '/edit/123');
+        it('should have disabled attribute when link is provided but disabled', () => {
+            spectator.setInput('link', '/edit/123');
             spectator.setInput('disabled', true);
 
             const button = spectator.query('button');

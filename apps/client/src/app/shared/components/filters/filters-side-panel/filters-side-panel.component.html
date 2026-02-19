@@ -1,11 +1,9 @@
-<button
-    sidebarAction
+<ui-sidebar-action
     icon="filter_list"
+    label="Фильтры"
     priority="secondary"
-    (click)="openFilters()"
->
-    Фильтры
-</button>
+    (activated)="openFilters()"
+/>
 
 <ui-side-panel
     [open]="isSidePanelOpen()"

@@ -9,13 +9,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationService, LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
-import { SidebarActionDirective, SpinnerComponent } from '@drevo-web/ui';
+import { SidebarActionComponent, SpinnerComponent } from '@drevo-web/ui';
 import { BehaviorSubject, first } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent, SidebarActionDirective],
+    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent, SidebarActionComponent],
     providers: [LinksService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',

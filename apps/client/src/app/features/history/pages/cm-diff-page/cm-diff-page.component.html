@@ -18,31 +18,31 @@
     }
 
     @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
+        <ui-sidebar-action
+            icon="looks_one"
+            label="Способ сравнения 1"
+            [link]="diffAlternateUrl"
+        />
+        <ui-sidebar-action
+            [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
+            [label]="viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'"
+            (activated)="toggleViewMode()"
+        />
+        <ui-sidebar-action
+            icon="arrow_upward"
+            label="Предыдущее изменение"
+            priority="secondary"
+            (activated)="goToPrevious()"
+        />
+        <ui-sidebar-action
+            icon="arrow_downward"
+            label="Следующее изменение"
+            (activated)="goToNext()"
+        />
+
         <div class="cm-diff-page-meta">
             <div class="cm-diff-page-meta-title">
                 <span>{{ pairs.current.title }}</span>
-                <div class="cm-diff-page-controls">
-                    <ui-icon-button
-                        icon="arrow_upward"
-                        aria-label="Предыдущее изменение"
-                        data-testid="prev-change-button"
-                        (clicked)="goToPrevious()"
-                    />
-                    <ui-icon-button
-                        icon="arrow_downward"
-                        aria-label="Следующее изменение"
-                        data-testid="next-change-button"
-                        (clicked)="goToNext()"
-                    />
-                    <ui-icon-button
-                        [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
-                        [attr.aria-label]="
-                            viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'
-                        "
-                        data-testid="toggle-view-button"
-                        (clicked)="toggleViewMode()"
-                    />
-                </div>
             </div>
             <div
                 class="cm-diff-page-meta-versions"

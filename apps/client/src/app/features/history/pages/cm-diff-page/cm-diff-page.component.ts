@@ -12,12 +12,13 @@ import {
     signal,
     viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { DiffConfig, MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
-import { FormatDatePipe, IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
+import { FormatDatePipe, SidebarActionComponent, SpinnerComponent } from '@drevo-web/ui';
 
 type ViewMode = 'unified' | 'side-by-side';
 
@@ -65,7 +66,7 @@ const cmTheme = EditorView.theme({
 
 @Component({
     selector: 'app-cm-diff-page',
-    imports: [SpinnerComponent, IconButtonComponent, FormatDatePipe],
+    imports: [SpinnerComponent, FormatDatePipe, SidebarActionComponent],
     providers: [DiffPageDataService],
     templateUrl: './cm-diff-page.component.html',
     styleUrl: './cm-diff-page.component.scss',
@@ -76,6 +77,11 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
 
     private readonly logger = inject(LoggerService).withContext('CmDiffPageComponent');
     private readonly platformId = inject(PLATFORM_ID);
+    private readonly router = inject(Router);
+
+    get diffAlternateUrl(): string {
+        return this.router.url.replace('/diff/', '/diff2/');
+    }
 
     private readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
 

@@ -1,11 +1,11 @@
 import { FilterEntry } from '../../../models/filter.model';
 import { FiltersComponent } from '../filters.component';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { SidebarActionDirective, SidePanelComponent } from '@drevo-web/ui';
+import { SidebarActionComponent, SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-filters-side-panel',
-    imports: [FiltersComponent, SidebarActionDirective, SidePanelComponent],
+    imports: [FiltersComponent, SidebarActionComponent, SidePanelComponent],
     templateUrl: './filters-side-panel.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
