@@ -11,21 +11,19 @@
     <button
         sidebarAction
         icon="save"
+        label="Сохранить"
         priority="primary"
         [disabled]="isSaving()"
         (click)="save()"
-    >
-        Сохранить
-    </button>
+    ></button>
     <button
         sidebarAction
         icon="close"
+        label="Отмена"
         priority="secondary"
         [disabled]="isSaving()"
         (click)="cancel()"
-    >
-        Отмена
-    </button>
+    ></button>
 
     <div class="article-edit">
         <header class="article-edit-header">

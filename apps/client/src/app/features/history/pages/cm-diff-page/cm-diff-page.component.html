@@ -18,38 +18,38 @@
     }
 
     @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
-        <a
+        <button
             sidebarAction
             icon="looks_one"
-            [href]="diffAlternateUrl()"
-        >
-            Способ сравнения 1
-        </a>
+            label="Способ сравнения 1"
+            [link]="diffAlternateUrl()"
+        ></button>
+        <button
+            sidebarAction
+            [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
+            [label]="viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'"
+            data-testid="toggle-view-button"
+            (click)="toggleViewMode()"
+        ></button>
+        <button
+            sidebarAction
+            icon="arrow_upward"
+            label="Предыдущее изменение"
+            priority="secondary"
+            data-testid="next-change-button"
+            (click)="goToPrevious()"
+        ></button>
+        <button
+            sidebarAction
+            icon="arrow_downward"
+            label="Следующее изменение"
+            data-testid="prev-change-button"
+            (click)="goToNext()"
+        ></button>
+
         <div class="cm-diff-page-meta">
             <div class="cm-diff-page-meta-title">
                 <span>{{ pairs.current.title }}</span>
-                <div class="cm-diff-page-controls">
-                    <ui-icon-button
-                        icon="arrow_upward"
-                        aria-label="Предыдущее изменение"
-                        data-testid="prev-change-button"
-                        (clicked)="goToPrevious()"
-                    />
-                    <ui-icon-button
-                        icon="arrow_downward"
-                        aria-label="Следующее изменение"
-                        data-testid="next-change-button"
-                        (clicked)="goToNext()"
-                    />
-                    <ui-icon-button
-                        [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
-                        [attr.aria-label]="
-                            viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'
-                        "
-                        data-testid="toggle-view-button"
-                        (clicked)="toggleViewMode()"
-                    />
-                </div>
             </div>
             <div
                 class="cm-diff-page-meta-versions"

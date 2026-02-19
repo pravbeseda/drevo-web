@@ -14,7 +14,7 @@ describe('SidebarActionDirective', () => {
 
     describe('basic functionality', () => {
         beforeEach(() => {
-            spectator = createDirective(`<button sidebarAction icon="edit">Edit</button>`);
+            spectator = createDirective(`<button sidebarAction icon="edit" label="Edit"></button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -81,7 +81,7 @@ describe('SidebarActionDirective', () => {
 
     describe('primary priority', () => {
         beforeEach(() => {
-            spectator = createDirective(`<button sidebarAction icon="add" priority="primary">Add</button>`);
+            spectator = createDirective(`<button sidebarAction icon="add" label="Add" priority="primary"></button>`);
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -94,7 +94,9 @@ describe('SidebarActionDirective', () => {
 
     describe('secondary priority explicit', () => {
         beforeEach(() => {
-            spectator = createDirective(`<button sidebarAction icon="delete" priority="secondary">Delete</button>`);
+            spectator = createDirective(
+                `<button sidebarAction icon="delete" label="Delete" priority="secondary"></button>`
+            );
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -107,7 +109,7 @@ describe('SidebarActionDirective', () => {
 
     describe('unique ids across instances', () => {
         it('should generate unique id for first directive', () => {
-            spectator = createDirective(`<button sidebarAction icon="edit">Edit</button>`);
+            spectator = createDirective(`<button sidebarAction icon="edit" label="Edit"></button>`);
             sidebarService = spectator.inject(SidebarService);
 
             const action = sidebarService.registerAction.mock.calls[0][0];
@@ -117,8 +119,8 @@ describe('SidebarActionDirective', () => {
     });
 
     describe('different inputs', () => {
-        it('should register action with custom icon and label from content', () => {
-            spectator = createDirective(`<button sidebarAction icon="delete">Remove Item</button>`);
+        it('should register action with custom icon and label', () => {
+            spectator = createDirective(`<button sidebarAction icon="delete" label="Remove Item"></button>`);
             sidebarService = spectator.inject(SidebarService);
 
             const action = sidebarService.registerAction.mock.calls[0][0];
@@ -128,19 +130,21 @@ describe('SidebarActionDirective', () => {
         });
     });
 
-    describe('href', () => {
+    describe('link', () => {
         beforeEach(() => {
-            spectator = createDirective(`<button sidebarAction icon="edit" href="/edit/123">Edit</button>`);
+            spectator = createDirective(
+                `<button sidebarAction icon="edit" label="Edit" link="/edit/123"></button>`
+            );
             sidebarService = spectator.inject(SidebarService);
         });
 
-        it('should register action with href', () => {
+        it('should register action with href from link input', () => {
             const action = sidebarService.registerAction.mock.calls[0][0];
 
-            expect(action.href).toBe('/edit/123');
+            expect(action.link).toBe('/edit/123');
         });
 
-        it('should not have action callback when href is provided', () => {
+        it('should not have action callback when link is provided', () => {
             const action = sidebarService.registerAction.mock.calls[0][0];
 
             expect(action.action).toBeUndefined();
@@ -149,7 +153,9 @@ describe('SidebarActionDirective', () => {
 
     describe('disabled', () => {
         beforeEach(() => {
-            spectator = createDirective(`<button sidebarAction icon="edit" [disabled]="true">Edit</button>`);
+            spectator = createDirective(
+                `<button sidebarAction icon="edit" label="Edit" [disabled]="true"></button>`
+            );
             sidebarService = spectator.inject(SidebarService);
         });
 
@@ -160,27 +166,30 @@ describe('SidebarActionDirective', () => {
         });
     });
 
-    describe('href with disabled', () => {
+    describe('link with disabled', () => {
         beforeEach(() => {
             spectator = createDirective(
-                `<button sidebarAction icon="edit" href="/edit/123" [disabled]="true">Edit</button>`
+                `<button sidebarAction icon="edit" label="Edit" link="/edit/123" [disabled]="true"></button>`
             );
             sidebarService = spectator.inject(SidebarService);
         });
 
-        it('should register action with both href and disabled', () => {
+        it('should register action with both link and disabled', () => {
             const action = sidebarService.registerAction.mock.calls[0][0];
 
-            expect(action.href).toBe('/edit/123');
+            expect(action.link).toBe('/edit/123');
             expect(action.disabled).toBe(true);
         });
     });
 
     describe('dynamic disabled changes', () => {
         beforeEach(() => {
-            spectator = createDirective(`<button sidebarAction icon="edit" [disabled]="isDisabled">Edit</button>`, {
-                hostProps: { isDisabled: false },
-            });
+            spectator = createDirective(
+                `<button sidebarAction icon="edit" label="Edit" [disabled]="isDisabled"></button>`,
+                {
+                    hostProps: { isDisabled: false },
+                }
+            );
             sidebarService = spectator.inject(SidebarService);
         });
 

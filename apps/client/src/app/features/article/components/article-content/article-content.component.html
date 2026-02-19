@@ -2,19 +2,17 @@
 <button
     sidebarAction
     icon="toc"
+    label="Содержание"
     priority="secondary"
     (click)="openTableOfContents()"
->
-    Содержание
-</button>
+></button>
 <button
     sidebarAction
     icon="edit"
+    label="Редактировать"
     priority="primary"
     [disabled]="!editUrl()"
-    [href]="editUrl()"
->
-    Редактировать
-</button>
+    [link]="editUrl()"
+></button>
 
 <div [innerHTML]="sanitizedContent"></div>
