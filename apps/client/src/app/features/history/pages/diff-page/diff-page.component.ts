@@ -17,7 +17,7 @@ import {
     DropdownMenuTriggerDirective,
     FormatDatePipe,
     IconButtonComponent,
-    SidebarActionDirective,
+    SidebarActionComponent,
     SpinnerComponent,
 } from '@drevo-web/ui';
 
@@ -30,7 +30,7 @@ import {
         DropdownMenuItemComponent,
         DropdownMenuTriggerDirective,
         FormatDatePipe,
-        SidebarActionDirective,
+        SidebarActionComponent,
     ],
     providers: [DiffPageDataService],
     templateUrl: './diff-page.component.html',

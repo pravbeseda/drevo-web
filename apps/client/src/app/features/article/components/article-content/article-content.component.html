@@ -1,18 +1,16 @@
 <!-- Sidebar Actions -->
-<button
-    sidebarAction
+<ui-sidebar-action
     icon="toc"
     label="Содержание"
     priority="secondary"
-    (click)="openTableOfContents()"
-></button>
-<button
-    sidebarAction
+    (activated)="openTableOfContents()"
+/>
+<ui-sidebar-action
     icon="edit"
     label="Редактировать"
     priority="primary"
     [disabled]="!editUrl()"
     [link]="editUrl()"
-></button>
+/>
 
 <div [innerHTML]="sanitizedContent"></div>

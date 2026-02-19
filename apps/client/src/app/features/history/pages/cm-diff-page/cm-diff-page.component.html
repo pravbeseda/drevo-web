@@ -18,34 +18,30 @@
     }
 
     @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
-        <button
-            sidebarAction
+        <ui-sidebar-action
             icon="looks_one"
             label="Способ сравнения 1"
             [link]="diffAlternateUrl()"
-        ></button>
-        <button
-            sidebarAction
+        />
+        <ui-sidebar-action
             [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
             [label]="viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'"
             data-testid="toggle-view-button"
-            (click)="toggleViewMode()"
-        ></button>
-        <button
-            sidebarAction
+            (activated)="toggleViewMode()"
+        />
+        <ui-sidebar-action
             icon="arrow_upward"
             label="Предыдущее изменение"
             priority="secondary"
             data-testid="next-change-button"
-            (click)="goToPrevious()"
-        ></button>
-        <button
-            sidebarAction
+            (activated)="goToPrevious()"
+        />
+        <ui-sidebar-action
             icon="arrow_downward"
             label="Следующее изменение"
             data-testid="prev-change-button"
-            (click)="goToNext()"
-        ></button>
+            (activated)="goToNext()"
+        />
 
         <div class="cm-diff-page-meta">
             <div class="cm-diff-page-meta-title">

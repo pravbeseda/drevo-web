@@ -19,7 +19,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
-import { FormatDatePipe, IconButtonComponent, SidebarActionDirective, SpinnerComponent } from '@drevo-web/ui';
+import { FormatDatePipe, SidebarActionComponent, SpinnerComponent } from '@drevo-web/ui';
 
 type ViewMode = 'unified' | 'side-by-side';
 
@@ -67,7 +67,7 @@ const cmTheme = EditorView.theme({
 
 @Component({
     selector: 'app-cm-diff-page',
-    imports: [SpinnerComponent, IconButtonComponent, FormatDatePipe, SidebarActionDirective],
+    imports: [SpinnerComponent, FormatDatePipe, SidebarActionComponent],
     providers: [DiffPageDataService],
     templateUrl: './cm-diff-page.component.html',
     styleUrl: './cm-diff-page.component.scss',

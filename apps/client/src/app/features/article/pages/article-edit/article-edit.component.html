@@ -8,22 +8,20 @@
         [message]="error()"
     />
 } @else if (version(); as version) {
-    <button
-        sidebarAction
+    <ui-sidebar-action
         icon="save"
         label="Сохранить"
         priority="primary"
         [disabled]="isSaving()"
-        (click)="save()"
-    ></button>
-    <button
-        sidebarAction
+        (activated)="save()"
+    />
+    <ui-sidebar-action
         icon="close"
         label="Отмена"
         priority="secondary"
         [disabled]="isSaving()"
-        (click)="cancel()"
-    ></button>
+        (activated)="cancel()"
+    />
 
     <div class="article-edit">
         <header class="article-edit-header">
