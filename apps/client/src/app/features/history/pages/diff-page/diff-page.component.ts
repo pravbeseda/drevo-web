@@ -157,37 +157,27 @@ export class DiffPageComponent implements OnInit {
     private renderCollapsedDiffHtml(changes: DiffChange[]): string {
         const lines = this.splitChangesIntoLines(changes);
         const isChanged = lines.map(line => line.some(c => c.type !== 'equal'));
-
-        // Show changed lines, single unchanged lines, collapse groups of 2+
-        const show: boolean[] = new Array(lines.length).fill(false);
-        let i = 0;
-        while (i < lines.length) {
-            if (isChanged[i]) {
-                show[i] = true;
-                i++;
-            } else {
-                let j = i;
-                while (j < lines.length && !isChanged[j]) j++;
-                if (j - i === 1) show[i] = true;
-                i = j;
-            }
-        }
-
-        // Render
         let result = '';
         let needsNewline = false;
-        i = 0;
+        let i = 0;
+
         while (i < lines.length) {
-            if (show[i]) {
+            if (isChanged[i]) {
                 if (needsNewline) result += '\n';
                 result += this.renderDiffHtml(lines[i]);
                 needsNewline = true;
                 i++;
             } else {
                 let j = i;
-                while (j < lines.length && !show[j]) j++;
-                result += `<div class="diff-collapsed-lines">Строк без изменений: ${j - i}</div>`;
-                needsNewline = false;
+                while (j < lines.length && !isChanged[j]) j++;
+                if (j - i === 1) {
+                    if (needsNewline) result += '\n';
+                    result += this.renderDiffHtml(lines[i]);
+                    needsNewline = true;
+                } else {
+                    result += `<div class="diff-collapsed-lines">Строк без изменений: ${j - i}</div>`;
+                    needsNewline = false;
+                }
                 i = j;
             }
         }
