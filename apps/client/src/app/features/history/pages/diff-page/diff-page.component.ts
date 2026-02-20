@@ -50,11 +50,13 @@ export class DiffPageComponent implements OnInit {
     private readonly _selectedEngine = signal<DiffEngineEntry>(DIFF_ENGINES[0]);
     private readonly _jsDiffOptions = signal<JsDiffOptions>(DEFAULT_JS_DIFF_OPTIONS);
     private readonly _settingsOpen = signal(false);
+    private readonly _collapsed = signal(false);
 
     readonly selectedEngine = this._selectedEngine.asReadonly();
     readonly engines = DIFF_ENGINES;
     readonly settingsOpen = this._settingsOpen.asReadonly();
     readonly jsDiffOptions = this._jsDiffOptions.asReadonly();
+    readonly collapsed = this._collapsed.asReadonly();
 
     readonly isJsDiff = computed(() => this._selectedEngine().id === 'js-diff');
 
@@ -77,7 +79,7 @@ export class DiffPageComponent implements OnInit {
 
         const options = this.isJsDiff() ? this._jsDiffOptions() : undefined;
         const changes = engine.engine.computeDiff(pairs.previous.content, pairs.current.content, options);
-        return this.renderDiffHtml(changes);
+        return this._collapsed() ? this.renderCollapsedDiffHtml(changes) : this.renderDiffHtml(changes);
     });
 
     readonly granularityOptions: readonly {
@@ -124,6 +126,11 @@ export class DiffPageComponent implements OnInit {
         this.onOptionChange(key, checked);
     }
 
+    toggleCollapsed(): void {
+        this._collapsed.update(v => !v);
+        this.logger.info('Collapsed mode changed', { collapsed: this._collapsed() });
+    }
+
     @HostListener('document:keydown.escape')
     onEscapePress(): void {
         if (this._settingsOpen()) {
@@ -145,5 +152,71 @@ export class DiffPageComponent implements OnInit {
                 }
             })
             .join('');
+    }
+
+    private renderCollapsedDiffHtml(changes: DiffChange[]): string {
+        const lines = this.splitChangesIntoLines(changes);
+        const isChanged = lines.map(line => line.some(c => c.type !== 'equal'));
+
+        // Show changed lines, single unchanged lines, collapse groups of 2+
+        const show: boolean[] = new Array(lines.length).fill(false);
+        let i = 0;
+        while (i < lines.length) {
+            if (isChanged[i]) {
+                show[i] = true;
+                i++;
+            } else {
+                let j = i;
+                while (j < lines.length && !isChanged[j]) j++;
+                if (j - i === 1) show[i] = true;
+                i = j;
+            }
+        }
+
+        // Render
+        let result = '';
+        let needsNewline = false;
+        i = 0;
+        while (i < lines.length) {
+            if (show[i]) {
+                if (needsNewline) result += '\n';
+                result += this.renderDiffHtml(lines[i]);
+                needsNewline = true;
+                i++;
+            } else {
+                let j = i;
+                while (j < lines.length && !show[j]) j++;
+                result += `<div class="diff-collapsed-lines">Строк без изменений: ${j - i}</div>`;
+                needsNewline = false;
+                i = j;
+            }
+        }
+
+        return result;
+    }
+
+    private splitChangesIntoLines(changes: DiffChange[]): DiffChange[][] {
+        const lines: DiffChange[][] = [[]];
+        for (const change of changes) {
+            const parts = change.text.split('\n');
+            for (let i = 0; i < parts.length; i++) {
+                if (i > 0) lines.push([]);
+                const text = parts[i].replace(/\r/g, '');
+                if (text) {
+                    lines[lines.length - 1].push({ type: change.type, text });
+                }
+            }
+        }
+        // Remove trailing empty line — artifact of text ending with \n
+        while (lines.length > 0 && lines[lines.length - 1].length === 0) {
+            lines.pop();
+        }
+
+        // Whitespace-only lines (\r, spaces, tabs): normalize to 'equal'
+        // so they don't appear as highlighted blank lines in collapsed mode
+        return lines.map(line => {
+            if (line.some(c => c.text.trim())) return line;
+            return line.map(c => ({ type: 'equal' as const, text: c.text }));
+        });
     }
 }

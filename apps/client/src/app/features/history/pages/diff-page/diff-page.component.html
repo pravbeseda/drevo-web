@@ -17,6 +17,11 @@
             label="Способ сравнения 2"
             [link]="diffAlternateUrl"
         />
+        <ui-sidebar-action
+            [icon]="collapsed() ? 'unfold_more' : 'unfold_less'"
+            [label]="collapsed() ? 'Развернуть все строки' : 'Свернуть неизменённые'"
+            (activated)="toggleCollapsed()"
+        />
         <div class="diff-page-meta">
             <div class="diff-page-meta-title">
                 <span>{{ pairs.current.title }}</span>

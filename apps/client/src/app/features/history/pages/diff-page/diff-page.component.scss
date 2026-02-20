@@ -102,6 +102,16 @@
         color: var(--themed-diff-delete-text);
         text-decoration: line-through;
     }
+
+    .diff-collapsed-lines {
+        color: var(--themed-text-muted);
+        background-color: var(--themed-diff-collapsed-bg);
+        font-style: italic;
+        padding: 4px;
+        border-top: 1px dashed var(--themed-border-color);
+        border-bottom: 1px dashed var(--themed-border-color);
+        margin: 16px 0;
+    }
 }
 
 // Settings popover
