@@ -78,6 +78,117 @@ describe('DiffPageComponent', () => {
         expect(spectator.component.data.versionPairs()?.current.title).toBe('Test Article');
     });
 
+    describe('collapsed mode', () => {
+        beforeEach(() => {
+            spectator.component.onGranularityChange('lines');
+        });
+
+        it('should start with collapsed = false', () => {
+            expect(spectator.component.collapsed()).toBe(false);
+        });
+
+        it('should toggle collapsed state on each call', () => {
+            spectator.component.toggleCollapsed();
+            expect(spectator.component.collapsed()).toBe(true);
+
+            spectator.component.toggleCollapsed();
+            expect(spectator.component.collapsed()).toBe(false);
+        });
+
+        it('should not collapse anything in expanded mode', () => {
+            articleService.getVersionPairs.mockReturnValue(
+                of({
+                    ...mockVersionPairs,
+                    previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
+                    current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
+                }),
+            );
+            spectator.detectChanges();
+
+            expect(spectator.component.diffHtml()).not.toContain('diff-collapsed-lines');
+        });
+
+        describe('collapsed rendering', () => {
+            beforeEach(() => {
+                spectator.component.toggleCollapsed();
+            });
+
+            it('should collapse group of 2+ consecutive unchanged lines', () => {
+                articleService.getVersionPairs.mockReturnValue(
+                    of({
+                        ...mockVersionPairs,
+                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
+                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
+                    }),
+                );
+                spectator.detectChanges();
+
+                expect(spectator.component.diffHtml()).toContain('Строк без изменений: 2');
+            });
+
+            it('should show the correct count in the collapsed block', () => {
+                articleService.getVersionPairs.mockReturnValue(
+                    of({
+                        ...mockVersionPairs,
+                        previous: {
+                            ...mockVersionPairs.previous,
+                            content: 'old\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
+                        },
+                        current: {
+                            ...mockVersionPairs.current,
+                            content: 'new\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
+                        },
+                    }),
+                );
+                spectator.detectChanges();
+
+                expect(spectator.component.diffHtml()).toContain('Строк без изменений: 4');
+            });
+
+            it('should NOT collapse a single unchanged line', () => {
+                articleService.getVersionPairs.mockReturnValue(
+                    of({
+                        ...mockVersionPairs,
+                        previous: { ...mockVersionPairs.previous, content: 'old1\nunchanged\nold2\n' },
+                        current: { ...mockVersionPairs.current, content: 'new1\nunchanged\nnew2\n' },
+                    }),
+                );
+                spectator.detectChanges();
+
+                expect(spectator.component.diffHtml()).not.toContain('diff-collapsed-lines');
+            });
+
+            it('should show changed lines with insert and delete spans', () => {
+                articleService.getVersionPairs.mockReturnValue(
+                    of({
+                        ...mockVersionPairs,
+                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
+                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
+                    }),
+                );
+                spectator.detectChanges();
+
+                const html = spectator.component.diffHtml();
+                expect(html).toContain('diff-delete');
+                expect(html).toContain('diff-insert');
+            });
+
+            it('should not create highlighted spans for whitespace-only changes', () => {
+                articleService.getVersionPairs.mockReturnValue(
+                    of({
+                        ...mockVersionPairs,
+                        previous: { ...mockVersionPairs.previous, content: 'text\n   \n' },
+                        current: { ...mockVersionPairs.current, content: 'text\n\t\n' },
+                    }),
+                );
+                spectator.detectChanges();
+
+                const html = spectator.component.diffHtml();
+                expect(html).not.toMatch(/<span class="diff-(insert|delete)">\s*<\/span>/);
+            });
+        });
+    });
+
     describe('JsDiff settings', () => {
         beforeEach(() => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));

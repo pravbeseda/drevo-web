@@ -335,7 +335,11 @@ $theme-colors: (
     diff-delete-text: (
         light: $md-red-900,
         dark: $md-red-300,
-    )
+    ),
+    diff-collapsed-bg: (
+        light: $md-grey-100,
+        dark: $md-grey-800,
+    ),
 );
 
 // ============================================================================
