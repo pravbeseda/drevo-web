@@ -1,4 +1,4 @@
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
@@ -26,35 +26,29 @@ const MOCK_VERSION_PAIRS: VersionPairs = {
     },
 };
 
+function makeSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
+    return { paramMap: convertToParamMap(params) } as unknown as ActivatedRouteSnapshot;
+}
+
 describe('DiffPageDataService', () => {
     let spectator: SpectatorService<DiffPageDataService>;
-    let routeSnapshot: { paramMap: ReturnType<typeof convertToParamMap> };
 
     const createService = createServiceFactory({
         service: DiffPageDataService,
         providers: [
             mockLoggerProvider(),
             { provide: ArticleService, useValue: { getVersionPairs: jest.fn() } },
-            {
-                provide: ActivatedRoute,
-                useFactory: () => ({ snapshot: routeSnapshot }),
-            },
         ],
     });
 
-    function setupRoute(params: Record<string, string>): void {
-        routeSnapshot = { paramMap: convertToParamMap(params) };
-    }
-
-    describe('loadFromRoute with single version ID', () => {
+    describe('load with single version ID', () => {
         it('should load version pairs with id param', () => {
-            setupRoute({ id: '10' });
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, undefined);
             expect(spectator.service.isLoading()).toBe(false);
@@ -63,111 +57,101 @@ describe('DiffPageDataService', () => {
         });
 
         it('should load version pairs with id1 param', () => {
-            setupRoute({ id1: '15' });
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id1: '15' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(15, undefined);
             expect(spectator.service.versionPairs()).toEqual(MOCK_VERSION_PAIRS);
         });
     });
 
-    describe('loadFromRoute with two version IDs', () => {
+    describe('load with two version IDs', () => {
         it('should sort IDs and pass older as second param', () => {
-            setupRoute({ id1: '10', id2: '5' });
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id1: '10', id2: '5' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, 5);
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should sort IDs correctly when id1 < id2', () => {
-            setupRoute({ id1: '3', id2: '20' });
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id1: '3', id2: '20' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, 3);
         });
     });
 
-    describe('loadFromRoute with invalid params', () => {
+    describe('load with invalid params', () => {
         it('should set error for non-numeric id', () => {
-            setupRoute({ id: 'abc' });
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: 'abc' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should set error for zero id', () => {
-            setupRoute({ id: '0' });
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '0' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should set error for negative id', () => {
-            setupRoute({ id: '-5' });
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '-5' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should set error for missing id params', () => {
-            setupRoute({});
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({})).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should set error for invalid id2 when id1 is valid', () => {
-            setupRoute({ id1: '10', id2: 'abc' });
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id1: '10', id2: 'abc' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should set error for zero id2', () => {
-            setupRoute({ id1: '10', id2: '0' });
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id1: '10', id2: '0' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
     });
 
-    describe('loadFromRoute error handling', () => {
+    describe('load error handling', () => {
         it('should set generic error on API failure', () => {
-            setupRoute({ id: '10' });
             const articleService = {
                 getVersionPairs: jest.fn().mockReturnValue(throwError(() => ({ error: { errorCode: 'UNKNOWN' } }))),
             };
@@ -175,14 +159,13 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
 
             expect(spectator.service.error()).toBe('Ошибка загрузки данных');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should set specific error for NO_PREVIOUS_VERSION', () => {
-            setupRoute({ id: '10' });
             const articleService = {
                 getVersionPairs: jest
                     .fn()
@@ -192,14 +175,13 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
 
             expect(spectator.service.error()).toBe('Предыдущая версия не найдена');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should log error on API failure', () => {
-            setupRoute({ id: '10' });
             const apiError = { error: { errorCode: 'UNKNOWN' } };
             const articleService = {
                 getVersionPairs: jest.fn().mockReturnValue(throwError(() => apiError)),
@@ -208,7 +190,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalled();
@@ -217,21 +199,18 @@ describe('DiffPageDataService', () => {
 
     describe('initial state', () => {
         it('should start with isLoading true', () => {
-            setupRoute({});
             spectator = createService();
 
             expect(spectator.service.isLoading()).toBe(true);
         });
 
         it('should start with no error', () => {
-            setupRoute({});
             spectator = createService();
 
             expect(spectator.service.error()).toBeUndefined();
         });
 
         it('should start with no version pairs', () => {
-            setupRoute({});
             spectator = createService();
 
             expect(spectator.service.versionPairs()).toBeUndefined();
@@ -240,27 +219,43 @@ describe('DiffPageDataService', () => {
 
     describe('id1 takes precedence over id', () => {
         it('should prefer id1 param over id param', () => {
-            setupRoute({ id1: '20', id: '10' });
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id1: '20', id: '10' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, undefined);
         });
     });
 
+    describe('shareReplay deduplication', () => {
+        it('should return the same observable on multiple calls', () => {
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+            const snapshot = makeSnapshot({ id: '10' });
+
+            const obs1 = spectator.service.load(snapshot);
+            const obs2 = spectator.service.load(snapshot);
+
+            expect(obs1).toBe(obs2);
+            obs1.subscribe();
+            obs2.subscribe();
+            expect(articleService.getVersionPairs).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('logging', () => {
         it('should log on successful load', () => {
-            setupRoute({ id: '10' });
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.info).toHaveBeenCalledWith('Version pairs loaded', {
@@ -270,10 +265,9 @@ describe('DiffPageDataService', () => {
         });
 
         it('should log error for invalid version ID', () => {
-            setupRoute({ id: 'invalid' });
             spectator = createService();
 
-            spectator.service.loadFromRoute();
+            spectator.service.load(makeSnapshot({ id: 'invalid' })).subscribe();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Invalid version ID in route', 'invalid');

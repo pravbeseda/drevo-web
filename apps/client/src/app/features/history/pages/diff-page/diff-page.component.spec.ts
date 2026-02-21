@@ -1,11 +1,9 @@
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
-import { ArticleService } from '../../../../services/articles/article.service';
-import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { signal } from '@angular/core';
 import { DiffPageComponent } from './diff-page.component';
 
 const mockVersionPairs: VersionPairs = {
@@ -27,90 +25,174 @@ const mockVersionPairs: VersionPairs = {
     },
 };
 
+function createMockDataService(
+    pairs: VersionPairs | undefined = undefined,
+    error?: string,
+): Partial<DiffPageDataService> {
+    return {
+        isLoading: signal(false).asReadonly(),
+        error: signal(error).asReadonly(),
+        versionPairs: signal(pairs).asReadonly(),
+    };
+}
+
 describe('DiffPageComponent', () => {
-    let spectator: Spectator<DiffPageComponent>;
-    let storageService: jest.Mocked<StorageService>;
+    describe('diff type preferences', () => {
+        let spectator: Spectator<DiffPageComponent>;
+        let storageService: jest.Mocked<StorageService>;
 
-    const createComponent = createComponentFactory({
-        component: DiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            mockProvider(StorageService),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id: '200' }),
-                    },
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                {
+                    provide: DiffPageDataService,
+                    useValue: createMockDataService(),
                 },
-            },
-        ],
-        detectChanges: false,
+            ],
+            detectChanges: false,
+        });
+
+        beforeEach(() => {
+            spectator = createComponent();
+            storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+        });
+
+        it('should create', () => {
+            spectator.detectChanges();
+            expect(spectator.component).toBeTruthy();
+        });
+
+        it('should default to cm when no stored preference', () => {
+            storageService.getString.mockReturnValue(undefined);
+            spectator.detectChanges();
+            expect(spectator.component.diffType()).toBe('cm');
+        });
+
+        it('should read stored preference on init', () => {
+            storageService.getString.mockReturnValue('jsdiff');
+            const s = createComponent();
+            s.detectChanges();
+            expect(s.component.diffType()).toBe('jsdiff');
+        });
+
+        it('should fallback to cm for invalid stored value', () => {
+            storageService.getString.mockReturnValue('invalid');
+            const s = createComponent();
+            s.detectChanges();
+            expect(s.component.diffType()).toBe('cm');
+        });
+
+        it('should toggle from cm to jsdiff', () => {
+            spectator.detectChanges();
+            spectator.component.toggleDiffType();
+            expect(spectator.component.diffType()).toBe('jsdiff');
+        });
+
+        it('should toggle from jsdiff back to cm', () => {
+            spectator.detectChanges();
+            spectator.component.toggleDiffType();
+            spectator.component.toggleDiffType();
+            expect(spectator.component.diffType()).toBe('cm');
+        });
+
+        it('should save preference to storage on toggle', () => {
+            spectator.detectChanges();
+            spectator.component.toggleDiffType();
+            expect(storageService.setString).toHaveBeenCalledWith('diff-view-type', 'jsdiff');
+        });
+
+        it('should log diff type change', () => {
+            spectator.detectChanges();
+            spectator.component.toggleDiffType();
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.info).toHaveBeenCalledWith('Diff view type changed', { type: 'jsdiff' });
+        });
     });
 
-    beforeEach(() => {
-        spectator = createComponent();
-        storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
-        const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+    describe('version info display', () => {
+        let spectator: Spectator<DiffPageComponent>;
+
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                {
+                    provide: DiffPageDataService,
+                    useValue: createMockDataService(mockVersionPairs),
+                },
+            ],
+        });
+
+        beforeEach(() => {
+            spectator = createComponent();
+        });
+
+        it('should display version details', () => {
+            const versions = spectator.query('.diff-page-meta-versions');
+            expect(versions).toBeTruthy();
+            expect(versions?.textContent).toContain('199');
+            expect(versions?.textContent).toContain('200');
+            expect(versions?.textContent).toContain('Author A');
+            expect(versions?.textContent).toContain('Author B');
+        });
+
+        it('should display version comment when present', () => {
+            const comment = spectator.query('.diff-page-meta-comment');
+            expect(comment).toBeTruthy();
+            expect(comment?.textContent?.trim()).toBe('Updated text');
+        });
+
+        it('should not show error section', () => {
+            expect(spectator.query('.diff-page-error')).toBeFalsy();
+        });
     });
 
-    it('should create', () => {
-        spectator.detectChanges();
-        expect(spectator.component).toBeTruthy();
+    describe('version comment hidden when empty', () => {
+        const pairsNoComment: VersionPairs = {
+            ...mockVersionPairs,
+            current: { ...mockVersionPairs.current, info: '' },
+        };
+
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                {
+                    provide: DiffPageDataService,
+                    useValue: createMockDataService(pairsNoComment),
+                },
+            ],
+        });
+
+        it('should hide version comment when empty', () => {
+            const spectator = createComponent();
+            expect(spectator.query('.diff-page-meta-comment')).toBeFalsy();
+        });
     });
 
-    it('should default to cm when no stored preference', () => {
-        storageService.getString.mockReturnValue(undefined);
-        spectator.detectChanges();
-        expect(spectator.component.diffType()).toBe('cm');
-    });
+    describe('error display', () => {
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                {
+                    provide: DiffPageDataService,
+                    useValue: createMockDataService(undefined, 'Ошибка загрузки данных'),
+                },
+            ],
+        });
 
-    it('should read stored preference on init', () => {
-        storageService.getString.mockReturnValue('jsdiff');
-        const s = createComponent();
-        s.detectChanges();
-        expect(s.component.diffType()).toBe('jsdiff');
-    });
+        it('should show error message when error is set', () => {
+            const spectator = createComponent();
 
-    it('should fallback to cm for invalid stored value', () => {
-        storageService.getString.mockReturnValue('invalid');
-        const s = createComponent();
-        s.detectChanges();
-        expect(s.component.diffType()).toBe('cm');
-    });
-
-    it('should toggle from cm to jsdiff', () => {
-        spectator.detectChanges();
-        spectator.component.toggleDiffType();
-        expect(spectator.component.diffType()).toBe('jsdiff');
-    });
-
-    it('should toggle from jsdiff back to cm', () => {
-        spectator.detectChanges();
-        spectator.component.toggleDiffType();
-        spectator.component.toggleDiffType();
-        expect(spectator.component.diffType()).toBe('cm');
-    });
-
-    it('should save preference to storage on toggle', () => {
-        spectator.detectChanges();
-        spectator.component.toggleDiffType();
-        expect(storageService.setString).toHaveBeenCalledWith('diff-view-type', 'jsdiff');
-    });
-
-    it('should log diff type change', () => {
-        spectator.detectChanges();
-        spectator.component.toggleDiffType();
-        const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
-        expect(loggerService.mockLogger.info).toHaveBeenCalledWith('Diff view type changed', { type: 'jsdiff' });
-    });
-
-    it('should call data.loadFromRoute on init', () => {
-        const data = spectator.inject(DiffPageDataService, true);
-        const spy = jest.spyOn(data, 'loadFromRoute');
-        spectator.detectChanges();
-        expect(spy).toHaveBeenCalled();
+            const errorEl = spectator.query('.diff-page-error p');
+            expect(errorEl).toBeTruthy();
+            expect(errorEl?.textContent?.trim()).toBe('Ошибка загрузки данных');
+        });
     });
 });

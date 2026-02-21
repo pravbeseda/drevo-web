@@ -4,11 +4,36 @@
     (activated)="toggleDiffType()"
 />
 
-@switch (diffType()) {
-    @case ('cm') {
-        <app-cm-diff-view />
-    }
-    @case ('jsdiff') {
-        <app-diff-view />
+@if (data.error()) {
+    <div class="diff-page-error">
+        <p>{{ data.error() }}</p>
+    </div>
+} @else if (data.versionPairs(); as pairs) {
+    <div class="diff-page-meta">
+        <div class="diff-page-meta-versions">
+            <span>
+                Версия {{ pairs.previous.versionId }} ({{ pairs.previous.author }},
+                {{ pairs.previous.date | formatDate }})
+            </span>
+            <span class="version-arrow">&rarr;</span>
+            <span>
+                Версия {{ pairs.current.versionId }} ({{ pairs.current.author }},
+                {{ pairs.current.date | formatDate }})
+            </span>
+        </div>
+        @if (pairs.current.info) {
+            <div class="diff-page-meta-comment">
+                {{ pairs.current.info }}
+            </div>
+        }
+    </div>
+
+    @switch (diffType()) {
+        @case ('cm') {
+            <app-cm-diff-view />
+        }
+        @case ('jsdiff') {
+            <app-diff-view />
+        }
     }
 }

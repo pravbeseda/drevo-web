@@ -1,9 +1,7 @@
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { DIFF_ENGINES, VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
-import { ArticleService } from '../../../../services/articles/article.service';
+import { signal, WritableSignal } from '@angular/core';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { DiffViewComponent } from './diff-view.component';
 
@@ -26,22 +24,34 @@ const mockVersionPairs: VersionPairs = {
     },
 };
 
+function createMockDataService(pairs: VersionPairs | undefined = mockVersionPairs): {
+    service: Partial<DiffPageDataService>;
+    versionPairsSignal: WritableSignal<VersionPairs | undefined>;
+} {
+    const versionPairsSignal = signal<VersionPairs | undefined>(pairs);
+    return {
+        service: {
+            isLoading: signal(false).asReadonly(),
+            error: signal(undefined).asReadonly(),
+            versionPairs: versionPairsSignal.asReadonly(),
+        },
+        versionPairsSignal,
+    };
+}
+
 describe('DiffViewComponent', () => {
     let spectator: Spectator<DiffViewComponent>;
+    let versionPairsSignal: WritableSignal<VersionPairs | undefined>;
+
+    const mockData = createMockDataService();
 
     const createComponent = createComponentFactory({
         component: DiffViewComponent,
-        mocks: [ArticleService],
         providers: [
             mockLoggerProvider(),
-            DiffPageDataService,
             {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id: '200' }),
-                    },
-                },
+                provide: DiffPageDataService,
+                useValue: mockData.service,
             },
         ],
         detectChanges: false,
@@ -49,8 +59,8 @@ describe('DiffViewComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent();
-        const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+        versionPairsSignal = mockData.versionPairsSignal;
+        versionPairsSignal.set(mockVersionPairs);
     });
 
     it('should create', () => {
@@ -81,15 +91,11 @@ describe('DiffViewComponent', () => {
             });
 
             it('should not collapse anything in expanded mode', () => {
-                const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
-                    }),
-                );
-                spectator.component.data.loadFromRoute();
+                versionPairsSignal.set({
+                    ...mockVersionPairs,
+                    previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
+                    current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
+                });
                 spectator.detectChanges();
 
                 expect(spectator.component.diffHtml()).not.toContain('diff-collapsed-lines');
@@ -98,66 +104,50 @@ describe('DiffViewComponent', () => {
 
         describe('collapsed rendering', () => {
             it('should collapse group of 2+ consecutive unchanged lines', () => {
-                const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
-                    }),
-                );
-                spectator.component.data.loadFromRoute();
+                versionPairsSignal.set({
+                    ...mockVersionPairs,
+                    previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
+                    current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
+                });
                 spectator.detectChanges();
 
                 expect(spectator.component.diffHtml()).toContain('Строк без изменений: 2');
             });
 
             it('should show the correct count in the collapsed block', () => {
-                const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: {
-                            ...mockVersionPairs.previous,
-                            content: 'old\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
-                        },
-                        current: {
-                            ...mockVersionPairs.current,
-                            content: 'new\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
-                        },
-                    }),
-                );
-                spectator.component.data.loadFromRoute();
+                versionPairsSignal.set({
+                    ...mockVersionPairs,
+                    previous: {
+                        ...mockVersionPairs.previous,
+                        content: 'old\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
+                    },
+                    current: {
+                        ...mockVersionPairs.current,
+                        content: 'new\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
+                    },
+                });
                 spectator.detectChanges();
 
                 expect(spectator.component.diffHtml()).toContain('Строк без изменений: 4');
             });
 
             it('should NOT collapse a single unchanged line', () => {
-                const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old1\nunchanged\nold2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new1\nunchanged\nnew2\n' },
-                    }),
-                );
-                spectator.component.data.loadFromRoute();
+                versionPairsSignal.set({
+                    ...mockVersionPairs,
+                    previous: { ...mockVersionPairs.previous, content: 'old1\nunchanged\nold2\n' },
+                    current: { ...mockVersionPairs.current, content: 'new1\nunchanged\nnew2\n' },
+                });
                 spectator.detectChanges();
 
                 expect(spectator.component.diffHtml()).not.toContain('diff-collapsed-lines');
             });
 
             it('should show changed lines with insert and delete spans', () => {
-                const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
-                    }),
-                );
-                spectator.component.data.loadFromRoute();
+                versionPairsSignal.set({
+                    ...mockVersionPairs,
+                    previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
+                    current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
+                });
                 spectator.detectChanges();
 
                 const html = spectator.component.diffHtml();
@@ -166,15 +156,11 @@ describe('DiffViewComponent', () => {
             });
 
             it('should not create highlighted spans for whitespace-only changes', () => {
-                const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'text\n   \n' },
-                        current: { ...mockVersionPairs.current, content: 'text\n\t\n' },
-                    }),
-                );
-                spectator.component.data.loadFromRoute();
+                versionPairsSignal.set({
+                    ...mockVersionPairs,
+                    previous: { ...mockVersionPairs.previous, content: 'text\n   \n' },
+                    current: { ...mockVersionPairs.current, content: 'text\n\t\n' },
+                });
                 spectator.detectChanges();
 
                 const html = spectator.component.diffHtml();
@@ -185,7 +171,6 @@ describe('DiffViewComponent', () => {
 
     describe('JsDiff settings', () => {
         beforeEach(() => {
-            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
         });
 

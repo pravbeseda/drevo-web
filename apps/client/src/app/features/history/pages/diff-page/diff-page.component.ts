@@ -1,9 +1,9 @@
 import { CmDiffViewComponent } from '../../components/cm-diff-view/cm-diff-view.component';
 import { DiffViewComponent } from '../../components/diff-view/diff-view.component';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { LoggerService, StorageService } from '@drevo-web/core';
-import { SidebarActionComponent } from '@drevo-web/ui';
+import { FormatDatePipe, SidebarActionComponent } from '@drevo-web/ui';
 
 type DiffViewType = 'cm' | 'jsdiff';
 
@@ -12,13 +12,12 @@ const VALID_TYPES: readonly DiffViewType[] = ['cm', 'jsdiff'];
 
 @Component({
     selector: 'app-diff-page',
-    imports: [CmDiffViewComponent, DiffViewComponent, SidebarActionComponent],
-    providers: [DiffPageDataService],
+    imports: [CmDiffViewComponent, DiffViewComponent, FormatDatePipe, SidebarActionComponent],
     templateUrl: './diff-page.component.html',
     styleUrl: './diff-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DiffPageComponent implements OnInit {
+export class DiffPageComponent {
     readonly data = inject(DiffPageDataService);
 
     private readonly logger = inject(LoggerService).withContext('DiffPageComponent');
@@ -26,10 +25,6 @@ export class DiffPageComponent implements OnInit {
 
     private readonly _diffType = signal<DiffViewType>(this.loadDiffType());
     readonly diffType = this._diffType.asReadonly();
-
-    ngOnInit(): void {
-        this.data.loadFromRoute();
-    }
 
     toggleDiffType(): void {
         const newType: DiffViewType = this._diffType() === 'cm' ? 'jsdiff' : 'cm';

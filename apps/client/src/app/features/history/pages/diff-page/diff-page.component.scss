@@ -1,4 +1,44 @@
+@use 'tokens' as *;
+
 :host {
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    overflow: hidden;
+}
+
+.diff-page-error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 16px;
+    color: var(--themed-text-secondary);
+}
+
+.diff-page-meta {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--themed-border-color);
+    flex-shrink: 0;
+}
+
+.diff-page-meta-versions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+}
+
+.version-arrow {
+    color: var(--themed-text-muted);
+}
+
+.diff-page-meta-comment {
+    margin-top: 4px;
+    font-size: $font-size-sm;
+    color: var(--themed-text-muted);
+    font-style: italic;
 }

@@ -1,15 +1,13 @@
 import { ArticleService } from '../../../services/articles/article.service';
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { Injectable, inject, signal } from '@angular/core';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
+import { Observable, catchError, of, shareReplay, tap } from 'rxjs';
 
 @Injectable()
 export class DiffPageDataService {
-    private readonly route = inject(ActivatedRoute);
     private readonly articleService = inject(ArticleService);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly logger: Logger = inject(LoggerService).withContext('DiffPageDataService');
 
     private readonly _isLoading = signal(true);
@@ -20,8 +18,12 @@ export class DiffPageDataService {
     readonly error = this._error.asReadonly();
     readonly versionPairs = this._versionPairs.asReadonly();
 
-    loadFromRoute(): void {
-        const paramMap = this.route.snapshot.paramMap;
+    private _load$: Observable<VersionPairs | undefined> | undefined;
+
+    load(snapshot: ActivatedRouteSnapshot): Observable<VersionPairs | undefined> {
+        if (this._load$) return this._load$;
+
+        const paramMap = snapshot.paramMap;
         const id1Param = paramMap.get('id1') ?? paramMap.get('id');
         const id2Param = paramMap.get('id2');
 
@@ -31,8 +33,12 @@ export class DiffPageDataService {
             this._error.set('Неверный ID версии');
             this._isLoading.set(false);
             this.logger.error('Invalid version ID in route', id1Param);
-            return;
+            this._load$ = of(undefined);
+            return this._load$;
         }
+
+        let newer: number;
+        let older: number | undefined;
 
         if (id2Param) {
             const version2 = parseInt(id2Param, 10);
@@ -40,38 +46,39 @@ export class DiffPageDataService {
                 this._error.set('Неверный ID версии');
                 this._isLoading.set(false);
                 this.logger.error('Invalid version2 ID in route', id2Param);
-                return;
+                this._load$ = of(undefined);
+                return this._load$;
             }
-            const [older, newer] = [version1, version2].sort((a, b) => a - b);
-            this.loadVersionPairs(newer, older);
+            const sorted = [version1, version2].sort((a, b) => a - b);
+            older = sorted[0];
+            newer = sorted[1];
         } else {
-            this.loadVersionPairs(version1);
+            newer = version1;
+            older = undefined;
         }
-    }
 
-    private loadVersionPairs(versionId: number, version2?: number): void {
-        this.articleService
-            .getVersionPairs(versionId, version2)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: pairs => {
-                    this._versionPairs.set(pairs);
-                    this._isLoading.set(false);
-                    this.logger.info('Version pairs loaded', {
-                        currentId: pairs.current.versionId,
-                        previousId: pairs.previous.versionId,
-                    });
-                },
-                error: error => {
-                    const errorCode = error?.error?.errorCode;
-                    if (errorCode === 'NO_PREVIOUS_VERSION') {
-                        this._error.set('Предыдущая версия не найдена');
-                    } else {
-                        this._error.set('Ошибка загрузки данных');
-                    }
-                    this._isLoading.set(false);
-                    this.logger.error('Failed to load version pairs', error);
-                },
-            });
+        this._load$ = this.articleService.getVersionPairs(newer, older).pipe(
+            tap(pairs => {
+                this._versionPairs.set(pairs);
+                this._isLoading.set(false);
+                this.logger.info('Version pairs loaded', {
+                    currentId: pairs.current.versionId,
+                    previousId: pairs.previous.versionId,
+                });
+            }),
+            catchError(err => {
+                const errorCode = err?.error?.errorCode;
+                if (errorCode === 'NO_PREVIOUS_VERSION') {
+                    this._error.set('Предыдущая версия не найдена');
+                } else {
+                    this._error.set('Ошибка загрузки данных');
+                }
+                this._isLoading.set(false);
+                this.logger.error('Failed to load version pairs', err);
+                return of(undefined);
+            }),
+            shareReplay(1),
+        );
+        return this._load$;
     }
 }

@@ -14,21 +14,17 @@ import {
     DropdownMenuComponent,
     DropdownMenuItemComponent,
     DropdownMenuTriggerDirective,
-    FormatDatePipe,
     IconButtonComponent,
     SidebarActionComponent,
-    SpinnerComponent,
 } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-diff-view',
     imports: [
-        SpinnerComponent,
         IconButtonComponent,
         DropdownMenuComponent,
         DropdownMenuItemComponent,
         DropdownMenuTriggerDirective,
-        FormatDatePipe,
         SidebarActionComponent,
     ],
     templateUrl: './diff-view.component.html',
