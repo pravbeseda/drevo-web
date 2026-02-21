@@ -1,12 +1,12 @@
-<div class="diff-page">
+<div class="diff-view">
     @if (data.isLoading()) {
-        <div class="diff-page-loading">
+        <div class="diff-view-loading">
             <ui-spinner />
         </div>
     }
 
     @if (!data.isLoading() && data.error()) {
-        <div class="diff-page-error">
+        <div class="diff-view-error">
             <p>{{ data.error() }}</p>
         </div>
     }
@@ -17,10 +17,10 @@
             [label]="collapsed() ? 'Развернуть все строки' : 'Свернуть неизменённые'"
             (activated)="toggleCollapsed()"
         />
-        <div class="diff-page-meta">
-            <div class="diff-page-meta-title">
+        <div class="diff-view-meta">
+            <div class="diff-view-meta-title">
                 <span>{{ pairs.current.title }}</span>
-                <div class="diff-page-engine-selector">
+                <div class="diff-view-engine-selector">
                     <ui-icon-button
                         icon="tune"
                         [label]="selectedEngine().label"
@@ -157,7 +157,7 @@
                     }
                 </div>
             </div>
-            <div class="diff-page-meta-versions">
+            <div class="diff-view-meta-versions">
                 <span>
                     Версия {{ pairs.previous.versionId }} ({{ pairs.previous.author }},
                     {{ pairs.previous.date | formatDate }})
@@ -169,12 +169,12 @@
                 </span>
             </div>
             @if (pairs.current.info) {
-                <div class="diff-page-meta-comment">
+                <div class="diff-view-meta-comment">
                     {{ pairs.current.info }}
                 </div>
             }
         </div>
-        <div class="diff-page-body">
+        <div class="diff-view-body">
             <pre
                 class="diff-content"
                 [innerHTML]="diffHtml()"

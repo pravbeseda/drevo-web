@@ -108,8 +108,9 @@ describe('DiffPageComponent', () => {
     });
 
     it('should call data.loadFromRoute on init', () => {
-        spectator.detectChanges();
         const data = spectator.inject(DiffPageDataService, true);
-        expect(data.loadFromRoute).toBeTruthy();
+        const spy = jest.spyOn(data, 'loadFromRoute');
+        spectator.detectChanges();
+        expect(spy).toHaveBeenCalled();
     });
 });
