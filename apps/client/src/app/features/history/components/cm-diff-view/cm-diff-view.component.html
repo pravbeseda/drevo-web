@@ -19,11 +19,6 @@
 
     @if (!data.isLoading() && !data.error() && data.versionPairs(); as pairs) {
         <ui-sidebar-action
-            icon="looks_one"
-            label="Способ сравнения 1"
-            [link]="diffAlternateUrl"
-        />
-        <ui-sidebar-action
             [icon]="viewMode() === 'unified' ? 'view_column_2' : 'view_agenda'"
             [label]="viewMode() === 'unified' ? 'Переключить на side-by-side' : 'Переключить на unified'"
             (activated)="toggleViewMode()"

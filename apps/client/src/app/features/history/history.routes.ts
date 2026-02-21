@@ -2,24 +2,14 @@ import { Route } from '@angular/router';
 
 export const HISTORY_ROUTES: Route[] = [
     {
-        path: 'articles/diff2/:id',
-        title: 'Сравнение версий',
-        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
-    },
-    {
-        path: 'articles/diff2/:id1/:id2',
-        title: 'Сравнение версий',
-        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
-    },
-    {
         path: 'articles/diff/:id',
         title: 'Сравнение версий',
-        loadComponent: () => import('./pages/cm-diff-page/cm-diff-page.component').then(m => m.CmDiffPageComponent),
+        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
     },
     {
         path: 'articles/diff/:id1/:id2',
         title: 'Сравнение версий',
-        loadComponent: () => import('./pages/cm-diff-page/cm-diff-page.component').then(m => m.CmDiffPageComponent),
+        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
     },
     {
         path: '',
