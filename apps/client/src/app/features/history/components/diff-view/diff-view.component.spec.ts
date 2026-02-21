@@ -1,11 +1,11 @@
-import { DiffViewComponent } from './diff-view.component';
-import { DiffPageDataService } from '../../services/diff-page-data.service';
-import { ArticleService } from '../../../../services/articles/article.service';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of } from 'rxjs';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { DIFF_ENGINES, VersionPairs } from '@drevo-web/shared';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { of } from 'rxjs';
+import { ArticleService } from '../../../../services/articles/article.service';
+import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { DiffViewComponent } from './diff-view.component';
 
 const mockVersionPairs: VersionPairs = {
     current: {

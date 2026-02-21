@@ -1,12 +1,12 @@
-import { CmDiffViewComponent } from './cm-diff-view.component';
-import { DiffPageDataService } from '../../services/diff-page-data.service';
-import { ArticleService } from '../../../../services/articles/article.service';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { NEVER, of, throwError } from 'rxjs';
+import { ArticleService } from '../../../../services/articles/article.service';
+import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { CmDiffViewComponent } from './cm-diff-view.component';
 
 const mockVersionPairs: VersionPairs = {
     current: {
