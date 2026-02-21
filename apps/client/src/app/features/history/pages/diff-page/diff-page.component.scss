@@ -20,12 +20,12 @@
 .diff-page-meta {
     padding: 8px;
     border-bottom: 1px solid var(--themed-border-color);
-    display: inline-block;
 }
 
 .diff-page-meta-versions {
     display: inline-flex;
     align-items: center;
+    vertical-align: middle;
     gap: 8px;
     flex-wrap: wrap;
     font-size: $font-size-sm;
@@ -41,4 +41,5 @@
     font-size: $font-size-sm;
     color: var(--themed-text-muted);
     font-style: italic;
+    vertical-align: middle;
 }
