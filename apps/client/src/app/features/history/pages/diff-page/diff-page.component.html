@@ -10,15 +10,15 @@
     </div>
 } @else if (data.versionPairs(); as pairs) {
     <div class="diff-page-meta">
-        <div class="diff-page-meta-versions">
+        <span class="diff-page-meta-versions">
             <app-version-label [version]="pairs.previous" />
             <span class="version-arrow">&rarr;</span>
             <app-version-label [version]="pairs.current" />
-        </div>
+        </span>
         @if (pairs.current.info) {
-            <div class="diff-page-meta-comment">
+            <span class="diff-page-meta-comment">
                 {{ pairs.current.info }}
-            </div>
+            </span>
         }
     </div>
 
