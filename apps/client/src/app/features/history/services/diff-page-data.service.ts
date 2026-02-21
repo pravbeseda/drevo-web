@@ -19,11 +19,20 @@ export class DiffPageDataService {
     readonly versionPairs = this._versionPairs.asReadonly();
 
     private _load$: Observable<VersionPairs | undefined> | undefined;
+    private _loadedParams: string | undefined;
 
     load(snapshot: ActivatedRouteSnapshot): Observable<VersionPairs | undefined> {
-        if (this._load$) return this._load$;
-
         const paramMap = snapshot.paramMap;
+        const paramsKey = `${paramMap.get('id1') ?? paramMap.get('id')}_${paramMap.get('id2') ?? ''}`;
+
+        if (this._load$ && this._loadedParams === paramsKey) return this._load$;
+
+        this._loadedParams = paramsKey;
+        this._isLoading.set(true);
+        this._error.set(undefined);
+        this._versionPairs.set(undefined);
+        this._load$ = undefined;
+
         const id1Param = paramMap.get('id1') ?? paramMap.get('id');
         const id2Param = paramMap.get('id2');
 
