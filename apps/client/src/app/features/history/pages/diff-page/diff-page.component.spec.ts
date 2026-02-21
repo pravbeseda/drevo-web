@@ -4,24 +4,29 @@ import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { DiffPageComponent } from './diff-page.component';
 
 const mockVersionPairs: VersionPairs = {
     current: {
+        articleId: 1,
         versionId: 200,
         content: 'new content',
         author: 'Author A',
         date: new Date('2025-01-15T14:30:00'),
         title: 'Test Article',
         info: 'Updated text',
+        approved: 1,
     },
     previous: {
+        articleId: 1,
         versionId: 199,
         content: 'old content',
         author: 'Author B',
         date: new Date('2025-01-14T10:00:00'),
         title: 'Test Article',
         info: '',
+        approved: 1,
     },
 };
 
@@ -119,6 +124,7 @@ describe('DiffPageComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(StorageService),
+                provideRouter([]),
                 {
                     provide: DiffPageDataService,
                     useValue: createMockDataService(mockVersionPairs),
@@ -130,13 +136,12 @@ describe('DiffPageComponent', () => {
             spectator = createComponent();
         });
 
-        it('should display version details', () => {
+        it('should display version labels', () => {
             const versions = spectator.query('.diff-page-meta-versions');
             expect(versions).toBeTruthy();
-            expect(versions?.textContent).toContain('199');
-            expect(versions?.textContent).toContain('200');
-            expect(versions?.textContent).toContain('Author A');
-            expect(versions?.textContent).toContain('Author B');
+
+            const labels = spectator.queryAll('app-version-label');
+            expect(labels.length).toBe(2);
         });
 
         it('should display version comment when present', () => {
@@ -161,6 +166,7 @@ describe('DiffPageComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(StorageService),
+                provideRouter([]),
                 {
                     provide: DiffPageDataService,
                     useValue: createMockDataService(pairsNoComment),
