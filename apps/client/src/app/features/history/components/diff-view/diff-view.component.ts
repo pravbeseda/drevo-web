@@ -2,23 +2,11 @@ import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-web/shared';
-import {
-    DropdownMenuComponent,
-    DropdownMenuItemComponent,
-    DropdownMenuTriggerDirective,
-    IconButtonComponent,
-    SidebarActionComponent,
-} from '@drevo-web/ui';
+import { SidebarActionComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-diff-view',
-    imports: [
-        IconButtonComponent,
-        DropdownMenuComponent,
-        DropdownMenuItemComponent,
-        DropdownMenuTriggerDirective,
-        SidebarActionComponent,
-    ],
+    imports: [SidebarActionComponent],
     templateUrl: './diff-view.component.html',
     styleUrl: './diff-view.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,9 +32,11 @@ export class DiffViewComponent {
         return this._collapsed() ? this.renderCollapsedDiffHtml(changes) : this.renderDiffHtml(changes);
     });
 
-    onEngineChange(engine: DiffEngineEntry): void {
-        this._selectedEngine.set(engine);
-        this.logger.info('Diff engine changed', { engineId: engine.id });
+    toggleEngine(): void {
+        const currentIndex = this.engines.indexOf(this._selectedEngine());
+        const nextIndex = (currentIndex + 1) % this.engines.length;
+        this._selectedEngine.set(this.engines[nextIndex]);
+        this.logger.info('Diff engine changed', { engineId: this._selectedEngine().id });
     }
 
     toggleCollapsed(): void {

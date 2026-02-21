@@ -14,19 +14,6 @@
     overflow: hidden;
 }
 
-.diff-view-toolbar {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    flex-shrink: 0;
-}
-
-.diff-view-engine-selector {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-}
-
 .diff-view-body {
     flex: 1;
     overflow: auto;

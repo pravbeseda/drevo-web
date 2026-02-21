@@ -4,29 +4,11 @@
         [label]="collapsed() ? 'Развернуть все строки' : 'Свернуть неизменённые'"
         (activated)="toggleCollapsed()"
     />
-
-    <div class="diff-view-toolbar">
-        <div class="diff-view-engine-selector">
-            <ui-icon-button
-                icon="tune"
-                [label]="selectedEngine().label"
-                [uiDropdownMenuTriggerFor]="engineMenu"
-            />
-
-            <ng-template #engineMenu>
-                <ui-dropdown-menu>
-                    @for (engine of engines; track engine.id) {
-                        <ui-dropdown-menu-item
-                            [icon]="engine.id === selectedEngine().id ? 'check' : ''"
-                            (clicked)="onEngineChange(engine)"
-                        >
-                            {{ engine.label }}
-                        </ui-dropdown-menu-item>
-                    }
-                </ui-dropdown-menu>
-            </ng-template>
-        </div>
-    </div>
+    <ui-sidebar-action
+        icon="tune"
+        [label]="'Движок: ' + selectedEngine().label"
+        (activated)="toggleEngine()"
+    />
 
     <div class="diff-view-body">
         <pre
