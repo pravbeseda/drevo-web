@@ -26,5 +26,5 @@ export interface DiffChange {
 }
 
 export interface DiffEngine {
-    computeDiff(oldText: string, newText: string, options?: JsDiffOptions): DiffChange[];
+    computeDiff(oldText: string, newText: string): DiffChange[];
 }
