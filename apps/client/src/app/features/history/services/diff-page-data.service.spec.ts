@@ -35,10 +35,7 @@ describe('DiffPageDataService', () => {
 
     const createService = createServiceFactory({
         service: DiffPageDataService,
-        providers: [
-            mockLoggerProvider(),
-            { provide: ArticleService, useValue: { getVersionPairs: jest.fn() } },
-        ],
+        providers: [mockLoggerProvider(), { provide: ArticleService, useValue: { getVersionPairs: jest.fn() } }],
     });
 
     describe('load with single version ID', () => {

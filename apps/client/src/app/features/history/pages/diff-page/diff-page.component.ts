@@ -1,9 +1,10 @@
 import { CmDiffViewComponent } from '../../components/cm-diff-view/cm-diff-view.component';
 import { DiffViewComponent } from '../../components/diff-view/diff-view.component';
+import { VersionLabelComponent } from '../../components/version-label/version-label.component';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { LoggerService, StorageService } from '@drevo-web/core';
-import { FormatDatePipe, SidebarActionComponent } from '@drevo-web/ui';
+import { SidebarActionComponent } from '@drevo-web/ui';
 
 type DiffViewType = 'cm' | 'jsdiff';
 
@@ -12,7 +13,7 @@ const VALID_TYPES: readonly DiffViewType[] = ['cm', 'jsdiff'];
 
 @Component({
     selector: 'app-diff-page',
-    imports: [CmDiffViewComponent, DiffViewComponent, FormatDatePipe, SidebarActionComponent],
+    imports: [CmDiffViewComponent, DiffViewComponent, SidebarActionComponent, VersionLabelComponent],
     templateUrl: './diff-page.component.html',
     styleUrl: './diff-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
