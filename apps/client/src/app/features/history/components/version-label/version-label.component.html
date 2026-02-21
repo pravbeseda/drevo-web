@@ -1,3 +1,4 @@
+<ui-status-icon [status]="version().approved" />
 <a [routerLink]="['/articles', version().articleId, 'version', version().versionId]">
     {{ version().date | formatDate }}
 </a>

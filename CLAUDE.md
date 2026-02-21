@@ -325,6 +325,7 @@ All accessed via `@drevo-web/ui`.
 | Checkbox | `ui-checkbox` | |
 | Icon | `ui-icon` | |
 | Spinner | `ui-spinner` | |
+| StatusIcon | `ui-status-icon` | Input: `ApprovalStatus` (`-1`/`0`/`1`) |
 | Tabs | `ui-tabs` | |
 | TabsGroup | `ui-tabs-group` | + `TabGroup`, `TabGroupItem` interfaces |
 | DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |

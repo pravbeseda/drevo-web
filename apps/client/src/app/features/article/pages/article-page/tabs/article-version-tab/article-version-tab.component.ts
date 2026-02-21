@@ -1,19 +1,18 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { ArticleContentComponent } from '../../../../components/article-content/article-content.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
-import { NgClass } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ArticleVersion } from '@drevo-web/shared';
-import { FormatTimePipe, IconComponent, SpinnerComponent } from '@drevo-web/ui';
+import { ArticleVersion } from '@drevo-web/shared';
+import { FormatTimePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-version-tab',
-    imports: [ArticleContentComponent, NgClass, RouterLink, FormatTimePipe, IconComponent, SpinnerComponent],
+    imports: [ArticleContentComponent, RouterLink, FormatTimePipe, StatusIconComponent, SpinnerComponent],
     templateUrl: './article-version-tab.component.html',
     styleUrl: './article-version-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,21 +32,6 @@ export class ArticleVersionTabComponent implements OnInit {
     readonly articleUrl = computed(() => {
         const id = this.pageService.articleId();
         return id ? `/articles/${id}` : undefined;
-    });
-
-    readonly approvalClass = computed(() => {
-        const approved = this.version()?.approved;
-        return approved !== undefined ? APPROVAL_CLASS[approved] : undefined;
-    });
-
-    readonly statusIcon = computed(() => {
-        const cls = this.approvalClass();
-        return cls ? APPROVAL_ICONS[cls] : undefined;
-    });
-
-    readonly statusTitle = computed(() => {
-        const cls = this.approvalClass();
-        return cls ? APPROVAL_TITLES[cls] : undefined;
     });
 
     ngOnInit(): void {

@@ -27,23 +27,6 @@
         font-weight: 500;
     }
 
-    &__status {
-        display: inline-flex;
-        align-items: center;
-
-        &--approved {
-            color: var(--themed-status-approved);
-        }
-
-        &--pending {
-            color: var(--themed-status-pending);
-        }
-
-        &--rejected {
-            color: var(--themed-status-rejected);
-        }
-    }
-
     &__meta {
         color: var(--themed-text-secondary);
         margin-top: 4px;

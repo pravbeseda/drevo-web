@@ -236,6 +236,7 @@ export class ArticleService {
             date: new Date(dto.date),
             title: dto.title,
             info: dto.info,
+            approved: dto.approved,
         };
     }
 }
