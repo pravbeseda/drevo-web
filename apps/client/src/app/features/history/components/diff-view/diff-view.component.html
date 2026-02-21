@@ -1,19 +1,17 @@
-<div class="diff-view">
-    <ui-sidebar-action
-        [icon]="collapsed() ? 'unfold_more' : 'unfold_less'"
-        [label]="collapsed() ? 'Развернуть все строки' : 'Свернуть неизменённые'"
-        (activated)="toggleCollapsed()"
-    />
-    <ui-sidebar-action
-        icon="tune"
-        [label]="'Движок: ' + selectedEngine().label"
-        (activated)="toggleEngine()"
-    />
+<ui-sidebar-action
+    [icon]="collapsed() ? 'unfold_more' : 'unfold_less'"
+    [label]="collapsed() ? 'Развернуть все строки' : 'Свернуть неизменённые'"
+    (activated)="toggleCollapsed()"
+/>
+<ui-sidebar-action
+    icon="tune"
+    [label]="'Движок: ' + selectedEngine().label"
+    (activated)="toggleEngine()"
+/>
 
-    <div class="diff-view-body">
-        <pre
-            class="diff-content"
-            [innerHTML]="diffHtml()"
-        ></pre>
-    </div>
+<div class="diff-view-body">
+    <pre
+        class="diff-content"
+        [innerHTML]="diffHtml()"
+    ></pre>
 </div>
