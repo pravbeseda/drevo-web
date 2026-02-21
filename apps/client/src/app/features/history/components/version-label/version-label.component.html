@@ -1,1 +1,3 @@
-{{ version().date | formatDate }}
+<a [routerLink]="['/articles', version().articleId, 'version', version().versionId]">
+    {{ version().date | formatDate }}
+</a>

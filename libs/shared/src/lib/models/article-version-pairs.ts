@@ -2,6 +2,7 @@
  * Single version data for diff comparison (frontend model)
  */
 export interface VersionForDiff {
+    readonly articleId: number;
     readonly versionId: number;
     readonly content: string;
     readonly author: string;
