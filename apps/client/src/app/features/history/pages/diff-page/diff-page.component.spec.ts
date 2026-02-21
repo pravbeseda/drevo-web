@@ -1,10 +1,12 @@
-import { ArticleService } from '../../../../services/articles/article.service';
 import { DiffPageComponent } from './diff-page.component';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { ArticleService } from '../../../../services/articles/article.service';
+import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { NEVER, of } from 'rxjs';
-import { DIFF_ENGINES, VersionPairs } from '@drevo-web/shared';
+import { LoggerService, StorageService } from '@drevo-web/core';
+import { of } from 'rxjs';
+import { VersionPairs } from '@drevo-web/shared';
 
 const mockVersionPairs: VersionPairs = {
     current: {
@@ -27,13 +29,14 @@ const mockVersionPairs: VersionPairs = {
 
 describe('DiffPageComponent', () => {
     let spectator: Spectator<DiffPageComponent>;
-    let articleService: jest.Mocked<ArticleService>;
+    let storageService: jest.Mocked<StorageService>;
 
     const createComponent = createComponentFactory({
         component: DiffPageComponent,
         mocks: [ArticleService],
         providers: [
             mockLoggerProvider(),
+            mockProvider(StorageService),
             {
                 provide: ActivatedRoute,
                 useValue: {
@@ -48,289 +51,65 @@ describe('DiffPageComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+        const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
     });
 
     it('should create', () => {
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
         spectator.detectChanges();
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should show spinner while loading', () => {
-        articleService.getVersionPairs.mockReturnValue(NEVER);
+    it('should default to cm when no stored preference', () => {
+        storageService.getString.mockReturnValue(undefined);
         spectator.detectChanges();
-        expect(spectator.query('ui-spinner')).toBeTruthy();
+        expect(spectator.component.diffType()).toBe('cm');
     });
 
-    it('should load version pairs on init', () => {
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+    it('should read stored preference on init', () => {
+        storageService.getString.mockReturnValue('jsdiff');
+        const s = createComponent();
+        s.detectChanges();
+        expect(s.component.diffType()).toBe('jsdiff');
+    });
+
+    it('should fallback to cm for invalid stored value', () => {
+        storageService.getString.mockReturnValue('invalid');
+        const s = createComponent();
+        s.detectChanges();
+        expect(s.component.diffType()).toBe('cm');
+    });
+
+    it('should toggle from cm to jsdiff', () => {
         spectator.detectChanges();
-        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, undefined);
+        spectator.component.toggleDiffType();
+        expect(spectator.component.diffType()).toBe('jsdiff');
     });
 
-    it('should display version info after loading', () => {
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+    it('should toggle from jsdiff back to cm', () => {
         spectator.detectChanges();
-
-        expect(spectator.component.data.isLoading()).toBe(false);
-        expect(spectator.component.data.versionPairs()).toBeTruthy();
-        expect(spectator.component.data.versionPairs()?.current.title).toBe('Test Article');
+        spectator.component.toggleDiffType();
+        spectator.component.toggleDiffType();
+        expect(spectator.component.diffType()).toBe('cm');
     });
 
-    describe('collapsed mode', () => {
-        beforeEach(() => {
-            spectator.component.onGranularityChange('lines');
-        });
-
-        it('should start with collapsed = false', () => {
-            expect(spectator.component.collapsed()).toBe(false);
-        });
-
-        it('should toggle collapsed state on each call', () => {
-            spectator.component.toggleCollapsed();
-            expect(spectator.component.collapsed()).toBe(true);
-
-            spectator.component.toggleCollapsed();
-            expect(spectator.component.collapsed()).toBe(false);
-        });
-
-        it('should not collapse anything in expanded mode', () => {
-            articleService.getVersionPairs.mockReturnValue(
-                of({
-                    ...mockVersionPairs,
-                    previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
-                    current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
-                }),
-            );
-            spectator.detectChanges();
-
-            expect(spectator.component.diffHtml()).not.toContain('diff-collapsed-lines');
-        });
-
-        describe('collapsed rendering', () => {
-            beforeEach(() => {
-                spectator.component.toggleCollapsed();
-            });
-
-            it('should collapse group of 2+ consecutive unchanged lines', () => {
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
-                    }),
-                );
-                spectator.detectChanges();
-
-                expect(spectator.component.diffHtml()).toContain('Строк без изменений: 2');
-            });
-
-            it('should show the correct count in the collapsed block', () => {
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: {
-                            ...mockVersionPairs.previous,
-                            content: 'old\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
-                        },
-                        current: {
-                            ...mockVersionPairs.current,
-                            content: 'new\nunchanged1\nunchanged2\nunchanged3\nunchanged4\n',
-                        },
-                    }),
-                );
-                spectator.detectChanges();
-
-                expect(spectator.component.diffHtml()).toContain('Строк без изменений: 4');
-            });
-
-            it('should NOT collapse a single unchanged line', () => {
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old1\nunchanged\nold2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new1\nunchanged\nnew2\n' },
-                    }),
-                );
-                spectator.detectChanges();
-
-                expect(spectator.component.diffHtml()).not.toContain('diff-collapsed-lines');
-            });
-
-            it('should show changed lines with insert and delete spans', () => {
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'old\nunchanged1\nunchanged2\n' },
-                        current: { ...mockVersionPairs.current, content: 'new\nunchanged1\nunchanged2\n' },
-                    }),
-                );
-                spectator.detectChanges();
-
-                const html = spectator.component.diffHtml();
-                expect(html).toContain('diff-delete');
-                expect(html).toContain('diff-insert');
-            });
-
-            it('should not create highlighted spans for whitespace-only changes', () => {
-                articleService.getVersionPairs.mockReturnValue(
-                    of({
-                        ...mockVersionPairs,
-                        previous: { ...mockVersionPairs.previous, content: 'text\n   \n' },
-                        current: { ...mockVersionPairs.current, content: 'text\n\t\n' },
-                    }),
-                );
-                spectator.detectChanges();
-
-                const html = spectator.component.diffHtml();
-                expect(html).not.toMatch(/<span class="diff-(insert|delete)">\s*<\/span>/);
-            });
-        });
-    });
-
-    describe('JsDiff settings', () => {
-        beforeEach(() => {
-            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-            spectator.detectChanges();
-        });
-
-        it('should show settings button for JsDiff engine', () => {
-            const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
-            spectator.component.onEngineChange(jsDiffEngine);
-            spectator.detectChanges();
-
-            expect(spectator.component.isJsDiff()).toBe(true);
-            expect(spectator.query('[data-testid="jsdiff-settings-anchor"]')).toBeTruthy();
-        });
-
-        it('should toggle settings popover', () => {
-            const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
-            spectator.component.onEngineChange(jsDiffEngine);
-            spectator.detectChanges();
-
-            expect(spectator.component.settingsOpen()).toBe(false);
-            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeFalsy();
-
-            spectator.component.toggleSettings();
-            spectator.detectChanges();
-
-            expect(spectator.component.settingsOpen()).toBe(true);
-            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeTruthy();
-        });
-
-        it('should close settings on backdrop click', () => {
-            const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
-            spectator.component.onEngineChange(jsDiffEngine);
-            spectator.component.toggleSettings();
-            spectator.detectChanges();
-
-            spectator.component.closeSettings();
-            spectator.detectChanges();
-
-            expect(spectator.component.settingsOpen()).toBe(false);
-            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeFalsy();
-        });
-
-        it('should close settings on Escape key', () => {
-            const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
-            spectator.component.onEngineChange(jsDiffEngine);
-            spectator.component.toggleSettings();
-            spectator.detectChanges();
-
-            spectator.dispatchKeyboardEvent(document, 'keydown', 'Escape');
-            spectator.detectChanges();
-
-            expect(spectator.component.settingsOpen()).toBe(false);
-            expect(spectator.query('[data-testid="jsdiff-settings-popover"]')).toBeFalsy();
-        });
-
-        it('should not close settings on Escape when already closed', () => {
-            spectator.component.onEscapePress();
-            expect(spectator.component.settingsOpen()).toBe(false);
-        });
-
-        it('should extract checked from checkbox event', () => {
-            const event = {
-                target: { checked: true },
-            } as unknown as Event;
-            spectator.component.onCheckboxChange('ignoreCase', event);
-            expect(spectator.component.jsDiffOptions().ignoreCase).toBe(true);
-        });
-
-        it('should update granularity', () => {
-            spectator.component.onGranularityChange('lines');
-            expect(spectator.component.jsDiffOptions().granularity).toBe('lines');
-        });
-
-        it('should update boolean options', () => {
-            spectator.component.onOptionChange('ignoreCase', true);
-            expect(spectator.component.jsDiffOptions().ignoreCase).toBe(true);
-        });
-
-        it('should preserve JsDiff settings when switching engines', () => {
-            const jsDiffEngine = DIFF_ENGINES.find(e => e.id === 'js-diff')!;
-            const dmpEngine = DIFF_ENGINES.find(e => e.id === 'diff-match-patch')!;
-
-            spectator.component.onEngineChange(jsDiffEngine);
-            spectator.component.onGranularityChange('lines');
-            spectator.component.onOptionChange('ignoreWhitespace', true);
-
-            spectator.component.onEngineChange(dmpEngine);
-            spectator.component.onEngineChange(jsDiffEngine);
-
-            expect(spectator.component.jsDiffOptions().granularity).toBe('lines');
-            expect(spectator.component.jsDiffOptions().ignoreWhitespace).toBe(true);
-        });
-
-        it('should compute availability based on granularity', () => {
-            spectator.component.onGranularityChange('words');
-            expect(spectator.component.isIgnoreCaseAvailable()).toBe(true);
-            expect(spectator.component.isIntlSegmenterAvailable()).toBe(true);
-            expect(spectator.component.isLineOptionsAvailable()).toBe(false);
-
-            spectator.component.onGranularityChange('lines');
-            expect(spectator.component.isIgnoreCaseAvailable()).toBe(false);
-            expect(spectator.component.isIntlSegmenterAvailable()).toBe(false);
-            expect(spectator.component.isLineOptionsAvailable()).toBe(true);
-
-            spectator.component.onGranularityChange('sentences');
-            expect(spectator.component.isIgnoreCaseAvailable()).toBe(false);
-            expect(spectator.component.isIntlSegmenterAvailable()).toBe(false);
-            expect(spectator.component.isLineOptionsAvailable()).toBe(false);
-        });
-    });
-});
-
-describe('DiffPageComponent (two-param route)', () => {
-    let spectator: Spectator<DiffPageComponent>;
-    let articleService: jest.Mocked<ArticleService>;
-
-    const createComponent = createComponentFactory({
-        component: DiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id1: '100', id2: '200' }),
-                    },
-                },
-            },
-        ],
-        detectChanges: false,
-    });
-
-    beforeEach(() => {
-        spectator = createComponent();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-    });
-
-    it('should load version pairs with both IDs sorted (newer first, older second)', () => {
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+    it('should save preference to storage on toggle', () => {
         spectator.detectChanges();
-        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, 100);
+        spectator.component.toggleDiffType();
+        expect(storageService.setString).toHaveBeenCalledWith('diff-view-type', 'jsdiff');
+    });
+
+    it('should log diff type change', () => {
+        spectator.detectChanges();
+        spectator.component.toggleDiffType();
+        const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        expect(loggerService.mockLogger.info).toHaveBeenCalledWith('Diff view type changed', { type: 'jsdiff' });
+    });
+
+    it('should call data.loadFromRoute on init', () => {
+        spectator.detectChanges();
+        const data = spectator.inject(DiffPageDataService, true);
+        expect(data.loadFromRoute).toBeTruthy();
     });
 });

@@ -7,12 +7,10 @@ import {
     ElementRef,
     inject,
     OnDestroy,
-    OnInit,
     PLATFORM_ID,
     signal,
     viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { DiffConfig, MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
@@ -65,23 +63,17 @@ const cmTheme = EditorView.theme({
 });
 
 @Component({
-    selector: 'app-cm-diff-page',
+    selector: 'app-cm-diff-view',
     imports: [SpinnerComponent, FormatDatePipe, SidebarActionComponent],
-    providers: [DiffPageDataService],
-    templateUrl: './cm-diff-page.component.html',
-    styleUrl: './cm-diff-page.component.scss',
+    templateUrl: './cm-diff-view.component.html',
+    styleUrl: './cm-diff-view.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CmDiffPageComponent implements OnInit, OnDestroy {
+export class CmDiffViewComponent implements OnDestroy {
     readonly data = inject(DiffPageDataService);
 
-    private readonly logger = inject(LoggerService).withContext('CmDiffPageComponent');
+    private readonly logger = inject(LoggerService).withContext('CmDiffViewComponent');
     private readonly platformId = inject(PLATFORM_ID);
-    private readonly router = inject(Router);
-
-    get diffAlternateUrl(): string {
-        return this.router.url.replace('/diff/', '/diff2/');
-    }
 
     private readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
 
@@ -102,10 +94,6 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
                 this.createEditorView(pairs, container.nativeElement, mode);
             }
         });
-    }
-
-    ngOnInit(): void {
-        this.data.loadFromRoute();
     }
 
     ngOnDestroy(): void {
@@ -136,7 +124,6 @@ export class CmDiffPageComponent implements OnInit, OnDestroy {
         if (this._viewMode() === 'unified') {
             return this.unifiedView;
         }
-        // For side-by-side, use editor B (current version)
         return this.mergeView?.b;
     }
 

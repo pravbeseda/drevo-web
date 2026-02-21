@@ -1,11 +1,12 @@
+import { CmDiffViewComponent } from './cm-diff-view.component';
+import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { ArticleService } from '../../../../services/articles/article.service';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { NEVER, of, throwError } from 'rxjs';
-import { ArticleService } from '../../../../services/articles/article.service';
-import { CmDiffPageComponent } from './cm-diff-page.component';
 
 const mockVersionPairs: VersionPairs = {
     current: {
@@ -34,15 +35,16 @@ const mockVersionPairsNoComment: VersionPairs = {
     },
 };
 
-describe('CmDiffPageComponent', () => {
-    let spectator: Spectator<CmDiffPageComponent>;
+describe('CmDiffViewComponent', () => {
+    let spectator: Spectator<CmDiffViewComponent>;
     let articleService: jest.Mocked<ArticleService>;
 
     const createComponent = createComponentFactory({
-        component: CmDiffPageComponent,
+        component: CmDiffViewComponent,
         mocks: [ArticleService],
         providers: [
             mockLoggerProvider(),
+            DiffPageDataService,
             {
                 provide: ActivatedRoute,
                 useValue: {
@@ -62,6 +64,7 @@ describe('CmDiffPageComponent', () => {
 
     it('should create', () => {
         articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+        spectator.component.data.loadFromRoute();
         spectator.detectChanges();
         expect(spectator.component).toBeTruthy();
     });
@@ -69,6 +72,7 @@ describe('CmDiffPageComponent', () => {
     describe('loading state', () => {
         it('should show spinner while loading', () => {
             articleService.getVersionPairs.mockReturnValue(NEVER);
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(spectator.query('[data-testid="loading"]')).toBeTruthy();
@@ -77,41 +81,26 @@ describe('CmDiffPageComponent', () => {
 
         it('should hide spinner after data loads', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(spectator.query('[data-testid="loading"]')).toBeFalsy();
         });
     });
 
-    describe('data loading', () => {
-        it('should load version pairs with single ID on init', () => {
+    describe('data display', () => {
+        beforeEach(() => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
-
-            expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, undefined);
-        });
-
-        it('should display version info after loading', () => {
-            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-            spectator.detectChanges();
-
-            expect(spectator.component.data.isLoading()).toBe(false);
-            expect(spectator.component.data.versionPairs()).toBeTruthy();
-            expect(spectator.component.data.versionPairs()?.current.title).toBe('Test Article');
         });
 
         it('should display article title', () => {
-            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-            spectator.detectChanges();
-
             const titleEl = spectator.query('.cm-diff-page-meta-title span');
             expect(titleEl?.textContent?.trim()).toBe('Test Article');
         });
 
         it('should display version details', () => {
-            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-            spectator.detectChanges();
-
             const versionInfo = spectator.query('[data-testid="version-info"]');
             expect(versionInfo).toBeTruthy();
             expect(versionInfo?.textContent).toContain('199');
@@ -121,9 +110,6 @@ describe('CmDiffPageComponent', () => {
         });
 
         it('should display version comment when present', () => {
-            articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-            spectator.detectChanges();
-
             const comment = spectator.query('[data-testid="version-comment"]');
             expect(comment).toBeTruthy();
             expect(comment?.textContent?.trim()).toBe('Updated text');
@@ -131,9 +117,13 @@ describe('CmDiffPageComponent', () => {
 
         it('should hide version comment when empty', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairsNoComment));
-            spectator.detectChanges();
+            const s = createComponent();
+            const as = s.inject(ArticleService) as jest.Mocked<ArticleService>;
+            as.getVersionPairs.mockReturnValue(of(mockVersionPairsNoComment));
+            s.component.data.loadFromRoute();
+            s.detectChanges();
 
-            expect(spectator.query('[data-testid="version-comment"]')).toBeFalsy();
+            expect(s.query('[data-testid="version-comment"]')).toBeFalsy();
         });
     });
 
@@ -142,8 +132,9 @@ describe('CmDiffPageComponent', () => {
             articleService.getVersionPairs.mockReturnValue(
                 throwError(() => ({
                     error: { errorCode: 'NO_PREVIOUS_VERSION' },
-                }))
+                })),
             );
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(spectator.component.data.error()).toBe('Предыдущая версия не найдена');
@@ -153,6 +144,7 @@ describe('CmDiffPageComponent', () => {
 
         it('should show generic error on API failure', () => {
             articleService.getVersionPairs.mockReturnValue(throwError(() => ({ error: { errorCode: 'UNKNOWN' } })));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(spectator.component.data.error()).toBe('Ошибка загрузки данных');
@@ -160,17 +152,19 @@ describe('CmDiffPageComponent', () => {
 
         it('should log error on API failure', () => {
             articleService.getVersionPairs.mockReturnValue(throwError(() => ({ error: { errorCode: 'UNKNOWN' } })));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                 'Failed to load version pairs',
-                expect.anything()
+                expect.anything(),
             );
         });
 
         it('should not show error section when no error', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(spectator.query('[data-testid="error"]')).toBeFalsy();
@@ -180,6 +174,7 @@ describe('CmDiffPageComponent', () => {
     describe('view mode toggle', () => {
         beforeEach(() => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
         });
 
@@ -211,6 +206,7 @@ describe('CmDiffPageComponent', () => {
     describe('navigation buttons', () => {
         it('should register sidebar actions when data is loaded', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             const actions = spectator.queryAll('ui-sidebar-action');
@@ -219,6 +215,7 @@ describe('CmDiffPageComponent', () => {
 
         it('should not throw when goToNext is called without editor', () => {
             articleService.getVersionPairs.mockReturnValue(NEVER);
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(() => spectator.component.goToNext()).not.toThrow();
@@ -226,6 +223,7 @@ describe('CmDiffPageComponent', () => {
 
         it('should not throw when goToPrevious is called without editor', () => {
             articleService.getVersionPairs.mockReturnValue(NEVER);
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(() => spectator.component.goToPrevious()).not.toThrow();
@@ -235,42 +233,10 @@ describe('CmDiffPageComponent', () => {
     describe('cleanup', () => {
         it('should destroy editor view on component destroy', () => {
             articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
+            spectator.component.data.loadFromRoute();
             spectator.detectChanges();
 
             expect(() => spectator.fixture.destroy()).not.toThrow();
         });
-    });
-});
-
-describe('CmDiffPageComponent (two-param route)', () => {
-    let spectator: Spectator<CmDiffPageComponent>;
-    let articleService: jest.Mocked<ArticleService>;
-
-    const createComponent = createComponentFactory({
-        component: CmDiffPageComponent,
-        mocks: [ArticleService],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ id1: '100', id2: '200' }),
-                    },
-                },
-            },
-        ],
-        detectChanges: false,
-    });
-
-    beforeEach(() => {
-        spectator = createComponent();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-    });
-
-    it('should load version pairs with both IDs sorted (newer first, older second)', () => {
-        articleService.getVersionPairs.mockReturnValue(of(mockVersionPairs));
-        spectator.detectChanges();
-        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, 100);
     });
 });
