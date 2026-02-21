@@ -57,10 +57,10 @@ export class ArticleService {
                 this.mapArticleVersion({
                     ...response,
                     content: this.transformArticleLinks(response.content),
-                })
+                }),
             ),
             shareReplay({ bufferSize: 1, refCount: false }),
-            finalize(() => this.inflight.delete(id))
+            finalize(() => this.inflight.delete(id)),
         );
         this.inflight.set(id, obs$);
         return obs$;
@@ -78,8 +78,8 @@ export class ArticleService {
                 this.mapArticleVersion({
                     ...response,
                     content: this.transformArticleLinks(response.content),
-                })
-            )
+                }),
+            ),
         );
     }
 
@@ -209,7 +209,7 @@ export class ArticleService {
             map(response => ({
                 current: this.mapVersionForDiff(response.current),
                 previous: this.mapVersionForDiff(response.previous),
-            }))
+            })),
         );
     }
 
@@ -229,12 +229,14 @@ export class ArticleService {
 
     private mapVersionForDiff(dto: VersionForDiffDto): VersionForDiff {
         return {
+            articleId: dto.articleId,
             versionId: dto.versionId,
             content: dto.content,
             author: dto.author,
             date: new Date(dto.date),
             title: dto.title,
             info: dto.info,
+            approved: dto.approved,
         };
     }
 }

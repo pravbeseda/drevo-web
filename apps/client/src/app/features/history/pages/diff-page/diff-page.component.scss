@@ -1,4 +1,45 @@
+@use 'tokens' as *;
+
 :host {
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    overflow: hidden;
+}
+
+.diff-page-error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 16px;
+    color: var(--themed-text-secondary);
+}
+
+.diff-page-meta {
+    padding: 8px;
+    border-bottom: 1px solid var(--themed-border-color);
+}
+
+.diff-page-meta-versions {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+    margin-right: 12px;
+}
+
+.version-arrow {
+    color: var(--themed-text-muted);
+}
+
+.diff-page-meta-comment {
+    font-size: $font-size-sm;
+    color: var(--themed-text-muted);
+    font-style: italic;
+    vertical-align: middle;
 }

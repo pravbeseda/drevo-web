@@ -4,11 +4,30 @@
     (activated)="toggleDiffType()"
 />
 
-@switch (diffType()) {
-    @case ('cm') {
-        <app-cm-diff-view />
-    }
-    @case ('jsdiff') {
-        <app-diff-view />
+@if (data.error()) {
+    <div class="diff-page-error">
+        <p>{{ data.error() }}</p>
+    </div>
+} @else if (data.versionPairs(); as pairs) {
+    <div class="diff-page-meta">
+        <span class="diff-page-meta-versions">
+            <app-version-label [version]="pairs.previous" />
+            <span class="version-arrow">&rarr;</span>
+            <app-version-label [version]="pairs.current" />
+        </span>
+        @if (pairs.current.info) {
+            <span class="diff-page-meta-comment">
+                {{ pairs.current.info }}
+            </span>
+        }
+    </div>
+
+    @switch (diffType()) {
+        @case ('cm') {
+            <app-cm-diff-view />
+        }
+        @case ('jsdiff') {
+            <app-diff-view />
+        }
     }
 }

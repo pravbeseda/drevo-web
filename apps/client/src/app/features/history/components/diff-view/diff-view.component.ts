@@ -1,36 +1,12 @@
 import { DiffPageDataService } from '../../services/diff-page-data.service';
-import { ChangeDetectionStrategy, Component, computed, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
-import {
-    DEFAULT_JS_DIFF_OPTIONS,
-    DIFF_ENGINES,
-    DiffChange,
-    DiffEngineEntry,
-    escapeHtml,
-    JsDiffGranularity,
-    JsDiffOptions,
-} from '@drevo-web/shared';
-import {
-    DropdownMenuComponent,
-    DropdownMenuItemComponent,
-    DropdownMenuTriggerDirective,
-    FormatDatePipe,
-    IconButtonComponent,
-    SidebarActionComponent,
-    SpinnerComponent,
-} from '@drevo-web/ui';
+import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-web/shared';
+import { SidebarActionComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-diff-view',
-    imports: [
-        SpinnerComponent,
-        IconButtonComponent,
-        DropdownMenuComponent,
-        DropdownMenuItemComponent,
-        DropdownMenuTriggerDirective,
-        FormatDatePipe,
-        SidebarActionComponent,
-    ],
+    imports: [SidebarActionComponent],
     templateUrl: './diff-view.component.html',
     styleUrl: './diff-view.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,90 +17,31 @@ export class DiffViewComponent {
     private readonly logger = inject(LoggerService).withContext('DiffViewComponent');
 
     private readonly _selectedEngine = signal<DiffEngineEntry>(DIFF_ENGINES[0]);
-    private readonly _jsDiffOptions = signal<JsDiffOptions>(DEFAULT_JS_DIFF_OPTIONS);
-    private readonly _settingsOpen = signal(false);
     private readonly _collapsed = signal(true);
 
     readonly selectedEngine = this._selectedEngine.asReadonly();
     readonly engines = DIFF_ENGINES;
-    readonly settingsOpen = this._settingsOpen.asReadonly();
-    readonly jsDiffOptions = this._jsDiffOptions.asReadonly();
     readonly collapsed = this._collapsed.asReadonly();
-
-    readonly isJsDiff = computed(() => this._selectedEngine().id === 'js-diff');
-
-    readonly isIgnoreCaseAvailable = computed(() => {
-        const g = this._jsDiffOptions().granularity;
-        return g === 'chars' || g === 'words' || g === 'wordsWithSpace';
-    });
-
-    readonly isIntlSegmenterAvailable = computed(() => {
-        const g = this._jsDiffOptions().granularity;
-        return g === 'words' || g === 'wordsWithSpace';
-    });
-
-    readonly isLineOptionsAvailable = computed(() => this._jsDiffOptions().granularity === 'lines');
 
     readonly diffHtml = computed(() => {
         const pairs = this.data.versionPairs();
         const engine = this._selectedEngine();
         if (!pairs) return '';
 
-        const options = this.isJsDiff() ? this._jsDiffOptions() : undefined;
-        const changes = engine.engine.computeDiff(pairs.previous.content, pairs.current.content, options);
+        const changes = engine.engine.computeDiff(pairs.previous.content, pairs.current.content);
         return this._collapsed() ? this.renderCollapsedDiffHtml(changes) : this.renderDiffHtml(changes);
     });
 
-    readonly granularityOptions: readonly {
-        readonly value: JsDiffGranularity;
-        readonly label: string;
-    }[] = [
-        { value: 'chars', label: 'Символы' },
-        { value: 'words', label: 'Слова' },
-        { value: 'wordsWithSpace', label: 'Слова с пробелами' },
-        { value: 'lines', label: 'Строки' },
-        { value: 'sentences', label: 'Предложения' },
-    ];
-
-    onEngineChange(engine: DiffEngineEntry): void {
-        this._selectedEngine.set(engine);
-        this._settingsOpen.set(false);
-        this.logger.info('Diff engine changed', { engineId: engine.id });
-    }
-
-    toggleSettings(): void {
-        this._settingsOpen.update(open => !open);
-    }
-
-    closeSettings(): void {
-        this._settingsOpen.set(false);
-    }
-
-    onGranularityChange(granularity: JsDiffGranularity): void {
-        this._jsDiffOptions.update(opts => ({ ...opts, granularity }));
-        this.logger.info('JsDiff granularity changed', { granularity });
-    }
-
-    onOptionChange(key: Exclude<keyof JsDiffOptions, 'granularity'>, value: boolean): void {
-        this._jsDiffOptions.update(opts => ({ ...opts, [key]: value }));
-        this.logger.info('JsDiff option changed', { [key]: value });
-    }
-
-    onCheckboxChange(key: Exclude<keyof JsDiffOptions, 'granularity'>, event: Event): void {
-        const checked = (event.target as HTMLInputElement).checked;
-        this.onOptionChange(key, checked);
+    toggleEngine(): void {
+        const currentIndex = this.engines.indexOf(this._selectedEngine());
+        const nextIndex = (currentIndex + 1) % this.engines.length;
+        this._selectedEngine.set(this.engines[nextIndex]);
+        this.logger.info('Diff engine changed', { engineId: this._selectedEngine().id });
     }
 
     toggleCollapsed(): void {
         this._collapsed.update(v => !v);
         this.logger.info('Collapsed mode changed', { collapsed: this._collapsed() });
-    }
-
-    @HostListener('document:keydown.escape')
-    onEscapePress(): void {
-        if (this._settingsOpen()) {
-            this.closeSettings();
-        }
     }
 
     private renderDiffHtml(changes: DiffChange[]): string {

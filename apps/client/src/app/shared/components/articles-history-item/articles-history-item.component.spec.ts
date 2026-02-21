@@ -1,7 +1,7 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticlesHistoryItemComponent } from './articles-history-item.component';
 import { ArticleHistoryItem } from '@drevo-web/shared';
-import { IconButtonComponent } from '@drevo-web/ui';
+import { IconButtonComponent, StatusIconComponent } from '@drevo-web/ui';
 import { provideRouter } from '@angular/router';
 
 function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
@@ -54,52 +54,29 @@ describe('ArticlesHistoryItemComponent', () => {
         });
     });
 
-    describe('status icon mapping', () => {
-        it('should show check_circle for approved items', () => {
+    describe('status icon', () => {
+        it('should render status icon with approved status', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 1 }) },
             });
-            expect(spectator.component.statusIcon()).toBe('check_circle');
-            expect(spectator.component.statusTitle()).toBe('Одобрено');
+            const statusIcon = spectator.query(StatusIconComponent);
+            expect(statusIcon?.status()).toBe(1);
         });
 
-        it('should show schedule for pending items', () => {
+        it('should render status icon with pending status', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: 0 }) },
             });
-            expect(spectator.component.statusIcon()).toBe('schedule');
-            expect(spectator.component.statusTitle()).toBe('На проверке');
+            const statusIcon = spectator.query(StatusIconComponent);
+            expect(statusIcon?.status()).toBe(0);
         });
 
-        it('should show cancel for rejected items', () => {
+        it('should render status icon with rejected status', () => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved: -1 }) },
             });
-            expect(spectator.component.statusIcon()).toBe('cancel');
-            expect(spectator.component.statusTitle()).toBe('Отклонено');
-        });
-    });
-
-    describe('approval class', () => {
-        it('should return approved for approved items', () => {
-            spectator = createComponent({
-                props: { item: createMockItem({ approved: 1 }) },
-            });
-            expect(spectator.component.approvalClass()).toBe('approved');
-        });
-
-        it('should return pending for pending items', () => {
-            spectator = createComponent({
-                props: { item: createMockItem({ approved: 0 }) },
-            });
-            expect(spectator.component.approvalClass()).toBe('pending');
-        });
-
-        it('should return rejected for rejected items', () => {
-            spectator = createComponent({
-                props: { item: createMockItem({ approved: -1 }) },
-            });
-            expect(spectator.component.approvalClass()).toBe('rejected');
+            const statusIcon = spectator.query(StatusIconComponent);
+            expect(statusIcon?.status()).toBe(-1);
         });
     });
 

@@ -28,16 +28,7 @@
     </div>
     <div class="content-col">
         <div class="title-row">
-            <span
-                class="status-icon"
-                [ngClass]="'status-icon--' + approvalClass()"
-            >
-                <ui-icon
-                    [name]="statusIcon()"
-                    [tooltip]="statusTitle()"
-                    size="small"
-                />
-            </span>
+            <ui-status-icon [status]="item().approved" />
             <a
                 class="title"
                 data-testid="title"

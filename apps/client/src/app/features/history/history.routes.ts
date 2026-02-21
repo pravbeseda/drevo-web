@@ -1,14 +1,20 @@
+import { diffTitleResolver } from './resolvers/diff-title.resolver';
+import { DiffPageDataService } from './services/diff-page-data.service';
 import { Route } from '@angular/router';
 
 export const HISTORY_ROUTES: Route[] = [
     {
         path: 'articles/diff/:id',
-        title: 'Сравнение версий',
+        title: diffTitleResolver,
+        data: { titlePrefix: '#' },
+        providers: [DiffPageDataService],
         loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
     },
     {
         path: 'articles/diff/:id1/:id2',
-        title: 'Сравнение версий',
+        title: diffTitleResolver,
+        data: { titlePrefix: '#' },
+        providers: [DiffPageDataService],
         loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
     },
     {

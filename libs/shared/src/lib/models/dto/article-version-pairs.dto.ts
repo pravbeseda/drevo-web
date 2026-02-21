@@ -1,13 +1,17 @@
+import { ApprovalStatusDto } from './article.dto';
+
 /**
  * Single version data for diff comparison from API
  */
 export interface VersionForDiffDto {
+    readonly articleId: number;
     readonly versionId: number;
     readonly content: string;
     readonly author: string;
     readonly date: string;
     readonly title: string;
     readonly info: string;
+    readonly approved: ApprovalStatusDto;
 }
 
 /**

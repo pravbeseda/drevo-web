@@ -1,0 +1,17 @@
+:host {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    &.approved {
+        color: var(--themed-status-approved);
+    }
+
+    &.pending {
+        color: var(--themed-status-pending);
+    }
+
+    &.rejected {
+        color: var(--themed-status-rejected);
+    }
+}

@@ -10,18 +10,7 @@
         data-testid="version-banner"
     >
         <div class="version-banner__header">
-            @if (statusIcon(); as icon) {
-                <span
-                    class="version-banner__status"
-                    [ngClass]="'version-banner__status--' + approvalClass()"
-                >
-                    <ui-icon
-                        [name]="icon"
-                        [tooltip]="statusTitle() ?? ''"
-                        size="small"
-                    />
-                </span>
-            }
+            <ui-status-icon [status]="version.approved" />
             <span>Версия от {{ version.date | formatTime }}</span>
         </div>
         <div class="version-banner__meta">
