@@ -128,7 +128,6 @@ describe('DraftStorageService', () => {
             expect(mockDb.deleteAllDrafts).toHaveBeenCalledWith('test-user');
         });
     });
-
 });
 
 describe('DraftStorageService — unauthenticated user', () => {
@@ -168,20 +167,18 @@ describe('DraftStorageService — unauthenticated user', () => {
 
     it('should reject save when user is not authenticated', async () => {
         await expect(spectator.service.save(draftInput)).rejects.toThrow(
-            'DraftStorageService: user is not authenticated'
+            'DraftStorageService: user is not authenticated',
         );
     });
 
     it('should reject getByRoute when user is not authenticated', async () => {
         await expect(spectator.service.getByRoute('/route')).rejects.toThrow(
-            'DraftStorageService: user is not authenticated'
+            'DraftStorageService: user is not authenticated',
         );
     });
 
     it('should reject getAll when user is not authenticated', async () => {
-        await expect(spectator.service.getAll()).rejects.toThrow(
-            'DraftStorageService: user is not authenticated'
-        );
+        await expect(spectator.service.getAll()).rejects.toThrow('DraftStorageService: user is not authenticated');
     });
 
     it('should log error when user is not authenticated', async () => {
@@ -194,7 +191,7 @@ describe('DraftStorageService — unauthenticated user', () => {
         }
 
         expect(mockLoggerService.mockLogger.error).toHaveBeenCalledWith(
-            'DraftStorageService: user is not authenticated'
+            'DraftStorageService: user is not authenticated',
         );
     });
 });

@@ -7,6 +7,4 @@ import { InjectionToken } from '@angular/core';
  * Must be explicitly provided at the app level (e.g., in app.config.ts)
  * with a factory that reads from AuthService.
  */
-export const DRAFT_USER_ID_PROVIDER = new InjectionToken<() => string | undefined>(
-    'DRAFT_USER_ID_PROVIDER'
-);
+export const DRAFT_USER_ID_PROVIDER = new InjectionToken<() => string | undefined>('DRAFT_USER_ID_PROVIDER');
