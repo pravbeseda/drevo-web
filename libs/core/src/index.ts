@@ -1,3 +1,4 @@
+export * from './lib/draft-storage';
 export * from './lib/logging';
 export * from './lib/services/notification.service';
 export * from './lib/services/storage.service';
