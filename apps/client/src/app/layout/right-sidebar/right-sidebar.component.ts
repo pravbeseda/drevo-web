@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
 import { ActionButtonComponent } from '@drevo-web/ui';
@@ -14,9 +14,17 @@ export class RightSidebarComponent {
     private readonly sidebarService = inject(SidebarService);
 
     readonly actions = this.sidebarService.actions;
-    readonly primaryActions = this.sidebarService.primaryActions;
-    readonly secondaryActions = this.sidebarService.secondaryActions;
     readonly menuOpen = signal(false);
+
+    readonly mainAction = computed<SidebarAction | undefined>(() => {
+        const all = this.actions();
+        return all.find(a => a.priority === 'primary') ?? all[0];
+    });
+
+    readonly menuActions = computed(() => {
+        const main = this.mainAction();
+        return main ? this.actions().filter(a => a.id !== main.id) : [];
+    });
 
     toggleMenu(): void {
         this.menuOpen.update(open => !open);
