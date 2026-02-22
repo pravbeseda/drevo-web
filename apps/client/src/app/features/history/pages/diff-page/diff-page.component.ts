@@ -1,10 +1,10 @@
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { CmDiffViewComponent } from '../../components/cm-diff-view/cm-diff-view.component';
 import { DiffViewComponent } from '../../components/diff-view/diff-view.component';
 import { VersionLabelComponent } from '../../components/version-label/version-label.component';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { LoggerService, StorageService } from '@drevo-web/core';
-import { SidebarActionComponent } from '@drevo-web/ui';
 
 type DiffViewType = 'cm' | 'jsdiff';
 

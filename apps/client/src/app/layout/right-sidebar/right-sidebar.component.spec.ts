@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { WritableSignal, signal } from '@angular/core';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
@@ -6,6 +6,7 @@ import { RightSidebarComponent } from './right-sidebar.component';
 
 describe('RightSidebarComponent', () => {
     let spectator: Spectator<RightSidebarComponent>;
+    let actionsSignal: WritableSignal<SidebarAction[]>;
 
     const mockActions: SidebarAction[] = [
         {
@@ -31,23 +32,21 @@ describe('RightSidebarComponent', () => {
         },
     ];
 
-    const mockPrimaryActions = mockActions.filter(a => a.priority === 'primary');
-    const mockSecondaryActions = mockActions.filter(a => a.priority === 'secondary');
-
     const createComponent = createComponentFactory({
         component: RightSidebarComponent,
+        detectChanges: false,
         providers: [
             mockProvider(SidebarService, {
-                actions: signal(mockActions),
-                primaryActions: signal(mockPrimaryActions),
-                secondaryActions: signal(mockSecondaryActions),
+                actions: (actionsSignal = signal(mockActions)),
             }),
         ],
     });
 
     beforeEach(() => {
         mockActions.forEach(a => (a.action as jest.Mock).mockClear());
+        actionsSignal.set(mockActions);
         spectator = createComponent();
+        spectator.detectChanges();
     });
 
     it('should create', () => {
@@ -62,17 +61,57 @@ describe('RightSidebarComponent', () => {
         });
     });
 
-    describe('mobile sidebar', () => {
-        it('should render primary action button', () => {
-            const primaryButton = spectator.query('.fab-container ui-action-button[priority="primary"]');
-
-            expect(primaryButton).toBeTruthy();
+    describe('mainAction', () => {
+        it('should select first primary action as main', () => {
+            expect(spectator.component.mainAction()?.id).toBe('edit');
         });
 
-        it('should render menu toggle button when secondary actions exist', () => {
-            const menuButton = spectator.query('.fab-container ui-action-button[variant="menu"]');
+        it('should select first action when no primary exists', () => {
+            actionsSignal.set([
+                { id: 'a', icon: 'a', label: 'A', priority: 'secondary', action: jest.fn() },
+                { id: 'b', icon: 'b', label: 'B', priority: 'secondary', action: jest.fn() },
+            ]);
 
-            expect(menuButton).toBeTruthy();
+            expect(spectator.component.mainAction()?.id).toBe('a');
+        });
+
+        it('should be undefined when no actions', () => {
+            actionsSignal.set([]);
+
+            expect(spectator.component.mainAction()).toBeUndefined();
+        });
+    });
+
+    describe('menuActions', () => {
+        it('should contain all actions except main', () => {
+            const ids = spectator.component.menuActions().map(a => a.id);
+
+            expect(ids).toEqual(['share', 'delete']);
+        });
+    });
+
+    describe('mobile sidebar', () => {
+        it('should render main action FAB', () => {
+            const mainButton = spectator.query('[data-testid="fab-main"]');
+
+            expect(mainButton).toBeTruthy();
+        });
+
+        it('should render menu toggle when menu actions exist', () => {
+            const menuToggle = spectator.query('[data-testid="fab-menu-toggle"]');
+
+            expect(menuToggle).toBeTruthy();
+        });
+
+        it('should not render menu toggle when only one action', () => {
+            actionsSignal.set([
+                { id: 'only', icon: 'star', label: 'Only', priority: 'primary', action: jest.fn() },
+            ]);
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="fab-main"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="fab-menu-toggle"]')).toBeFalsy();
+            expect(spectator.query('.speed-dial')).toBeFalsy();
         });
 
         it('should not show speed dial by default', () => {
@@ -112,7 +151,7 @@ describe('RightSidebarComponent', () => {
 
     describe('handleSpeedDialAction', () => {
         it('should call action callback', () => {
-            const action = mockSecondaryActions[0];
+            const action = mockActions[1];
 
             spectator.component.handleSpeedDialAction(action);
 
@@ -121,7 +160,7 @@ describe('RightSidebarComponent', () => {
 
         it('should close menu after action', () => {
             spectator.component.menuOpen.set(true);
-            const action = mockSecondaryActions[0];
+            const action = mockActions[1];
 
             spectator.component.handleSpeedDialAction(action);
 
@@ -130,12 +169,12 @@ describe('RightSidebarComponent', () => {
     });
 
     describe('action callbacks', () => {
-        it('should call primary action when clicked', () => {
-            const primaryButton = spectator.query('.fab-container ui-action-button[variant="main"]');
+        it('should call main action when clicked', () => {
+            const mainButton = spectator.query('[data-testid="fab-main"]');
 
-            spectator.dispatchFakeEvent(primaryButton!, 'clicked');
+            spectator.dispatchFakeEvent(mainButton!, 'clicked');
 
-            expect(mockPrimaryActions[0].action).toHaveBeenCalled();
+            expect(mockActions[0].action).toHaveBeenCalled();
         });
     });
 });

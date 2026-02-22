@@ -1,0 +1,60 @@
+<!-- Desktop: Static Sidebar -->
+<div class="floating-sidebar">
+    @for (action of actions(); track action.id) {
+        <ui-action-button
+            [icon]="action.icon"
+            [label]="action.label"
+            [priority]="action.priority"
+            [link]="action.link"
+            [disabled]="action.disabled"
+            (clicked)="action.link ? undefined : action.action?.()"
+        />
+    }
+</div>
+
+<!-- Mobile: Floating Sidebar -->
+<div class="fab-container">
+    @if (mainAction(); as main) {
+        <ui-action-button
+            data-testid="fab-main"
+            [icon]="main.icon"
+            [label]="main.label"
+            [priority]="main.priority"
+            [variant]="menuActions().length > 0 ? 'main' : 'menu'"
+            [showTooltip]="true"
+            [link]="main.link"
+            [disabled]="main.disabled"
+            (clicked)="main.link ? undefined : main.action?.()"
+        />
+
+        @if (menuActions().length > 0) {
+            <ui-action-button
+                data-testid="fab-menu-toggle"
+                [icon]="menuOpen() ? 'expand_more' : 'expand_less'"
+                label="Дополнительные действия"
+                variant="menu"
+                [showTooltip]="true"
+                (clicked)="toggleMenu()"
+            />
+
+            <div
+                class="speed-dial"
+                [class.open]="menuOpen()"
+            >
+                @for (action of menuActions(); track action.id) {
+                    <ui-action-button
+                        [icon]="action.icon"
+                        [label]="action.label"
+                        [priority]="action.priority"
+                        variant="speed-dial"
+                        [showTooltip]="true"
+                        [showLabel]="false"
+                        [link]="action.link"
+                        [disabled]="action.disabled"
+                        (clicked)="action.link ? undefined : handleSpeedDialAction(action)"
+                    />
+                }
+            </div>
+        }
+    }
+</div>

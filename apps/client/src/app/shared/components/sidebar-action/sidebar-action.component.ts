@@ -1,15 +1,16 @@
-import { Component, OnDestroy, inject, input, output, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, inject, input, output, effect } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction, SidebarActionPriority } from '@drevo-web/shared';
 
 let nextId = 0;
 
 @Component({
-    selector: 'ui-sidebar-action',
+    selector: 'app-sidebar-action',
     template: '',
     host: {
         '[style.display]': '"none"',
     },
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarActionComponent implements OnDestroy {
     private readonly sidebarService = inject(SidebarService);

@@ -94,7 +94,7 @@ describe('CmDiffViewComponent', () => {
         it('should register sidebar actions when data is loaded', () => {
             spectator.detectChanges();
 
-            const actions = spectator.queryAll('ui-sidebar-action');
+            const actions = spectator.queryAll('app-sidebar-action');
             expect(actions.length).toBeGreaterThanOrEqual(3);
         });
 

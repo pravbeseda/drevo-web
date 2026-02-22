@@ -1,4 +1,4 @@
-<ui-sidebar-action
+<app-sidebar-action
     [icon]="diffType() === 'cm' ? 'looks_two' : 'looks_one'"
     [label]="diffType() === 'cm' ? 'Переключить на JsDiff' : 'Переключить на CodeMirror'"
     (activated)="toggleDiffType()"
