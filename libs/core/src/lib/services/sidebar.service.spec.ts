@@ -28,8 +28,6 @@ describe('SidebarService', () => {
 
     it('should start with empty actions', () => {
         expect(spectator.service.actions()).toEqual([]);
-        expect(spectator.service.primaryActions()).toEqual([]);
-        expect(spectator.service.secondaryActions()).toEqual([]);
     });
 
     describe('registerAction()', () => {
@@ -115,68 +113,6 @@ describe('SidebarService', () => {
         });
     });
 
-    describe('primaryActions', () => {
-        it('should return only primary actions', () => {
-            const primary1 = createAction({
-                id: 'primary-1',
-                priority: 'primary',
-            });
-            const primary2 = createAction({
-                id: 'primary-2',
-                priority: 'primary',
-            });
-            const secondary = createAction({
-                id: 'secondary',
-                priority: 'secondary',
-            });
-
-            spectator.service.registerAction(primary1);
-            spectator.service.registerAction(secondary);
-            spectator.service.registerAction(primary2);
-
-            expect(spectator.service.primaryActions()).toHaveLength(2);
-            expect(spectator.service.primaryActions()).toContainEqual(primary1);
-            expect(spectator.service.primaryActions()).toContainEqual(primary2);
-        });
-
-        it('should return empty array when no primary actions', () => {
-            spectator.service.registerAction(createAction({ id: 'secondary', priority: 'secondary' }));
-
-            expect(spectator.service.primaryActions()).toEqual([]);
-        });
-    });
-
-    describe('secondaryActions', () => {
-        it('should return only secondary actions', () => {
-            const secondary1 = createAction({
-                id: 'secondary-1',
-                priority: 'secondary',
-            });
-            const secondary2 = createAction({
-                id: 'secondary-2',
-                priority: 'secondary',
-            });
-            const primary = createAction({
-                id: 'primary',
-                priority: 'primary',
-            });
-
-            spectator.service.registerAction(secondary1);
-            spectator.service.registerAction(primary);
-            spectator.service.registerAction(secondary2);
-
-            expect(spectator.service.secondaryActions()).toHaveLength(2);
-            expect(spectator.service.secondaryActions()).toContainEqual(secondary1);
-            expect(spectator.service.secondaryActions()).toContainEqual(secondary2);
-        });
-
-        it('should return empty array when no secondary actions', () => {
-            spectator.service.registerAction(createAction({ id: 'primary', priority: 'primary' }));
-
-            expect(spectator.service.secondaryActions()).toEqual([]);
-        });
-    });
-
     describe('computed signals reactivity', () => {
         it('should update computed signals when actions change', () => {
             expect(spectator.service.actions()).toHaveLength(0);
@@ -189,26 +125,6 @@ describe('SidebarService', () => {
             spectator.service.unregisterAction(action.id);
 
             expect(spectator.service.actions()).toHaveLength(0);
-        });
-
-        it('should update filtered signals when priorities change via re-registration', () => {
-            const action = createAction({
-                id: 'changeable',
-                priority: 'primary',
-            });
-            spectator.service.registerAction(action);
-
-            expect(spectator.service.primaryActions()).toHaveLength(1);
-            expect(spectator.service.secondaryActions()).toHaveLength(0);
-
-            const updatedAction = createAction({
-                id: 'changeable',
-                priority: 'secondary',
-            });
-            spectator.service.registerAction(updatedAction);
-
-            expect(spectator.service.primaryActions()).toHaveLength(0);
-            expect(spectator.service.secondaryActions()).toHaveLength(1);
         });
     });
 });
