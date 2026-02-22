@@ -330,7 +330,6 @@ All accessed via `@drevo-web/ui`.
 | TabsGroup | `ui-tabs-group` | + `TabGroup`, `TabGroupItem` interfaces |
 | DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |
 | VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
-| RightSidebar | `ui-right-sidebar` | |
 | Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
 | HighlightPipe | `highlight` | Pipe for text highlighting |
 | FormatTimePipe | `formatTime` | Pipe for time formatting |

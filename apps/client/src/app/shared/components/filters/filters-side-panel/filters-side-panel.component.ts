@@ -1,7 +1,8 @@
 import { FilterEntry } from '../../../models/filter.model';
+import { SidebarActionComponent } from '../../sidebar-action/sidebar-action.component';
 import { FiltersComponent } from '../filters.component';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { SidebarActionComponent, SidePanelComponent } from '@drevo-web/ui';
+import { SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-filters-side-panel',

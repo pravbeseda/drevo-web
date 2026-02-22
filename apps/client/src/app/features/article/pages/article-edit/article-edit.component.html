@@ -8,14 +8,14 @@
         [message]="error()"
     />
 } @else if (version(); as version) {
-    <ui-sidebar-action
+    <app-sidebar-action
         icon="save"
         label="Сохранить"
         priority="primary"
         [disabled]="isSaving()"
         (activated)="save()"
     />
-    <ui-sidebar-action
+    <app-sidebar-action
         icon="close"
         label="Отмена"
         priority="secondary"

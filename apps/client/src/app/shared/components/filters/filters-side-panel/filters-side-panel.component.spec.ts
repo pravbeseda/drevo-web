@@ -44,7 +44,7 @@ describe('FiltersSidePanelComponent', () => {
     });
 
     it('should render sidebar action button', () => {
-        expect(spectator.query('ui-sidebar-action')).toBeTruthy();
+        expect(spectator.query('app-sidebar-action')).toBeTruthy();
     });
 
     it('should render side panel', () => {

@@ -1,3 +1,4 @@
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { ArticlePageService } from '../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -13,7 +14,6 @@ import {
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
-import { SidebarActionComponent } from '@drevo-web/ui';
 
 /**
  * State interface for managing interactive content visibility

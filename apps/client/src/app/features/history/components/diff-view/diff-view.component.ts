@@ -1,8 +1,8 @@
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-web/shared';
-import { SidebarActionComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-diff-view',

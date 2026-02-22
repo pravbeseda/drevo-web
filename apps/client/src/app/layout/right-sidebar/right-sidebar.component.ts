@@ -1,10 +1,10 @@
-import { ActionButtonComponent } from '../action-button/action-button.component';
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
+import { ActionButtonComponent } from '@drevo-web/ui';
 
 @Component({
-    selector: 'ui-right-sidebar',
+    selector: 'app-right-sidebar',
     imports: [ActionButtonComponent],
     templateUrl: './right-sidebar.component.html',
     styleUrl: './right-sidebar.component.scss',

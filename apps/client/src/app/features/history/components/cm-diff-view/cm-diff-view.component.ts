@@ -1,3 +1,4 @@
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -16,7 +17,6 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
 import { VersionPairs } from '@drevo-web/shared';
-import { SidebarActionComponent } from '@drevo-web/ui';
 
 type ViewMode = 'unified' | 'side-by-side';
 
