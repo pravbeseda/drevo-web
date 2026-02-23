@@ -2,6 +2,7 @@ import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
+import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
@@ -17,7 +18,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 @Component({
     selector: 'app-article-edit',
     imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent, SidebarActionComponent],
-    providers: [LinksService],
+    providers: [LinksService, DraftEditorService],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +30,7 @@ export class ArticleEditComponent implements OnInit {
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly draftEditor = inject(DraftEditorService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
     private currentContent: string | undefined = undefined;
@@ -36,6 +38,7 @@ export class ArticleEditComponent implements OnInit {
     private readonly updateLinksStateSubject = new BehaviorSubject<Record<string, boolean>>({});
 
     readonly version = signal<ArticleVersion | undefined>(undefined);
+    readonly editorContent = signal<string>('');
     readonly isLoading = signal<boolean>(false);
     readonly isSaving = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
@@ -49,7 +52,7 @@ export class ArticleEditComponent implements OnInit {
                     return idParam ? parseInt(idParam, 10) : NaN;
                 }),
                 distinctUntilChanged(),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(id => {
                 if (isNaN(id) || id <= 0) {
@@ -76,10 +79,18 @@ export class ArticleEditComponent implements OnInit {
                 next: version => {
                     this.version.set(version);
                     this.isLoading.set(false);
+                    this.editorContent.set(version.content);
                     this.logger.info('Version loaded for editing', {
                         versionId: version.versionId,
                         articleId: version.articleId,
                         title: version.title,
+                    });
+
+                    const route = `/articles/edit/${version.articleId}`;
+                    this.draftEditor.checkDraft(route).then(draftText => {
+                        if (draftText !== undefined) {
+                            this.editorContent.set(draftText);
+                        }
                     });
                 },
                 error: (err: HttpErrorResponse) => {
@@ -113,6 +124,15 @@ export class ArticleEditComponent implements OnInit {
     contentChanged(content: string): void {
         this.currentContent = content;
         this.logger.debug('Content changed', { length: content.length });
+
+        const version = this.version();
+        if (version) {
+            this.draftEditor.onContentChanged({
+                route: `/articles/edit/${version.articleId}`,
+                title: version.title,
+                text: content,
+            });
+        }
     }
 
     save(): void {
@@ -149,6 +169,7 @@ export class ArticleEditComponent implements OnInit {
                         articleId: result.articleId,
                     });
                     this.notificationService.success('Статья сохранена');
+                    this.draftEditor.discardDraft(`/articles/edit/${result.articleId}`);
                     this.router.navigate(['/articles', result.articleId]);
                 },
                 error: (err: HttpErrorResponse) => {
@@ -171,10 +192,12 @@ export class ArticleEditComponent implements OnInit {
 
     cancel(): void {
         const version = this.version();
-        if (version) {
-            this.router.navigate(['/articles', version.articleId]);
-        } else {
+        if (!version) {
             this.router.navigate(['/']);
+            return;
         }
+
+        const route = `/articles/edit/${version.articleId}`;
+        this.draftEditor.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
     }
 }

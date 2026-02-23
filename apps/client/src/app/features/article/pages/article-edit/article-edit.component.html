@@ -29,7 +29,7 @@
         </header>
         <div class="editor-container">
             <lib-editor
-                [content]="version.content"
+                [content]="editorContent()"
                 [linksStatus]="(updateLinksState$ | async) ?? {}"
                 (updateLinksEvent)="updateLinks($event)"
                 (contentChanged)="contentChanged($event)"

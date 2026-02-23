@@ -5,9 +5,11 @@ import {
     AfterViewInit,
     Component,
     DestroyRef,
+    effect,
     ElementRef,
     EventEmitter,
     inject,
+    input,
     Input,
     OnInit,
     Output,
@@ -33,8 +35,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     @ViewChild('editorContainer')
     editorContainer?: ElementRef;
 
-    @Input({ required: true })
-    content!: string;
+    readonly content = input.required<string>();
 
     @Input()
     set insertTagCommand(command: InsertTagCommand | null) {
@@ -72,6 +73,20 @@ export class EditorComponent implements OnInit, AfterViewInit {
     private readonly editorFactory = inject(EditorFactoryService);
     private readonly wikiHighlighterService = inject(WikiHighlighterService);
 
+    constructor() {
+        effect(() => {
+            const newContent = this.content();
+            if (!this.editor) return;
+
+            const currentContent = this.editor.state.doc.toString();
+            if (currentContent !== newContent) {
+                this.editor.dispatch({
+                    changes: { from: 0, to: currentContent.length, insert: newContent },
+                });
+            }
+        });
+    }
+
     ngOnInit() {
         this.wikiHighlighterService.updateLinks$
             .pipe(
@@ -88,7 +103,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         if (this.editorFactory.isServer() || !this.editorContainer) return;
 
         this.editor = new EditorView({
-            state: this.editorFactory.createState(this.content),
+            state: this.editorFactory.createState(this.content()),
             parent: this.editorContainer.nativeElement,
         });
 

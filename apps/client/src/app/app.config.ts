@@ -1,12 +1,14 @@
 import { appRoutes } from './app.routes';
 import { authInterceptorProvider } from './interceptors/auth.interceptor';
+import { AuthService } from './services/auth/auth.service';
 import { PageTitleStrategy } from './services/page-title.strategy';
 import { environment } from '../environments/environment';
 import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
-import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideZonelessChangeDetection } from '@angular/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router';
 import {
+    DRAFT_USER_ID_PROVIDER,
     errorNotificationInterceptorProvider,
     provideLogProductionMode,
     provideLogProviders,
@@ -17,7 +19,6 @@ import {
 // Build log providers array based on environment
 const logProviders = [
     createIndexedDBLogProvider(),
-    // Add Sentry provider only when DSN is configured
     ...(environment.sentryDsn ? [createSentryLogProvider(environment.production, true)] : []),
 ];
 
@@ -31,6 +32,13 @@ export const appConfig: ApplicationConfig = {
         errorNotificationInterceptorProvider,
         PageTitleStrategy,
         { provide: TitleStrategy, useExisting: PageTitleStrategy },
+        {
+            provide: DRAFT_USER_ID_PROVIDER,
+            useFactory: () => {
+                const authService = inject(AuthService);
+                return () => authService.currentUser?.login;
+            },
+        },
         // Logging configuration
         provideLogProductionMode(environment.production),
         provideLogProviders(logProviders),
