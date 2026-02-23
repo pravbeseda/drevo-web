@@ -1,4 +1,4 @@
-import { DraftDatabase } from './draft-database';
+import type { DraftDatabase } from './draft-database';
 import { DRAFT_USER_ID_PROVIDER } from './draft-user-id.token';
 import { Draft, DraftInput } from './draft.model';
 import { LoggerService } from '../logging/logger.service';
@@ -15,8 +15,9 @@ export class DraftStorageService {
 
     private db: DraftDatabase | undefined;
 
-    private getDatabase(): DraftDatabase {
+    private async getDatabase(): Promise<DraftDatabase> {
         if (!this.db) {
+            const { DraftDatabase } = await import('./draft-database');
             this.db = new DraftDatabase();
         }
         return this.db;
@@ -48,7 +49,8 @@ export class DraftStorageService {
         };
 
         this.logger.debug('Saving draft', { route: input.route });
-        await this.getDatabase().saveDraft(draft);
+        const db = await this.getDatabase();
+        await db.saveDraft(draft);
     }
 
     async getByRoute(route: string): Promise<Draft | undefined> {
@@ -56,7 +58,8 @@ export class DraftStorageService {
 
         const userId = this.requireUserId();
         this.logger.debug('Getting draft by route', { route });
-        return this.getDatabase().getDraft(userId, route);
+        const db = await this.getDatabase();
+        return db.getDraft(userId, route);
     }
 
     async getAll(): Promise<Draft[]> {
@@ -64,7 +67,8 @@ export class DraftStorageService {
 
         const userId = this.requireUserId();
         this.logger.debug('Getting all drafts');
-        return this.getDatabase().getAllDrafts(userId);
+        const db = await this.getDatabase();
+        return db.getAllDrafts(userId);
     }
 
     async getCount(): Promise<number> {
@@ -72,7 +76,8 @@ export class DraftStorageService {
 
         const userId = this.requireUserId();
         this.logger.debug('Getting draft count');
-        return this.getDatabase().countDrafts(userId);
+        const db = await this.getDatabase();
+        return db.countDrafts(userId);
     }
 
     async deleteByRoute(route: string): Promise<void> {
@@ -80,7 +85,8 @@ export class DraftStorageService {
 
         const userId = this.requireUserId();
         this.logger.debug('Deleting draft', { route });
-        await this.getDatabase().deleteDraft(userId, route);
+        const db = await this.getDatabase();
+        await db.deleteDraft(userId, route);
     }
 
     async deleteAll(): Promise<void> {
@@ -88,6 +94,7 @@ export class DraftStorageService {
 
         const userId = this.requireUserId();
         this.logger.debug('Deleting all drafts');
-        await this.getDatabase().deleteAllDrafts(userId);
+        const db = await this.getDatabase();
+        await db.deleteAllDrafts(userId);
     }
 }
