@@ -35,7 +35,8 @@ export const appConfig: ApplicationConfig = {
         {
             provide: DRAFT_USER_ID_PROVIDER,
             useFactory: () => {
-                return () => inject(AuthService).currentUser?.login;
+                const authService = inject(AuthService);
+                return () => authService.currentUser?.login;
             },
         },
         // Logging configuration

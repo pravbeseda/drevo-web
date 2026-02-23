@@ -6,6 +6,7 @@ import { NotificationService } from '@drevo-web/core';
 import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
+import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { ArticleEditComponent } from './article-edit.component';
 
 describe('ArticleEditComponent', () => {
@@ -32,7 +33,18 @@ describe('ArticleEditComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
-        componentProviders: [{ provide: LinksService, useValue: { getLinkStatuses: jest.fn() } }],
+        componentProviders: [
+            { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } },
+            {
+                provide: DraftEditorService,
+                useValue: {
+                    checkDraft: jest.fn().mockResolvedValue(undefined),
+                    onContentChanged: jest.fn(),
+                    discardDraft: jest.fn().mockResolvedValue(undefined),
+                    confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
+                },
+            },
+        ],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -425,12 +437,16 @@ describe('ArticleEditComponent', () => {
     });
 
     describe('cancel method', () => {
-        it('should navigate to article page when version exists', () => {
+        it('should call confirmDiscardAndNavigate when version exists', () => {
             spectator.detectChanges();
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
 
             spectator.component.cancel();
 
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
+            expect(draftEditor.confirmDiscardAndNavigate).toHaveBeenCalledWith('/articles/edit/123', [
+                '/articles',
+                123,
+            ]);
         });
 
         it('should navigate to home when version is undefined', () => {
@@ -441,10 +457,23 @@ describe('ArticleEditComponent', () => {
     });
 });
 
+const mockDraftEditorServiceProvider = {
+    provide: DraftEditorService,
+    useValue: {
+        checkDraft: jest.fn().mockResolvedValue(undefined),
+        onContentChanged: jest.fn(),
+        discardDraft: jest.fn().mockResolvedValue(undefined),
+        confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
+    },
+};
+
+const mockLinksServiceProvider = { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } };
+
 describe('ArticleEditComponent with invalid ID', () => {
     const createComponentWithInvalidId = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -474,6 +503,7 @@ describe('ArticleEditComponent with negative ID', () => {
     const createComponentWithNegativeId = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -495,6 +525,7 @@ describe('ArticleEditComponent with zero ID', () => {
     const createComponentWithZeroId = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -516,6 +547,7 @@ describe('ArticleEditComponent with missing ID', () => {
     const createComponentWithMissingId = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
         providers: [
             {
                 provide: ActivatedRoute,
