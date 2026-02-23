@@ -98,6 +98,33 @@ describe('ArticleEditComponent', () => {
             expect(editorComponent).toBeTruthy();
         });
 
+        it('should call checkDraft after version loads', () => {
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
+            spectator.detectChanges();
+
+            expect(draftEditor.checkDraft).toHaveBeenCalledWith('/articles/edit/123');
+        });
+
+        it('should set editorContent to draft text when draft is restored', async () => {
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
+            draftEditor.checkDraft.mockResolvedValue('draft content');
+            spectator.detectChanges();
+
+            await draftEditor.checkDraft.mock.results[0].value;
+
+            expect(spectator.component.editorContent()).toBe('draft content');
+        });
+
+        it('should keep original content when no draft exists', async () => {
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
+            draftEditor.checkDraft.mockResolvedValue(undefined);
+            spectator.detectChanges();
+
+            await draftEditor.checkDraft.mock.results[0].value;
+
+            expect(spectator.component.editorContent()).toBe('<p>Test article content</p>');
+        });
+
         it('should reload version when route param changes', () => {
             spectator.detectChanges();
 
@@ -253,6 +280,28 @@ describe('ArticleEditComponent', () => {
                 spectator.component.contentChanged('new content');
             }).not.toThrow();
         });
+
+        it('should call draftEditor.onContentChanged with correct input', () => {
+            spectator.detectChanges();
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
+
+            spectator.component.contentChanged('updated content');
+
+            expect(draftEditor.onContentChanged).toHaveBeenCalledWith({
+                route: '/articles/edit/123',
+                title: 'Test Article Title',
+                text: 'updated content',
+            });
+        });
+
+        it('should not call draftEditor.onContentChanged when version is undefined', () => {
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
+            draftEditor.onContentChanged.mockClear();
+
+            spectator.component.contentChanged('content');
+
+            expect(draftEditor.onContentChanged).not.toHaveBeenCalled();
+        });
     });
 
     describe('save method', () => {
@@ -333,6 +382,16 @@ describe('ArticleEditComponent', () => {
             spectator.component.save();
 
             expect(notificationService.success).toHaveBeenCalledWith('Статья сохранена');
+        });
+
+        it('should discard draft after successful save', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
+
+            spectator.component.save();
+
+            expect(draftEditor.discardDraft).toHaveBeenCalledWith('/articles/edit/123');
         });
 
         it('should set isSaving to false after successful save', () => {
