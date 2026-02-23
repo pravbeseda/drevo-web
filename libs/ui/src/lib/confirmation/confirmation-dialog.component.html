@@ -1,0 +1,15 @@
+<div class="confirmation-dialog">
+    <h2 class="confirmation-dialog__title">{{ config.title }}</h2>
+    <div class="confirmation-dialog__content">
+        <p class="confirmation-dialog__message">{{ config.message }}</p>
+    </div>
+    <div class="confirmation-dialog__actions">
+        @for (button of config.buttons; track button.key) {
+            <ui-button
+                [variant]="button.variant ?? 'secondary'"
+                [fullWidth]="true"
+                (clicked)="select(button.key)"
+            >{{ button.label }}</ui-button>
+        }
+    </div>
+</div>

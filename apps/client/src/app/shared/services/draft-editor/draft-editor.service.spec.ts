@@ -7,26 +7,31 @@ import {
     mockLoggerProvider,
     MockLoggerService,
 } from '@drevo-web/core/testing';
-import { ModalService } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui';
 import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 
 describe('DraftEditorService', () => {
     let spectator: SpectatorService<DraftEditorService>;
     let draftStorage: MockDraftStorageService;
-    let modalService: ModalService;
+    let confirmationService: ConfirmationService;
     let router: Router;
     let loggerService: MockLoggerService;
 
     const createService = createServiceFactory({
         service: DraftEditorService,
-        providers: [mockDraftStorageProvider(), mockLoggerProvider(), mockProvider(ModalService), mockProvider(Router)],
+        providers: [
+            mockDraftStorageProvider(),
+            mockLoggerProvider(),
+            mockProvider(ConfirmationService),
+            mockProvider(Router),
+        ],
     });
 
     beforeEach(() => {
         spectator = createService();
         draftStorage = spectator.inject(DraftStorageService) as unknown as MockDraftStorageService;
-        modalService = spectator.inject(ModalService);
+        confirmationService = spectator.inject(ConfirmationService);
         router = spectator.inject(Router);
         loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
@@ -38,20 +43,19 @@ describe('DraftEditorService', () => {
             const result = await spectator.service.checkDraft('/articles/edit/1');
 
             expect(result).toBeUndefined();
-            expect(modalService.open).not.toHaveBeenCalled();
+            expect(confirmationService.open).not.toHaveBeenCalled();
         });
 
-        it('should open restore dialog when draft found', async () => {
+        it('should open confirmation dialog when draft found', async () => {
             const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'Draft text', time: 1000 };
             draftStorage.getByRoute.mockResolvedValue(draft);
-            (modalService.open as jest.Mock).mockReturnValue(of(true));
+            (confirmationService.open as jest.Mock).mockReturnValue(of('restore'));
 
             await spectator.service.checkDraft('/articles/edit/1');
 
-            expect(modalService.open).toHaveBeenCalledWith(
-                expect.any(Function),
+            expect(confirmationService.open).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    data: { title: 'Test', time: 1000 },
+                    title: 'Найден черновик',
                     disableClose: true,
                 }),
             );
@@ -60,7 +64,7 @@ describe('DraftEditorService', () => {
         it('should return draft text when user chooses restore', async () => {
             const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'Draft text', time: 1000 };
             draftStorage.getByRoute.mockResolvedValue(draft);
-            (modalService.open as jest.Mock).mockReturnValue(of(true));
+            (confirmationService.open as jest.Mock).mockReturnValue(of('restore'));
 
             const result = await spectator.service.checkDraft('/articles/edit/1');
 
@@ -71,7 +75,7 @@ describe('DraftEditorService', () => {
         it('should delete draft and return undefined when user declines', async () => {
             const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'Draft text', time: 1000 };
             draftStorage.getByRoute.mockResolvedValue(draft);
-            (modalService.open as jest.Mock).mockReturnValue(of(false));
+            (confirmationService.open as jest.Mock).mockReturnValue(of('discard'));
 
             const result = await spectator.service.checkDraft('/articles/edit/1');
 
@@ -158,19 +162,18 @@ describe('DraftEditorService', () => {
 
             await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
 
-            expect(modalService.open).not.toHaveBeenCalled();
+            expect(confirmationService.open).not.toHaveBeenCalled();
             expect(router.navigate).toHaveBeenCalledWith(['/articles', 1]);
         });
 
         it('should show confirm dialog and navigate when user confirms', async () => {
             const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'x', time: 1000 };
             draftStorage.getByRoute.mockResolvedValue(draft);
-            (modalService.open as jest.Mock).mockReturnValue(of(true));
+            (confirmationService.open as jest.Mock).mockReturnValue(of('confirm'));
 
             await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
 
-            expect(modalService.open).toHaveBeenCalledWith(
-                expect.any(Function),
+            expect(confirmationService.open).toHaveBeenCalledWith(
                 expect.objectContaining({ disableClose: true }),
             );
             expect(draftStorage.deleteByRoute).toHaveBeenCalledWith('/articles/edit/1');
@@ -180,7 +183,7 @@ describe('DraftEditorService', () => {
         it('should stay on page when user cancels', async () => {
             const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'x', time: 1000 };
             draftStorage.getByRoute.mockResolvedValue(draft);
-            (modalService.open as jest.Mock).mockReturnValue(of(false));
+            (confirmationService.open as jest.Mock).mockReturnValue(of('cancel'));
 
             await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
 

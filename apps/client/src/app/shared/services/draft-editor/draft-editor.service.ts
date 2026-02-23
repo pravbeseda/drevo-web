@@ -1,9 +1,9 @@
-import { DraftRestoreDialogData } from '../../components/draft-restore-dialog/draft-restore-dialog.component';
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DraftInput, DraftStorageService, LoggerService } from '@drevo-web/core';
-import { ModalService } from '@drevo-web/ui';
+import { formatDateHeader, formatTime } from '@drevo-web/shared';
+import { ConfirmationService } from '@drevo-web/ui';
 import { debounceTime, firstValueFrom, Subject } from 'rxjs';
 
 const DRAFT_SAVE_DEBOUNCE_MS = 3000;
@@ -11,7 +11,7 @@ const DRAFT_SAVE_DEBOUNCE_MS = 3000;
 @Injectable()
 export class DraftEditorService {
     private readonly draftStorage = inject(DraftStorageService);
-    private readonly modalService = inject(ModalService);
+    private readonly confirmationService = inject(ConfirmationService);
     private readonly router = inject(Router);
     private readonly logger = inject(LoggerService).withContext('DraftEditorService');
     private readonly destroyRef = inject(DestroyRef);
@@ -29,21 +29,20 @@ export class DraftEditorService {
 
             this.logger.info('Draft found', { route, title: draft.title, time: draft.time });
 
+            const savedAt = this.formatSavedAt(draft.time);
             const result = await firstValueFrom(
-                this.modalService.open<DraftRestoreDialogData, boolean>(
-                    () =>
-                        import('../../components/draft-restore-dialog/draft-restore-dialog.component').then(
-                            m => m.DraftRestoreDialogComponent,
-                        ),
-                    {
-                        data: { title: draft.title, time: draft.time },
-                        disableClose: true,
-                        width: '450px',
-                    },
-                ),
+                this.confirmationService.open({
+                    title: 'Найден черновик',
+                    message: `Черновик статьи «${draft.title}» сохранён ${savedAt}. Восстановить?`,
+                    buttons: [
+                        { key: 'discard', label: 'Удалить черновик' },
+                        { key: 'restore', label: 'Восстановить', variant: 'primary' },
+                    ],
+                    disableClose: true,
+                }),
             );
 
-            if (result) {
+            if (result === 'restore') {
                 this.logger.info('Draft restored', { route });
                 return draft.text;
             }
@@ -84,26 +83,31 @@ export class DraftEditorService {
             }
 
             const result = await firstValueFrom(
-                this.modalService.open<undefined, boolean>(
-                    () =>
-                        import('../../components/draft-discard-dialog/draft-discard-dialog.component').then(
-                            m => m.DraftDiscardDialogComponent,
-                        ),
-                    {
-                        disableClose: true,
-                        width: '400px',
-                    },
-                ),
+                this.confirmationService.open({
+                    title: 'Удалить черновик?',
+                    message: 'Вы уверены, что хотите удалить черновик? Несохранённые изменения будут потеряны.',
+                    buttons: [
+                        { key: 'cancel', label: 'Остаться' },
+                        { key: 'confirm', label: 'Удалить', variant: 'primary' },
+                    ],
+                    disableClose: true,
+                }),
             );
 
-            if (result) {
+            if (result === 'confirm') {
                 await this.discardDraft(route);
                 await this.router.navigate(navigateTo as string[]);
             }
-            // If result is false/undefined — stay on page
         } catch (error) {
             this.logger.error('Failed to confirm discard', error);
         }
+    }
+
+    private formatSavedAt(epochMs: number): string {
+        const date = new Date(epochMs);
+        const dateStr = formatDateHeader(date);
+        const timeStr = formatTime(date);
+        return `${dateStr}, ${timeStr}`;
     }
 
     private initSubscription(): void {
