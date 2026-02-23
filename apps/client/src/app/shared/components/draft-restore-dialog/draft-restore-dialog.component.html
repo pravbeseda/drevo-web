@@ -1,0 +1,11 @@
+<div class="draft-restore-dialog">
+    <h2 class="draft-restore-dialog__title">Найден черновик</h2>
+    <p class="draft-restore-dialog__message">
+        Черновик статьи «{{ data.title }}» сохранён {{ savedAt }}.
+        Восстановить?
+    </p>
+    <div class="draft-restore-dialog__actions">
+        <ui-button variant="secondary" (clicked)="decline()">Удалить черновик</ui-button>
+        <ui-button variant="primary" (clicked)="restore()">Восстановить</ui-button>
+    </div>
+</div>
