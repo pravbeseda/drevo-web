@@ -16,9 +16,12 @@ export class DraftEditorService {
     private readonly logger = inject(LoggerService).withContext('DraftEditorService');
     private readonly destroyRef = inject(DestroyRef);
 
+    // TODO: consider refactoring to a more declarative RxJS pipeline
+    // instead of imperative flags (subscriptionInitialized, lastSavedText, discarded)
     private readonly contentSubject = new Subject<DraftInput>();
     private lastSavedText: string | undefined;
     private subscriptionInitialized = false;
+    private discarded = false;
 
     async checkDraft(route: string): Promise<string | undefined> {
         try {
@@ -57,6 +60,7 @@ export class DraftEditorService {
     }
 
     onContentChanged(input: DraftInput): void {
+        this.discarded = false;
         if (!this.subscriptionInitialized) {
             this.initSubscription();
         }
@@ -65,6 +69,7 @@ export class DraftEditorService {
 
     async discardDraft(route: string): Promise<void> {
         try {
+            this.discarded = true;
             this.lastSavedText = undefined;
             await this.draftStorage.deleteByRoute(route);
             this.logger.info('Draft discarded', { route });
@@ -116,7 +121,7 @@ export class DraftEditorService {
         this.contentSubject
             .pipe(debounceTime(DRAFT_SAVE_DEBOUNCE_MS), takeUntilDestroyed(this.destroyRef))
             .subscribe(input => {
-                if (input.text === this.lastSavedText) {
+                if (this.discarded || input.text === this.lastSavedText) {
                     return;
                 }
                 this.saveDraft(input);

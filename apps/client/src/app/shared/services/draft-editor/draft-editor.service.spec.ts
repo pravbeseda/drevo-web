@@ -127,6 +127,30 @@ describe('DraftEditorService', () => {
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
         });
 
+        it('should not save after discardDraft is called', () => {
+            draftStorage.save.mockResolvedValue(undefined);
+
+            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'pending' });
+            spectator.service.discardDraft('/articles/edit/1');
+            jest.advanceTimersByTime(3000);
+
+            expect(draftStorage.save).not.toHaveBeenCalled();
+        });
+
+        it('should resume saving after onContentChanged following discardDraft', () => {
+            draftStorage.save.mockResolvedValue(undefined);
+
+            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'before' });
+            spectator.service.discardDraft('/articles/edit/1');
+            jest.advanceTimersByTime(3000);
+            expect(draftStorage.save).not.toHaveBeenCalled();
+
+            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'after' });
+            jest.advanceTimersByTime(3000);
+            expect(draftStorage.save).toHaveBeenCalledTimes(1);
+            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/edit/1', title: 'Test', text: 'after' });
+        });
+
         it('should save again if text changes after previous save', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
