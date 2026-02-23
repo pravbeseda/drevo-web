@@ -9,6 +9,18 @@ import { LinksService } from '../../../../services/links/links.service';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { ArticleEditComponent } from './article-edit.component';
 
+const mockDraftEditorServiceProvider = {
+    provide: DraftEditorService,
+    useValue: {
+        checkDraft: jest.fn().mockResolvedValue(undefined),
+        onContentChanged: jest.fn(),
+        discardDraft: jest.fn().mockResolvedValue(undefined),
+        confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
+    },
+};
+
+const mockLinksServiceProvider = { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } };
+
 describe('ArticleEditComponent', () => {
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
@@ -33,18 +45,7 @@ describe('ArticleEditComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
-        componentProviders: [
-            { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } },
-            {
-                provide: DraftEditorService,
-                useValue: {
-                    checkDraft: jest.fn().mockResolvedValue(undefined),
-                    onContentChanged: jest.fn(),
-                    discardDraft: jest.fn().mockResolvedValue(undefined),
-                    confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
-                },
-            },
-        ],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
         providers: [
             {
                 provide: ActivatedRoute,
@@ -456,18 +457,6 @@ describe('ArticleEditComponent', () => {
         });
     });
 });
-
-const mockDraftEditorServiceProvider = {
-    provide: DraftEditorService,
-    useValue: {
-        checkDraft: jest.fn().mockResolvedValue(undefined),
-        onContentChanged: jest.fn(),
-        discardDraft: jest.fn().mockResolvedValue(undefined),
-        confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
-    },
-};
-
-const mockLinksServiceProvider = { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } };
 
 describe('ArticleEditComponent with invalid ID', () => {
     const createComponentWithInvalidId = createComponentFactory({

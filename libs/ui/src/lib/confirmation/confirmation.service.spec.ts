@@ -38,7 +38,6 @@ describe('ConfirmationService', () => {
                 data: config,
                 width: '450px',
                 disableClose: false,
-                panelClass: 'ui-confirmation-panel',
             }),
         );
     });

@@ -78,12 +78,12 @@ export class DraftEditorService {
         }
     }
 
-    async confirmDiscardAndNavigate(route: string, navigateTo: unknown[]): Promise<void> {
+    async confirmDiscardAndNavigate(route: string, navigateTo: readonly unknown[]): Promise<void> {
         try {
             const draft = await this.draftStorage.getByRoute(route);
 
             if (!draft) {
-                await this.router.navigate(navigateTo as string[]);
+                await this.router.navigate([...navigateTo]);
                 return;
             }
 
@@ -101,7 +101,7 @@ export class DraftEditorService {
 
             if (result === 'confirm') {
                 await this.discardDraft(route);
-                await this.router.navigate(navigateTo as string[]);
+                await this.router.navigate([...navigateTo]);
             }
         } catch (error) {
             this.logger.error('Failed to confirm discard', error);

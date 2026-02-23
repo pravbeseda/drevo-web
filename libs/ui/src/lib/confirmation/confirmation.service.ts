@@ -16,7 +16,6 @@ export class ConfirmationService {
                 data: config,
                 width: config.width ?? DEFAULT_WIDTH,
                 disableClose: config.disableClose ?? false,
-                panelClass: 'ui-confirmation-panel',
             },
         );
     }
