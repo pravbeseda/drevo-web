@@ -29,6 +29,8 @@ export class TextInputComponent implements ControlValueAccessor {
     required = input<boolean>(false);
     maxLength = input<number | undefined>(undefined);
     minLength = input<number | undefined>(undefined);
+    multiline = input<boolean>(false);
+    rows = input<number>(3);
 
     valueChanged = output<string>();
 

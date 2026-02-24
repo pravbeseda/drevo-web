@@ -16,6 +16,8 @@
 
 <ui-text-input
     label="Комментарий"
+    [multiline]="true"
+    [rows]="3"
     (valueChanged)="onCommentChange($event)"
 />
 
