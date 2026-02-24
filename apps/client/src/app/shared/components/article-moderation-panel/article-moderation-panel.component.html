@@ -1,0 +1,37 @@
+<div class="moderation-panel-status">
+    <ui-status-icon [status]="versionPairs().current.approved" />
+    <span>{{ statusText() }}</span>
+</div>
+
+<div class="moderation-panel-info">
+    <div class="moderation-panel-info-row">
+        <span class="moderation-panel-info-label">Автор:</span>
+        <span>{{ versionPairs().current.author }}</span>
+    </div>
+    <div class="moderation-panel-info-row">
+        <span class="moderation-panel-info-label">Дата:</span>
+        <span>{{ versionPairs().current.date | formatTime }}</span>
+    </div>
+</div>
+
+<ui-text-input
+    label="Комментарий"
+    (valueChanged)="onCommentChange($event)"
+/>
+
+<div class="moderation-panel-actions">
+    <ui-button
+        variant="primary"
+        [disabled]="isApproved()"
+        (clicked)="approve()"
+    >
+        Одобрить
+    </ui-button>
+    <ui-button
+        variant="secondary"
+        [disabled]="isRejected()"
+        (clicked)="reject()"
+    >
+        Отклонить
+    </ui-button>
+</div>

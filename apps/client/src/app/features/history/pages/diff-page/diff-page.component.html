@@ -1,3 +1,22 @@
+@if (canModerate()) {
+    <app-sidebar-action
+        [icon]="moderationIcon()"
+        [label]="'Модерация: ' + moderationLabel()"
+        [disabled]="!isModerationEnabled()"
+        (activated)="toggleModerationPanel()"
+    />
+
+    <ui-side-panel
+        [open]="isModerationPanelOpen()"
+        title="Модерация"
+        (closed)="closeModerationPanel()"
+    >
+        @if (data.versionPairs(); as pairs) {
+            <app-article-moderation-panel [versionPairs]="pairs" />
+        }
+    </ui-side-panel>
+}
+
 <app-sidebar-action
     [icon]="diffType() === 'cm' ? 'looks_two' : 'looks_one'"
     [label]="diffType() === 'cm' ? 'Переключить на JsDiff' : 'Переключить на CodeMirror'"
