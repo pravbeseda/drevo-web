@@ -24,14 +24,16 @@
 <div class="moderation-panel-actions">
     <ui-button
         variant="primary"
-        [disabled]="isApproved()"
+        [disabled]="isApproved() || isLoading()"
+        [loading]="isLoading()"
         (clicked)="approve()"
     >
         Одобрить
     </ui-button>
     <ui-button
         variant="secondary"
-        [disabled]="isRejected()"
+        [disabled]="isRejected() || isLoading()"
+        [loading]="isLoading()"
         (clicked)="reject()"
     >
         Отклонить

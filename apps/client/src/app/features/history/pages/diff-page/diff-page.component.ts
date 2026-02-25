@@ -8,7 +8,7 @@ import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService, StorageService } from '@drevo-web/core';
-import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ApprovalStatus } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { SidePanelComponent } from '@drevo-web/ui';
 
 type DiffViewType = 'cm' | 'jsdiff';
@@ -70,6 +70,12 @@ export class DiffPageComponent {
 
     closeModerationPanel(): void {
         this._isModerationPanelOpen.set(false);
+    }
+
+    onModerated(result: ModerationResult): void {
+        this.data.updateCurrentApproval(result.approved);
+        this._isModerationPanelOpen.set(false);
+        this.logger.info('Version moderated', { versionId: result.versionId, approved: result.approved });
     }
 
     toggleDiffType(): void {

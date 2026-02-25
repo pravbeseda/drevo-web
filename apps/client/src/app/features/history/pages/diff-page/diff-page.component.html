@@ -12,7 +12,10 @@
         (closed)="closeModerationPanel()"
     >
         @if (data.versionPairs(); as pairs) {
-            <app-article-moderation-panel [versionPairs]="pairs" />
+            <app-article-moderation-panel
+                [versionPairs]="pairs"
+                (moderated)="onModerated($event)"
+            />
         }
     </ui-side-panel>
 }
