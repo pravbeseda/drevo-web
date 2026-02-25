@@ -1,9 +1,11 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, Subject } from 'rxjs';
 import {
+    ApprovalStatus,
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    ModerationResponseDto,
     SaveArticleVersionResponseDto,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
@@ -538,6 +540,51 @@ describe('ArticleService', () => {
             expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith({
                 versionId: 456,
                 content: 'New content',
+            });
+        });
+    });
+
+    describe('moderateVersion', () => {
+        const mockModerationResponse: ModerationResponseDto = {
+            versionId: 200,
+            articleId: 1,
+            approved: 1,
+            comment: 'Looks good',
+        };
+
+        it('should call articleApiService.moderateVersion with correct params', () => {
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved, 'Looks good').subscribe();
+
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
+                versionId: 200,
+                approved: ApprovalStatus.Approved,
+                comment: 'Looks good',
+            });
+        });
+
+        it('should map DTO to ModerationResult', done => {
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved).subscribe(result => {
+                expect(result.versionId).toBe(200);
+                expect(result.articleId).toBe(1);
+                expect(result.approved).toBe(ApprovalStatus.Approved);
+                expect(result.comment).toBe('Looks good');
+                done();
+            });
+        });
+
+        it('should pass undefined comment when not provided', () => {
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Rejected).subscribe();
+
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
+                versionId: 200,
+                approved: ApprovalStatus.Rejected,
+                comment: undefined,
             });
         });
     });

@@ -1,7 +1,7 @@
 import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 import { ArticleService } from '../../../services/articles/article.service';
@@ -242,6 +242,43 @@ describe('DiffPageDataService', () => {
             obs1.subscribe();
             obs2.subscribe();
             expect(articleService.getVersionPairs).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateCurrentApproval', () => {
+        it('should update approval status of current version', () => {
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.updateCurrentApproval(ApprovalStatus.Rejected);
+
+            expect(spectator.service.versionPairs()?.current.approved).toBe(ApprovalStatus.Rejected);
+        });
+
+        it('should preserve other version pair fields', () => {
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.updateCurrentApproval(ApprovalStatus.Approved);
+
+            const pairs = spectator.service.versionPairs();
+            expect(pairs?.current.versionId).toBe(MOCK_VERSION_PAIRS.current.versionId);
+            expect(pairs?.current.author).toBe(MOCK_VERSION_PAIRS.current.author);
+            expect(pairs?.previous).toEqual(MOCK_VERSION_PAIRS.previous);
+        });
+
+        it('should do nothing when no version pairs loaded', () => {
+            spectator = createService();
+
+            spectator.service.updateCurrentApproval(ApprovalStatus.Approved);
+
+            expect(spectator.service.versionPairs()).toBeUndefined();
         });
     });
 

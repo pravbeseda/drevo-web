@@ -71,6 +71,7 @@ export class ArticleModerationPanelComponent {
                 },
                 error: err => {
                     this._isLoading.set(false);
+                    this.notification.error('Не удалось выполнить модерацию');
                     this.logger.error('Moderation: failed', err);
                 },
             });

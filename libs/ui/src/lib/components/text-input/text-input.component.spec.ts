@@ -111,4 +111,59 @@ describe('TextInputComponent', () => {
         const input = spectator.query<HTMLInputElement>('input')!;
         expect(input.autocomplete).toBe('current-password');
     });
+
+    describe('multiline mode', () => {
+        it('should render textarea instead of input when multiline is true', () => {
+            spectator.setInput('multiline', true);
+
+            expect(spectator.query('textarea')).toBeTruthy();
+            expect(spectator.query('input')).toBeFalsy();
+        });
+
+        it('should apply rows attribute to textarea', () => {
+            spectator.setInput('multiline', true);
+            spectator.setInput('rows', 5);
+
+            const textarea = spectator.query<HTMLTextAreaElement>('textarea')!;
+            expect(textarea.rows).toBe(5);
+        });
+
+        it('should default rows to 3', () => {
+            spectator.setInput('multiline', true);
+
+            const textarea = spectator.query<HTMLTextAreaElement>('textarea')!;
+            expect(textarea.rows).toBe(3);
+        });
+
+        it('should emit valueChanged on textarea input', () => {
+            spectator.setInput('multiline', true);
+            const valueChangedSpy = jest.fn();
+            spectator.component.valueChanged.subscribe(valueChangedSpy);
+
+            const textarea = spectator.query<HTMLTextAreaElement>('textarea')!;
+            spectator.typeInElement('multiline text', textarea);
+
+            expect(valueChangedSpy).toHaveBeenCalledWith('multiline text');
+        });
+
+        it('should implement ControlValueAccessor writeValue', () => {
+            spectator.setInput('multiline', true);
+            spectator.component.writeValue('initial textarea value');
+            spectator.detectChanges();
+
+            const textarea = spectator.query<HTMLTextAreaElement>('textarea')!;
+            expect(textarea.value).toBe('initial textarea value');
+        });
+
+        it('should call onTouched on blur', () => {
+            spectator.setInput('multiline', true);
+            const onTouchedSpy = jest.fn();
+            spectator.component.registerOnTouched(onTouchedSpy);
+
+            const textarea = spectator.query<HTMLTextAreaElement>('textarea')!;
+            spectator.dispatchFakeEvent(textarea, 'blur');
+
+            expect(onTouchedSpy).toHaveBeenCalled();
+        });
+    });
 });

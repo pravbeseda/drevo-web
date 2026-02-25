@@ -524,6 +524,79 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('moderateVersion', () => {
+        const mockModerationResponse = {
+            success: true,
+            data: {
+                versionId: 200,
+                articleId: 1,
+                approved: 1,
+                comment: 'Approved',
+            },
+        };
+
+        it('should call HTTP POST with correct URL and body', () => {
+            const request = { versionId: 200, approved: 1, comment: 'Approved' };
+
+            spectator.service.moderateVersion(request).subscribe(result => {
+                expect(result).toEqual(mockModerationResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual(request);
+            req.flush(mockModerationResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 }).subscribe(result => {
+                expect(result.versionId).toBe(200);
+                expect(result.articleId).toBe(1);
+                expect(result.approved).toBe(1);
+                expect(result.comment).toBe('Approved');
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            req.flush(mockModerationResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 }).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 403 errors', done => {
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(403);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            req.flush({ success: false, error: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
+        });
+
+        it('should send request without comment when not provided', () => {
+            const request = { versionId: 200, approved: -1 };
+
+            spectator.service.moderateVersion(request).subscribe();
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            expect(req.request.body).toEqual(request);
+            req.flush(mockModerationResponse);
+        });
+    });
+
     describe('error handling', () => {
         it('should throw when response.data is undefined', done => {
             spectator.service.searchArticles('test').subscribe({
