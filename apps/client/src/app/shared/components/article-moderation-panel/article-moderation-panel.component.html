@@ -22,20 +22,34 @@
 />
 
 <div class="moderation-panel-actions">
-    <ui-button
-        variant="primary"
-        [disabled]="isApproved() || isLoading()"
-        [loading]="isLoading()"
-        (clicked)="approve()"
-    >
-        Одобрить
-    </ui-button>
-    <ui-button
-        variant="secondary"
-        [disabled]="isRejected() || isLoading()"
-        [loading]="isLoading()"
-        (clicked)="reject()"
-    >
-        Отклонить
-    </ui-button>
+    @if (!isApproved()) {
+        <ui-button
+            variant="primary"
+            [disabled]="isLoading()"
+            [loading]="isLoading()"
+            (clicked)="approve()"
+        >
+            Одобрить
+        </ui-button>
+    }
+    @if (!isPending()) {
+        <ui-button
+            variant="secondary"
+            [disabled]="isLoading()"
+            [loading]="isLoading()"
+            (clicked)="sendToReview()"
+        >
+            На проверку
+        </ui-button>
+    }
+    @if (!isRejected()) {
+        <ui-button
+            variant="secondary"
+            [disabled]="isLoading()"
+            [loading]="isLoading()"
+            (clicked)="reject()"
+        >
+            Отклонить
+        </ui-button>
+    }
 </div>

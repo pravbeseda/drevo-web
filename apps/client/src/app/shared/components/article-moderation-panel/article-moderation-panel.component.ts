@@ -33,6 +33,7 @@ export class ArticleModerationPanelComponent {
     readonly isLoading = this._isLoading.asReadonly();
 
     readonly isApproved = computed(() => this.versionPairs().current.approved === ApprovalStatus.Approved);
+    readonly isPending = computed(() => this.versionPairs().current.approved === ApprovalStatus.Pending);
     readonly isRejected = computed(() => this.versionPairs().current.approved === ApprovalStatus.Rejected);
 
     onCommentChange(value: string): void {
@@ -41,6 +42,10 @@ export class ArticleModerationPanelComponent {
 
     approve(): void {
         this.moderate(ApprovalStatus.Approved, 'Версия одобрена');
+    }
+
+    sendToReview(): void {
+        this.moderate(ApprovalStatus.Pending, 'Версия отправлена на проверку');
     }
 
     reject(): void {
