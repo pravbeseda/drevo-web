@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ApprovalStatusDto, ModerationRequestDto } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ArticleApiService } from './article-api.service';
 
@@ -34,14 +35,14 @@ describe('ArticleApiService', () => {
 
     const expectSearchRequest = (
         params: { q?: string; page?: string; size?: string },
-        response = createMockSearchResponse()
+        response = createMockSearchResponse(),
     ) => {
         const req = httpController.expectOne(
             request =>
                 request.url === '/api/articles/search' &&
                 (!params.q || request.params.get('q') === params.q) &&
                 (!params.page || request.params.get('page') === params.page) &&
-                (!params.size || request.params.get('size') === params.size)
+                (!params.size || request.params.get('size') === params.size),
         );
         req.flush(response);
         return req;
@@ -260,7 +261,7 @@ describe('ArticleApiService', () => {
 
             const req = expectSearchRequest(
                 { q: 'test', page: '1', size: '25' },
-                createMockSearchResponse(mockData.items, 1, 25, 1)
+                createMockSearchResponse(mockData.items, 1, 25, 1),
             );
 
             expect(req.request.method).toBe('GET');
@@ -448,7 +449,7 @@ describe('ArticleApiService', () => {
                 request =>
                     request.url === '/api/articles/history' &&
                     request.params.get('page') === '1' &&
-                    request.params.get('size') === '25'
+                    request.params.get('size') === '25',
             );
             expect(req.request.method).toBe('GET');
             expect(req.request.withCredentials).toBe(true);
@@ -459,7 +460,7 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25, 0).subscribe();
 
             const req = httpController.expectOne(
-                request => request.url === '/api/articles/history' && request.params.get('approved') === '0'
+                request => request.url === '/api/articles/history' && request.params.get('approved') === '0',
             );
             req.flush(mockHistoryResponse);
         });
@@ -468,7 +469,7 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25, undefined, 'testuser').subscribe();
 
             const req = httpController.expectOne(
-                request => request.url === '/api/articles/history' && request.params.get('author') === 'testuser'
+                request => request.url === '/api/articles/history' && request.params.get('author') === 'testuser',
             );
             req.flush(mockHistoryResponse);
         });
@@ -477,7 +478,7 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25).subscribe();
 
             const req = httpController.expectOne(
-                request => request.url === '/api/articles/history' && !request.params.has('approved')
+                request => request.url === '/api/articles/history' && !request.params.has('approved'),
             );
             req.flush(mockHistoryResponse);
         });
@@ -486,7 +487,7 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25, undefined, undefined, 42).subscribe();
 
             const req = httpController.expectOne(
-                request => request.url === '/api/articles/history' && request.params.get('articleId') === '42'
+                request => request.url === '/api/articles/history' && request.params.get('articleId') === '42',
             );
             req.flush(mockHistoryResponse);
         });
@@ -495,7 +496,7 @@ describe('ArticleApiService', () => {
             spectator.service.getArticlesHistory(1, 25).subscribe();
 
             const req = httpController.expectOne(
-                request => request.url === '/api/articles/history' && !request.params.has('articleId')
+                request => request.url === '/api/articles/history' && !request.params.has('articleId'),
             );
             req.flush(mockHistoryResponse);
         });
@@ -521,6 +522,81 @@ describe('ArticleApiService', () => {
 
             const req = httpController.expectOne(request => request.url === '/api/articles/history');
             req.flush({ success: true, data: undefined });
+        });
+    });
+
+    describe('moderateVersion', () => {
+        const mockModerationResponse = {
+            success: true,
+            data: {
+                versionId: 200,
+                articleId: 1,
+                approved: 1 as ApprovalStatusDto,
+                comment: 'Approved',
+            },
+        };
+
+        it('should call HTTP POST with correct URL and body', () => {
+            const request: ModerationRequestDto = { versionId: 200, approved: 1, comment: 'Approved' };
+
+            spectator.service.moderateVersion(request).subscribe(result => {
+                expect(result).toEqual(mockModerationResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual(request);
+            req.flush(mockModerationResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service
+                .moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto })
+                .subscribe(result => {
+                    expect(result.versionId).toBe(200);
+                    expect(result.articleId).toBe(1);
+                    expect(result.approved).toBe(1);
+                    expect(result.comment).toBe('Approved');
+                    done();
+                });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            req.flush(mockModerationResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto }).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 403 errors', done => {
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(403);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            req.flush({ success: false, error: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
+        });
+
+        it('should send request without comment when not provided', () => {
+            const request: ModerationRequestDto = { versionId: 200, approved: -1 };
+
+            spectator.service.moderateVersion(request).subscribe();
+
+            const req = httpController.expectOne('/api/articles/moderate');
+            expect(req.request.body).toEqual(request);
+            req.flush(mockModerationResponse);
         });
     });
 

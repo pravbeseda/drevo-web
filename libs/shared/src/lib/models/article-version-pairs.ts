@@ -12,6 +12,7 @@ export interface VersionForDiff {
     readonly title: string;
     readonly info: string;
     readonly approved: ApprovalStatus;
+    readonly comment?: string;
 }
 
 /**

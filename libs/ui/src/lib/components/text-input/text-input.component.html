@@ -3,20 +3,36 @@
         <mat-label>{{ label() }}</mat-label>
     }
 
-    <input
-        matInput
-        [type]="type()"
-        [value]="value()"
-        [placeholder]="placeholder()"
-        [autocomplete]="autocomplete()"
-        [disabled]="disabled() || isDisabled()"
-        [readonly]="readonly()"
-        [required]="required()"
-        [attr.maxlength]="maxLength()"
-        [attr.minlength]="minLength()"
-        (input)="onInput($event)"
-        (blur)="onBlur()"
-    />
+    @if (multiline()) {
+        <textarea
+            matInput
+            [value]="displayValue()"
+            [rows]="rows()"
+            [placeholder]="placeholder()"
+            [disabled]="disabled() || isDisabled()"
+            [readonly]="readonly()"
+            [required]="required()"
+            [attr.maxlength]="maxLength()"
+            [attr.minlength]="minLength()"
+            (input)="onInput($event)"
+            (blur)="onBlur()"
+        ></textarea>
+    } @else {
+        <input
+            matInput
+            [type]="type()"
+            [value]="displayValue()"
+            [placeholder]="placeholder()"
+            [autocomplete]="autocomplete()"
+            [disabled]="disabled() || isDisabled()"
+            [readonly]="readonly()"
+            [required]="required()"
+            [attr.maxlength]="maxLength()"
+            [attr.minlength]="minLength()"
+            (input)="onInput($event)"
+            (blur)="onBlur()"
+        />
+    }
 
     @if (hint() && !errorMessage()) {
         <mat-hint>{{ hint() }}</mat-hint>

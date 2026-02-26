@@ -1,10 +1,12 @@
+import { AuthService } from '../../../../services/auth/auth.service';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { DiffPageComponent } from './diff-page.component';
 
 const mockVersionPairs: VersionPairs = {
@@ -38,8 +40,27 @@ function createMockDataService(
         isLoading: signal(false).asReadonly(),
         error: signal(error).asReadonly(),
         versionPairs: signal(pairs).asReadonly(),
+        updateCurrentApproval: jest.fn(),
     };
 }
+
+const mockModeratorUser = {
+    id: 1,
+    login: 'moderator',
+    name: 'Moderator',
+    email: 'mod@test.com',
+    role: 'moderator' as const,
+    permissions: { canEdit: true, canModerate: true, canAdmin: false },
+};
+
+const mockRegularUser = {
+    id: 2,
+    login: 'user',
+    name: 'User',
+    email: 'user@test.com',
+    role: 'user' as const,
+    permissions: { canEdit: true, canModerate: false, canAdmin: false },
+};
 
 describe('DiffPageComponent', () => {
     describe('diff type preferences', () => {
@@ -177,6 +198,132 @@ describe('DiffPageComponent', () => {
         it('should hide version comment when empty', () => {
             const spectator = createComponent();
             expect(spectator.query('.diff-page-meta-comment')).toBeFalsy();
+        });
+    });
+
+    describe('moderation — moderator user', () => {
+        let spectator: Spectator<DiffPageComponent>;
+        let dataService: Partial<DiffPageDataService>;
+
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                {
+                    provide: AuthService,
+                    useValue: { user$: of(mockModeratorUser) },
+                },
+            ],
+            detectChanges: false,
+        });
+
+        it('should set canModerate to true for moderator', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.canModerate()).toBe(true);
+        });
+
+        it('should compute moderationIcon based on current approval', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.moderationIcon()).toBe('check_circle');
+        });
+
+        it('should compute moderationLabel based on current approval', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.moderationLabel()).toBe('Одобрено');
+        });
+
+        it('should return schedule icon when no pairs', () => {
+            dataService = createMockDataService(undefined);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.moderationIcon()).toBe('schedule');
+        });
+
+        it('should enable moderation when previous version is approved', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.isModerationEnabled()).toBe(true);
+        });
+
+        it('should disable moderation when previous version is not approved', () => {
+            const pairs: VersionPairs = {
+                ...mockVersionPairs,
+                previous: { ...mockVersionPairs.previous, approved: ApprovalStatus.Pending },
+            };
+            dataService = createMockDataService(pairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.isModerationEnabled()).toBe(false);
+        });
+
+        it('should toggle moderation panel', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            expect(spectator.component.isModerationPanelOpen()).toBe(false);
+            spectator.component.toggleModerationPanel();
+            expect(spectator.component.isModerationPanelOpen()).toBe(true);
+            spectator.component.toggleModerationPanel();
+            expect(spectator.component.isModerationPanelOpen()).toBe(false);
+        });
+
+        it('should close moderation panel', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            spectator.component.toggleModerationPanel();
+            spectator.component.closeModerationPanel();
+            expect(spectator.component.isModerationPanelOpen()).toBe(false);
+        });
+
+        it('should update approval and close panel on moderated', () => {
+            dataService = createMockDataService(mockVersionPairs);
+            spectator = createComponent({ providers: [{ provide: DiffPageDataService, useValue: dataService }] });
+            spectator.detectChanges();
+            spectator.component.toggleModerationPanel();
+
+            spectator.component.onModerated({
+                versionId: 200,
+                articleId: 1,
+                approved: ApprovalStatus.Rejected,
+                comment: 'Needs revision',
+            });
+
+            expect(dataService.updateCurrentApproval).toHaveBeenCalledWith(ApprovalStatus.Rejected, 'Needs revision');
+            expect(spectator.component.isModerationPanelOpen()).toBe(false);
+        });
+    });
+
+    describe('moderation — regular user', () => {
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                {
+                    provide: AuthService,
+                    useValue: { user$: of(mockRegularUser) },
+                },
+                {
+                    provide: DiffPageDataService,
+                    useValue: createMockDataService(mockVersionPairs),
+                },
+            ],
+        });
+
+        it('should set canModerate to false for regular user', () => {
+            const spectator = createComponent();
+            expect(spectator.component.canModerate()).toBe(false);
         });
     });
 

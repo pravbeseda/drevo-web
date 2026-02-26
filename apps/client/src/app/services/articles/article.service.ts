@@ -2,21 +2,23 @@ import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { Injectable, inject } from '@angular/core';
 import {
+    ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryItemDto,
     ArticleHistoryParams,
     ArticleHistoryResponse,
     ArticleHistoryResponseDto,
-    ArticleVersion,
-    ArticleSearchResponseDto,
-    ArticleSearchResultDto,
+    ArticleSearchParams,
     ArticleSearchResponse,
     ArticleSearchResult,
-    ArticleSearchParams,
+    ArticleSearchResponseDto,
+    ArticleSearchResultDto,
+    ArticleVersion,
     ArticleVersionDto,
+    ModerationResult,
     SaveArticleVersionRequest,
-    SaveArticleVersionResult,
     SaveArticleVersionResponseDto,
+    SaveArticleVersionResult,
     VersionForDiff,
     VersionForDiffDto,
     VersionPairs,
@@ -117,6 +119,25 @@ export class ArticleService {
      */
     saveArticleVersion(request: SaveArticleVersionRequest): Observable<SaveArticleVersionResult> {
         return this.articleApiService.saveArticleVersion(request).pipe(map(response => this.mapSaveResponse(response)));
+    }
+
+    /**
+     * Moderate article version (approve or reject)
+     *
+     * @param versionId - Version ID to moderate
+     * @param approved - Approval status
+     * @param comment - Optional moderation comment
+     * @returns Observable with moderation result
+     */
+    moderateVersion(versionId: number, approved: ApprovalStatus, comment?: string): Observable<ModerationResult> {
+        return this.articleApiService.moderateVersion({ versionId, approved, comment }).pipe(
+            map(dto => ({
+                versionId: dto.versionId,
+                articleId: dto.articleId,
+                approved: dto.approved,
+                comment: dto.comment,
+            }))
+        );
     }
 
     /**
@@ -237,6 +258,7 @@ export class ArticleService {
             title: dto.title,
             info: dto.info,
             approved: dto.approved,
+            comment: dto.comment,
         };
     }
 }

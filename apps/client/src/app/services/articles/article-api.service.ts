@@ -9,6 +9,8 @@ import {
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    ModerationRequestDto,
+    ModerationResponseDto,
     SaveArticleVersionRequestDto,
     SaveArticleVersionResponseDto,
     VersionPairsResponseDto,
@@ -175,6 +177,25 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleHistoryResponseDto>
             >(`${this.apiUrl}/api/articles/history`, { params, withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Moderate article version (approve or reject)
+     *
+     * @param request - Moderation request with versionId, approved status, and optional comment
+     * @returns Observable with moderation response
+     */
+    moderateVersion(request: ModerationRequestDto): Observable<ModerationResponseDto> {
+        return this.http
+            .post<ApiResponse<ModerationResponseDto>>(`${this.apiUrl}/api/articles/moderate`, request, {
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

@@ -1,9 +1,11 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, Subject } from 'rxjs';
 import {
+    ApprovalStatus,
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    ModerationResponseDto,
     SaveArticleVersionResponseDto,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
@@ -542,23 +544,73 @@ describe('ArticleService', () => {
         });
     });
 
+    describe('moderateVersion', () => {
+        const mockModerationResponse: ModerationResponseDto = {
+            versionId: 200,
+            articleId: 1,
+            approved: 1,
+            comment: 'Looks good',
+        };
+
+        it('should call articleApiService.moderateVersion with correct params', () => {
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved, 'Looks good').subscribe();
+
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
+                versionId: 200,
+                approved: ApprovalStatus.Approved,
+                comment: 'Looks good',
+            });
+        });
+
+        it('should map DTO to ModerationResult', done => {
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved).subscribe(result => {
+                expect(result.versionId).toBe(200);
+                expect(result.articleId).toBe(1);
+                expect(result.approved).toBe(ApprovalStatus.Approved);
+                expect(result.comment).toBe('Looks good');
+                done();
+            });
+        });
+
+        it('should pass undefined comment when not provided', () => {
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Rejected).subscribe();
+
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
+                versionId: 200,
+                approved: ApprovalStatus.Rejected,
+                comment: undefined,
+            });
+        });
+    });
+
     describe('getVersionPairs', () => {
         const mockVersionPairsResponse: VersionPairsResponseDto = {
             current: {
+                articleId: 1,
                 versionId: 10,
                 content: 'Current content',
                 author: 'Author A',
                 date: '2025-03-10T12:00:00+00:00',
                 title: 'Test Article',
                 info: 'Updated intro',
+                approved: 1,
+                comment: 'Moderation note',
             },
             previous: {
+                articleId: 1,
                 versionId: 9,
                 content: 'Previous content',
                 author: 'Author B',
                 date: '2025-03-09T10:00:00+00:00',
                 title: 'Test Article',
                 info: 'Initial version',
+                approved: 1,
             },
         };
 
@@ -601,6 +653,16 @@ describe('ArticleService', () => {
                 expect(result.current.info).toBe('Updated intro');
                 expect(result.previous.versionId).toBe(9);
                 expect(result.previous.content).toBe('Previous content');
+                done();
+            });
+        });
+
+        it('should map comment field when present', done => {
+            articleApiService.getVersionPairs.mockReturnValue(of(mockVersionPairsResponse));
+
+            spectator.service.getVersionPairs(10).subscribe(result => {
+                expect(result.current.comment).toBe('Moderation note');
+                expect(result.previous.comment).toBeUndefined();
                 done();
             });
         });

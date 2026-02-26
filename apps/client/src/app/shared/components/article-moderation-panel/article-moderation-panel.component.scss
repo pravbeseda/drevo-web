@@ -1,0 +1,37 @@
+@use 'tokens' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.moderation-panel-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: $font-size-md;
+    font-weight: 500;
+}
+
+.moderation-panel-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+}
+
+.moderation-panel-info-row {
+    display: flex;
+    gap: 8px;
+}
+
+.moderation-panel-info-label {
+    color: var(--themed-text-muted);
+}
+
+.moderation-panel-actions {
+    display: flex;
+    gap: 8px;
+}

@@ -1,6 +1,6 @@
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
@@ -8,20 +8,24 @@ import { CmDiffViewComponent } from './cm-diff-view.component';
 
 const mockVersionPairs: VersionPairs = {
     current: {
+        articleId: 1,
         versionId: 200,
         content: 'new content',
         author: 'Author A',
         date: new Date('2025-01-15T14:30:00'),
         title: 'Test Article',
         info: 'Updated text',
+        approved: ApprovalStatus.Pending,
     },
     previous: {
+        articleId: 1,
         versionId: 199,
         content: 'old content',
         author: 'Author B',
         date: new Date('2025-01-14T10:00:00'),
         title: 'Test Article',
         info: '',
+        approved: ApprovalStatus.Approved,
     },
 };
 

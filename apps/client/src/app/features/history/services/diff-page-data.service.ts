@@ -2,7 +2,7 @@ import { ArticleService } from '../../../services/articles/article.service';
 import { Injectable, inject, signal } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
-import { VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
 import { Observable, catchError, of, shareReplay, tap } from 'rxjs';
 
 @Injectable()
@@ -20,6 +20,15 @@ export class DiffPageDataService {
 
     private _load$: Observable<VersionPairs | undefined> | undefined;
     private _loadedParams: string | undefined;
+
+    updateCurrentApproval(approved: ApprovalStatus, comment?: string): void {
+        const pairs = this._versionPairs();
+        if (!pairs) return;
+        this._versionPairs.set({
+            ...pairs,
+            current: { ...pairs.current, approved, comment },
+        });
+    }
 
     load(snapshot: ActivatedRouteSnapshot): Observable<VersionPairs | undefined> {
         const paramMap = snapshot.paramMap;

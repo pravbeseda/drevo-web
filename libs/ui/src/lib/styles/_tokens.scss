@@ -15,10 +15,13 @@ $z-drawer-backdrop: 100;
 $z-drawer: 101;
 $sidebar-collapse-duration: 0.3s;
 
-// Side panel (right overlay panel)
-$side-panel-width: 280px;
-$z-side-panel-backdrop: 200;
-$z-side-panel: 201;
+// FAB (floating action buttons on mobile)
+$z-fab: 300;
+
+// Side panel (right overlay panel, must be above FAB)
+$side-panel-width: 360px;
+$z-side-panel-backdrop: 400;
+$z-side-panel: 401;
 $sidebar-collapsed-padding: 12px;
 
 // Typography
