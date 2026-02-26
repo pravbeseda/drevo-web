@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, forwardRef, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, forwardRef, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -31,10 +31,15 @@ export class TextInputComponent implements ControlValueAccessor {
     minLength = input<number | undefined>(undefined);
     multiline = input<boolean>(false);
     rows = input<number>(3);
+    value = input<string>('');
 
     valueChanged = output<string>();
 
-    protected value = signal<string>('');
+    protected displayValue = signal<string>('');
+
+    constructor() {
+        effect(() => this.displayValue.set(this.value()));
+    }
     protected isDisabled = signal<boolean>(false);
 
     private onChange: (value: string) => void = () => {
@@ -45,7 +50,7 @@ export class TextInputComponent implements ControlValueAccessor {
     };
 
     writeValue(value: string): void {
-        this.value.set(value ?? '');
+        this.displayValue.set(value ?? '');
     }
 
     registerOnChange(fn: (value: string) => void): void {
@@ -63,7 +68,7 @@ export class TextInputComponent implements ControlValueAccessor {
     protected onInput(event: Event): void {
         const input = event.target as HTMLInputElement;
         const newValue = input.value;
-        this.value.set(newValue);
+        this.displayValue.set(newValue);
         this.onChange(newValue);
         this.valueChanged.emit(newValue);
     }

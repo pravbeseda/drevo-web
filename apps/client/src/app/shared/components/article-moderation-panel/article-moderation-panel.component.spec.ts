@@ -125,9 +125,32 @@ describe('ArticleModerationPanelComponent', () => {
             expect(spectator.component.comment()).toBe('Test comment');
         });
 
-        it('should start with empty comment', () => {
+        it('should start with empty comment when version has no comment', () => {
             spectator.detectChanges();
             expect(spectator.component.comment()).toBe('');
+        });
+
+        it('should initialize comment from version pairs', () => {
+            const pairsWithComment: VersionPairs = {
+                ...mockVersionPairs,
+                current: { ...mockVersionPairs.current, comment: 'Existing comment' },
+            };
+            spectator.setInput('versionPairs', pairsWithComment);
+            spectator.detectChanges();
+            expect(spectator.component.comment()).toBe('Existing comment');
+        });
+
+        it('should update comment when versionPairs input changes', () => {
+            spectator.detectChanges();
+            expect(spectator.component.comment()).toBe('');
+
+            const pairsWithComment: VersionPairs = {
+                ...mockVersionPairs,
+                current: { ...mockVersionPairs.current, comment: 'Updated comment' },
+            };
+            spectator.setInput('versionPairs', pairsWithComment);
+            spectator.detectChanges();
+            expect(spectator.component.comment()).toBe('Updated comment');
         });
     });
 

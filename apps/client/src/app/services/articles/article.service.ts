@@ -134,7 +134,7 @@ export class ArticleService {
             map(dto => ({
                 versionId: dto.versionId,
                 articleId: dto.articleId,
-                approved: dto.approved as ApprovalStatus,
+                approved: dto.approved,
                 comment: dto.comment,
             }))
         );
@@ -258,6 +258,7 @@ export class ArticleService {
             title: dto.title,
             info: dto.info,
             approved: dto.approved,
+            comment: dto.comment,
         };
     }
 }

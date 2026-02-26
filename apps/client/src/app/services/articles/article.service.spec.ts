@@ -598,6 +598,7 @@ describe('ArticleService', () => {
                 date: '2025-03-10T12:00:00+00:00',
                 title: 'Test Article',
                 info: 'Updated intro',
+                comment: 'Moderation note',
             },
             previous: {
                 versionId: 9,
@@ -648,6 +649,16 @@ describe('ArticleService', () => {
                 expect(result.current.info).toBe('Updated intro');
                 expect(result.previous.versionId).toBe(9);
                 expect(result.previous.content).toBe('Previous content');
+                done();
+            });
+        });
+
+        it('should map comment field when present', done => {
+            articleApiService.getVersionPairs.mockReturnValue(of(mockVersionPairsResponse));
+
+            spectator.service.getVersionPairs(10).subscribe(result => {
+                expect(result.current.comment).toBe('Moderation note');
+                expect(result.previous.comment).toBeUndefined();
                 done();
             });
         });

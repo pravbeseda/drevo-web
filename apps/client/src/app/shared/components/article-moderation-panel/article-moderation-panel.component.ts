@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult, VersionPairs } from '@drevo-web/shared';
@@ -28,6 +28,10 @@ export class ArticleModerationPanelComponent {
 
     private readonly _comment = signal('');
     readonly comment = this._comment.asReadonly();
+
+    constructor() {
+        effect(() => this._comment.set(this.versionPairs().current.comment ?? ''));
+    }
 
     private readonly _isLoading = signal(false);
     readonly isLoading = this._isLoading.asReadonly();

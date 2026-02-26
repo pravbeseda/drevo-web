@@ -73,7 +73,7 @@ export class DiffPageComponent {
     }
 
     onModerated(result: ModerationResult): void {
-        this.data.updateCurrentApproval(result.approved);
+        this.data.updateCurrentApproval(result.approved, result.comment);
         this._isModerationPanelOpen.set(false);
         this.logger.info('Version moderated', { versionId: result.versionId, approved: result.approved });
     }

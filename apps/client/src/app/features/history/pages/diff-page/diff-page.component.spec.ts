@@ -295,10 +295,10 @@ describe('DiffPageComponent', () => {
                 versionId: 200,
                 articleId: 1,
                 approved: ApprovalStatus.Rejected,
-                comment: '',
+                comment: 'Needs revision',
             });
 
-            expect(dataService.updateCurrentApproval).toHaveBeenCalledWith(ApprovalStatus.Rejected);
+            expect(dataService.updateCurrentApproval).toHaveBeenCalledWith(ApprovalStatus.Rejected, 'Needs revision');
             expect(spectator.component.isModerationPanelOpen()).toBe(false);
         });
     });

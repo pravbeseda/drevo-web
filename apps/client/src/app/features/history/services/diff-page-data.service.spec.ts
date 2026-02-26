@@ -9,20 +9,24 @@ import { DiffPageDataService } from './diff-page-data.service';
 
 const MOCK_VERSION_PAIRS: VersionPairs = {
     current: {
+        articleId: 1,
         versionId: 10,
         content: 'current content',
         author: 'Author A',
         date: new Date('2025-06-15T12:00:00'),
         title: 'Test Article',
         info: 'current info',
+        approved: ApprovalStatus.Pending,
     },
     previous: {
+        articleId: 1,
         versionId: 5,
         content: 'previous content',
         author: 'Author B',
         date: new Date('2025-06-10T10:00:00'),
         title: 'Test Article',
         info: 'previous info',
+        approved: ApprovalStatus.Approved,
     },
 };
 
@@ -271,6 +275,36 @@ describe('DiffPageDataService', () => {
             expect(pairs?.current.versionId).toBe(MOCK_VERSION_PAIRS.current.versionId);
             expect(pairs?.current.author).toBe(MOCK_VERSION_PAIRS.current.author);
             expect(pairs?.previous).toEqual(MOCK_VERSION_PAIRS.previous);
+        });
+
+        it('should update comment along with approval status', () => {
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.updateCurrentApproval(ApprovalStatus.Rejected, 'Rejection reason');
+
+            const pairs = spectator.service.versionPairs();
+            expect(pairs?.current.approved).toBe(ApprovalStatus.Rejected);
+            expect(pairs?.current.comment).toBe('Rejection reason');
+        });
+
+        it('should clear comment when not provided', () => {
+            const pairsWithComment: VersionPairs = {
+                ...MOCK_VERSION_PAIRS,
+                current: { ...MOCK_VERSION_PAIRS.current, comment: 'Old comment' },
+            };
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(pairsWithComment)) };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.updateCurrentApproval(ApprovalStatus.Approved);
+
+            expect(spectator.service.versionPairs()?.current.comment).toBeUndefined();
         });
 
         it('should do nothing when no version pairs loaded', () => {

@@ -6,10 +6,9 @@
     @if (multiline()) {
         <textarea
             matInput
-            [value]="value()"
+            [value]="displayValue()"
             [rows]="rows()"
             [placeholder]="placeholder()"
-            [autocomplete]="autocomplete()"
             [disabled]="disabled() || isDisabled()"
             [readonly]="readonly()"
             [required]="required()"
@@ -22,7 +21,7 @@
         <input
             matInput
             [type]="type()"
-            [value]="value()"
+            [value]="displayValue()"
             [placeholder]="placeholder()"
             [autocomplete]="autocomplete()"
             [disabled]="disabled() || isDisabled()"

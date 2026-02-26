@@ -112,6 +112,31 @@ describe('TextInputComponent', () => {
         expect(input.autocomplete).toBe('current-password');
     });
 
+    describe('value input', () => {
+        it('should display value from input binding', () => {
+            spectator.setInput('value', 'external value');
+
+            const input = spectator.query<HTMLInputElement>('input')!;
+            expect(input.value).toBe('external value');
+        });
+
+        it('should update displayValue when value input changes', () => {
+            spectator.setInput('value', 'first');
+            expect(spectator.query<HTMLInputElement>('input')!.value).toBe('first');
+
+            spectator.setInput('value', 'second');
+            expect(spectator.query<HTMLInputElement>('input')!.value).toBe('second');
+        });
+
+        it('should display value input in textarea when multiline', () => {
+            spectator.setInput('multiline', true);
+            spectator.setInput('value', 'multiline external');
+
+            const textarea = spectator.query<HTMLTextAreaElement>('textarea')!;
+            expect(textarea.value).toBe('multiline external');
+        });
+    });
+
     describe('multiline mode', () => {
         it('should render textarea instead of input when multiline is true', () => {
             spectator.setInput('multiline', true);
