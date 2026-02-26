@@ -4,5 +4,5 @@ export interface ModerationResult {
     readonly versionId: number;
     readonly articleId: number;
     readonly approved: ApprovalStatus;
-    readonly comment: string;
+    readonly comment?: string;
 }

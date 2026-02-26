@@ -12,7 +12,7 @@ export interface VersionForDiffDto {
     readonly title: string;
     readonly info: string;
     readonly approved: ApprovalStatusDto;
-    readonly comment: string;
+    readonly comment?: string;
 }
 
 /**

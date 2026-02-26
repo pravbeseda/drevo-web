@@ -592,21 +592,25 @@ describe('ArticleService', () => {
     describe('getVersionPairs', () => {
         const mockVersionPairsResponse: VersionPairsResponseDto = {
             current: {
+                articleId: 1,
                 versionId: 10,
                 content: 'Current content',
                 author: 'Author A',
                 date: '2025-03-10T12:00:00+00:00',
                 title: 'Test Article',
                 info: 'Updated intro',
+                approved: 1,
                 comment: 'Moderation note',
             },
             previous: {
+                articleId: 1,
                 versionId: 9,
                 content: 'Previous content',
                 author: 'Author B',
                 date: '2025-03-09T10:00:00+00:00',
                 title: 'Test Article',
                 info: 'Initial version',
+                approved: 1,
             },
         };
 

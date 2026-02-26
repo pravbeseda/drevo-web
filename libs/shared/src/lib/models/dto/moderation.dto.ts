@@ -10,5 +10,5 @@ export interface ModerationResponseDto {
     readonly versionId: number;
     readonly articleId: number;
     readonly approved: ApprovalStatusDto;
-    readonly comment: string;
+    readonly comment?: string;
 }
