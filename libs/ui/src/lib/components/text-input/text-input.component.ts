@@ -37,8 +37,14 @@ export class TextInputComponent implements ControlValueAccessor {
 
     protected displayValue = signal<string>('');
 
+    private isChangesHandled = false;
+
     constructor() {
-        effect(() => this.displayValue.set(this.value()));
+        effect(() => {
+            if (!this.isChangesHandled) {
+                this.displayValue.set(this.value());
+            }
+        });
     }
     protected isDisabled = signal<boolean>(false);
 
@@ -54,6 +60,7 @@ export class TextInputComponent implements ControlValueAccessor {
     }
 
     registerOnChange(fn: (value: string) => void): void {
+        this.isChangesHandled = true;
         this.onChange = fn;
     }
 
