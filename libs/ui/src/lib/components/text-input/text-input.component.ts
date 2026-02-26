@@ -73,7 +73,7 @@ export class TextInputComponent implements ControlValueAccessor {
     }
 
     protected onInput(event: Event): void {
-        const input = event.target as HTMLInputElement;
+        const input = event.target as HTMLInputElement | HTMLTextAreaElement;
         const newValue = input.value;
         this.displayValue.set(newValue);
         this.onChange(newValue);
