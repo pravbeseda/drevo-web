@@ -40,16 +40,20 @@ export class DiffPageComponent {
     private readonly user = toSignal(this.authService.user$);
     readonly canModerate = computed(() => this.user()?.permissions.canModerate ?? false);
 
-    readonly moderationIcon = computed(() => {
+    private readonly currentApprovalClass = computed(() => {
         const pairs = this.data.versionPairs();
-        if (!pairs) return 'schedule';
-        return APPROVAL_ICONS[APPROVAL_CLASS[pairs.current.approved]];
+        if (!pairs) return undefined;
+        return APPROVAL_CLASS[pairs.current.approved];
+    });
+
+    readonly moderationIcon = computed(() => {
+        const cls = this.currentApprovalClass();
+        return cls ? APPROVAL_ICONS[cls] : 'schedule';
     });
 
     readonly moderationLabel = computed(() => {
-        const pairs = this.data.versionPairs();
-        if (!pairs) return '';
-        return APPROVAL_TITLES[APPROVAL_CLASS[pairs.current.approved]];
+        const cls = this.currentApprovalClass();
+        return cls ? APPROVAL_TITLES[cls] : '';
     });
 
     readonly isModerationEnabled = computed(() => {
