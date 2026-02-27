@@ -1,5 +1,5 @@
-import { ArticleContentComponent } from '../../../components/article-content/article-content.component';
-import { ArticlePageService } from '../../../services/article-page.service';
+import { ArticleContentComponent } from '../../../../components/article-content/article-content.component';
+import { ArticlePageService } from '../../../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -10,14 +10,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
 @Component({
     selector: 'app-article-content-tab',
     imports: [ArticleContentComponent],
-    template: `
-        @if (article(); as article) {
-            <app-article-content
-                class="article-content"
-                [content]="article.content"
-            />
-        }
-    `,
+    templateUrl: './article-content-tab.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleContentTabComponent {
@@ -76,7 +69,7 @@ export class ArticleContentTabComponent {
                     });
                 }
             },
-            { injector: this.injector }
+            { injector: this.injector },
         );
     }
 }

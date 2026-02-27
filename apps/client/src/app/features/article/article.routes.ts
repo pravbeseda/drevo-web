@@ -27,29 +27,33 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: '',
                 pathMatch: 'full',
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-content-tab.component').then(
-                        m => m.ArticleContentTabComponent
+                    import('./pages/article-page/tabs/article-content-tab/article-content-tab.component').then(
+                        m => m.ArticleContentTabComponent,
                     ),
             },
             {
                 path: 'version/:versionId',
                 loadComponent: () =>
                     import('./pages/article-page/tabs/article-version-tab/article-version-tab.component').then(
-                        m => m.ArticleVersionTabComponent
+                        m => m.ArticleVersionTabComponent,
                     ),
             },
             {
                 path: 'news',
                 title: createArticleTabTitleResolver('Новости'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
                 data: { stubTitle: 'Новости' },
             },
             {
                 path: 'forum',
                 title: createArticleTabTitleResolver('Обсуждение'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
                 data: { stubTitle: 'Обсуждение' },
             },
             {
@@ -57,14 +61,16 @@ export const ARTICLE_ROUTES: Route[] = [
                 title: createArticleTabTitleResolver('История версий'),
                 loadComponent: () =>
                     import('./components/article-versions/article-versions.component').then(
-                        m => m.ArticleVersionsComponent
+                        m => m.ArticleVersionsComponent,
                     ),
             },
             {
                 path: 'linkedhere',
                 title: createArticleTabTitleResolver('Кто ссылается'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab.component').then(m => m.ArticleStubTabComponent),
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
                 data: { stubTitle: 'Кто ссылается' },
             },
         ],
