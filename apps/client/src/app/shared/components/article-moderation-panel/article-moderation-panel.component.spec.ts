@@ -2,31 +2,22 @@ import { ArticleService } from '../../../services/articles/article.service';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { ApprovalStatus, ModerationResult, VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
 import { ArticleModerationPanelComponent } from './article-moderation-panel.component';
 
-const mockVersionPairs: VersionPairs = {
-    current: {
-        articleId: 1,
-        versionId: 200,
-        content: 'new content',
-        author: 'Author A',
-        date: new Date('2025-01-15T14:30:00'),
-        title: 'Test Article',
-        info: 'Updated text',
-        approved: ApprovalStatus.Pending,
-    },
-    previous: {
-        articleId: 1,
-        versionId: 199,
-        content: 'old content',
-        author: 'Author B',
-        date: new Date('2025-01-14T10:00:00'),
-        title: 'Test Article',
-        info: '',
-        approved: ApprovalStatus.Approved,
-    },
+const mockVersion: ArticleVersion = {
+    articleId: 1,
+    versionId: 200,
+    content: 'new content',
+    author: 'Author A',
+    date: new Date('2025-01-15T14:30:00'),
+    title: 'Test Article',
+    info: 'Updated text',
+    approved: ApprovalStatus.Pending,
+    redirect: false,
+    new: false,
+    comment: '',
 };
 
 const mockModerationResult: ModerationResult = {
@@ -48,7 +39,7 @@ describe('ArticleModerationPanelComponent', () => {
     });
 
     beforeEach(() => {
-        spectator = createComponent({ props: { versionPairs: mockVersionPairs } });
+        spectator = createComponent({ props: { version: mockVersion } });
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
     });
@@ -65,21 +56,13 @@ describe('ArticleModerationPanelComponent', () => {
         });
 
         it('should compute statusText for approved version', () => {
-            const approvedPairs: VersionPairs = {
-                ...mockVersionPairs,
-                current: { ...mockVersionPairs.current, approved: ApprovalStatus.Approved },
-            };
-            spectator.setInput('versionPairs', approvedPairs);
+            spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Approved });
             spectator.detectChanges();
             expect(spectator.component.statusText()).toBe('Одобрено');
         });
 
         it('should compute statusText for rejected version', () => {
-            const rejectedPairs: VersionPairs = {
-                ...mockVersionPairs,
-                current: { ...mockVersionPairs.current, approved: ApprovalStatus.Rejected },
-            };
-            spectator.setInput('versionPairs', rejectedPairs);
+            spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Rejected });
             spectator.detectChanges();
             expect(spectator.component.statusText()).toBe('Отклонено');
         });
@@ -94,11 +77,7 @@ describe('ArticleModerationPanelComponent', () => {
         });
 
         it('should detect approved status', () => {
-            const pairs: VersionPairs = {
-                ...mockVersionPairs,
-                current: { ...mockVersionPairs.current, approved: ApprovalStatus.Approved },
-            };
-            spectator.setInput('versionPairs', pairs);
+            spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Approved });
             spectator.detectChanges();
             expect(spectator.component.isApproved()).toBe(true);
             expect(spectator.component.isPending()).toBe(false);
@@ -106,11 +85,7 @@ describe('ArticleModerationPanelComponent', () => {
         });
 
         it('should detect rejected status', () => {
-            const pairs: VersionPairs = {
-                ...mockVersionPairs,
-                current: { ...mockVersionPairs.current, approved: ApprovalStatus.Rejected },
-            };
-            spectator.setInput('versionPairs', pairs);
+            spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Rejected });
             spectator.detectChanges();
             expect(spectator.component.isRejected()).toBe(true);
             expect(spectator.component.isApproved()).toBe(false);
@@ -130,25 +105,17 @@ describe('ArticleModerationPanelComponent', () => {
             expect(spectator.component.comment()).toBe('');
         });
 
-        it('should initialize comment from version pairs', () => {
-            const pairsWithComment: VersionPairs = {
-                ...mockVersionPairs,
-                current: { ...mockVersionPairs.current, comment: 'Existing comment' },
-            };
-            spectator.setInput('versionPairs', pairsWithComment);
+        it('should initialize comment from version', () => {
+            spectator.setInput('version', { ...mockVersion, comment: 'Existing comment' });
             spectator.detectChanges();
             expect(spectator.component.comment()).toBe('Existing comment');
         });
 
-        it('should update comment when versionPairs input changes', () => {
+        it('should update comment when version input changes', () => {
             spectator.detectChanges();
             expect(spectator.component.comment()).toBe('');
 
-            const pairsWithComment: VersionPairs = {
-                ...mockVersionPairs,
-                current: { ...mockVersionPairs.current, comment: 'Updated comment' },
-            };
-            spectator.setInput('versionPairs', pairsWithComment);
+            spectator.setInput('version', { ...mockVersion, comment: 'Updated comment' });
             spectator.detectChanges();
             expect(spectator.component.comment()).toBe('Updated comment');
         });

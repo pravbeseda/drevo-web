@@ -2,7 +2,7 @@ import { ArticleService } from '../../../services/articles/article.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult, VersionPairs } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
 import { ButtonComponent, FormatTimePipe, StatusIconComponent, TextInputComponent } from '@drevo-web/ui';
 
 @Component({
@@ -18,11 +18,11 @@ export class ArticleModerationPanelComponent {
     private readonly logger = inject(LoggerService).withContext('ArticleModerationPanelComponent');
     private readonly notification = inject(NotificationService);
 
-    readonly versionPairs = input.required<VersionPairs>();
+    readonly version = input.required<ArticleVersion>();
     readonly moderated = output<ModerationResult>();
 
     readonly statusText = computed(() => {
-        const status = this.versionPairs().current.approved;
+        const status = this.version().approved;
         return APPROVAL_TITLES[APPROVAL_CLASS[status]];
     });
 
@@ -30,15 +30,15 @@ export class ArticleModerationPanelComponent {
     readonly comment = this._comment.asReadonly();
 
     constructor() {
-        effect(() => this._comment.set(this.versionPairs().current.comment ?? ''));
+        effect(() => this._comment.set(this.version().comment ?? ''));
     }
 
     private readonly _isLoading = signal(false);
     readonly isLoading = this._isLoading.asReadonly();
 
-    readonly isApproved = computed(() => this.versionPairs().current.approved === ApprovalStatus.Approved);
-    readonly isPending = computed(() => this.versionPairs().current.approved === ApprovalStatus.Pending);
-    readonly isRejected = computed(() => this.versionPairs().current.approved === ApprovalStatus.Rejected);
+    readonly isApproved = computed(() => this.version().approved === ApprovalStatus.Approved);
+    readonly isPending = computed(() => this.version().approved === ApprovalStatus.Pending);
+    readonly isRejected = computed(() => this.version().approved === ApprovalStatus.Rejected);
 
     onCommentChange(value: string): void {
         this._comment.set(value);
@@ -57,7 +57,7 @@ export class ArticleModerationPanelComponent {
     }
 
     private moderate(approved: ApprovalStatus, successMessage: string): void {
-        const versionId = this.versionPairs().current.versionId;
+        const versionId = this.version().versionId;
         const comment = this._comment() || undefined;
 
         this._isLoading.set(true);
