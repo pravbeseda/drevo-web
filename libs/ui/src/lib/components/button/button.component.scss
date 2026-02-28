@@ -55,7 +55,7 @@ a {
     &.accent-success {
         --mat-button-filled-container-color: var(--themed-button-success-bg);
         --mat-button-filled-label-text-color: var(--themed-button-success-text);
-        --mat-button-outlined-label-text-color: var(--themed-button-success-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-success-border);
         --mat-button-outlined-outline-color: var(--themed-button-success-border);
         --mat-button-text-label-text-color: var(--themed-button-success-text);
     }
@@ -64,7 +64,7 @@ a {
     &.accent-warning {
         --mat-button-filled-container-color: var(--themed-button-warning-bg);
         --mat-button-filled-label-text-color: var(--themed-button-warning-text);
-        --mat-button-outlined-label-text-color: var(--themed-button-warning-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-warning-border);
         --mat-button-outlined-outline-color: var(--themed-button-warning-border);
         --mat-button-text-label-text-color: var(--themed-button-warning-text);
     }
@@ -73,7 +73,7 @@ a {
     &.accent-danger {
         --mat-button-filled-container-color: var(--themed-button-danger-bg);
         --mat-button-filled-label-text-color: var(--themed-button-danger-text);
-        --mat-button-outlined-label-text-color: var(--themed-button-danger-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-danger-border);
         --mat-button-outlined-outline-color: var(--themed-button-danger-border);
         --mat-button-text-label-text-color: var(--themed-button-danger-text);
     }
