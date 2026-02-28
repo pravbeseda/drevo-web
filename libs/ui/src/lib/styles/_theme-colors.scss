@@ -247,6 +247,56 @@ $theme-colors: (
         dark: $md-grey-400,
     ),
 
+    // Button accents
+    button-secondary-bg: (
+        light: $md-grey-200,
+        dark: $md-grey-700,
+    ),
+    button-secondary-text: (
+        light: $md-grey-900,
+        dark: $md-grey-200,
+    ),
+    button-secondary-border: (
+        light: $md-grey-400,
+        dark: $md-grey-500,
+    ),
+    button-success-bg: (
+        light: $md-green-700,
+        dark: $md-green-800,
+    ),
+    button-success-text: (
+        light: white,
+        dark: $md-green-100,
+    ),
+    button-success-border: (
+        light: $md-green-700,
+        dark: $md-green-600,
+    ),
+    button-warning-bg: (
+        light: $md-orange-700,
+        dark: $md-orange-800,
+    ),
+    button-warning-text: (
+        light: white,
+        dark: $md-orange-100,
+    ),
+    button-warning-border: (
+        light: $md-orange-700,
+        dark: $md-orange-600,
+    ),
+    button-danger-bg: (
+        light: $md-red-700,
+        dark: $md-red-800,
+    ),
+    button-danger-text: (
+        light: white,
+        dark: $md-red-100,
+    ),
+    button-danger-border: (
+        light: $md-red-700,
+        dark: $md-red-600,
+    ),
+
     // Tab badge
     tab-badge-bg: (
         light: $md-grey-200,

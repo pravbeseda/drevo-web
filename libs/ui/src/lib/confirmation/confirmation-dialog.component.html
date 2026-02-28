@@ -6,9 +6,10 @@
     <div class="confirmation-dialog__actions">
         @for (button of config.buttons; track button.key) {
             <ui-button
-                [variant]="button.variant ?? 'secondary'"
+                [variant]="button.variant ?? 'outlined'"
+                [accent]="button.accent ?? 'secondary'"
                 [fullWidth]="true"
-                (clicked)="select(button.key)"
+                (click)="select(button.key)"
             >{{ button.label }}</ui-button>
         }
     </div>

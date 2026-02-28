@@ -19,13 +19,13 @@ describe('ButtonComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should render primary button by default', () => {
+    it('should render filled button by default', () => {
         const button = spectator.query('button');
         expect(button?.classList).toContain('mat-mdc-unelevated-button');
     });
 
-    it('should render secondary button when variant is secondary', () => {
-        spectator.setInput('variant', 'secondary');
+    it('should render outlined button when variant is outlined', () => {
+        spectator.setInput('variant', 'outlined');
 
         const button = spectator.query('button');
         expect(button?.classList).toContain('mat-mdc-outlined-button');
@@ -38,23 +38,36 @@ describe('ButtonComponent', () => {
         expect(button?.classList).toContain('mat-mdc-button');
     });
 
-    it('should emit clicked event on click', () => {
-        const clickedSpy = jest.fn();
-        spectator.component.clicked.subscribe(clickedSpy);
+    it('should propagate native click when not disabled', () => {
+        const clickSpy = jest.fn();
+        spectator.element.addEventListener('click', clickSpy);
 
         spectator.click('button');
 
-        expect(clickedSpy).toHaveBeenCalled();
+        expect(clickSpy).toHaveBeenCalled();
     });
 
-    it('should not emit clicked when disabled', () => {
+    it('should block native click when disabled', () => {
         spectator.setInput('disabled', true);
-        const clickedSpy = jest.fn();
-        spectator.component.clicked.subscribe(clickedSpy);
+        const clickSpy = jest.fn();
+        spectator.element.addEventListener('click', clickSpy);
 
-        spectator.click('button');
+        // Disabled button doesn't fire click, so dispatch on host directly
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        spectator.element.dispatchEvent(event);
 
-        expect(clickedSpy).not.toHaveBeenCalled();
+        expect(clickSpy).not.toHaveBeenCalled();
+    });
+
+    it('should block native click when loading', () => {
+        spectator.setInput('loading', true);
+        const clickSpy = jest.fn();
+        spectator.element.addEventListener('click', clickSpy);
+
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        spectator.element.dispatchEvent(event);
+
+        expect(clickSpy).not.toHaveBeenCalled();
     });
 
     it('should show spinner when loading', () => {
@@ -85,9 +98,44 @@ describe('ButtonComponent', () => {
         expect(button?.classList).toContain('full-width');
     });
 
-    describe('with href', () => {
-        it('should render anchor tag when href is provided', () => {
-            spectator.setInput('href', '/test-link');
+    describe('accent', () => {
+        it('should apply accent-secondary class by default', () => {
+            const button = spectator.query('button');
+            expect(button?.classList).toContain('accent-secondary');
+        });
+
+        it('should apply accent-primary class when accent is primary', () => {
+            spectator.setInput('accent', 'primary');
+
+            const button = spectator.query('button');
+            expect(button?.classList).toContain('accent-primary');
+        });
+
+        it('should apply accent-danger class when accent is danger', () => {
+            spectator.setInput('accent', 'danger');
+
+            const button = spectator.query('button');
+            expect(button?.classList).toContain('accent-danger');
+        });
+
+        it('should apply accent-success class when accent is success', () => {
+            spectator.setInput('accent', 'success');
+
+            const button = spectator.query('button');
+            expect(button?.classList).toContain('accent-success');
+        });
+
+        it('should apply accent-warning class when accent is warning', () => {
+            spectator.setInput('accent', 'warning');
+
+            const button = spectator.query('button');
+            expect(button?.classList).toContain('accent-warning');
+        });
+    });
+
+    describe('with link', () => {
+        it('should render anchor tag when link is provided', () => {
+            spectator.setInput('link', '/test-link');
 
             const anchor = spectator.query('a');
             const button = spectator.query('button');
@@ -95,71 +143,71 @@ describe('ButtonComponent', () => {
             expect(button).toBeFalsy();
         });
 
-        it('should render primary anchor by default', () => {
-            spectator.setInput('href', '/test-link');
+        it('should render filled anchor by default', () => {
+            spectator.setInput('link', '/test-link');
 
             const anchor = spectator.query('a');
             expect(anchor?.classList).toContain('mat-mdc-unelevated-button');
         });
 
-        it('should render secondary anchor when variant is secondary', () => {
-            spectator.setInput('href', '/test-link');
-            spectator.setInput('variant', 'secondary');
+        it('should render outlined anchor when variant is outlined', () => {
+            spectator.setInput('link', '/test-link');
+            spectator.setInput('variant', 'outlined');
 
             const anchor = spectator.query('a');
             expect(anchor?.classList).toContain('mat-mdc-outlined-button');
         });
 
         it('should render text anchor when variant is text', () => {
-            spectator.setInput('href', '/test-link');
+            spectator.setInput('link', '/test-link');
             spectator.setInput('variant', 'text');
 
             const anchor = spectator.query('a');
             expect(anchor?.classList).toContain('mat-mdc-button');
         });
 
-        it('should emit clicked event on anchor click', () => {
-            spectator.setInput('href', '/test-link');
-            const clickedSpy = jest.fn();
-            spectator.component.clicked.subscribe(clickedSpy);
+        it('should propagate click on anchor when not disabled', () => {
+            spectator.setInput('link', '/test-link');
+            const clickSpy = jest.fn();
+            spectator.element.addEventListener('click', clickSpy);
 
             spectator.click('a');
 
-            expect(clickedSpy).toHaveBeenCalled();
+            expect(clickSpy).toHaveBeenCalled();
         });
 
         it('should apply full-width class to anchor when fullWidth is true', () => {
-            spectator.setInput('href', '/test-link');
+            spectator.setInput('link', '/test-link');
             spectator.setInput('fullWidth', true);
 
             const anchor = spectator.query('a');
             expect(anchor?.classList).toContain('full-width');
         });
 
-        it('should not emit clicked when anchor is disabled', () => {
-            spectator.setInput('href', '/test-link');
+        it('should preventDefault on anchor click when disabled', () => {
+            spectator.setInput('link', '/test-link');
             spectator.setInput('disabled', true);
-            const clickedSpy = jest.fn();
-            spectator.component.clicked.subscribe(clickedSpy);
 
-            spectator.click('a');
+            const anchor = spectator.query('a') as HTMLAnchorElement;
+            const event = new MouseEvent('click', { cancelable: true, bubbles: true });
+            anchor.dispatchEvent(event);
 
-            expect(clickedSpy).not.toHaveBeenCalled();
+            expect(event.defaultPrevented).toBe(true);
         });
 
-        it('should not emit clicked when anchor is loading', () => {
-            spectator.setInput('href', '/test-link');
+        it('should preventDefault on anchor click when loading', () => {
+            spectator.setInput('link', '/test-link');
             spectator.setInput('loading', true);
-            const clickedSpy = jest.fn();
-            spectator.component.clicked.subscribe(clickedSpy);
 
-            spectator.click('a');
+            const anchor = spectator.query('a') as HTMLAnchorElement;
+            const event = new MouseEvent('click', { cancelable: true, bubbles: true });
+            anchor.dispatchEvent(event);
 
-            expect(clickedSpy).not.toHaveBeenCalled();
+            expect(event.defaultPrevented).toBe(true);
         });
 
         it('should have disabled class when disabled', () => {
-            spectator.setInput('href', '/test-link');
+            spectator.setInput('link', '/test-link');
             spectator.setInput('disabled', true);
 
             const anchor = spectator.query('a');
@@ -167,7 +215,7 @@ describe('ButtonComponent', () => {
         });
 
         it('should have disabled class when loading', () => {
-            spectator.setInput('href', '/test-link');
+            spectator.setInput('link', '/test-link');
             spectator.setInput('loading', true);
 
             const anchor = spectator.query('a');
@@ -175,7 +223,7 @@ describe('ButtonComponent', () => {
         });
 
         it('should have aria-disabled attribute when disabled', () => {
-            spectator.setInput('href', '/test-link');
+            spectator.setInput('link', '/test-link');
             spectator.setInput('disabled', true);
 
             const anchor = spectator.query('a');
@@ -183,22 +231,19 @@ describe('ButtonComponent', () => {
         });
 
         it('should show spinner when loading', () => {
-            spectator.setInput('href', '/test-link');
+            spectator.setInput('link', '/test-link');
             spectator.setInput('loading', true);
 
             const spinner = spectator.query('mat-spinner');
             expect(spinner).toBeTruthy();
         });
 
-        it('should preventDefault on click when disabled', () => {
-            spectator.setInput('href', '/test-link');
-            spectator.setInput('disabled', true);
+        it('should apply accent class on anchor', () => {
+            spectator.setInput('link', '/test-link');
+            spectator.setInput('accent', 'danger');
 
-            const anchor = spectator.query('a') as HTMLAnchorElement;
-            const event = new MouseEvent('click', { cancelable: true });
-            anchor.dispatchEvent(event);
-
-            expect(event.defaultPrevented).toBe(true);
+            const anchor = spectator.query('a');
+            expect(anchor?.classList).toContain('accent-danger');
         });
     });
 });
