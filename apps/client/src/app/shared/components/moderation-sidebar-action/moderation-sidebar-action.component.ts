@@ -4,7 +4,7 @@ import { ArticleModerationPanelComponent } from '../article-moderation-panel/art
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ModerationResult } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_ICONS, ModerationResult } from '@drevo-web/shared';
 import { SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
@@ -25,7 +25,6 @@ export class ModerationSidebarActionComponent {
 
     private readonly approvalClass = computed(() => APPROVAL_CLASS[this.version().approved]);
     readonly moderationIcon = computed(() => APPROVAL_ICONS[this.approvalClass()]);
-    readonly moderationLabel = computed(() => 'Модерация: ' + APPROVAL_TITLES[this.approvalClass()]);
 
     private readonly _isPanelOpen = signal(false);
     readonly isPanelOpen = this._isPanelOpen.asReadonly();

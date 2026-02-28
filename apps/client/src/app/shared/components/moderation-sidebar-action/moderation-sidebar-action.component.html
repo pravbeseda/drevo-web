@@ -1,7 +1,7 @@
 @if (canModerate()) {
     <app-sidebar-action
         [icon]="moderationIcon()"
-        [label]="moderationLabel()"
+        label="Модерация"
         [disabled]="disabled()"
         (activated)="togglePanel()"
     />

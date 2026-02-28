@@ -1,83 +1,89 @@
-@if (size() === 'mini') {
-    @if (link() && !disabled()) {
-        <a
-            mat-mini-fab
-            [routerLink]="link()"
-            class="action-button"
-            [class.action-button--primary]="priority() === 'primary'"
-            [class.action-button--secondary]="priority() === 'secondary'"
-            [class.action-button--main]="variant() === 'main'"
-            [class.action-button--menu]="variant() === 'menu'"
-            [class.action-button--speed-dial]="variant() === 'speed-dial'"
-            [attr.aria-label]="label()"
-            [matTooltip]="showTooltip() ? label() : ''"
-            matTooltipPosition="left"
-        >
-            <mat-icon>{{ icon() }}</mat-icon>
-            @if (showLabel()) {
-                <span class="action-button__label">{{ label() }}</span>
-            }
-        </a>
+<span
+    [matTooltip]="showTooltip() ? 'Недоступно: ' + label() : ''"
+    [matTooltipDisabled]="!disabled()"
+    matTooltipPosition="left"
+>
+    @if (size() === 'mini') {
+        @if (link() && !disabled()) {
+            <a
+                mat-mini-fab
+                [routerLink]="link()"
+                class="action-button"
+                [class.action-button--primary]="priority() === 'primary'"
+                [class.action-button--secondary]="priority() === 'secondary'"
+                [class.action-button--main]="variant() === 'main'"
+                [class.action-button--menu]="variant() === 'menu'"
+                [class.action-button--speed-dial]="variant() === 'speed-dial'"
+                [attr.aria-label]="label()"
+                [matTooltip]="showTooltip() ? label() : ''"
+                matTooltipPosition="left"
+            >
+                <mat-icon>{{ icon() }}</mat-icon>
+                @if (showLabel()) {
+                    <span class="action-button__label">{{ label() }}</span>
+                }
+            </a>
+        } @else {
+            <button
+                mat-mini-fab
+                class="action-button"
+                [class.action-button--primary]="priority() === 'primary'"
+                [class.action-button--secondary]="priority() === 'secondary'"
+                [class.action-button--main]="variant() === 'main'"
+                [class.action-button--menu]="variant() === 'menu'"
+                [class.action-button--speed-dial]="variant() === 'speed-dial'"
+                [attr.aria-label]="label()"
+                [matTooltip]="showTooltip() ? label() : ''"
+                matTooltipPosition="left"
+                [disabled]="disabled()"
+                (click)="onClick()"
+            >
+                <mat-icon>{{ icon() }}</mat-icon>
+                @if (showLabel()) {
+                    <span class="action-button__label">{{ label() }}</span>
+                }
+            </button>
+        }
     } @else {
-        <button
-            mat-mini-fab
-            class="action-button"
-            [class.action-button--primary]="priority() === 'primary'"
-            [class.action-button--secondary]="priority() === 'secondary'"
-            [class.action-button--main]="variant() === 'main'"
-            [class.action-button--menu]="variant() === 'menu'"
-            [class.action-button--speed-dial]="variant() === 'speed-dial'"
-            [attr.aria-label]="label()"
-            [matTooltip]="showTooltip() ? label() : ''"
-            matTooltipPosition="left"
-            [disabled]="disabled()"
-            (click)="onClick()"
-        >
-            <mat-icon>{{ icon() }}</mat-icon>
-            @if (showLabel()) {
-                <span class="action-button__label">{{ label() }}</span>
-            }
-        </button>
+        @if (link() && !disabled()) {
+            <a
+                mat-fab
+                [routerLink]="link()"
+                class="action-button"
+                [class.action-button--primary]="priority() === 'primary'"
+                [class.action-button--secondary]="priority() === 'secondary'"
+                [class.action-button--main]="variant() === 'main'"
+                [class.action-button--menu]="variant() === 'menu'"
+                [class.action-button--speed-dial]="variant() === 'speed-dial'"
+                [attr.aria-label]="label()"
+                [matTooltip]="showTooltip() ? label() : ''"
+                matTooltipPosition="left"
+            >
+                <mat-icon>{{ icon() }}</mat-icon>
+                @if (showLabel()) {
+                    <span class="action-button__label">{{ label() }}</span>
+                }
+            </a>
+        } @else {
+            <button
+                mat-fab
+                class="action-button"
+                [class.action-button--primary]="priority() === 'primary'"
+                [class.action-button--secondary]="priority() === 'secondary'"
+                [class.action-button--main]="variant() === 'main'"
+                [class.action-button--menu]="variant() === 'menu'"
+                [class.action-button--speed-dial]="variant() === 'speed-dial'"
+                [attr.aria-label]="label()"
+                [matTooltip]="showTooltip() ? label() : ''"
+                matTooltipPosition="left"
+                [disabled]="disabled()"
+                (click)="onClick()"
+            >
+                <mat-icon>{{ icon() }}</mat-icon>
+                @if (showLabel()) {
+                    <span class="action-button__label">{{ label() }}</span>
+                }
+            </button>
+        }
     }
-} @else {
-    @if (link() && !disabled()) {
-        <a
-            mat-fab
-            [routerLink]="link()"
-            class="action-button"
-            [class.action-button--primary]="priority() === 'primary'"
-            [class.action-button--secondary]="priority() === 'secondary'"
-            [class.action-button--main]="variant() === 'main'"
-            [class.action-button--menu]="variant() === 'menu'"
-            [class.action-button--speed-dial]="variant() === 'speed-dial'"
-            [attr.aria-label]="label()"
-            [matTooltip]="showTooltip() ? label() : ''"
-            matTooltipPosition="left"
-        >
-            <mat-icon>{{ icon() }}</mat-icon>
-            @if (showLabel()) {
-                <span class="action-button__label">{{ label() }}</span>
-            }
-        </a>
-    } @else {
-        <button
-            mat-fab
-            class="action-button"
-            [class.action-button--primary]="priority() === 'primary'"
-            [class.action-button--secondary]="priority() === 'secondary'"
-            [class.action-button--main]="variant() === 'main'"
-            [class.action-button--menu]="variant() === 'menu'"
-            [class.action-button--speed-dial]="variant() === 'speed-dial'"
-            [attr.aria-label]="label()"
-            [matTooltip]="showTooltip() ? label() : ''"
-            matTooltipPosition="left"
-            [disabled]="disabled()"
-            (click)="onClick()"
-        >
-            <mat-icon>{{ icon() }}</mat-icon>
-            @if (showLabel()) {
-                <span class="action-button__label">{{ label() }}</span>
-            }
-        </button>
-    }
-}
+</span>

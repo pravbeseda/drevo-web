@@ -78,21 +78,18 @@ describe('ModerationSidebarActionComponent', () => {
             it('should show pending icon and label', () => {
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('schedule');
-                expect(spectator.component.moderationLabel()).toBe('Модерация: На проверке');
             });
 
             it('should show approved icon and label', () => {
                 spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Approved });
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('check_circle');
-                expect(spectator.component.moderationLabel()).toBe('Модерация: Одобрено');
             });
 
             it('should show rejected icon and label', () => {
                 spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Rejected });
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('cancel');
-                expect(spectator.component.moderationLabel()).toBe('Модерация: Отклонено');
             });
 
             it('should update icon when version input changes', () => {
@@ -109,12 +106,6 @@ describe('ModerationSidebarActionComponent', () => {
                 spectator.detectChanges();
                 const action = spectator.query(SidebarActionComponent);
                 expect(action?.icon()).toBe('schedule');
-            });
-
-            it('should pass label to sidebar action', () => {
-                spectator.detectChanges();
-                const action = spectator.query(SidebarActionComponent);
-                expect(action?.label()).toBe('Модерация: На проверке');
             });
 
             it('should pass disabled=false by default', () => {
