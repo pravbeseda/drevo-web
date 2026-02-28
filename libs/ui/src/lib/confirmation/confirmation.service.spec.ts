@@ -26,7 +26,7 @@ describe('ConfirmationService', () => {
             message: 'Are you sure?',
             buttons: [
                 { key: 'cancel', label: 'Cancel' },
-                { key: 'confirm', label: 'Confirm', variant: 'primary' },
+                { key: 'confirm', label: 'Confirm', accent: 'primary' },
             ],
         };
 
