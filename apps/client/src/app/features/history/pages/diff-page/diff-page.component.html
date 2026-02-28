@@ -1,6 +1,6 @@
 @if (data.versionPairs(); as pairs) {
     <app-moderation-sidebar-action
-        [version]="$any(pairs.current)"
+        [version]="pairs.current"
         [disabled]="!isModerationEnabled()"
         (moderated)="onModerated($event)"
     />

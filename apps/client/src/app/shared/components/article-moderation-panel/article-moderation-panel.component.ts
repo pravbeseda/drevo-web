@@ -1,8 +1,19 @@
 import { ArticleService } from '../../../services/articles/article.service';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
+import { VersionForModeration } from '../../models/version-for-moderation.model';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    computed,
+    effect,
+    inject,
+    input,
+    output,
+    signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { ButtonComponent, FormatTimePipe, StatusIconComponent, TextInputComponent } from '@drevo-web/ui';
 
 @Component({
@@ -18,7 +29,7 @@ export class ArticleModerationPanelComponent {
     private readonly logger = inject(LoggerService).withContext('ArticleModerationPanelComponent');
     private readonly notification = inject(NotificationService);
 
-    readonly version = input.required<ArticleVersion>();
+    readonly version = input.required<VersionForModeration>();
     readonly moderated = output<ModerationResult>();
 
     readonly statusText = computed(() => {
@@ -58,7 +69,7 @@ export class ArticleModerationPanelComponent {
 
     private moderate(approved: ApprovalStatus, successMessage: string): void {
         const versionId = this.version().versionId;
-        const comment = this._comment() || undefined;
+        const comment = this._comment() ?? '';
 
         this._isLoading.set(true);
         this.logger.info('Moderation: submitting', { versionId, approved, comment });

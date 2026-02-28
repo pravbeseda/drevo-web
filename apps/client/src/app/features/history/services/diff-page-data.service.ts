@@ -21,7 +21,7 @@ export class DiffPageDataService {
     private _load$: Observable<VersionPairs | undefined> | undefined;
     private _loadedParams: string | undefined;
 
-    updateCurrentApproval(approved: ApprovalStatus, comment?: string): void {
+    updateCurrentApproval(approved: ApprovalStatus, comment: string): void {
         const pairs = this._versionPairs();
         if (!pairs) return;
         this._versionPairs.set({

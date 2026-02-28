@@ -1,9 +1,10 @@
 import { AuthService } from '../../../services/auth/auth.service';
+import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ArticleModerationPanelComponent } from '../article-moderation-panel/article-moderation-panel.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ArticleVersion, ModerationResult } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_ICONS, APPROVAL_TITLES, ModerationResult } from '@drevo-web/shared';
 import { SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
@@ -13,7 +14,7 @@ import { SidePanelComponent } from '@drevo-web/ui';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationSidebarActionComponent {
-    readonly version = input.required<ArticleVersion>();
+    readonly version = input.required<VersionForModeration>();
     readonly disabled = input(false);
 
     readonly moderated = output<ModerationResult>();
