@@ -1,0 +1,18 @@
+@if (canModerate()) {
+    <app-sidebar-action
+        [icon]="moderationIcon()"
+        [label]="moderationLabel()"
+        [disabled]="disabled()"
+        (activated)="togglePanel()"
+    />
+
+    <ui-side-panel
+        [open]="isPanelOpen()"
+        (closed)="closePanel()"
+    >
+        <app-article-moderation-panel
+            [version]="version()"
+            (moderated)="onModerated($event)"
+        />
+    </ui-side-panel>
+}

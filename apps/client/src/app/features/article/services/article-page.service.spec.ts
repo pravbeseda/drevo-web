@@ -1,6 +1,7 @@
 import { ArticlePageService } from './article-page.service';
 import { createMockArticle } from '../testing/article-testing.helper';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { ApprovalStatus } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 const mockArticle = createMockArticle();
@@ -91,6 +92,36 @@ describe('ArticlePageService', () => {
             expect(spectator.service.articleId()).toBeUndefined();
             expect(spectator.service.title()).toBeUndefined();
             expect(spectator.service.editUrl()).toBeUndefined();
+        });
+    });
+
+    describe('updateApproval', () => {
+        it('should update approved and comment on current article', () => {
+            spectator.service.setArticle(mockArticle);
+
+            spectator.service.updateApproval(ApprovalStatus.Rejected, 'Needs changes');
+
+            const article = spectator.service.article()!;
+            expect(article.approved).toBe(ApprovalStatus.Rejected);
+            expect(article.comment).toBe('Needs changes');
+        });
+
+        it('should preserve other article fields', () => {
+            spectator.service.setArticle(mockArticle);
+
+            spectator.service.updateApproval(ApprovalStatus.Approved, 'OK');
+
+            const article = spectator.service.article()!;
+            expect(article.articleId).toBe(mockArticle.articleId);
+            expect(article.versionId).toBe(mockArticle.versionId);
+            expect(article.title).toBe(mockArticle.title);
+            expect(article.content).toBe(mockArticle.content);
+        });
+
+        it('should do nothing when no article is set', () => {
+            spectator.service.updateApproval(ApprovalStatus.Approved, 'OK');
+
+            expect(spectator.service.article()).toBeUndefined();
         });
     });
 });

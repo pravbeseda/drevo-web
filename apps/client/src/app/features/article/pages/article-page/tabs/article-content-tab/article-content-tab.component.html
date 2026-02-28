@@ -1,0 +1,11 @@
+@if (article(); as article) {
+    <app-article-sidebar-actions
+        [version]="article"
+        [editUrl]="editUrl()"
+        (moderated)="onModerated($event)"
+    />
+    <app-article-content
+        class="article-content"
+        [content]="article.content"
+    />
+}

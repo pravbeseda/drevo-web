@@ -662,7 +662,7 @@ describe('ArticleService', () => {
 
             spectator.service.getVersionPairs(10).subscribe(result => {
                 expect(result.current.comment).toBe('Moderation note');
-                expect(result.previous.comment).toBeUndefined();
+                expect(result.previous.comment).toBe('');
                 done();
             });
         });

@@ -1,22 +1,9 @@
-@if (canModerate()) {
-    <app-sidebar-action
-        [icon]="moderationIcon()"
-        [label]="'Модерация: ' + moderationLabel()"
+@if (data.versionPairs(); as pairs) {
+    <app-moderation-sidebar-action
+        [version]="pairs.current"
         [disabled]="!isModerationEnabled()"
-        (activated)="toggleModerationPanel()"
+        (moderated)="onModerated($event)"
     />
-
-    <ui-side-panel
-        [open]="isModerationPanelOpen()"
-        (closed)="closeModerationPanel()"
-    >
-        @if (data.versionPairs(); as pairs) {
-            <app-article-moderation-panel
-                [versionPairs]="pairs"
-                (moderated)="onModerated($event)"
-            />
-        }
-    </ui-side-panel>
 }
 
 <app-sidebar-action

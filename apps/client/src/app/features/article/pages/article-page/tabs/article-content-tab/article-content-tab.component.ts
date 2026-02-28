@@ -1,34 +1,34 @@
-import { ArticleContentComponent } from '../../../components/article-content/article-content.component';
-import { ArticlePageService } from '../../../services/article-page.service';
+import { ArticleContentComponent } from '../../../../components/article-content/article-content.component';
+import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
+import { ArticlePageService } from '../../../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
+import { ModerationResult } from '@drevo-web/shared';
 import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-content-tab',
-    imports: [ArticleContentComponent],
-    template: `
-        @if (article(); as article) {
-            <app-article-content
-                class="article-content"
-                [content]="article.content"
-            />
-        }
-    `,
+    imports: [ArticleContentComponent, ArticleSidebarActionsComponent],
+    templateUrl: './article-content-tab.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleContentTabComponent {
     private readonly pageService = inject(ArticlePageService);
     readonly article = this.pageService.article;
+    readonly editUrl = this.pageService.editUrl;
     private readonly document = inject(DOCUMENT);
     private readonly route = inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
     private readonly injector = inject(Injector);
     private readonly logger = inject(LoggerService).withContext('ArticleContentTab');
     private currentFragment: string | undefined = undefined;
+
+    onModerated(result: ModerationResult): void {
+        this.pageService.updateApproval(result.approved, result.comment);
+    }
 
     constructor() {
         this.route.fragment.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
@@ -76,7 +76,7 @@ export class ArticleContentTabComponent {
                     });
                 }
             },
-            { injector: this.injector }
+            { injector: this.injector },
         );
     }
 }

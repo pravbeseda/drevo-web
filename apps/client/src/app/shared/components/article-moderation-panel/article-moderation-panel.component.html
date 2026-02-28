@@ -1,16 +1,16 @@
 <div class="moderation-panel-status">
-    <ui-status-icon [status]="versionPairs().current.approved" />
+    <ui-status-icon [status]="version().approved" />
     <span>{{ statusText() }}</span>
 </div>
 
 <div class="moderation-panel-info">
     <div class="moderation-panel-info-row">
         <span class="moderation-panel-info-label">Автор:</span>
-        <span>{{ versionPairs().current.author }}</span>
+        <span>{{ version().author }}</span>
     </div>
     <div class="moderation-panel-info-row">
-        <span class="moderation-panel-info-label">Дата:</span>
-        <span>{{ versionPairs().current.date | formatTime }}</span>
+        <span class="moderation-panel-info-label">Время:</span>
+        <span>{{ version().date | formatDate }}</span>
     </div>
 </div>
 

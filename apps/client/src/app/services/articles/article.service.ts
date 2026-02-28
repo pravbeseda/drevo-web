@@ -129,14 +129,14 @@ export class ArticleService {
      * @param comment - Optional moderation comment
      * @returns Observable with moderation result
      */
-    moderateVersion(versionId: number, approved: ApprovalStatus, comment?: string): Observable<ModerationResult> {
+    moderateVersion(versionId: number, approved: ApprovalStatus, comment: string): Observable<ModerationResult> {
         return this.articleApiService.moderateVersion({ versionId, approved, comment }).pipe(
             map(dto => ({
                 versionId: dto.versionId,
                 articleId: dto.articleId,
                 approved: dto.approved,
-                comment: dto.comment,
-            }))
+                comment: dto.comment ?? '',
+            })),
         );
     }
 
@@ -258,7 +258,7 @@ export class ArticleService {
             title: dto.title,
             info: dto.info,
             approved: dto.approved,
-            comment: dto.comment,
+            comment: dto.comment ?? '',
         };
     }
 }

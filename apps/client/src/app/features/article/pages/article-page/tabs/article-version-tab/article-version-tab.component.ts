@@ -1,18 +1,19 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { ArticleContentComponent } from '../../../../components/article-content/article-content.component';
+import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ArticleVersion } from '@drevo-web/shared';
+import { ArticleVersion, ModerationResult } from '@drevo-web/shared';
 import { FormatTimePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-version-tab',
-    imports: [ArticleContentComponent, RouterLink, FormatTimePipe, StatusIconComponent, SpinnerComponent],
+    imports: [ArticleContentComponent, ArticleSidebarActionsComponent, RouterLink, FormatTimePipe, StatusIconComponent, SpinnerComponent],
     templateUrl: './article-version-tab.component.html',
     styleUrl: './article-version-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +34,15 @@ export class ArticleVersionTabComponent implements OnInit {
         const id = this.pageService.articleId();
         return id ? `/articles/${id}` : undefined;
     });
+
+    readonly versionEditUrl = computed(() => {
+        const v = this.version();
+        return v ? `/articles/edit/${v.versionId}` : undefined;
+    });
+
+    onModerated(result: ModerationResult): void {
+        this.version.update(v => (v ? { ...v, approved: result.approved, comment: result.comment } : v));
+    }
 
     ngOnInit(): void {
         this.route.paramMap

@@ -5,6 +5,11 @@
 } @else if (error()) {
     <p class="error-text">{{ error() }}</p>
 } @else if (version(); as version) {
+    <app-article-sidebar-actions
+        [version]="version"
+        [editUrl]="versionEditUrl()"
+        (moderated)="onModerated($event)"
+    />
     <div
         class="version-banner"
         data-testid="version-banner"
