@@ -1,16 +1,1 @@
-<!-- Sidebar Actions -->
-<app-sidebar-action
-    icon="toc"
-    label="Содержание"
-    priority="secondary"
-    (activated)="openTableOfContents()"
-/>
-<app-sidebar-action
-    icon="edit"
-    label="Редактировать"
-    priority="primary"
-    [disabled]="!editUrl()"
-    [link]="editUrl()"
-/>
-
 <div [innerHTML]="sanitizedContent"></div>

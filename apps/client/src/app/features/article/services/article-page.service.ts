@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
-import { ArticleVersion } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion } from '@drevo-web/shared';
 
 @Injectable()
 export class ArticlePageService {
@@ -32,5 +32,18 @@ export class ArticlePageService {
         this._article.set(undefined);
         this._error.set(message);
         this.logger.error('Article error', { message });
+    }
+
+    updateApproval(approved: ApprovalStatus, comment: string): void {
+        const current = this._article();
+        if (!current) {
+            return;
+        }
+
+        this._article.set({ ...current, approved, comment });
+        this.logger.info('Article approval updated', {
+            id: current.articleId,
+            approved,
+        });
     }
 }

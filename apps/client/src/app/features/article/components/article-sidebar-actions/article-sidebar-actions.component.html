@@ -1,0 +1,22 @@
+<app-sidebar-action
+    icon="toc"
+    label="Содержание"
+    priority="secondary"
+    (activated)="openTableOfContents()"
+/>
+
+@if (editUrl(); as url) {
+    <app-sidebar-action
+        icon="edit"
+        label="Редактировать"
+        priority="primary"
+        [link]="url"
+    />
+}
+
+@if (version(); as v) {
+    <app-moderation-sidebar-action
+        [version]="v"
+        (moderated)="moderated.emit($event)"
+    />
+}
