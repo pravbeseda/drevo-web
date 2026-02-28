@@ -69,7 +69,7 @@ export class ArticleModerationPanelComponent {
 
     private moderate(approved: ApprovalStatus, successMessage: string): void {
         const versionId = this.version().versionId;
-        const comment = this._comment() ?? '';
+        const comment = this._comment();
 
         this._isLoading.set(true);
         this.logger.info('Moderation: submitting', { versionId, approved, comment });
