@@ -14,11 +14,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult } from '@drevo-web/shared';
-import { ButtonComponent, FormatTimePipe, StatusIconComponent, TextInputComponent } from '@drevo-web/ui';
+import { ButtonComponent, FormatDatePipe, StatusIconComponent, TextInputComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-article-moderation-panel',
-    imports: [ButtonComponent, FormatTimePipe, StatusIconComponent, TextInputComponent],
+    imports: [ButtonComponent, StatusIconComponent, TextInputComponent, FormatDatePipe],
     templateUrl: './article-moderation-panel.component.html',
     styleUrl: './article-moderation-panel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
