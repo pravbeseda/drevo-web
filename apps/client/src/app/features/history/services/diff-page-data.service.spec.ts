@@ -17,6 +17,7 @@ const MOCK_VERSION_PAIRS: VersionPairs = {
         title: 'Test Article',
         info: 'current info',
         approved: ApprovalStatus.Pending,
+        comment: '',
     },
     previous: {
         articleId: 1,
@@ -27,6 +28,7 @@ const MOCK_VERSION_PAIRS: VersionPairs = {
         title: 'Test Article',
         info: 'previous info',
         approved: ApprovalStatus.Approved,
+        comment: '',
     },
 };
 
@@ -291,7 +293,7 @@ describe('DiffPageDataService', () => {
             expect(pairs?.current.comment).toBe('Rejection reason');
         });
 
-        it('should clear comment when not provided', () => {
+        it('should clear comment when empty string provided', () => {
             const pairsWithComment: VersionPairs = {
                 ...MOCK_VERSION_PAIRS,
                 current: { ...MOCK_VERSION_PAIRS.current, comment: 'Old comment' },
@@ -302,9 +304,9 @@ describe('DiffPageDataService', () => {
             });
 
             spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
-            spectator.service.updateCurrentApproval(ApprovalStatus.Approved);
+            spectator.service.updateCurrentApproval(ApprovalStatus.Approved, '');
 
-            expect(spectator.service.versionPairs()?.current.comment).toBeUndefined();
+            expect(spectator.service.versionPairs()?.current.comment).toBe('');
         });
 
         it('should do nothing when no version pairs loaded', () => {

@@ -17,6 +17,7 @@ const mockVersionPairs: VersionPairs = {
         title: 'Test Article',
         info: 'Updated text',
         approved: 1,
+        comment: '',
     },
     previous: {
         articleId: 1,
@@ -27,6 +28,7 @@ const mockVersionPairs: VersionPairs = {
         title: 'Test Article',
         info: '',
         approved: 1,
+        comment: '',
     },
 };
 

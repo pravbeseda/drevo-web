@@ -1,22 +1,17 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
+import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
 import { ArticleModerationPanelComponent } from './article-moderation-panel.component';
 
-const mockVersion: ArticleVersion = {
-    articleId: 1,
+const mockVersion: VersionForModeration = {
     versionId: 200,
-    content: 'new content',
     author: 'Author A',
     date: new Date('2025-01-15T14:30:00'),
-    title: 'Test Article',
-    info: 'Updated text',
     approved: ApprovalStatus.Pending,
-    redirect: false,
-    new: false,
     comment: '',
 };
 
@@ -128,7 +123,7 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.approve();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Approved, undefined);
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Approved, '');
         });
 
         it('should emit moderated event on success', () => {
@@ -170,7 +165,7 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.sendToReview();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Pending, undefined);
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Pending, '');
         });
 
         it('should show correct success message', () => {
@@ -192,7 +187,7 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.reject();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Rejected, undefined);
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Rejected, '');
         });
 
         it('should show correct success message', () => {

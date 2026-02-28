@@ -1,23 +1,18 @@
 import { AuthService } from '../../../services/auth/auth.service';
+import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
+import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { SidePanelComponent } from '@drevo-web/ui';
 import { of } from 'rxjs';
 import { ModerationSidebarActionComponent } from './moderation-sidebar-action.component';
 
-const mockVersion: ArticleVersion = {
-    articleId: 1,
+const mockVersion: VersionForModeration = {
     versionId: 200,
-    content: 'new content',
     author: 'Author A',
     date: new Date('2025-01-15T14:30:00'),
-    title: 'Test Article',
-    info: 'Updated text',
     approved: ApprovalStatus.Pending,
-    redirect: false,
-    new: false,
     comment: '',
 };
 
