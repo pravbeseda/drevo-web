@@ -7,30 +7,30 @@
     </span>
 </ng-template>
 
-@if (href()) {
+@if (link()) {
     @switch (variant()) {
-        @case ('primary') {
+        @case ('filled') {
             <a
                 mat-flat-button
-                color="primary"
-                [routerLink]="href()"
+                [class]="accentClass()"
+                [routerLink]="link()"
                 [class.full-width]="fullWidth()"
                 [class.disabled]="disabled() || loading()"
                 [attr.aria-disabled]="disabled() || loading() || null"
-                (click)="onClick($event)"
+                (click)="onLinkClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </a>
         }
-        @case ('secondary') {
+        @case ('outlined') {
             <a
                 mat-stroked-button
-                color="primary"
-                [routerLink]="href()"
+                [class]="accentClass()"
+                [routerLink]="link()"
                 [class.full-width]="fullWidth()"
                 [class.disabled]="disabled() || loading()"
                 [attr.aria-disabled]="disabled() || loading() || null"
-                (click)="onClick($event)"
+                (click)="onLinkClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </a>
@@ -38,11 +38,12 @@
         @default {
             <a
                 mat-button
-                [routerLink]="href()"
+                [class]="accentClass()"
+                [routerLink]="link()"
                 [class.full-width]="fullWidth()"
                 [class.disabled]="disabled() || loading()"
                 [attr.aria-disabled]="disabled() || loading() || null"
-                (click)="onClick($event)"
+                (click)="onLinkClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </a>
@@ -50,26 +51,24 @@
     }
 } @else {
     @switch (variant()) {
-        @case ('primary') {
+        @case ('filled') {
             <button
                 mat-flat-button
-                color="primary"
+                [class]="accentClass()"
                 [type]="type()"
                 [disabled]="disabled() || loading()"
                 [class.full-width]="fullWidth()"
-                (click)="onClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </button>
         }
-        @case ('secondary') {
+        @case ('outlined') {
             <button
                 mat-stroked-button
-                color="primary"
+                [class]="accentClass()"
                 [type]="type()"
                 [disabled]="disabled() || loading()"
                 [class.full-width]="fullWidth()"
-                (click)="onClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </button>
@@ -77,10 +76,10 @@
         @default {
             <button
                 mat-button
+                [class]="accentClass()"
                 [type]="type()"
                 [disabled]="disabled() || loading()"
                 [class.full-width]="fullWidth()"
-                (click)="onClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </button>

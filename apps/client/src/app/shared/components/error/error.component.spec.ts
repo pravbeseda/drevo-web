@@ -57,7 +57,7 @@ describe('ErrorComponent', () => {
 
         const homeButton = spectator.query('.home-button');
         expect(homeButton).toBeTruthy();
-        expect(homeButton).toHaveAttribute('href', '/');
+        expect(homeButton).toHaveAttribute('link', '/');
         expect(homeButton).toHaveText('На главную');
         expect(spectator.query('.home-button ui-icon')).toHaveAttribute('name', 'home');
     });

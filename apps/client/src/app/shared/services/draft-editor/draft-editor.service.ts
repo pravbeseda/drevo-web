@@ -39,7 +39,7 @@ export class DraftEditorService {
                     message: `Черновик статьи «${draft.title}» сохранён ${savedAt}. Восстановить?`,
                     buttons: [
                         { key: 'discard', label: 'Удалить черновик' },
-                        { key: 'restore', label: 'Восстановить', variant: 'primary' },
+                        { key: 'restore', label: 'Восстановить', accent: 'primary' },
                     ],
                     disableClose: true,
                 }),
@@ -93,7 +93,7 @@ export class DraftEditorService {
                     message: 'Вы уверены, что хотите удалить черновик? Несохранённые изменения будут потеряны.',
                     buttons: [
                         { key: 'cancel', label: 'Остаться' },
-                        { key: 'confirm', label: 'Удалить', variant: 'primary' },
+                        { key: 'confirm', label: 'Удалить', accent: 'danger' },
                     ],
                     disableClose: true,
                 }),

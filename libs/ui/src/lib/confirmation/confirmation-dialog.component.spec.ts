@@ -13,7 +13,7 @@ describe('ConfirmationDialogComponent', () => {
         message: 'Вы уверены?',
         buttons: [
             { key: 'cancel', label: 'Отмена' },
-            { key: 'confirm', label: 'Удалить', variant: 'primary' },
+            { key: 'confirm', label: 'Удалить', accent: 'primary' },
         ],
     };
 
@@ -84,7 +84,7 @@ describe('ConfirmationDialogComponent', () => {
         setup({
             title: 'Info',
             message: 'Message',
-            buttons: [{ key: 'ok', label: 'OK', variant: 'primary' }],
+            buttons: [{ key: 'ok', label: 'OK', accent: 'primary' }],
         });
 
         const buttons = spectator.queryAll('ui-button');

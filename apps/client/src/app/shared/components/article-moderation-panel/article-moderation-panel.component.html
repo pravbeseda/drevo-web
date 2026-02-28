@@ -25,30 +25,30 @@
 <div class="moderation-panel-actions">
     @if (!isApproved()) {
         <ui-button
-            variant="primary"
+            accent="primary"
             [disabled]="isLoading()"
             [loading]="isLoading()"
-            (clicked)="approve()"
+            (click)="approve()"
         >
             Одобрить
         </ui-button>
     }
     @if (!isPending()) {
         <ui-button
-            variant="secondary"
+            variant="outlined"
             [disabled]="isLoading()"
             [loading]="isLoading()"
-            (clicked)="sendToReview()"
+            (click)="sendToReview()"
         >
             На проверку
         </ui-button>
     }
     @if (!isRejected()) {
         <ui-button
-            variant="secondary"
+            variant="outlined"
             [disabled]="isLoading()"
             [loading]="isLoading()"
-            (clicked)="reject()"
+            (click)="reject()"
         >
             Отклонить
         </ui-button>
