@@ -25,7 +25,8 @@
 <div class="moderation-panel-actions">
     @if (!isApproved()) {
         <ui-button
-            accent="primary"
+            variant="outlined"
+            accent="success"
             [disabled]="isLoading()"
             [loading]="isLoading()"
             (click)="approve()"
@@ -46,6 +47,7 @@
     @if (!isRejected()) {
         <ui-button
             variant="outlined"
+            accent="danger"
             [disabled]="isLoading()"
             [loading]="isLoading()"
             (click)="reject()"

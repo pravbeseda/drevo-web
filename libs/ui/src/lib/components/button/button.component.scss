@@ -41,11 +41,11 @@ a {
 
     // Accent: secondary (default — neutral)
     &.accent-secondary {
-        --mat-filled-button-container-color: var(--themed-button-secondary-bg);
-        --mat-filled-button-label-text-color: var(--themed-button-secondary-text);
-        --mat-outlined-button-label-text-color: var(--themed-button-secondary-text);
-        --mat-outlined-button-outline-color: var(--themed-button-secondary-border);
-        --mat-text-button-label-text-color: var(--themed-button-secondary-text);
+        --mat-button-filled-container-color: var(--themed-button-secondary-bg);
+        --mat-button-filled-label-text-color: var(--themed-button-secondary-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-secondary-text);
+        --mat-button-outlined-outline-color: var(--themed-button-secondary-border);
+        --mat-button-text-label-text-color: var(--themed-button-secondary-text);
     }
 
     // Accent: primary — uses Material primary palette (M3 default)
@@ -53,28 +53,28 @@ a {
 
     // Accent: success
     &.accent-success {
-        --mat-filled-button-container-color: var(--themed-button-success-bg);
-        --mat-filled-button-label-text-color: var(--themed-button-success-text);
-        --mat-outlined-button-label-text-color: var(--themed-button-success-text);
-        --mat-outlined-button-outline-color: var(--themed-button-success-border);
-        --mat-text-button-label-text-color: var(--themed-button-success-text);
+        --mat-button-filled-container-color: var(--themed-button-success-bg);
+        --mat-button-filled-label-text-color: var(--themed-button-success-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-success-text);
+        --mat-button-outlined-outline-color: var(--themed-button-success-border);
+        --mat-button-text-label-text-color: var(--themed-button-success-text);
     }
 
     // Accent: warning
     &.accent-warning {
-        --mat-filled-button-container-color: var(--themed-button-warning-bg);
-        --mat-filled-button-label-text-color: var(--themed-button-warning-text);
-        --mat-outlined-button-label-text-color: var(--themed-button-warning-text);
-        --mat-outlined-button-outline-color: var(--themed-button-warning-border);
-        --mat-text-button-label-text-color: var(--themed-button-warning-text);
+        --mat-button-filled-container-color: var(--themed-button-warning-bg);
+        --mat-button-filled-label-text-color: var(--themed-button-warning-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-warning-text);
+        --mat-button-outlined-outline-color: var(--themed-button-warning-border);
+        --mat-button-text-label-text-color: var(--themed-button-warning-text);
     }
 
     // Accent: danger
     &.accent-danger {
-        --mat-filled-button-container-color: var(--themed-button-danger-bg);
-        --mat-filled-button-label-text-color: var(--themed-button-danger-text);
-        --mat-outlined-button-label-text-color: var(--themed-button-danger-text);
-        --mat-outlined-button-outline-color: var(--themed-button-danger-border);
-        --mat-text-button-label-text-color: var(--themed-button-danger-text);
+        --mat-button-filled-container-color: var(--themed-button-danger-bg);
+        --mat-button-filled-label-text-color: var(--themed-button-danger-text);
+        --mat-button-outlined-label-text-color: var(--themed-button-danger-text);
+        --mat-button-outlined-outline-color: var(--themed-button-danger-border);
+        --mat-button-text-label-text-color: var(--themed-button-danger-text);
     }
 }
