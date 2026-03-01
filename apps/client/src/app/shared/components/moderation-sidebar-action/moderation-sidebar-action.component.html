@@ -1,12 +1,13 @@
 @if (canModerate()) {
     <app-sidebar-action
         [icon]="moderationIcon()"
-        [label]="moderationLabel()"
+        label="Модерация"
         [disabled]="disabled()"
         (activated)="togglePanel()"
     />
 
     <ui-side-panel
+        header="Модерация"
         [open]="isPanelOpen()"
         (closed)="closePanel()"
     >

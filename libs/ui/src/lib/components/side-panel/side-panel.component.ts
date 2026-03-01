@@ -10,7 +10,7 @@ import { ChangeDetectionStrategy, Component, HostListener, input, output } from 
 })
 export class SidePanelComponent {
     readonly open = input(false);
-    readonly title = input<string>();
+    readonly header = input<string>();
     readonly closed = output<void>();
 
     @HostListener('document:keydown.escape')

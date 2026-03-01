@@ -74,25 +74,22 @@ describe('ModerationSidebarActionComponent', () => {
             expect(spectator.query(SidePanelComponent)).toBeTruthy();
         });
 
-        describe('icon and label computation', () => {
-            it('should show pending icon and label', () => {
+        describe('icon computation', () => {
+            it('should show pending icon', () => {
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('schedule');
-                expect(spectator.component.moderationLabel()).toBe('Модерация: На проверке');
             });
 
-            it('should show approved icon and label', () => {
+            it('should show approved icon', () => {
                 spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Approved });
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('check_circle');
-                expect(spectator.component.moderationLabel()).toBe('Модерация: Одобрено');
             });
 
-            it('should show rejected icon and label', () => {
+            it('should show rejected icon', () => {
                 spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Rejected });
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('cancel');
-                expect(spectator.component.moderationLabel()).toBe('Модерация: Отклонено');
             });
 
             it('should update icon when version input changes', () => {
@@ -109,12 +106,6 @@ describe('ModerationSidebarActionComponent', () => {
                 spectator.detectChanges();
                 const action = spectator.query(SidebarActionComponent);
                 expect(action?.icon()).toBe('schedule');
-            });
-
-            it('should pass label to sidebar action', () => {
-                spectator.detectChanges();
-                const action = spectator.query(SidebarActionComponent);
-                expect(action?.label()).toBe('Модерация: На проверке');
             });
 
             it('should pass disabled=false by default', () => {

@@ -40,8 +40,8 @@ describe('SidePanelComponent', () => {
         expect(spectator.query('[data-testid="side-panel-backdrop"]')).toBeTruthy();
     });
 
-    it('should display title', () => {
-        spectator.setInput('title', 'Фильтры');
+    it('should display header', () => {
+        spectator.setInput('header', 'Фильтры');
 
         const title = spectator.query('[data-testid="side-panel-title"]');
         expect(title?.textContent?.trim()).toBe('Фильтры');
@@ -113,8 +113,8 @@ describe('SidePanelComponent', () => {
         expect(panel?.hasAttribute('inert')).toBe(false);
     });
 
-    it('should set aria-label from title', () => {
-        spectator.setInput('title', 'Фильтры');
+    it('should set aria-label from header', () => {
+        spectator.setInput('header', 'Фильтры');
 
         const panel = spectator.query('[data-testid="side-panel"]');
         expect(panel?.getAttribute('aria-label')).toBe('Фильтры');

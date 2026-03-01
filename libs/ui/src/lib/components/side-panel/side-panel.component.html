@@ -15,14 +15,14 @@
     [attr.aria-modal]="open() || null"
     [attr.aria-hidden]="!open()"
     [attr.inert]="!open() || null"
-    [attr.aria-label]="title()"
+    [attr.aria-label]="header()"
 >
     <div class="side-panel-header">
         <span
             class="side-panel-title"
             data-testid="side-panel-title"
         >
-            {{ title() }}
+            {{ header() }}
         </span>
         <ui-icon-button
             icon="close"

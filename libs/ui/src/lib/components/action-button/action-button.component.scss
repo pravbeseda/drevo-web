@@ -9,12 +9,16 @@
     &--primary {
         --mat-fab-container-color: var(--themed-fab-primary-bg);
         --mat-fab-foreground-color: var(--themed-fab-primary);
+        --mat-fab-disabled-state-container-color: var(--themed-fab-primary-bg);
+        --mat-fab-small-disabled-state-container-color: var(--themed-fab-primary-bg);
     }
 
     // Secondary variant
     &--secondary {
         --mat-fab-container-color: var(--themed-fab-secondary-bg);
         --mat-fab-foreground-color: var(--themed-fab-secondary);
+        --mat-fab-disabled-state-container-color: var(--themed-fab-secondary-bg);
+        --mat-fab-small-disabled-state-container-color: var(--themed-fab-secondary-bg);
     }
 
     // Mobile positioning variants
