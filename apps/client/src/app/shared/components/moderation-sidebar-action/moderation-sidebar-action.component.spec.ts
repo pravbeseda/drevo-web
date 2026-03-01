@@ -74,19 +74,19 @@ describe('ModerationSidebarActionComponent', () => {
             expect(spectator.query(SidePanelComponent)).toBeTruthy();
         });
 
-        describe('icon and label computation', () => {
-            it('should show pending icon and label', () => {
+        describe('icon computation', () => {
+            it('should show pending icon', () => {
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('schedule');
             });
 
-            it('should show approved icon and label', () => {
+            it('should show approved icon', () => {
                 spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Approved });
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('check_circle');
             });
 
-            it('should show rejected icon and label', () => {
+            it('should show rejected icon', () => {
                 spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Rejected });
                 spectator.detectChanges();
                 expect(spectator.component.moderationIcon()).toBe('cancel');
