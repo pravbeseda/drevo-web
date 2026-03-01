@@ -57,7 +57,7 @@ a {
         --mat-button-filled-label-text-color: var(--themed-button-success-text);
         --mat-button-outlined-label-text-color: var(--themed-button-success-border);
         --mat-button-outlined-outline-color: var(--themed-button-success-border);
-        --mat-button-text-label-text-color: var(--themed-button-success-text);
+        --mat-button-text-label-text-color: var(--themed-button-success-border);
     }
 
     // Accent: warning
@@ -66,7 +66,7 @@ a {
         --mat-button-filled-label-text-color: var(--themed-button-warning-text);
         --mat-button-outlined-label-text-color: var(--themed-button-warning-border);
         --mat-button-outlined-outline-color: var(--themed-button-warning-border);
-        --mat-button-text-label-text-color: var(--themed-button-warning-text);
+        --mat-button-text-label-text-color: var(--themed-button-warning-border);
     }
 
     // Accent: danger
@@ -75,6 +75,6 @@ a {
         --mat-button-filled-label-text-color: var(--themed-button-danger-text);
         --mat-button-outlined-label-text-color: var(--themed-button-danger-border);
         --mat-button-outlined-outline-color: var(--themed-button-danger-border);
-        --mat-button-text-label-text-color: var(--themed-button-danger-text);
+        --mat-button-text-label-text-color: var(--themed-button-danger-border);
     }
 }
