@@ -4,13 +4,14 @@ import { ErrorComponent } from '../../../../shared/components/error/error.compon
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
-import { ArticleVersion } from '@drevo-web/shared';
-import { first } from 'rxjs';
+import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
+import { ConfirmationService } from '@drevo-web/ui';
+import { first, firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-article-edit',
@@ -19,13 +20,15 @@ import { first } from 'rxjs';
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent implements OnInit {
+export class ArticleEditComponent implements OnInit, OnDestroy {
+    private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly draftEditorService = inject(DraftEditorService);
+    private readonly confirmationService = inject(ConfirmationService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
     private readonly _editorContent = signal<string>('');
@@ -33,7 +36,7 @@ export class ArticleEditComponent implements OnInit {
     private readonly _error = signal<string | undefined>(undefined);
     private readonly _updateLinksState = signal<Record<string, boolean>>({});
 
-    readonly version = input<ArticleVersion>();
+    private version: ArticleVersion | undefined;
 
     readonly editorContent = this._editorContent.asReadonly();
     readonly isSaving = this._isSaving.asReadonly();
@@ -41,13 +44,14 @@ export class ArticleEditComponent implements OnInit {
     readonly updateLinksState = this._updateLinksState.asReadonly();
 
     ngOnInit(): void {
-        const version = this.version();
+        const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
         if (!version) {
             this._error.set('Версия не найдена');
             this.logger.error('Version not resolved from route data');
             return;
         }
 
+        this.version = version;
         this._editorContent.set(version.content);
         this.logger.info('Version loaded for editing', {
             versionId: version.versionId,
@@ -55,17 +59,30 @@ export class ArticleEditComponent implements OnInit {
             title: version.title,
         });
 
-        const route = `/articles/edit/${version.articleId}`;
+        const draftRoute = this.getDraftRoute();
+        const isReentry = this.draftEditorService.hasActiveSession(draftRoute);
+
         this.draftEditorService
-            .checkDraft(route)
-            .then(draftText => {
-                if (draftText !== undefined) {
-                    this._editorContent.set(draftText);
+            .getDraft(draftRoute)
+            .then(draft => {
+                if (!draft) {
+                    return;
+                }
+
+                if (isReentry) {
+                    this._editorContent.set(draft.text);
+                    this.logger.info('Draft silently restored (re-entry)', { route: draftRoute });
+                } else {
+                    this.showRestoreDraftDialog(draft.title, draft.time, draft.text, draftRoute);
                 }
             })
             .catch(err => {
                 this.logger.error('Failed to check draft', err);
             });
+    }
+
+    ngOnDestroy(): void {
+        this.draftEditorService.flush();
     }
 
     updateLinks(links: string[]): void {
@@ -86,39 +103,37 @@ export class ArticleEditComponent implements OnInit {
         this._editorContent.set(content);
         this.logger.debug('Content changed', { length: content.length });
 
-        const version = this.version();
-        if (version) {
+        if (this.version) {
             this.draftEditorService.onContentChanged({
-                route: `/articles/edit/${version.articleId}`,
-                title: version.title,
+                route: this.getDraftRoute(),
+                title: this.version.title,
                 text: content,
             });
         }
     }
 
     save(): void {
-        const version = this.version();
-        if (!version || this.isSaving()) {
+        if (!this.version || this.isSaving()) {
             return;
         }
 
         const content = this._editorContent();
 
-        if (content === version.content) {
+        if (content === this.version.content) {
             this.notificationService.info('Нет изменений для сохранения');
             return;
         }
 
         this._isSaving.set(true);
         this.logger.info('Saving article', {
-            versionId: version.versionId,
-            articleId: version.articleId,
+            versionId: this.version.versionId,
+            articleId: this.version.articleId,
             contentLength: content.length,
         });
 
         this.articleService
             .saveArticleVersion({
-                versionId: version.versionId,
+                versionId: this.version.versionId,
                 content,
             })
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -130,7 +145,7 @@ export class ArticleEditComponent implements OnInit {
                         articleId: result.articleId,
                     });
                     this.notificationService.success('Статья сохранена');
-                    this.draftEditorService.discardDraft(`/articles/edit/${result.articleId}`);
+                    this.draftEditorService.discardDraft(this.getDraftRoute());
                     this.router.navigate(['/articles', result.articleId]);
                 },
                 error: (err: HttpErrorResponse) => {
@@ -151,14 +166,81 @@ export class ArticleEditComponent implements OnInit {
             });
     }
 
-    cancel(): void {
-        const version = this.version();
-        if (!version) {
+    async cancel(): Promise<void> {
+        if (!this.version) {
             this.router.navigate(['/']);
             return;
         }
 
-        const route = `/articles/edit/${version.articleId}`;
-        this.draftEditorService.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
+        const draftRoute = this.getDraftRoute();
+        const navigateTo = ['/articles', this.version.articleId, 'version', this.version.versionId];
+
+        try {
+            const draft = await this.draftEditorService.getDraft(draftRoute);
+
+            if (!draft) {
+                this.router.navigate(navigateTo);
+                return;
+            }
+
+            const result = await firstValueFrom(
+                this.confirmationService.open({
+                    title: 'Удалить черновик?',
+                    message: 'Вы уверены, что хотите удалить черновик? Несохранённые изменения будут потеряны.',
+                    buttons: [
+                        { key: 'cancel', label: 'Остаться' },
+                        { key: 'confirm', label: 'Удалить', accent: 'danger' },
+                    ],
+                    disableClose: true,
+                }),
+            );
+
+            if (result === 'confirm') {
+                await this.draftEditorService.discardDraft(draftRoute);
+                this.router.navigate(navigateTo);
+            }
+        } catch (error) {
+            this.logger.error('Failed to confirm discard', error);
+        }
+    }
+
+    private getDraftRoute(): string {
+        const v = this.version;
+        return v ? `/articles/${v.articleId}/version/${v.versionId}/edit` : '';
+    }
+
+    private async showRestoreDraftDialog(
+        title: string,
+        time: number,
+        text: string,
+        draftRoute: string,
+    ): Promise<void> {
+        const savedAt = this.formatSavedAt(time);
+        const result = await firstValueFrom(
+            this.confirmationService.open({
+                title: 'Найден черновик',
+                message: `Черновик статьи «${title}» сохранён ${savedAt}. Восстановить?`,
+                buttons: [
+                    { key: 'discard', label: 'Удалить черновик' },
+                    { key: 'restore', label: 'Восстановить', accent: 'primary' },
+                ],
+                disableClose: true,
+            }),
+        );
+
+        if (result === 'restore') {
+            this._editorContent.set(text);
+            this.logger.info('Draft restored', { route: draftRoute });
+        } else {
+            this.logger.info('Draft declined, deleting', { route: draftRoute });
+            await this.draftEditorService.discardDraft(draftRoute);
+        }
+    }
+
+    private formatSavedAt(epochMs: number): string {
+        const date = new Date(epochMs);
+        const dateStr = formatDateHeader(date);
+        const timeStr = formatTime(date);
+        return `${dateStr}, ${timeStr}`;
     }
 }

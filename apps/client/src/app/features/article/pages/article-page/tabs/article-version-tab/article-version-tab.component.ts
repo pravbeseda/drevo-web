@@ -37,7 +37,7 @@ export class ArticleVersionTabComponent implements OnInit {
 
     readonly versionEditUrl = computed(() => {
         const v = this.version();
-        return v ? `/articles/edit/${v.versionId}` : undefined;
+        return v ? `/articles/${v.articleId}/version/${v.versionId}/edit` : undefined;
     });
 
     onModerated(result: ModerationResult): void {

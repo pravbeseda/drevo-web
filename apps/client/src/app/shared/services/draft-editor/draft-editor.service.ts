@@ -1,66 +1,40 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
-import { DraftInput, DraftStorageService, LoggerService } from '@drevo-web/core';
-import { formatDateHeader, formatTime } from '@drevo-web/shared';
-import { ConfirmationService } from '@drevo-web/ui';
-import { debounceTime, firstValueFrom, Subject } from 'rxjs';
+import { Draft, DraftInput, DraftStorageService, LoggerService } from '@drevo-web/core';
+import { debounceTime, Subject } from 'rxjs';
 
 const DRAFT_SAVE_DEBOUNCE_MS = 3000;
 
 @Injectable()
 export class DraftEditorService {
     private readonly draftStorage = inject(DraftStorageService);
-    private readonly confirmationService = inject(ConfirmationService);
-    private readonly router = inject(Router);
     private readonly logger = inject(LoggerService).withContext('DraftEditorService');
     private readonly destroyRef = inject(DestroyRef);
 
-    // TODO: consider refactoring to a more declarative RxJS pipeline
-    // instead of imperative flags (subscriptionInitialized, lastSavedText, discarded)
     private readonly contentSubject = new Subject<DraftInput>();
     private lastSavedText: string | undefined;
+    private lastPendingInput: DraftInput | undefined;
     private subscriptionInitialized = false;
     private discarded = false;
+    private readonly activeRoutes = new Set<string>();
 
-    async checkDraft(route: string): Promise<string | undefined> {
+    async getDraft(route: string): Promise<Draft | undefined> {
         try {
             const draft = await this.draftStorage.getByRoute(route);
-            if (!draft) {
-                return undefined;
+            if (draft) {
+                this.logger.info('Draft found', { route, title: draft.title, time: draft.time });
             }
-
-            this.logger.info('Draft found', { route, title: draft.title, time: draft.time });
-
-            const savedAt = this.formatSavedAt(draft.time);
-            const result = await firstValueFrom(
-                this.confirmationService.open({
-                    title: 'Найден черновик',
-                    message: `Черновик статьи «${draft.title}» сохранён ${savedAt}. Восстановить?`,
-                    buttons: [
-                        { key: 'discard', label: 'Удалить черновик' },
-                        { key: 'restore', label: 'Восстановить', accent: 'primary' },
-                    ],
-                    disableClose: true,
-                }),
-            );
-
-            if (result === 'restore') {
-                this.logger.info('Draft restored', { route });
-                return draft.text;
-            }
-
-            this.logger.info('Draft declined, deleting', { route });
-            await this.draftStorage.deleteByRoute(route);
-            return undefined;
+            return draft;
         } catch (error) {
-            this.logger.error('Failed to check draft', error);
+            this.logger.error('Failed to get draft', error);
             return undefined;
         }
     }
 
     onContentChanged(input: DraftInput): void {
         this.discarded = false;
+        this.lastPendingInput = input;
+        this.activeRoutes.add(input.route);
         if (!this.subscriptionInitialized) {
             this.initSubscription();
         }
@@ -71,6 +45,8 @@ export class DraftEditorService {
         try {
             this.discarded = true;
             this.lastSavedText = undefined;
+            this.lastPendingInput = undefined;
+            this.activeRoutes.delete(route);
             await this.draftStorage.deleteByRoute(route);
             this.logger.info('Draft discarded', { route });
         } catch (error) {
@@ -78,41 +54,15 @@ export class DraftEditorService {
         }
     }
 
-    async confirmDiscardAndNavigate(route: string, navigateTo: readonly unknown[]): Promise<void> {
-        try {
-            const draft = await this.draftStorage.getByRoute(route);
-
-            if (!draft) {
-                await this.router.navigate([...navigateTo]);
-                return;
-            }
-
-            const result = await firstValueFrom(
-                this.confirmationService.open({
-                    title: 'Удалить черновик?',
-                    message: 'Вы уверены, что хотите удалить черновик? Несохранённые изменения будут потеряны.',
-                    buttons: [
-                        { key: 'cancel', label: 'Остаться' },
-                        { key: 'confirm', label: 'Удалить', accent: 'danger' },
-                    ],
-                    disableClose: true,
-                }),
-            );
-
-            if (result === 'confirm') {
-                await this.discardDraft(route);
-                await this.router.navigate([...navigateTo]);
-            }
-        } catch (error) {
-            this.logger.error('Failed to confirm discard', error);
+    flush(): void {
+        if (this.lastPendingInput && !this.discarded && this.lastPendingInput.text !== this.lastSavedText) {
+            this.saveDraft(this.lastPendingInput);
+            this.lastPendingInput = undefined;
         }
     }
 
-    private formatSavedAt(epochMs: number): string {
-        const date = new Date(epochMs);
-        const dateStr = formatDateHeader(date);
-        const timeStr = formatTime(date);
-        return `${dateStr}, ${timeStr}`;
+    hasActiveSession(route: string): boolean {
+        return this.activeRoutes.has(route);
     }
 
     private initSubscription(): void {

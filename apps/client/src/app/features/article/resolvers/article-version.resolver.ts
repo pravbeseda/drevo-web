@@ -7,13 +7,13 @@ import { catchError } from 'rxjs/operators';
 
 /**
  * Pure function for resolving article version data from route params.
- * Uses getArticleVersion(id) since the :id param is a version ID.
+ * Reads :versionId param and calls getArticleVersion().
  */
 export function resolveArticleVersion(
     articleService: ArticleService,
     route: ActivatedRouteSnapshot,
 ): Observable<ArticleVersion | undefined> {
-    const idParam = route.paramMap.get('id');
+    const idParam = route.paramMap.get('versionId');
     if (!idParam) {
         return of(undefined);
     }
