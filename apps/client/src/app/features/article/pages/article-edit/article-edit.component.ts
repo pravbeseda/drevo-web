@@ -34,23 +34,27 @@ export class ArticleEditComponent {
 
     private readonly updateLinksStateSubject = new BehaviorSubject<Record<string, boolean>>({});
 
+    private readonly _editorContent = signal<string>('');
+    private readonly _isSaving = signal(false);
+    private readonly _error = signal<string | undefined>(undefined);
+
     readonly version: ArticleVersion | undefined;
-    readonly editorContent = signal<string>('');
-    readonly isSaving = signal<boolean>(false);
-    readonly error = signal<string | undefined>(undefined);
+    readonly editorContent = this._editorContent.asReadonly();
+    readonly isSaving = this._isSaving.asReadonly();
+    readonly error = this._error.asReadonly();
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
     constructor() {
         const resolvedVersion = this.route.snapshot.data['version'] as ArticleVersion | undefined;
         if (!resolvedVersion) {
             this.version = undefined;
-            this.error.set('Версия не найдена');
+            this._error.set('Версия не найдена');
             this.logger.error('Version not resolved from route data');
             return;
         }
 
         this.version = resolvedVersion;
-        this.editorContent.set(resolvedVersion.content);
+        this._editorContent.set(resolvedVersion.content);
         this.logger.info('Version loaded for editing', {
             versionId: resolvedVersion.versionId,
             articleId: resolvedVersion.articleId,
@@ -60,7 +64,7 @@ export class ArticleEditComponent {
         const route = `/articles/edit/${resolvedVersion.articleId}`;
         this.draftEditor.checkDraft(route).then(draftText => {
             if (draftText !== undefined) {
-                this.editorContent.set(draftText);
+                this._editorContent.set(draftText);
             }
         });
     }
@@ -104,7 +108,7 @@ export class ArticleEditComponent {
             return;
         }
 
-        this.isSaving.set(true);
+        this._isSaving.set(true);
         this.logger.info('Saving article', {
             versionId: this.version.versionId,
             articleId: this.version.articleId,
@@ -119,7 +123,7 @@ export class ArticleEditComponent {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {
-                    this.isSaving.set(false);
+                    this._isSaving.set(false);
                     this.logger.info('Article saved', {
                         newVersionId: result.versionId,
                         articleId: result.articleId,
@@ -129,7 +133,7 @@ export class ArticleEditComponent {
                     this.router.navigate(['/articles', result.articleId]);
                 },
                 error: (err: HttpErrorResponse) => {
-                    this.isSaving.set(false);
+                    this._isSaving.set(false);
                     this.logger.error('Failed to save article', err);
 
                     let errorMessage = 'Ошибка сохранения';
