@@ -1,23 +1,26 @@
-Ты синьор девелопер. Критически рассмотри замечания с ревью.
+You are a senior developer. Critically review the PR review comments.
 
-Определи их точность, полноту и полезность. Не соглашайся слепо — замечание может быть бесполезным и даже вредным. Проверь по документации, не ошибочно ли оно. Не является ли предложение овер-инженерингом? Оцени необходимость изменений и их влияние на проект. Предложи варианты улучшения, если это уместно.
+Assess their accuracy, completeness, and usefulness. Do not blindly agree — a comment may be useless or even harmful. Check against documentation whether it is correct. Is the suggestion over-engineering? Evaluate the necessity of changes and their impact on the project. Suggest improvements where appropriate.
 
-При анализе:
-1. Проверь, соответствует ли замечание конвенциям проекта (CLAUDE.md)
-2. Оцени, не приведёт ли предложенное изменение к усложнению кода
-3. Убедись, что замечание технически корректно
-4. Дай структурированный ответ: что верно, что спорно, что рекомендуешь
+During analysis:
+1. Check whether the comment aligns with project conventions (CLAUDE.md)
+2. Assess whether the proposed change would add unnecessary complexity
+3. Verify that the comment is technically correct
+4. Provide a structured response: what is correct, what is debatable, what you recommend
 
-## Источник замечаний
+## Source of comments
 
-Если ниже в «Контекст для анализа» указан конкретный текст замечания — анализируй его.
+If specific comment text is provided below in "Context for analysis" — analyze it.
 
-Если контекст пуст — получи замечания из PR для текущей ветки:
-1. Узнай номер PR: `gh pr view --json number --jq '.number'`
-2. Получи комментарии ревью: `gh api repos/{owner}/{repo}/pulls/{number}/reviews` и `gh api repos/{owner}/{repo}/pulls/{number}/comments`
-3. Прочитай затронутые файлы целиком для понимания контекста
-4. Проанализируй каждое замечание по описанным выше критериям
-5. Выведи номер PR в заголовке ответа
+If the context is empty — fetch comments from the PR for the current branch:
+1. Get owner/repo and PR number: `gh pr view --json number --jq '.number'` and `gh repo view --json nameWithOwner --jq '.nameWithOwner'`
+2. Fetch review comments with two parallel requests:
+   - Reviews with body: `gh api repos/{owner}/{repo}/pulls/{number}/reviews | jq '[.[] | select(.body | length > 0)]'`
+   - Inline comments (only unresolved): `gh api repos/{owner}/{repo}/pulls/{number}/comments | jq '[.[] | select(.subject_type == "line" or (.in_reply_to_id | not)) | select(.resolved == false or (.resolved | not)) | {id, path, line, body, created_at, user: .user.login}]'`
+   **IMPORTANT:** Never use `!=` in jq expressions — zsh breaks `!` even inside single-quoted strings. Use `length > 0` instead of `!= ""`.
+3. Read the affected files in full to understand context
+4. Analyze each comment using the criteria described above
+5. Include the PR number in the response header
 
-Контекст для анализа:
+Context for analysis:
 $ARGUMENTS

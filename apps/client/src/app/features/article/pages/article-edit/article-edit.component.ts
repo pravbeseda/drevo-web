@@ -3,117 +3,78 @@ import { LinksService } from '../../../../services/links/links.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
-import { NotificationService, LoggerService } from '@drevo-web/core';
+import { Router } from '@angular/router';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
-import { SpinnerComponent } from '@drevo-web/ui';
-import { BehaviorSubject, first } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { first } from 'rxjs';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent, SidebarActionComponent],
-    providers: [LinksService, DraftEditorService],
+    imports: [EditorComponent, ErrorComponent, SidebarActionComponent],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleEditComponent implements OnInit {
-    private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly draftEditor = inject(DraftEditorService);
+    private readonly draftEditorService = inject(DraftEditorService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
-    private currentContent: string | undefined = undefined;
+    private readonly _editorContent = signal<string>('');
+    private readonly _isSaving = signal(false);
+    private readonly _error = signal<string | undefined>(undefined);
+    private readonly _updateLinksState = signal<Record<string, boolean>>({});
 
-    private readonly updateLinksStateSubject = new BehaviorSubject<Record<string, boolean>>({});
+    readonly version = input<ArticleVersion>();
 
-    readonly version = signal<ArticleVersion | undefined>(undefined);
-    readonly editorContent = signal<string>('');
-    readonly isLoading = signal<boolean>(false);
-    readonly isSaving = signal<boolean>(false);
-    readonly error = signal<string | undefined>(undefined);
-    readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
+    readonly editorContent = this._editorContent.asReadonly();
+    readonly isSaving = this._isSaving.asReadonly();
+    readonly error = this._error.asReadonly();
+    readonly updateLinksState = this._updateLinksState.asReadonly();
 
     ngOnInit(): void {
-        this.route.paramMap
-            .pipe(
-                map(params => {
-                    const idParam = params.get('id');
-                    return idParam ? parseInt(idParam, 10) : NaN;
-                }),
-                distinctUntilChanged(),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe(id => {
-                if (isNaN(id) || id <= 0) {
-                    this.version.set(undefined);
-                    this.error.set('Неверный ID версии');
-                    this.logger.error('Invalid version ID', id);
-                    this.isLoading.set(false);
-                    return;
+        const version = this.version();
+        if (!version) {
+            this._error.set('Версия не найдена');
+            this.logger.error('Version not resolved from route data');
+            return;
+        }
+
+        this._editorContent.set(version.content);
+        this.logger.info('Version loaded for editing', {
+            versionId: version.versionId,
+            articleId: version.articleId,
+            title: version.title,
+        });
+
+        const route = `/articles/edit/${version.articleId}`;
+        this.draftEditorService
+            .checkDraft(route)
+            .then(draftText => {
+                if (draftText !== undefined) {
+                    this._editorContent.set(draftText);
                 }
-
-                this.loadVersion(id);
-            });
-    }
-
-    private loadVersion(versionId: number): void {
-        this.version.set(undefined);
-        this.isLoading.set(true);
-        this.error.set(undefined);
-
-        this.articleService
-            .getArticleVersion(versionId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: version => {
-                    this.version.set(version);
-                    this.isLoading.set(false);
-                    this.editorContent.set(version.content);
-                    this.logger.info('Version loaded for editing', {
-                        versionId: version.versionId,
-                        articleId: version.articleId,
-                        title: version.title,
-                    });
-
-                    const route = `/articles/edit/${version.articleId}`;
-                    this.draftEditor.checkDraft(route).then(draftText => {
-                        if (draftText !== undefined) {
-                            this.editorContent.set(draftText);
-                        }
-                    });
-                },
-                error: (err: HttpErrorResponse) => {
-                    this.version.set(undefined);
-                    if (err.status === 404) {
-                        this.error.set('Версия не найдена');
-                    } else if (err.status === 403) {
-                        this.error.set('Доступ запрещён');
-                    } else {
-                        this.error.set('Ошибка загрузки версии');
-                    }
-                    this.isLoading.set(false);
-                },
+            })
+            .catch(err => {
+                this.logger.error('Failed to check draft', err);
             });
     }
 
     updateLinks(links: string[]): void {
         this.linksService
             .getLinkStatuses(links)
-            .pipe(first())
+            .pipe(first(), takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: linksState => {
-                    this.updateLinksStateSubject.next(linksState);
+                    this._updateLinksState.set(linksState);
                 },
                 error: err => {
                     this.logger.error('Failed to check link statuses', err);
@@ -122,12 +83,12 @@ export class ArticleEditComponent implements OnInit {
     }
 
     contentChanged(content: string): void {
-        this.currentContent = content;
+        this._editorContent.set(content);
         this.logger.debug('Content changed', { length: content.length });
 
         const version = this.version();
         if (version) {
-            this.draftEditor.onContentChanged({
+            this.draftEditorService.onContentChanged({
                 route: `/articles/edit/${version.articleId}`,
                 title: version.title,
                 text: content,
@@ -141,14 +102,14 @@ export class ArticleEditComponent implements OnInit {
             return;
         }
 
-        const content = this.currentContent ?? version.content;
+        const content = this._editorContent();
 
         if (content === version.content) {
             this.notificationService.info('Нет изменений для сохранения');
             return;
         }
 
-        this.isSaving.set(true);
+        this._isSaving.set(true);
         this.logger.info('Saving article', {
             versionId: version.versionId,
             articleId: version.articleId,
@@ -163,17 +124,17 @@ export class ArticleEditComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {
-                    this.isSaving.set(false);
+                    this._isSaving.set(false);
                     this.logger.info('Article saved', {
                         newVersionId: result.versionId,
                         articleId: result.articleId,
                     });
                     this.notificationService.success('Статья сохранена');
-                    this.draftEditor.discardDraft(`/articles/edit/${result.articleId}`);
+                    this.draftEditorService.discardDraft(`/articles/edit/${result.articleId}`);
                     this.router.navigate(['/articles', result.articleId]);
                 },
                 error: (err: HttpErrorResponse) => {
-                    this.isSaving.set(false);
+                    this._isSaving.set(false);
                     this.logger.error('Failed to save article', err);
 
                     let errorMessage = 'Ошибка сохранения';
@@ -198,6 +159,6 @@ export class ArticleEditComponent implements OnInit {
         }
 
         const route = `/articles/edit/${version.articleId}`;
-        this.draftEditor.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
+        this.draftEditorService.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
     }
 }

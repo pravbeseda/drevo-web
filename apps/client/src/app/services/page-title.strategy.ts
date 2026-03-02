@@ -14,25 +14,73 @@ export class PageTitleStrategy extends TitleStrategy {
     readonly pageTitle = this._pageTitle.asReadonly();
 
     override updateTitle(snapshot: RouterStateSnapshot): void {
-        const title = this.buildTitle(snapshot);
-        const titlePrefix = this.readTitlePrefix(snapshot);
+        const resolved = this.resolveTitle(snapshot);
 
-        if (title) {
-            this._pageTitle.set(title);
-            const docTitle = titlePrefix ? `${titlePrefix} ${title}` : title;
+        if (resolved) {
+            this._pageTitle.set(resolved.title);
+            const titlePrefix = resolved.route.data['titlePrefix'] as string | undefined;
+            const docTitle = titlePrefix ? `${titlePrefix} ${resolved.title}` : resolved.title;
             this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
         } else {
             this._pageTitle.set(DEFAULT_TITLE);
             this.title.setTitle(DEFAULT_TITLE);
         }
 
-        this.logger.debug('Title updated', { title: title ?? DEFAULT_TITLE });
+        this.logger.debug('Title updated', { title: resolved?.title ?? DEFAULT_TITLE });
     }
 
-    private readTitlePrefix(snapshot: RouterStateSnapshot): string | undefined {
-        if (!snapshot.root) return undefined;
+    /**
+     * Resolve page title and the route it came from.
+     * First tries standard `buildTitle()` (explicit `title` on the route).
+     * If no explicit title, searches route chain for `titleSource` data key
+     * and reads title from the resolved data object (e.g. `data['article'].title`).
+     */
+    private resolveTitle(
+        snapshot: RouterStateSnapshot,
+    ): { readonly title: string; readonly route: ActivatedRouteSnapshot } | undefined {
+        const builtTitle = this.buildTitle(snapshot);
+        if (builtTitle) {
+            const chain = this.getRouteChain(snapshot);
+            return { title: builtTitle, route: chain[chain.length - 1] };
+        }
+
+        const result = this.findRouteData(snapshot, 'titleSource');
+        if (result) {
+            const resolved = result.route.data[result.value as string] as { readonly title: string } | undefined;
+            if (resolved?.title) {
+                return { title: resolved.title, route: result.route };
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Search for a data key from leaf route up to root.
+     * Returns the value and the route where it was found.
+     */
+    private findRouteData(
+        snapshot: RouterStateSnapshot,
+        key: string,
+    ): { readonly value: unknown; readonly route: ActivatedRouteSnapshot } | undefined {
+        const chain = this.getRouteChain(snapshot);
+        for (let i = chain.length - 1; i >= 0; i--) {
+            const value = chain[i].data[key];
+            if (value !== undefined) {
+                return { value, route: chain[i] };
+            }
+        }
+        return undefined;
+    }
+
+    private getRouteChain(snapshot: RouterStateSnapshot): ActivatedRouteSnapshot[] {
+        const chain: ActivatedRouteSnapshot[] = [];
+        if (!snapshot.root) return chain;
         let route: ActivatedRouteSnapshot = snapshot.root;
-        while (route.firstChild) route = route.firstChild;
-        return route.data['titlePrefix'] as string | undefined;
+        chain.push(route);
+        while (route.firstChild) {
+            route = route.firstChild;
+            chain.push(route);
+        }
+        return chain;
     }
 }

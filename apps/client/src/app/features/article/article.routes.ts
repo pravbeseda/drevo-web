@@ -1,14 +1,18 @@
 import { createArticleTabTitleResolver } from './resolvers/article-tab-title.resolver';
-import { articleTitleResolver } from './resolvers/article-title.resolver';
+import { articleVersionResolver } from './resolvers/article-version.resolver';
 import { articleResolver } from './resolvers/article.resolver';
 import { ArticlePageService } from './services/article-page.service';
+import { LinksService } from '../../services/links/links.service';
+import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
 import { Route } from '@angular/router';
 
 export const ARTICLE_ROUTES: Route[] = [
     {
         path: 'edit/:id',
-        title: 'Редактирование статьи',
         loadComponent: () => import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+        resolve: { version: articleVersionResolver },
+        providers: [LinksService, DraftEditorService],
+        data: { titleSource: 'version', titlePrefix: '*' },
     },
     {
         path: 'version/:id',
@@ -21,7 +25,7 @@ export const ARTICLE_ROUTES: Route[] = [
         loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
         providers: [ArticlePageService],
         resolve: { article: articleResolver },
-        title: articleTitleResolver,
+        data: { titleSource: 'article' },
         children: [
             {
                 path: '',

@@ -1,5 +1,5 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { of, Subject } from 'rxjs';
+import { of } from 'rxjs';
 import {
     ApprovalStatus,
     ArticleHistoryResponseDto,
@@ -136,46 +136,6 @@ describe('ArticleService', () => {
                 expect(result.content).toBe('<a href="/articles/8#S22">Link with anchor</a>');
                 done();
             });
-        });
-
-        it('should deduplicate concurrent requests for the same article (in-flight cache)', () => {
-            const apiSubject = new Subject<ArticleVersionDto>();
-            articleApiService.getArticle.mockReturnValue(apiSubject.asObservable());
-
-            const results: unknown[] = [];
-            spectator.service.getArticle(123).subscribe(r => results.push(r));
-            spectator.service.getArticle(123).subscribe(r => results.push(r));
-
-            expect(articleApiService.getArticle).toHaveBeenCalledTimes(1);
-
-            apiSubject.next(mockApiResponse);
-            apiSubject.complete();
-
-            expect(results).toHaveLength(2);
-            expect(results[0]).toEqual(results[1]);
-        });
-
-        it('should allow new request after previous one completes', () => {
-            articleApiService.getArticle.mockReturnValue(of(mockApiResponse));
-
-            spectator.service.getArticle(123).subscribe();
-            spectator.service.getArticle(123).subscribe();
-
-            expect(articleApiService.getArticle).toHaveBeenCalledTimes(2);
-        });
-
-        it('should not share cache between different article IDs', () => {
-            const subject1 = new Subject<ArticleVersionDto>();
-            const subject2 = new Subject<ArticleVersionDto>();
-            articleApiService.getArticle.mockReturnValueOnce(subject1.asObservable());
-            articleApiService.getArticle.mockReturnValueOnce(subject2.asObservable());
-
-            spectator.service.getArticle(123).subscribe();
-            spectator.service.getArticle(456).subscribe();
-
-            expect(articleApiService.getArticle).toHaveBeenCalledTimes(2);
-            expect(articleApiService.getArticle).toHaveBeenCalledWith(123);
-            expect(articleApiService.getArticle).toHaveBeenCalledWith(456);
         });
     });
 
@@ -567,7 +527,7 @@ describe('ArticleService', () => {
         it('should map DTO to ModerationResult', done => {
             articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
 
-            spectator.service.moderateVersion(200, ApprovalStatus.Approved).subscribe(result => {
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved, 'Looks good').subscribe(result => {
                 expect(result.versionId).toBe(200);
                 expect(result.articleId).toBe(1);
                 expect(result.approved).toBe(ApprovalStatus.Approved);
@@ -576,7 +536,7 @@ describe('ArticleService', () => {
             });
         });
 
-        it('should pass undefined comment when not provided', () => {
+        it('should pass empty comment by default', () => {
             articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
 
             spectator.service.moderateVersion(200, ApprovalStatus.Rejected).subscribe();
@@ -584,7 +544,7 @@ describe('ArticleService', () => {
             expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
                 versionId: 200,
                 approved: ApprovalStatus.Rejected,
-                comment: undefined,
+                comment: '',
             });
         });
     });

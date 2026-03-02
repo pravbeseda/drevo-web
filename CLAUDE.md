@@ -198,7 +198,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 ### Angular
 
 1. **Standalone components** — always, but omit `standalone: true` (it's the default in Angular 21)
-2. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns)
+2. **Signals** for reactive state with private writable + public readonly pattern (see Key Patterns). Public writable signals are forbidden — always expose via `asReadonly()`
 3. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for Subject, `event$` for its public Observable
 4. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
 5. **`takeUntilDestroyed()`** for subscription cleanup
