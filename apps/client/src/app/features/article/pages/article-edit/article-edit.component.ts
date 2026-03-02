@@ -28,8 +28,6 @@ export class ArticleEditComponent implements OnInit {
     private readonly draftEditorService = inject(DraftEditorService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
-    private currentContent: string | undefined = undefined;
-
     private readonly _editorContent = signal<string>('');
     private readonly _isSaving = signal(false);
     private readonly _error = signal<string | undefined>(undefined);
@@ -85,7 +83,7 @@ export class ArticleEditComponent implements OnInit {
     }
 
     contentChanged(content: string): void {
-        this.currentContent = content;
+        this._editorContent.set(content);
         this.logger.debug('Content changed', { length: content.length });
 
         const version = this.version();
@@ -104,7 +102,7 @@ export class ArticleEditComponent implements OnInit {
             return;
         }
 
-        const content = this.currentContent ?? version.content;
+        const content = this._editorContent();
 
         if (content === version.content) {
             this.notificationService.info('Нет изменений для сохранения');

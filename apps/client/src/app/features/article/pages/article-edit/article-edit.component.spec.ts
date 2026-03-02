@@ -92,6 +92,33 @@ describe('ArticleEditComponent', () => {
 
             expect(spectator.component.editorContent()).toBe('draft content');
         });
+
+        it('should save restored draft content without extra contentChanged event', async () => {
+            mockDraftEditorService.checkDraft.mockResolvedValue('draft content');
+            spectator = createComponent();
+            spectator.setInput('version', mockVersion);
+            articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+            articleService.saveArticleVersion.mockReturnValue(
+                of({
+                    articleId: 123,
+                    versionId: 999,
+                    title: 'Test Article Title',
+                    author: 'Test Author',
+                    date: new Date('2024-01-15T10:00:00Z'),
+                    approved: 0,
+                }),
+            );
+            spectator.detectChanges();
+
+            await mockDraftEditorService.checkDraft.mock.results[0].value;
+
+            spectator.component.save();
+
+            expect(articleService.saveArticleVersion).toHaveBeenCalledWith({
+                versionId: 456,
+                content: 'draft content',
+            });
+        });
     });
 
     describe('updateLinks method', () => {
