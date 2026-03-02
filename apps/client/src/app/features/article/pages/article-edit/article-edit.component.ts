@@ -3,7 +3,6 @@ import { LinksService } from '../../../../services/links/links.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -11,11 +10,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
-import { BehaviorSubject, first } from 'rxjs';
+import { first } from 'rxjs';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, AsyncPipe, ErrorComponent, SidebarActionComponent],
+    imports: [EditorComponent, ErrorComponent, SidebarActionComponent],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,17 +31,16 @@ export class ArticleEditComponent {
 
     private currentContent: string | undefined = undefined;
 
-    private readonly updateLinksStateSubject = new BehaviorSubject<Record<string, boolean>>({});
-
     private readonly _editorContent = signal<string>('');
     private readonly _isSaving = signal(false);
     private readonly _error = signal<string | undefined>(undefined);
+    private readonly _updateLinksState = signal<Record<string, boolean>>({});
 
     readonly version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
     readonly editorContent = this._editorContent.asReadonly();
     readonly isSaving = this._isSaving.asReadonly();
     readonly error = this._error.asReadonly();
-    readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
+    readonly updateLinksState = this._updateLinksState.asReadonly();
 
     constructor() {
         if (!this.version) {
@@ -72,7 +70,7 @@ export class ArticleEditComponent {
             .pipe(first())
             .subscribe({
                 next: linksState => {
-                    this.updateLinksStateSubject.next(linksState);
+                    this._updateLinksState.set(linksState);
                 },
                 error: err => {
                     this.logger.error('Failed to check link statuses', err);

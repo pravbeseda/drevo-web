@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError, NEVER } from 'rxjs';
 import { NotificationService } from '@drevo-web/core';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
@@ -54,7 +55,7 @@ describe('ArticleEditComponent', () => {
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [createActivatedRoute(mockVersion)],
+        providers: [createActivatedRoute(mockVersion), mockLoggerProvider()],
         detectChanges: false,
     });
 
@@ -113,15 +114,10 @@ describe('ArticleEditComponent', () => {
     });
 
     describe('updateLinks method', () => {
-        it('should expose updateLinksState$ with empty initial value', () => {
+        it('should have empty initial updateLinksState', () => {
             spectator.detectChanges();
 
-            let emittedValue: Record<string, boolean> | undefined;
-            spectator.component.updateLinksState$.subscribe(value => {
-                emittedValue = value;
-            });
-
-            expect(emittedValue).toEqual({});
+            expect(spectator.component.updateLinksState()).toEqual({});
         });
 
         it('should call linksService.getLinkStatuses with given links', () => {
@@ -133,19 +129,14 @@ describe('ArticleEditComponent', () => {
             expect(linksService.getLinkStatuses).toHaveBeenCalledWith(['link1', 'link2']);
         });
 
-        it('should update updateLinksState$ with link statuses', () => {
+        it('should update updateLinksState with link statuses', () => {
             const mockStatuses = { link1: true, link2: false };
             linksService.getLinkStatuses.mockReturnValue(of(mockStatuses));
             spectator.detectChanges();
 
-            let emittedValue: Record<string, boolean> | undefined;
-            spectator.component.updateLinksState$.subscribe(value => {
-                emittedValue = value;
-            });
-
             spectator.component.updateLinks(['link1', 'link2']);
 
-            expect(emittedValue).toEqual(mockStatuses);
+            expect(spectator.component.updateLinksState()).toEqual(mockStatuses);
         });
 
         it('should not throw on error from linksService', () => {
@@ -387,7 +378,7 @@ describe('ArticleEditComponent with undefined version', () => {
         component: ArticleEditComponent,
         mocks: [ArticleService, Router],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [createActivatedRoute(undefined)],
+        providers: [createActivatedRoute(undefined), mockLoggerProvider()],
     });
 
     it('should show error when version is undefined', () => {
