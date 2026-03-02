@@ -179,6 +179,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             const draft = await this.draftEditorService.getDraft(draftRoute);
 
             if (!draft) {
+                // Discard pending input so ngOnDestroy.flush() won't persist it
+                await this.draftEditorService.discardDraft(draftRoute);
                 this.router.navigate(navigateTo);
                 return;
             }
@@ -209,12 +211,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         return v ? `/articles/${v.articleId}/version/${v.versionId}/edit` : '';
     }
 
-    private async showRestoreDraftDialog(
-        title: string,
-        time: number,
-        text: string,
-        draftRoute: string,
-    ): Promise<void> {
+    private async showRestoreDraftDialog(title: string, time: number, text: string, draftRoute: string): Promise<void> {
         const savedAt = this.formatSavedAt(time);
         const result = await firstValueFrom(
             this.confirmationService.open({
