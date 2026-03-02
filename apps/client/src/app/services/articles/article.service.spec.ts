@@ -527,7 +527,7 @@ describe('ArticleService', () => {
         it('should map DTO to ModerationResult', done => {
             articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
 
-            spectator.service.moderateVersion(200, ApprovalStatus.Approved).subscribe(result => {
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved, 'Looks good').subscribe(result => {
                 expect(result.versionId).toBe(200);
                 expect(result.articleId).toBe(1);
                 expect(result.approved).toBe(ApprovalStatus.Approved);
@@ -536,7 +536,7 @@ describe('ArticleService', () => {
             });
         });
 
-        it('should pass undefined comment when not provided', () => {
+        it('should pass empty comment by default', () => {
             articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
 
             spectator.service.moderateVersion(200, ApprovalStatus.Rejected).subscribe();
@@ -544,7 +544,7 @@ describe('ArticleService', () => {
             expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
                 versionId: 200,
                 approved: ApprovalStatus.Rejected,
-                comment: undefined,
+                comment: '',
             });
         });
     });

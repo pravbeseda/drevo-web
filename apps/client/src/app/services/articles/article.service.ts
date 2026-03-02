@@ -117,7 +117,7 @@ export class ArticleService {
      * @param comment - Optional moderation comment
      * @returns Observable with moderation result
      */
-    moderateVersion(versionId: number, approved: ApprovalStatus, comment: string): Observable<ModerationResult> {
+    moderateVersion(versionId: number, approved: ApprovalStatus, comment = ''): Observable<ModerationResult> {
         return this.articleApiService.moderateVersion({ versionId, approved, comment }).pipe(
             map(dto => ({
                 versionId: dto.versionId,
