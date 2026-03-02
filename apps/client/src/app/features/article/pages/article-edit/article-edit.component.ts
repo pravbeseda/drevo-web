@@ -61,6 +61,8 @@ export class ArticleEditComponent {
             if (draftText !== undefined) {
                 this._editorContent.set(draftText);
             }
+        }).catch(err => {
+            this.logger.error('Failed to check draft', err);
         });
     }
 
