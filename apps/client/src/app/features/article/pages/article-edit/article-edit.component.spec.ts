@@ -1,10 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError, NEVER } from 'rxjs';
 import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
+import { SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
@@ -27,18 +27,6 @@ const mockVersion = createMockArticle({
     content: '<p>Test article content</p>',
 });
 
-function createActivatedRoute(version: ArticleVersion | undefined): {
-    provide: typeof ActivatedRoute;
-    useValue: unknown;
-} {
-    return {
-        provide: ActivatedRoute,
-        useValue: {
-            snapshot: { data: { version } },
-        },
-    };
-}
-
 describe('ArticleEditComponent', () => {
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
@@ -48,13 +36,14 @@ describe('ArticleEditComponent', () => {
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [createActivatedRoute(mockVersion), mockLoggerProvider()],
+        providers: [mockLoggerProvider()],
         detectChanges: false,
     });
 
     beforeEach(() => {
         mockDraftEditorService.checkDraft.mockResolvedValue(undefined);
         spectator = createComponent();
+        spectator.setInput('version', mockVersion);
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
         router = spectator.inject(Router) as jest.Mocked<Router>;
@@ -65,11 +54,11 @@ describe('ArticleEditComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    describe('version from route data', () => {
-        it('should read version from route data', () => {
+    describe('version from input', () => {
+        it('should read version from input', () => {
             spectator.detectChanges();
 
-            expect(spectator.component.version).toEqual(mockVersion);
+            expect(spectator.component.version()).toEqual(mockVersion);
             expect(spectator.query('.article-edit-title')).toHaveText('Test Article Title');
         });
 
@@ -80,13 +69,14 @@ describe('ArticleEditComponent', () => {
             expect(editorComponent).toBeTruthy();
         });
 
-        it('should call checkDraft after construction', () => {
+        it('should call checkDraft after initialization', () => {
             spectator.detectChanges();
 
             expect(mockDraftEditorService.checkDraft).toHaveBeenCalledWith('/articles/edit/123');
         });
 
         it('should keep original content when no draft exists', async () => {
+            spectator.detectChanges();
             await mockDraftEditorService.checkDraft.mock.results[0].value;
 
             expect(spectator.component.editorContent()).toBe('<p>Test article content</p>');
@@ -95,6 +85,8 @@ describe('ArticleEditComponent', () => {
         it('should restore draft content when draft exists', async () => {
             mockDraftEditorService.checkDraft.mockResolvedValue('draft content');
             spectator = createComponent();
+            spectator.setInput('version', mockVersion);
+            spectator.detectChanges();
 
             await mockDraftEditorService.checkDraft.mock.results[0].value;
 
@@ -364,7 +356,7 @@ describe('ArticleEditComponent with undefined version', () => {
         component: ArticleEditComponent,
         mocks: [ArticleService, Router],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [createActivatedRoute(undefined), mockLoggerProvider()],
+        providers: [mockLoggerProvider()],
     });
 
     it('should show error when version is undefined', () => {
