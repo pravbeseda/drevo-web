@@ -15,8 +15,8 @@ export class ArticlePageService {
 
     readonly title = computed(() => this.article()?.title);
     readonly editUrl = computed(() => {
-        const versionId = this.article()?.versionId;
-        return versionId ? `/articles/edit/${versionId}` : undefined;
+        const article = this.article();
+        return article ? `/articles/${article.articleId}/version/${article.versionId}/edit` : undefined;
     });
 
     setArticle(article: ArticleVersion): void {

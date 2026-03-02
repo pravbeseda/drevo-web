@@ -23,7 +23,7 @@ export class VersionRedirectComponent implements OnInit {
     readonly error = signal<string | undefined>(undefined);
 
     ngOnInit(): void {
-        const idParam = this.route.snapshot.paramMap.get('id');
+        const idParam = this.route.snapshot.paramMap.get('versionId');
         const versionId = idParam ? parseInt(idParam, 10) : NaN;
 
         if (isNaN(versionId) || versionId <= 0) {

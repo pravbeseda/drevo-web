@@ -19,7 +19,7 @@ describe('resolveArticleVersion', () => {
 
     it('should return article version when valid ID is provided', done => {
         articleService.getArticleVersion.mockReturnValue(of(mockArticle));
-        const route = createRouteSnapshot({ id: '456' });
+        const route = createRouteSnapshot({ versionId: '456' });
 
         resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
             expect(result).toEqual(mockArticle);
@@ -29,7 +29,7 @@ describe('resolveArticleVersion', () => {
     });
 
     it('should return undefined for non-numeric ID', done => {
-        const route = createRouteSnapshot({ id: 'abc' });
+        const route = createRouteSnapshot({ versionId: 'abc' });
 
         resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
             expect(result).toBeUndefined();
@@ -39,7 +39,7 @@ describe('resolveArticleVersion', () => {
     });
 
     it('should return undefined for zero ID', done => {
-        const route = createRouteSnapshot({ id: '0' });
+        const route = createRouteSnapshot({ versionId: '0' });
 
         resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
             expect(result).toBeUndefined();
@@ -49,7 +49,7 @@ describe('resolveArticleVersion', () => {
     });
 
     it('should return undefined for negative ID', done => {
-        const route = createRouteSnapshot({ id: '-5' });
+        const route = createRouteSnapshot({ versionId: '-5' });
 
         resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
             expect(result).toBeUndefined();
@@ -70,7 +70,7 @@ describe('resolveArticleVersion', () => {
 
     it('should return undefined on HTTP error', done => {
         articleService.getArticleVersion.mockReturnValue(throwError(() => new Error('Server error')));
-        const route = createRouteSnapshot({ id: '456' });
+        const route = createRouteSnapshot({ versionId: '456' });
 
         resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
             expect(result).toBeUndefined();

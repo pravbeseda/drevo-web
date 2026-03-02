@@ -26,9 +26,13 @@ export class ArticleVersionTabComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ArticleVersionTab');
 
-    readonly version = signal<ArticleVersion | undefined>(undefined);
-    readonly isLoading = signal(false);
-    readonly error = signal<string | undefined>(undefined);
+    private readonly _version = signal<ArticleVersion | undefined>(undefined);
+    private readonly _isLoading = signal(false);
+    private readonly _error = signal<string | undefined>(undefined);
+
+    readonly version = this._version.asReadonly();
+    readonly isLoading = this._isLoading.asReadonly();
+    readonly error = this._error.asReadonly();
 
     readonly articleUrl = computed(() => {
         const id = this.pageService.articleId();
@@ -37,11 +41,11 @@ export class ArticleVersionTabComponent implements OnInit {
 
     readonly versionEditUrl = computed(() => {
         const v = this.version();
-        return v ? `/articles/edit/${v.versionId}` : undefined;
+        return v ? `/articles/${v.articleId}/version/${v.versionId}/edit` : undefined;
     });
 
     onModerated(result: ModerationResult): void {
-        this.version.update(v => (v ? { ...v, approved: result.approved, comment: result.comment } : v));
+        this._version.update(v => (v ? { ...v, approved: result.approved, comment: result.comment } : v));
     }
 
     ngOnInit(): void {
@@ -56,9 +60,9 @@ export class ArticleVersionTabComponent implements OnInit {
             )
             .subscribe(versionId => {
                 if (isNaN(versionId) || versionId <= 0) {
-                    this.version.set(undefined);
-                    this.error.set('Неверный ID версии');
-                    this.isLoading.set(false);
+                    this._version.set(undefined);
+                    this._error.set('Неверный ID версии');
+                    this._isLoading.set(false);
                     this.logger.error('Invalid version ID', versionId);
                     return;
                 }
@@ -68,9 +72,9 @@ export class ArticleVersionTabComponent implements OnInit {
     }
 
     private loadVersion(versionId: number): void {
-        this.version.set(undefined);
-        this.isLoading.set(true);
-        this.error.set(undefined);
+        this._version.set(undefined);
+        this._isLoading.set(true);
+        this._error.set(undefined);
 
         this.articleService
             .getVersionShow(versionId)
@@ -90,21 +94,21 @@ export class ArticleVersionTabComponent implements OnInit {
                         return;
                     }
 
-                    this.version.set(version);
-                    this.isLoading.set(false);
+                    this._version.set(version);
+                    this._isLoading.set(false);
                     this.logger.info('Version loaded', {
                         articleId: version.articleId,
                         versionId: version.versionId,
                     });
                 },
                 error: (err: HttpErrorResponse) => {
-                    this.version.set(undefined);
+                    this._version.set(undefined);
                     this.logger.error('Failed to load version', {
                         versionId,
                         status: err.status,
                     });
-                    this.error.set(err.status === 404 ? 'Версия не найдена' : 'Ошибка загрузки версии');
-                    this.isLoading.set(false);
+                    this._error.set(err.status === 404 ? 'Версия не найдена' : 'Ошибка загрузки версии');
+                    this._isLoading.set(false);
                 },
             });
     }

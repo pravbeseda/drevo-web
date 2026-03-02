@@ -8,14 +8,7 @@ import { Route } from '@angular/router';
 
 export const ARTICLE_ROUTES: Route[] = [
     {
-        path: 'edit/:id',
-        loadComponent: () => import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
-        resolve: { version: articleVersionResolver },
-        providers: [LinksService, DraftEditorService],
-        data: { titleSource: 'version', titlePrefix: '*' },
-    },
-    {
-        path: 'version/:id',
+        path: 'version/:versionId',
         title: 'Перенаправление',
         loadComponent: () =>
             import('./pages/version-redirect/version-redirect.component').then(m => m.VersionRedirectComponent),
@@ -23,7 +16,7 @@ export const ARTICLE_ROUTES: Route[] = [
     {
         path: ':id',
         loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
-        providers: [ArticlePageService],
+        providers: [ArticlePageService, DraftEditorService],
         resolve: { article: articleResolver },
         data: { titleSource: 'article' },
         children: [
@@ -41,6 +34,14 @@ export const ARTICLE_ROUTES: Route[] = [
                     import('./pages/article-page/tabs/article-version-tab/article-version-tab.component').then(
                         m => m.ArticleVersionTabComponent,
                     ),
+            },
+            {
+                path: 'version/:versionId/edit',
+                loadComponent: () =>
+                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+                resolve: { version: articleVersionResolver },
+                providers: [LinksService],
+                data: { titleSource: 'version', titlePrefix: '*' },
             },
             {
                 path: 'news',

@@ -67,13 +67,13 @@ describe('ArticleSidebarActionsComponent', () => {
         });
 
         it('should render edit action when editUrl is provided', () => {
-            spectator.setInput('editUrl', '/articles/edit/456');
+            spectator.setInput('editUrl', '/articles/123/version/456/edit');
             spectator.detectChanges();
             const actions = spectator.queryAll(SidebarActionComponent);
             const editAction = actions.find(a => a.icon() === 'edit');
             expect(editAction).toBeTruthy();
             expect(editAction?.label()).toBe('Редактировать');
-            expect(editAction?.link()).toBe('/articles/edit/456');
+            expect(editAction?.link()).toBe('/articles/123/version/456/edit');
         });
     });
 
