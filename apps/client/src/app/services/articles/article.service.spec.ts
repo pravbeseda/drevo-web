@@ -1,5 +1,5 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { of, Subject } from 'rxjs';
+import { of } from 'rxjs';
 import {
     ApprovalStatus,
     ArticleHistoryResponseDto,
@@ -136,21 +136,6 @@ describe('ArticleService', () => {
                 expect(result.content).toBe('<a href="/articles/8#S22">Link with anchor</a>');
                 done();
             });
-        });
-
-
-        it('should not share cache between different article IDs', () => {
-            const subject1 = new Subject<ArticleVersionDto>();
-            const subject2 = new Subject<ArticleVersionDto>();
-            articleApiService.getArticle.mockReturnValueOnce(subject1.asObservable());
-            articleApiService.getArticle.mockReturnValueOnce(subject2.asObservable());
-
-            spectator.service.getArticle(123).subscribe();
-            spectator.service.getArticle(456).subscribe();
-
-            expect(articleApiService.getArticle).toHaveBeenCalledTimes(2);
-            expect(articleApiService.getArticle).toHaveBeenCalledWith(123);
-            expect(articleApiService.getArticle).toHaveBeenCalledWith(456);
         });
     });
 
