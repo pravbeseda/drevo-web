@@ -166,5 +166,24 @@ describe('PageTitleStrategy', () => {
             expect(spectator.service.pageTitle()).toBe('Берёза');
             expect(titleService.setTitle).toHaveBeenCalledWith('* Берёза - Древо');
         });
+
+        it('should not inherit titlePrefix from parent route', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const parent = makeRoute({
+                titleSource: 'article',
+                titlePrefix: '*',
+                article: { title: 'Берёза' },
+            });
+            const child = makeRoute({
+                titleSource: 'tab',
+                tab: { title: 'История версий' },
+            });
+            spectator.service.updateTitle(makeSnapshot(parent, child));
+
+            expect(spectator.service.pageTitle()).toBe('История версий');
+            expect(titleService.setTitle).toHaveBeenCalledWith('История версий - Древо');
+        });
     });
 });
