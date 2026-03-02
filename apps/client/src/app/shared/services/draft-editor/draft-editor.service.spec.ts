@@ -1,95 +1,49 @@
 import { DraftEditorService } from './draft-editor.service';
-import { Router } from '@angular/router';
 import { DraftStorageService, LoggerService } from '@drevo-web/core';
-import {
-    MockDraftStorageService,
-    mockDraftStorageProvider,
-    mockLoggerProvider,
-    MockLoggerService,
-} from '@drevo-web/core/testing';
-import { ConfirmationService } from '@drevo-web/ui';
-import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
+import { MockDraftStorageService, mockDraftStorageProvider, mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('DraftEditorService', () => {
     let spectator: SpectatorService<DraftEditorService>;
     let draftStorage: MockDraftStorageService;
-    let confirmationService: ConfirmationService;
-    let router: Router;
     let loggerService: MockLoggerService;
 
     const createService = createServiceFactory({
         service: DraftEditorService,
-        providers: [
-            mockDraftStorageProvider(),
-            mockLoggerProvider(),
-            mockProvider(ConfirmationService),
-            mockProvider(Router),
-        ],
+        providers: [mockDraftStorageProvider(), mockLoggerProvider()],
     });
 
     beforeEach(() => {
         spectator = createService();
         draftStorage = spectator.inject(DraftStorageService) as unknown as MockDraftStorageService;
-        confirmationService = spectator.inject(ConfirmationService);
-        router = spectator.inject(Router);
         loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
 
-    describe('checkDraft', () => {
+    describe('getDraft', () => {
         it('should return undefined when no draft exists', async () => {
             draftStorage.getByRoute.mockResolvedValue(undefined);
 
-            const result = await spectator.service.checkDraft('/articles/edit/1');
+            const result = await spectator.service.getDraft('/articles/123/version/456/edit');
 
             expect(result).toBeUndefined();
-            expect(confirmationService.open).not.toHaveBeenCalled();
         });
 
-        it('should open confirmation dialog when draft found', async () => {
-            const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'Draft text', time: 1000 };
+        it('should return draft when it exists', async () => {
+            const draft = { userId: 'u1', route: '/articles/123/version/456/edit', title: 'Test', text: 'Draft text', time: 1000 };
             draftStorage.getByRoute.mockResolvedValue(draft);
-            (confirmationService.open as jest.Mock).mockReturnValue(of('restore'));
 
-            await spectator.service.checkDraft('/articles/edit/1');
+            const result = await spectator.service.getDraft('/articles/123/version/456/edit');
 
-            expect(confirmationService.open).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    title: 'Найден черновик',
-                    disableClose: true,
-                }),
-            );
-        });
-
-        it('should return draft text when user chooses restore', async () => {
-            const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'Draft text', time: 1000 };
-            draftStorage.getByRoute.mockResolvedValue(draft);
-            (confirmationService.open as jest.Mock).mockReturnValue(of('restore'));
-
-            const result = await spectator.service.checkDraft('/articles/edit/1');
-
-            expect(result).toBe('Draft text');
-            expect(draftStorage.deleteByRoute).not.toHaveBeenCalled();
-        });
-
-        it('should delete draft and return undefined when user declines', async () => {
-            const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'Draft text', time: 1000 };
-            draftStorage.getByRoute.mockResolvedValue(draft);
-            (confirmationService.open as jest.Mock).mockReturnValue(of('discard'));
-
-            const result = await spectator.service.checkDraft('/articles/edit/1');
-
-            expect(result).toBeUndefined();
-            expect(draftStorage.deleteByRoute).toHaveBeenCalledWith('/articles/edit/1');
+            expect(result).toEqual(draft);
         });
 
         it('should catch errors and return undefined', async () => {
             draftStorage.getByRoute.mockRejectedValue(new Error('DB error'));
 
-            const result = await spectator.service.checkDraft('/articles/edit/1');
+            const result = await spectator.service.getDraft('/articles/123/version/456/edit');
 
             expect(result).toBeUndefined();
-            expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to check draft', expect.any(Error));
+            expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to get draft', expect.any(Error));
         });
     });
 
@@ -105,24 +59,24 @@ describe('DraftEditorService', () => {
         it('should debounce and save draft', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'v1' });
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'v2' });
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'v3' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'v1' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'v2' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'v3' });
 
             jest.advanceTimersByTime(3000);
 
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
-            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/edit/1', title: 'Test', text: 'v3' });
+            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/123/version/456/edit', title: 'Test', text: 'v3' });
         });
 
         it('should not save if text is same as last saved', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'same' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'same' });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'same' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'same' });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
         });
@@ -130,8 +84,8 @@ describe('DraftEditorService', () => {
         it('should not save after discardDraft is called', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'pending' });
-            spectator.service.discardDraft('/articles/edit/1');
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            spectator.service.discardDraft('/articles/123/version/456/edit');
             jest.advanceTimersByTime(3000);
 
             expect(draftStorage.save).not.toHaveBeenCalled();
@@ -140,25 +94,25 @@ describe('DraftEditorService', () => {
         it('should resume saving after onContentChanged following discardDraft', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'before' });
-            spectator.service.discardDraft('/articles/edit/1');
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'before' });
+            spectator.service.discardDraft('/articles/123/version/456/edit');
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).not.toHaveBeenCalled();
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'after' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'after' });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
-            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/edit/1', title: 'Test', text: 'after' });
+            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/123/version/456/edit', title: 'Test', text: 'after' });
         });
 
         it('should save again if text changes after previous save', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'first' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'first' });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
 
-            spectator.service.onContentChanged({ route: '/articles/edit/1', title: 'Test', text: 'second' });
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'second' });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(2);
         });
@@ -166,61 +120,72 @@ describe('DraftEditorService', () => {
 
     describe('discardDraft', () => {
         it('should delete draft by route', async () => {
-            await spectator.service.discardDraft('/articles/edit/1');
+            await spectator.service.discardDraft('/articles/123/version/456/edit');
 
-            expect(draftStorage.deleteByRoute).toHaveBeenCalledWith('/articles/edit/1');
+            expect(draftStorage.deleteByRoute).toHaveBeenCalledWith('/articles/123/version/456/edit');
         });
 
         it('should catch errors and log them', async () => {
             draftStorage.deleteByRoute.mockRejectedValue(new Error('DB error'));
 
-            await spectator.service.discardDraft('/articles/edit/1');
+            await spectator.service.discardDraft('/articles/123/version/456/edit');
 
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to discard draft', expect.any(Error));
         });
     });
 
-    describe('confirmDiscardAndNavigate', () => {
-        it('should navigate immediately when no draft exists', async () => {
-            draftStorage.getByRoute.mockResolvedValue(undefined);
-
-            await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
-
-            expect(confirmationService.open).not.toHaveBeenCalled();
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 1]);
+    describe('flush', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
         });
 
-        it('should show confirm dialog and navigate when user confirms', async () => {
-            const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'x', time: 1000 };
-            draftStorage.getByRoute.mockResolvedValue(draft);
-            (confirmationService.open as jest.Mock).mockReturnValue(of('confirm'));
-
-            await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
-
-            expect(confirmationService.open).toHaveBeenCalledWith(
-                expect.objectContaining({ disableClose: true }),
-            );
-            expect(draftStorage.deleteByRoute).toHaveBeenCalledWith('/articles/edit/1');
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 1]);
+        afterEach(() => {
+            jest.useRealTimers();
         });
 
-        it('should stay on page when user cancels', async () => {
-            const draft = { userId: 'u1', route: '/articles/edit/1', title: 'Test', text: 'x', time: 1000 };
-            draftStorage.getByRoute.mockResolvedValue(draft);
-            (confirmationService.open as jest.Mock).mockReturnValue(of('cancel'));
+        it('should save pending input immediately', () => {
+            draftStorage.save.mockResolvedValue(undefined);
 
-            await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            spectator.service.flush();
 
-            expect(draftStorage.deleteByRoute).not.toHaveBeenCalled();
-            expect(router.navigate).not.toHaveBeenCalled();
+            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
         });
 
-        it('should catch errors and log them', async () => {
-            draftStorage.getByRoute.mockRejectedValue(new Error('DB error'));
+        it('should not save when no pending input', () => {
+            spectator.service.flush();
 
-            await spectator.service.confirmDiscardAndNavigate('/articles/edit/1', ['/articles', 1]);
+            expect(draftStorage.save).not.toHaveBeenCalled();
+        });
 
-            expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to confirm discard', expect.any(Error));
+        it('should not save when discarded', () => {
+            draftStorage.save.mockResolvedValue(undefined);
+
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            spectator.service.discardDraft('/articles/123/version/456/edit');
+            spectator.service.flush();
+
+            // Only deleteByRoute from discardDraft, no save
+            expect(draftStorage.save).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('hasActiveSession', () => {
+        it('should return false for unknown route', () => {
+            expect(spectator.service.hasActiveSession('/articles/123/version/456/edit')).toBe(false);
+        });
+
+        it('should return true after onContentChanged', () => {
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'x' });
+
+            expect(spectator.service.hasActiveSession('/articles/123/version/456/edit')).toBe(true);
+        });
+
+        it('should return false after discardDraft', () => {
+            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'x' });
+            spectator.service.discardDraft('/articles/123/version/456/edit');
+
+            expect(spectator.service.hasActiveSession('/articles/123/version/456/edit')).toBe(false);
         });
     });
 });

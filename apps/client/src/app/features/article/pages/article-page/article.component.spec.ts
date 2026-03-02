@@ -24,7 +24,7 @@ function createMockPageService(
         error: signal(overrides.error),
         articleId: signal('articleId' in overrides ? overrides.articleId : 123),
         title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
-        editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/edit/456'),
+        editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/123/version/456/edit'),
         setArticle: jest.fn(),
         setError: jest.fn(),
     };

@@ -26,7 +26,7 @@ describe('VersionRedirectComponent', () => {
                 provide: ActivatedRoute,
                 useValue: {
                     snapshot: {
-                        paramMap: convertToParamMap({ id: '789' }),
+                        paramMap: convertToParamMap({ versionId: '789' }),
                     },
                 },
             },
@@ -86,7 +86,7 @@ describe('VersionRedirectComponent with invalid ID', () => {
                 provide: ActivatedRoute,
                 useValue: {
                     snapshot: {
-                        paramMap: convertToParamMap({ id: 'invalid' }),
+                        paramMap: convertToParamMap({ versionId: 'invalid' }),
                     },
                 },
             },

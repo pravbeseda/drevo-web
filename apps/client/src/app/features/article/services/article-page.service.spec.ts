@@ -82,7 +82,7 @@ describe('ArticlePageService', () => {
 
             spectator.service.setArticle(mockArticle);
 
-            expect(spectator.service.editUrl()).toBe('/articles/edit/456');
+            expect(spectator.service.editUrl()).toBe('/articles/123/version/456/edit');
         });
 
         it('should clear computed values after setError', () => {
