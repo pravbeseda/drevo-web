@@ -5,25 +5,22 @@ import { SidebarActionComponent } from '../../../../shared/components/sidebar-ac
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NotificationService, LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion } from '@drevo-web/shared';
-import { SpinnerComponent } from '@drevo-web/ui';
 import { BehaviorSubject, first } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, SpinnerComponent, AsyncPipe, ErrorComponent, SidebarActionComponent],
-    providers: [LinksService, DraftEditorService],
+    imports: [EditorComponent, AsyncPipe, ErrorComponent, SidebarActionComponent],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent implements OnInit {
+export class ArticleEditComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
@@ -37,74 +34,35 @@ export class ArticleEditComponent implements OnInit {
 
     private readonly updateLinksStateSubject = new BehaviorSubject<Record<string, boolean>>({});
 
-    readonly version = signal<ArticleVersion | undefined>(undefined);
+    readonly version: ArticleVersion | undefined;
     readonly editorContent = signal<string>('');
-    readonly isLoading = signal<boolean>(false);
     readonly isSaving = signal<boolean>(false);
     readonly error = signal<string | undefined>(undefined);
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
-    ngOnInit(): void {
-        this.route.paramMap
-            .pipe(
-                map(params => {
-                    const idParam = params.get('id');
-                    return idParam ? parseInt(idParam, 10) : NaN;
-                }),
-                distinctUntilChanged(),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe(id => {
-                if (isNaN(id) || id <= 0) {
-                    this.version.set(undefined);
-                    this.error.set('Неверный ID версии');
-                    this.logger.error('Invalid version ID', id);
-                    this.isLoading.set(false);
-                    return;
-                }
+    constructor() {
+        const resolvedVersion = this.route.snapshot.data['version'] as ArticleVersion | undefined;
+        if (!resolvedVersion) {
+            this.version = undefined;
+            this.error.set('Версия не найдена');
+            this.logger.error('Version not resolved from route data');
+            return;
+        }
 
-                this.loadVersion(id);
-            });
-    }
+        this.version = resolvedVersion;
+        this.editorContent.set(resolvedVersion.content);
+        this.logger.info('Version loaded for editing', {
+            versionId: resolvedVersion.versionId,
+            articleId: resolvedVersion.articleId,
+            title: resolvedVersion.title,
+        });
 
-    private loadVersion(versionId: number): void {
-        this.version.set(undefined);
-        this.isLoading.set(true);
-        this.error.set(undefined);
-
-        this.articleService
-            .getArticleVersion(versionId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: version => {
-                    this.version.set(version);
-                    this.isLoading.set(false);
-                    this.editorContent.set(version.content);
-                    this.logger.info('Version loaded for editing', {
-                        versionId: version.versionId,
-                        articleId: version.articleId,
-                        title: version.title,
-                    });
-
-                    const route = `/articles/edit/${version.articleId}`;
-                    this.draftEditor.checkDraft(route).then(draftText => {
-                        if (draftText !== undefined) {
-                            this.editorContent.set(draftText);
-                        }
-                    });
-                },
-                error: (err: HttpErrorResponse) => {
-                    this.version.set(undefined);
-                    if (err.status === 404) {
-                        this.error.set('Версия не найдена');
-                    } else if (err.status === 403) {
-                        this.error.set('Доступ запрещён');
-                    } else {
-                        this.error.set('Ошибка загрузки версии');
-                    }
-                    this.isLoading.set(false);
-                },
-            });
+        const route = `/articles/edit/${resolvedVersion.articleId}`;
+        this.draftEditor.checkDraft(route).then(draftText => {
+            if (draftText !== undefined) {
+                this.editorContent.set(draftText);
+            }
+        });
     }
 
     updateLinks(links: string[]): void {
@@ -125,39 +83,37 @@ export class ArticleEditComponent implements OnInit {
         this.currentContent = content;
         this.logger.debug('Content changed', { length: content.length });
 
-        const version = this.version();
-        if (version) {
+        if (this.version) {
             this.draftEditor.onContentChanged({
-                route: `/articles/edit/${version.articleId}`,
-                title: version.title,
+                route: `/articles/edit/${this.version.articleId}`,
+                title: this.version.title,
                 text: content,
             });
         }
     }
 
     save(): void {
-        const version = this.version();
-        if (!version || this.isSaving()) {
+        if (!this.version || this.isSaving()) {
             return;
         }
 
-        const content = this.currentContent ?? version.content;
+        const content = this.currentContent ?? this.version.content;
 
-        if (content === version.content) {
+        if (content === this.version.content) {
             this.notificationService.info('Нет изменений для сохранения');
             return;
         }
 
         this.isSaving.set(true);
         this.logger.info('Saving article', {
-            versionId: version.versionId,
-            articleId: version.articleId,
+            versionId: this.version.versionId,
+            articleId: this.version.articleId,
             contentLength: content.length,
         });
 
         this.articleService
             .saveArticleVersion({
-                versionId: version.versionId,
+                versionId: this.version.versionId,
                 content,
             })
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -191,13 +147,12 @@ export class ArticleEditComponent implements OnInit {
     }
 
     cancel(): void {
-        const version = this.version();
-        if (!version) {
+        if (!this.version) {
             this.router.navigate(['/']);
             return;
         }
 
-        const route = `/articles/edit/${version.articleId}`;
-        this.draftEditor.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
+        const route = `/articles/edit/${this.version.articleId}`;
+        this.draftEditor.confirmDiscardAndNavigate(route, ['/articles', this.version.articleId]);
     }
 }

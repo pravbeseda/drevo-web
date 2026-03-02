@@ -1,13 +1,9 @@
-@if (isLoading()) {
-    <div class="loading-container">
-        <ui-spinner [diameter]="48" />
-    </div>
-} @else if (error()) {
+@if (error()) {
     <app-error
         title="Ошибка"
         [message]="error()"
     />
-} @else if (version(); as version) {
+} @else {
     <app-sidebar-action
         icon="save"
         label="Сохранить"
@@ -25,7 +21,7 @@
 
     <div class="article-edit">
         <header class="article-edit-header">
-            <h1 class="article-edit-title">{{ version.title }}</h1>
+            <h1 class="article-edit-title">{{ version?.title }}</h1>
         </header>
         <div class="editor-container">
             <lib-editor

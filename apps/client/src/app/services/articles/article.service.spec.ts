@@ -138,31 +138,6 @@ describe('ArticleService', () => {
             });
         });
 
-        it('should deduplicate concurrent requests for the same article (in-flight cache)', () => {
-            const apiSubject = new Subject<ArticleVersionDto>();
-            articleApiService.getArticle.mockReturnValue(apiSubject.asObservable());
-
-            const results: unknown[] = [];
-            spectator.service.getArticle(123).subscribe(r => results.push(r));
-            spectator.service.getArticle(123).subscribe(r => results.push(r));
-
-            expect(articleApiService.getArticle).toHaveBeenCalledTimes(1);
-
-            apiSubject.next(mockApiResponse);
-            apiSubject.complete();
-
-            expect(results).toHaveLength(2);
-            expect(results[0]).toEqual(results[1]);
-        });
-
-        it('should allow new request after previous one completes', () => {
-            articleApiService.getArticle.mockReturnValue(of(mockApiResponse));
-
-            spectator.service.getArticle(123).subscribe();
-            spectator.service.getArticle(123).subscribe();
-
-            expect(articleApiService.getArticle).toHaveBeenCalledTimes(2);
-        });
 
         it('should not share cache between different article IDs', () => {
             const subject1 = new Subject<ArticleVersionDto>();

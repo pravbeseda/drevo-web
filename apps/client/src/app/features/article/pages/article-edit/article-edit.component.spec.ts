@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { of, throwError, NEVER, BehaviorSubject } from 'rxjs';
+import { of, throwError, NEVER } from 'rxjs';
 import { NotificationService } from '@drevo-web/core';
 import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../../../services/articles';
@@ -21,50 +21,50 @@ const mockDraftEditorServiceProvider = {
 
 const mockLinksServiceProvider = { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } };
 
+const mockVersion: ArticleVersion = {
+    articleId: 123,
+    versionId: 456,
+    title: 'Test Article Title',
+    content: '<p>Test article content</p>',
+    author: 'Test Author',
+    date: new Date('2024-01-15T10:00:00Z'),
+    redirect: false,
+    approved: 1,
+    info: 'Test info',
+    comment: 'Test comment',
+} as ArticleVersion;
+
+function createActivatedRoute(version: ArticleVersion | undefined): { provide: typeof ActivatedRoute; useValue: unknown } {
+    return {
+        provide: ActivatedRoute,
+        useValue: {
+            snapshot: { data: { version } },
+        },
+    };
+}
+
 describe('ArticleEditComponent', () => {
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
     let notificationService: jest.Mocked<NotificationService>;
     let router: jest.Mocked<Router>;
     let linksService: jest.Mocked<LinksService>;
-    let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
-
-    const mockVersion: ArticleVersion = {
-        articleId: 123,
-        versionId: 456,
-        title: 'Test Article Title',
-        content: '<p>Test article content</p>',
-        author: 'Test Author',
-        date: new Date('2024-01-15T10:00:00Z'),
-        redirect: false,
-        approved: 1,
-        info: 'Test info',
-        comment: 'Test comment',
-    } as ArticleVersion;
 
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [
-            {
-                provide: ActivatedRoute,
-                useFactory: () => ({
-                    paramMap: paramMapSubject.asObservable(),
-                }),
-            },
-        ],
+        providers: [createActivatedRoute(mockVersion)],
         detectChanges: false,
     });
 
     beforeEach(() => {
-        paramMapSubject = new BehaviorSubject(convertToParamMap({ id: '456' }));
+        mockDraftEditorServiceProvider.useValue.checkDraft.mockResolvedValue(undefined);
         spectator = createComponent();
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
         router = spectator.inject(Router) as jest.Mocked<Router>;
         linksService = spectator.component['linksService'] as jest.Mocked<LinksService>;
-        articleService.getArticleVersion.mockReturnValue(of(mockVersion));
     });
 
     it('should create', () => {
@@ -72,22 +72,11 @@ describe('ArticleEditComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    describe('successful version loading', () => {
-        it('should display spinner while loading', () => {
-            articleService.getArticleVersion.mockReturnValue(NEVER);
+    describe('version from route data', () => {
+        it('should read version from route data', () => {
             spectator.detectChanges();
 
-            expect(spectator.component.isLoading()).toBe(true);
-            expect(spectator.query('ui-spinner')).toBeTruthy();
-            expect(spectator.query('.article-edit')).toBeFalsy();
-        });
-
-        it('should load and display version for editing', () => {
-            spectator.detectChanges();
-
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456);
-            expect(spectator.component.version()).toEqual(mockVersion);
-            expect(spectator.component.isLoading()).toBe(false);
+            expect(spectator.component.version).toEqual(mockVersion);
             expect(spectator.query('.article-edit-title')).toHaveText('Test Article Title');
         });
 
@@ -98,131 +87,28 @@ describe('ArticleEditComponent', () => {
             expect(editorComponent).toBeTruthy();
         });
 
-        it('should call checkDraft after version loads', () => {
+        it('should call checkDraft after construction', () => {
             const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
             spectator.detectChanges();
 
             expect(draftEditor.checkDraft).toHaveBeenCalledWith('/articles/edit/123');
         });
 
-        it('should set editorContent to draft text when draft is restored', async () => {
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
-            draftEditor.checkDraft.mockResolvedValue('draft content');
-            spectator.detectChanges();
-
-            await draftEditor.checkDraft.mock.results[0].value;
-
-            expect(spectator.component.editorContent()).toBe('draft content');
-        });
-
         it('should keep original content when no draft exists', async () => {
             const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
-            draftEditor.checkDraft.mockResolvedValue(undefined);
-            spectator.detectChanges();
-
             await draftEditor.checkDraft.mock.results[0].value;
 
             expect(spectator.component.editorContent()).toBe('<p>Test article content</p>');
         });
 
-        it('should reload version when route param changes', () => {
-            spectator.detectChanges();
+        it('should restore draft content when draft exists', async () => {
+            mockDraftEditorServiceProvider.useValue.checkDraft.mockResolvedValue('draft content');
+            spectator = createComponent();
+            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
 
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456);
+            await draftEditor.checkDraft.mock.results[0].value;
 
-            const anotherVersion: ArticleVersion = {
-                ...mockVersion,
-                versionId: 789,
-                title: 'Another Version',
-            };
-            articleService.getArticleVersion.mockReturnValue(of(anotherVersion));
-
-            paramMapSubject.next(convertToParamMap({ id: '789' }));
-
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(789);
-            expect(spectator.component.version()).toEqual(anotherVersion);
-        });
-
-        it('should not reload when same ID is emitted', () => {
-            spectator.detectChanges();
-
-            expect(articleService.getArticleVersion).toHaveBeenCalledTimes(1);
-
-            paramMapSubject.next(convertToParamMap({ id: '456' }));
-
-            expect(articleService.getArticleVersion).toHaveBeenCalledTimes(1);
-        });
-
-        it('should retry loading after error when navigating to different version', () => {
-            const error = new HttpErrorResponse({
-                status: 500,
-                statusText: 'Server Error',
-            });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
-            spectator.detectChanges();
-
-            expect(spectator.component.error()).toBe('Ошибка загрузки версии');
-
-            articleService.getArticleVersion.mockReturnValue(of(mockVersion));
-
-            paramMapSubject.next(convertToParamMap({ id: '789' }));
-
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(789);
-            expect(spectator.component.version()).toEqual(mockVersion);
-            expect(spectator.component.error()).toBeUndefined();
-        });
-    });
-
-    describe('error handling', () => {
-        it('should display error message when version not found (404)', () => {
-            const error = new HttpErrorResponse({
-                status: 404,
-                statusText: 'Not Found',
-            });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
-            spectator.detectChanges();
-
-            expect(spectator.component.error()).toBe('Версия не найдена');
-            expect(spectator.component.isLoading()).toBe(false);
-            expect(spectator.query('.error-message')).toHaveText('Версия не найдена');
-        });
-
-        it('should display access denied message for 403 error', () => {
-            const error = new HttpErrorResponse({
-                status: 403,
-                statusText: 'Forbidden',
-            });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
-            spectator.detectChanges();
-
-            expect(spectator.component.error()).toBe('Доступ запрещён');
-            expect(spectator.component.isLoading()).toBe(false);
-        });
-
-        it('should display generic error message for other errors', () => {
-            const error = new HttpErrorResponse({
-                status: 500,
-                statusText: 'Server Error',
-            });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
-            spectator.detectChanges();
-
-            expect(spectator.component.error()).toBe('Ошибка загрузки версии');
-        });
-
-        it('should clear previous version when error occurs', () => {
-            spectator.detectChanges();
-            expect(spectator.component.version()).toEqual(mockVersion);
-
-            const error = new HttpErrorResponse({
-                status: 500,
-                statusText: 'Server Error',
-            });
-            articleService.getArticleVersion.mockReturnValue(throwError(() => error));
-
-            paramMapSubject.next(convertToParamMap({ id: '789' }));
-
-            expect(spectator.component.version()).toBeUndefined();
+            expect(spectator.component.editorContent()).toBe('draft content');
         });
     });
 
@@ -293,15 +179,6 @@ describe('ArticleEditComponent', () => {
                 text: 'updated content',
             });
         });
-
-        it('should not call draftEditor.onContentChanged when version is undefined', () => {
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
-            draftEditor.onContentChanged.mockClear();
-
-            spectator.component.contentChanged('content');
-
-            expect(draftEditor.onContentChanged).not.toHaveBeenCalled();
-        });
     });
 
     describe('save method', () => {
@@ -316,12 +193,6 @@ describe('ArticleEditComponent', () => {
 
         beforeEach(() => {
             articleService.saveArticleVersion.mockReturnValue(of(mockSaveResult));
-        });
-
-        it('should not save when version is undefined', () => {
-            spectator.component.save();
-
-            expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
         });
 
         it('should not save when already saving', () => {
@@ -508,107 +379,29 @@ describe('ArticleEditComponent', () => {
                 123,
             ]);
         });
-
-        it('should navigate to home when version is undefined', () => {
-            spectator.component.cancel();
-
-            expect(router.navigate).toHaveBeenCalledWith(['/']);
-        });
     });
 });
 
-describe('ArticleEditComponent with invalid ID', () => {
-    const createComponentWithInvalidId = createComponentFactory({
+describe('ArticleEditComponent with undefined version', () => {
+    const createComponent = createComponentFactory({
         component: ArticleEditComponent,
-        mocks: [ArticleService],
+        mocks: [ArticleService, Router],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [
-            {
-                provide: ActivatedRoute,
-                useFactory: () => ({
-                    paramMap: of(convertToParamMap({ id: 'invalid' })),
-                }),
-            },
-        ],
+        providers: [createActivatedRoute(undefined)],
     });
 
-    it('should show error for non-numeric ID', () => {
-        const spectator = createComponentWithInvalidId();
+    it('should show error when version is undefined', () => {
+        const spectator = createComponent();
 
-        expect(spectator.component.error()).toBe('Неверный ID версии');
-        expect(spectator.component.isLoading()).toBe(false);
+        expect(spectator.component.error()).toBe('Версия не найдена');
     });
 
-    it('should not call articleService for invalid ID', () => {
-        const spectator = createComponentWithInvalidId();
-        const articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+    it('should navigate to home on cancel when version is undefined', () => {
+        const spectator = createComponent();
+        const router = spectator.inject(Router) as jest.Mocked<Router>;
 
-        expect(articleService.getArticleVersion).not.toHaveBeenCalled();
-    });
-});
+        spectator.component.cancel();
 
-describe('ArticleEditComponent with negative ID', () => {
-    const createComponentWithNegativeId = createComponentFactory({
-        component: ArticleEditComponent,
-        mocks: [ArticleService],
-        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [
-            {
-                provide: ActivatedRoute,
-                useFactory: () => ({
-                    paramMap: of(convertToParamMap({ id: '-5' })),
-                }),
-            },
-        ],
-    });
-
-    it('should show error for negative ID', () => {
-        const spectator = createComponentWithNegativeId();
-
-        expect(spectator.component.error()).toBe('Неверный ID версии');
-    });
-});
-
-describe('ArticleEditComponent with zero ID', () => {
-    const createComponentWithZeroId = createComponentFactory({
-        component: ArticleEditComponent,
-        mocks: [ArticleService],
-        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [
-            {
-                provide: ActivatedRoute,
-                useFactory: () => ({
-                    paramMap: of(convertToParamMap({ id: '0' })),
-                }),
-            },
-        ],
-    });
-
-    it('should show error for zero ID', () => {
-        const spectator = createComponentWithZeroId();
-
-        expect(spectator.component.error()).toBe('Неверный ID версии');
-    });
-});
-
-describe('ArticleEditComponent with missing ID', () => {
-    const createComponentWithMissingId = createComponentFactory({
-        component: ArticleEditComponent,
-        mocks: [ArticleService],
-        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
-        providers: [
-            {
-                provide: ActivatedRoute,
-                useFactory: () => ({
-                    paramMap: of(convertToParamMap({})),
-                }),
-            },
-        ],
-    });
-
-    it('should show error when ID is missing', () => {
-        const spectator = createComponentWithMissingId();
-
-        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(router.navigate).toHaveBeenCalledWith(['/']);
     });
 });
