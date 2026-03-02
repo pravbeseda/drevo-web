@@ -38,30 +38,27 @@ export class ArticleEditComponent {
     private readonly _isSaving = signal(false);
     private readonly _error = signal<string | undefined>(undefined);
 
-    readonly version: ArticleVersion | undefined;
+    readonly version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
     readonly editorContent = this._editorContent.asReadonly();
     readonly isSaving = this._isSaving.asReadonly();
     readonly error = this._error.asReadonly();
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
     constructor() {
-        const resolvedVersion = this.route.snapshot.data['version'] as ArticleVersion | undefined;
-        if (!resolvedVersion) {
-            this.version = undefined;
+        if (!this.version) {
             this._error.set('Версия не найдена');
             this.logger.error('Version not resolved from route data');
             return;
         }
 
-        this.version = resolvedVersion;
-        this._editorContent.set(resolvedVersion.content);
+        this._editorContent.set(this.version.content);
         this.logger.info('Version loaded for editing', {
-            versionId: resolvedVersion.versionId,
-            articleId: resolvedVersion.articleId,
-            title: resolvedVersion.title,
+            versionId: this.version.versionId,
+            articleId: this.version.articleId,
+            title: this.version.title,
         });
 
-        const route = `/articles/edit/${resolvedVersion.articleId}`;
+        const route = `/articles/edit/${this.version.articleId}`;
         this.draftEditor.checkDraft(route).then(draftText => {
             if (draftText !== undefined) {
                 this._editorContent.set(draftText);
