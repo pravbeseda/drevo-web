@@ -8,34 +8,29 @@ import { ArticleVersion, SaveArticleVersionResult } from '@drevo-web/shared';
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
+import { createMockArticle } from '../../testing/article-testing.helper';
 import { ArticleEditComponent } from './article-edit.component';
 
-const mockDraftEditorServiceProvider = {
-    provide: DraftEditorService,
-    useValue: {
-        checkDraft: jest.fn().mockResolvedValue(undefined),
-        onContentChanged: jest.fn(),
-        discardDraft: jest.fn().mockResolvedValue(undefined),
-        confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
-    },
+const mockDraftEditorService = {
+    checkDraft: jest.fn().mockResolvedValue(undefined),
+    onContentChanged: jest.fn(),
+    discardDraft: jest.fn().mockResolvedValue(undefined),
+    confirmDiscardAndNavigate: jest.fn().mockResolvedValue(undefined),
 };
+const mockDraftEditorServiceProvider = { provide: DraftEditorService, useValue: mockDraftEditorService };
 
-const mockLinksServiceProvider = { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } };
+const mockLinks = { getLinkStatuses: jest.fn() };
+const mockLinksServiceProvider = { provide: LinksService, useValue: mockLinks };
 
-const mockVersion: ArticleVersion = {
-    articleId: 123,
-    versionId: 456,
+const mockVersion = createMockArticle({
     title: 'Test Article Title',
     content: '<p>Test article content</p>',
-    author: 'Test Author',
-    date: new Date('2024-01-15T10:00:00Z'),
-    redirect: false,
-    approved: 1,
-    info: 'Test info',
-    comment: 'Test comment',
-} as ArticleVersion;
+});
 
-function createActivatedRoute(version: ArticleVersion | undefined): { provide: typeof ActivatedRoute; useValue: unknown } {
+function createActivatedRoute(version: ArticleVersion | undefined): {
+    provide: typeof ActivatedRoute;
+    useValue: unknown;
+} {
     return {
         provide: ActivatedRoute,
         useValue: {
@@ -49,8 +44,6 @@ describe('ArticleEditComponent', () => {
     let articleService: jest.Mocked<ArticleService>;
     let notificationService: jest.Mocked<NotificationService>;
     let router: jest.Mocked<Router>;
-    let linksService: jest.Mocked<LinksService>;
-
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router],
@@ -60,12 +53,11 @@ describe('ArticleEditComponent', () => {
     });
 
     beforeEach(() => {
-        mockDraftEditorServiceProvider.useValue.checkDraft.mockResolvedValue(undefined);
+        mockDraftEditorService.checkDraft.mockResolvedValue(undefined);
         spectator = createComponent();
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
         router = spectator.inject(Router) as jest.Mocked<Router>;
-        linksService = spectator.component['linksService'] as jest.Mocked<LinksService>;
     });
 
     it('should create', () => {
@@ -89,25 +81,22 @@ describe('ArticleEditComponent', () => {
         });
 
         it('should call checkDraft after construction', () => {
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
             spectator.detectChanges();
 
-            expect(draftEditor.checkDraft).toHaveBeenCalledWith('/articles/edit/123');
+            expect(mockDraftEditorService.checkDraft).toHaveBeenCalledWith('/articles/edit/123');
         });
 
         it('should keep original content when no draft exists', async () => {
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
-            await draftEditor.checkDraft.mock.results[0].value;
+            await mockDraftEditorService.checkDraft.mock.results[0].value;
 
             expect(spectator.component.editorContent()).toBe('<p>Test article content</p>');
         });
 
         it('should restore draft content when draft exists', async () => {
-            mockDraftEditorServiceProvider.useValue.checkDraft.mockResolvedValue('draft content');
+            mockDraftEditorService.checkDraft.mockResolvedValue('draft content');
             spectator = createComponent();
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
 
-            await draftEditor.checkDraft.mock.results[0].value;
+            await mockDraftEditorService.checkDraft.mock.results[0].value;
 
             expect(spectator.component.editorContent()).toBe('draft content');
         });
@@ -121,17 +110,17 @@ describe('ArticleEditComponent', () => {
         });
 
         it('should call linksService.getLinkStatuses with given links', () => {
-            linksService.getLinkStatuses.mockReturnValue(of({}));
+            mockLinks.getLinkStatuses.mockReturnValue(of({}));
             spectator.detectChanges();
 
             spectator.component.updateLinks(['link1', 'link2']);
 
-            expect(linksService.getLinkStatuses).toHaveBeenCalledWith(['link1', 'link2']);
+            expect(mockLinks.getLinkStatuses).toHaveBeenCalledWith(['link1', 'link2']);
         });
 
         it('should update updateLinksState with link statuses', () => {
             const mockStatuses = { link1: true, link2: false };
-            linksService.getLinkStatuses.mockReturnValue(of(mockStatuses));
+            mockLinks.getLinkStatuses.mockReturnValue(of(mockStatuses));
             spectator.detectChanges();
 
             spectator.component.updateLinks(['link1', 'link2']);
@@ -140,7 +129,7 @@ describe('ArticleEditComponent', () => {
         });
 
         it('should not throw on error from linksService', () => {
-            linksService.getLinkStatuses.mockReturnValue(throwError(() => new Error('Network error')));
+            mockLinks.getLinkStatuses.mockReturnValue(throwError(() => new Error('Network error')));
             spectator.detectChanges();
 
             expect(() => {
@@ -160,11 +149,10 @@ describe('ArticleEditComponent', () => {
 
         it('should call draftEditor.onContentChanged with correct input', () => {
             spectator.detectChanges();
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
 
             spectator.component.contentChanged('updated content');
 
-            expect(draftEditor.onContentChanged).toHaveBeenCalledWith({
+            expect(mockDraftEditorService.onContentChanged).toHaveBeenCalledWith({
                 route: '/articles/edit/123',
                 title: 'Test Article Title',
                 text: 'updated content',
@@ -249,11 +237,10 @@ describe('ArticleEditComponent', () => {
         it('should discard draft after successful save', () => {
             spectator.detectChanges();
             spectator.component.contentChanged('new content');
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
 
             spectator.component.save();
 
-            expect(draftEditor.discardDraft).toHaveBeenCalledWith('/articles/edit/123');
+            expect(mockDraftEditorService.discardDraft).toHaveBeenCalledWith('/articles/edit/123');
         });
 
         it('should set isSaving to false after successful save', () => {
@@ -361,11 +348,10 @@ describe('ArticleEditComponent', () => {
     describe('cancel method', () => {
         it('should call confirmDiscardAndNavigate when version exists', () => {
             spectator.detectChanges();
-            const draftEditor = spectator.component['draftEditor'] as jest.Mocked<DraftEditorService>;
 
             spectator.component.cancel();
 
-            expect(draftEditor.confirmDiscardAndNavigate).toHaveBeenCalledWith('/articles/edit/123', [
+            expect(mockDraftEditorService.confirmDiscardAndNavigate).toHaveBeenCalledWith('/articles/edit/123', [
                 '/articles',
                 123,
             ]);
