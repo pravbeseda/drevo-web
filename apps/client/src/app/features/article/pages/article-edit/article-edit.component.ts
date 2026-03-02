@@ -25,7 +25,7 @@ export class ArticleEditComponent implements OnInit {
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly draftEditor = inject(DraftEditorService);
+    private readonly draftEditorService = inject(DraftEditorService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
     private currentContent: string | undefined = undefined;
@@ -58,7 +58,7 @@ export class ArticleEditComponent implements OnInit {
         });
 
         const route = `/articles/edit/${version.articleId}`;
-        this.draftEditor
+        this.draftEditorService
             .checkDraft(route)
             .then(draftText => {
                 if (draftText !== undefined) {
@@ -90,7 +90,7 @@ export class ArticleEditComponent implements OnInit {
 
         const version = this.version();
         if (version) {
-            this.draftEditor.onContentChanged({
+            this.draftEditorService.onContentChanged({
                 route: `/articles/edit/${version.articleId}`,
                 title: version.title,
                 text: content,
@@ -132,7 +132,7 @@ export class ArticleEditComponent implements OnInit {
                         articleId: result.articleId,
                     });
                     this.notificationService.success('Статья сохранена');
-                    this.draftEditor.discardDraft(`/articles/edit/${result.articleId}`);
+                    this.draftEditorService.discardDraft(`/articles/edit/${result.articleId}`);
                     this.router.navigate(['/articles', result.articleId]);
                 },
                 error: (err: HttpErrorResponse) => {
@@ -161,6 +161,6 @@ export class ArticleEditComponent implements OnInit {
         }
 
         const route = `/articles/edit/${version.articleId}`;
-        this.draftEditor.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
+        this.draftEditorService.confirmDiscardAndNavigate(route, ['/articles', version.articleId]);
     }
 }

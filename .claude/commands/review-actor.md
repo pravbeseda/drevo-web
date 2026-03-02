@@ -13,8 +13,11 @@
 Если ниже в «Контекст для анализа» указан конкретный текст замечания — анализируй его.
 
 Если контекст пуст — получи замечания из PR для текущей ветки:
-1. Узнай номер PR: `gh pr view --json number --jq '.number'`
-2. Получи комментарии ревью: `gh api repos/{owner}/{repo}/pulls/{number}/reviews` и `gh api repos/{owner}/{repo}/pulls/{number}/comments`
+1. Узнай owner/repo и номер PR: `gh pr view --json number --jq '.number'` и `gh repo view --json nameWithOwner --jq '.nameWithOwner'`
+2. Получи комментарии ревью двумя запросами (параллельно):
+   - Ревью с телом: `gh api repos/{owner}/{repo}/pulls/{number}/reviews | jq '[.[] | select(.body | length > 0)]'`
+   - Инлайн-комментарии: `gh api repos/{owner}/{repo}/pulls/{number}/comments | jq '[.[] | {id, path, line, body, created_at, user: .user.login}]'`
+   **ВАЖНО:** Никогда не используй `!=` в jq-выражениях — zsh ломает `!` даже внутри одинарных кавычек. Вместо `select(.body != "")` используй `select(.body | length > 0)`.
 3. Прочитай затронутые файлы целиком для понимания контекста
 4. Проанализируй каждое замечание по описанным выше критериям
 5. Выведи номер PR в заголовке ответа
