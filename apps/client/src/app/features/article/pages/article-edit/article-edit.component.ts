@@ -71,7 +71,7 @@ export class ArticleEditComponent implements OnInit {
     updateLinks(links: string[]): void {
         this.linksService
             .getLinkStatuses(links)
-            .pipe(first())
+            .pipe(first(), takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: linksState => {
                     this._updateLinksState.set(linksState);
