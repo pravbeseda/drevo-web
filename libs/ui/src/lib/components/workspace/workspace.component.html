@@ -1,6 +1,6 @@
 <div class="workspace-content">
     @for (tab of tabs(); track $index) {
-        @if (tab.contentTemplate; as tmpl) {
+        @if (tab.contentTemplate(); as tmpl) {
             @if (tab.keepAlive()) {
                 @if (activatedIndices().has($index)) {
                     <div
