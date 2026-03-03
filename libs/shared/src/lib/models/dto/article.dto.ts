@@ -52,6 +52,21 @@ export interface SaveArticleVersionRequestDto {
 }
 
 /**
+ * Request body for previewing formatted article content
+ */
+export interface ArticlePreviewRequestDto {
+    readonly content: string;
+    readonly articleId: number;
+}
+
+/**
+ * Response from previewing article content
+ */
+export interface ArticlePreviewResponseDto {
+    readonly content: string;
+}
+
+/**
  * Response from saving article version
  */
 export interface SaveArticleVersionResponseDto {

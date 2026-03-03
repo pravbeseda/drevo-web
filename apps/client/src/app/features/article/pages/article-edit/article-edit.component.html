@@ -39,7 +39,10 @@
             icon="visibility"
         >
             <ng-template>
-                <app-preview />
+                <app-preview
+                    [content]="editorContent()"
+                    [articleId]="articleId()"
+                />
             </ng-template>
         </ui-workspace-tab>
         <ui-workspace-tab
@@ -47,7 +50,10 @@
             icon="difference"
         >
             <ng-template>
-                <app-diff-view [oldText]="originalContent()" [newText]="editorContent()" />
+                <app-diff-view
+                    [oldText]="originalContent()"
+                    [newText]="editorContent()"
+                />
             </ng-template>
         </ui-workspace-tab>
     </ui-workspace>

@@ -7,6 +7,8 @@ import {
     ApiResponse,
     ApprovalStatusDto,
     ArticleHistoryResponseDto,
+    ArticlePreviewRequestDto,
+    ArticlePreviewResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
     ModerationRequestDto,
@@ -194,6 +196,25 @@ export class ArticleApiService {
     moderateVersion(request: ModerationRequestDto): Observable<ModerationResponseDto> {
         return this.http
             .post<ApiResponse<ModerationResponseDto>>(`${this.apiUrl}/api/articles/moderate`, request, {
+                withCredentials: true,
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                })
+            );
+    }
+
+    /**
+     * Preview formatted article content without saving
+     *
+     * @param request - Preview request with content and articleId
+     * @returns Observable with formatted HTML content
+     */
+    previewArticle(request: ArticlePreviewRequestDto): Observable<ArticlePreviewResponseDto> {
+        return this.http
+            .post<ApiResponse<ArticlePreviewResponseDto>>(`${this.apiUrl}/api/articles/preview`, request, {
                 withCredentials: true,
             })
             .pipe(

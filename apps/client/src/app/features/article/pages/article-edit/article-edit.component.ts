@@ -50,6 +50,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _error = signal<string | undefined>(undefined);
     private readonly _updateLinksState = signal<Record<string, boolean>>({});
     private readonly _originalContent = signal('');
+    private readonly _articleId = signal(0);
 
     private version: ArticleVersion | undefined;
 
@@ -58,6 +59,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly error = this._error.asReadonly();
     readonly updateLinksState = this._updateLinksState.asReadonly();
     readonly originalContent = this._originalContent.asReadonly();
+    readonly articleId = this._articleId.asReadonly();
 
     ngOnInit(): void {
         const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
@@ -68,6 +70,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         this.version = version;
+        this._articleId.set(version.articleId);
         this._originalContent.set(version.content);
         this._editorContent.set(version.content);
         this.logger.info('Version loaded for editing', {
