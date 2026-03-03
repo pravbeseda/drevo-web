@@ -6,10 +6,11 @@
 :host:has(app-article-versions),
 :host:has(app-article-edit) {
     height: 100%;
+    overflow: hidden;
 
     .article {
         display: grid;
-        grid-template-rows: 1fr;
+        grid-template-rows: minmax(0, 1fr);
         height: 100%;
     }
 }

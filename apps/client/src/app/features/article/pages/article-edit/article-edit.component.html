@@ -20,7 +20,11 @@
     />
 
     <ui-workspace (activeTabChange)="onTabChange($event)">
-        <ui-workspace-tab label="Редактор" icon="edit" [keepAlive]="true">
+        <ui-workspace-tab
+            label="Редактор"
+            icon="edit"
+            [keepAlive]="true"
+        >
             <ng-template>
                 <lib-editor
                     [content]="editorContent()"
@@ -30,12 +34,18 @@
                 />
             </ng-template>
         </ui-workspace-tab>
-        <ui-workspace-tab label="Просмотр" icon="visibility">
+        <ui-workspace-tab
+            label="Просмотр"
+            icon="visibility"
+        >
             <ng-template>
                 <app-preview />
             </ng-template>
         </ui-workspace-tab>
-        <ui-workspace-tab label="Что изменено" icon="difference">
+        <ui-workspace-tab
+            label="Что изменено"
+            icon="difference"
+        >
             <ng-template>
                 <app-diff-tab />
             </ng-template>
