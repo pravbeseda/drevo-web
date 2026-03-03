@@ -18,14 +18,7 @@ export class WorkspaceComponent {
     readonly activeIndex = this._activeIndex.asReadonly();
 
     private readonly _activatedIndices = signal(new Set<number>([0]));
-
-    isTabVisible(index: number): boolean {
-        return this._activeIndex() === index;
-    }
-
-    shouldRenderKeepAlive(index: number): boolean {
-        return this._activatedIndices().has(index);
-    }
+    readonly activatedIndices = this._activatedIndices.asReadonly();
 
     selectTab(index: number): void {
         if (index === this._activeIndex()) {

@@ -11,5 +11,5 @@ export class WorkspaceTabComponent {
     readonly keepAlive = input(false);
 
     @ContentChild(TemplateRef)
-    contentTemplate!: TemplateRef<unknown>;
+    contentTemplate?: TemplateRef<unknown>;
 }

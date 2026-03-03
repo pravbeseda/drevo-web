@@ -1,10 +1,11 @@
 import {
     ArticleHistoryService,
     HistoryDisplayItem,
+    HistoryFilter,
 } from '../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from './article-history-list.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { ArticleHistoryItem } from '@drevo-web/shared';
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
@@ -22,11 +23,24 @@ function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): Art
     };
 }
 
-function createMockService(): Partial<ArticleHistoryService> {
+interface MockArticleHistoryService {
+    readonly isLoading: WritableSignal<boolean>;
+    readonly isLoadingMore: WritableSignal<boolean>;
+    readonly activeFilter: WritableSignal<HistoryFilter>;
+    readonly hasError: WritableSignal<boolean>;
+    readonly isAuthenticated: WritableSignal<boolean>;
+    readonly hasItems: WritableSignal<boolean>;
+    readonly displayItems: WritableSignal<readonly HistoryDisplayItem[]>;
+    readonly displayTotalItems: WritableSignal<number>;
+    readonly onFilterChange: jest.Mock;
+    readonly onLoadMore: jest.Mock;
+}
+
+function createMockService(): MockArticleHistoryService {
     return {
         isLoading: signal(false),
         isLoadingMore: signal(false),
-        activeFilter: signal('all' as const),
+        activeFilter: signal<HistoryFilter>('all'),
         hasError: signal(false),
         isAuthenticated: signal(true),
         hasItems: signal(false),
@@ -39,14 +53,14 @@ function createMockService(): Partial<ArticleHistoryService> {
 
 describe('ArticleHistoryListComponent', () => {
     let spectator: Spectator<ArticleHistoryListComponent>;
-    let mockService: ReturnType<typeof createMockService>;
+    let mockService: MockArticleHistoryService;
 
     const createComponent = createComponentFactory({
         component: ArticleHistoryListComponent,
         providers: [
             {
                 provide: ArticleHistoryService,
-                useFactory: () => {
+                useFactory: (): MockArticleHistoryService => {
                     mockService = createMockService();
                     return mockService;
                 },
@@ -65,13 +79,13 @@ describe('ArticleHistoryListComponent', () => {
     });
 
     it('should show spinner while loading', () => {
-        (mockService.isLoading as any).set(true);
+        mockService.isLoading.set(true);
         spectator.detectChanges();
         expect(spectator.query('ui-spinner')).toBeTruthy();
     });
 
     it('should show error message on error', () => {
-        (mockService.hasError as any).set(true);
+        mockService.hasError.set(true);
         spectator.detectChanges();
         expect(spectator.query('[data-testid="history-error"]')).toBeTruthy();
     });
@@ -82,7 +96,7 @@ describe('ArticleHistoryListComponent', () => {
     });
 
     it('should not show empty when loading', () => {
-        (mockService.isLoading as any).set(true);
+        mockService.isLoading.set(true);
         spectator.detectChanges();
         expect(spectator.query('[data-testid="history-empty"]')).toBeFalsy();
     });
@@ -92,9 +106,9 @@ describe('ArticleHistoryListComponent', () => {
             { type: 'header', date: 'Сегодня' },
             { type: 'version', data: createMockHistoryItem() },
         ];
-        (mockService.hasItems as any).set(true);
-        (mockService.displayItems as any).set(items);
-        (mockService.displayTotalItems as any).set(2);
+        mockService.hasItems.set(true);
+        mockService.displayItems.set(items);
+        mockService.displayTotalItems.set(2);
         spectator.detectChanges();
         expect(spectator.query('ui-virtual-scroller')).toBeTruthy();
     });
