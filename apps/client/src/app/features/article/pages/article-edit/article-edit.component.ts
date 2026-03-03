@@ -15,6 +15,8 @@ import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared'
 import { ConfirmationService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
 import { first, firstValueFrom } from 'rxjs';
 
+const EDITOR_TAB_INDEX = 0;
+
 @Component({
     selector: 'app-article-edit',
     imports: [
@@ -179,7 +181,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     onTabChange(index: number): void {
-        if (index === 0) {
+        if (index === EDITOR_TAB_INDEX) {
             requestAnimationFrame(() => this.editorComponent?.requestMeasure());
         }
     }
