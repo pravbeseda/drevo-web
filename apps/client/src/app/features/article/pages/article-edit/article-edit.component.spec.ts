@@ -423,6 +423,39 @@ describe('ArticleEditComponent', () => {
         });
     });
 
+    describe('onTabChange method', () => {
+        it('should call requestMeasure via requestAnimationFrame when switching to editor tab', () => {
+            spectator.detectChanges();
+            const rafSpy = jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(cb => {
+                cb(0);
+                return 0;
+            });
+            const measureSpy = jest.fn();
+
+            // Set up a mock editorComponent with requestMeasure
+            Object.defineProperty(spectator.component, 'editorComponent', {
+                get: () => ({ requestMeasure: measureSpy }),
+                configurable: true,
+            });
+
+            spectator.component.onTabChange(0);
+
+            expect(rafSpy).toHaveBeenCalled();
+            expect(measureSpy).toHaveBeenCalled();
+            rafSpy.mockRestore();
+        });
+
+        it('should not call requestAnimationFrame when switching to non-editor tab', () => {
+            spectator.detectChanges();
+            const rafSpy = jest.spyOn(globalThis, 'requestAnimationFrame');
+
+            spectator.component.onTabChange(1);
+
+            expect(rafSpy).not.toHaveBeenCalled();
+            rafSpy.mockRestore();
+        });
+    });
+
     describe('cancel method', () => {
         it('should navigate immediately when no draft exists', async () => {
             spectator.detectChanges();

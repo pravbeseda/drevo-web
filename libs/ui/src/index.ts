@@ -15,6 +15,8 @@ export * from './lib/components/status-icon/status-icon.component';
 export * from './lib/components/text-input/text-input.component';
 export * from './lib/components/virtual-scroller/virtual-scroller.component';
 export * from './lib/components/virtual-scroller/virtual-scroller-item.directive';
+export * from './lib/components/workspace/workspace.component';
+export * from './lib/components/workspace/workspace-tab.component';
 export * from './lib/modal';
 export * from './lib/pipes/format-date/format-date.pipe';
 export * from './lib/pipes/format-time/format-time.pipe';

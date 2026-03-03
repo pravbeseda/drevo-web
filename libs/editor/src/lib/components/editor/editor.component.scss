@@ -1,9 +1,11 @@
 :host {
     display: flex;
     flex: 1;
+    min-height: 0;
 }
 
 .editor-container {
     display: flex;
     flex: 1;
+    min-height: 0;
 }

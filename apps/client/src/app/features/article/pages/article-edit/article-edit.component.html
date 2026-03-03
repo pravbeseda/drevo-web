@@ -19,14 +19,36 @@
         (activated)="cancel()"
     />
 
-    <div class="article-edit">
-        <div class="editor-container">
-            <lib-editor
-                [content]="editorContent()"
-                [linksStatus]="updateLinksState()"
-                (updateLinksEvent)="updateLinks($event)"
-                (contentChanged)="contentChanged($event)"
-            />
-        </div>
-    </div>
+    <ui-workspace (activeTabChange)="onTabChange($event)">
+        <ui-workspace-tab
+            label="Редактор"
+            icon="edit"
+            [keepAlive]="true"
+        >
+            <ng-template>
+                <lib-editor
+                    [content]="editorContent()"
+                    [linksStatus]="updateLinksState()"
+                    (updateLinksEvent)="updateLinks($event)"
+                    (contentChanged)="contentChanged($event)"
+                />
+            </ng-template>
+        </ui-workspace-tab>
+        <ui-workspace-tab
+            label="Просмотр"
+            icon="visibility"
+        >
+            <ng-template>
+                <app-preview />
+            </ng-template>
+        </ui-workspace-tab>
+        <ui-workspace-tab
+            label="Что изменено"
+            icon="difference"
+        >
+            <ng-template>
+                <app-diff-tab />
+            </ng-template>
+        </ui-workspace-tab>
+    </ui-workspace>
 }

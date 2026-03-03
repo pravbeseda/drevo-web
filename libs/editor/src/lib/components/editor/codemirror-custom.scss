@@ -1,8 +1,12 @@
 :host ::ng-deep {
     .cm-editor {
-        height: auto;
+        height: 100%;
         width: 100%;
         background-color: var(--themed-primary-bg);
+    }
+
+    .cm-editor .cm-scroller {
+        overflow: auto;
     }
 
     .cm-editor .cm-content {
