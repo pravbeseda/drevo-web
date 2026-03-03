@@ -41,12 +41,12 @@ describe('WorkspaceComponent', () => {
     });
 
     it('should render tab buttons for each tab', () => {
-        const buttons = spectator.queryAll('.workspace-tab');
+        const buttons = spectator.queryAll('[data-testid^="workspace-tab-btn-"]');
         expect(buttons).toHaveLength(3);
     });
 
     it('should display tab labels', () => {
-        const labels = spectator.queryAll('.workspace-tab-label');
+        const labels = spectator.queryAll('[data-testid="workspace-tab-label"]');
         expect(labels[0]).toHaveText('Editor');
         expect(labels[1]).toHaveText('Preview');
         expect(labels[2]).toHaveText('Diff');
@@ -63,9 +63,10 @@ describe('WorkspaceComponent', () => {
     it('should have first tab active by default', () => {
         expect(spectator.component.activeIndex()).toBe(0);
 
-        const buttons = spectator.queryAll('.workspace-tab');
-        expect(buttons[0]).toHaveClass('workspace-tab--active');
-        expect(buttons[1]).not.toHaveClass('workspace-tab--active');
+        const firstTab = spectator.query('[data-testid="workspace-tab-btn-0"]');
+        const secondTab = spectator.query('[data-testid="workspace-tab-btn-1"]');
+        expect(firstTab).toHaveClass('workspace-tab--active');
+        expect(secondTab).not.toHaveClass('workspace-tab--active');
     });
 
     it('should show first tab content by default', () => {
@@ -75,24 +76,22 @@ describe('WorkspaceComponent', () => {
     });
 
     it('should switch active tab on click', () => {
-        const buttons = spectator.queryAll('.workspace-tab');
-        spectator.click(buttons[1]);
+        const secondTab = spectator.query('[data-testid="workspace-tab-btn-1"]')!;
+        spectator.click(secondTab);
 
         expect(spectator.component.activeIndex()).toBe(1);
-        expect(buttons[0]).not.toHaveClass('workspace-tab--active');
-        expect(buttons[1]).toHaveClass('workspace-tab--active');
+        expect(spectator.query('[data-testid="workspace-tab-btn-0"]')).not.toHaveClass('workspace-tab--active');
+        expect(secondTab).toHaveClass('workspace-tab--active');
     });
 
     it('should emit activeTabChange on tab switch', () => {
-        const buttons = spectator.queryAll('.workspace-tab');
-        spectator.click(buttons[2]);
+        spectator.click('[data-testid="workspace-tab-btn-2"]');
 
         expect(spectator.hostComponent['tabChanged']).toHaveBeenCalledWith(2);
     });
 
     it('should not emit activeTabChange when clicking already active tab', () => {
-        const buttons = spectator.queryAll('.workspace-tab');
-        spectator.click(buttons[0]);
+        spectator.click('[data-testid="workspace-tab-btn-0"]');
 
         expect(spectator.hostComponent['tabChanged']).not.toHaveBeenCalled();
     });
@@ -100,8 +99,7 @@ describe('WorkspaceComponent', () => {
     it('should keep keepAlive tab in DOM after switching away', () => {
         expect(spectator.query('[data-testid="editor-content"]')).toBeTruthy();
 
-        const buttons = spectator.queryAll('.workspace-tab');
-        spectator.click(buttons[1]);
+        spectator.click('[data-testid="workspace-tab-btn-1"]');
         spectator.detectChanges();
 
         // keepAlive tab remains in DOM but is hidden
@@ -114,15 +112,13 @@ describe('WorkspaceComponent', () => {
     });
 
     it('should remove non-keepAlive tab from DOM after switching away', () => {
-        const buttons = spectator.queryAll('.workspace-tab');
-
         // Switch to second tab (non-keepAlive)
-        spectator.click(buttons[1]);
+        spectator.click('[data-testid="workspace-tab-btn-1"]');
         spectator.detectChanges();
         expect(spectator.query('[data-testid="preview-content"]')).toBeTruthy();
 
         // Switch to third tab
-        spectator.click(buttons[2]);
+        spectator.click('[data-testid="workspace-tab-btn-2"]');
         spectator.detectChanges();
 
         // Second tab content removed from DOM
@@ -131,9 +127,8 @@ describe('WorkspaceComponent', () => {
     });
 
     it('should set aria-label on tab buttons', () => {
-        const buttons = spectator.queryAll('.workspace-tab');
-        expect(buttons[0].getAttribute('aria-label')).toBe('Editor');
-        expect(buttons[1].getAttribute('aria-label')).toBe('Preview');
-        expect(buttons[2].getAttribute('aria-label')).toBe('Diff');
+        expect(spectator.query('[data-testid="workspace-tab-btn-0"]')!.getAttribute('aria-label')).toBe('Editor');
+        expect(spectator.query('[data-testid="workspace-tab-btn-1"]')!.getAttribute('aria-label')).toBe('Preview');
+        expect(spectator.query('[data-testid="workspace-tab-btn-2"]')!.getAttribute('aria-label')).toBe('Diff');
     });
 });

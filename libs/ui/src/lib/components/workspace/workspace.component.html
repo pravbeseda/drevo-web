@@ -27,11 +27,12 @@
             class="workspace-tab"
             type="button"
             [class.workspace-tab--active]="activeIndex() === $index"
+            [attr.data-testid]="'workspace-tab-btn-' + $index"
             [attr.aria-label]="tab.label()"
             (click)="selectTab($index)"
         >
             <ui-icon [name]="tab.icon()" size="small" />
-            <span class="workspace-tab-label">{{ tab.label() }}</span>
+            <span class="workspace-tab-label" data-testid="workspace-tab-label">{{ tab.label() }}</span>
         </button>
     }
 </div>
