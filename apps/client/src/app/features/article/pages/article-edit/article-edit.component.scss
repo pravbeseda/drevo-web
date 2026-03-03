@@ -1,11 +1,5 @@
-.article-edit {
+:host {
     display: flex;
     flex-direction: column;
-    height: 100%;
-}
-
-.editor-container {
     flex: 1;
-    overflow: auto;
-    padding-left: 0.6em;
 }

@@ -1,0 +1,35 @@
+<div class="workspace-content">
+    @for (tab of tabs(); track $index) {
+        @if (tab.keepAlive()) {
+            @if (shouldRenderKeepAlive($index)) {
+                <div
+                    class="workspace-panel"
+                    [class.workspace-panel--hidden]="!isTabVisible($index)"
+                >
+                    <ng-container [ngTemplateOutlet]="tab.contentTemplate" />
+                </div>
+            }
+        } @else {
+            @if (isTabVisible($index)) {
+                <div class="workspace-panel">
+                    <ng-container [ngTemplateOutlet]="tab.contentTemplate" />
+                </div>
+            }
+        }
+    }
+</div>
+
+<div class="workspace-tab-bar">
+    @for (tab of tabs(); track $index) {
+        <button
+            class="workspace-tab"
+            type="button"
+            [class.workspace-tab--active]="isTabVisible($index)"
+            [attr.aria-label]="tab.label()"
+            (click)="selectTab($index)"
+        >
+            <ui-icon [name]="tab.icon()" size="small" />
+            <span class="workspace-tab-label">{{ tab.label() }}</span>
+        </button>
+    }
+</div>

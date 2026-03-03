@@ -3,7 +3,8 @@
 // When the history tab is active, lock `:host` and `.article` to a fixed height
 // so the virtual scroller can fill the remaining space via flex.
 // Other tabs keep normal flow — `.main` scrolls their content as before.
-:host:has(app-article-versions) {
+:host:has(app-article-versions),
+:host:has(app-article-edit) {
     height: 100%;
 
     .article {

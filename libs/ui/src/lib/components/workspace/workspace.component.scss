@@ -1,0 +1,68 @@
+@use 'index' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.workspace-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.workspace-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+
+    &--hidden {
+        display: none;
+    }
+}
+
+.workspace-tab-bar {
+    display: flex;
+    border-top: 1px solid var(--themed-border-color);
+    container-type: inline-size;
+    container-name: workspace-tabs;
+}
+
+.workspace-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-md;
+    border: none;
+    border-top: 2px solid transparent;
+    background: none;
+    cursor: pointer;
+    transition:
+        color 0.2s,
+        border-color 0.2s;
+
+    &:hover {
+        color: var(--themed-text-primary);
+    }
+
+    &--active {
+        color: var(--themed-link-color);
+        border-top-color: var(--themed-link-color);
+    }
+}
+
+.workspace-tab-label {
+    white-space: nowrap;
+}
+
+@container workspace-tabs (max-width: 20em) {
+    .workspace-tab-label {
+        display: none;
+    }
+}

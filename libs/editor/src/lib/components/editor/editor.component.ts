@@ -24,7 +24,6 @@ const LINKS_CHECK_DEBOUNCE_MS = 300;
 
 @Component({
     selector: 'lib-editor',
-    imports: [],
     providers: [EditorFactoryService, WikiHighlighterService],
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
@@ -92,7 +91,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 filter(links => links.length > 0),
-                debounceTime(LINKS_CHECK_DEBOUNCE_MS)
+                debounceTime(LINKS_CHECK_DEBOUNCE_MS),
             )
             .subscribe(links => {
                 this.updateLinksEvent.emit(links);
@@ -111,6 +110,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         this.editor.contentDOM.setAttribute('spellcheck', 'true');
         this.editor.contentDOM.setAttribute('autocorrect', 'on');
+    }
+
+    requestMeasure(): void {
+        this.editor?.requestMeasure();
     }
 
     private insertTag(command: InsertTagCommand): void {

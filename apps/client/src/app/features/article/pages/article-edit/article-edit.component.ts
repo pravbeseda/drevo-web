@@ -3,24 +3,36 @@ import { LinksService } from '../../../../services/links/links.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
+import { DiffTabComponent } from '../../components/diff-tab/diff-tab.component';
+import { PreviewComponent } from '../../components/preview/preview.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
-import { ConfirmationService } from '@drevo-web/ui';
+import { ConfirmationService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
 import { first, firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-article-edit',
-    imports: [EditorComponent, ErrorComponent, SidebarActionComponent],
+    imports: [
+        DiffTabComponent,
+        EditorComponent,
+        ErrorComponent,
+        PreviewComponent,
+        SidebarActionComponent,
+        WorkspaceComponent,
+        WorkspaceTabComponent,
+    ],
     templateUrl: './article-edit.component.html',
     styleUrl: './article-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleEditComponent implements OnInit, OnDestroy {
+    @ViewChild(EditorComponent) private readonly editorComponent?: EditorComponent;
+
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
@@ -164,6 +176,12 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     this.notificationService.error(errorMessage);
                 },
             });
+    }
+
+    onTabChange(index: number): void {
+        if (index === 0) {
+            requestAnimationFrame(() => this.editorComponent?.requestMeasure());
+        }
     }
 
     async cancel(): Promise<void> {
