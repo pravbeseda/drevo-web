@@ -3,6 +3,7 @@ import { EditorFactoryService } from '../../services/editor-factory/editor-facto
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
 import {
     AfterViewInit,
+    ChangeDetectionStrategy,
     Component,
     DestroyRef,
     effect,
@@ -27,6 +28,7 @@ const LINKS_CHECK_DEBOUNCE_MS = 300;
     providers: [EditorFactoryService, WikiHighlighterService],
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditorComponent implements OnInit, AfterViewInit {
     private linksSubject = new BehaviorSubject<Record<string, boolean>>({});
