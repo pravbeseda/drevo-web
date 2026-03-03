@@ -1,7 +1,7 @@
+import { CmDiffViewComponent } from '../../../../shared/components/cm-diff-view/cm-diff-view.component';
+import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
 import { ModerationSidebarActionComponent } from '../../../../shared/components/moderation-sidebar-action/moderation-sidebar-action.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { CmDiffViewComponent } from '../../components/cm-diff-view/cm-diff-view.component';
-import { DiffViewComponent } from '../../components/diff-view/diff-view.component';
 import { VersionLabelComponent } from '../../components/version-label/version-label.component';
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';

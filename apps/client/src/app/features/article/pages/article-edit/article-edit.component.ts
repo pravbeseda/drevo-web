@@ -1,9 +1,9 @@
 import { ArticleService } from '../../../../services/articles';
 import { LinksService } from '../../../../services/links/links.service';
+import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { DiffTabComponent } from '../../components/diff-tab/diff-tab.component';
 import { PreviewComponent } from '../../components/preview/preview.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
@@ -20,7 +20,7 @@ const EDITOR_TAB_INDEX = 0;
 @Component({
     selector: 'app-article-edit',
     imports: [
-        DiffTabComponent,
+        DiffViewComponent,
         EditorComponent,
         ErrorComponent,
         PreviewComponent,
@@ -49,6 +49,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _isSaving = signal(false);
     private readonly _error = signal<string | undefined>(undefined);
     private readonly _updateLinksState = signal<Record<string, boolean>>({});
+    private readonly _originalContent = signal('');
 
     private version: ArticleVersion | undefined;
 
@@ -56,6 +57,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly isSaving = this._isSaving.asReadonly();
     readonly error = this._error.asReadonly();
     readonly updateLinksState = this._updateLinksState.asReadonly();
+    readonly originalContent = this._originalContent.asReadonly();
 
     ngOnInit(): void {
         const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
@@ -66,6 +68,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         this.version = version;
+        this._originalContent.set(version.content);
         this._editorContent.set(version.content);
         this.logger.info('Version loaded for editing', {
             versionId: version.versionId,

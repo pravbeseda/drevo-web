@@ -1,6 +1,5 @@
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { DiffPageDataService } from '../../services/diff-page-data.service';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-web/shared';
 
@@ -12,7 +11,8 @@ import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-we
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiffViewComponent {
-    readonly data = inject(DiffPageDataService);
+    readonly oldText = input.required<string>();
+    readonly newText = input.required<string>();
 
     private readonly logger = inject(LoggerService).withContext('DiffViewComponent');
 
@@ -24,11 +24,11 @@ export class DiffViewComponent {
     readonly collapsed = this._collapsed.asReadonly();
 
     readonly diffHtml = computed(() => {
-        const pairs = this.data.versionPairs();
+        const oldText = this.oldText();
+        const newText = this.newText();
         const engine = this._selectedEngine();
-        if (!pairs) return '';
 
-        const changes = engine.engine.computeDiff(pairs.previous.content, pairs.current.content);
+        const changes = engine.engine.computeDiff(oldText, newText);
         return this._collapsed() ? this.renderCollapsedDiffHtml(changes) : this.renderDiffHtml(changes);
     });
 

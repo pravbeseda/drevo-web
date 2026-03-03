@@ -32,10 +32,16 @@
 
     @switch (diffType()) {
         @case ('cm') {
-            <app-cm-diff-view />
+            <app-cm-diff-view
+                [oldText]="pairs.previous.content"
+                [newText]="pairs.current.content"
+            />
         }
         @case ('jsdiff') {
-            <app-diff-view />
+            <app-diff-view
+                [oldText]="pairs.previous.content"
+                [newText]="pairs.current.content"
+            />
         }
     }
 }
