@@ -131,4 +131,34 @@ describe('WorkspaceComponent', () => {
         expect(spectator.query('[data-testid="workspace-tab-btn-1"]')!.getAttribute('aria-label')).toBe('Preview');
         expect(spectator.query('[data-testid="workspace-tab-btn-2"]')!.getAttribute('aria-label')).toBe('Diff');
     });
+
+    it('should have role="tablist" on the tab bar', () => {
+        expect(spectator.query('.workspace-tab-bar')!.getAttribute('role')).toBe('tablist');
+    });
+
+    it('should have role="tab" and aria-selected on tab buttons', () => {
+        const firstTab = spectator.query('[data-testid="workspace-tab-btn-0"]')!;
+        const secondTab = spectator.query('[data-testid="workspace-tab-btn-1"]')!;
+
+        expect(firstTab.getAttribute('role')).toBe('tab');
+        expect(firstTab.getAttribute('aria-selected')).toBe('true');
+        expect(secondTab.getAttribute('aria-selected')).toBe('false');
+
+        spectator.click(secondTab);
+        spectator.detectChanges();
+
+        expect(firstTab.getAttribute('aria-selected')).toBe('false');
+        expect(secondTab.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('should link tabs to panels via aria-controls and aria-labelledby', () => {
+        const firstTab = spectator.query('[data-testid="workspace-tab-btn-0"]')!;
+        expect(firstTab.getAttribute('id')).toBe('workspace-tab-0');
+        expect(firstTab.getAttribute('aria-controls')).toBe('workspace-panel-0');
+
+        const panel = spectator.query('.workspace-panel')!;
+        expect(panel.getAttribute('role')).toBe('tabpanel');
+        expect(panel.getAttribute('id')).toBe('workspace-panel-0');
+        expect(panel.getAttribute('aria-labelledby')).toBe('workspace-tab-0');
+    });
 });

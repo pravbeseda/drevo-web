@@ -5,14 +5,22 @@
                 @if (activatedIndices().has($index)) {
                     <div
                         class="workspace-panel"
+                        role="tabpanel"
                         [class.workspace-panel--hidden]="activeIndex() !== $index"
+                        [attr.id]="'workspace-panel-' + $index"
+                        [attr.aria-labelledby]="'workspace-tab-' + $index"
                     >
                         <ng-container [ngTemplateOutlet]="tmpl" />
                     </div>
                 }
             } @else {
                 @if (activeIndex() === $index) {
-                    <div class="workspace-panel">
+                    <div
+                        class="workspace-panel"
+                        role="tabpanel"
+                        [attr.id]="'workspace-panel-' + $index"
+                        [attr.aria-labelledby]="'workspace-tab-' + $index"
+                    >
                         <ng-container [ngTemplateOutlet]="tmpl" />
                     </div>
                 }
@@ -21,14 +29,18 @@
     }
 </div>
 
-<div class="workspace-tab-bar">
+<div class="workspace-tab-bar" role="tablist">
     @for (tab of tabs(); track $index) {
         <button
             class="workspace-tab"
             type="button"
+            role="tab"
             [class.workspace-tab--active]="activeIndex() === $index"
+            [attr.id]="'workspace-tab-' + $index"
             [attr.data-testid]="'workspace-tab-btn-' + $index"
             [attr.aria-label]="tab.label()"
+            [attr.aria-selected]="activeIndex() === $index"
+            [attr.aria-controls]="'workspace-panel-' + $index"
             (click)="selectTab($index)"
         >
             <ui-icon [name]="tab.icon()" size="small" />
