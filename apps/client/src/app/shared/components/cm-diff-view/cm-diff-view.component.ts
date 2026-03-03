@@ -1,5 +1,4 @@
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { isPlatformBrowser } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -7,6 +6,7 @@ import {
     effect,
     ElementRef,
     inject,
+    input,
     OnDestroy,
     PLATFORM_ID,
     signal,
@@ -16,7 +16,6 @@ import { DiffConfig, MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeVi
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
-import { VersionPairs } from '@drevo-web/shared';
 
 type ViewMode = 'unified' | 'side-by-side';
 
@@ -70,7 +69,8 @@ const cmTheme = EditorView.theme({
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CmDiffViewComponent implements OnDestroy {
-    readonly data = inject(DiffPageDataService);
+    readonly oldText = input.required<string>();
+    readonly newText = input.required<string>();
 
     private readonly logger = inject(LoggerService).withContext('CmDiffViewComponent');
     private readonly platformId = inject(PLATFORM_ID);
@@ -86,12 +86,13 @@ export class CmDiffViewComponent implements OnDestroy {
     constructor() {
         effect(() => {
             const container = this.editorContainer();
-            const pairs = this.data.versionPairs();
+            const oldText = this.oldText();
+            const newText = this.newText();
             const mode = this._viewMode();
 
-            if (container && pairs && isPlatformBrowser(this.platformId)) {
+            if (container && isPlatformBrowser(this.platformId)) {
                 this.destroyEditorView();
-                this.createEditorView(pairs, container.nativeElement, mode);
+                this.createEditorView(oldText, newText, container.nativeElement, mode);
             }
         });
     }
@@ -127,7 +128,7 @@ export class CmDiffViewComponent implements OnDestroy {
         return this.mergeView?.b;
     }
 
-    private createEditorView(pairs: VersionPairs, container: HTMLElement, mode: ViewMode): void {
+    private createEditorView(oldText: string, newText: string, container: HTMLElement, mode: ViewMode): void {
         const commonExtensions = [
             EditorView.editable.of(false),
             EditorState.readOnly.of(true),
@@ -139,12 +140,12 @@ export class CmDiffViewComponent implements OnDestroy {
 
         if (mode === 'unified') {
             this.unifiedView = new EditorView({
-                doc: pairs.current.content,
+                doc: newText,
                 extensions: [
                     ...commonExtensions,
                     unifiedMergeView({
                         diffConfig,
-                        original: pairs.previous.content,
+                        original: oldText,
                         highlightChanges: true,
                         allowInlineDiffs: true,
                         mergeControls: false,
@@ -158,11 +159,11 @@ export class CmDiffViewComponent implements OnDestroy {
             this.mergeView = new MergeView({
                 diffConfig,
                 a: {
-                    doc: pairs.previous.content,
+                    doc: oldText,
                     extensions: commonExtensions,
                 },
                 b: {
-                    doc: pairs.current.content,
+                    doc: newText,
                     extensions: commonExtensions,
                 },
                 parent: container,

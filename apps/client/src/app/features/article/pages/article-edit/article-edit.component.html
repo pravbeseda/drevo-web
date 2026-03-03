@@ -47,7 +47,7 @@
             icon="difference"
         >
             <ng-template>
-                <app-diff-tab />
+                <app-diff-view [oldText]="originalContent()" [newText]="editorContent()" />
             </ng-template>
         </ui-workspace-tab>
     </ui-workspace>
