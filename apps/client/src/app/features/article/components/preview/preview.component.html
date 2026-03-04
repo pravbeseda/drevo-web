@@ -1,3 +1,9 @@
-<div class="placeholder">
-    <span class="placeholder-text">Предварительный просмотр (в разработке)</span>
-</div>
+@if (isLoading()) {
+    <div class="preview-loading">
+        <ui-spinner />
+    </div>
+} @else if (error()) {
+    <app-error [message]="error()" />
+} @else {
+    <app-article-content [content]="previewHtml()" />
+}

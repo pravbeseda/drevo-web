@@ -1,3 +1,5 @@
+@use 'tokens' as *;
+
 :host ::ng-deep {
     .cm-editor {
         height: 100%;
@@ -12,6 +14,7 @@
     .cm-editor .cm-content {
         color: var(--themed-text-primary);
         caret-color: var(--themed-text-primary);
+        padding: $content-padding;
     }
 
     .cm-editor .cm-line {

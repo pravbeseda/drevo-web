@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import {
     ApprovalStatus,
     ArticleHistoryResponseDto,
+    ArticlePreviewResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
     ModerationResponseDto,
@@ -623,6 +624,50 @@ describe('ArticleService', () => {
             spectator.service.getVersionPairs(10).subscribe(result => {
                 expect(result.current.comment).toBe('Moderation note');
                 expect(result.previous.comment).toBe('');
+                done();
+            });
+        });
+    });
+
+    describe('previewArticle', () => {
+        const mockPreviewResponse: ArticlePreviewResponseDto = {
+            content: '<p>Formatted with <a href="/articles/8.html">link</a></p>',
+        };
+
+        it('should call articleApiService.previewArticle with correct params', () => {
+            articleApiService.previewArticle.mockReturnValue(of(mockPreviewResponse));
+
+            spectator.service.previewArticle('wiki content', 42).subscribe();
+
+            expect(articleApiService.previewArticle).toHaveBeenCalledWith({ content: 'wiki content', articleId: 42 });
+        });
+
+        it('should return formatted HTML string', done => {
+            articleApiService.previewArticle.mockReturnValue(of(mockPreviewResponse));
+
+            spectator.service.previewArticle('wiki content', 42).subscribe(result => {
+                expect(typeof result).toBe('string');
+                done();
+            });
+        });
+
+        it('should transform article links in preview content', done => {
+            articleApiService.previewArticle.mockReturnValue(of(mockPreviewResponse));
+
+            spectator.service.previewArticle('wiki content', 42).subscribe(result => {
+                expect(result).toBe('<p>Formatted with <a href="/articles/8">link</a></p>');
+                done();
+            });
+        });
+
+        it('should not transform non-article links', done => {
+            const responseWithExternalLinks: ArticlePreviewResponseDto = {
+                content: '<a href="https://example.com">External</a>',
+            };
+            articleApiService.previewArticle.mockReturnValue(of(responseWithExternalLinks));
+
+            spectator.service.previewArticle('content', 1).subscribe(result => {
+                expect(result).toBe('<a href="https://example.com">External</a>');
                 done();
             });
         });

@@ -129,6 +129,19 @@ export class ArticleService {
     }
 
     /**
+     * Preview formatted article content without saving
+     *
+     * @param content - Raw wiki content to format
+     * @param articleId - Article ID for internal links resolution
+     * @returns Observable with formatted HTML string (with transformed links)
+     */
+    previewArticle(content: string, articleId: number): Observable<string> {
+        return this.articleApiService
+            .previewArticle({ content, articleId })
+            .pipe(map(response => this.transformArticleLinks(response.content)));
+    }
+
+    /**
      * Get article version history
      *
      * @param params - History parameters (page, pageSize, approved, author)
