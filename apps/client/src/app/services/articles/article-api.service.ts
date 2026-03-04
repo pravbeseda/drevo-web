@@ -216,6 +216,7 @@ export class ArticleApiService {
         return this.http
             .post<ApiResponse<ArticlePreviewResponseDto>>(`${this.apiUrl}/api/articles/preview`, request, {
                 withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
             })
             .pipe(
                 map(response => {
