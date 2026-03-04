@@ -600,6 +600,63 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('previewArticle', () => {
+        const mockPreviewResponse = {
+            success: true,
+            data: {
+                content: '<h2>Formatted</h2><p>Preview content</p>',
+            },
+        };
+
+        it('should call HTTP POST with correct URL and body', () => {
+            const request = { content: '== Test ==\nContent', articleId: 42 };
+
+            spectator.service.previewArticle(request).subscribe(result => {
+                expect(result).toEqual(mockPreviewResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/preview');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual(request);
+            req.flush(mockPreviewResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service.previewArticle({ content: 'test', articleId: 1 }).subscribe(result => {
+                expect(result.content).toBe('<h2>Formatted</h2><p>Preview content</p>');
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/preview');
+            req.flush(mockPreviewResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.previewArticle({ content: 'test', articleId: 1 }).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/preview');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 401 errors', done => {
+            spectator.service.previewArticle({ content: 'test', articleId: 1 }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(401);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/preview');
+            req.flush({ success: false, error: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+        });
+    });
+
     describe('error handling', () => {
         it('should throw when response.data is undefined', done => {
             spectator.service.searchArticles('test').subscribe({
