@@ -6,10 +6,12 @@
  * The selector is scoped to app-article-content to avoid affecting other elements.
  */
 
+@use 'tokens' as *;
+
 app-article-content {
     display: block;
     line-height: 1.6;
-    padding: 0 1rem;
+    padding: $content-padding;
 
     // Enable smooth scrolling for anchor navigation
     scroll-behavior: smooth;
