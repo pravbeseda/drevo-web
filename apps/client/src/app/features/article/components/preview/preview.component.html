@@ -5,7 +5,5 @@
 } @else if (error()) {
     <app-error [message]="error()" />
 } @else {
-    <div class="preview-content">
-        <app-article-content [content]="previewHtml()" />
-    </div>
+    <app-article-content [content]="previewHtml()" />
 }
