@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../../services/articles';
-import { InworkService } from '../../../../services/inwork/inwork.service';
+import { InworkService } from '../../../../services/inwork';
 import { LinksService } from '../../../../services/links/links.service';
 import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';

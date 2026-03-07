@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../../services/articles';
-import { InworkService } from '../../../../services/inwork/inwork.service';
+import { InworkService } from '../../../../services/inwork';
 import { LinksService } from '../../../../services/links/links.service';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { createMockArticle } from '../../testing/article-testing.helper';
