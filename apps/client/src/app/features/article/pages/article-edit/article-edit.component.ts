@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../../services/articles';
+import { InworkService } from '../../../../services/inwork/inwork.service';
 import { LinksService } from '../../../../services/links/links.service';
 import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
@@ -6,7 +7,16 @@ import { SidebarActionComponent } from '../../../../shared/components/sidebar-ac
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { PreviewComponent } from '../../components/preview/preview.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    inject,
+    OnDestroy,
+    OnInit,
+    signal,
+    ViewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
@@ -42,6 +52,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly draftEditorService = inject(DraftEditorService);
+    private readonly inworkService = inject(InworkService);
     private readonly confirmationService = inject(ConfirmationService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
 
@@ -53,6 +64,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _articleId = signal(0);
 
     private version: ArticleVersion | undefined;
+    private editingCleared = false;
 
     readonly editorContent = this._editorContent.asReadonly();
     readonly isSaving = this._isSaving.asReadonly();
@@ -79,6 +91,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             title: version.title,
         });
 
+        this.checkInworkAndMark(version);
+
         const draftRoute = this.getDraftRoute();
         const isReentry = this.draftEditorService.hasActiveSession(draftRoute);
 
@@ -102,6 +116,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.clearEditingMark();
         this.draftEditorService.flush();
     }
 
@@ -166,6 +181,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     });
                     this.notificationService.success('Статья сохранена');
                     this.draftEditorService.discardDraft(this.getDraftRoute());
+                    this.clearEditingMark();
                     this.router.navigate(['/articles', result.articleId]);
                 },
                 error: (err: HttpErrorResponse) => {
@@ -207,6 +223,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             if (!draft) {
                 // Discard pending input so ngOnDestroy.flush() won't persist it
                 await this.draftEditorService.discardDraft(draftRoute);
+                this.clearEditingMark();
                 this.router.navigate(navigateTo);
                 return;
             }
@@ -225,6 +242,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
 
             if (result === 'confirm') {
                 await this.draftEditorService.discardDraft(draftRoute);
+                this.clearEditingMark();
                 this.router.navigate(navigateTo);
             }
         } catch (error) {
@@ -265,5 +283,48 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const dateStr = formatDateHeader(date);
         const timeStr = formatTime(date);
         return `${dateStr}, ${timeStr}`;
+    }
+
+    private checkInworkAndMark(version: ArticleVersion): void {
+        this.inworkService
+            .checkEditor(version.title)
+            .pipe(first(), takeUntilDestroyed(this.destroyRef))
+            .subscribe(editor => {
+                if (editor) {
+                    this.showInworkWarning(editor, version);
+                } else {
+                    this.inworkService.markEditing(version.title, version.versionId).pipe(first()).subscribe();
+                }
+            });
+    }
+
+    private async showInworkWarning(editor: string, version: ArticleVersion): Promise<void> {
+        const result = await firstValueFrom(
+            this.confirmationService.open({
+                title: 'Статья редактируется',
+                message: `Эту статью сейчас редактирует участник «${editor}», одновременная работа может привести к конфликту версий. Рекомендуем Вам повременить с правкой
+  этой статьи. Вы настаиваете на редактировании?`,
+                buttons: [
+                    { key: 'back', label: 'Назад' },
+                    { key: 'continue', label: 'Редактировать', accent: 'primary' },
+                ],
+                disableClose: true,
+            }),
+        );
+
+        if (result === 'continue') {
+            this.inworkService.markEditing(version.title, version.versionId).pipe(first()).subscribe();
+        } else {
+            this.editingCleared = true;
+            this.router.navigate(['/articles', version.articleId]);
+        }
+    }
+
+    private clearEditingMark(): void {
+        if (this.editingCleared || !this.version) {
+            return;
+        }
+        this.editingCleared = true;
+        this.inworkService.clearEditing(this.version.title).pipe(first()).subscribe();
     }
 }
