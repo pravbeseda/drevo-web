@@ -211,6 +211,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 12. **Zoneless** — `provideZonelessChangeDetection()`, no `zone.js`
 13. **Styles in separate SCSS files** — no inline `styles` in component metadata, always use `styleUrl` pointing to a `.scss` file
 14. **Templates in separate HTML files** — use `templateUrl` for templates.
+15. **No inner subscribe** — never subscribe inside a `subscribe` callback. Use RxJS flattening operators (`switchMap`, `concatMap`, `mergeMap`, `exhaustMap`) to compose Observable chains instead
 
 ### Quality
 

@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../../services/articles';
+import { InworkService } from '../../../../services/inwork';
 import { LinksService } from '../../../../services/links/links.service';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { createMockArticle } from '../../testing/article-testing.helper';
@@ -26,6 +27,13 @@ const mockDraftEditorServiceProvider = { provide: DraftEditorService, useValue: 
 const mockLinks = { getLinkStatuses: jest.fn() };
 const mockLinksServiceProvider = { provide: LinksService, useValue: mockLinks };
 
+const mockInwork = {
+    getActiveEditor: jest.fn().mockReturnValue(of(undefined)),
+    markEditing: jest.fn().mockReturnValue(of(undefined)),
+    clearEditing: jest.fn().mockReturnValue(of(undefined)),
+};
+const mockInworkServiceProvider = { provide: InworkService, useValue: mockInwork };
+
 const mockVersion = createMockArticle({
     title: 'Test Article Title',
     content: '<p>Test article content</p>',
@@ -51,7 +59,7 @@ describe('ArticleEditComponent', () => {
     const createComponent = createComponentFactory({
         component: ArticleEditComponent,
         mocks: [ArticleService, NotificationService, Router, ConfirmationService],
-        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
         providers: [mockLoggerProvider(), createMockActivatedRoute()],
         detectChanges: false,
     });
@@ -62,6 +70,9 @@ describe('ArticleEditComponent', () => {
         mockDraftEditorService.onContentChanged.mockClear();
         mockDraftEditorService.discardDraft.mockClear();
         mockDraftEditorService.flush.mockClear();
+        mockInwork.getActiveEditor.mockClear().mockReturnValue(of(undefined));
+        mockInwork.markEditing.mockClear().mockReturnValue(of(undefined));
+        mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
         spectator = createComponent();
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
@@ -456,6 +467,104 @@ describe('ArticleEditComponent', () => {
         });
     });
 
+    describe('inwork integration', () => {
+        it('should check inwork status on init', () => {
+            spectator.detectChanges();
+
+            expect(mockInwork.getActiveEditor).toHaveBeenCalledWith('Test Article Title');
+        });
+
+        it('should mark editing when no other editor found', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of(undefined));
+            spectator.detectChanges();
+
+            expect(mockInwork.markEditing).toHaveBeenCalledWith('Test Article Title', 456);
+        });
+
+        it('should show warning dialog when another editor is found', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
+            confirmationService.open.mockReturnValue(NEVER);
+            spectator.detectChanges();
+
+            expect(confirmationService.open).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: 'Статья редактируется',
+                    disableClose: true,
+                }),
+            );
+            expect(mockInwork.markEditing).not.toHaveBeenCalled();
+        });
+
+        it('should mark editing when user chooses to continue despite warning', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
+            confirmationService.open.mockReturnValue(of('continue'));
+            spectator.detectChanges();
+
+            expect(mockInwork.markEditing).toHaveBeenCalledWith('Test Article Title', 456);
+        });
+
+        it('should navigate back when user chooses not to edit', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
+            confirmationService.open.mockReturnValue(of('back'));
+            spectator.detectChanges();
+
+            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
+            expect(mockInwork.markEditing).not.toHaveBeenCalled();
+        });
+
+        it('should clear editing mark on destroy', () => {
+            spectator.detectChanges();
+            spectator.component.ngOnDestroy();
+
+            expect(mockInwork.clearEditing).toHaveBeenCalledWith('Test Article Title');
+        });
+
+        it('should clear editing mark on successful save', () => {
+            const mockSaveResult: SaveArticleVersionResult = {
+                articleId: 123,
+                versionId: 999,
+                title: 'Test Article Title',
+                author: 'Test Author',
+                date: new Date('2024-01-15T10:00:00Z'),
+                approved: 0,
+            };
+            articleService.saveArticleVersion.mockReturnValue(of(mockSaveResult));
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            spectator.component.save();
+
+            expect(mockInwork.clearEditing).toHaveBeenCalledWith('Test Article Title');
+        });
+
+        it('should not clear editing mark twice', () => {
+            spectator.detectChanges();
+            spectator.component.ngOnDestroy();
+            spectator.component.ngOnDestroy();
+
+            expect(mockInwork.clearEditing).toHaveBeenCalledTimes(1);
+        });
+
+        it('should clear editing mark on cancel without draft', async () => {
+            spectator.detectChanges();
+            mockDraftEditorService.getDraft.mockResolvedValue(undefined);
+
+            await spectator.component.cancel();
+
+            expect(mockInwork.clearEditing).toHaveBeenCalledWith('Test Article Title');
+        });
+
+        it('should not clear editing mark when user chose back from inwork warning', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
+            confirmationService.open.mockReturnValue(of('back'));
+            spectator.detectChanges();
+
+            spectator.component.ngOnDestroy();
+
+            expect(mockInwork.clearEditing).not.toHaveBeenCalled();
+        });
+    });
+
     describe('cancel method', () => {
         it('should navigate immediately when no draft exists', async () => {
             spectator.detectChanges();
@@ -512,6 +621,7 @@ describe('ArticleEditComponent with undefined version', () => {
         componentProviders: [
             { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } },
             { provide: DraftEditorService, useValue: mockDraftEditorService },
+            mockInworkServiceProvider,
         ],
         providers: [
             mockLoggerProvider(),

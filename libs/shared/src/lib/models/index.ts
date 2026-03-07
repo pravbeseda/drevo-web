@@ -4,6 +4,7 @@ export * from './article-search';
 export * from './article-version-pairs';
 export * from './auth';
 export * from './editor';
+export * from './inwork';
 export * from './moderation';
 export * from './user';
 export * from './dto';
