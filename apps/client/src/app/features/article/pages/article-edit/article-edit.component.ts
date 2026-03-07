@@ -23,7 +23,7 @@ import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
 import { ConfirmationService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
-import { first, firstValueFrom } from 'rxjs';
+import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
 
 const EDITOR_TAB_INDEX = 0;
 
@@ -287,23 +287,19 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
 
     private checkInworkAndMark(version: ArticleVersion): void {
         this.inworkService
-            .checkEditor(version.title)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(editor => {
-                if (editor) {
-                    this.showInworkWarning(editor, version);
-                } else {
-                    this.inworkService
-                        .markEditing(version.title, version.versionId)
-                        .pipe(takeUntilDestroyed(this.destroyRef))
-                        .subscribe();
-                }
-            });
+            .getActiveEditor(version.title)
+            .pipe(
+                switchMap(editor => (editor ? this.confirmInworkEditing(editor, version) : of(true))),
+                filter(shouldMark => shouldMark),
+                switchMap(() => this.inworkService.markEditing(version.title, version.versionId)),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
     }
 
-    private async showInworkWarning(editor: string, version: ArticleVersion): Promise<void> {
-        const result = await firstValueFrom(
-            this.confirmationService.open({
+    private confirmInworkEditing(editor: string, version: ArticleVersion): Observable<boolean> {
+        return this.confirmationService
+            .open({
                 title: 'Статья редактируется',
                 message:
                     `Эту статью сейчас редактирует участник «${editor}», одновременная работа может привести к конфликту версий. ` +
@@ -313,18 +309,17 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     { key: 'continue', label: 'Редактировать', accent: 'primary' },
                 ],
                 disableClose: true,
-            }),
-        );
-
-        if (result === 'continue') {
-            this.inworkService
-                .markEditing(version.title, version.versionId)
-                .pipe(takeUntilDestroyed(this.destroyRef))
-                .subscribe();
-        } else {
-            this.editingCleared = true;
-            this.router.navigate(['/articles', version.articleId]);
-        }
+            })
+            .pipe(
+                map(result => {
+                    if (result === 'continue') {
+                        return true;
+                    }
+                    this.editingCleared = true;
+                    this.router.navigate(['/articles', version.articleId]);
+                    return false;
+                }),
+            );
     }
 
     private clearEditingMark(): void {

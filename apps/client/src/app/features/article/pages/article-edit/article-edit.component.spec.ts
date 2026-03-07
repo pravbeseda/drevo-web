@@ -11,7 +11,7 @@ import { SaveArticleVersionResult } from '@drevo-web/shared';
 import { ConfirmationService } from '@drevo-web/ui';
 import { NotificationService } from '@drevo-web/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { EMPTY, NEVER, of, throwError } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 
 const DRAFT_ROUTE = '/articles/123/version/456/edit';
 
@@ -28,7 +28,7 @@ const mockLinks = { getLinkStatuses: jest.fn() };
 const mockLinksServiceProvider = { provide: LinksService, useValue: mockLinks };
 
 const mockInwork = {
-    checkEditor: jest.fn().mockReturnValue(of(undefined)),
+    getActiveEditor: jest.fn().mockReturnValue(of(undefined)),
     markEditing: jest.fn().mockReturnValue(of(undefined)),
     clearEditing: jest.fn().mockReturnValue(of(undefined)),
 };
@@ -70,7 +70,7 @@ describe('ArticleEditComponent', () => {
         mockDraftEditorService.onContentChanged.mockClear();
         mockDraftEditorService.discardDraft.mockClear();
         mockDraftEditorService.flush.mockClear();
-        mockInwork.checkEditor.mockClear().mockReturnValue(of(undefined));
+        mockInwork.getActiveEditor.mockClear().mockReturnValue(of(undefined));
         mockInwork.markEditing.mockClear().mockReturnValue(of(undefined));
         mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
         spectator = createComponent();
@@ -471,18 +471,18 @@ describe('ArticleEditComponent', () => {
         it('should check inwork status on init', () => {
             spectator.detectChanges();
 
-            expect(mockInwork.checkEditor).toHaveBeenCalledWith('Test Article Title');
+            expect(mockInwork.getActiveEditor).toHaveBeenCalledWith('Test Article Title');
         });
 
         it('should mark editing when no other editor found', () => {
-            mockInwork.checkEditor.mockReturnValue(of(undefined));
+            mockInwork.getActiveEditor.mockReturnValue(of(undefined));
             spectator.detectChanges();
 
             expect(mockInwork.markEditing).toHaveBeenCalledWith('Test Article Title', 456);
         });
 
         it('should show warning dialog when another editor is found', () => {
-            mockInwork.checkEditor.mockReturnValue(of('OtherUser'));
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
             confirmationService.open.mockReturnValue(NEVER);
             spectator.detectChanges();
 
@@ -495,20 +495,18 @@ describe('ArticleEditComponent', () => {
             expect(mockInwork.markEditing).not.toHaveBeenCalled();
         });
 
-        it('should mark editing when user chooses to continue despite warning', async () => {
-            mockInwork.checkEditor.mockReturnValue(of('OtherUser'));
+        it('should mark editing when user chooses to continue despite warning', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
             confirmationService.open.mockReturnValue(of('continue'));
             spectator.detectChanges();
-            await Promise.resolve();
 
             expect(mockInwork.markEditing).toHaveBeenCalledWith('Test Article Title', 456);
         });
 
-        it('should navigate back when user chooses not to edit', async () => {
-            mockInwork.checkEditor.mockReturnValue(of('OtherUser'));
+        it('should navigate back when user chooses not to edit', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
             confirmationService.open.mockReturnValue(of('back'));
             spectator.detectChanges();
-            await Promise.resolve();
 
             expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
             expect(mockInwork.markEditing).not.toHaveBeenCalled();
@@ -556,11 +554,10 @@ describe('ArticleEditComponent', () => {
             expect(mockInwork.clearEditing).toHaveBeenCalledWith('Test Article Title');
         });
 
-        it('should not clear editing mark when user chose back from inwork warning', async () => {
-            mockInwork.checkEditor.mockReturnValue(of('OtherUser'));
+        it('should not clear editing mark when user chose back from inwork warning', () => {
+            mockInwork.getActiveEditor.mockReturnValue(of('OtherUser'));
             confirmationService.open.mockReturnValue(of('back'));
             spectator.detectChanges();
-            await Promise.resolve();
 
             spectator.component.ngOnDestroy();
 

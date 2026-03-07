@@ -1,4 +1,5 @@
 import { InworkApiService } from './inwork-api.service';
+import { AuthService } from '../auth/auth.service';
 import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { InworkItem, InworkItemDto } from '@drevo-web/shared';
@@ -11,11 +12,18 @@ const INWORK_MODULE = 'articles';
 })
 export class InworkService {
     private readonly inworkApiService = inject(InworkApiService);
+    private readonly authService = inject(AuthService);
     private readonly logger = inject(LoggerService).withContext('InworkService');
 
-    checkEditor(title: string): Observable<string | undefined> {
+    getActiveEditor(title: string): Observable<string | undefined> {
         return this.inworkApiService.check(INWORK_MODULE, title).pipe(
-            map(response => response.editor || undefined),
+            map(response => {
+                const editor = response.editor || undefined;
+                if (editor && editor === this.authService.currentUser?.name) {
+                    return undefined;
+                }
+                return editor;
+            }),
             catchError(err => {
                 this.logger.error('Failed to check inwork status', err);
                 return of(undefined);

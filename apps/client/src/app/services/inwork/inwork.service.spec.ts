@@ -1,53 +1,78 @@
+import { AuthService } from '../auth/auth.service';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { User } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 import { InworkApiService } from './inwork-api.service';
 import { InworkService } from './inwork.service';
 
+const mockUser: User = {
+    id: 1,
+    login: 'testuser',
+    name: 'Test User',
+    email: 'test@example.com',
+    role: 'user',
+    permissions: { canEdit: true, canModerate: false, canAdmin: false },
+};
+
 describe('InworkService', () => {
     let spectator: SpectatorService<InworkService>;
     let inworkApiService: jest.Mocked<InworkApiService>;
+    let authService: jest.Mocked<AuthService>;
 
     const createService = createServiceFactory({
         service: InworkService,
-        mocks: [InworkApiService],
+        mocks: [InworkApiService, AuthService],
         providers: [mockLoggerProvider()],
     });
 
     beforeEach(() => {
         spectator = createService();
         inworkApiService = spectator.inject(InworkApiService) as jest.Mocked<InworkApiService>;
+        authService = spectator.inject(AuthService) as jest.Mocked<AuthService>;
+        Object.defineProperty(authService, 'currentUser', { get: () => mockUser, configurable: true });
     });
 
     it('should be created', () => {
         expect(spectator.service).toBeTruthy();
     });
 
-    describe('checkEditor', () => {
+    describe('getActiveEditor', () => {
         it('should delegate to InworkApiService with articles module', () => {
-            inworkApiService.check.mockReturnValue(of({ editor: 'User1' }));
+            inworkApiService.check.mockReturnValue(of({ editor: 'Other User' }));
 
-            spectator.service.checkEditor('Test Title').subscribe();
+            spectator.service.getActiveEditor('Test Title').subscribe();
 
             expect(inworkApiService.check).toHaveBeenCalledWith('articles', 'Test Title');
         });
 
-        it('should return editor name when present', () => {
-            inworkApiService.check.mockReturnValue(of({ editor: 'User1' }));
+        it('should return editor name when another user is editing', () => {
+            inworkApiService.check.mockReturnValue(of({ editor: 'Other User' }));
 
             let result: string | undefined;
-            spectator.service.checkEditor('Test').subscribe(r => {
+            spectator.service.getActiveEditor('Test').subscribe(r => {
                 result = r;
             });
 
-            expect(result).toBe('User1');
+            expect(result).toBe('Other User');
+        });
+
+        it('should return undefined when current user is the editor', () => {
+            inworkApiService.check.mockReturnValue(of({ editor: 'Test User' }));
+
+            let result: string | undefined;
+            spectator.service.getActiveEditor('Test').subscribe(r => {
+                result = r;
+            });
+
+            expect(result).toBeUndefined();
         });
 
         it('should return undefined when editor is empty string', () => {
             inworkApiService.check.mockReturnValue(of({ editor: '' }));
 
             let result: string | undefined;
-            spectator.service.checkEditor('Test').subscribe(r => {
+            spectator.service.getActiveEditor('Test').subscribe(r => {
                 result = r;
             });
 
@@ -58,7 +83,7 @@ describe('InworkService', () => {
             inworkApiService.check.mockReturnValue(of({ editor: undefined }));
 
             let result: string | undefined;
-            spectator.service.checkEditor('Test').subscribe(r => {
+            spectator.service.getActiveEditor('Test').subscribe(r => {
                 result = r;
             });
 
@@ -69,7 +94,7 @@ describe('InworkService', () => {
             inworkApiService.check.mockReturnValue(throwError(() => new Error('Network error')));
 
             let result: string | undefined;
-            spectator.service.checkEditor('Test').subscribe(r => {
+            spectator.service.getActiveEditor('Test').subscribe(r => {
                 result = r;
             });
 
