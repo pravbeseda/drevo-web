@@ -120,7 +120,7 @@ describe('InworkService', () => {
                 result = r;
             });
 
-            expect(result).toEqual([{ id: 1, module: 'articles', title: 'Test', author: 'User', lasttime: '2024-01-01', age: 10 }]);
+            expect(result).toEqual([{ id: 1, module: 'articles', title: 'Test', author: 'User', lastTime: '2024-01-01', age: 10 }]);
         });
 
         it('should not emit on error', () => {

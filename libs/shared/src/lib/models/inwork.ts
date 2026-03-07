@@ -3,6 +3,6 @@ export interface InworkItem {
     readonly module: string;
     readonly title: string;
     readonly author: string;
-    readonly lasttime: string;
+    readonly lastTime: string;
     readonly age: number;
 }

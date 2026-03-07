@@ -60,6 +60,13 @@ export class InworkService {
     }
 
     private mapItem(dto: InworkItemDto): InworkItem {
-        return { ...dto };
+        return {
+            id: dto.id,
+            module: dto.module,
+            title: dto.title,
+            author: dto.author,
+            lastTime: dto.lasttime,
+            age: dto.age,
+        };
     }
 }
