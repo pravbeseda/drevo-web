@@ -288,12 +288,15 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private checkInworkAndMark(version: ArticleVersion): void {
         this.inworkService
             .checkEditor(version.title)
-            .pipe(first(), takeUntilDestroyed(this.destroyRef))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(editor => {
                 if (editor) {
                     this.showInworkWarning(editor, version);
                 } else {
-                    this.inworkService.markEditing(version.title, version.versionId).pipe(first()).subscribe();
+                    this.inworkService
+                        .markEditing(version.title, version.versionId)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe();
                 }
             });
     }
@@ -302,8 +305,9 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const result = await firstValueFrom(
             this.confirmationService.open({
                 title: 'Статья редактируется',
-                message: `Эту статью сейчас редактирует участник «${editor}», одновременная работа может привести к конфликту версий. Рекомендуем Вам повременить с правкой
-  этой статьи. Вы настаиваете на редактировании?`,
+                message:
+                    `Эту статью сейчас редактирует участник «${editor}», одновременная работа может привести к конфликту версий. ` +
+                    'Рекомендуем Вам повременить с правкой этой статьи. Вы настаиваете на редактировании?',
                 buttons: [
                     { key: 'back', label: 'Назад' },
                     { key: 'continue', label: 'Редактировать', accent: 'primary' },
@@ -313,7 +317,10 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         );
 
         if (result === 'continue') {
-            this.inworkService.markEditing(version.title, version.versionId).pipe(first()).subscribe();
+            this.inworkService
+                .markEditing(version.title, version.versionId)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe();
         } else {
             this.editingCleared = true;
             this.router.navigate(['/articles', version.articleId]);
@@ -325,6 +332,6 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             return;
         }
         this.editingCleared = true;
-        this.inworkService.clearEditing(this.version.title).pipe(first()).subscribe();
+        this.inworkService.clearEditing(this.version.title).subscribe();
     }
 }

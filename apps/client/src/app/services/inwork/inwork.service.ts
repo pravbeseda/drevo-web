@@ -2,7 +2,7 @@ import { InworkApiService } from './inwork-api.service';
 import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { InworkItem, InworkItemDto } from '@drevo-web/shared';
-import { EMPTY, Observable, catchError, map } from 'rxjs';
+import { EMPTY, Observable, catchError, map, of } from 'rxjs';
 
 const INWORK_MODULE = 'articles';
 
@@ -18,7 +18,7 @@ export class InworkService {
             map(response => response.editor || undefined),
             catchError(err => {
                 this.logger.error('Failed to check inwork status', err);
-                return EMPTY;
+                return of(undefined);
             }),
         );
     }
@@ -52,13 +52,6 @@ export class InworkService {
     }
 
     private mapItem(dto: InworkItemDto): InworkItem {
-        return {
-            id: dto.id,
-            module: dto.module,
-            title: dto.title,
-            author: dto.author,
-            lasttime: dto.lasttime,
-            age: dto.age,
-        };
+        return { ...dto };
     }
 }
