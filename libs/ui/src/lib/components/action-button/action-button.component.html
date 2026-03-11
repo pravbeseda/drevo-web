@@ -18,8 +18,8 @@
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
             >
-                @if (iconFile()) {
-                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                @if (svgIcon()) {
+                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
@@ -42,8 +42,8 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                @if (iconFile()) {
-                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                @if (svgIcon()) {
+                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
@@ -67,8 +67,8 @@
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
             >
-                @if (iconFile()) {
-                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                @if (svgIcon()) {
+                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
@@ -91,8 +91,8 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                @if (iconFile()) {
-                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                @if (svgIcon()) {
+                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }

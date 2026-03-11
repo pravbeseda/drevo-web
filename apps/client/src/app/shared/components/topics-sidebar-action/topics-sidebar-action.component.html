@@ -1,7 +1,7 @@
 @if (canModerate()) {
     <app-sidebar-action
         icon="category"
-        [iconFile]="firstTopicIcon()"
+        [svgIcon]="firstTopicIcon()"
         label="Темы"
         (activated)="togglePanel()"
     />
@@ -22,11 +22,10 @@
                             [ngModel]="isTopicSelected(topic.id)"
                             (valueChanged)="onTopicToggle(topic.id, $event)"
                         />
-                        <img
+                        <mat-icon
                             class="topics-panel__icon"
-                            [src]="getTopicIconPath(topic.icon)"
-                            [alt]="topic.name"
-                        />
+                            [svgIcon]="topic.icon"
+                        ></mat-icon>
                     </div>
                 }
             </div>

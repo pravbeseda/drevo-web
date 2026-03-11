@@ -18,8 +18,8 @@
     }
 
     &__icon {
-        width: 16px;
-        height: 16px;
+        --mat-icon-size: 16px;
+
         color: var(--themed-text-secondary);
     }
 

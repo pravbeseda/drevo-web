@@ -15,6 +15,8 @@ import {
     createIndexedDBLogProvider,
     createSentryLogProvider,
 } from '@drevo-web/core';
+import { getTopicIconPath, TOPICS } from '@drevo-web/shared';
+import { provideSvgIcons } from '@drevo-web/ui';
 
 // Build log providers array based on environment
 const logProviders = [
@@ -39,6 +41,8 @@ export const appConfig: ApplicationConfig = {
                 return () => authService.currentUser?.login;
             },
         },
+        // SVG icons registration
+        provideSvgIcons(TOPICS.map(t => ({ name: t.icon, url: getTopicIconPath(t.icon) }))),
         // Logging configuration
         provideLogProductionMode(environment.production),
         provideLogProviders(logProviders),

@@ -4,13 +4,14 @@ import { SidebarActionComponent } from '../sidebar-action/sidebar-action.compone
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { MatIcon } from '@angular/material/icon';
 import { LoggerService } from '@drevo-web/core';
-import { getTopicIconPath, getTopicsByIds, TOPICS } from '@drevo-web/shared';
+import { getTopicsByIds, TOPICS } from '@drevo-web/shared';
 import { ButtonComponent, CheckboxComponent, SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-topics-sidebar-action',
-    imports: [FormsModule, SidebarActionComponent, SidePanelComponent, CheckboxComponent, ButtonComponent],
+    imports: [FormsModule, MatIcon, SidebarActionComponent, SidePanelComponent, CheckboxComponent, ButtonComponent],
     templateUrl: './topics-sidebar-action.component.html',
     styleUrl: './topics-sidebar-action.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,7 +36,7 @@ export class TopicsSidebarActionComponent {
             return undefined;
         }
         const matched = getTopicsByIds(topicIds);
-        return matched.length > 0 ? getTopicIconPath(matched[0].icon) : undefined;
+        return matched.length > 0 ? matched[0].icon : undefined;
     });
 
     readonly topicCount = computed(() => this.topics().length);
@@ -97,7 +98,4 @@ export class TopicsSidebarActionComponent {
             });
     }
 
-    protected getTopicIconPath(icon: string): string {
-        return getTopicIconPath(icon);
-    }
 }

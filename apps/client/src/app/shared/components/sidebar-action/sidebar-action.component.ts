@@ -17,7 +17,7 @@ export class SidebarActionComponent implements OnDestroy {
     private readonly actionId = `sidebar-action-${nextId++}`;
 
     readonly icon = input.required<string>();
-    readonly iconFile = input<string>();
+    readonly svgIcon = input<string>();
     readonly label = input.required<string>();
     readonly priority = input<SidebarActionPriority>('secondary');
     readonly link = input<string>();
@@ -31,7 +31,7 @@ export class SidebarActionComponent implements OnDestroy {
             const action: SidebarAction = {
                 id: this.actionId,
                 icon: this.icon(),
-                iconFile: this.iconFile(),
+                svgIcon: this.svgIcon(),
                 label: this.label(),
                 priority: this.priority(),
                 link,

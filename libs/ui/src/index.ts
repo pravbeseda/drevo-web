@@ -24,3 +24,4 @@ export * from './lib/pipes/highlight/highlight.pipe';
 export * from './lib/components/tabs/tabs.component';
 export * from './lib/components/tabs-group/tabs-group.component';
 export * from './lib/constants/breakpoints';
+export * from './lib/providers/svg-icons';
