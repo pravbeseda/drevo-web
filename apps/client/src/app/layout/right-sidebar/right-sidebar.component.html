@@ -8,6 +8,7 @@
             [priority]="action.priority"
             [link]="action.link"
             [disabled]="action.disabled"
+            [badge]="action.badge"
             (clicked)="action.link ? undefined : action.action?.()"
         />
     }
@@ -26,6 +27,7 @@
             [showTooltip]="true"
             [link]="main.link"
             [disabled]="main.disabled"
+            [badge]="main.badge"
             (clicked)="main.link ? undefined : main.action?.()"
         />
 
@@ -54,6 +56,7 @@
                         [showLabel]="false"
                         [link]="action.link"
                         [disabled]="action.disabled"
+                        [badge]="action.badge"
                         (clicked)="action.link ? undefined : handleSpeedDialAction(action)"
                     />
                 }

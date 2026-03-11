@@ -22,6 +22,7 @@ export class SidebarActionComponent implements OnDestroy {
     readonly priority = input<SidebarActionPriority>('secondary');
     readonly link = input<string>();
     readonly disabled = input<boolean>();
+    readonly badge = input<number>();
 
     readonly activated = output<void>();
 
@@ -36,6 +37,7 @@ export class SidebarActionComponent implements OnDestroy {
                 priority: this.priority(),
                 link,
                 disabled: this.disabled(),
+                badge: this.badge(),
                 action: link ? undefined : () => this.activated.emit(),
             };
 

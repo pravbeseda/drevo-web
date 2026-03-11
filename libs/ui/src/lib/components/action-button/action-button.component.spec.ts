@@ -174,4 +174,19 @@ describe('ActionButtonComponent', () => {
             expect(button?.hasAttribute('disabled')).toBe(true);
         });
     });
+
+    describe('badge', () => {
+        it('should not show badge by default', () => {
+            expect(spectator.query('.action-button__badge')).toBeFalsy();
+        });
+
+        it('should show badge when badge input is set', () => {
+            spectator.setInput('badge', 3);
+
+            const badge = spectator.query('.action-button__badge');
+
+            expect(badge).toBeTruthy();
+            expect(badge?.textContent?.trim()).toBe('3');
+        });
+    });
 });

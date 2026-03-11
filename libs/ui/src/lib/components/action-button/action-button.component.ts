@@ -26,6 +26,7 @@ export class ActionButtonComponent {
     showLabel = input<boolean>(false);
     link = input<string>();
     disabled = input<boolean>();
+    badge = input<number>();
 
     clicked = output<void>();
 

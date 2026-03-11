@@ -26,6 +26,9 @@
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
                 }
+                @if (badge()) {
+                    <span class="action-button__badge">{{ badge() }}</span>
+                }
             </a>
         } @else {
             <button
@@ -49,6 +52,9 @@
                 }
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
+                }
+                @if (badge()) {
+                    <span class="action-button__badge">{{ badge() }}</span>
                 }
             </button>
         }
@@ -75,6 +81,9 @@
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
                 }
+                @if (badge()) {
+                    <span class="action-button__badge">{{ badge() }}</span>
+                }
             </a>
         } @else {
             <button
@@ -98,6 +107,9 @@
                 }
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
+                }
+                @if (badge()) {
+                    <span class="action-button__badge">{{ badge() }}</span>
                 }
             </button>
         }

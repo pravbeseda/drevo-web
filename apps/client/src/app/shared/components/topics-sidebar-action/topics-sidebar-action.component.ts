@@ -40,6 +40,10 @@ export class TopicsSidebarActionComponent {
     });
 
     readonly topicCount = computed(() => this.topics().length);
+    readonly topicBadge = computed(() => {
+        const count = this.topicCount();
+        return count > 1 ? count : undefined;
+    });
 
     private readonly _isPanelOpen = signal(false);
     readonly isPanelOpen = this._isPanelOpen.asReadonly();
