@@ -15,6 +15,10 @@
             <div class="topics-panel__list">
                 @for (topic of allTopics; track topic.id) {
                     <div class="topics-panel__item">
+                        <mat-icon
+                            class="topics-panel__icon"
+                            [svgIcon]="topic.icon"
+                        ></mat-icon>
                         <ui-checkbox
                             [label]="topic.name"
                             [attr.data-testid]="'topic-' + topic.id"
@@ -22,10 +26,6 @@
                             [ngModel]="isTopicSelected(topic.id)"
                             (valueChanged)="onTopicToggle(topic.id, $event)"
                         />
-                        <mat-icon
-                            class="topics-panel__icon"
-                            [svgIcon]="topic.icon"
-                        ></mat-icon>
                     </div>
                 }
             </div>
