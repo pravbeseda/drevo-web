@@ -9,3 +9,4 @@ export * from './moderation';
 export * from './user';
 export * from './dto';
 export * from './sidebar';
+export * from './topic';

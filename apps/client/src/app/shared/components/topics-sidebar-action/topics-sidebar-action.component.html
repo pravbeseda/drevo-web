@@ -1,0 +1,53 @@
+@if (canModerate()) {
+    <app-sidebar-action
+        icon="category"
+        [iconFile]="firstTopicIcon()"
+        label="Темы"
+        (activated)="togglePanel()"
+    />
+
+    <ui-side-panel
+        header="Темы статьи"
+        [open]="isPanelOpen()"
+        (closed)="closePanel()"
+    >
+        <div class="topics-panel">
+            <div class="topics-panel__list">
+                @for (topic of allTopics; track topic.id) {
+                    <div class="topics-panel__item">
+                        <ui-checkbox
+                            [label]="topic.name"
+                            [attr.data-testid]="'topic-' + topic.id"
+                            [disabled]="isSaving()"
+                            [ngModel]="isTopicSelected(topic.id)"
+                            (valueChanged)="onTopicToggle(topic.id, $event)"
+                        />
+                        <img
+                            class="topics-panel__icon"
+                            [src]="getTopicIconPath(topic.icon)"
+                            [alt]="topic.name"
+                        />
+                    </div>
+                }
+            </div>
+            <div class="topics-panel__actions">
+                <ui-button
+                    variant="filled"
+                    accent="primary"
+                    [loading]="isSaving()"
+                    [disabled]="isSaving()"
+                    (click)="save()"
+                >
+                    OK
+                </ui-button>
+                <ui-button
+                    variant="outlined"
+                    [disabled]="isSaving()"
+                    (click)="closePanel()"
+                >
+                    Отмена
+                </ui-button>
+            </div>
+        </div>
+    </ui-side-panel>
+}

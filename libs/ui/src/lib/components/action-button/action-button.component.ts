@@ -17,6 +17,7 @@ export type ActionButtonSize = 'default' | 'mini';
 })
 export class ActionButtonComponent {
     icon = input.required<string>();
+    iconFile = input<string>();
     label = input.required<string>();
     priority = input<SidebarActionPriority>('secondary');
     variant = input<ActionButtonVariant>('default');

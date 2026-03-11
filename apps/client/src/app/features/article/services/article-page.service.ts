@@ -34,6 +34,19 @@ export class ArticlePageService {
         this.logger.error('Article error', { message });
     }
 
+    updateTopics(topics: ReadonlyArray<number>): void {
+        const current = this._article();
+        if (!current) {
+            return;
+        }
+
+        this._article.set({ ...current, topics });
+        this.logger.info('Article topics updated', {
+            id: current.articleId,
+            topics,
+        });
+    }
+
     updateApproval(approved: ApprovalStatus, comment: string): void {
         const current = this._article();
         if (!current) {

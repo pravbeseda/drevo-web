@@ -18,7 +18,11 @@
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
+                @if (iconFile()) {
+                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                } @else {
+                    <mat-icon>{{ icon() }}</mat-icon>
+                }
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
                 }
@@ -38,7 +42,11 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
+                @if (iconFile()) {
+                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                } @else {
+                    <mat-icon>{{ icon() }}</mat-icon>
+                }
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
                 }
@@ -59,7 +67,11 @@
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
+                @if (iconFile()) {
+                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                } @else {
+                    <mat-icon>{{ icon() }}</mat-icon>
+                }
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
                 }
@@ -79,7 +91,11 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
+                @if (iconFile()) {
+                    <img class="action-button__icon-file" [src]="iconFile()" [alt]="label()" />
+                } @else {
+                    <mat-icon>{{ icon() }}</mat-icon>
+                }
                 @if (showLabel()) {
                     <span class="action-button__label">{{ label() }}</span>
                 }

@@ -15,6 +15,7 @@ export interface ArticleVersion extends Article {
     readonly approved: ApprovalStatus;
     readonly info: string;
     readonly comment: string;
+    readonly topics: readonly number[];
 }
 
 /**

@@ -14,6 +14,16 @@
     />
 }
 
+@if (articleId(); as id) {
+    @if (topics(); as t) {
+        <app-topics-sidebar-action
+            [articleId]="id"
+            [topics]="t"
+            (topicsChanged)="topicsChanged.emit($event)"
+        />
+    }
+}
+
 @if (version(); as v) {
     <app-moderation-sidebar-action
         [version]="v"

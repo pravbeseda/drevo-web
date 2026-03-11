@@ -1,0 +1,30 @@
+.topics-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    &__icon {
+        width: 16px;
+        height: 16px;
+        color: var(--themed-text-secondary);
+    }
+
+    &__actions {
+        display: flex;
+        gap: 8px;
+    }
+}

@@ -3,6 +3,7 @@
     @for (action of actions(); track action.id) {
         <ui-action-button
             [icon]="action.icon"
+            [iconFile]="action.iconFile"
             [label]="action.label"
             [priority]="action.priority"
             [link]="action.link"
@@ -18,6 +19,7 @@
         <ui-action-button
             data-testid="fab-main"
             [icon]="main.icon"
+            [iconFile]="main.iconFile"
             [label]="main.label"
             [priority]="main.priority"
             [variant]="menuActions().length > 0 ? 'main' : 'menu'"
@@ -44,6 +46,7 @@
                 @for (action of menuActions(); track action.id) {
                     <ui-action-button
                         [icon]="action.icon"
+                        [iconFile]="action.iconFile"
                         [label]="action.label"
                         [priority]="action.priority"
                         variant="speed-dial"
