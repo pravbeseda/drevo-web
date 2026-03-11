@@ -22,7 +22,7 @@
                     />
                     <span class="tab-label">{{ tab.label }}</span>
                     @if (tab.badge !== undefined) {
-                        <span class="tab-badge">{{ tab.badge }}</span>
+                        <ui-badge [value]="tab.badge" />
                     }
                 </a>
             }

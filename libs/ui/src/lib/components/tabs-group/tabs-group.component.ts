@@ -1,3 +1,4 @@
+import { BadgeComponent } from '../badge/badge.component';
 import { IconComponent } from '../icon/icon.component';
 import { ChangeDetectionStrategy, Component, input, Signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -18,7 +19,7 @@ export interface TabGroup {
 
 @Component({
     selector: 'ui-tabs-group',
-    imports: [RouterLink, RouterLinkActive, IconComponent],
+    imports: [RouterLink, RouterLinkActive, BadgeComponent, IconComponent],
     templateUrl: './tabs-group.component.html',
     styleUrl: './tabs-group.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

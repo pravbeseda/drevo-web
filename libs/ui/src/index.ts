@@ -1,4 +1,5 @@
 export * from './lib/components/action-button/action-button.component';
+export * from './lib/components/badge/badge.component';
 export * from './lib/components/button/button.component';
 export * from './lib/components/checkbox/checkbox.component';
 export * from './lib/confirmation';

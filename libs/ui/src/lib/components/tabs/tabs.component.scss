@@ -11,18 +11,6 @@ mat-tab-nav-panel {
     min-height: 0;
 }
 
-.tab-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
+ui-badge {
     margin-left: 8px;
-    border-radius: 10px;
-    font-size: $font-size-sm;
-    font-weight: 500;
-    line-height: 1;
-    background-color: var(--themed-tab-badge-bg);
-    color: var(--themed-tab-badge-text);
 }

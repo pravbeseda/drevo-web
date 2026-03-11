@@ -12,7 +12,7 @@
         >
             {{ tab.label }}
             @if (tab.badge !== undefined) {
-                <span class="tab-badge">{{ tab.badge }}</span>
+                <ui-badge [value]="tab.badge" />
             }
         </a>
     }

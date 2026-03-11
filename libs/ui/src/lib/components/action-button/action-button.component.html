@@ -27,7 +27,10 @@
                     <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
-                    <span class="action-button__badge">{{ badge() }}</span>
+                    <ui-badge
+                        [value]="badge()"
+                        class="action-button__badge"
+                    />
                 }
             </a>
         } @else {
@@ -54,7 +57,10 @@
                     <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
-                    <span class="action-button__badge">{{ badge() }}</span>
+                    <ui-badge
+                        [value]="badge()!"
+                        class="action-button__badge"
+                    />
                 }
             </button>
         }
@@ -82,7 +88,10 @@
                     <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
-                    <span class="action-button__badge">{{ badge() }}</span>
+                    <ui-badge
+                        [value]="badge()!"
+                        class="action-button__badge"
+                    />
                 }
             </a>
         } @else {
@@ -109,7 +118,10 @@
                     <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
-                    <span class="action-button__badge">{{ badge() }}</span>
+                    <ui-badge
+                        [value]="badge()!"
+                        class="action-button__badge"
+                    />
                 }
             </button>
         }

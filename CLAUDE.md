@@ -319,6 +319,7 @@ All accessed via `@drevo-web/ui`.
 
 | Component | Selector | Notes |
 |-----------|----------|-------|
+| Badge | `ui-badge` | Input: `value: number \| string` |
 | Button | `ui-button` | |
 | IconButton | `ui-icon-button` | |
 | ActionButton | `ui-action-button` | |

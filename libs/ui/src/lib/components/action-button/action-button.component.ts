@@ -1,3 +1,4 @@
+import { BadgeComponent } from '../badge/badge.component';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatFabButton, MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -10,7 +11,7 @@ export type ActionButtonSize = 'default' | 'mini';
 
 @Component({
     selector: 'ui-action-button',
-    imports: [RouterLink, MatFabButton, MatMiniFabButton, MatIcon, MatTooltip],
+    imports: [RouterLink, MatFabButton, MatMiniFabButton, MatIcon, MatTooltip, BadgeComponent],
     templateUrl: './action-button.component.html',
     styleUrl: './action-button.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
