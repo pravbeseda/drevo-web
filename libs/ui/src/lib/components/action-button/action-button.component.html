@@ -15,8 +15,9 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? label() : ''"
+                [matTooltip]="showTooltip() ? tooltipText() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
             >
                 @if (svgIcon()) {
                     <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
@@ -43,8 +44,9 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? label() : ''"
+                [matTooltip]="showTooltip() ? tooltipText() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
@@ -76,8 +78,9 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? label() : ''"
+                [matTooltip]="showTooltip() ? tooltipText() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
             >
                 @if (svgIcon()) {
                     <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
@@ -104,8 +107,9 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? label() : ''"
+                [matTooltip]="showTooltip() ? tooltipText() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
                 [disabled]="disabled()"
                 (click)="onClick()"
             >

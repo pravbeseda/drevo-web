@@ -45,6 +45,11 @@ export class TopicsSidebarActionComponent {
         return count > 1 ? count : undefined;
     });
 
+    readonly topicsTooltip = computed(() => {
+        const matched = getTopicsByIds(this.topics());
+        return matched.length > 0 ? matched.map(t => t.name).join('\n') : undefined;
+    });
+
     private readonly _isPanelOpen = signal(false);
     readonly isPanelOpen = this._isPanelOpen.asReadonly();
 
