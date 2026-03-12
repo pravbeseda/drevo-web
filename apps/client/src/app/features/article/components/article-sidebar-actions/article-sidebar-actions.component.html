@@ -29,6 +29,7 @@
 @if (version(); as v) {
     <app-moderation-sidebar-action
         [version]="v"
+        [priority]="moderationPriority()"
         (moderated)="moderated.emit($event)"
     />
 }
