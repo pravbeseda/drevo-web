@@ -238,7 +238,7 @@ export class ArticleApiService {
             .post<ApiResponse<{ readonly topics: readonly number[] }>>(
                 `${this.apiUrl}/api/articles/${articleId}/topics`,
                 { topics },
-                { withCredentials: true }
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) }
             )
             .pipe(
                 map(response => {

@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { getTopicsByIds, TOPICS } from '@drevo-web/shared';
 import { ButtonComponent, CheckboxComponent, SidePanelComponent } from '@drevo-web/ui';
 
@@ -26,6 +26,7 @@ export class TopicsSidebarActionComponent {
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('TopicsSidebarAction');
+    private readonly notification = inject(NotificationService);
 
     private readonly user = toSignal(this.authService.user$);
     readonly canModerate = computed(() => this.user()?.permissions.canModerate ?? false);
@@ -98,10 +99,12 @@ export class TopicsSidebarActionComponent {
                     this._isSaving.set(false);
                     this._isPanelOpen.set(false);
                     this.topicsChanged.emit(updatedTopics);
+                    this.notification.success('Словники сохранены');
                     this.logger.info('Topics updated', { articleId, topics: updatedTopics });
                 },
                 error: () => {
                     this._isSaving.set(false);
+                    this.notification.error('Не удалось сохранить словники');
                     this.logger.error('Failed to update topics', { articleId });
                 },
             });
