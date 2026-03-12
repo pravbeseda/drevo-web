@@ -1,5 +1,6 @@
 @if (canModerate()) {
     <app-sidebar-action
+        [order]="50"
         [icon]="moderationIcon()"
         label="Модерация"
         [disabled]="disabled()"

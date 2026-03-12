@@ -7,6 +7,7 @@ export interface SidebarAction {
     label: string;
     priority: SidebarActionPriority;
     link?: string;
+    order?: number;
     disabled?: boolean;
     badge?: number;
     action?: () => void;

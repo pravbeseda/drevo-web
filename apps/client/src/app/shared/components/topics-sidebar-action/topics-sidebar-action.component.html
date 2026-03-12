@@ -1,5 +1,6 @@
 @if (canModerate()) {
     <app-sidebar-action
+        [order]="40"
         [priority]="topicCount() > 0 ? 'secondary' : 'primary'"
         icon="question_mark"
         [svgIcon]="firstTopicIcon()"

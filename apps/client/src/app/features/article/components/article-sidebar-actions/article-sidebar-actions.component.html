@@ -1,4 +1,5 @@
 <app-sidebar-action
+    [order]="10"
     icon="toc"
     label="Содержание"
     priority="secondary"
@@ -7,6 +8,7 @@
 
 @if (editUrl(); as url) {
     <app-sidebar-action
+        [order]="30"
         icon="edit"
         label="Редактировать"
         priority="primary"
