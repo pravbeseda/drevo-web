@@ -45,9 +45,9 @@ export class TopicsSidebarActionComponent {
         return count > 1 ? count : undefined;
     });
 
-    readonly topicsTooltip = computed(() => {
+    readonly topicsLabel = computed(() => {
         const matched = getTopicsByIds(this.topics());
-        return matched.length > 0 ? matched.map(t => t.name).join('\n') : undefined;
+        return matched.length > 0 ? matched.map(t => t.name).join('\n') : 'Укажите словник';
     });
 
     private readonly _isPanelOpen = signal(false);
@@ -106,5 +106,4 @@ export class TopicsSidebarActionComponent {
                 },
             });
     }
-
 }

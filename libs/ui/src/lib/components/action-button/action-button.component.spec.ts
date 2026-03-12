@@ -111,21 +111,6 @@ describe('ActionButtonComponent', () => {
         });
     });
 
-    describe('showLabel', () => {
-        it('should not show label by default', () => {
-            expect(spectator.query('.action-button__label')).toBeFalsy();
-        });
-
-        it('should show label when showLabel is true', () => {
-            spectator.setInput('showLabel', true);
-
-            const label = spectator.query('.action-button__label');
-
-            expect(label).toBeTruthy();
-            expect(label?.textContent?.trim()).toBe('Edit');
-        });
-    });
-
     describe('link', () => {
         it('should render anchor when link is provided', () => {
             spectator.setInput('link', '/edit/123');

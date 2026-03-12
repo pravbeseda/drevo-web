@@ -1,5 +1,5 @@
 import { BadgeComponent } from '../badge/badge.component';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatFabButton, MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -20,13 +20,10 @@ export class ActionButtonComponent {
     icon = input.required<string>();
     svgIcon = input<string>();
     label = input.required<string>();
-    tooltip = input<string>();
-    protected readonly tooltipText = computed(() => this.tooltip() || this.label());
     priority = input<SidebarActionPriority>('secondary');
     variant = input<ActionButtonVariant>('default');
     size = input<ActionButtonSize>('default');
     showTooltip = input<boolean>(true);
-    showLabel = input<boolean>(false);
     link = input<string>();
     disabled = input<boolean>();
     badge = input<number>();

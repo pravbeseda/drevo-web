@@ -5,7 +5,6 @@ export interface SidebarAction {
     icon: string;
     svgIcon?: string;
     label: string;
-    tooltip?: string;
     priority: SidebarActionPriority;
     link?: string;
     disabled?: boolean;

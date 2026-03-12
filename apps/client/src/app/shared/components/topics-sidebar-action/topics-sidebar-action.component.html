@@ -1,15 +1,15 @@
 @if (canModerate()) {
     <app-sidebar-action
-        icon="category"
+        [priority]="topicCount() > 0 ? 'secondary' : 'primary'"
+        icon="question_mark"
         [svgIcon]="firstTopicIcon()"
-        label="Темы"
-        [tooltip]="topicsTooltip()"
+        [label]="topicsLabel()"
         [badge]="topicBadge()"
         (activated)="togglePanel()"
     />
 
     <ui-side-panel
-        header="Темы статьи"
+        header="Словники"
         [open]="isPanelOpen()"
         (closed)="closePanel()"
     >

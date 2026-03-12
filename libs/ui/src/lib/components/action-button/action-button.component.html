@@ -15,7 +15,7 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? tooltipText() : ''"
+                [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
             >
@@ -23,9 +23,6 @@
                     <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
                     <ui-badge
@@ -44,7 +41,7 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? tooltipText() : ''"
+                [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
                 [disabled]="disabled()"
@@ -54,9 +51,6 @@
                     <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
                     <ui-badge
@@ -78,7 +72,7 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? tooltipText() : ''"
+                [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
             >
@@ -86,9 +80,6 @@
                     <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
                     <ui-badge
@@ -107,7 +98,7 @@
                 [class.action-button--menu]="variant() === 'menu'"
                 [class.action-button--speed-dial]="variant() === 'speed-dial'"
                 [attr.aria-label]="label()"
-                [matTooltip]="showTooltip() ? tooltipText() : ''"
+                [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
                 [disabled]="disabled()"
@@ -117,9 +108,6 @@
                     <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
                 }
                 @if (badge()) {
                     <ui-badge

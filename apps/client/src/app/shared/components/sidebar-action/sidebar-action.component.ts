@@ -19,7 +19,6 @@ export class SidebarActionComponent implements OnDestroy {
     readonly icon = input.required<string>();
     readonly svgIcon = input<string>();
     readonly label = input.required<string>();
-    readonly tooltip = input<string>();
     readonly priority = input<SidebarActionPriority>('secondary');
     readonly link = input<string>();
     readonly disabled = input<boolean>();
@@ -35,7 +34,6 @@ export class SidebarActionComponent implements OnDestroy {
                 icon: this.icon(),
                 svgIcon: this.svgIcon(),
                 label: this.label(),
-                tooltip: this.tooltip(),
                 priority: this.priority(),
                 link,
                 disabled: this.disabled(),
