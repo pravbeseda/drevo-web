@@ -194,6 +194,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 3. **No `null`** — use `undefined` instead of `null` everywhere
 4. **Readonly interface properties** — all interface properties must be `readonly` by default
 5. **No magic numbers** — extract into named constants. Exception: CSS margin/padding/sizes of atomic UI components
+6. **No non-null assertion (`!`)** — do not use `!` operator in TypeScript or templates. Use type narrowing (`if`, `@if ... as`, optional chaining) instead. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files; in templates — convention (use `@if (value(); as v)` pattern instead of `value()!`)
 
 ### Angular
 
