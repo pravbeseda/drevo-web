@@ -15,11 +15,18 @@
         justify-content: center;
     }
 
-    // Ensure SVG icons scale to fit mat-icon container
+    // Ensure SVG icons scale and center within mat-icon container
+    // stylelint-disable-next-line selector-pseudo-element-no-unknown
+    &::ng-deep mat-icon[data-mat-icon-type='svg'] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     // stylelint-disable-next-line selector-pseudo-element-no-unknown
     &::ng-deep mat-icon svg {
-        width: 100%;
-        height: 100%;
+        width: 24px;
+        height: 24px;
     }
 
     // Primary variant
