@@ -7,5 +7,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BadgeComponent {
-    readonly value = input.required<number | string | undefined>();
+    readonly value = input<number | string>();
 }

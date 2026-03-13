@@ -19,14 +19,14 @@
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
             >
-                @if (svgIcon()) {
-                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
+                @if (svgIcon(); as svg) {
+                    <mat-icon [svgIcon]="svg"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
-                @if (badge()) {
+                @if (badge(); as b) {
                     <ui-badge
-                        [value]="badge()"
+                        [value]="b"
                         class="action-button__badge"
                     />
                 }
@@ -47,14 +47,14 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                @if (svgIcon()) {
-                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
+                @if (svgIcon(); as svg) {
+                    <mat-icon [svgIcon]="svg"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
-                @if (badge()) {
+                @if (badge(); as b) {
                     <ui-badge
-                        [value]="badge()!"
+                        [value]="b"
                         class="action-button__badge"
                     />
                 }
@@ -76,14 +76,14 @@
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
             >
-                @if (svgIcon()) {
-                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
+                @if (svgIcon(); as svg) {
+                    <mat-icon [svgIcon]="svg"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
-                @if (badge()) {
+                @if (badge(); as b) {
                     <ui-badge
-                        [value]="badge()!"
+                        [value]="b"
                         class="action-button__badge"
                     />
                 }
@@ -104,14 +104,14 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                @if (svgIcon()) {
-                    <mat-icon [svgIcon]="svgIcon()!"></mat-icon>
+                @if (svgIcon(); as svg) {
+                    <mat-icon [svgIcon]="svg"></mat-icon>
                 } @else {
                     <mat-icon>{{ icon() }}</mat-icon>
                 }
-                @if (badge()) {
+                @if (badge(); as b) {
                     <ui-badge
-                        [value]="badge()!"
+                        [value]="b"
                         class="action-button__badge"
                     />
                 }

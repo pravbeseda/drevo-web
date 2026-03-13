@@ -57,14 +57,14 @@ export class TopicsSidebarActionComponent {
     private readonly _isSaving = signal(false);
     readonly isSaving = this._isSaving.asReadonly();
 
-    readonly selectedTopics = signal<ReadonlyArray<number>>([]);
+    private readonly _selectedTopics = signal<ReadonlyArray<number>>([]);
 
     protected readonly allTopics = TOPICS;
 
     togglePanel(): void {
         const isOpen = this._isPanelOpen();
         if (!isOpen) {
-            this.selectedTopics.set([...this.topics()]);
+            this._selectedTopics.set([...this.topics()]);
         }
         this._isPanelOpen.set(!isOpen);
     }
@@ -74,7 +74,7 @@ export class TopicsSidebarActionComponent {
     }
 
     onTopicToggle(topicId: number, checked: boolean): void {
-        this.selectedTopics.update(current => {
+        this._selectedTopics.update(current => {
             if (checked) {
                 return current.includes(topicId) ? current : [...current, topicId];
             }
@@ -83,13 +83,13 @@ export class TopicsSidebarActionComponent {
     }
 
     isTopicSelected(topicId: number): boolean {
-        return this.selectedTopics().includes(topicId);
+        return this._selectedTopics().includes(topicId);
     }
 
     save(): void {
         this._isSaving.set(true);
         const articleId = this.articleId();
-        const topics = this.selectedTopics();
+        const topics = this._selectedTopics();
 
         this.articleService
             .updateTopics(articleId, topics)
