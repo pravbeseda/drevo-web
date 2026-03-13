@@ -1,4 +1,4 @@
-import { ENVIRONMENT_INITIALIZER, EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, inject, makeEnvironmentProviders, provideEnvironmentInitializer } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -9,17 +9,13 @@ export interface SvgIconConfig {
 
 export function provideSvgIcons(icons: readonly SvgIconConfig[]): EnvironmentProviders {
     return makeEnvironmentProviders([
-        {
-            provide: ENVIRONMENT_INITIALIZER,
-            multi: true,
-            useValue: () => {
-                const registry = inject(MatIconRegistry);
-                const sanitizer = inject(DomSanitizer);
+        provideEnvironmentInitializer(() => {
+            const registry = inject(MatIconRegistry);
+            const sanitizer = inject(DomSanitizer);
 
-                for (const icon of icons) {
-                    registry.addSvgIcon(icon.name, sanitizer.bypassSecurityTrustResourceUrl(icon.url));
-                }
-            },
-        },
+            for (const icon of icons) {
+                registry.addSvgIcon(icon.name, sanitizer.bypassSecurityTrustResourceUrl(icon.url));
+            }
+        }),
     ]);
 }
