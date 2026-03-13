@@ -71,7 +71,7 @@ describe('TabsGroupComponent', () => {
     });
 
     it('should show badge when badge value is provided', () => {
-        const badge = spectator.query('.tab-badge');
+        const badge = spectator.query('ui-badge');
         expect(badge).toBeTruthy();
         expect(badge).toHaveText('5');
     });
@@ -82,7 +82,7 @@ describe('TabsGroupComponent', () => {
                 items: [{ label: 'No Badge', route: '/test', icon: 'article' }],
             },
         ]);
-        const badge = spectator.query('.tab-badge');
+        const badge = spectator.query('ui-badge');
         expect(badge).toBeFalsy();
     });
 

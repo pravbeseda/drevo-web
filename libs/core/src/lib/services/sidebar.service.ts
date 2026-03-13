@@ -7,7 +7,9 @@ import { SidebarAction } from '@drevo-web/shared';
 export class SidebarService {
     private readonly actionsMap = signal<Map<string, SidebarAction>>(new Map());
 
-    readonly actions = computed(() => Array.from(this.actionsMap().values()));
+    readonly actions = computed(() =>
+        Array.from(this.actionsMap().values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    );
 
     registerAction(action: SidebarAction): void {
         this.actionsMap.update(map => {

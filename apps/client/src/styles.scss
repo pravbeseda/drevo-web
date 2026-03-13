@@ -163,3 +163,13 @@ html.dark-theme body {
     padding: 0;
     border-radius: 0;
 }
+
+// ============================================================================
+// TOOLTIP STYLES
+// ============================================================================
+
+// Multi-line tooltip for action buttons (applied via matTooltipClass)
+.action-button-tooltip .mdc-tooltip__surface {
+    white-space: pre-line;
+    text-align: left;
+}

@@ -111,21 +111,6 @@ describe('ActionButtonComponent', () => {
         });
     });
 
-    describe('showLabel', () => {
-        it('should not show label by default', () => {
-            expect(spectator.query('.action-button__label')).toBeFalsy();
-        });
-
-        it('should show label when showLabel is true', () => {
-            spectator.setInput('showLabel', true);
-
-            const label = spectator.query('.action-button__label');
-
-            expect(label).toBeTruthy();
-            expect(label?.textContent?.trim()).toBe('Edit');
-        });
-    });
-
     describe('link', () => {
         it('should render anchor when link is provided', () => {
             spectator.setInput('link', '/edit/123');
@@ -172,6 +157,21 @@ describe('ActionButtonComponent', () => {
             const button = spectator.query('button');
 
             expect(button?.hasAttribute('disabled')).toBe(true);
+        });
+    });
+
+    describe('badge', () => {
+        it('should not show badge by default', () => {
+            expect(spectator.query('.action-button__badge')).toBeFalsy();
+        });
+
+        it('should show badge when badge input is set', () => {
+            spectator.setInput('badge', 3);
+
+            const badge = spectator.query('.action-button__badge');
+
+            expect(badge).toBeTruthy();
+            expect(badge?.textContent?.trim()).toBe('3');
         });
     });
 });

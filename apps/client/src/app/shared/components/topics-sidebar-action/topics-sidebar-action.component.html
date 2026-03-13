@@ -1,0 +1,58 @@
+@if (canModerate()) {
+    <app-sidebar-action
+        [order]="40"
+        [priority]="topicCount() > 0 ? 'secondary' : 'primary'"
+        icon="question_mark"
+        [svgIcon]="firstTopicIcon()"
+        [label]="topicsLabel()"
+        [badge]="topicBadge()"
+        (activated)="togglePanel()"
+    />
+
+    <ui-side-panel
+        header="Словники"
+        [open]="isPanelOpen()"
+        (closed)="closePanel()"
+    >
+        @if (isPanelOpen()) {
+            <div class="topics-panel">
+                <div class="topics-panel__list">
+                    @for (topic of allTopics; track topic.id) {
+                        <div class="topics-panel__item">
+                            <ui-icon
+                                class="topics-panel__icon"
+                                [svgIcon]="topic.icon"
+                                size="small"
+                            />
+                            <ui-checkbox
+                                [label]="topic.name"
+                                [attr.data-testid]="'topic-' + topic.id"
+                                [disabled]="isSaving()"
+                                [ngModel]="selectedTopics().has(topic.id)"
+                                (valueChanged)="onTopicToggle(topic.id, $event)"
+                            />
+                        </div>
+                    }
+                </div>
+                <div class="topics-panel__actions">
+                    <ui-button
+                        variant="filled"
+                        accent="primary"
+                        [loading]="isSaving()"
+                        [disabled]="isSaving()"
+                        (click)="save()"
+                    >
+                        OK
+                    </ui-button>
+                    <ui-button
+                        variant="outlined"
+                        [disabled]="isSaving()"
+                        (click)="closePanel()"
+                    >
+                        Отмена
+                    </ui-button>
+                </div>
+            </div>
+        }
+    </ui-side-panel>
+}

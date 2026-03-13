@@ -52,21 +52,6 @@
     white-space: nowrap;
 }
 
-.tab-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 10px;
-    font-size: $font-size-sm;
-    font-weight: 500;
-    line-height: 1;
-    background-color: var(--themed-tab-badge-bg);
-    color: var(--themed-tab-badge-text);
-}
-
 .tabs-group-content {
     flex: 1;
     min-height: 0;

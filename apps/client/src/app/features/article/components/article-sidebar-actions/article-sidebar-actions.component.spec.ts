@@ -110,10 +110,55 @@ describe('ArticleSidebarActionsComponent', () => {
                 comment: 'OK',
             };
 
-            const moderation = spectator.query(ModerationSidebarActionComponent)!;
-            moderation.onModerated(result);
+            const moderation = spectator.query(ModerationSidebarActionComponent);
+            expect(moderation).toBeTruthy();
+            moderation?.onModerated(result);
 
             expect(spy).toHaveBeenCalledWith(result);
+        });
+    });
+
+    describe('moderationPriority', () => {
+        it('should be secondary when topics are not provided', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.detectChanges();
+            expect(spectator.component.moderationPriority()).toBe('secondary');
+        });
+
+        it('should be secondary when topics are empty', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.setInput('topics', []);
+            spectator.detectChanges();
+            expect(spectator.component.moderationPriority()).toBe('secondary');
+        });
+
+        it('should be primary when topics are present', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.setInput('topics', [1, 2]);
+            spectator.detectChanges();
+            expect(spectator.component.moderationPriority()).toBe('primary');
+        });
+
+        it('should be secondary when topics are present but version is approved', () => {
+            spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Approved });
+            spectator.setInput('topics', [1, 2]);
+            spectator.detectChanges();
+            expect(spectator.component.moderationPriority()).toBe('secondary');
+        });
+
+        it('should be secondary when topics are present but version is rejected', () => {
+            spectator.setInput('version', { ...mockVersion, approved: ApprovalStatus.Rejected });
+            spectator.setInput('topics', [1, 2]);
+            spectator.detectChanges();
+            expect(spectator.component.moderationPriority()).toBe('secondary');
+        });
+
+        it('should pass priority to moderation component', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.setInput('topics', [1]);
+            spectator.detectChanges();
+            const moderation = spectator.query(ModerationSidebarActionComponent);
+            expect(moderation?.priority()).toBe('primary');
         });
     });
 

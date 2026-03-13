@@ -30,6 +30,10 @@ export class ArticleContentTabComponent {
         this.pageService.updateApproval(result.approved, result.comment);
     }
 
+    onTopicsChanged(topics: ReadonlyArray<number>): void {
+        this.pageService.updateTopics(topics);
+    }
+
     constructor() {
         this.route.fragment.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
             this.currentFragment = fragment ?? undefined;

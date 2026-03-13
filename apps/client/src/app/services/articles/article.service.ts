@@ -155,6 +155,17 @@ export class ArticleService {
             .pipe(map(response => this.mapHistoryResponse(response)));
     }
 
+    /**
+     * Update article topics
+     *
+     * @param articleId - Article ID
+     * @param topics - Array of topic IDs
+     * @returns Observable with updated topic IDs
+     */
+    updateTopics(articleId: number, topics: readonly number[]): Observable<readonly number[]> {
+        return this.articleApiService.updateTopics(articleId, topics);
+    }
+
     private mapArticleVersion(response: ArticleVersionDto): ArticleVersion {
         return {
             articleId: response.articleId,
@@ -168,6 +179,7 @@ export class ArticleService {
             approved: response.approved,
             info: response.info,
             comment: response.comment,
+            topics: response.topics ?? [],
         };
     }
 

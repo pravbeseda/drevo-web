@@ -5,6 +5,7 @@
     />
 } @else {
     <app-sidebar-action
+        [order]="30"
         icon="save"
         label="Сохранить"
         priority="primary"
@@ -12,6 +13,7 @@
         (activated)="save()"
     />
     <app-sidebar-action
+        [order]="20"
         icon="close"
         label="Отмена"
         priority="secondary"

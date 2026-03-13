@@ -1,4 +1,5 @@
 <app-sidebar-action
+    [order]="10"
     icon="toc"
     label="Содержание"
     priority="secondary"
@@ -7,6 +8,7 @@
 
 @if (editUrl(); as url) {
     <app-sidebar-action
+        [order]="30"
         icon="edit"
         label="Редактировать"
         priority="primary"
@@ -14,9 +16,20 @@
     />
 }
 
+@if (articleId(); as id) {
+    @if (topics(); as t) {
+        <app-topics-sidebar-action
+            [articleId]="id"
+            [topics]="t"
+            (topicsChanged)="topicsChanged.emit($event)"
+        />
+    }
+}
+
 @if (version(); as v) {
     <app-moderation-sidebar-action
         [version]="v"
+        [priority]="moderationPriority()"
         (moderated)="moderated.emit($event)"
     />
 }

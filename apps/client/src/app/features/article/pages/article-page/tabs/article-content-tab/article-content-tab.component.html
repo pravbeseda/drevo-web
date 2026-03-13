@@ -2,7 +2,10 @@
     <app-article-sidebar-actions
         [version]="article"
         [editUrl]="editUrl()"
+        [articleId]="article.articleId"
+        [topics]="article.topics"
         (moderated)="onModerated($event)"
+        (topicsChanged)="onTopicsChanged($event)"
     />
     <app-article-content
         class="article-content"

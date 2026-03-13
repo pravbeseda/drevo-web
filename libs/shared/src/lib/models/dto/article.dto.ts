@@ -35,6 +35,7 @@ export interface ArticleVersionDto extends ArticlePageDto {
     readonly new: boolean;
     readonly info: string;
     readonly comment: string;
+    readonly topics?: readonly number[];
 }
 
 /**

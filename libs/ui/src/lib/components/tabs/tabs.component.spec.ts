@@ -40,20 +40,20 @@ describe('TabsComponent', () => {
     });
 
     it('should show badge when badge value is provided', () => {
-        const badge = spectator.query('.tab-badge');
+        const badge = spectator.query('ui-badge');
         expect(badge).toBeTruthy();
         expect(badge).toHaveText('5');
     });
 
     it('should not show badge when badge is undefined', () => {
         spectator.setInput('tabs', [{ label: 'No Badge', route: '/no-badge' }]);
-        const badge = spectator.query('.tab-badge');
+        const badge = spectator.query('ui-badge');
         expect(badge).toBeFalsy();
     });
 
     it('should show badge with zero value', () => {
         spectator.setInput('tabs', [{ label: 'Zero', route: '/zero', badge: 0 }]);
-        const badge = spectator.query('.tab-badge');
+        const badge = spectator.query('ui-badge');
         expect(badge).toBeTruthy();
         expect(badge).toHaveText('0');
     });

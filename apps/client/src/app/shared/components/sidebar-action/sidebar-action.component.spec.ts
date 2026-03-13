@@ -232,4 +232,19 @@ describe('SidebarActionComponent', () => {
             expect(updatedAction.id).toBe(initialAction.id);
         });
     });
+
+    describe('badge', () => {
+        beforeEach(() => {
+            spectator = createComponent({
+                props: { icon: 'category', label: 'Topics', badge: 3 },
+            });
+            sidebarService = spectator.inject(SidebarService);
+        });
+
+        it('should register action with badge value', () => {
+            const action = sidebarService.registerAction.mock.calls[0][0];
+
+            expect(action.badge).toBe(3);
+        });
+    });
 });

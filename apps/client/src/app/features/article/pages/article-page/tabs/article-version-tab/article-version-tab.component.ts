@@ -48,6 +48,10 @@ export class ArticleVersionTabComponent implements OnInit {
         this._version.update(v => (v ? { ...v, approved: result.approved, comment: result.comment } : v));
     }
 
+    onTopicsChanged(topics: ReadonlyArray<number>): void {
+        this._version.update(v => (v ? { ...v, topics } : v));
+    }
+
     ngOnInit(): void {
         this.route.paramMap
             .pipe(

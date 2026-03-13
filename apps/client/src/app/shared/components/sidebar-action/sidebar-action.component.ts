@@ -17,10 +17,13 @@ export class SidebarActionComponent implements OnDestroy {
     private readonly actionId = `sidebar-action-${nextId++}`;
 
     readonly icon = input.required<string>();
+    readonly svgIcon = input<string>();
     readonly label = input.required<string>();
     readonly priority = input<SidebarActionPriority>('secondary');
     readonly link = input<string>();
+    readonly order = input<number>();
     readonly disabled = input<boolean>();
+    readonly badge = input<number>();
 
     readonly activated = output<void>();
 
@@ -30,10 +33,13 @@ export class SidebarActionComponent implements OnDestroy {
             const action: SidebarAction = {
                 id: this.actionId,
                 icon: this.icon(),
+                svgIcon: this.svgIcon(),
                 label: this.label(),
                 priority: this.priority(),
+                order: this.order(),
                 link,
                 disabled: this.disabled(),
+                badge: this.badge(),
                 action: link ? undefined : () => this.activated.emit(),
             };
 

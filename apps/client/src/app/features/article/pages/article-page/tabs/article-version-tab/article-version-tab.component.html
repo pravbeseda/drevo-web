@@ -8,7 +8,10 @@
     <app-article-sidebar-actions
         [version]="version"
         [editUrl]="versionEditUrl()"
+        [articleId]="version.articleId"
+        [topics]="version.topics"
         (moderated)="onModerated($event)"
+        (topicsChanged)="onTopicsChanged($event)"
     />
     <div
         class="version-banner"

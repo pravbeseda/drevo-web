@@ -1,7 +1,22 @@
+<ng-template #iconContent>
+    @if (svgIcon(); as svg) {
+        <mat-icon [svgIcon]="svg"></mat-icon>
+    } @else {
+        <mat-icon>{{ icon() }}</mat-icon>
+    }
+    @if (badge(); as b) {
+        <ui-badge
+            [value]="b"
+            class="action-button__badge"
+        />
+    }
+</ng-template>
+
 <span
     [matTooltip]="showTooltip() ? 'Недоступно: ' + label() : ''"
     [matTooltipDisabled]="!disabled()"
     matTooltipPosition="left"
+    matTooltipClass="action-button-tooltip"
 >
     @if (size() === 'mini') {
         @if (link() && !disabled()) {
@@ -17,11 +32,9 @@
                 [attr.aria-label]="label()"
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </a>
         } @else {
             <button
@@ -35,13 +48,11 @@
                 [attr.aria-label]="label()"
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </button>
         }
     } @else {
@@ -58,11 +69,9 @@
                 [attr.aria-label]="label()"
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </a>
         } @else {
             <button
@@ -76,13 +85,11 @@
                 [attr.aria-label]="label()"
                 [matTooltip]="showTooltip() ? label() : ''"
                 matTooltipPosition="left"
+                matTooltipClass="action-button-tooltip"
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                <mat-icon>{{ icon() }}</mat-icon>
-                @if (showLabel()) {
-                    <span class="action-button__label">{{ label() }}</span>
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </button>
         }
     }

@@ -227,6 +227,28 @@ export class ArticleApiService {
     }
 
     /**
+     * Update article topics
+     *
+     * @param articleId - Article ID
+     * @param topics - Array of topic IDs
+     * @returns Observable with updated topic IDs
+     */
+    updateTopics(articleId: number, topics: readonly number[]): Observable<readonly number[]> {
+        return this.http
+            .post<ApiResponse<{ readonly topics: readonly number[] }>>(
+                `${this.apiUrl}/api/articles/${articleId}/topics`,
+                { topics },
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) }
+            )
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data.topics;
+                })
+            );
+    }
+
+    /**
      * Get two versions for diff comparison
      *
      * @param version1 - Primary version ID

@@ -3,10 +3,12 @@
     @for (action of actions(); track action.id) {
         <ui-action-button
             [icon]="action.icon"
+            [svgIcon]="action.svgIcon"
             [label]="action.label"
             [priority]="action.priority"
             [link]="action.link"
             [disabled]="action.disabled"
+            [badge]="action.badge"
             (clicked)="action.link ? undefined : action.action?.()"
         />
     }
@@ -18,12 +20,14 @@
         <ui-action-button
             data-testid="fab-main"
             [icon]="main.icon"
+            [svgIcon]="main.svgIcon"
             [label]="main.label"
             [priority]="main.priority"
             [variant]="menuActions().length > 0 ? 'main' : 'menu'"
             [showTooltip]="true"
             [link]="main.link"
             [disabled]="main.disabled"
+            [badge]="main.badge"
             (clicked)="main.link ? undefined : main.action?.()"
         />
 
@@ -44,13 +48,14 @@
                 @for (action of menuActions(); track action.id) {
                     <ui-action-button
                         [icon]="action.icon"
+                        [svgIcon]="action.svgIcon"
                         [label]="action.label"
                         [priority]="action.priority"
                         variant="speed-dial"
                         [showTooltip]="true"
-                        [showLabel]="false"
                         [link]="action.link"
                         [disabled]="action.disabled"
+                        [badge]="action.badge"
                         (clicked)="action.link ? undefined : handleSpeedDialAction(action)"
                     />
                 }

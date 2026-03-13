@@ -6,7 +6,7 @@ import { VersionLabelComponent } from '../../components/version-label/version-la
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LoggerService, StorageService } from '@drevo-web/core';
-import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
+import { ApprovalStatus, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
 
 type DiffViewType = 'cm' | 'jsdiff';
 
@@ -36,6 +36,13 @@ export class DiffPageComponent {
         const pairs = this.data.versionPairs();
         if (!pairs) return false;
         return pairs.previous.approved === ApprovalStatus.Approved;
+    });
+
+    readonly moderationPriority = computed<SidebarActionPriority>(() => {
+        const pairs = this.data.versionPairs();
+        return this.isModerationEnabled() && pairs?.current.approved === ApprovalStatus.Pending
+            ? 'primary'
+            : 'secondary';
     });
 
     private readonly _diffType = signal<DiffViewType>(this.loadDiffType());
