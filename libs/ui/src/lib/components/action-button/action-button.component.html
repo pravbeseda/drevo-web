@@ -16,6 +16,7 @@
     [matTooltip]="showTooltip() ? 'Недоступно: ' + label() : ''"
     [matTooltipDisabled]="!disabled()"
     matTooltipPosition="left"
+    matTooltipClass="action-button-tooltip"
 >
     @if (size() === 'mini') {
         @if (link() && !disabled()) {
