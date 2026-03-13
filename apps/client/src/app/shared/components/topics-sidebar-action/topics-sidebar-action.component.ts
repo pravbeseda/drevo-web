@@ -3,15 +3,22 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { getTopicsByIds, TOPICS } from '@drevo-web/shared';
 import { ButtonComponent, CheckboxComponent, IconComponent, SidePanelComponent } from '@drevo-web/ui';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'app-topics-sidebar-action',
-    imports: [FormsModule, SidebarActionComponent, SidePanelComponent, CheckboxComponent, ButtonComponent, IconComponent],
+    imports: [
+        FormsModule,
+        SidebarActionComponent,
+        SidePanelComponent,
+        CheckboxComponent,
+        ButtonComponent,
+        IconComponent,
+    ],
     templateUrl: './topics-sidebar-action.component.html',
     styleUrl: './topics-sidebar-action.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -95,7 +102,7 @@ export class TopicsSidebarActionComponent {
             .updateTopics(articleId, topics)
             .pipe(
                 finalize(() => this._isSaving.set(false)),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe({
                 next: updatedTopics => {
