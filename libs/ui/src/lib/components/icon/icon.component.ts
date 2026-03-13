@@ -12,8 +12,8 @@ export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IconComponent {
-    name = input.required<string>();
-    svgIcon = input<string>();
-    size = input<IconSize>('medium');
-    tooltip = input<string>();
+    readonly name = input<string>();
+    readonly svgIcon = input<string>();
+    readonly size = input<IconSize>('medium');
+    readonly tooltip = input<string>();
 }

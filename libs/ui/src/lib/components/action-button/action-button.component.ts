@@ -17,18 +17,18 @@ export type ActionButtonSize = 'default' | 'mini';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActionButtonComponent {
-    icon = input.required<string>();
-    svgIcon = input<string>();
-    label = input.required<string>();
-    priority = input<SidebarActionPriority>('secondary');
-    variant = input<ActionButtonVariant>('default');
-    size = input<ActionButtonSize>('default');
-    showTooltip = input<boolean>(true);
-    link = input<string>();
-    disabled = input<boolean>();
-    badge = input<number>();
+    readonly icon = input.required<string>();
+    readonly svgIcon = input<string>();
+    readonly label = input.required<string>();
+    readonly priority = input<SidebarActionPriority>('secondary');
+    readonly variant = input<ActionButtonVariant>('default');
+    readonly size = input<ActionButtonSize>('default');
+    readonly showTooltip = input<boolean>(true);
+    readonly link = input<string>();
+    readonly disabled = input<boolean>();
+    readonly badge = input<number>();
 
-    clicked = output<void>();
+    readonly clicked = output<void>();
 
     protected onClick(): void {
         this.clicked.emit();
