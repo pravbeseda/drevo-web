@@ -1,7 +1,15 @@
+import { MatIconRegistry } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { DomSanitizer } from '@angular/platform-browser';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconComponent } from './icon.component';
+
+function registerFakeSvgIcon(spectator: Spectator<IconComponent>, name: string): void {
+    const registry = spectator.inject(MatIconRegistry);
+    const sanitizer = spectator.inject(DomSanitizer);
+    registry.addSvgIconLiteral(name, sanitizer.bypassSecurityTrustHtml('<svg></svg>'));
+}
 
 describe('IconComponent', () => {
     let spectator: Spectator<IconComponent>;
@@ -49,5 +57,68 @@ describe('IconComponent', () => {
             read: MatTooltip,
         });
         expect(tooltipDirective?.message).toBeFalsy();
+    });
+
+    describe('svgIcon', () => {
+        const SVG_ICON_NAME = 'topic_person';
+
+        const createSvgComponent = createComponentFactory({
+            component: IconComponent,
+            imports: [NoopAnimationsModule],
+            detectChanges: false,
+        });
+
+        it('should render mat-icon with svgIcon when svgIcon is provided', () => {
+            spectator = createSvgComponent({ props: { name: 'home', svgIcon: SVG_ICON_NAME } });
+            registerFakeSvgIcon(spectator, SVG_ICON_NAME);
+            spectator.detectChanges();
+
+            const icon = spectator.query('mat-icon');
+
+            expect(icon).toBeTruthy();
+            expect(icon?.getAttribute('data-mat-icon-name')).toBe(SVG_ICON_NAME);
+        });
+
+        it('should not render icon name text when svgIcon is provided', () => {
+            spectator = createSvgComponent({ props: { name: 'home', svgIcon: SVG_ICON_NAME } });
+            registerFakeSvgIcon(spectator, SVG_ICON_NAME);
+            spectator.detectChanges();
+
+            const icon = spectator.query('mat-icon');
+
+            expect(icon?.textContent?.trim()).not.toContain('home');
+        });
+
+        it('should render icon name text when svgIcon is not provided', () => {
+            spectator = createSvgComponent({ props: { name: 'home' } });
+            spectator.detectChanges();
+
+            const icon = spectator.query('mat-icon');
+
+            expect(icon).toHaveText('home');
+            expect(icon?.getAttribute('svgicon')).toBeFalsy();
+        });
+
+        it('should apply size class when svgIcon is provided', () => {
+            spectator = createSvgComponent({ props: { name: 'home', svgIcon: SVG_ICON_NAME, size: 'small' } });
+            registerFakeSvgIcon(spectator, SVG_ICON_NAME);
+            spectator.detectChanges();
+
+            expect(spectator.query('mat-icon')).toHaveClass('small');
+        });
+
+        it('should display tooltip when svgIcon and tooltip are provided', () => {
+            spectator = createSvgComponent({
+                props: { name: 'home', svgIcon: SVG_ICON_NAME, tooltip: 'Person' },
+            });
+            registerFakeSvgIcon(spectator, SVG_ICON_NAME);
+            spectator.detectChanges();
+
+            const tooltipDirective = spectator.query('mat-icon', {
+                read: MatTooltip,
+            });
+
+            expect(tooltipDirective?.message).toBe('Person');
+        });
     });
 });

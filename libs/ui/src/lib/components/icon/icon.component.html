@@ -1,6 +1,14 @@
-<mat-icon
-    [class]="size()"
-    [matTooltip]="tooltip()"
->
-    {{ name() }}
-</mat-icon>
+@if (svgIcon(); as svg) {
+    <mat-icon
+        [class]="size()"
+        [svgIcon]="svg"
+        [matTooltip]="tooltip()"
+    ></mat-icon>
+} @else {
+    <mat-icon
+        [class]="size()"
+        [matTooltip]="tooltip()"
+    >
+        {{ name() }}
+    </mat-icon>
+}

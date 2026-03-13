@@ -4,14 +4,13 @@ import { SidebarActionComponent } from '../sidebar-action/sidebar-action.compone
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { MatIcon } from '@angular/material/icon';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { getTopicsByIds, TOPICS } from '@drevo-web/shared';
-import { ButtonComponent, CheckboxComponent, SidePanelComponent } from '@drevo-web/ui';
+import { ButtonComponent, CheckboxComponent, IconComponent, SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-topics-sidebar-action',
-    imports: [FormsModule, MatIcon, SidebarActionComponent, SidePanelComponent, CheckboxComponent, ButtonComponent],
+    imports: [FormsModule, SidebarActionComponent, SidePanelComponent, CheckboxComponent, ButtonComponent, IconComponent],
     templateUrl: './topics-sidebar-action.component.html',
     styleUrl: './topics-sidebar-action.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -102,10 +101,10 @@ export class TopicsSidebarActionComponent {
                     this.notification.success('Словники сохранены');
                     this.logger.info('Topics updated', { articleId, topics: updatedTopics });
                 },
-                error: () => {
+                error: (err: unknown) => {
                     this._isSaving.set(false);
                     this.notification.error('Не удалось сохранить словники');
-                    this.logger.error('Failed to update topics', { articleId });
+                    this.logger.error('Failed to update topics', err);
                 },
             });
     }

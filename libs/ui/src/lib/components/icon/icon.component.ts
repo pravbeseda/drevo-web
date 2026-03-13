@@ -13,6 +13,7 @@ export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
 })
 export class IconComponent {
     name = input.required<string>();
+    svgIcon = input<string>();
     size = input<IconSize>('medium');
     tooltip = input<string>();
 }

@@ -18,10 +18,12 @@
             <div class="topics-panel__list">
                 @for (topic of allTopics; track topic.id) {
                     <div class="topics-panel__item">
-                        <mat-icon
+                        <ui-icon
                             class="topics-panel__icon"
+                            name=""
                             [svgIcon]="topic.icon"
-                        ></mat-icon>
+                            size="small"
+                        />
                         <ui-checkbox
                             [label]="topic.name"
                             [attr.data-testid]="'topic-' + topic.id"
