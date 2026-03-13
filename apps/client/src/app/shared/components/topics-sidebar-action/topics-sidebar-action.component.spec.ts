@@ -144,9 +144,9 @@ describe('TopicsSidebarActionComponent', () => {
             it('should initialize selectedTopics from topics input when opening', () => {
                 spectator.detectChanges();
                 spectator.component.togglePanel();
-                expect(spectator.component.isTopicSelected(1)).toBe(true);
-                expect(spectator.component.isTopicSelected(2)).toBe(true);
-                expect(spectator.component.isTopicSelected(3)).toBe(false);
+                expect(spectator.component.selectedTopics().has(1)).toBe(true);
+                expect(spectator.component.selectedTopics().has(2)).toBe(true);
+                expect(spectator.component.selectedTopics().has(3)).toBe(false);
             });
         });
 
@@ -158,17 +158,17 @@ describe('TopicsSidebarActionComponent', () => {
 
             it('should add topic when checked', () => {
                 spectator.component.onTopicToggle(3, true);
-                expect(spectator.component.isTopicSelected(3)).toBe(true);
+                expect(spectator.component.selectedTopics().has(3)).toBe(true);
             });
 
             it('should remove topic when unchecked', () => {
                 spectator.component.onTopicToggle(1, false);
-                expect(spectator.component.isTopicSelected(1)).toBe(false);
+                expect(spectator.component.selectedTopics().has(1)).toBe(false);
             });
 
             it('should not duplicate topic when adding existing', () => {
                 spectator.component.onTopicToggle(1, true);
-                expect(spectator.component.isTopicSelected(1)).toBe(true);
+                expect(spectator.component.selectedTopics().has(1)).toBe(true);
             });
         });
 

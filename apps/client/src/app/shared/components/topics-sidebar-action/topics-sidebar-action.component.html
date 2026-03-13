@@ -27,7 +27,7 @@
                             [label]="topic.name"
                             [attr.data-testid]="'topic-' + topic.id"
                             [disabled]="isSaving()"
-                            [ngModel]="isTopicSelected(topic.id)"
+                            [ngModel]="selectedTopics().has(topic.id)"
                             (valueChanged)="onTopicToggle(topic.id, $event)"
                         />
                     </div>
