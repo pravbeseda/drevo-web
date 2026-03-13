@@ -63,11 +63,12 @@
         animation: slideIn 0.2s ease;
     }
 
-    // Badge overlay positioning
+    // Badge overlay positioning (z-index above Material state layer)
     &__badge {
         position: absolute;
         top: 12px;
         right: -10px;
+        z-index: 1;
     }
 }
 
