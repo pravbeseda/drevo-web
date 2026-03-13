@@ -1,14 +1,14 @@
 export type SidebarActionPriority = 'primary' | 'secondary';
 
 export interface SidebarAction {
-    id: string;
-    icon: string;
-    svgIcon?: string;
-    label: string;
-    priority: SidebarActionPriority;
-    link?: string;
-    order?: number;
-    disabled?: boolean;
-    badge?: number;
-    action?: () => void;
+    readonly id: string;
+    readonly icon: string;
+    readonly svgIcon?: string;
+    readonly label: string;
+    readonly priority: SidebarActionPriority;
+    readonly link?: string;
+    readonly order?: number;
+    readonly disabled?: boolean;
+    readonly badge?: number;
+    readonly action?: () => void;
 }
