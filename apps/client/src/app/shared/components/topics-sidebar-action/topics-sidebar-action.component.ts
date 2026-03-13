@@ -3,6 +3,7 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { getTopicsByIds, TOPICS } from '@drevo-web/shared';
@@ -92,17 +93,18 @@ export class TopicsSidebarActionComponent {
 
         this.articleService
             .updateTopics(articleId, topics)
-            .pipe(takeUntilDestroyed(this.destroyRef))
+            .pipe(
+                finalize(() => this._isSaving.set(false)),
+                takeUntilDestroyed(this.destroyRef)
+            )
             .subscribe({
                 next: updatedTopics => {
-                    this._isSaving.set(false);
                     this._isPanelOpen.set(false);
                     this.topicsChanged.emit(updatedTopics);
                     this.notification.success('Словники сохранены');
                     this.logger.info('Topics updated', { articleId, topics: updatedTopics });
                 },
                 error: (err: unknown) => {
-                    this._isSaving.set(false);
                     this.notification.error('Не удалось сохранить словники');
                     this.logger.error('Failed to update topics', err);
                 },
