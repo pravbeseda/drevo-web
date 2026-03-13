@@ -4,12 +4,6 @@
     display: contents;
 }
 
-// Global class applied via matTooltipClass — must not be :host-scoped
-::ng-deep .action-button-tooltip .mdc-tooltip__surface {
-    white-space: pre-line;
-    text-align: left;
-}
-
 .action-button {
     position: relative;
 
