@@ -1,3 +1,17 @@
+<ng-template #iconContent>
+    @if (svgIcon(); as svg) {
+        <mat-icon [svgIcon]="svg"></mat-icon>
+    } @else {
+        <mat-icon>{{ icon() }}</mat-icon>
+    }
+    @if (badge(); as b) {
+        <ui-badge
+            [value]="b"
+            class="action-button__badge"
+        />
+    }
+</ng-template>
+
 <span
     [matTooltip]="showTooltip() ? 'Недоступно: ' + label() : ''"
     [matTooltipDisabled]="!disabled()"
@@ -19,17 +33,7 @@
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
             >
-                @if (svgIcon(); as svg) {
-                    <mat-icon [svgIcon]="svg"></mat-icon>
-                } @else {
-                    <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (badge(); as b) {
-                    <ui-badge
-                        [value]="b"
-                        class="action-button__badge"
-                    />
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </a>
         } @else {
             <button
@@ -47,17 +51,7 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                @if (svgIcon(); as svg) {
-                    <mat-icon [svgIcon]="svg"></mat-icon>
-                } @else {
-                    <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (badge(); as b) {
-                    <ui-badge
-                        [value]="b"
-                        class="action-button__badge"
-                    />
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </button>
         }
     } @else {
@@ -76,17 +70,7 @@
                 matTooltipPosition="left"
                 matTooltipClass="action-button-tooltip"
             >
-                @if (svgIcon(); as svg) {
-                    <mat-icon [svgIcon]="svg"></mat-icon>
-                } @else {
-                    <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (badge(); as b) {
-                    <ui-badge
-                        [value]="b"
-                        class="action-button__badge"
-                    />
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </a>
         } @else {
             <button
@@ -104,17 +88,7 @@
                 [disabled]="disabled()"
                 (click)="onClick()"
             >
-                @if (svgIcon(); as svg) {
-                    <mat-icon [svgIcon]="svg"></mat-icon>
-                } @else {
-                    <mat-icon>{{ icon() }}</mat-icon>
-                }
-                @if (badge(); as b) {
-                    <ui-badge
-                        [value]="b"
-                        class="action-button__badge"
-                    />
-                }
+                <ng-container *ngTemplateOutlet="iconContent" />
             </button>
         }
     }

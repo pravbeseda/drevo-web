@@ -7,6 +7,21 @@
 .action-button {
     position: relative;
 
+    // Center icon vertically inside FAB (::ng-deep needed to reach Material internals)
+    // stylelint-disable-next-line selector-pseudo-element-no-unknown
+    &::ng-deep .mdc-button__label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Ensure SVG icons scale to fit mat-icon container
+    // stylelint-disable-next-line selector-pseudo-element-no-unknown
+    &::ng-deep mat-icon svg {
+        width: 100%;
+        height: 100%;
+    }
+
     // Primary variant
     &--primary {
         --mat-fab-container-color: var(--themed-fab-primary-bg);
@@ -51,7 +66,7 @@
     // Badge overlay positioning
     &__badge {
         position: absolute;
-        top: -2px;
+        top: 12px;
         right: -10px;
     }
 }
