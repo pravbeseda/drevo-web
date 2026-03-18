@@ -26,6 +26,8 @@
 
 **Нужно добавить**: `pic_width` int, `pic_height` int — для justified layout нужны размеры ДО рендеринга. Без них невозможно рассчитать строки. Бэкфилл через `getimagesize()`.
 
+**Fallback**: Картинки без `pic_width`/`pic_height` (до завершения бэкфилла) используют дефолтный aspect ratio 3:4 (портретный).
+
 **URL:**
 - Полное: `/images/{folder}/{pic_id_padded_6}.jpg`
 - Миниатюра: `/pictures/thumbs/{folder}/{pic_id_padded_6}.jpg` (max 250×400)
@@ -175,7 +177,7 @@ VirtualScroller виртуализирует строки (не отдельны
 
 ## Этапы разработки
 
-### Этап 1: Backend API + Models
+### Этап 1a: Backend API
 
 **Backend (PHP):**
 - `PicturesApiController` наследует `BaseApiController`
@@ -184,17 +186,21 @@ VirtualScroller виртуализирует строки (не отдельны
 - `POST /api/pictures/{id}/update-title` — изменение подписи
 - `POST /api/pictures/{id}/upload` — загрузка/перезаливка файла
 - Добавить `pic_width`, `pic_height` в таблицу + бэкфилл скрипт
-- Ответ list: `{items: [{pic_id, pic_folder, pic_title, pic_user, pic_date, pic_width, pic_height}], total, page, pageSize, totalPages}`
+- Ответ list обёрнут в `ApiResponse<T>`: `{success: true, data: {items: [...], total, page, pageSize, totalPages}}`
+- Каждый item: `{pic_id, pic_folder, pic_title, pic_user, pic_date, pic_width, pic_height}` (snake_case с префиксом, как в БД)
+
+### Этап 1b: Frontend Models + Services ✅
 
 **Frontend models (TypeScript):**
-- `PictureDto` и `PicturesListResponseDto` в `libs/shared/src/lib/models/dto/`
-- `Picture` domain model в `libs/shared/src/lib/models/`
+- ✅ `PictureDto` и `PicturesListResponseDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
+- ✅ `Picture`, `PictureListResponse`, `PictureListParams` в `libs/shared/src/lib/models/picture.ts`
 
 **Frontend services:**
-- `PictureApiService` — HTTP layer (`app/services/pictures/`)
-- `PictureService` — Domain layer, маппинг DTO → Picture
+- ✅ `PictureApiService` — HTTP layer (`app/services/pictures/picture-api.service.ts`): getPictures, getPicture, updateTitle
+- ✅ `PictureService` — Domain layer (`app/services/pictures/picture.service.ts`): маппинг DTO → Picture (snake_case `pic_*` → camelCase), URL generation (zero-padded pic_id), null → undefined для width/height
+- ✅ `DEFAULT_PICTURES_PAGE_SIZE = 25` в `picture.constants.ts`
 
-**Тесты:** Unit-тесты для `PictureApiService`, `PictureService` (Jest + Spectator)
+**Тесты:** ✅ Unit-тесты для `PictureApiService` (13 тестов), `PictureService` (14 тестов)
 
 ### Этап 2: Pictures UI Components
 
