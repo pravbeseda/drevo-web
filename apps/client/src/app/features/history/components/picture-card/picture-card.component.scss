@@ -26,12 +26,12 @@ $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 +
         overflow: hidden;
         transition: max-height 0.3s ease;
         background: rgba(0, 0, 0, 0.7);
-        color: #eee;
+        color: #ddd;
         padding: $overlay-padding 8px;
     }
 
     &:hover &__overlay {
-        max-height: 60%;
+        max-height: 80%;
     }
 
     &__title {
