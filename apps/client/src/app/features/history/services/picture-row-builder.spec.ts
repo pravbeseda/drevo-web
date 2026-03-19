@@ -45,23 +45,24 @@ describe('buildRows', () => {
         expect(rows[0].items[0].width).toBe(150);
     });
 
-    it('should fill row width exactly for complete rows', () => {
-        // Many small pictures to ensure at least one complete row
-        const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 400, 300));
+    it('should fill row width exactly for complete rows when not thumbnail-capped', () => {
+        // Use small pictures (within 250×400 thumbnail limit) so capping doesn't apply
+        const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 150, 300));
         const rows = buildRows(pictures, 1000, 200);
 
         // Non-last rows should fill container width (items width + gaps ≈ container width)
         if (rows.length > 1) {
             const firstRow = rows[0];
-            const gap = 4;
+            const gap = 8;
             const totalWidth =
                 firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * gap;
             expect(totalWidth).toBeCloseTo(1000, 0);
         }
     });
 
-    it('should preserve target height for the last row', () => {
-        const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 800, 600));
+    it('should preserve target height for the last row when not thumbnail-capped', () => {
+        // Use small pictures (within thumbnail limit)
+        const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 150, 300));
         const rows = buildRows(pictures, 1000, 200);
 
         const lastRow = rows[rows.length - 1];
@@ -69,7 +70,8 @@ describe('buildRows', () => {
     });
 
     it('should handle single picture', () => {
-        const pictures = [makePicture(1, 800, 600)];
+        // Small picture within thumbnail limits
+        const pictures = [makePicture(1, 200, 300)];
         const rows = buildRows(pictures, 1000, 200);
 
         expect(rows).toHaveLength(1);
@@ -97,6 +99,53 @@ describe('buildRows', () => {
         expect(rows).toHaveLength(1);
         // Should use default 3:4 aspect ratio
         expect(rows[0].items[0].width).toBe(150);
+    });
+
+    it('should cap item height for horizontal pictures without changing row height', () => {
+        // Panoramic picture: 1000×500, aspect 2:1
+        // Thumbnail: scale = min(250/1000, 400/500) = 0.25, thumb = 250×125
+        // Row height stays at target (last row), item height capped to 125
+        const pictures = [makePicture(1, 1000, 500)];
+        const rows = buildRows(pictures, 1000, 200);
+
+        expect(rows).toHaveLength(1);
+        expect(rows[0].height).toBe(200);
+        expect(rows[0].items[0].height).toBe(125);
+        expect(rows[0].items[0].width).toBe(250);
+    });
+
+    it('should cap only constrained items while keeping others at row height', () => {
+        // Portrait: 200×400, aspect=0.5, thumb scale=1, maxH=400 (uncapped at 200)
+        // Wide: 400×200, aspect=2, thumb scale=0.625, maxH=125 (capped)
+        // Wide container so both fit in one row
+        const pictures = [makePicture(1, 200, 400), makePicture(2, 400, 200)];
+        const rows = buildRows(pictures, 2000, 200);
+
+        expect(rows).toHaveLength(1);
+        expect(rows[0].height).toBe(200);
+        // Portrait item: uncapped
+        expect(rows[0].items[0].height).toBe(200);
+        // Wide item: capped to thumbnail height
+        expect(rows[0].items[1].height).toBe(125);
+        expect(rows[0].items[1].width).toBe(250);
+    });
+
+    it('should cap item height for small pictures to prevent upscaling', () => {
+        // Tiny picture: 100×80, already smaller than thumb limits
+        // scale = min(250/100, 400/80, 1) = 1 (no upscale), maxH = 80
+        const pictures = [makePicture(1, 100, 80)];
+        const rows = buildRows(pictures, 1000, 200);
+
+        expect(rows[0].height).toBe(200);
+        expect(rows[0].items[0].height).toBe(80);
+    });
+
+    it('should not cap items when pictures have unknown dimensions', () => {
+        const pictures = [makePicture(1, undefined, undefined)];
+        const rows = buildRows(pictures, 1000, 200);
+
+        expect(rows[0].height).toBe(200);
+        expect(rows[0].items[0].height).toBe(200);
     });
 
     it('should ensure all row items have positive dimensions', () => {

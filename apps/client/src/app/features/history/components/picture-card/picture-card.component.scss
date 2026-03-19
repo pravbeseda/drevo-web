@@ -10,11 +10,24 @@ $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 +
     cursor: pointer;
     border-radius: 4px;
 
+    &--capped {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-bottom: $overlay-max-2-lines;
+        background: var(--themed-secondary-bg);
+    }
+
     &__image {
         display: block;
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+
+    &--capped &__image {
+        height: auto;
+        flex-shrink: 0;
     }
 
     &__overlay {

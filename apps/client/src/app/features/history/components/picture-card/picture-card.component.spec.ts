@@ -27,6 +27,7 @@ describe('PictureCardComponent', () => {
                 picture: mockPicture,
                 width: 266,
                 height: 200,
+                rowHeight: 200,
             },
         });
     });
@@ -52,9 +53,9 @@ describe('PictureCardComponent', () => {
         expect(title?.textContent?.trim()).toBe('Храм Христа Спасителя');
     });
 
-    it('should display user in overlay', () => {
-        const meta = spectator.query('.picture-card__meta');
-        expect(meta?.textContent).toContain('Иван Иванов');
+    it('should display title text in overlay', () => {
+        const overlay = spectator.query('.picture-card__overlay');
+        expect(overlay?.textContent?.trim()).toContain('Храм Христа Спасителя');
     });
 
     it('should apply width and height styles', () => {
@@ -68,5 +69,28 @@ describe('PictureCardComponent', () => {
         const spy = jest.spyOn(spectator.component.pictureClick, 'emit');
         spectator.click('[data-testid="picture-card"]');
         expect(spy).toHaveBeenCalledWith(mockPicture);
+    });
+
+    it('should apply capped class when height is less than rowHeight', () => {
+        spectator = createComponent({
+            props: {
+                picture: mockPicture,
+                width: 250,
+                height: 125,
+                rowHeight: 200,
+            },
+        });
+
+        const card = spectator.query('[data-testid="picture-card"]');
+        expect(card).toHaveClass('picture-card--capped');
+        expect((card as HTMLElement).style.height).toBe('200px');
+
+        const img = spectator.query('img') as HTMLElement;
+        expect(img.style.maxHeight).toBe('125px');
+    });
+
+    it('should not apply capped class when height equals rowHeight', () => {
+        const card = spectator.query('[data-testid="picture-card"]');
+        expect(card).not.toHaveClass('picture-card--capped');
     });
 });

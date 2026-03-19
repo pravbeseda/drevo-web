@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { Picture } from '@drevo-web/shared';
 
 @Component({
@@ -11,6 +11,9 @@ export class PictureCardComponent {
     readonly picture = input.required<Picture>();
     readonly width = input.required<number>();
     readonly height = input.required<number>();
+    readonly rowHeight = input.required<number>();
+
+    readonly isCapped = computed(() => this.height() < this.rowHeight());
 
     readonly pictureClick = output<Picture>();
 
