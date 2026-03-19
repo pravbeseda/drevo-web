@@ -202,23 +202,24 @@ VirtualScroller виртуализирует строки (не отдельны
 
 **Тесты:** ✅ Unit-тесты для `PictureApiService` (13 тестов), `PictureService` (14 тестов)
 
-### Этап 2: Pictures UI Components
+### Этап 2: Pictures UI Components ✅
 
-- `PictureCard` — миниатюра + hover overlay + два режима клика
-- `picture-row-builder.ts` — justified layout алгоритм (чистая функция, легко тестируется)
-- `PictureRow` — flex-строка с вычисленными размерами из row builder
-- `PictureSearchBar` — `ui-text-input` с иконкой поиска
+- ✅ `PictureCard` — миниатюра + hover overlay (анимация translateY) + click emit + keyboard accessibility
+- ✅ `picture-row-builder.ts` — justified layout: `buildRows(pictures, containerWidth, targetRowHeight)` → `PictureRow[]`. Default aspect ratio 3:4 для картинок без размеров. Последняя строка не растягивается.
+- ✅ `PictureRow` — flex-строка с gap:4px, высота из row builder
+- ✅ `PictureSearchBar` — `ui-text-input` с placeholder "Поиск по подписи..."
 
-**Тесты:** Unit-тесты для `buildRows()` (чистая функция — самые важные), `PictureCard`, `PictureRow`, `PictureSearchBar`
+**Тесты:** ✅ `buildRows()` (9 тестов), `PictureCard` (7), `PictureRow` (4), `PictureSearchBar` (2)
 
-### Этап 3: Pictures Page + Integration
+### Этап 3: Pictures Page + Integration ✅
 
-- `PicturesStateService` — feature-scoped: состояние (items, loading, page), пагинация, поиск (debounce + switchMap), вызов `buildRows()`, ResizeObserver
-- `PicturesComponent` — контейнер: search bar + VirtualScroller с `PictureRow`
-- Browse/Select mode через MODAL_DATA
-- Маршрутизация: замена заглушки в history.routes.ts, добавление /pictures в app.routes.ts
+- ✅ `PicturesStateService` — feature-scoped (`providers` в компоненте): signals для состояния, debounce 500ms + switchMap для поиска, loadMore для пагинации, computed `rows` через `buildRows()`, `onContainerResize(width)` для пересчёта
+- ✅ `PicturesComponent` — контейнер: search bar + VirtualScroller с PictureRow. ResizeObserver (debounce 150ms) для отслеживания ширины контейнера. Cleanup через `destroyRef.onDestroy()`
+- ✅ Browse mode: клик → `/pictures/:id` (router.navigate)
+- ✅ Select mode: `MODAL_DATA` injection (optional) → клик → `modalData.close('@{id}@')`
+- ✅ Маршрутизация: `/pictures` добавлен в `app.routes.ts`, заглушка в `history.routes.ts` заменена
 
-**Тесты:** Unit-тесты для `PicturesStateService`, `PicturesComponent`
+**Тесты:** ✅ `PicturesStateService` (9 тестов), `PicturesComponent` (7 тестов)
 
 ### Этап 4: Lightbox + Detail Page + Select Mode
 

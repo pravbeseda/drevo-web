@@ -30,6 +30,12 @@ export const appRoutes: Route[] = [
                 loadChildren: () => import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),
             },
             {
+                path: 'pictures',
+                title: 'Иллюстрации',
+                loadComponent: () =>
+                    import('./features/history/pages/pictures/pictures.component').then(m => m.PicturesComponent),
+            },
+            {
                 path: 'articles',
                 loadChildren: () => import('./features/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },

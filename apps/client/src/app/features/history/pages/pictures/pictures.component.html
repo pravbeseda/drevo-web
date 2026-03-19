@@ -1,0 +1,28 @@
+<div class="pictures-page">
+    <app-picture-search-bar (searchChange)="onSearchChange($event)" />
+
+    @if (isLoading()) {
+        <div class="pictures-page__loading">
+            <ui-spinner />
+        </div>
+    } @else if (hasResults()) {
+        <div class="pictures-page__gallery" #galleryContainer>
+            <ui-virtual-scroller
+                [items]="rows()"
+                [totalItems]="totalRows()"
+                [isLoading]="isLoadingMore()"
+                [trackByFn]="trackByFn"
+                (loadMore)="onLoadMore()"
+            >
+                <ng-template uiVirtualScrollerItem let-row>
+                    <app-picture-row
+                        [row]="row"
+                        (pictureClick)="onPictureClick($event)"
+                    />
+                </ng-template>
+            </ui-virtual-scroller>
+        </div>
+    } @else if (showNoResults()) {
+        <div class="pictures-page__empty">Ничего не найдено</div>
+    }
+</div>

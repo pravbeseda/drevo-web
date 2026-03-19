@@ -1,0 +1,20 @@
+<div
+    class="picture-card"
+    role="button"
+    tabindex="0"
+    [style.width.px]="width()"
+    [style.height.px]="height()"
+    (click)="onClick()"
+    (keydown.enter)="onClick()"
+    data-testid="picture-card"
+>
+    <img
+        class="picture-card__image"
+        [src]="picture().thumbnailUrl"
+        [alt]="picture().title"
+        loading="lazy"
+    />
+    <div class="picture-card__overlay">
+        <span class="picture-card__title">{{ picture().title }}</span>
+    </div>
+</div>
