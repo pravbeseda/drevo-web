@@ -1,7 +1,6 @@
 import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 import { SpinnerComponent } from '../spinner/spinner.component';
-import { CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { CdkAutoSizeVirtualScroll } from '@angular/cdk-experimental/scrolling';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgTemplateOutlet } from '@angular/common';
 import {
     AfterViewInit,
@@ -22,6 +21,8 @@ export { VirtualScrollerItemDirective } from './virtual-scroller-item.directive'
 
 /** Default number of items from the end to trigger loading more */
 const DEFAULT_LOAD_MORE_THRESHOLD = 5;
+/** Default approximate item height in pixels */
+const DEFAULT_ITEM_SIZE = 200;
 
 /**
  * Context provided to the item template
@@ -35,7 +36,7 @@ export interface VirtualScrollerItemContext<T> {
 
 @Component({
     selector: 'ui-virtual-scroller',
-    imports: [NgTemplateOutlet, CdkVirtualScrollViewport, CdkVirtualForOf, CdkAutoSizeVirtualScroll, SpinnerComponent],
+    imports: [NgTemplateOutlet, CdkVirtualScrollViewport, CdkVirtualForOf, CdkFixedSizeVirtualScroll, SpinnerComponent],
     templateUrl: './virtual-scroller.component.html',
     styleUrl: './virtual-scroller.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,6 +46,9 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
 
     /** Items to display in the virtual scroll */
     readonly items = input.required<readonly T[]>();
+
+    /** Approximate height of each item in pixels (used for scroll position estimation) */
+    readonly itemSize = input<number>(DEFAULT_ITEM_SIZE);
 
     /** Number of items from the end to trigger loadMore event */
     readonly loadMoreThreshold = input<number>(DEFAULT_LOAD_MORE_THRESHOLD);

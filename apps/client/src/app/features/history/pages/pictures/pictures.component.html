@@ -9,6 +9,7 @@
         <div class="pictures-page__gallery" #galleryContainer>
             <ui-virtual-scroller
                 [items]="rows()"
+                [itemSize]="208"
                 [totalItems]="totalRows()"
                 [isLoading]="isLoadingMore()"
                 [trackByFn]="trackByFn"
