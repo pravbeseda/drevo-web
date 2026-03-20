@@ -3,8 +3,8 @@ import { Picture } from '@drevo-web/shared';
 const DEFAULT_ASPECT_RATIO = 3 / 4;
 // Keep in sync with $picture-gap in picture-row.component.scss
 const GAP = 8;
-// Keep in sync with legacy ImageHelper.php resize(250, 400)
-const THUMB_MAX_WIDTH = 250;
+// Keep in sync with legacy ImageHelper.php resize(400, 400)
+const THUMB_MAX_WIDTH = 400;
 const THUMB_MAX_HEIGHT = 400;
 
 export interface PictureRowItem {
