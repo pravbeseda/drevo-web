@@ -102,23 +102,23 @@ describe('buildRows', () => {
     });
 
     it('should cap item height for horizontal pictures without changing row height', () => {
-        // Panoramic picture: 1000×500, aspect 2:1
-        // Thumbnail: scale = min(250/1000, 400/500) = 0.25, thumb = 250×125
-        // Row height stays at target (last row), item height capped to 125
-        const pictures = [makePicture(1, 1000, 500)];
+        // Panoramic picture: 2000×500, aspect 4:1
+        // Thumbnail: scale = min(400/2000, 400/500, 1) = 0.2, thumb = 400×100
+        // Row height stays at target (last row), item height capped to 100
+        const pictures = [makePicture(1, 2000, 500)];
         const rows = buildRows(pictures, 1000, 200);
 
         expect(rows).toHaveLength(1);
         expect(rows[0].height).toBe(200);
-        expect(rows[0].items[0].height).toBe(125);
-        expect(rows[0].items[0].width).toBe(250);
+        expect(rows[0].items[0].height).toBe(100);
+        expect(rows[0].items[0].width).toBe(400);
     });
 
     it('should cap only constrained items while keeping others at row height', () => {
         // Portrait: 200×400, aspect=0.5, thumb scale=1, maxH=400 (uncapped at 200)
-        // Wide: 400×200, aspect=2, thumb scale=0.625, maxH=125 (capped)
+        // Wide: 800×200, aspect=4, thumb scale=0.5, maxH=100 (capped)
         // Wide container so both fit in one row
-        const pictures = [makePicture(1, 200, 400), makePicture(2, 400, 200)];
+        const pictures = [makePicture(1, 200, 400), makePicture(2, 800, 200)];
         const rows = buildRows(pictures, 2000, 200);
 
         expect(rows).toHaveLength(1);
@@ -126,8 +126,8 @@ describe('buildRows', () => {
         // Portrait item: uncapped
         expect(rows[0].items[0].height).toBe(200);
         // Wide item: capped to thumbnail height
-        expect(rows[0].items[1].height).toBe(125);
-        expect(rows[0].items[1].width).toBe(250);
+        expect(rows[0].items[1].height).toBe(100);
+        expect(rows[0].items[1].width).toBe(400);
     });
 
     it('should cap item height for small pictures to prevent upscaling', () => {
