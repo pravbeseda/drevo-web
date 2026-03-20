@@ -26,7 +26,7 @@ import {
 import { debounceTime, Subject } from 'rxjs';
 
 @Component({
-    selector: 'app-pictures',
+    selector: 'app-pictures-page',
     imports: [
         PictureSearchBarComponent,
         PictureRowComponent,
@@ -35,11 +35,11 @@ import { debounceTime, Subject } from 'rxjs';
         VirtualScrollerItemDirective,
     ],
     providers: [PicturesStateService],
-    templateUrl: './pictures.component.html',
-    styleUrl: './pictures.component.scss',
+    templateUrl: './pictures-page.component.html',
+    styleUrl: './pictures-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PicturesComponent implements OnInit {
+export class PicturesPageComponent implements OnInit {
     private readonly state = inject(PicturesStateService);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);

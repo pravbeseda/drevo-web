@@ -1,11 +1,11 @@
 import { PicturesStateService } from '../../services/pictures-state.service';
-import { PicturesComponent } from './pictures.component';
+import { PicturesPageComponent } from './pictures-page.component';
 import { Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 
-describe('PicturesComponent', () => {
-    let spectator: Spectator<PicturesComponent>;
+describe('PicturesPageComponent', () => {
+    let spectator: Spectator<PicturesPageComponent>;
 
     const mockState = {
         init: jest.fn(),
@@ -31,7 +31,7 @@ describe('PicturesComponent', () => {
     };
 
     const createComponent = createComponentFactory({
-        component: PicturesComponent,
+        component: PicturesPageComponent,
         componentProviders: [{ provide: PicturesStateService, useValue: mockState }],
         providers: [mockLoggerProvider(), mockProvider(Router)],
         detectChanges: false,

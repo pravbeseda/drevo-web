@@ -32,8 +32,7 @@ export const appRoutes: Route[] = [
             {
                 path: 'pictures',
                 title: 'Иллюстрации',
-                loadComponent: () =>
-                    import('./features/history/pages/pictures/pictures.component').then(m => m.PicturesComponent),
+                loadChildren: () => import('./features/pictures/pictures.routes').then(m => m.PICTURES_ROUTES),
             },
             {
                 path: 'articles',
