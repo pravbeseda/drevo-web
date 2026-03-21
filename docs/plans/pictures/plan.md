@@ -30,7 +30,7 @@
 
 **URL:**
 - Полное: `/images/{folder}/{pic_id_padded_6}.jpg`
-- Миниатюра: `/pictures/thumbs/{folder}/{pic_id_padded_6}.jpg` (max 250×400)
+- Миниатюра: `/pictures/thumbs/{folder}/{pic_id_padded_6}.jpg` (max 400×400)
 - Код вставки: `@{pic_id}@`
 
 ---
@@ -39,20 +39,19 @@
 
 ### Где живут компоненты
 
-Все picture-related компоненты живут **внутри features/history/**, потому что:
-1. Вкладка `/history/pictures` — child route HistoryComponent (требует быть в том же feature)
-2. Правило проекта: "features/X/ NEVER import from features/Y/"
-3. History уже организует секции контента (articles, news, forum, pictures)
-4. Standalone route `/pictures` в `app.routes.ts` lazy-load'ит из history feature (app.routes → features — разрешено)
+Picture-related компоненты живут в **отдельном feature `features/pictures/`**:
+1. Pictures — самостоятельная доменная область, не подраздел истории
+2. `/history/pictures` — отдельная заглушка `PicturesHistoryComponent` в features/history (история изменений картинок)
+3. Standalone route `/pictures` в `app.routes.ts` lazy-load'ит из pictures feature
 
 ### Файловая структура
 
 ```
-features/history/
+features/pictures/
   pages/
-    pictures/                    # Галерея (browse + select mode)
-      pictures.component.ts/html/scss/spec
-    picture-detail/                      # Страница /pictures/:id
+    pictures-page/                       # Галерея (browse + select mode)
+      pictures-page.component.ts/html/scss/spec
+    picture-detail/                      # Страница /pictures/:id (этап 4)
       picture-detail.component.ts/html/scss/spec
   components/
     picture-card/                        # Карточка миниатюры + hover overlay
@@ -61,13 +60,19 @@ features/history/
       picture-row.component.ts/html/scss/spec
     picture-search-bar/                  # Поисковая строка
       picture-search-bar.component.ts/html/scss/spec
-    picture-lightbox/                    # Модалка быстрого просмотра
+    picture-lightbox/                    # Модалка быстрого просмотра (этап 4)
       picture-lightbox.component.ts/html/scss/spec
   services/
     picture-row-builder.ts               # Чистая функция: items[] → PictureRow[]
     picture-row-builder.spec.ts
-    pictures-state.service.ts    # Feature-scoped: пагинация, строки, resize
+    pictures-state.service.ts            # Feature-scoped: пагинация, строки, resize
     pictures-state.service.spec.ts
+  pictures.routes.ts                     # Feature routes
+
+features/history/
+  pages/
+    pictures-history/                    # Заглушка для /history/pictures (история изменений)
+      pictures-history.component.ts/html/scss
 
 app/services/pictures/
   picture-api.service.ts                 # HTTP layer (providedIn: root)
@@ -87,28 +92,24 @@ legacy-drevo-yii/protected/controllers/api/
 ### Маршрутизация
 
 ```typescript
-// app.routes.ts — добавить:
+// app.routes.ts:
 {
     path: 'pictures',
-    canActivate: [authGuard],
     title: 'Иллюстрации',
-    loadComponent: () => import('./features/history/pages/pictures/pictures.component')
-        .then(m => m.PicturesComponent),
-},
-{
-    path: 'pictures/:id',
-    canActivate: [authGuard],
-    title: 'Иллюстрация',
-    loadComponent: () => import('./features/history/pages/picture-detail/picture-detail.component')
-        .then(m => m.PictureDetailComponent),
+    loadChildren: () => import('./features/pictures/pictures.routes')
+        .then(m => m.PICTURES_ROUTES),
 },
 
-// history.routes.ts — заменить текущую заглушку:
+// pictures.routes.ts:
+{ path: '', loadComponent: () => import('./pages/pictures-page/pictures-page.component')
+    .then(m => m.PicturesPageComponent) },
+
+// history.routes.ts — вкладка истории (заглушка):
 {
     path: 'pictures',
-    title: 'Иллюстрации',
-    loadComponent: () => import('./pages/pictures/pictures.component')
-        .then(m => m.PicturesComponent),
+    title: 'История изображений',
+    loadComponent: () => import('./pages/pictures-history/pictures-history.component')
+        .then(m => m.PicturesHistoryComponent),
 },
 ```
 

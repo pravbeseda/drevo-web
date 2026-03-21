@@ -8,6 +8,7 @@
     [style.height.px]="rowHeight()"
     (click)="onClick()"
     (keydown.enter)="onClick()"
+    (keydown.space)="onClick(); $event.preventDefault()"
     data-testid="picture-card"
 >
     <img

@@ -68,6 +68,7 @@ export class PicturesStateService {
                 debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
                     this._isLoading.set(true);
+                    this._isLoadingMore.set(false);
                     this._currentPage.set(1);
                     this.logger.info('Searching pictures', { query });
                     return this.pictureService.getPictures({ query, page: 1 }).pipe(
@@ -106,10 +107,11 @@ export class PicturesStateService {
         }
 
         const nextPage = this._currentPage() + 1;
+        const queryAtRequest = this._searchQuery();
         this._isLoadingMore.set(true);
 
         this.pictureService
-            .getPictures({ query: this._searchQuery(), page: nextPage })
+            .getPictures({ query: queryAtRequest, page: nextPage })
             .pipe(
                 catchError(error => {
                     this.logger.error('Failed to load more pictures', error);
@@ -118,8 +120,12 @@ export class PicturesStateService {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
+                if (this._searchQuery() !== queryAtRequest) {
+                    this._isLoadingMore.set(false);
+                    return;
+                }
                 if (response.items.length > 0) {
-                    this._pictures.set([...currentPictures, ...response.items]);
+                    this._pictures.set([...this._pictures(), ...response.items]);
                     this._currentPage.set(nextPage);
                 }
                 this._isLoadingMore.set(false);
