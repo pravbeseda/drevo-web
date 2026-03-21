@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
+import { TooltipPosition, MatTooltip } from '@angular/material/tooltip';
 
 export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
 
@@ -16,4 +16,5 @@ export class IconComponent {
     readonly svgIcon = input<string>();
     readonly size = input<IconSize>('medium');
     readonly tooltip = input<string>();
+    readonly tooltipPosition = input<TooltipPosition>('below');
 }

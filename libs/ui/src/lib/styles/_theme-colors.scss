@@ -51,6 +51,10 @@ $theme-colors: (
     ),
     // Menu
     menu-hover-background: (
+        light: $md-grey-200,
+        dark: rgba(white, 0.06),
+    ),
+    menu-selected-background: (
         light: $md-grey-300,
         dark: $md-grey-900,
     ),
