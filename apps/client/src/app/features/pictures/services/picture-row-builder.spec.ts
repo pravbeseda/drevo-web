@@ -56,7 +56,8 @@ describe('buildRows', () => {
             const gap = 8;
             const totalWidth =
                 firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * gap;
-            expect(totalWidth).toBeCloseTo(1000, 0);
+            // Container width minus right margin (GAP = 8)
+            expect(totalWidth).toBeCloseTo(1000 - gap, 0);
         }
     });
 
