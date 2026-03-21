@@ -1,4 +1,4 @@
-<mat-form-field appearance="outline">
+<mat-form-field [appearance]="matAppearance()">
     @if (label()) {
         <mat-label>{{ label() }}</mat-label>
     }
