@@ -1,0 +1,1 @@
+export const DEFAULT_PICTURES_PAGE_SIZE = 25;

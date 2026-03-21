@@ -1,0 +1,24 @@
+<div
+    class="picture-card"
+    [class.picture-card--capped]="isCapped()"
+    role="button"
+    tabindex="0"
+    [attr.aria-label]="picture().title"
+    [style.width.px]="width()"
+    [style.height.px]="rowHeight()"
+    (click)="onClick()"
+    (keydown.enter)="onClick()"
+    (keydown.space)="onClick(); $event.preventDefault()"
+    data-testid="picture-card"
+>
+    <img
+        class="picture-card__image"
+        [src]="picture().thumbnailUrl"
+        [alt]="picture().title"
+        [style.max-height.px]="height()"
+        loading="lazy"
+    />
+    <div class="picture-card__overlay">
+        <span class="picture-card__title">{{ picture().title }}</span>
+    </div>
+</div>

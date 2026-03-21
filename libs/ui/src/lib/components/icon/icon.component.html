@@ -3,11 +3,13 @@
         [class]="size()"
         [svgIcon]="svg"
         [matTooltip]="tooltip()"
+        [matTooltipPosition]="tooltipPosition()"
     ></mat-icon>
 } @else {
     <mat-icon
         [class]="size()"
         [matTooltip]="tooltip()"
+        [matTooltipPosition]="tooltipPosition()"
     >
         {{ name() }}
     </mat-icon>

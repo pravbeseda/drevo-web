@@ -1,14 +1,20 @@
-import { ChangeDetectionStrategy, Component, effect, input, output, forwardRef, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, forwardRef, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatFormFieldAppearance, MatFormFieldModule } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+
+type TextInputAppearance = 'outline' | 'fill' | 'underline';
 
 @Component({
     selector: 'ui-text-input',
-    imports: [MatFormFieldModule, MatInputModule, ReactiveFormsModule],
+    imports: [MatFormFieldModule, MatIcon, MatInputModule, ReactiveFormsModule],
     templateUrl: './text-input.component.html',
     styleUrl: './text-input.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class.appearance-underline]': 'appearance() === "underline"',
+    },
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -18,6 +24,8 @@ import { MatInputModule } from '@angular/material/input';
     ],
 })
 export class TextInputComponent implements ControlValueAccessor {
+    appearance = input<TextInputAppearance>('outline');
+    icon = input<string>();
     label = input<string>('');
     placeholder = input<string>('');
     hint = input<string>('');
@@ -35,6 +43,9 @@ export class TextInputComponent implements ControlValueAccessor {
 
     valueChanged = output<string>();
 
+    protected matAppearance = computed<MatFormFieldAppearance>(() =>
+        this.appearance() === 'outline' ? 'outline' : 'fill'
+    );
     protected displayValue = signal<string>('');
 
     private isChangesHandled = false;

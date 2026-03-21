@@ -1,7 +1,7 @@
+import { FlexibleVirtualScrollStrategy } from './flexible-virtual-scroll-strategy';
 import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 import { SpinnerComponent } from '../spinner/spinner.component';
-import { CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { CdkAutoSizeVirtualScroll } from '@angular/cdk-experimental/scrolling';
+import { CdkVirtualForOf, CdkVirtualScrollViewport, VIRTUAL_SCROLL_STRATEGY } from '@angular/cdk/scrolling';
 import { NgTemplateOutlet } from '@angular/common';
 import {
     AfterViewInit,
@@ -12,6 +12,7 @@ import {
     DestroyRef,
     inject,
     input,
+    OnInit,
     output,
     viewChild,
 } from '@angular/core';
@@ -35,16 +36,24 @@ export interface VirtualScrollerItemContext<T> {
 
 @Component({
     selector: 'ui-virtual-scroller',
-    imports: [NgTemplateOutlet, CdkVirtualScrollViewport, CdkVirtualForOf, CdkAutoSizeVirtualScroll, SpinnerComponent],
+    imports: [NgTemplateOutlet, CdkVirtualScrollViewport, CdkVirtualForOf, SpinnerComponent],
     templateUrl: './virtual-scroller.component.html',
     styleUrl: './virtual-scroller.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        FlexibleVirtualScrollStrategy,
+        { provide: VIRTUAL_SCROLL_STRATEGY, useExisting: FlexibleVirtualScrollStrategy },
+    ],
 })
-export class VirtualScrollerComponent<T> implements AfterViewInit {
+export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     private readonly destroyRef = inject(DestroyRef);
+    private readonly scrollStrategy = inject(FlexibleVirtualScrollStrategy);
 
     /** Items to display in the virtual scroll */
     readonly items = input.required<readonly T[]>();
+
+    /** Fixed height of each item in pixels. When set, uses fixed-size strategy (better performance). When omitted, uses autosize strategy (variable-height items). */
+    readonly itemSize = input<number | undefined>();
 
     /** Number of items from the end to trigger loadMore event */
     readonly loadMoreThreshold = input<number>(DEFAULT_LOAD_MORE_THRESHOLD);
@@ -80,6 +89,10 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
     /** Whether the loading indicator should be shown */
     readonly showLoadingIndicator = computed(() => this.isLoading() && this.items().length > 0);
 
+    ngOnInit(): void {
+        this.scrollStrategy.configure(this.itemSize());
+    }
+
     ngAfterViewInit(): void {
         this.setupScrollListener();
     }
@@ -87,7 +100,6 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
     private setupScrollListener(): void {
         const viewport = this.viewport();
 
-        // Use elementScrolled() instead of scrolledIndexChange for autosize strategy
         viewport
             .elementScrolled()
             .pipe(
@@ -106,7 +118,6 @@ export class VirtualScrollerComponent<T> implements AfterViewInit {
         const items = this.items();
         const threshold = this.loadMoreThreshold();
 
-        // Get rendered range from CDK - this is accurate for autosize
         const renderedRange = viewport.getRenderedRange();
         const lastRenderedIndex = renderedRange.end;
         const itemsRemaining = items.length - lastRenderedIndex;

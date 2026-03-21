@@ -1,0 +1,28 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pictures-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 1rem 0 0 1rem;
+
+    &__loading {
+        display: flex;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    &__gallery {
+        flex: 1;
+        min-height: 0;
+    }
+
+    &__empty {
+        color: var(--themed-text-secondary);
+        padding: 2rem;
+    }
+}

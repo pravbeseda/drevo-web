@@ -25,7 +25,7 @@
 
     &.active {
         color: var(--themed-text-primary);
-        background-color: var(--themed-menu-hover-background);
+        background-color: var(--themed-menu-selected-background);
         font-weight: 500;
     }
 }

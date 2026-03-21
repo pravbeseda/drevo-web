@@ -9,7 +9,10 @@ interface NavItem {
     readonly icon: string;
 }
 
-const NAV_ITEMS: NavItem[] = [{ label: 'Изменения', route: '/history/articles', icon: 'history' }];
+const NAV_ITEMS: NavItem[] = [
+    { label: 'Изменения', route: '/history/articles', icon: 'history' },
+    { label: 'Иллюстрации', route: '/pictures', icon: 'image' },
+];
 
 @Component({
     selector: 'app-sidebar-nav',

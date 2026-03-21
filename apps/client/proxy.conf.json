@@ -7,7 +7,7 @@
         "cookieDomainRewrite": "localhost",
         "cookiePathRewrite": "/"
     },
-    "/pictures": {
+    "/pictures/thumbs": {
         "target": "http://drevo-local.ru",
         "secure": false,
         "changeOrigin": true,

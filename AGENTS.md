@@ -1,0 +1,20 @@
+These instructions apply to the entire repository unless a deeper `AGENTS.md` overrides them.
+- This is an Nx monorepo.
+- The primary frontend stack is Angular.
+- Shared code lives under `libs/`.
+- Build output and generated artifacts may appear under `dist/` and `.angular/`.
+- Prefer minimal, focused changes that match existing patterns.
+- Check nearby files before introducing new abstractions or conventions.
+- Do not edit generated or dependency directories such as `dist/`, `.angular/`, or `node_modules/` unless the user explicitly asks.
+- Keep imports, formatting, and naming consistent with the surrounding code.
+- Update related docs when behavior or developer workflow changes.
+- Prefer targeted validation first, then broader checks if needed.
+- Useful repo-level commands:
+  - `yarn lint`
+  - `yarn test`
+  - `yarn build`
+  - `yarn format:check`
+- For local development, prefer repo scripts over ad hoc commands.
+- Search with `rg` / `rg --files` when possible.
+- In Nx projects, prefer running commands against the affected app or lib when the target is known.
+- If a task touches only one area, avoid unrelated repo-wide refactors.

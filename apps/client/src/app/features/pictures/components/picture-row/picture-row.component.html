@@ -1,0 +1,11 @@
+<div class="picture-row" [style.height.px]="row().height">
+    @for (item of row().items; track item.picture.id) {
+        <app-picture-card
+            [picture]="item.picture"
+            [width]="item.width"
+            [height]="item.height"
+            [rowHeight]="row().height"
+            (pictureClick)="onPictureClick($event)"
+        />
+    }
+</div>

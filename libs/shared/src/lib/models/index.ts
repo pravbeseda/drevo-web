@@ -6,6 +6,7 @@ export * from './auth';
 export * from './editor';
 export * from './inwork';
 export * from './moderation';
+export * from './picture';
 export * from './user';
 export * from './dto';
 export * from './sidebar';

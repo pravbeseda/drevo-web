@@ -1,9 +1,4 @@
-<cdk-virtual-scroll-viewport
-    class="virtual-scroller-viewport"
-    autosize
-    [minBufferPx]="200"
-    [maxBufferPx]="400"
->
+<cdk-virtual-scroll-viewport class="virtual-scroller-viewport">
     @if (itemTemplate(); as template) {
         <div
             *cdkVirtualFor="let item of items(); let i = index; trackBy: trackByFn()"

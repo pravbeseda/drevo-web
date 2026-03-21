@@ -4,4 +4,9 @@
     mat-form-field {
         width: 100%;
     }
+
+    &.appearance-underline mat-form-field {
+        --mat-form-field-filled-container-color: transparent;
+        --mat-form-field-filled-disabled-container-color: transparent;
+    }
 }
