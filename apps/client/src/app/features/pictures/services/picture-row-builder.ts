@@ -43,6 +43,9 @@ export function buildRows(
         return [];
     }
 
+    // Reserve right margin so pictures don't touch the scrollbar
+    containerWidth -= GAP;
+
     const rows: PictureRow[] = [];
     let currentItems: RowEntry[] = [];
     let currentRowWidth = 0;
