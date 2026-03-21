@@ -193,6 +193,14 @@ CURRENT_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-current"
 PREVIOUS_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-previous"
 LOGS_DIR="$BASE_DIR/logs"
 
+# Ensure node/pm2 are in PATH for non-interactive SSH sessions (e.g. nvm)
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    log_info "Loading nvm for non-interactive shell..."
+    export NVM_DIR="$HOME/.nvm"
+    # shellcheck source=/dev/null
+    . "$NVM_DIR/nvm.sh"
+fi
+
 # Release readiness check
 log_info "Checking release readiness..."
 
@@ -227,6 +235,10 @@ if [ -L "$CURRENT_LINK" ]; then
     if [ "$DRY_RUN" = true ]; then
         log_info "[DRY RUN] Would save current symlink for rollback"
     else
+        # Must remove destination first: cp -P only prevents source dereference,
+        # but still follows destination symlinks. If PREVIOUS_LINK points to a
+        # directory, cp would copy INTO it instead of replacing the symlink.
+        rm -f "$PREVIOUS_LINK"
         cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
             log_warn "Failed to save current symlink for rollback"
         }
@@ -289,28 +301,44 @@ fi
 # PM2 management - Auto restart after deployment
 log_info "Performing PM2 restart..."
 
+# Verify node and pm2 are available before proceeding
+if ! command -v node >/dev/null 2>&1; then
+    log_error "node is not available in PATH"
+    log_error "Ensure Node.js is installed and accessible in non-interactive shells"
+    exit 1
+fi
+
+if ! command -v pm2 >/dev/null 2>&1; then
+    log_error "pm2 is not available in PATH"
+    log_error "Ensure PM2 is installed globally: npm install -g pm2"
+    exit 1
+fi
+
+log_info "Using node $(node -v) from $(command -v node)"
+log_info "Using pm2 $(pm2 -v) from $(command -v pm2)"
+
 if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Would execute PM2 restart: pm2 reload ecosystem.config.js --only $APP_NAME"
 else
     PM2_COMMAND="pm2 reload ecosystem.config.js --only $APP_NAME"
-    
+
     log_info "Executing PM2 restart: $PM2_COMMAND"
-    
+
     if $PM2_COMMAND; then
         log_info "✅ PM2 restart completed successfully"
-        
+
         # Wait a moment for PM2 to settle
         sleep 2
-        
+
         # Verify PM2 status
         log_info "Verifying PM2 status..."
         if pm2 show "$APP_NAME" >/dev/null 2>&1; then
             log_info "✅ PM2 process '$APP_NAME' is running"
-            
+
             # Show current status
             log_info "Current PM2 status:"
             pm2 status | grep -E "(id|$APP_NAME)" || pm2 status
-            
+
             # Save PM2 process list for auto-restart after server reboot
             log_info "Saving PM2 process list..."
             if pm2 save; then
@@ -323,12 +351,12 @@ else
         else
             log_error "❌ PM2 process '$APP_NAME' is not running after restart"
             log_error "Manual intervention may be required"
-            # Don't fail deployment, but warn
+            exit 1
         fi
     else
         log_error "❌ PM2 restart failed"
         log_error "Manual PM2 restart required: $PM2_COMMAND"
-        # Don't fail deployment, but warn that manual restart is needed
+        exit 1
     fi
 fi
 
