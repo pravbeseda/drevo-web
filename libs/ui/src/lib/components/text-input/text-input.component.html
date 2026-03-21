@@ -3,6 +3,10 @@
         <mat-label>{{ label() }}</mat-label>
     }
 
+    @if (icon(); as iconName) {
+        <mat-icon matPrefix>{{ iconName }}</mat-icon>
+    }
+
     @if (multiline()) {
         <textarea
             matInput
