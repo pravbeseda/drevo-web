@@ -5,7 +5,7 @@ import {
 } from '@angular/cdk/scrolling';
 import { AutoSizeVirtualScrollStrategy } from '@angular/cdk-experimental/scrolling';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
 const MIN_BUFFER_PX = 200;
 const MAX_BUFFER_PX = 400;
@@ -16,10 +16,10 @@ const MAX_BUFFER_PX = 400;
  */
 @Injectable()
 export class FlexibleVirtualScrollStrategy implements VirtualScrollStrategy {
-    private delegate!: VirtualScrollStrategy;
+    private delegate: VirtualScrollStrategy = new AutoSizeVirtualScrollStrategy(MIN_BUFFER_PX, MAX_BUFFER_PX);
 
     get scrolledIndexChange(): Observable<number> {
-        return this.delegate?.scrolledIndexChange ?? EMPTY;
+        return this.delegate.scrolledIndexChange;
     }
 
     configure(itemSize: number | undefined): void {

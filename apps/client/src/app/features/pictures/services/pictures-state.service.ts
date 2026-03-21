@@ -4,7 +4,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logger, LoggerService } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
-import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
 const TARGET_ROW_HEIGHT = 200;
@@ -54,11 +54,10 @@ export class PicturesStateService {
             this._searchQuery().length > 0 &&
             !this._isLoading() &&
             this._totalItems() === 0 &&
-            this._pictures().length === 0
+            this._pictures().length === 0,
     );
 
-    readonly trackByFn = (_index: number, row: PictureRow): string =>
-        row.items.map(item => item.picture.id).join(',');
+    readonly trackByFn = (_index: number, row: PictureRow): string => row.items.map(item => item.picture.id).join(',');
 
     init(): void {
         this.searchSubject
@@ -66,21 +65,19 @@ export class PicturesStateService {
                 startWith(''),
                 map(query => query.trim()),
                 distinctUntilChanged(),
-                tap(() => {
-                    this._isLoading.set(true);
-                    this._currentPage.set(1);
-                }),
                 debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
+                    this._isLoading.set(true);
+                    this._currentPage.set(1);
                     this.logger.info('Searching pictures', { query });
                     return this.pictureService.getPictures({ query, page: 1 }).pipe(
                         catchError(error => {
                             this.logger.error('Failed to load pictures', error);
                             return of({ items: [] as Picture[], total: 0 });
-                        })
+                        }),
                     );
                 }),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
                 this._pictures.set([...response.items]);
@@ -118,7 +115,7 @@ export class PicturesStateService {
                     this.logger.error('Failed to load more pictures', error);
                     return of({ items: [] as Picture[], total: 0 });
                 }),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
                 if (response.items.length > 0) {

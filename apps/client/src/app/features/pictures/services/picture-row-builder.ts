@@ -147,8 +147,8 @@ function buildRowResult(items: readonly RowEntry[], rowHeight: number): PictureR
             const itemHeight = Math.min(rowHeight, item.maxDisplayHeight);
             return {
                 picture: item.picture,
-                width: item.aspectRatio * itemHeight,
-                height: itemHeight,
+                width: Math.round(item.aspectRatio * itemHeight),
+                height: Math.round(itemHeight),
             };
         }),
     };
