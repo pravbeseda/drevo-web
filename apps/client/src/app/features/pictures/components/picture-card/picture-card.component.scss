@@ -14,7 +14,6 @@ $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 +
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding-bottom: $overlay-max-2-lines;
         background: var(--themed-secondary-bg);
     }
 
