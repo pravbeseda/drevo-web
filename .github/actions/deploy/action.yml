@@ -137,7 +137,7 @@ runs:
               echo "🔍 Verifying PM2 status..."
               ssh -p ${{ inputs.ssh-port }} \
                 ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-                "export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"; pm2 show $APP_NAME | head -10"
+                "set -o pipefail; export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"; pm2 show $APP_NAME | head -10"
 
               echo "✅ Deployment verification completed"
 
