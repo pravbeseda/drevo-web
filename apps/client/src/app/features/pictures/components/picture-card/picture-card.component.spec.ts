@@ -53,11 +53,6 @@ describe('PictureCardComponent', () => {
         expect(title?.textContent?.trim()).toBe('Храм Христа Спасителя');
     });
 
-    it('should display title text in overlay', () => {
-        const overlay = spectator.query('.picture-card__overlay');
-        expect(overlay?.textContent?.trim()).toContain('Храм Христа Спасителя');
-    });
-
     it('should apply width and height styles', () => {
         const card = spectator.query('[data-testid="picture-card"]');
         expect(card).toBeTruthy();

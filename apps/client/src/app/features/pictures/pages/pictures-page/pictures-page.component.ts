@@ -1,15 +1,16 @@
 import { PictureRowComponent } from '../../components/picture-row/picture-row.component';
 import { PictureSearchBarComponent } from '../../components/picture-search-bar/picture-search-bar.component';
 import { PicturesStateService } from '../../services/pictures-state.service';
+import { isPlatformBrowser } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
-    computed,
     DestroyRef,
     effect,
     ElementRef,
     inject,
     OnInit,
+    PLATFORM_ID,
     viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -45,12 +46,13 @@ export class PicturesPageComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('PicturesComponent');
     private readonly modalData = inject<ModalData<undefined, string>>(MODAL_DATA, { optional: true });
+    private readonly platformId = inject(PLATFORM_ID);
     private readonly resizeSubject = new Subject<number>();
     private resizeObserver: ResizeObserver | undefined;
 
     private readonly galleryContainer = viewChild<ElementRef<HTMLElement>>('galleryContainer');
 
-    readonly isSelectMode = computed(() => !!this.modalData);
+    readonly isSelectMode = !!this.modalData;
     readonly isLoading = this.state.isLoading;
     readonly isLoadingMore = this.state.isLoadingMore;
     readonly rows = this.state.rows;
@@ -60,6 +62,10 @@ export class PicturesPageComponent implements OnInit {
     readonly trackByFn = this.state.trackByFn;
 
     constructor() {
+        this.destroyRef.onDestroy(() => {
+            this.resizeObserver?.disconnect();
+        });
+
         // React to gallery container appearing/disappearing in DOM (inside @if)
         effect(() => {
             const container = this.galleryContainer();
@@ -87,7 +93,7 @@ export class PicturesPageComponent implements OnInit {
     }
 
     onPictureClick(picture: Picture): void {
-        if (this.isSelectMode()) {
+        if (this.isSelectMode) {
             this.logger.info('Picture selected', { id: picture.id });
             this.modalData?.close(`@${picture.id}@`);
         } else {
@@ -97,6 +103,10 @@ export class PicturesPageComponent implements OnInit {
     }
 
     private observeResize(element: HTMLElement): void {
+        if (!isPlatformBrowser(this.platformId)) {
+            return;
+        }
+
         // Observe the CDK viewport element — its contentRect.width excludes the scrollbar
         const viewport = element.querySelector('cdk-virtual-scroll-viewport') ?? element;
 
@@ -107,9 +117,5 @@ export class PicturesPageComponent implements OnInit {
             }
         });
         this.resizeObserver.observe(viewport);
-
-        this.destroyRef.onDestroy(() => {
-            this.resizeObserver?.disconnect();
-        });
     }
 }

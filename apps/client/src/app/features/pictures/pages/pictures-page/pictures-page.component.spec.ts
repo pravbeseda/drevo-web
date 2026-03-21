@@ -78,6 +78,6 @@ describe('PicturesPageComponent', () => {
 
     it('should not be in select mode by default', () => {
         spectator.detectChanges();
-        expect(spectator.component.isSelectMode()).toBe(false);
+        expect(spectator.component.isSelectMode).toBe(false);
     });
 });

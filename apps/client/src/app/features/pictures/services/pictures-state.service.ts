@@ -99,6 +99,10 @@ export class PicturesStateService {
     }
 
     loadMore(): void {
+        if (this._isLoadingMore()) {
+            return;
+        }
+
         const currentPictures = this._pictures();
         if (currentPictures.length >= this._totalItems()) {
             return;

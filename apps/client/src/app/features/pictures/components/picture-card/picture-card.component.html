@@ -3,6 +3,7 @@
     [class.picture-card--capped]="isCapped()"
     role="button"
     tabindex="0"
+    [attr.aria-label]="picture().title"
     [style.width.px]="width()"
     [style.height.px]="rowHeight()"
     (click)="onClick()"
