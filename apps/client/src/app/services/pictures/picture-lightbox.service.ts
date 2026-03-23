@@ -28,8 +28,8 @@ export class PictureLightboxService {
     readonly isLoading = this._isLoading.asReadonly();
     readonly isZoomed = this._isZoomed.asReadonly();
 
-    /** Whether the lightbox was closed by popstate (Back button) — prevents double history manipulation */
-    private closedByPopstate = false;
+    /** Whether we pushed a hash entry that needs to be cleaned up on close */
+    private hashPushed = false;
 
     private readonly _openSubject = new Subject<number>();
 
@@ -45,9 +45,9 @@ export class PictureLightboxService {
         this._isLoading.set(true);
         this._isZoomed.set(false);
         this._currentPicture.set(undefined);
-        this.closedByPopstate = false;
 
         this.pushHash(pictureId);
+        this.hashPushed = true;
         this._openSubject.next(pictureId);
     }
 
@@ -83,10 +83,10 @@ export class PictureLightboxService {
         this._isLoading.set(false);
         this._isZoomed.set(false);
 
-        if (!this.closedByPopstate) {
-            this.removeHash();
+        if (this.hashPushed) {
+            this.hashPushed = false;
+            this.location.back();
         }
-        this.closedByPopstate = false;
     }
 
     toggleZoom(): void {
@@ -98,11 +98,6 @@ export class PictureLightboxService {
         this.location.go(`${currentPath}${HASH_PREFIX}${pictureId}`);
     }
 
-    private removeHash(): void {
-        const currentPath = this.location.path(false);
-        this.location.replaceState(currentPath);
-    }
-
     private listenPopstate(): void {
         if (!this.window) {
             return;
@@ -112,7 +107,7 @@ export class PictureLightboxService {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
                 if (this._isOpen()) {
-                    this.closedByPopstate = true;
+                    this.hashPushed = false;
                     this.close();
                 }
             });

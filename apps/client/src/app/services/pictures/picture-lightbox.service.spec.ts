@@ -126,19 +126,19 @@ describe('PictureLightboxService', () => {
             expect(spectator.service.isZoomed()).toBe(false);
         });
 
-        it('should remove hash from URL when closed by user action', () => {
+        it('should navigate back to remove hash when closed by user action', () => {
             pictureService.getPicture.mockReturnValue(of(mockPicture));
             spectator.service.open(123);
 
             spectator.service.close();
 
-            expect(location.replaceState).toHaveBeenCalledWith('/articles/1');
+            expect(location.back).toHaveBeenCalled();
         });
 
         it('should not do anything if already closed', () => {
             spectator.service.close();
 
-            expect(location.replaceState).not.toHaveBeenCalled();
+            expect(location.back).not.toHaveBeenCalled();
         });
     });
 
@@ -164,14 +164,14 @@ describe('PictureLightboxService', () => {
             expect(spectator.service.isOpen()).toBe(false);
         });
 
-        it('should not call replaceState when closed by popstate', () => {
+        it('should not call location.back when closed by popstate', () => {
             pictureService.getPicture.mockReturnValue(of(mockPicture));
             spectator.service.open(123);
-            location.replaceState.mockClear();
+            location.back.mockClear();
 
             window.dispatchEvent(new PopStateEvent('popstate'));
 
-            expect(location.replaceState).not.toHaveBeenCalled();
+            expect(location.back).not.toHaveBeenCalled();
         });
     });
 });
