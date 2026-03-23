@@ -38,12 +38,15 @@
     overflow: hidden;
 
     &--zoomed {
+        display: block;
         overflow: auto;
         cursor: zoom-out;
 
         .lightbox__image {
+            display: block;
             max-width: none;
             max-height: none;
+            margin: auto;
             cursor: zoom-out;
         }
     }
