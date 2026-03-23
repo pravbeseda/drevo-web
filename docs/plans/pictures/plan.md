@@ -10,7 +10,10 @@
 - Hover overlay с анимированным выезжающим блоком информации
 - Три контекста: вкладка History (`/history/pictures`), standalone страница (`/pictures`), модалка (пикер)
 - Два режима: browse (клик → lightbox → детальная страница) и select (клик → возврат `@{id}@`)
-- Детальная страница `/pictures/:id` с полным изображением, редактированием подписи, перезаливкой
+- Lightbox — глобальный overlay для просмотра иллюстрации (с поддержкой кнопки Back)
+- Детальная страница `/pictures/:id` с метаданными, редактированием, удалением
+- Версионирование изменений картинок с модерацией (как у статей)
+- История изменений `/history/pictures` с фильтрами и контролами модератора
 
 ## Данные backend
 
@@ -41,7 +44,7 @@
 
 Picture-related компоненты живут в **отдельном feature `features/pictures/`**:
 1. Pictures — самостоятельная доменная область, не подраздел истории
-2. `/history/pictures` — отдельная заглушка `PicturesHistoryComponent` в features/history (история изменений картинок)
+2. `/history/pictures` — страница истории изменений картинок в features/history
 3. Standalone route `/pictures` в `app.routes.ts` lazy-load'ит из pictures feature
 
 ### Файловая структура
@@ -51,7 +54,7 @@ features/pictures/
   pages/
     pictures-page/                       # Галерея (browse + select mode)
       pictures-page.component.ts/html/scss/spec
-    picture-detail/                      # Страница /pictures/:id (этап 4)
+    picture-detail/                      # Страница /pictures/:id
       picture-detail.component.ts/html/scss/spec
   components/
     picture-card/                        # Карточка миниатюры + hover overlay
@@ -60,8 +63,6 @@ features/pictures/
       picture-row.component.ts/html/scss/spec
     picture-search-bar/                  # Поисковая строка
       picture-search-bar.component.ts/html/scss/spec
-    picture-lightbox/                    # Модалка быстрого просмотра (этап 4)
-      picture-lightbox.component.ts/html/scss/spec
   services/
     picture-row-builder.ts               # Чистая функция: items[] → PictureRow[]
     picture-row-builder.spec.ts
@@ -71,14 +72,21 @@ features/pictures/
 
 features/history/
   pages/
-    pictures-history/                    # Заглушка для /history/pictures (история изменений)
-      pictures-history.component.ts/html/scss
+    pictures-history/                    # История изменений картинок (D5)
+      pictures-history.component.ts/html/scss/spec
+
+app/layout/
+  picture-lightbox/                      # Глобальный lightbox overlay (D1)
+    picture-lightbox.component.ts/html/scss/spec
 
 app/services/pictures/
   picture-api.service.ts                 # HTTP layer (providedIn: root)
   picture-api.service.spec.ts
   picture.service.ts                     # Domain layer (providedIn: root)
   picture.service.spec.ts
+  picture-lightbox.service.ts            # Lightbox state + history (providedIn: root) (D1)
+  picture-lightbox.service.spec.ts
+  picture.constants.ts                   # Константы
   index.ts                               # Barrel export
 
 libs/shared/src/lib/models/
@@ -86,7 +94,7 @@ libs/shared/src/lib/models/
   picture.ts                             # Picture domain model
 
 legacy-drevo-yii/protected/controllers/api/
-  PicturesApiController.php              # Новый API контроллер
+  PicturesApiController.php              # API контроллер
 ```
 
 ### Маршрутизация
@@ -103,8 +111,10 @@ legacy-drevo-yii/protected/controllers/api/
 // pictures.routes.ts:
 { path: '', loadComponent: () => import('./pages/pictures-page/pictures-page.component')
     .then(m => m.PicturesPageComponent) },
+{ path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
+    .then(m => m.PictureDetailComponent) },
 
-// history.routes.ts — вкладка истории (заглушка):
+// history.routes.ts — вкладка истории:
 {
     path: 'pictures',
     title: 'История изображений',
@@ -176,9 +186,68 @@ VirtualScroller виртуализирует строки (не отдельны
 
 ---
 
+## Governance: версионирование картинок
+
+### Модель
+
+Упрощённое версионирование, консистентное со статьями:
+- Каждое изменение (title, файл, удаление) = новая версия с `approved: 0` (Pending)
+- Картинка показывает последнюю одобренную версию
+- Модератор одобряет/отклоняет версии
+- Для модераторов изменения auto-approve (`approved: 1`)
+- Удаление невозможно, если картинка используется в статьях
+- Diff для title: простое "было → стало"
+- Diff для файла: два thumbnail рядом
+
+### Таблица `picture_versions` (новая)
+
+| Колонка | Тип | Описание |
+|---------|-----|----------|
+| `pv_id` | int PK | Auto-increment |
+| `pv_pic_id` | int FK | → pictures.pic_id |
+| `pv_type` | enum | `create`, `edit_title`, `edit_file`, `edit_both`, `delete` |
+| `pv_title` | varchar | Новое значение title (full state) |
+| `pv_width` | int NULL | Новые размеры (при замене файла) |
+| `pv_height` | int NULL | |
+| `pv_user` | varchar(32) | Автор изменения |
+| `pv_date` | datetime | Дата |
+| `pv_approved` | tinyint | -1 (rejected), 0 (pending), 1 (approved) |
+| `pv_moderator` | varchar(32) NULL | Модератор |
+| `pv_moderate_date` | datetime NULL | Дата модерации |
+| `pv_comment` | text NULL | Комментарий модератора |
+| `pv_old_title` | varchar NULL | Предыдущее значение title (для diff) |
+
+### Хранение файлов
+
+**Вариант: Stable URL + архивная директория** (рекомендован)
+
+```
+/images/{folder}/{id}.jpg                           ← текущая одобренная версия (стабильный URL)
+/images/archive/{folder}/{id}_v{pv_id}.jpg          ← старые версии файлов
+/images/pending/{folder}/{id}_v{pv_id}.jpg          ← файлы pending версий
+/pictures/thumbs/{folder}/{id}.jpg                  ← текущий thumbnail
+/pictures/thumbs/archive/{folder}/{id}_v{pv_id}.jpg ← старые thumbnails
+/pictures/thumbs/pending/{folder}/{id}_v{pv_id}.jpg ← pending thumbnails
+```
+
+Workflow:
+- Upload (pending): сохраняем в `pending/`, генерируем thumbnail в `thumbs/pending/`
+- Approve: текущий файл → `archive/` с `_v{old_pv_id}`, pending → основной путь
+- Reject: удаляем из `pending/`
+- Soft-delete (approve): файл → `archive/`, удаляем из основного пути
+
+Обратная совместимость: все существующие `@{id}@` продолжают работать без изменений.
+
+Рассмотренные альтернативы:
+- **Symlinks** — усложняют деплой, не все хостинги поддерживают
+- **PHP-контроллер** — каждый запрос через PHP, убивает кэширование
+- **Content-addressed (hash)** — overkill, ломает существующие URL
+
+---
+
 ## Этапы разработки
 
-### Этап 1a: Backend API
+### Этап 1a: Backend API ✅
 
 **Backend (PHP):**
 - `PicturesApiController` наследует `BaseApiController`
@@ -222,40 +291,226 @@ VirtualScroller виртуализирует строки (не отдельны
 
 **Тесты:** ✅ `PicturesStateService` (9 тестов), `PicturesComponent` (7 тестов)
 
-### Этап 4: Lightbox + Detail Page + Select Mode
+### Этап 4 (D1): Lightbox — просмотр иллюстрации
 
-- `PictureLightboxComponent` — модалка: полное изображение, подпись, кнопка "Открыть страницу"
-- `PictureDetailComponent` — страница `/pictures/:id`: полное изображение, форма редактирования подписи, перезаливка (file upload), список связанных статей
-- Интеграция с ModalService для вызова из редактора (select mode / picker)
-- Возврат `@{pic_id}@` через `modalData.close()`
-- Кнопка в редакторе для открытия пикера
+**Scope**: Глобальный overlay для просмотра картинки из любого контекста (галерея, контент статьи).
 
-**Тесты:** Unit-тесты для `PictureLightboxComponent`, `PictureDetailComponent`
+**Компоненты и сервисы:**
+
+1. **`PictureLightboxService`** (`app/services/pictures/picture-lightbox.service.ts`, `providedIn: 'root'`)
+   - `open(pictureId: number)` — загружает картинку, показывает overlay, push в browser history
+   - `close()` — закрывает overlay
+   - Signals: `isOpen`, `currentPicture` (загруженная `Picture`), `isLoading`, `isZoomed` (fit ↔ 100%)
+   - `toggleZoom()` — переключает fit ↔ 100%
+   - Browser history integration: `Location.go()` для push `#picture={id}`, подписка на `popstate` → close
+   - При close — не делает `Location.back()` если закрытие вызвано кнопкой/Esc (а не Back), вместо этого `Location.replaceState()` убирает hash
+
+2. **`PictureLightboxComponent`** (`app/layout/picture-lightbox/`)
+   - Рендерится в `layout.component.html` (всегда в DOM, показывается по `isOpen()`)
+   - Full-screen overlay: `position: fixed; inset: 0; z-index: 1000`
+   - Тёмный фон (`background: rgba(0, 0, 0, 0.9)`) — hardcoded, не themed (overlay на изображении)
+   - Крестик (close button) в правом верхнем углу
+   - Изображение:
+     - **Fit mode** (default): `object-fit: contain; max-width: 100%; max-height: 100%` — вписано в экран
+     - **Zoom mode** (клик по картинке): `width/height: auto` (натуральный размер), `overflow: auto` на контейнере для прокрутки
+   - Подпись картинки (title) под изображением
+   - Ссылка "Открыть страницу иллюстрации" → `router.navigate(['/pictures', id])`
+   - Keyboard: `Escape` → close
+   - Клик по backdrop (вне картинки) → close
+   - `@if (lightboxService.isOpen())` — conditional rendering
+
+3. **Интеграция в article-content** (`article-content.component.ts`)
+   - Паттерн: event delegation, аналогично map/link handling
+   - В `clickHandler`: проверка `target.closest('.pic img')` — клик по картинке в контенте
+   - Извлечение `pictureId` из `src` URL: `/images/{folder}/{padded_id}.jpg` → parse id
+   - Вызов `PictureLightboxService.open(pictureId)`
+   - `preventDefault()` чтобы не переходить по ссылке (если `<img>` обёрнут в `<a>`)
+
+4. **Интеграция в gallery** (`pictures-page.component.ts`)
+   - Browse mode: изменить клик с `router.navigate` на `lightboxService.open(picture.id)`
+   - Select mode: без изменений (по-прежнему `modalData.close()`)
+
+**Тесты:**
+- `PictureLightboxService`: open/close, history push/pop, zoom toggle
+- `PictureLightboxComponent`: render when open, close on Esc, close on backdrop click, fit/zoom toggle
+- `article-content`: клик по `.pic img` → lightbox.open()
+
+### Этап 5 (D2): Detail Page — просмотр метаданных
+
+**Scope**: Страница `/pictures/:id` — только просмотр, без редактирования.
+
+**Компоненты:**
+
+1. **`PictureDetailComponent`** (`features/pictures/pages/picture-detail/`)
+   - Route: `/pictures/:id`
+   - Загрузка картинки через `PictureService.getPicture(id)`
+   - Отображение:
+     - Полное изображение (fit + click для zoom, переиспользовать логику из lightbox или общий паттерн)
+     - Title (описание)
+     - Автор (`pic_user`) + дата загрузки (`pic_date`)
+     - Раздел "Используется в статьях" — заглушка (backend endpoint не готов)
+   - Кнопка "Назад" (или breadcrumb)
+   - Ссылка из lightbox: "Открыть страницу иллюстрации" → навигация сюда
+
+2. **Route** в `pictures.routes.ts`:
+   ```typescript
+   { path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
+       .then(m => m.PictureDetailComponent) }
+   ```
+
+**Тесты:**
+- `PictureDetailComponent`: загрузка и отображение данных, обработка ошибок, навигация назад
+
+### Этап 6 (D3): Backend — версионирование картинок
+
+**Scope**: API и БД для governance модели. Блокирует этапы 7 и 8.
+
+**Backend (PHP):**
+- Миграция: создать таблицу `picture_versions` (см. секцию "Governance")
+- Создать директории `images/archive/`, `images/pending/`, `pictures/thumbs/archive/`, `pictures/thumbs/pending/`
+- Новые/изменённые endpoints:
+  - `POST /api/pictures/{id}/edit` — создать версию (title и/или file). Для модератора — auto-approve. Body: `{pic_title?, file?}`. Response: `{data: PictureVersionDto}`
+  - `POST /api/pictures/{id}/delete` — создать intention на удаление. Проверка: если используется в статьях → `400 Bad Request` с информацией. Для модератора — auto-approve + soft-delete
+  - `POST /api/pictures/moderate` — approve/reject версию. Body: `{pv_id, approved: 1|-1, comment?}`. При approve edit: обновить `pictures`, переместить файлы. При approve delete: soft-delete
+  - `GET /api/pictures/history?page=&size=&filter=` — список версий с фильтрами (`all`, `unchecked`, `my`). Response: пагинированный список `PictureVersionDto[]`
+  - `GET /api/pictures/{id}/history` — версии конкретной картинки
+- Валидация при upload: формат (jpg, png, webp), max размер файла, `getimagesize()` для dimensions
+
+**Frontend models (новые):**
+- `PictureVersionDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
+- `PictureVersion` в `libs/shared/src/lib/models/picture.ts`
+
+**Frontend services (расширение):**
+- `PictureApiService`: добавить `editPicture()`, `deletePicture()`, `moderateVersion()`, `getPictureHistory()`, `getGlobalPictureHistory()`
+- `PictureService`: маппинг новых DTO
+
+### Этап 7 (D4): Detail Page — редактирование
+
+**Scope**: Расширение detail page из этапа 5 + интеграция с версионированием.
+
+**Функциональность:**
+
+1. **Редактирование описания**
+   - Inline-edit: клик по title → text input → сохранение
+   - Или отдельная форма (решить при реализации)
+   - Вызов `PictureService.editPicture(id, { title: newTitle })`
+
+2. **Перезаливка файла**
+   - Кнопка "Заменить файл" → file input
+   - Preview загруженного файла перед отправкой
+   - Валидация на клиенте: формат, размер
+   - Вызов `PictureService.editPicture(id, { file })` (multipart)
+
+3. **Удаление**
+   - Кнопка "Удалить" → confirmation dialog
+   - Если используется в статьях → показать предупреждение, заблокировать
+   - Вызов `PictureService.deletePicture(id)`
+
+4. **Pending версии на detail page**
+   - Если есть pending версии — показать блок с ними
+   - Для модератора: кнопки approve/reject + поле комментария
+   - Diff для title: выделение изменений (было → стало)
+   - Diff для файла: два thumbnail рядом (текущий vs предложенный)
+
+5. **UX для пользователей vs модераторов**
+   - Одинаковый UI контролов
+   - Пользователь: после действия — уведомление "Изменение отправлено на модерацию"
+   - Модератор: изменения применяются сразу (auto-approve)
+
+**Тесты:**
+- Edit title flow, file upload flow, delete flow
+- Pending versions display
+- Moderator approve/reject controls
+
+### Этап 8 (D5): History — `/history/pictures`
+
+**Scope**: Полноценная страница истории изменений картинок (замена заглушки).
+
+**Компоненты:**
+
+1. **`PicturesHistoryComponent`** (расширение `features/history/pages/pictures-history/`)
+   - Переиспользование паттерна из `articles-history`:
+     - Virtual scroller для списка
+     - Date headers между группами по дате
+     - Фильтры: все / непроверенные / мои (как у статей)
+   - Каждая запись:
+     - Thumbnail картинки
+     - Тип изменения (создание / редактирование title / замена файла / удаление)
+     - Автор и дата
+     - Для title edit: diff (было → стало)
+     - Для file edit: два маленьких thumbnail
+     - Статус (pending / approved / rejected)
+   - Для модератора: кнопки approve/reject inline
+   - Клик по записи → detail page картинки
+
+2. **`PictureHistoryService`** (`app/services/pictures/` или `features/history/services/`)
+   - Загрузка и пагинация истории
+   - Фильтрация
+   - Маппинг в display items с date headers
+
+**Тесты:**
+- History list rendering, filtering, pagination
+- Moderator controls
+- Date grouping
+
+### Этап 9 (D6): Editor Picker Integration
+
+**Scope**: Кнопка вставки иллюстрации в редакторе CodeMirror.
+
+- Кнопка в тулбаре CodeMirror → открытие галереи как modal (select mode)
+- Dual-mode уже реализован: `MODAL_DATA` injection → `isSelectMode`
+- Клик по картинке → `modalData.close('@{id}@')` → вставка в позицию курсора
+- Модальное окно галереи: поиск + бесконечная подгрузка + клик = выбор
+
+**Тесты:**
+- Toolbar button renders and opens modal
+- Picture selection returns correct code
+- Insertion at cursor position
+
+---
+
+## Зависимости между этапами
+
+```
+Этап 4 (D1: Lightbox)        ─┐
+Этап 5 (D2: Detail View)     ─┤── можно параллельно
+Этап 6 (D3: Backend Version) ─┤
+Этап 9 (D6: Editor Picker)   ─┘
+
+Этап 6 завершён ──→ Этап 7 (D4: Detail Edit) ──→ Этап 8 (D5: History)
+```
 
 ---
 
 ## Ключевые файлы для модификации
 
-| Файл | Действие |
-|------|----------|
-| `apps/client/src/app/app.routes.ts` | Добавить `/pictures` и `/pictures/:id` |
-| `features/history/history.routes.ts` | Заменить заглушку pictures |
-| `features/history/pages/pictures/` | Удалить заглушку |
-| `libs/shared/src/lib/models/index.ts` | Экспорт новых моделей |
-| `libs/shared/package.json` | Если нужны зависимости |
-| `legacy-drevo-yii/.../controllers/api/` | Новый PicturesApiController.php |
+| Файл | Действие | Этап |
+|------|----------|------|
+| `app/layout/layout.component.html` | Добавить `<app-picture-lightbox>` | 4 |
+| `app/services/pictures/picture-lightbox.service.ts` | Новый сервис | 4 |
+| `app/layout/picture-lightbox/` | Новый компонент | 4 |
+| `features/article/components/article-content/article-content.component.ts` | Добавить picture click handler | 4 |
+| `features/pictures/pages/pictures-page/pictures-page.component.ts` | Browse → lightbox | 4 |
+| `features/pictures/pictures.routes.ts` | Добавить `:id` route | 5 |
+| `features/pictures/pages/picture-detail/` | Новый компонент | 5, 7 |
+| `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 6 |
+| `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 6 |
+| `app/services/pictures/picture-api.service.ts` | Новые методы | 6 |
+| `app/services/pictures/picture.service.ts` | Новые методы | 6 |
+| `features/history/pages/pictures-history/` | Полноценная реализация | 8 |
+| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints | 6 |
 
 ## Переиспользуемые паттерны
 
-| Паттерн | Источник |
-|---------|----------|
-| Dual-mode (MODAL_DATA) | `features/search/search.component.ts` |
-| VirtualScroller API | `libs/ui/src/lib/components/virtual-scroller/` |
-| Two-layer services | `app/services/articles/article-api.service.ts` + `article.service.ts` |
-| Search debounce+switchMap | `features/search/search.component.ts:63-92` |
-| Pagination (loadMore) | `features/search/search.component.ts:100-127` |
-| BaseApiController | `legacy-drevo-yii/.../controllers/api/BaseApiController.php` |
-| Paginated response DTO | `libs/shared/.../dto/article-search.dto.ts` |
+| Паттерн | Источник | Для этапа |
+|---------|----------|-----------|
+| Event delegation (click handler) | `article-content.component.ts:91-138` | 4 |
+| Fullscreen modal (panelClass) | `styles.scss` (diff-modal-panel) | 4 |
+| Two-layer services | `article-api.service.ts` + `article.service.ts` | 6 |
+| Versioning + approval | `article.ts`, `moderation.ts` | 6, 7 |
+| History list + filters | `articles-history/` component + service | 8 |
+| Dual-mode (MODAL_DATA) | `features/search/search.component.ts` | 9 |
+| VirtualScroller API | `libs/ui/virtual-scroller/` | 8 |
 
 ## Верификация
 
@@ -263,12 +518,12 @@ VirtualScroller виртуализирует строки (не отдельны
 2. `yarn build` — успешная сборка
 3. `yarn nx test client` — тесты проходят
 4. Dev server (`yarn serve`):
-   - `/history/pictures` — вкладка с галереей, скролл, поиск
-   - `/pictures` — standalone страница
-   - `/pictures/:id` — детальная страница
-   - Hover overlay анимация
-   - Resize → пересчет строк
-   - Select mode через модалку
+   - `/pictures` — галерея, browse mode → lightbox
+   - `/pictures/:id` — detail page с метаданными
+   - Lightbox из контента статьи (клик по картинке)
+   - Lightbox: fit ↔ zoom, Esc, Back button, крестик
+   - `/pictures/:id` — редактирование title, upload, delete (с модерацией)
+   - `/history/pictures` — история с фильтрами и модерацией
 
 ## Рассмотренные альтернативы
 
@@ -283,3 +538,16 @@ VirtualScroller виртуализирует строки (не отдельны
 - **Плюсы**: Виртуализация + простая группировка
 - **Минусы**: `object-fit: contain` оставляет пустоты, `object-fit: cover` обрезает
 - **Причина отклонения**: Противоречит требованию "картинки не должны обрезаться"
+
+### Governance: Очередь изменений (отклонен)
+- **Идея**: Отдельная таблица `picture_edits` вместо версионирования
+- **Плюсы**: Проще реализовать
+- **Причина отклонения**: Не консистентно с паттерном статей, не масштабируется для полной истории
+
+### Хранение файлов: Symlinks (отклонен)
+- **Идея**: Все файлы по version_id + symlink для текущего
+- **Причина отклонения**: Усложняет деплой, не все хостинги поддерживают
+
+### Хранение файлов: PHP-контроллер (отклонен)
+- **Идея**: Все файлы по version_id, PHP отдаёт по DB lookup
+- **Причина отклонения**: Каждый запрос через PHP, убивает кэширование
