@@ -1,4 +1,5 @@
 import { HeaderComponent } from './header/header.component';
+import { PictureLightboxComponent } from './picture-lightbox/picture-lightbox.component';
 import { RightSidebarComponent } from './right-sidebar/right-sidebar.component';
 import { SidebarNavComponent } from './sidebar-nav/sidebar-nav.component';
 import { VersionDisplayComponent } from './version-display/version-display.component';
@@ -25,6 +26,7 @@ const NAVIGATION_DEBOUNCE_MS = 100;
     selector: 'app-layout',
     imports: [
         HeaderComponent,
+        PictureLightboxComponent,
         SidebarNavComponent,
         VersionDisplayComponent,
         RightSidebarComponent,

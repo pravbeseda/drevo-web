@@ -1,3 +1,4 @@
+import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { DOCUMENT } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -87,6 +88,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
     private readonly sanitizer = inject(DomSanitizer);
     private readonly logger = inject(LoggerService).withContext('ArticleContent');
     private readonly notification = inject(NotificationService);
+    private readonly pictureLightboxService = inject(PictureLightboxService);
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
@@ -101,6 +103,16 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
                 return;
             }
             element = element.parentElement;
+        }
+
+        // Check for picture click inside .pic container
+        if (target.closest('.pic')) {
+            const pictureId = this.extractPictureId(target);
+            if (pictureId !== undefined) {
+                event.preventDefault();
+                this.pictureLightboxService.open(pictureId);
+                return;
+            }
         }
 
         // Then check for anchor links
@@ -207,6 +219,25 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
             const url = `${this.window?.location.pathname}${this.window?.location.search}#${anchorId}`;
             this.window?.history.pushState(undefined, '', url);
         }
+    }
+
+    /**
+     * Extract picture ID from anchor href within a .pic container.
+     * Expected href format: /pictures/{id}
+     */
+    private extractPictureId(target: HTMLElement): number | undefined {
+        const anchor = target.closest('a');
+        const href = anchor?.getAttribute('href');
+        if (!href) {
+            return undefined;
+        }
+
+        const match = /^\/pictures\/(\d+)$/.exec(href);
+        if (!match) {
+            return undefined;
+        }
+
+        return Number(match[1]);
     }
 
     // ========================================================================

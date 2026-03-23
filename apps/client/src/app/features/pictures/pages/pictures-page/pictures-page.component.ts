@@ -1,3 +1,4 @@
+import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PictureRowComponent } from '../../components/picture-row/picture-row.component';
 import { PictureSearchBarComponent } from '../../components/picture-search-bar/picture-search-bar.component';
 import { PicturesStateService } from '../../services/pictures-state.service';
@@ -14,7 +15,6 @@ import {
     viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
 import {
@@ -42,7 +42,7 @@ import { debounceTime, Subject } from 'rxjs';
 })
 export class PicturesPageComponent implements OnInit {
     private readonly state = inject(PicturesStateService);
-    private readonly router = inject(Router);
+    private readonly lightboxService = inject(PictureLightboxService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('PicturesComponent');
     private readonly modalData = inject<ModalData<undefined, string>>(MODAL_DATA, { optional: true });
@@ -97,8 +97,8 @@ export class PicturesPageComponent implements OnInit {
             this.logger.info('Picture selected', { id: picture.id });
             this.modalData?.close(`@${picture.id}@`);
         } else {
-            this.logger.info('Opening picture', { id: picture.id });
-            void this.router.navigate(['/pictures', picture.id]);
+            this.logger.info('Opening lightbox', { id: picture.id });
+            this.lightboxService.open(picture.id);
         }
     }
 

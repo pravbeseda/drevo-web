@@ -1,6 +1,6 @@
+import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PicturesStateService } from '../../services/pictures-state.service';
 import { PicturesPageComponent } from './pictures-page.component';
-import { Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 
@@ -33,7 +33,7 @@ describe('PicturesPageComponent', () => {
     const createComponent = createComponentFactory({
         component: PicturesPageComponent,
         componentProviders: [{ provide: PicturesStateService, useValue: mockState }],
-        providers: [mockLoggerProvider(), mockProvider(Router)],
+        providers: [mockLoggerProvider(), mockProvider(PictureLightboxService)],
         detectChanges: false,
     });
 
