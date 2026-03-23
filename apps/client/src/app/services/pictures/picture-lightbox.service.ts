@@ -4,7 +4,7 @@ import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, WINDOW } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
-import { fromEvent } from 'rxjs';
+import { catchError, EMPTY, fromEvent, Subject, switchMap } from 'rxjs';
 
 const HASH_PREFIX = '#picture=';
 
@@ -31,8 +31,11 @@ export class PictureLightboxService {
     /** Whether the lightbox was closed by popstate (Back button) — prevents double history manipulation */
     private closedByPopstate = false;
 
+    private readonly _openSubject = new Subject<number>();
+
     constructor() {
         this.listenPopstate();
+        this.listenOpen();
     }
 
     open(pictureId: number): void {
@@ -45,20 +48,27 @@ export class PictureLightboxService {
         this.closedByPopstate = false;
 
         this.pushHash(pictureId);
+        this._openSubject.next(pictureId);
+    }
 
-        this.pictureService
-            .getPicture(pictureId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: picture => {
-                    this._currentPicture.set(picture);
-                    this._isLoading.set(false);
-                },
-                error: error => {
-                    this.logger.error('Failed to load picture', error);
-                    this._isLoading.set(false);
-                    this.close();
-                },
+    private listenOpen(): void {
+        this._openSubject
+            .pipe(
+                switchMap(pictureId =>
+                    this.pictureService.getPicture(pictureId).pipe(
+                        catchError(error => {
+                            this.logger.error('Failed to load picture', error);
+                            this._isLoading.set(false);
+                            this.close();
+                            return EMPTY;
+                        })
+                    )
+                ),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(picture => {
+                this._currentPicture.set(picture);
+                this._isLoading.set(false);
             });
     }
 

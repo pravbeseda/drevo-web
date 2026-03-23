@@ -89,6 +89,28 @@ describe('PictureLightboxService', () => {
             expect(spectator.service.isOpen()).toBe(false);
             expect(spectator.service.isLoading()).toBe(false);
         });
+
+        it('should cancel previous request when opening another picture', () => {
+            const firstSubject = new Subject<Picture>();
+            const secondPicture: Picture = { ...mockPicture, id: 456, title: 'Вторая картинка' };
+
+            pictureService.getPicture.mockReturnValue(firstSubject.asObservable());
+            spectator.service.open(123);
+
+            const secondSubject = new Subject<Picture>();
+            pictureService.getPicture.mockReturnValue(secondSubject.asObservable());
+            spectator.service.open(456);
+
+            // First request completes — should be ignored (cancelled by switchMap)
+            firstSubject.next(mockPicture);
+            expect(spectator.service.currentPicture()).toBeUndefined();
+            expect(spectator.service.isLoading()).toBe(true);
+
+            // Second request completes — should be applied
+            secondSubject.next(secondPicture);
+            expect(spectator.service.currentPicture()?.id).toBe(456);
+            expect(spectator.service.isLoading()).toBe(false);
+        });
     });
 
     describe('close', () => {

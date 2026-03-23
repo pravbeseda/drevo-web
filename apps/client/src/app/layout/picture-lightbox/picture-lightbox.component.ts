@@ -32,7 +32,9 @@ export class PictureLightboxComponent {
             return;
         }
 
-        if (!this.lightboxService.isZoomed()) {
+        if (this.lightboxService.isZoomed() && !this.document.fullscreenElement) {
+            this.lightboxService.toggleZoom();
+        } else if (!this.lightboxService.isZoomed()) {
             this.lightboxService.close();
         }
     }

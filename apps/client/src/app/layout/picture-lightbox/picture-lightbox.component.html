@@ -3,7 +3,7 @@
     <div
         #backdropEl
         class="lightbox__backdrop"
-        [class.lightbox__backdrop--fullscreen]="lightboxService.isZoomed()"
+        [class.lightbox__backdrop--zoomed]="lightboxService.isZoomed()"
         role="dialog"
         aria-modal="true"
         (click)="onBackdropClick($event)"

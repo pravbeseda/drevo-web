@@ -119,7 +119,7 @@ describe('PictureLightboxComponent', () => {
         expect(mockLightboxService.close).not.toHaveBeenCalled();
     });
 
-    it('should not close on Escape key when zoomed', () => {
+    it('should toggle zoom on Escape key when zoomed without fullscreen', () => {
         isOpen.set(true);
         isZoomed.set(true);
         currentPicture.set(mockPicture);
@@ -127,6 +127,7 @@ describe('PictureLightboxComponent', () => {
 
         spectator.component.onEscape();
 
+        expect(mockLightboxService.toggleZoom).toHaveBeenCalled();
         expect(mockLightboxService.close).not.toHaveBeenCalled();
     });
 
