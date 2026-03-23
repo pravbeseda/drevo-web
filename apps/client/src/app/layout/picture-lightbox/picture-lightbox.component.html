@@ -1,0 +1,61 @@
+@if (lightboxService.isOpen()) {
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
+    <div
+        #backdropEl
+        class="lightbox__backdrop"
+        [class.lightbox__backdrop--zoomed]="lightboxService.isZoomed()"
+        role="dialog"
+        aria-modal="true"
+        (click)="onBackdropClick($event)"
+        data-testid="lightbox-backdrop"
+    >
+        <ui-icon-button
+            class="lightbox__close"
+            [class.lightbox__close--hidden]="lightboxService.isZoomed()"
+            icon="close"
+            aria-label="Закрыть"
+            (click)="lightboxService.close()"
+            data-testid="lightbox-close"
+        />
+
+        @if (lightboxService.isLoading()) {
+            <div class="lightbox__loading">
+                <ui-spinner />
+            </div>
+        } @else {
+            @if (lightboxService.currentPicture(); as picture) {
+                <div
+                    class="lightbox__content"
+                    [class.lightbox__content--zoomed]="lightboxService.isZoomed()"
+                >
+                    <img
+                        class="lightbox__image"
+                        [src]="picture.imageUrl"
+                        [alt]="picture.title"
+                        tabindex="0"
+                        role="button"
+                        (click)="onImageClick(); $event.stopPropagation()"
+                        (keydown.enter)="onImageClick()"
+                        data-testid="lightbox-image"
+                    />
+                </div>
+
+                <div
+                    class="lightbox__footer"
+                    [class.lightbox__footer--hidden]="lightboxService.isZoomed()"
+                    data-testid="lightbox-footer"
+                >
+                    <span class="lightbox__title">{{ picture.title }}</span>
+                    <a
+                        class="lightbox__detail-link"
+                        [routerLink]="['/pictures', picture.id]"
+                        (click)="onDetailLinkClick(); $event.stopPropagation()"
+                        data-testid="lightbox-detail-link"
+                    >
+                        Открыть страницу иллюстрации
+                    </a>
+                </div>
+            }
+        }
+    </div>
+}

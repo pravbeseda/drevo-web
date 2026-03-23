@@ -1,5 +1,5 @@
 import { PictureService } from '../../../services/pictures';
-import { PicturesStateService } from './pictures-state.service';
+import { PictureStateService } from './picture-state.service';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { Picture, PictureListResponse } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
@@ -8,7 +8,7 @@ import { of, throwError } from 'rxjs';
 const DEBOUNCE_TIME_MS = 500;
 
 describe('PicturesStateService', () => {
-    let spectator: SpectatorService<PicturesStateService>;
+    let spectator: SpectatorService<PictureStateService>;
     let pictureService: jest.Mocked<PictureService>;
 
     const makePicture = (id: number): Picture => ({
@@ -32,7 +32,7 @@ describe('PicturesStateService', () => {
     };
 
     const createService = createServiceFactory({
-        service: PicturesStateService,
+        service: PictureStateService,
         mocks: [PictureService],
         providers: [mockLoggerProvider()],
     });

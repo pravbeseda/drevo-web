@@ -1,7 +1,8 @@
+import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { ArticlePageService } from '../../services/article-page.service';
 import { Router } from '@angular/router';
 import { signal } from '@angular/core';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { ArticleContentComponent } from './article-content.component';
@@ -10,12 +11,14 @@ describe('ArticleContentComponent', () => {
     let spectator: Spectator<ArticleContentComponent>;
     let router: jest.Mocked<Router>;
     let logger: MockLoggerService;
+    let lightboxService: jest.Mocked<PictureLightboxService>;
 
     const createComponent = createComponentFactory({
         component: ArticleContentComponent,
         mocks: [Router],
         providers: [
             mockLoggerProvider(),
+            mockProvider(PictureLightboxService),
             {
                 provide: ArticlePageService,
                 useValue: { editUrl: signal(undefined) },
@@ -27,6 +30,7 @@ describe('ArticleContentComponent', () => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
         logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        lightboxService = spectator.inject(PictureLightboxService) as jest.Mocked<PictureLightboxService>;
     });
 
     afterEach(() => {
@@ -231,6 +235,67 @@ describe('ArticleContentComponent', () => {
 
             expect(() => link.click()).not.toThrow();
             expect(pushStateSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('picture lightbox', () => {
+        it('should open lightbox when clicking image inside .pic with .html suffix', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'
+            );
+            spectator.detectChanges();
+
+            const img = spectator.query('.pic img') as HTMLImageElement;
+            img.click();
+
+            expect(lightboxService.open).toHaveBeenCalledWith(5319);
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+
+        it('should open lightbox when clicking image inside .pic without .html suffix', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/pictures/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>'
+            );
+            spectator.detectChanges();
+
+            const img = spectator.query('.pic img') as HTMLImageElement;
+            img.click();
+
+            expect(lightboxService.open).toHaveBeenCalledWith(123);
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+
+        it('should open lightbox when clicking anywhere inside .pic', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/456"><img src="/pictures/thumbs/001/000456.jpg" /></a></td></tr><tr><td class="picdesc">Подпись</td></tr></table>'
+            );
+            spectator.detectChanges();
+
+            const desc = spectator.query('.picdesc') as HTMLElement;
+            desc.click();
+
+            // picdesc is not inside an anchor, so no pictureId extracted
+            expect(lightboxService.open).not.toHaveBeenCalled();
+        });
+
+        it('should prevent default for picture clicks', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td><a href="/pictures/789"><img src="/test.jpg" /></a></td></tr></table>'
+            );
+            spectator.detectChanges();
+
+            const img = spectator.query('.pic img') as HTMLImageElement;
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+            const spy = jest.spyOn(event, 'preventDefault');
+
+            img.dispatchEvent(event);
+
+            expect(spy).toHaveBeenCalled();
+            expect(lightboxService.open).toHaveBeenCalledWith(789);
         });
     });
 

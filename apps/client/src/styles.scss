@@ -173,3 +173,11 @@ html.dark-theme body {
     white-space: pre-line;
     text-align: left;
 }
+
+// ============================================================================
+// LIGHTBOX SCROLL LOCK
+// ============================================================================
+
+body:has(app-picture-lightbox .lightbox__backdrop) {
+    overflow: hidden;
+}

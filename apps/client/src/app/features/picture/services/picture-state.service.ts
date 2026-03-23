@@ -10,7 +10,7 @@ const DEBOUNCE_TIME_MS = 500;
 const TARGET_ROW_HEIGHT = 200;
 
 @Injectable()
-export class PicturesStateService {
+export class PictureStateService {
     private readonly pictureService = inject(PictureService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger: Logger = inject(LoggerService).withContext('PicturesStateService');

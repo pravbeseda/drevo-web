@@ -12,5 +12,11 @@
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug"
+    },
+    "/images": {
+        "target": "http://drevo-local.ru",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug"
     }
 }
