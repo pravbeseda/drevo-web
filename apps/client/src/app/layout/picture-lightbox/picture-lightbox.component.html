@@ -48,10 +48,8 @@
                     <span class="lightbox__title">{{ picture.title }}</span>
                     <a
                         class="lightbox__detail-link"
-                        tabindex="0"
-                        role="link"
-                        (click)="openDetailPage(); $event.stopPropagation()"
-                        (keydown.enter)="openDetailPage()"
+                        [routerLink]="['/pictures', picture.id]"
+                        (click)="onDetailLinkClick(); $event.stopPropagation()"
                         data-testid="lightbox-detail-link"
                     >
                         Открыть страницу иллюстрации

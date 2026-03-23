@@ -1,14 +1,13 @@
 import { PictureLightboxService } from '../../services/pictures/picture-lightbox.service';
 import { PictureLightboxComponent } from './picture-lightbox.component';
-import { Router } from '@angular/router';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { Picture } from '@drevo-web/shared';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
 describe('PictureLightboxComponent', () => {
     let spectator: Spectator<PictureLightboxComponent>;
-    let router: jest.Mocked<Router>;
 
     const mockPicture: Picture = {
         id: 123,
@@ -40,7 +39,7 @@ describe('PictureLightboxComponent', () => {
         component: PictureLightboxComponent,
         providers: [
             { provide: PictureLightboxService, useValue: mockLightboxService },
-            mockProvider(Router),
+            provideRouter([]),
             mockLoggerProvider(),
         ],
         detectChanges: false,
@@ -53,7 +52,6 @@ describe('PictureLightboxComponent', () => {
         isZoomed.set(false);
         currentPicture.set(undefined);
         spectator = createComponent();
-        router = spectator.inject(Router) as jest.Mocked<Router>;
     });
 
     it('should create', () => {
@@ -113,6 +111,14 @@ describe('PictureLightboxComponent', () => {
         expect(mockLightboxService.close).toHaveBeenCalled();
     });
 
+    it('should not call close on Escape when lightbox is closed', () => {
+        spectator.detectChanges();
+
+        spectator.component.onEscape();
+
+        expect(mockLightboxService.close).not.toHaveBeenCalled();
+    });
+
     it('should not close on Escape key when zoomed', () => {
         isOpen.set(true);
         isZoomed.set(true);
@@ -146,15 +152,23 @@ describe('PictureLightboxComponent', () => {
         expect(mockLightboxService.toggleZoom).toHaveBeenCalled();
     });
 
-    it('should navigate to detail page and close lightbox', () => {
+    it('should close lightbox on detail link click', () => {
         isOpen.set(true);
         currentPicture.set(mockPicture);
         spectator.detectChanges();
 
-        spectator.component.openDetailPage();
+        spectator.component.onDetailLinkClick();
 
         expect(mockLightboxService.close).toHaveBeenCalled();
-        expect(router.navigate).toHaveBeenCalledWith(['/pictures', 123]);
+    });
+
+    it('should render detail link with correct routerLink', () => {
+        isOpen.set(true);
+        currentPicture.set(mockPicture);
+        spectator.detectChanges();
+
+        const link = spectator.query('[data-testid="lightbox-detail-link"]') as HTMLAnchorElement;
+        expect(link.getAttribute('href')).toBe('/pictures/123');
     });
 
     it('should apply zoomed class when zoomed', () => {

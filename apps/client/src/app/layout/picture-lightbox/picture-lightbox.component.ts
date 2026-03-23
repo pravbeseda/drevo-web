@@ -2,21 +2,20 @@ import { PictureLightboxService } from '../../services/pictures/picture-lightbox
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
 import { filter, fromEvent } from 'rxjs';
 
 @Component({
     selector: 'app-picture-lightbox',
-    imports: [IconButtonComponent, SpinnerComponent],
+    imports: [IconButtonComponent, RouterLink, SpinnerComponent],
     templateUrl: './picture-lightbox.component.html',
     styleUrl: './picture-lightbox.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PictureLightboxComponent {
     protected readonly lightboxService = inject(PictureLightboxService);
-    private readonly router = inject(Router);
     private readonly document = inject(DOCUMENT);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('PictureLightbox');
@@ -29,6 +28,10 @@ export class PictureLightboxComponent {
 
     @HostListener('document:keydown.escape')
     onEscape(): void {
+        if (!this.lightboxService.isOpen()) {
+            return;
+        }
+
         if (!this.lightboxService.isZoomed()) {
             this.lightboxService.close();
         }
@@ -51,14 +54,10 @@ export class PictureLightboxComponent {
         }
     }
 
-    openDetailPage(): void {
-        const picture = this.lightboxService.currentPicture();
-        if (picture) {
-            this.logger.info('Navigating to picture detail', { id: picture.id });
-            this.exitFullscreen();
-            this.lightboxService.close();
-            void this.router.navigate(['/pictures', picture.id]);
-        }
+    onDetailLinkClick(): void {
+        this.logger.info('Navigating to picture detail', { id: this.lightboxService.currentPicture()?.id });
+        this.exitFullscreen();
+        this.lightboxService.close();
     }
 
     private enterFullscreen(): void {

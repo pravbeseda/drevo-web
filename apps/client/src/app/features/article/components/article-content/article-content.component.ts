@@ -223,7 +223,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
     /**
      * Extract picture ID from anchor href within a .pic container.
-     * Expected href format: /pictures/{id}
+     * Expected href format: /pictures/{id} or /pictures/{id}.html
      */
     private extractPictureId(target: HTMLElement): number | undefined {
         const anchor = target.closest('a');
