@@ -103,7 +103,7 @@ describe('PictureLightboxComponent', () => {
         expect(detailLink).toBeTruthy();
     });
 
-    it('should close on Escape key', () => {
+    it('should close on Escape key when not zoomed', () => {
         isOpen.set(true);
         currentPicture.set(mockPicture);
         spectator.detectChanges();
@@ -111,6 +111,17 @@ describe('PictureLightboxComponent', () => {
         spectator.component.onEscape();
 
         expect(mockLightboxService.close).toHaveBeenCalled();
+    });
+
+    it('should not close on Escape key when zoomed', () => {
+        isOpen.set(true);
+        isZoomed.set(true);
+        currentPicture.set(mockPicture);
+        spectator.detectChanges();
+
+        spectator.component.onEscape();
+
+        expect(mockLightboxService.close).not.toHaveBeenCalled();
     });
 
     it('should close on backdrop click', () => {
