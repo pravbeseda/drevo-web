@@ -9,6 +9,7 @@
     >
         <ui-icon-button
             class="lightbox__close"
+            [class.lightbox__close--hidden]="lightboxService.isZoomed()"
             icon="close"
             aria-label="Закрыть"
             (click)="lightboxService.close()"
@@ -37,7 +38,11 @@
                     />
                 </div>
 
-                <div class="lightbox__footer" data-testid="lightbox-footer">
+                <div
+                    class="lightbox__footer"
+                    [class.lightbox__footer--hidden]="lightboxService.isZoomed()"
+                    data-testid="lightbox-footer"
+                >
                     <span class="lightbox__title">{{ picture.title }}</span>
                     <a
                         class="lightbox__detail-link"

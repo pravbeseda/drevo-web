@@ -19,9 +19,15 @@
     right: 16px;
     z-index: 1;
     color: rgba(255, 255, 255, 0.8);
+    transition: opacity 0.2s ease;
 
     &:hover {
         color: white;
+    }
+
+    &--hidden {
+        opacity: 0;
+        pointer-events: none;
     }
 }
 
@@ -39,6 +45,7 @@
 
     &--zoomed {
         display: block;
+        max-height: 100%;
         overflow: auto;
         cursor: zoom-out;
 
@@ -72,6 +79,12 @@
     padding: 12px 16px;
     background: rgba(0, 0, 0, 0.6);
     color: rgba(255, 255, 255, 0.9);
+    transition: opacity 0.2s ease;
+
+    &--hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
 }
 
 .lightbox__title {
