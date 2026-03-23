@@ -1,7 +1,7 @@
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PictureRowComponent } from '../../components/picture-row/picture-row.component';
 import { PictureSearchBarComponent } from '../../components/picture-search-bar/picture-search-bar.component';
-import { PicturesStateService } from '../../services/pictures-state.service';
+import { PictureStateService } from '../../services/picture-state.service';
 import { isPlatformBrowser } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -35,13 +35,13 @@ import { debounceTime, Subject } from 'rxjs';
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
     ],
-    providers: [PicturesStateService],
-    templateUrl: './pictures-page.component.html',
-    styleUrl: './pictures-page.component.scss',
+    providers: [PictureStateService],
+    templateUrl: './picture-page.component.html',
+    styleUrl: './picture-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PicturesPageComponent implements OnInit {
-    private readonly state = inject(PicturesStateService);
+export class PicturePageComponent implements OnInit {
+    private readonly state = inject(PictureStateService);
     private readonly lightboxService = inject(PictureLightboxService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('PicturesComponent');
