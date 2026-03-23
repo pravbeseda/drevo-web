@@ -41,12 +41,14 @@ export class PictureLightboxService {
     open(pictureId: number): void {
         this.logger.info('Opening lightbox', { pictureId });
 
+        const wasOpen = this._isOpen();
+
         this._isOpen.set(true);
         this._isLoading.set(true);
         this._isZoomed.set(false);
         this._currentPicture.set(undefined);
 
-        this.pushHash(pictureId);
+        this.updateHash(pictureId, wasOpen);
         this.hashPushed = true;
         this._openSubject.next(pictureId);
     }
@@ -67,6 +69,9 @@ export class PictureLightboxService {
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe(picture => {
+                if (!this._isOpen()) {
+                    return;
+                }
                 this._currentPicture.set(picture);
                 this._isLoading.set(false);
             });
@@ -93,9 +98,16 @@ export class PictureLightboxService {
         this._isZoomed.update(v => !v);
     }
 
-    private pushHash(pictureId: number): void {
+    /** Push or replace the hash depending on whether the lightbox is already open */
+    private updateHash(pictureId: number, replace: boolean): void {
         const currentPath = this.location.path(false);
-        this.location.go(`${currentPath}${HASH_PREFIX}${pictureId}`);
+        const url = `${currentPath}${HASH_PREFIX}${pictureId}`;
+
+        if (replace) {
+            this.location.replaceState(url);
+        } else {
+            this.location.go(url);
+        }
     }
 
     private listenPopstate(): void {

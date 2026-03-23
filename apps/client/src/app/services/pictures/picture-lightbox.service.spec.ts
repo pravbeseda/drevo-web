@@ -111,6 +111,17 @@ describe('PictureLightboxService', () => {
             expect(spectator.service.currentPicture()?.id).toBe(456);
             expect(spectator.service.isLoading()).toBe(false);
         });
+
+        it('should use replaceState when opening another picture while already open', () => {
+            const subject = new Subject<Picture>();
+            pictureService.getPicture.mockReturnValue(subject.asObservable());
+
+            spectator.service.open(123);
+            expect(location.go).toHaveBeenCalledWith('/articles/1#picture=123');
+
+            spectator.service.open(456);
+            expect(location.replaceState).toHaveBeenCalledWith('/articles/1#picture=456');
+        });
     });
 
     describe('close', () => {
@@ -133,6 +144,21 @@ describe('PictureLightboxService', () => {
             spectator.service.close();
 
             expect(location.back).toHaveBeenCalled();
+        });
+
+        it('should ignore late HTTP response after close', () => {
+            const subject = new Subject<Picture>();
+            pictureService.getPicture.mockReturnValue(subject.asObservable());
+
+            spectator.service.open(123);
+            spectator.service.close();
+
+            // Late emission after close — should not update state
+            subject.next(mockPicture);
+
+            expect(spectator.service.isOpen()).toBe(false);
+            expect(spectator.service.currentPicture()).toBeUndefined();
+            expect(spectator.service.isLoading()).toBe(false);
         });
 
         it('should not do anything if already closed', () => {
