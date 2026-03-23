@@ -73,7 +73,9 @@ export class PictureLightboxComponent {
 
     private exitFullscreen(): void {
         if (this.document.fullscreenElement) {
-            this.document.exitFullscreen().catch(() => {});
+            this.document.exitFullscreen().catch(() => {
+                // Fullscreen exit may fail if already exited
+            });
         }
     }
 
