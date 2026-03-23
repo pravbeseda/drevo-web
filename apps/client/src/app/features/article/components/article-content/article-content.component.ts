@@ -232,7 +232,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
             return undefined;
         }
 
-        const match = /^\/pictures\/(\d+)$/.exec(href);
+        const match = /^\/pictures\/(\d+)(?:\.html)?$/.exec(href);
         if (!match) {
             return undefined;
         }

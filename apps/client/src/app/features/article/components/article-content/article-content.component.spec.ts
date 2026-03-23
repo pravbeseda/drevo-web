@@ -239,7 +239,21 @@ describe('ArticleContentComponent', () => {
     });
 
     describe('picture lightbox', () => {
-        it('should open lightbox when clicking image inside .pic', () => {
+        it('should open lightbox when clicking image inside .pic with .html suffix', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'
+            );
+            spectator.detectChanges();
+
+            const img = spectator.query('.pic img') as HTMLImageElement;
+            img.click();
+
+            expect(lightboxService.open).toHaveBeenCalledWith(5319);
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+
+        it('should open lightbox when clicking image inside .pic without .html suffix', () => {
             spectator.setInput(
                 'content',
                 '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/pictures/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>'
