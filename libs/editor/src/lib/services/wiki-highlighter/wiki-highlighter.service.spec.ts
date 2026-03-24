@@ -84,6 +84,39 @@ describe('WikiHighlighterService', () => {
         return new EditorView({ state });
     }
 
+    describe('Picture highlighting', () => {
+        it('should highlight @123@ with cm-picture class', () => {
+            const view = getView('text @123@ more');
+            const pictureElement = view.dom.querySelector('.cm-picture');
+
+            expect(pictureElement).not.toBeNull();
+            expect(pictureElement?.textContent).toBe('@123@');
+        });
+
+        it('should highlight multiple picture codes', () => {
+            const view = getView('@100@ text @200@');
+            const elements = view.dom.querySelectorAll('.cm-picture');
+
+            expect(elements.length).toBe(2);
+            expect(elements[0]?.textContent).toBe('@100@');
+            expect(elements[1]?.textContent).toBe('@200@');
+        });
+
+        it('should not highlight non-numeric patterns', () => {
+            const view = getView('@abc@ and @@ text');
+            const elements = view.dom.querySelectorAll('.cm-picture');
+
+            expect(elements.length).toBe(0);
+        });
+
+        it('should not highlight plain text without picture codes', () => {
+            const view = getView('plain text without pictures');
+            const elements = view.dom.querySelectorAll('.cm-picture');
+
+            expect(elements.length).toBe(0);
+        });
+    });
+
     describe('Link Normalization', () => {
         describe('link normalization', () => {
             it.each([
