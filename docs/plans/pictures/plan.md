@@ -42,7 +42,7 @@
 
 ### Где живут компоненты
 
-Picture-related компоненты живут в **отдельном feature `features/pictures/`**:
+Picture-related компоненты живут в **отдельном feature `features/picture/`**:
 1. Pictures — самостоятельная доменная область, не подраздел истории
 2. `/history/pictures` — страница истории изменений картинок в features/history
 3. Standalone route `/pictures` в `app.routes.ts` lazy-load'ит из pictures feature
@@ -50,10 +50,10 @@ Picture-related компоненты живут в **отдельном feature 
 ### Файловая структура
 
 ```
-features/pictures/
+features/picture/
   pages/
-    pictures-page/                       # Галерея (browse + select mode)
-      pictures-page.component.ts/html/scss/spec
+    picture-page/                        # Галерея (browse + select mode)
+      picture-page.component.ts/html/scss/spec
     picture-detail/                      # Страница /pictures/:id
       picture-detail.component.ts/html/scss/spec
   components/
@@ -66,9 +66,9 @@ features/pictures/
   services/
     picture-row-builder.ts               # Чистая функция: items[] → PictureRow[]
     picture-row-builder.spec.ts
-    pictures-state.service.ts            # Feature-scoped: пагинация, строки, resize
-    pictures-state.service.spec.ts
-  pictures.routes.ts                     # Feature routes
+    picture-state.service.ts             # Feature-scoped: пагинация, строки, resize
+    picture-state.service.spec.ts
+  picture.routes.ts                      # Feature routes
 
 features/history/
   pages/
@@ -104,13 +104,13 @@ legacy-drevo-yii/protected/controllers/api/
 {
     path: 'pictures',
     title: 'Иллюстрации',
-    loadChildren: () => import('./features/pictures/pictures.routes')
+    loadChildren: () => import('./features/picture/picture.routes')
         .then(m => m.PICTURES_ROUTES),
 },
 
-// pictures.routes.ts:
-{ path: '', loadComponent: () => import('./pages/pictures-page/pictures-page.component')
-    .then(m => m.PicturesPageComponent) },
+// picture.routes.ts:
+{ path: '', loadComponent: () => import('./pages/picture-page/picture-page.component')
+    .then(m => m.PicturePageComponent) },
 { path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
     .then(m => m.PictureDetailComponent) },
 
@@ -283,15 +283,15 @@ Workflow:
 
 ### Этап 3: Pictures Page + Integration ✅
 
-- ✅ `PicturesStateService` — feature-scoped (`providers` в компоненте): signals для состояния, debounce 500ms + switchMap для поиска, loadMore для пагинации, computed `rows` через `buildRows()`, `onContainerResize(width)` для пересчёта
-- ✅ `PicturesComponent` — контейнер: search bar + VirtualScroller с PictureRow. ResizeObserver (debounce 150ms) для отслеживания ширины контейнера. Cleanup через `destroyRef.onDestroy()`
+- ✅ `PictureStateService` — feature-scoped (`providers` в компоненте): signals для состояния, debounce 500ms + switchMap для поиска, loadMore для пагинации, computed `rows` через `buildRows()`, `onContainerResize(width)` для пересчёта
+- ✅ `PicturePageComponent` — контейнер: search bar + VirtualScroller с PictureRow. ResizeObserver (debounce 150ms) для отслеживания ширины контейнера. Cleanup через `destroyRef.onDestroy()`
 - ✅ Browse mode: клик → `/pictures/:id` (router.navigate)
 - ✅ Select mode: `MODAL_DATA` injection (optional) → клик → `modalData.close('@{id}@')`
 - ✅ Маршрутизация: `/pictures` добавлен в `app.routes.ts`, заглушка в `history.routes.ts` заменена
 
-**Тесты:** ✅ `PicturesStateService` (9 тестов), `PicturesComponent` (7 тестов)
+**Тесты:** ✅ `PictureStateService` (9 тестов), `PicturePageComponent` (7 тестов)
 
-### Этап 4 (D1): Lightbox — просмотр иллюстрации
+### Этап 4 (D1): Lightbox — просмотр иллюстрации ✅
 
 **Scope**: Глобальный overlay для просмотра картинки из любого контекста (галерея, контент статьи).
 
@@ -326,7 +326,7 @@ Workflow:
    - Вызов `PictureLightboxService.open(pictureId)`
    - `preventDefault()` чтобы не переходить по ссылке (если `<img>` обёрнут в `<a>`)
 
-4. **Интеграция в gallery** (`pictures-page.component.ts`)
+4. **Интеграция в gallery** (`picture-page.component.ts`)
    - Browse mode: изменить клик с `router.navigate` на `lightboxService.open(picture.id)`
    - Select mode: без изменений (по-прежнему `modalData.close()`)
 
@@ -341,7 +341,7 @@ Workflow:
 
 **Компоненты:**
 
-1. **`PictureDetailComponent`** (`features/pictures/pages/picture-detail/`)
+1. **`PictureDetailComponent`** (`features/picture/pages/picture-detail/`)
    - Route: `/pictures/:id`
    - Загрузка картинки через `PictureService.getPicture(id)`
    - Отображение:
@@ -352,7 +352,7 @@ Workflow:
    - Кнопка "Назад" (или breadcrumb)
    - Ссылка из lightbox: "Открыть страницу иллюстрации" → навигация сюда
 
-2. **Route** в `pictures.routes.ts`:
+2. **Route** в `picture.routes.ts`:
    ```typescript
    { path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
        .then(m => m.PictureDetailComponent) }
@@ -490,9 +490,9 @@ Workflow:
 | `app/services/pictures/picture-lightbox.service.ts` | Новый сервис | 4 |
 | `app/layout/picture-lightbox/` | Новый компонент | 4 |
 | `features/article/components/article-content/article-content.component.ts` | Добавить picture click handler | 4 |
-| `features/pictures/pages/pictures-page/pictures-page.component.ts` | Browse → lightbox | 4 |
-| `features/pictures/pictures.routes.ts` | Добавить `:id` route | 5 |
-| `features/pictures/pages/picture-detail/` | Новый компонент | 5, 7 |
+| `features/picture/pages/picture-page/picture-page.component.ts` | Browse → lightbox | 4 |
+| `features/picture/picture.routes.ts` | Добавить `:id` route | 5 |
+| `features/picture/pages/picture-detail/` | Новый компонент | 5, 7 |
 | `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 6 |
 | `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 6 |
 | `app/services/pictures/picture-api.service.ts` | Новые методы | 6 |
