@@ -335,7 +335,63 @@ Workflow:
 - `PictureLightboxComponent`: render when open, close on Esc, close on backdrop click, fit/zoom toggle
 - `article-content`: клик по `.pic img` → lightbox.open()
 
-### Этап 5 (D2): Detail Page — просмотр метаданных
+### Этап 5: Editor Picture Preview — поповер на `@NNN@` в редакторе
+
+**Scope**: При наведении на код картинки `@NNN@` в CodeMirror-редакторе показывать tooltip с превью миниатюры и подписью. Клик по превью открывает lightbox (этап 4).
+
+**Подход**: CM6 `hoverTooltip` + императивный DOM. Эволюция к динамическому Angular-компоненту (вариант B) возможна без переписывания — меняется только функция `create()`.
+
+**Реализация:**
+
+1. **Подсветка `@NNN@` в WikiHighlighterService** (`libs/editor/src/lib/services/wiki-highlighter/`)
+   - Добавить regex `/@(\d+)@/g` в `buildDecorations()`
+   - Decoration: `Decoration.mark({ class: 'cm-picture' })`
+   - CSS: новый класс `.cm-picture` в `codemirror-custom.scss` (фон, курсор pointer)
+   - Тема: добавить `--themed-editor-picture` / `--themed-editor-picture-bg` в `_theme-colors.scss`
+
+2. **`createPictureTooltip()` — фабричная функция** (`app/shared/helpers/picture-tooltip.ts`)
+   - Живёт в **`app/shared/`** — может использоваться в разных компонентах редактирования. Зависит от `Picture` модели и picture URL generation, поэтому не в `libs/editor/`
+   - Сигнатура: `createPictureTooltip(options: PictureTooltipOptions): Extension`
+   - `PictureTooltipOptions`: `{ getPicture: (id: number) => Observable<Picture>, onPictureClick: (id: number) => void }`
+   - Вспомогательная чистая функция `findPictureCodeAtPosition(lineText: string, posInLine: number): { id: number; from: number; to: number } | undefined`
+     - Ищет `@NNN@` в строке, проверяет попадание позиции в совпадение
+   - Логика `hoverTooltip(source)` — source возвращает `Promise<Tooltip | null>`:
+     - Получает строку и позицию в ней, вызывает `findPictureCodeAtPosition()`
+     - Проверяет кэш (`Map<number, Picture>` в замыкании) — если есть, возвращает tooltip синхронно
+     - Если нет в кэше — вызывает `getPicture(id)`, при успехе кэширует и возвращает `Tooltip`
+     - При ошибке загрузки — возвращает `null` (tooltip не показывается)
+     - `create()` возвращает DOM: `<div class="cm-picture-tooltip"><img src="thumb_url"><span>title</span></div>`
+     - Клик по tooltip → `onPictureClick(id)`
+   - Кэш живёт в замыкании `createPictureTooltip()` (= пока жив компонент редактирования)
+   - Отмена при перемещении курсора: CM6 `hoverTooltip` сам управляет lifecycle — `destroy()` вызывается при закрытии, `hoverTime: 300ms` по умолчанию предотвращает лишние запросы
+
+3. **Generic `customExtensions` input в EditorComponent** (`libs/editor/src/lib/components/editor/`)
+   - Новый input: `customExtensions = input<Extension[]>([])` — generic, без привязки к picture-домену
+   - Передаёт в `EditorFactoryService.createState()`
+   - Editor lib остаётся доменно-агностичным
+
+4. **`EditorFactoryService.createState()` — принимает доп. extensions** (`libs/editor/src/lib/services/editor-factory/`)
+   - Изменить сигнатуру: `createState(doc: string, customExtensions: Extension[] = []): EditorState`
+   - Добавить `...customExtensions` в массив extensions
+
+5. **Интеграция в ArticleEditComponent** (`features/article/pages/article-edit/`)
+   - Инжектит `PictureService` и `PictureLightboxService`
+   - Создаёт extension: `createPictureTooltip({ getPicture: ..., onPictureClick: ... })`
+   - Передаёт через `[customExtensions]="[pictureExtension]"` в `<lib-editor>`
+
+6. **Стили tooltip** (`codemirror-custom.scss`)
+   - `.cm-picture-tooltip`: max-width, border-radius, тень
+   - `img`: max-height ~150px, object-fit contain
+   - Подпись под картинкой
+   - Cursor pointer на всём tooltip
+
+**Тесты (unit):**
+- `findPictureCodeAtPosition()`: позиция внутри `@123@` → `{ id: 123, from, to }`; позиция вне кода → `undefined`; несколько кодов в строке; невалидный формат (`@abc@`, `@@`)
+- WikiHighlighter: `@123@` получает класс `cm-picture`, обычный текст — нет
+- EditorComponent: `customExtensions` input передаётся в `createState()`
+- `createPictureTooltip()`: кэширование (повторный вызов не дёргает `getPicture`); `onPictureClick` вызывается при клике на tooltip DOM
+
+### Этап 6 (D2): Detail Page — просмотр метаданных
 
 **Scope**: Страница `/pictures/:id` — только просмотр, без редактирования.
 
@@ -361,9 +417,9 @@ Workflow:
 **Тесты:**
 - `PictureDetailComponent`: загрузка и отображение данных, обработка ошибок, навигация назад
 
-### Этап 6 (D3): Backend — версионирование картинок
+### Этап 7 (D3): Backend — версионирование картинок
 
-**Scope**: API и БД для governance модели. Блокирует этапы 7 и 8.
+**Scope**: API и БД для governance модели. Блокирует этапы 8 и 9.
 
 **Backend (PHP):**
 - Миграция: создать таблицу `picture_versions` (см. секцию "Governance")
@@ -384,9 +440,9 @@ Workflow:
 - `PictureApiService`: добавить `editPicture()`, `deletePicture()`, `moderateVersion()`, `getPictureHistory()`, `getGlobalPictureHistory()`
 - `PictureService`: маппинг новых DTO
 
-### Этап 7 (D4): Detail Page — редактирование
+### Этап 8 (D4): Detail Page — редактирование
 
-**Scope**: Расширение detail page из этапа 5 + интеграция с версионированием.
+**Scope**: Расширение detail page из этапа 6 + интеграция с версионированием.
 
 **Функциональность:**
 
@@ -422,7 +478,7 @@ Workflow:
 - Pending versions display
 - Moderator approve/reject controls
 
-### Этап 8 (D5): History — `/history/pictures`
+### Этап 9 (D5): History — `/history/pictures`
 
 **Scope**: Полноценная страница истории изменений картинок (замена заглушки).
 
@@ -453,7 +509,7 @@ Workflow:
 - Moderator controls
 - Date grouping
 
-### Этап 9 (D6): Editor Picker Integration
+### Этап 10 (D6): Editor Picker Integration
 
 **Scope**: Кнопка вставки иллюстрации в редакторе CodeMirror.
 
@@ -473,11 +529,12 @@ Workflow:
 
 ```
 Этап 4 (D1: Lightbox)        ─┐
-Этап 5 (D2: Detail View)     ─┤── можно параллельно
-Этап 6 (D3: Backend Version) ─┤
-Этап 9 (D6: Editor Picker)   ─┘
+                               ├── Этап 5 (Editor Preview) — зависит от Lightbox (клик → open)
+Этап 6 (D2: Detail View)     ─┤── можно параллельно
+Этап 7 (D3: Backend Version) ─┤
+Этап 10 (D6: Editor Picker)  ─┘
 
-Этап 6 завершён ──→ Этап 7 (D4: Detail Edit) ──→ Этап 8 (D5: History)
+Этап 7 завершён ──→ Этап 8 (D4: Detail Edit) ──→ Этап 9 (D5: History)
 ```
 
 ---
@@ -491,14 +548,21 @@ Workflow:
 | `app/layout/picture-lightbox/` | Новый компонент | 4 |
 | `features/article/components/article-content/article-content.component.ts` | Добавить picture click handler | 4 |
 | `features/picture/pages/picture-page/picture-page.component.ts` | Browse → lightbox | 4 |
-| `features/picture/picture.routes.ts` | Добавить `:id` route | 5 |
-| `features/picture/pages/picture-detail/` | Новый компонент | 5, 7 |
-| `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 6 |
-| `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 6 |
-| `app/services/pictures/picture-api.service.ts` | Новые методы | 6 |
-| `app/services/pictures/picture.service.ts` | Новые методы | 6 |
-| `features/history/pages/pictures-history/` | Полноценная реализация | 8 |
-| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints | 6 |
+| `libs/editor/.../services/wiki-highlighter/wiki-highlighter.service.ts` | Добавить `@NNN@` decoration | 5 |
+| `app/shared/helpers/picture-tooltip.ts` | Новый файл — `createPictureTooltip()` factory | 5 |
+| `libs/editor/.../services/editor-factory/editor-factory.service.ts` | `createState()` принимает `customExtensions` | 5 |
+| `libs/editor/.../components/editor/editor.component.ts` | Новый generic input `customExtensions` | 5 |
+| `libs/editor/.../components/editor/codemirror-custom.scss` | Стили `.cm-picture`, `.cm-picture-tooltip` | 5 |
+| `libs/ui/.../styles/_theme-colors.scss` | Токены `--themed-editor-picture-*` | 5 |
+| `features/article/pages/article-edit/article-edit.component.ts` | Передать handlers в editor | 5 |
+| `features/picture/picture.routes.ts` | Добавить `:id` route | 6 |
+| `features/picture/pages/picture-detail/` | Новый компонент | 6, 8 |
+| `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 7 |
+| `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 7 |
+| `app/services/pictures/picture-api.service.ts` | Новые методы | 7 |
+| `app/services/pictures/picture.service.ts` | Новые методы | 7 |
+| `features/history/pages/pictures-history/` | Полноценная реализация | 9 |
+| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints | 7 |
 
 ## Переиспользуемые паттерны
 
@@ -506,11 +570,13 @@ Workflow:
 |---------|----------|-----------|
 | Event delegation (click handler) | `article-content.component.ts:91-138` | 4 |
 | Fullscreen modal (panelClass) | `styles.scss` (diff-modal-panel) | 4 |
-| Two-layer services | `article-api.service.ts` + `article.service.ts` | 6 |
-| Versioning + approval | `article.ts`, `moderation.ts` | 6, 7 |
-| History list + filters | `articles-history/` component + service | 8 |
-| Dual-mode (MODAL_DATA) | `features/search/search.component.ts` | 9 |
-| VirtualScroller API | `libs/ui/virtual-scroller/` | 8 |
+| Wiki decoration (Decoration.mark) | `wiki-highlighter.service.ts` | 5 |
+| CM6 hoverTooltip | `@codemirror/view` | 5 |
+| Two-layer services | `article-api.service.ts` + `article.service.ts` | 7 |
+| Versioning + approval | `article.ts`, `moderation.ts` | 7, 8 |
+| History list + filters | `articles-history/` component + service | 9 |
+| Dual-mode (MODAL_DATA) | `features/search/search.component.ts` | 10 |
+| VirtualScroller API | `libs/ui/virtual-scroller/` | 9 |
 
 ## Верификация
 
@@ -522,10 +588,25 @@ Workflow:
    - `/pictures/:id` — detail page с метаданными
    - Lightbox из контента статьи (клик по картинке)
    - Lightbox: fit ↔ zoom, Esc, Back button, крестик
+   - Редактор: `@NNN@` подсвечен, hover → превью, клик → lightbox
    - `/pictures/:id` — редактирование title, upload, delete (с модерацией)
    - `/history/pictures` — история с фильтрами и модерацией
 
 ## Рассмотренные альтернативы
+
+### Editor Picture Preview: hoverTooltip + Angular component (отложен)
+- **Идея**: Вместо императивного DOM в `create()` использовать `ViewContainerRef.createComponent()` для рендеринга Angular-компонента внутри CM6 tooltip
+- **Плюсы**: Полноценный Angular DI, signals, change detection; переиспользование Angular-компонентов
+- **Минусы**: Overhead для простого tooltip (img + title + click); нужен `EnvironmentInjector`, ручной `destroy()`
+- **Решение**: Начинаем с варианта A (императивный DOM). Переход к B возможен без переписывания — меняется только `create()`, decoration и regex остаются
+
+### Editor Picture Preview: CDK Overlay (отклонен)
+- **Идея**: Mark decoration + Angular CDK `Overlay` с `ConnectedPositionStrategy`, без CM6 tooltip
+- **Причина отклонения**: Больше boilerplate, нужно самим синхронизировать позиционирование с CM6 DOM
+
+### Editor Picture Preview: Widget Decoration (отклонен)
+- **Идея**: `Decoration.replace` с `WidgetType` — показать inline-превью вместо `@NNN@` текста
+- **Причина отклонения**: Скрывает оригинальный текст, усложняет редактирование, overkill для задачи
 
 ### Вариант A: CSS Grid + IntersectionObserver (отклонен)
 - **Идея**: Отказ от VirtualScroller, CSS Grid с `auto-fill`, IntersectionObserver для infinite scroll
