@@ -41,11 +41,15 @@ export function createPicturePreviewExtension(options: PictureTooltipOptions): E
                 pendingIds.add(id);
             }
 
-            fetchBatch(toFetch, options, cache, errorIds, pendingIds).then(hasChanges => {
-                if (hasChanges) {
-                    view.dispatch({ effects: picturesUpdated.of(undefined) });
-                }
-            });
+            fetchBatch(toFetch, options, cache, errorIds, pendingIds)
+                .then(hasChanges => {
+                    if (hasChanges) {
+                        view.dispatch({ effects: picturesUpdated.of(undefined) });
+                    }
+                })
+                .catch(() => {
+                    // noop — view may already be destroyed
+                });
         }
 
         scheduleResolve();
@@ -225,6 +229,8 @@ function buildDecorations(
     return builder.finish();
 }
 
+// Direct `document` access is safe here: CM6 is browser-only and
+// EditorComponent guards creation with `isServer()` check.
 function createTooltipDom(
     picture: Picture,
     pictureId: number,
