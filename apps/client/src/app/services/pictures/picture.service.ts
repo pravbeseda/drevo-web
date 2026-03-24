@@ -1,7 +1,7 @@
 import { PictureApiService } from './picture-api.service';
 import { DEFAULT_PICTURES_PAGE_SIZE } from './picture.constants';
 import { Injectable, inject } from '@angular/core';
-import { Picture, PictureDto, PictureListParams, PictureListResponse, PicturesListResponseDto } from '@drevo-web/shared';
+import { Picture, PictureBatchResponse, PictureDto, PictureListParams, PictureListResponse, PicturesListResponseDto } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -31,6 +31,18 @@ export class PictureService {
      */
     getPicture(id: number): Observable<Picture> {
         return this.pictureApiService.getPicture(id).pipe(map(dto => this.mapPicture(dto)));
+    }
+
+    /**
+     * Get multiple pictures by IDs in a single request
+     */
+    getPicturesBatch(ids: readonly number[]): Observable<PictureBatchResponse> {
+        return this.pictureApiService.getPicturesBatch(ids).pipe(
+            map(response => ({
+                items: response.items.map(dto => this.mapPicture(dto)),
+                notFoundIds: response.notFound,
+            })),
+        );
     }
 
     /**

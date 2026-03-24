@@ -2,7 +2,7 @@ import { DEFAULT_PICTURES_PAGE_SIZE } from './picture.constants';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ApiResponse, PictureDto, PicturesListResponseDto, assertIsDefined } from '@drevo-web/shared';
+import { ApiResponse, PictureDto, PicturesBatchResponseDto, PicturesListResponseDto, assertIsDefined } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -59,6 +59,26 @@ export class PictureApiService {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
                 })
+            );
+    }
+
+    /**
+     * Get multiple pictures by IDs in a single request.
+     * Max 50 IDs per request.
+     */
+    getPicturesBatch(ids: readonly number[]): Observable<PicturesBatchResponseDto> {
+        const params = new HttpParams().set('ids', ids.join(','));
+
+        return this.http
+            .get<ApiResponse<PicturesBatchResponseDto>>(`${this.apiUrl}/api/pictures/batch`, {
+                params,
+                withCredentials: true,
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
             );
     }
 

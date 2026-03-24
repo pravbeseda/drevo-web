@@ -84,10 +84,22 @@
         color: var(--themed-editor-link-missing);
     }
 
-    .cm-picture {
-        background-color: var(--themed-editor-picture-bg);
-        color: var(--themed-editor-picture);
+    .cm-picture-pending {
+        background-color: var(--themed-editor-picture-pending-bg);
+        color: var(--themed-editor-picture-pending);
+    }
+
+    .cm-picture-resolved {
+        background-color: var(--themed-editor-picture-resolved-bg);
+        color: var(--themed-editor-picture-resolved);
         cursor: default;
+    }
+
+    .cm-picture-error {
+        background-color: var(--themed-editor-picture-error-bg);
+        color: var(--themed-editor-picture-error);
+        text-decoration: wavy underline var(--themed-editor-picture-error);
+        text-underline-offset: 3px;
     }
 
     .cm-searchMatch {

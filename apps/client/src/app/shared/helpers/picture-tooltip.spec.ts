@@ -1,8 +1,12 @@
-import { findPictureCodeAtPosition, createPictureTooltip } from './picture-tooltip';
-import { Picture } from '@drevo-web/shared';
-import { of } from 'rxjs';
+import {
+    createPicturePreviewExtension,
+    extractPictureIds,
+    findPictureCodeAtPosition,
+} from './picture-tooltip';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import { PictureBatchResponse, Picture } from '@drevo-web/shared';
+import { of } from 'rxjs';
 
 const MOCK_PICTURE: Picture = {
     id: 123,
@@ -68,19 +72,36 @@ describe('findPictureCodeAtPosition', () => {
     });
 });
 
-describe('createPictureTooltip', () => {
-    it('should create an Extension', () => {
-        const extension = createPictureTooltip({
-            getPicture: () => of(MOCK_PICTURE),
-            onPictureClick: jest.fn(),
-        });
+describe('extractPictureIds', () => {
+    it('should extract unique picture IDs from text', () => {
+        const ids = extractPictureIds('text @100@ and @200@ and @100@ again');
 
-        expect(extension).toBeDefined();
+        expect(ids).toEqual([100, 200]);
     });
 
-    it('should be usable as a CM6 extension', () => {
-        const extension = createPictureTooltip({
-            getPicture: () => of(MOCK_PICTURE),
+    it('should return empty array for text without picture codes', () => {
+        expect(extractPictureIds('no pictures here')).toEqual([]);
+    });
+
+    it('should ignore invalid formats', () => {
+        expect(extractPictureIds('@abc@ @@ @ @')).toEqual([]);
+    });
+
+    it('should handle picture codes on multiple lines', () => {
+        const ids = extractPictureIds('@1@\n@2@\n@3@');
+
+        expect(ids).toEqual([1, 2, 3]);
+    });
+});
+
+describe('createPicturePreviewExtension', () => {
+    it('should create a valid CM6 extension', () => {
+        const batchResponse: PictureBatchResponse = {
+            items: [MOCK_PICTURE],
+            notFoundIds: [],
+        };
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch: () => of(batchResponse),
             onPictureClick: jest.fn(),
         });
 
@@ -92,10 +113,36 @@ describe('createPictureTooltip', () => {
         expect(state).toBeDefined();
     });
 
-    it('should cache picture and not call getPicture twice', async () => {
-        const getPicture = jest.fn(() => of(MOCK_PICTURE));
-        const extension = createPictureTooltip({
-            getPicture,
+    it('should apply pending decoration initially', () => {
+        const batchResponse: PictureBatchResponse = {
+            items: [],
+            notFoundIds: [],
+        };
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch: () => of(batchResponse),
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@123@',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+        const pendingElement = view.dom.querySelector('.cm-picture-pending');
+
+        expect(pendingElement).not.toBeNull();
+        expect(pendingElement?.textContent).toBe('@123@');
+
+        view.destroy();
+    });
+
+    it('should apply resolved decoration after batch fetch', async () => {
+        const batchResponse: PictureBatchResponse = {
+            items: [MOCK_PICTURE],
+            notFoundIds: [],
+        };
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch: () => of(batchResponse),
             onPictureClick: jest.fn(),
         });
 
@@ -105,9 +152,70 @@ describe('createPictureTooltip', () => {
         });
         const view = new EditorView({ state });
 
-        // Access the hoverTooltip source via internal dispatch is not straightforward,
-        // so we verify the extension integrates without error
-        expect(view).toBeDefined();
+        // Wait for async fetch to resolve
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const resolvedElement = view.dom.querySelector('.cm-picture-resolved');
+        expect(resolvedElement).not.toBeNull();
+        expect(resolvedElement?.textContent).toBe('@123@');
+
+        view.destroy();
+    });
+
+    it('should apply error decoration for not-found pictures', async () => {
+        const batchResponse: PictureBatchResponse = {
+            items: [],
+            notFoundIds: [999],
+        };
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch: () => of(batchResponse),
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@999@',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const errorElement = view.dom.querySelector('.cm-picture-error');
+        expect(errorElement).not.toBeNull();
+        expect(errorElement?.textContent).toBe('@999@');
+
+        view.destroy();
+    });
+
+    it('should not refetch already cached pictures', async () => {
+        const getPicturesBatch = jest.fn(() =>
+            of<PictureBatchResponse>({
+                items: [MOCK_PICTURE],
+                notFoundIds: [],
+            }),
+        );
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@123@',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // Trigger a doc change that doesn't affect the picture code
+        view.dispatch({
+            changes: { from: 0, to: 0, insert: 'prefix ' },
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(1);
+
         view.destroy();
     });
 });

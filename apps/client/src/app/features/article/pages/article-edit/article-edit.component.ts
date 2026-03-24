@@ -6,7 +6,7 @@ import { PictureService } from '../../../../services/pictures/picture.service';
 import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { createPictureTooltip } from '../../../../shared/helpers/picture-tooltip';
+import { createPicturePreviewExtension } from '../../../../shared/helpers/picture-tooltip';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { PreviewComponent } from '../../components/preview/preview.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -69,8 +69,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _originalContent = signal('');
     private readonly _articleId = signal(0);
 
-    private readonly pictureTooltipExtension: Extension = createPictureTooltip({
-        getPicture: (id: number) => this.pictureService.getPicture(id),
+    private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
+        getPicturesBatch: (ids: readonly number[]) => this.pictureService.getPicturesBatch(ids),
         onPictureClick: (id: number) => this.pictureLightboxService.open(id),
     });
 
@@ -83,7 +83,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly updateLinksState = this._updateLinksState.asReadonly();
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
-    readonly editorExtensions: Extension[] = [this.pictureTooltipExtension];
+    readonly editorExtensions: Extension[] = [this.picturePreviewExtension];
 
     ngOnInit(): void {
         const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;

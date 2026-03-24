@@ -18,7 +18,6 @@ export class WikiHighlighterService {
     private readonly footnoteRegex = /\[\[([\s\S]*?)\]\]/g;
     private readonly linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
     private readonly mapPointRegex = /\{\{Метка:(.+?)\}\}/g;
-    private readonly pictureRegex = /@(\d+)@/g;
     private readonly quoteRegex = /^>.*$/gm;
 
     private text = '';
@@ -102,7 +101,6 @@ export class WikiHighlighterService {
             this.collectMatches(this.footnoteRegex, 'cm-footnote');
             this.collectMapPointMatches();
             this.collectMatches(this.linkRegex, 'cm-link', true);
-            this.collectMatches(this.pictureRegex, 'cm-picture');
             this.collectMatches(this.quoteRegex, 'cm-quote');
             this.collectLinksMatches();
             this.matches.sort((a, b) => a.from - b.from);

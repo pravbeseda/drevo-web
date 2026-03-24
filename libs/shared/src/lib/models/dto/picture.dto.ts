@@ -8,6 +8,11 @@ export interface PictureDto {
     readonly pic_height: number | null;
 }
 
+export interface PicturesBatchResponseDto {
+    readonly items: readonly PictureDto[];
+    readonly notFound: readonly number[];
+}
+
 export interface PicturesListResponseDto {
     readonly items: readonly PictureDto[];
     readonly total: number;

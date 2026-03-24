@@ -10,6 +10,11 @@ export interface Picture {
     readonly thumbnailUrl: string;
 }
 
+export interface PictureBatchResponse {
+    readonly items: readonly Picture[];
+    readonly notFoundIds: readonly number[];
+}
+
 export interface PictureListResponse {
     readonly items: readonly Picture[];
     readonly total: number;

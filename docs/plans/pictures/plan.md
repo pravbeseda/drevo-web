@@ -335,61 +335,82 @@ Workflow:
 - `PictureLightboxComponent`: render when open, close on Esc, close on backdrop click, fit/zoom toggle
 - `article-content`: клик по `.pic img` → lightbox.open()
 
-### Этап 5: Editor Picture Preview — поповер на `@NNN@` в редакторе
+### Этап 5: Editor Picture Preview — подсветка и превью `@NNN@` в редакторе
 
-**Scope**: При наведении на код картинки `@NNN@` в CodeMirror-редакторе показывать tooltip с превью миниатюры и подписью. Клик по превью открывает lightbox (этап 4).
+**Scope**: Коды картинок `@NNN@` в CodeMirror-редакторе автоматически подсвечиваются и предзагружаются при открытии. Найденные коды помечаются цветом (pending → resolved / error). При наведении на resolved-код — моментальный tooltip с превью миниатюры и подписью. Клик по превью открывает lightbox (этап 4). Несуществующие коды помечаются ошибочным стилем (красный + wavy underline).
 
-**Подход**: CM6 `hoverTooltip` + императивный DOM. Эволюция к динамическому Angular-компоненту (вариант B) возможна без переписывания — меняется только функция `create()`.
+**Подход**: Самодостаточный CM6 extension (`ViewPlugin` + `StateField` + `hoverTooltip`) + batch API. Декорации и fetch-логика инкапсулированы в extension, WikiHighlighterService и EditorComponent не затрагиваются (кроме generic `customExtensions` input).
 
 **Реализация:**
 
-1. **Подсветка `@NNN@` в WikiHighlighterService** (`libs/editor/src/lib/services/wiki-highlighter/`)
-   - Добавить regex `/@(\d+)@/g` в `buildDecorations()`
-   - Decoration: `Decoration.mark({ class: 'cm-picture' })`
-   - CSS: новый класс `.cm-picture` в `codemirror-custom.scss` (фон, курсор pointer)
-   - Тема: добавить `--themed-editor-picture` / `--themed-editor-picture-bg` в `_theme-colors.scss`
+1. **Batch API endpoint** (`legacy-drevo-yii/protected/controllers/api/PicturesApiController.php`)
+   - `GET /api/pictures/batch?ids=1,2,3` — возвращает `{ items: PictureDto[], notFound: number[] }`
+   - Макс 50 ID за запрос, дедупликация, валидация
+   - Route: `api/pictures/batch` → `actionBatch`, exempt от CSRF/Origin (read-only)
 
-2. **`createPictureTooltip()` — фабричная функция** (`app/shared/helpers/picture-tooltip.ts`)
-   - Живёт в **`app/shared/`** — может использоваться в разных компонентах редактирования. Зависит от `Picture` модели и picture URL generation, поэтому не в `libs/editor/`
-   - Сигнатура: `createPictureTooltip(options: PictureTooltipOptions): Extension`
-   - `PictureTooltipOptions`: `{ getPicture: (id: number) => Observable<Picture>, onPictureClick: (id: number) => void }`
-   - Вспомогательная чистая функция `findPictureCodeAtPosition(lineText: string, posInLine: number): { id: number; from: number; to: number } | undefined`
-     - Ищет `@NNN@` в строке, проверяет попадание позиции в совпадение
-   - Логика `hoverTooltip(source)` — source возвращает `Promise<Tooltip | null>`:
-     - Получает строку и позицию в ней, вызывает `findPictureCodeAtPosition()`
-     - Проверяет кэш (`Map<number, Picture>` в замыкании) — если есть, возвращает tooltip синхронно
-     - Если нет в кэше — вызывает `getPicture(id)`, при успехе кэширует и возвращает `Tooltip`
-     - При ошибке загрузки — возвращает `null` (tooltip не показывается)
-     - `create()` возвращает DOM: `<div class="cm-picture-tooltip"><img src="thumb_url"><span>title</span></div>`
-     - Клик по tooltip → `onPictureClick(id)`
-   - Кэш живёт в замыкании `createPictureTooltip()` (= пока жив компонент редактирования)
-   - Отмена при перемещении курсора: CM6 `hoverTooltip` сам управляет lifecycle — `destroy()` вызывается при закрытии, `hoverTime: 300ms` по умолчанию предотвращает лишние запросы
+2. **Frontend batch сервисы** (`app/services/pictures/`)
+   - `PicturesBatchResponseDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
+   - `PictureBatchResponse` в `libs/shared/src/lib/models/picture.ts` — `{ items: Picture[], notFoundIds: number[] }`
+   - `PictureApiService.getPicturesBatch(ids)` — HTTP GET `/api/pictures/batch?ids=...`
+   - `PictureService.getPicturesBatch(ids)` — domain layer, маппинг DTO → model
 
-3. **Generic `customExtensions` input в EditorComponent** (`libs/editor/src/lib/components/editor/`)
+3. **`createPicturePreviewExtension()` — самодостаточный extension** (`app/shared/helpers/picture-tooltip.ts`)
+   - Живёт в **`app/shared/`** — зависит от `Picture` модели и picture URL generation, поэтому не в `libs/editor/`
+   - Сигнатура: `createPicturePreviewExtension(options: PictureTooltipOptions): Extension`
+   - `PictureTooltipOptions`: `{ getPicturesBatch: (ids: number[]) => Observable<PictureBatchResponse>, onPictureClick: (id: number) => void }`
+   - Возвращает массив из трёх CM6 extensions: `[decorationField, fetchPlugin, tooltip]`
+   - **`StateField` (decorationField)** — управляет декорациями на основе кэша:
+     - `cm-picture-pending` — код найден, данные ещё не загружены
+     - `cm-picture-resolved` — картинка загружена и закэширована
+     - `cm-picture-error` — картинка не найдена (404) или ошибка загрузки
+     - Пересчитывает декорации при `docChanged` или при эффекте `picturesUpdated`
+   - **`ViewPlugin` (fetchPlugin)** — управляет предзагрузкой:
+     - При создании и при `docChanged` извлекает все `@NNN@` коды из документа
+     - Фильтрует: не запрашивает уже закэшированные, pending или error
+     - Вызывает `getPicturesBatch()` чанками по 50 ID
+     - Результаты: resolved → `cache`, notFound → `errorIds`
+     - После загрузки dispatches `picturesUpdated` effect → StateField пересчитывает декорации
+     - **Retry при редактировании**: при `docChanged` анализирует изменённые ranges; если в них есть `@NNN@` с ID из `errorIds` — удаляет из `errorIds` (будет перезапрошен)
+   - **`hoverTooltip`** — мгновенный tooltip из кэша:
+     - `hoverTime: 100ms` (моментально, т.к. данные уже загружены)
+     - Показывает tooltip только для resolved (есть в `cache`)
+     - `findPictureCodeAtPosition()` — чистая функция поиска `@NNN@` в строке
+     - `create()` возвращает императивный DOM: `<div class="cm-picture-tooltip"><img><span>title</span></div>`
+     - Клик по tooltip → `onPictureClick(id)` → lightbox
+   - **Кэш, errorIds, pendingIds** — живут в замыкании `createPicturePreviewExtension()` (= пока жив компонент редактирования)
+   - Чистые хелперы (exported): `findPictureCodeAtPosition()`, `extractPictureIds()`
+
+4. **Generic `customExtensions` input в EditorComponent** (`libs/editor/src/lib/components/editor/`)
    - Новый input: `customExtensions = input<Extension[]>([])` — generic, без привязки к picture-домену
-   - Передаёт в `EditorFactoryService.createState()`
+   - Передаёт в `EditorFactoryService.createState(doc, customExtensions)`
    - Editor lib остаётся доменно-агностичным
 
-4. **`EditorFactoryService.createState()` — принимает доп. extensions** (`libs/editor/src/lib/services/editor-factory/`)
-   - Изменить сигнатуру: `createState(doc: string, customExtensions: Extension[] = []): EditorState`
-   - Добавить `...customExtensions` в массив extensions
+5. **`EditorFactoryService.createState()` — принимает доп. extensions** (`libs/editor/src/lib/services/editor-factory/`)
+   - Сигнатура: `createState(doc: string, customExtensions: Extension[] = []): EditorState`
+   - `...customExtensions` добавляется в конец массива extensions
 
-5. **Интеграция в ArticleEditComponent** (`features/article/pages/article-edit/`)
+6. **Интеграция в ArticleEditComponent** (`features/article/pages/article-edit/`)
    - Инжектит `PictureService` и `PictureLightboxService`
-   - Создаёт extension: `createPictureTooltip({ getPicture: ..., onPictureClick: ... })`
-   - Передаёт через `[customExtensions]="[pictureExtension]"` в `<lib-editor>`
+   - Создаёт extension: `createPicturePreviewExtension({ getPicturesBatch: ..., onPictureClick: ... })`
+   - Передаёт через `[customExtensions]="editorExtensions"` в `<lib-editor>`
 
-6. **Стили tooltip** (`codemirror-custom.scss`)
-   - `.cm-picture-tooltip`: max-width, border-radius, тень
-   - `img`: max-height ~150px, object-fit contain
-   - Подпись под картинкой
-   - Cursor pointer на всём tooltip
+7. **Цветовые токены** (`libs/ui/src/lib/styles/_theme-colors.scss`)
+   - `editor-picture-pending` / `editor-picture-pending-bg` — серый (нейтральный)
+   - `editor-picture-resolved` / `editor-picture-resolved-bg` — бирюзовый (teal)
+   - `editor-picture-error` / `editor-picture-error-bg` — красный
+
+8. **Стили** (`codemirror-custom.scss`)
+   - `.cm-picture-pending` — серый фон
+   - `.cm-picture-resolved` — бирюзовый фон, cursor default
+   - `.cm-picture-error` — красный фон + `text-decoration: wavy underline`
+   - `.cm-tooltip-hover:has(.cm-picture-tooltip)` — контейнер tooltip (border-radius, тень, padding)
+   - `.cm-picture-tooltip` — flex column, img max-height 150px, подпись, cursor pointer
 
 **Тесты (unit):**
-- `findPictureCodeAtPosition()`: позиция внутри `@123@` → `{ id: 123, from, to }`; позиция вне кода → `undefined`; несколько кодов в строке; невалидный формат (`@abc@`, `@@`)
-- WikiHighlighter: `@123@` получает класс `cm-picture`, обычный текст — нет
+- `findPictureCodeAtPosition()`: позиция внутри/снаружи `@123@`, несколько кодов в строке, невалидный формат (`@abc@`, `@@`), пустая строка
+- `extractPictureIds()`: уникальные ID, пустой текст, невалидные форматы, многострочный текст
+- `createPicturePreviewExtension()`: создаёт валидный CM6 extension; pending → resolved после batch fetch; pending → error для notFound; кэширование (повторный docChanged не вызывает `getPicturesBatch`)
 - EditorComponent: `customExtensions` input передаётся в `createState()`
-- `createPictureTooltip()`: кэширование (повторный вызов не дёргает `getPicture`); `onPictureClick` вызывается при клике на tooltip DOM
 
 ### Этап 6 (D2): Detail Page — просмотр метаданных
 
@@ -548,13 +569,17 @@ Workflow:
 | `app/layout/picture-lightbox/` | Новый компонент | 4 |
 | `features/article/components/article-content/article-content.component.ts` | Добавить picture click handler | 4 |
 | `features/picture/pages/picture-page/picture-page.component.ts` | Browse → lightbox | 4 |
-| `libs/editor/.../services/wiki-highlighter/wiki-highlighter.service.ts` | Добавить `@NNN@` decoration | 5 |
-| `app/shared/helpers/picture-tooltip.ts` | Новый файл — `createPictureTooltip()` factory | 5 |
+| `legacy-drevo-yii/.../PicturesApiController.php` | Batch endpoint `GET /api/pictures/batch?ids=` | 5 |
+| `app/shared/helpers/picture-tooltip.ts` | Новый файл — `createPicturePreviewExtension()` (ViewPlugin + StateField + hoverTooltip) | 5 |
+| `libs/shared/.../dto/picture.dto.ts` | `PicturesBatchResponseDto` | 5 |
+| `libs/shared/.../models/picture.ts` | `PictureBatchResponse` | 5 |
+| `app/services/pictures/picture-api.service.ts` | `getPicturesBatch()` | 5 |
+| `app/services/pictures/picture.service.ts` | `getPicturesBatch()` | 5 |
 | `libs/editor/.../services/editor-factory/editor-factory.service.ts` | `createState()` принимает `customExtensions` | 5 |
 | `libs/editor/.../components/editor/editor.component.ts` | Новый generic input `customExtensions` | 5 |
-| `libs/editor/.../components/editor/codemirror-custom.scss` | Стили `.cm-picture`, `.cm-picture-tooltip` | 5 |
-| `libs/ui/.../styles/_theme-colors.scss` | Токены `--themed-editor-picture-*` | 5 |
-| `features/article/pages/article-edit/article-edit.component.ts` | Передать handlers в editor | 5 |
+| `libs/editor/.../components/editor/codemirror-custom.scss` | Стили `.cm-picture-{pending,resolved,error}`, `.cm-picture-tooltip` | 5 |
+| `libs/ui/.../styles/_theme-colors.scss` | Токены `--themed-editor-picture-{pending,resolved,error}-*` | 5 |
+| `features/article/pages/article-edit/article-edit.component.ts` | Создать и передать extension в editor | 5 |
 | `features/picture/picture.routes.ts` | Добавить `:id` route | 6 |
 | `features/picture/pages/picture-detail/` | Новый компонент | 6, 8 |
 | `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 7 |
@@ -594,11 +619,21 @@ Workflow:
 
 ## Рассмотренные альтернативы
 
+### Editor Picture Preview: Декорации через WikiHighlighterService (отклонен)
+- **Идея**: Добавить `/@(\d+)@/g` в WikiHighlighterService, статусы по аналогии с links (через input/output цепочку EditorComponent → ArticleEditComponent)
+- **Плюсы**: Консистентно с паттерном links
+- **Причина отклонения**: Раздувает WikiHighlighterService и EditorComponent (ещё один input `picturesStatus`, output `updatePicturesEvent`). Самодостаточный extension чище и инкапсулирует всю логику
+
+### Editor Picture Preview: Загрузка по ховеру (отклонен)
+- **Идея**: Загружать данные картинки только при наведении курсора на `@NNN@` (hoverTooltip + async fetch)
+- **Плюсы**: Никаких лишних запросов при открытии редактора
+- **Причина отклонения**: Задержка при первом наведении; невозможно подсветить ошибочные коды заранее. Batch-предзагрузка решает обе проблемы и использует один запрос вместо N
+
 ### Editor Picture Preview: hoverTooltip + Angular component (отложен)
 - **Идея**: Вместо императивного DOM в `create()` использовать `ViewContainerRef.createComponent()` для рендеринга Angular-компонента внутри CM6 tooltip
 - **Плюсы**: Полноценный Angular DI, signals, change detection; переиспользование Angular-компонентов
 - **Минусы**: Overhead для простого tooltip (img + title + click); нужен `EnvironmentInjector`, ручной `destroy()`
-- **Решение**: Начинаем с варианта A (императивный DOM). Переход к B возможен без переписывания — меняется только `create()`, decoration и regex остаются
+- **Решение**: Императивный DOM. Переход к Angular-компоненту возможен без переписывания — меняется только `createTooltipDom()`
 
 ### Editor Picture Preview: CDK Overlay (отклонен)
 - **Идея**: Mark decoration + Angular CDK `Overlay` с `ConnectedPositionStrategy`, без CM6 tooltip
