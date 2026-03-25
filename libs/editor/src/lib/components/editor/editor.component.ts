@@ -17,6 +17,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { InsertTagCommand } from '@drevo-web/shared';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
@@ -37,6 +38,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     editorContainer?: ElementRef;
 
     readonly content = input.required<string>();
+    readonly customExtensions = input<Extension[]>([]);
 
     @Input()
     set insertTagCommand(command: InsertTagCommand | null) {
@@ -104,7 +106,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         if (this.editorFactory.isServer() || !this.editorContainer) return;
 
         this.editor = new EditorView({
-            state: this.editorFactory.createState(this.content()),
+            state: this.editorFactory.createState(this.content(), this.customExtensions()),
             parent: this.editorContainer.nativeElement,
         });
 

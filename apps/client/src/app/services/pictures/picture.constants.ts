@@ -1,1 +1,2 @@
 export const DEFAULT_PICTURES_PAGE_SIZE = 25;
+export const MAX_PICTURES_BATCH_SIZE = 50;

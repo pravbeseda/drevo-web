@@ -218,6 +218,30 @@ $theme-colors: (
         light: $md-deep-purple-500,
         dark: $md-deep-purple-200,
     ),
+    editor-picture-pending: (
+        light: $md-grey-600,
+        dark: $md-grey-400,
+    ),
+    editor-picture-pending-bg: (
+        light: $md-grey-200,
+        dark: transparent,
+    ),
+    editor-picture-resolved: (
+        light: $md-teal-900,
+        dark: $md-teal-200,
+    ),
+    editor-picture-resolved-bg: (
+        light: $md-teal-50,
+        dark: transparent,
+    ),
+    editor-picture-error: (
+        light: $md-red-900,
+        dark: $md-red-200,
+    ),
+    editor-picture-error-bg: (
+        light: $md-red-100,
+        dark: transparent,
+    ),
 
     // Toast backgrounds (darker for better contrast with white text)
     toast-success-bg: (

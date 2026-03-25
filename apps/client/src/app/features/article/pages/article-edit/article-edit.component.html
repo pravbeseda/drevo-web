@@ -30,6 +30,7 @@
             <ng-template>
                 <lib-editor
                     [content]="editorContent()"
+                    [customExtensions]="editorExtensions"
                     [linksStatus]="updateLinksState()"
                     (updateLinksEvent)="updateLinks($event)"
                     (contentChanged)="contentChanged($event)"

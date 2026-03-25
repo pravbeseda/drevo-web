@@ -8,7 +8,7 @@ import { closeBrackets } from '@codemirror/autocomplete';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
 import { openSearchPanel, search, searchKeymap } from '@codemirror/search';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Extension } from '@codemirror/state';
 import { drawSelection, dropCursor, EditorView, highlightSpecialChars, keymap, ViewUpdate } from '@codemirror/view';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class EditorFactoryService {
         return isPlatformServer(this.platformId);
     }
 
-    public createState(doc: string): EditorState {
+    public createState(doc: string, customExtensions: Extension[] = []): EditorState {
         return EditorState.create({
             doc,
             extensions: [
@@ -62,6 +62,7 @@ export class EditorFactoryService {
                             x: 'nearest',
                         }),
                 }),
+                ...customExtensions,
             ],
         });
     }

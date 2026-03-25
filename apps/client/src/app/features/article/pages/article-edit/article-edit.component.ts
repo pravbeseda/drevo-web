@@ -1,9 +1,12 @@
 import { ArticleService } from '../../../../services/articles';
 import { InworkService } from '../../../../services/inwork';
 import { LinksService } from '../../../../services/links/links.service';
+import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
+import { PictureService } from '../../../../services/pictures/picture.service';
 import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
+import { createPicturePreviewExtension } from '../../../../shared/helpers/picture-tooltip';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { PreviewComponent } from '../../components/preview/preview.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -19,6 +22,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
@@ -55,6 +59,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly inworkService = inject(InworkService);
     private readonly confirmationService = inject(ConfirmationService);
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
+    private readonly pictureService = inject(PictureService);
+    private readonly pictureLightboxService = inject(PictureLightboxService);
 
     private readonly _editorContent = signal<string>('');
     private readonly _isSaving = signal(false);
@@ -62,6 +68,11 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _updateLinksState = signal<Record<string, boolean>>({});
     private readonly _originalContent = signal('');
     private readonly _articleId = signal(0);
+
+    private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
+        getPicturesBatch: (ids: readonly number[]) => this.pictureService.getPicturesBatch(ids),
+        onPictureClick: (id: number) => this.pictureLightboxService.open(id),
+    });
 
     private version: ArticleVersion | undefined;
     private editingCleared = false;
@@ -72,6 +83,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly updateLinksState = this._updateLinksState.asReadonly();
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
+    readonly editorExtensions: Extension[] = [this.picturePreviewExtension];
 
     ngOnInit(): void {
         const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;

@@ -42,7 +42,7 @@
 
 ### Где живут компоненты
 
-Picture-related компоненты живут в **отдельном feature `features/pictures/`**:
+Picture-related компоненты живут в **отдельном feature `features/picture/`**:
 1. Pictures — самостоятельная доменная область, не подраздел истории
 2. `/history/pictures` — страница истории изменений картинок в features/history
 3. Standalone route `/pictures` в `app.routes.ts` lazy-load'ит из pictures feature
@@ -50,10 +50,10 @@ Picture-related компоненты живут в **отдельном feature 
 ### Файловая структура
 
 ```
-features/pictures/
+features/picture/
   pages/
-    pictures-page/                       # Галерея (browse + select mode)
-      pictures-page.component.ts/html/scss/spec
+    picture-page/                        # Галерея (browse + select mode)
+      picture-page.component.ts/html/scss/spec
     picture-detail/                      # Страница /pictures/:id
       picture-detail.component.ts/html/scss/spec
   components/
@@ -66,9 +66,9 @@ features/pictures/
   services/
     picture-row-builder.ts               # Чистая функция: items[] → PictureRow[]
     picture-row-builder.spec.ts
-    pictures-state.service.ts            # Feature-scoped: пагинация, строки, resize
-    pictures-state.service.spec.ts
-  pictures.routes.ts                     # Feature routes
+    picture-state.service.ts             # Feature-scoped: пагинация, строки, resize
+    picture-state.service.spec.ts
+  picture.routes.ts                      # Feature routes
 
 features/history/
   pages/
@@ -104,13 +104,13 @@ legacy-drevo-yii/protected/controllers/api/
 {
     path: 'pictures',
     title: 'Иллюстрации',
-    loadChildren: () => import('./features/pictures/pictures.routes')
+    loadChildren: () => import('./features/picture/picture.routes')
         .then(m => m.PICTURES_ROUTES),
 },
 
-// pictures.routes.ts:
-{ path: '', loadComponent: () => import('./pages/pictures-page/pictures-page.component')
-    .then(m => m.PicturesPageComponent) },
+// picture.routes.ts:
+{ path: '', loadComponent: () => import('./pages/picture-page/picture-page.component')
+    .then(m => m.PicturePageComponent) },
 { path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
     .then(m => m.PictureDetailComponent) },
 
@@ -283,15 +283,15 @@ Workflow:
 
 ### Этап 3: Pictures Page + Integration ✅
 
-- ✅ `PicturesStateService` — feature-scoped (`providers` в компоненте): signals для состояния, debounce 500ms + switchMap для поиска, loadMore для пагинации, computed `rows` через `buildRows()`, `onContainerResize(width)` для пересчёта
-- ✅ `PicturesComponent` — контейнер: search bar + VirtualScroller с PictureRow. ResizeObserver (debounce 150ms) для отслеживания ширины контейнера. Cleanup через `destroyRef.onDestroy()`
+- ✅ `PictureStateService` — feature-scoped (`providers` в компоненте): signals для состояния, debounce 500ms + switchMap для поиска, loadMore для пагинации, computed `rows` через `buildRows()`, `onContainerResize(width)` для пересчёта
+- ✅ `PicturePageComponent` — контейнер: search bar + VirtualScroller с PictureRow. ResizeObserver (debounce 150ms) для отслеживания ширины контейнера. Cleanup через `destroyRef.onDestroy()`
 - ✅ Browse mode: клик → `/pictures/:id` (router.navigate)
 - ✅ Select mode: `MODAL_DATA` injection (optional) → клик → `modalData.close('@{id}@')`
 - ✅ Маршрутизация: `/pictures` добавлен в `app.routes.ts`, заглушка в `history.routes.ts` заменена
 
-**Тесты:** ✅ `PicturesStateService` (9 тестов), `PicturesComponent` (7 тестов)
+**Тесты:** ✅ `PictureStateService` (9 тестов), `PicturePageComponent` (7 тестов)
 
-### Этап 4 (D1): Lightbox — просмотр иллюстрации
+### Этап 4 (D1): Lightbox — просмотр иллюстрации ✅
 
 **Scope**: Глобальный overlay для просмотра картинки из любого контекста (галерея, контент статьи).
 
@@ -326,7 +326,7 @@ Workflow:
    - Вызов `PictureLightboxService.open(pictureId)`
    - `preventDefault()` чтобы не переходить по ссылке (если `<img>` обёрнут в `<a>`)
 
-4. **Интеграция в gallery** (`pictures-page.component.ts`)
+4. **Интеграция в gallery** (`picture-page.component.ts`)
    - Browse mode: изменить клик с `router.navigate` на `lightboxService.open(picture.id)`
    - Select mode: без изменений (по-прежнему `modalData.close()`)
 
@@ -335,13 +335,90 @@ Workflow:
 - `PictureLightboxComponent`: render when open, close on Esc, close on backdrop click, fit/zoom toggle
 - `article-content`: клик по `.pic img` → lightbox.open()
 
-### Этап 5 (D2): Detail Page — просмотр метаданных
+### Этап 5: Editor Picture Preview — подсветка и превью `@NNN@` в редакторе ✅
+
+**Scope**: Коды картинок `@NNN@` в CodeMirror-редакторе автоматически подсвечиваются и предзагружаются при открытии. Найденные коды помечаются цветом (pending → resolved / error). При наведении на resolved-код — моментальный tooltip с превью миниатюры и подписью. Клик по превью открывает lightbox (этап 4). Несуществующие коды помечаются ошибочным стилем (красный + wavy underline).
+
+**Подход**: Самодостаточный CM6 extension (`ViewPlugin` + `StateField` + `hoverTooltip`) + batch API. Декорации и fetch-логика инкапсулированы в extension, WikiHighlighterService и EditorComponent не затрагиваются (кроме generic `customExtensions` input).
+
+**Реализация:**
+
+1. **Batch API endpoint** (`legacy-drevo-yii/protected/controllers/api/PicturesApiController.php`)
+   - `GET /api/pictures/batch?ids=1,2,3` — возвращает `{ items: PictureDto[], notFound: number[] }`
+   - Макс 50 ID за запрос, дедупликация, валидация
+   - Route: `api/pictures/batch` → `actionBatch`, exempt от CSRF/Origin (read-only)
+
+2. **Frontend batch сервисы** (`app/services/pictures/`)
+   - `PicturesBatchResponseDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
+   - `PictureBatchResponse` в `libs/shared/src/lib/models/picture.ts` — `{ items: Picture[], notFoundIds: number[] }`
+   - `PictureApiService.getPicturesBatch(ids)` — HTTP GET `/api/pictures/batch?ids=...`
+   - `PictureService.getPicturesBatch(ids)` — domain layer, маппинг DTO → model
+
+3. **`createPicturePreviewExtension()` — самодостаточный extension** (`app/shared/helpers/picture-tooltip.ts`)
+   - Живёт в **`app/shared/`** — зависит от `Picture` модели и picture URL generation, поэтому не в `libs/editor/`
+   - Сигнатура: `createPicturePreviewExtension(options: PictureTooltipOptions): Extension`
+   - `PictureTooltipOptions`: `{ getPicturesBatch: (ids: number[]) => Observable<PictureBatchResponse>, onPictureClick: (id: number) => void }`
+   - Возвращает массив из трёх CM6 extensions: `[decorationField, fetchPlugin, tooltip]`
+   - **`StateField` (decorationField)** — управляет декорациями на основе кэша:
+     - `cm-picture-pending` — код найден, данные ещё не загружены
+     - `cm-picture-resolved` — картинка загружена и закэширована
+     - `cm-picture-error` — картинка не найдена (404) или ошибка загрузки
+     - Пересчитывает декорации при `docChanged` или при эффекте `picturesUpdated`
+   - **`ViewPlugin` (fetchPlugin)** — управляет предзагрузкой:
+     - При создании и при `docChanged` извлекает все `@NNN@` коды из документа
+     - Фильтрует: не запрашивает уже закэшированные, pending или error
+     - Вызывает `getPicturesBatch()` чанками по 50 ID
+     - Результаты: resolved → `cache`, notFound → `errorIds`
+     - После загрузки dispatches `picturesUpdated` effect → StateField пересчитывает декорации
+     - **Retry при редактировании**: при `docChanged` анализирует изменённые ranges; если в них есть `@NNN@` с ID из `errorIds` — удаляет из `errorIds` (будет перезапрошен)
+   - **`hoverTooltip`** — мгновенный tooltip из кэша:
+     - `hoverTime: 100ms` (моментально, т.к. данные уже загружены)
+     - Показывает tooltip только для resolved (есть в `cache`)
+     - `findPictureCodeAtPosition()` — чистая функция поиска `@NNN@` в строке
+     - `create()` возвращает императивный DOM: `<div class="cm-picture-tooltip"><img><span>title</span></div>`
+     - Клик по tooltip → `onPictureClick(id)` → lightbox
+   - **Кэш, errorIds, pendingIds** — живут в замыкании `createPicturePreviewExtension()` (= пока жив компонент редактирования)
+   - Чистые хелперы (exported): `findPictureCodeAtPosition()`, `extractPictureIds()`
+
+4. **Generic `customExtensions` input в EditorComponent** (`libs/editor/src/lib/components/editor/`)
+   - Новый input: `customExtensions = input<Extension[]>([])` — generic, без привязки к picture-домену
+   - Передаёт в `EditorFactoryService.createState(doc, customExtensions)`
+   - Editor lib остаётся доменно-агностичным
+
+5. **`EditorFactoryService.createState()` — принимает доп. extensions** (`libs/editor/src/lib/services/editor-factory/`)
+   - Сигнатура: `createState(doc: string, customExtensions: Extension[] = []): EditorState`
+   - `...customExtensions` добавляется в конец массива extensions
+
+6. **Интеграция в ArticleEditComponent** (`features/article/pages/article-edit/`)
+   - Инжектит `PictureService` и `PictureLightboxService`
+   - Создаёт extension: `createPicturePreviewExtension({ getPicturesBatch: ..., onPictureClick: ... })`
+   - Передаёт через `[customExtensions]="editorExtensions"` в `<lib-editor>`
+
+7. **Цветовые токены** (`libs/ui/src/lib/styles/_theme-colors.scss`)
+   - `editor-picture-pending` / `editor-picture-pending-bg` — серый (нейтральный)
+   - `editor-picture-resolved` / `editor-picture-resolved-bg` — бирюзовый (teal)
+   - `editor-picture-error` / `editor-picture-error-bg` — красный
+
+8. **Стили** (`codemirror-custom.scss`)
+   - `.cm-picture-pending` — серый фон
+   - `.cm-picture-resolved` — бирюзовый фон, cursor default
+   - `.cm-picture-error` — красный фон + `text-decoration: wavy underline`
+   - `.cm-tooltip-hover:has(.cm-picture-tooltip)` — контейнер tooltip (border-radius, тень, padding)
+   - `.cm-picture-tooltip` — flex column, img max-height 150px, подпись, cursor pointer
+
+**Тесты (unit):**
+- `findPictureCodeAtPosition()`: позиция внутри/снаружи `@123@`, несколько кодов в строке, невалидный формат (`@abc@`, `@@`), пустая строка
+- `extractPictureIds()`: уникальные ID, пустой текст, невалидные форматы, многострочный текст
+- `createPicturePreviewExtension()`: создаёт валидный CM6 extension; pending → resolved после batch fetch; pending → error для notFound; кэширование (повторный docChanged не вызывает `getPicturesBatch`)
+- EditorComponent: `customExtensions` input передаётся в `createState()`
+
+### Этап 6 (D2): Detail Page — просмотр метаданных
 
 **Scope**: Страница `/pictures/:id` — только просмотр, без редактирования.
 
 **Компоненты:**
 
-1. **`PictureDetailComponent`** (`features/pictures/pages/picture-detail/`)
+1. **`PictureDetailComponent`** (`features/picture/pages/picture-detail/`)
    - Route: `/pictures/:id`
    - Загрузка картинки через `PictureService.getPicture(id)`
    - Отображение:
@@ -352,7 +429,7 @@ Workflow:
    - Кнопка "Назад" (или breadcrumb)
    - Ссылка из lightbox: "Открыть страницу иллюстрации" → навигация сюда
 
-2. **Route** в `pictures.routes.ts`:
+2. **Route** в `picture.routes.ts`:
    ```typescript
    { path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
        .then(m => m.PictureDetailComponent) }
@@ -361,9 +438,9 @@ Workflow:
 **Тесты:**
 - `PictureDetailComponent`: загрузка и отображение данных, обработка ошибок, навигация назад
 
-### Этап 6 (D3): Backend — версионирование картинок
+### Этап 7 (D3): Backend — версионирование картинок
 
-**Scope**: API и БД для governance модели. Блокирует этапы 7 и 8.
+**Scope**: API и БД для governance модели. Блокирует этапы 8 и 9.
 
 **Backend (PHP):**
 - Миграция: создать таблицу `picture_versions` (см. секцию "Governance")
@@ -384,9 +461,9 @@ Workflow:
 - `PictureApiService`: добавить `editPicture()`, `deletePicture()`, `moderateVersion()`, `getPictureHistory()`, `getGlobalPictureHistory()`
 - `PictureService`: маппинг новых DTO
 
-### Этап 7 (D4): Detail Page — редактирование
+### Этап 8 (D4): Detail Page — редактирование
 
-**Scope**: Расширение detail page из этапа 5 + интеграция с версионированием.
+**Scope**: Расширение detail page из этапа 6 + интеграция с версионированием.
 
 **Функциональность:**
 
@@ -422,7 +499,7 @@ Workflow:
 - Pending versions display
 - Moderator approve/reject controls
 
-### Этап 8 (D5): History — `/history/pictures`
+### Этап 9 (D5): History — `/history/pictures`
 
 **Scope**: Полноценная страница истории изменений картинок (замена заглушки).
 
@@ -453,7 +530,7 @@ Workflow:
 - Moderator controls
 - Date grouping
 
-### Этап 9 (D6): Editor Picker Integration
+### Этап 10 (D6): Editor Picker Integration
 
 **Scope**: Кнопка вставки иллюстрации в редакторе CodeMirror.
 
@@ -473,11 +550,12 @@ Workflow:
 
 ```
 Этап 4 (D1: Lightbox)        ─┐
-Этап 5 (D2: Detail View)     ─┤── можно параллельно
-Этап 6 (D3: Backend Version) ─┤
-Этап 9 (D6: Editor Picker)   ─┘
+                               ├── Этап 5 (Editor Preview) — зависит от Lightbox (клик → open)
+Этап 6 (D2: Detail View)     ─┤── можно параллельно
+Этап 7 (D3: Backend Version) ─┤
+Этап 10 (D6: Editor Picker)  ─┘
 
-Этап 6 завершён ──→ Этап 7 (D4: Detail Edit) ──→ Этап 8 (D5: History)
+Этап 7 завершён ──→ Этап 8 (D4: Detail Edit) ──→ Этап 9 (D5: History)
 ```
 
 ---
@@ -490,15 +568,26 @@ Workflow:
 | `app/services/pictures/picture-lightbox.service.ts` | Новый сервис | 4 |
 | `app/layout/picture-lightbox/` | Новый компонент | 4 |
 | `features/article/components/article-content/article-content.component.ts` | Добавить picture click handler | 4 |
-| `features/pictures/pages/pictures-page/pictures-page.component.ts` | Browse → lightbox | 4 |
-| `features/pictures/pictures.routes.ts` | Добавить `:id` route | 5 |
-| `features/pictures/pages/picture-detail/` | Новый компонент | 5, 7 |
-| `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 6 |
-| `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 6 |
-| `app/services/pictures/picture-api.service.ts` | Новые методы | 6 |
-| `app/services/pictures/picture.service.ts` | Новые методы | 6 |
-| `features/history/pages/pictures-history/` | Полноценная реализация | 8 |
-| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints | 6 |
+| `features/picture/pages/picture-page/picture-page.component.ts` | Browse → lightbox | 4 |
+| `legacy-drevo-yii/.../PicturesApiController.php` | Batch endpoint `GET /api/pictures/batch?ids=` | 5 |
+| `app/shared/helpers/picture-tooltip.ts` | Новый файл — `createPicturePreviewExtension()` (ViewPlugin + StateField + hoverTooltip) | 5 |
+| `libs/shared/.../dto/picture.dto.ts` | `PicturesBatchResponseDto` | 5 |
+| `libs/shared/.../models/picture.ts` | `PictureBatchResponse` | 5 |
+| `app/services/pictures/picture-api.service.ts` | `getPicturesBatch()` | 5 |
+| `app/services/pictures/picture.service.ts` | `getPicturesBatch()` | 5 |
+| `libs/editor/.../services/editor-factory/editor-factory.service.ts` | `createState()` принимает `customExtensions` | 5 |
+| `libs/editor/.../components/editor/editor.component.ts` | Новый generic input `customExtensions` | 5 |
+| `libs/editor/.../components/editor/codemirror-custom.scss` | Стили `.cm-picture-{pending,resolved,error}`, `.cm-picture-tooltip` | 5 |
+| `libs/ui/.../styles/_theme-colors.scss` | Токены `--themed-editor-picture-{pending,resolved,error}-*` | 5 |
+| `features/article/pages/article-edit/article-edit.component.ts` | Создать и передать extension в editor | 5 |
+| `features/picture/picture.routes.ts` | Добавить `:id` route | 6 |
+| `features/picture/pages/picture-detail/` | Новый компонент | 6, 8 |
+| `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 7 |
+| `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 7 |
+| `app/services/pictures/picture-api.service.ts` | Новые методы | 7 |
+| `app/services/pictures/picture.service.ts` | Новые методы | 7 |
+| `features/history/pages/pictures-history/` | Полноценная реализация | 9 |
+| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints | 7 |
 
 ## Переиспользуемые паттерны
 
@@ -506,11 +595,13 @@ Workflow:
 |---------|----------|-----------|
 | Event delegation (click handler) | `article-content.component.ts:91-138` | 4 |
 | Fullscreen modal (panelClass) | `styles.scss` (diff-modal-panel) | 4 |
-| Two-layer services | `article-api.service.ts` + `article.service.ts` | 6 |
-| Versioning + approval | `article.ts`, `moderation.ts` | 6, 7 |
-| History list + filters | `articles-history/` component + service | 8 |
-| Dual-mode (MODAL_DATA) | `features/search/search.component.ts` | 9 |
-| VirtualScroller API | `libs/ui/virtual-scroller/` | 8 |
+| Wiki decoration (Decoration.mark) | `wiki-highlighter.service.ts` | 5 |
+| CM6 hoverTooltip | `@codemirror/view` | 5 |
+| Two-layer services | `article-api.service.ts` + `article.service.ts` | 7 |
+| Versioning + approval | `article.ts`, `moderation.ts` | 7, 8 |
+| History list + filters | `articles-history/` component + service | 9 |
+| Dual-mode (MODAL_DATA) | `features/search/search.component.ts` | 10 |
+| VirtualScroller API | `libs/ui/virtual-scroller/` | 9 |
 
 ## Верификация
 
@@ -522,10 +613,35 @@ Workflow:
    - `/pictures/:id` — detail page с метаданными
    - Lightbox из контента статьи (клик по картинке)
    - Lightbox: fit ↔ zoom, Esc, Back button, крестик
+   - Редактор: `@NNN@` подсвечен, hover → превью, клик → lightbox
    - `/pictures/:id` — редактирование title, upload, delete (с модерацией)
    - `/history/pictures` — история с фильтрами и модерацией
 
 ## Рассмотренные альтернативы
+
+### Editor Picture Preview: Декорации через WikiHighlighterService (отклонен)
+- **Идея**: Добавить `/@(\d+)@/g` в WikiHighlighterService, статусы по аналогии с links (через input/output цепочку EditorComponent → ArticleEditComponent)
+- **Плюсы**: Консистентно с паттерном links
+- **Причина отклонения**: Раздувает WikiHighlighterService и EditorComponent (ещё один input `picturesStatus`, output `updatePicturesEvent`). Самодостаточный extension чище и инкапсулирует всю логику
+
+### Editor Picture Preview: Загрузка по ховеру (отклонен)
+- **Идея**: Загружать данные картинки только при наведении курсора на `@NNN@` (hoverTooltip + async fetch)
+- **Плюсы**: Никаких лишних запросов при открытии редактора
+- **Причина отклонения**: Задержка при первом наведении; невозможно подсветить ошибочные коды заранее. Batch-предзагрузка решает обе проблемы и использует один запрос вместо N
+
+### Editor Picture Preview: hoverTooltip + Angular component (отложен)
+- **Идея**: Вместо императивного DOM в `create()` использовать `ViewContainerRef.createComponent()` для рендеринга Angular-компонента внутри CM6 tooltip
+- **Плюсы**: Полноценный Angular DI, signals, change detection; переиспользование Angular-компонентов
+- **Минусы**: Overhead для простого tooltip (img + title + click); нужен `EnvironmentInjector`, ручной `destroy()`
+- **Решение**: Императивный DOM. Переход к Angular-компоненту возможен без переписывания — меняется только `createTooltipDom()`
+
+### Editor Picture Preview: CDK Overlay (отклонен)
+- **Идея**: Mark decoration + Angular CDK `Overlay` с `ConnectedPositionStrategy`, без CM6 tooltip
+- **Причина отклонения**: Больше boilerplate, нужно самим синхронизировать позиционирование с CM6 DOM
+
+### Editor Picture Preview: Widget Decoration (отклонен)
+- **Идея**: `Decoration.replace` с `WidgetType` — показать inline-превью вместо `@NNN@` текста
+- **Причина отклонения**: Скрывает оригинальный текст, усложняет редактирование, overkill для задачи
 
 ### Вариант A: CSS Grid + IntersectionObserver (отклонен)
 - **Идея**: Отказ от VirtualScroller, CSS Grid с `auto-fill`, IntersectionObserver для infinite scroll
