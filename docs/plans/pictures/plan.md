@@ -63,6 +63,9 @@ features/picture/
       picture-row.component.ts/html/scss/spec
     picture-search-bar/                  # Поисковая строка
       picture-search-bar.component.ts/html/scss/spec
+  resolvers/
+    picture.resolver.ts                  # ResolveFn: загрузка Picture по :id
+    picture.resolver.spec.ts
   services/
     picture-row-builder.ts               # Чистая функция: items[] → PictureRow[]
     picture-row-builder.spec.ts
@@ -416,27 +419,120 @@ Workflow:
 
 **Scope**: Страница `/pictures/:id` — только просмотр, без редактирования.
 
+**Решения (все вопросы закрыты):**
+- [x] **Q1: UI layout** — Pinterest-style карточка: изображение слева, панель информации справа. На мобильных (`≤768px`) — колонки стакаются (изображение сверху, информация под ним). Без кнопки «Назад», без аватара пользователя. Mockup: `tmp/picture-detail-v3-responsive.html`
+- [x] **Q2: Zoom стратегия** — клик по изображению → `lightboxService.open(picture.id)` (переиспользуем готовый lightbox)
+- [x] **Q3: Error handling** — невалидный id (не число) → redirect на `/pictures`. 404 от API → показать ошибку на месте ("Иллюстрация не найдена") со ссылкой на `/pictures`, URL сохраняется
+- [x] **Q4: Loading state** — resolver загружает данные до рендера компонента (как в article). Пустой экран во время загрузки (Angular router ждёт resolve)
+- [x] **Q5: Кнопка "Назад"** — Не нужна. Навигация через стандартные средства браузера/приложения
+- [x] **Q6: Page title** — через resolver + `PageTitleStrategy`: route `data: { titleSource: 'picture' }` → strategy берёт `picture.title` → `"{title} — Древо"`. Обрезка до 50 символов с `…` — в `PageTitleStrategy` (универсально для всех routes). Если picture не загружен — fallback на дефолтный `"Древо"`
+- [x] **Q7: Код вставки** — показывать `@{id}@` кнопкой. Клик → копировать в буфер (Clipboard API) + toast `NotificationService` ("Код скопирован")
+
 **Компоненты:**
 
-1. **`PictureDetailComponent`** (`features/picture/pages/picture-detail/`)
-   - Route: `/pictures/:id`
-   - Загрузка картинки через `PictureService.getPicture(id)`
-   - Отображение:
-     - Полное изображение (fit + click для zoom, переиспользовать логику из lightbox или общий паттерн)
-     - Title (описание)
-     - Автор (`pic_user`) + дата загрузки (`pic_date`)
-     - Раздел "Используется в статьях" — заглушка (backend endpoint не готов)
-   - Кнопка "Назад" (или breadcrumb)
-   - Ссылка из lightbox: "Открыть страницу иллюстрации" → навигация сюда
+1. **`pictureResolver`** (`features/picture/resolvers/picture.resolver.ts`)
+   - `ResolveFn<Picture | undefined>`
+   - Валидация route param `id` (число, >0). Невалидный → `router.navigate(['/pictures'])`, return `EMPTY`
+   - `PictureService.getPicture(id).pipe(catchError(() => of(undefined)))`
+   - Паттерн: аналогично `articleResolver`
 
-2. **Route** в `picture.routes.ts`:
-   ```typescript
-   { path: ':id', loadComponent: () => import('./pages/picture-detail/picture-detail.component')
-       .then(m => m.PictureDetailComponent) }
+2. **`PictureDetailComponent`** (`features/picture/pages/picture-detail/`)
+   - Route: `/pictures/:id`
+   - Данные из resolver: `picture = toSignal(route.data.pipe(map(data => data['picture'] as Picture | undefined)))` — без собственной загрузки
+   - Если `picture()` === `undefined` → показать "Иллюстрация не найдена" + ссылка на `/pictures`
+   - Dependencies: `PictureLightboxService`, `NotificationService`, `ActivatedRoute`, `LoggerService`, `PLATFORM_ID`
+
+3. **Template** (`picture-detail.component.html`):
+   ```html
+   @if (picture(); as pic) {
+       <div class="detail__card">
+           <div class="detail__image" (click)="onImageClick()" (keydown.enter)="onImageClick()"
+                tabindex="0" role="button" data-testid="detail-image">
+               <img [src]="pic.imageUrl" [alt]="pic.title" loading="eager" />
+           </div>
+           <div class="detail__info">
+               <div class="detail__top-row">
+                   <button class="detail__copy-code" (click)="copyInsertCode()" data-testid="copy-code">
+                       @@{{ pic.id }}@@  <!-- icon: content_copy -->
+                   </button>
+               </div>
+               <h1 class="detail__title" data-testid="detail-title">{{ pic.title }}</h1>
+               <div class="detail__author">
+                   <span class="detail__author-name">{{ pic.user }}</span>
+                   <span class="detail__author-date">{{ pic.date | formatTime }}</span>
+               </div>
+               <div class="detail__section">
+                   <div class="detail__section-title">Размеры</div>
+                   <span>{{ pic.width }} × {{ pic.height }} px</span>
+               </div>
+               <div class="detail__section">
+                   <div class="detail__section-title">Используется в статьях</div>
+                   <div class="detail__placeholder">Список статей (скоро)</div>
+               </div>
+           </div>
+       </div>
+   } @else {
+       <div class="detail__error">
+           <p>Иллюстрация не найдена</p>
+           <a routerLink="/pictures">Перейти к галерее</a>
+       </div>
+   }
    ```
 
+4. **Стили** (`picture-detail.component.scss`):
+   - `.detail__card` — `display: grid; grid-template-columns: 1fr 380px; border-radius: 16px; overflow: hidden; box-shadow; background: var(--themed-primary-bg)`
+   - `.detail__image` — `background: var(--themed-picture-background); display: flex; align-items: center; justify-content: center; min-height: 450px; cursor: zoom-in`
+   - `.detail__image img` — `max-width: 100%; max-height: 80vh; object-fit: contain`
+   - `.detail__info` — `padding: 24px; display: flex; flex-direction: column; gap: 20px`
+   - `.detail__copy-code` — monospace, border, border-radius, hover effect, `cursor: pointer`
+   - Responsive `@media (max-width: $breakpoint-desktop)`: изображение сужается (info panel остаётся 380px), картинка центрируется по меньшей стороне
+   - Responsive `@media (max-width: $breakpoint-tablet)`: `grid-template-columns: 1fr`, image `min-height: 280px`
+   - Все цвета через `var(--themed-*)` токены. Новый токен `--themed-picture-background` добавить в `_theme-colors.scss`
+
+5. **Методы компонента**:
+   - `onImageClick()` → `this.lightboxService.open(picture.id)` + log
+   - `copyInsertCode()` → `navigator.clipboard.writeText('@' + id + '@')` (через `WINDOW` → `isPlatformBrowser` guard) + `notificationService.success('Код скопирован')` + log
+
+6. **Route** в `picture.routes.ts`:
+   ```typescript
+   {
+       path: ':id',
+       loadComponent: () => import('./pages/picture-detail/picture-detail.component')
+           .then(m => m.PictureDetailComponent),
+       resolve: { picture: pictureResolver },
+       data: { titleSource: 'picture' },
+   }
+   ```
+   `PageTitleStrategy` читает `titleSource: 'picture'` → берёт `route.data['picture'].title` → обрезает до 50 символов с `…` → устанавливает `"{title} — Древо"`. Обрезка реализована в `PageTitleStrategy` универсально. Если picture не загружен — fallback на дефолтный `"Древо"`.
+
+7. **Lightbox detail link** — уже реализована: `[routerLink]="['/pictures', picture.id]"` в lightbox footer. При переходе lightbox закрывается.
+
+**Файловая структура (новые файлы):**
+```
+features/picture/
+  resolvers/
+    picture.resolver.ts
+    picture.resolver.spec.ts
+  pages/
+    picture-detail/
+      picture-detail.component.ts
+      picture-detail.component.html
+      picture-detail.component.scss
+      picture-detail.component.spec.ts
+```
+
 **Тесты:**
-- `PictureDetailComponent`: загрузка и отображение данных, обработка ошибок, навигация назад
+
+`picture.resolver.spec.ts`:
+- Валидный id → возвращает `Picture`
+- Невалидный id (не число, ≤0) → redirect на `/pictures`, return `EMPTY`
+- 404 от API → возвращает `undefined`
+
+`picture-detail.component.spec.ts`:
+- Отображение изображения (`data-testid="detail-image"`), title, автора, даты из resolved data
+- `picture === undefined` → показ ошибки "Иллюстрация не найдена" + ссылка на `/pictures`
+- Клик по изображению → `lightboxService.open(picture.id)`
+- Клик по кнопке копирования → `clipboard.writeText('@{id}@')` + notification
 
 ### Этап 7 (D3): Backend — версионирование картинок
 
@@ -451,7 +547,7 @@ Workflow:
   - `POST /api/pictures/moderate` — approve/reject версию. Body: `{pv_id, approved: 1|-1, comment?}`. При approve edit: обновить `pictures`, переместить файлы. При approve delete: soft-delete
   - `GET /api/pictures/history?page=&size=&filter=` — список версий с фильтрами (`all`, `unchecked`, `my`). Response: пагинированный список `PictureVersionDto[]`
   - `GET /api/pictures/{id}/history` — версии конкретной картинки
-- Валидация при upload: формат (jpg, png, webp), max размер файла, `getimagesize()` для dimensions
+- Валидация при upload: формат (только jpg/jpeg), max размер файла, `getimagesize()` для dimensions
 
 **Frontend models (новые):**
 - `PictureVersionDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
