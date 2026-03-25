@@ -1,9 +1,9 @@
-import { DEFAULT_PICTURES_PAGE_SIZE } from './picture.constants';
+import { DEFAULT_PICTURES_PAGE_SIZE, MAX_PICTURES_BATCH_SIZE } from './picture.constants';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ApiResponse, PictureDto, PicturesBatchResponseDto, PicturesListResponseDto, assertIsDefined } from '@drevo-web/shared';
-import { Observable } from 'rxjs';
+import { ApiResponse, PictureDto, PicturesBatchResponseDto, PicturesListResponseDto, assert, assertIsDefined } from '@drevo-web/shared';
+import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 /**
@@ -67,6 +67,12 @@ export class PictureApiService {
      * Max 50 IDs per request.
      */
     getPicturesBatch(ids: readonly number[]): Observable<PicturesBatchResponseDto> {
+        if (ids.length === 0) {
+            return of({ items: [], notFound: [] });
+        }
+
+        assert(ids.length <= MAX_PICTURES_BATCH_SIZE, `getPicturesBatch: ids count ${ids.length} exceeds max ${MAX_PICTURES_BATCH_SIZE}`);
+
         const params = new HttpParams().set('ids', ids.join(','));
 
         return this.http

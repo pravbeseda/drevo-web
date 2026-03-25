@@ -1,3 +1,4 @@
+import { MAX_PICTURES_BATCH_SIZE } from '../../services/pictures/picture.constants';
 import { Extension, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, DecorationSet, EditorView, hoverTooltip, Tooltip, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { PictureBatchResponse, Picture } from '@drevo-web/shared';
@@ -141,7 +142,6 @@ export function extractPictureIds(text: string): number[] {
 
 // --- Internal helpers ---
 
-const MAX_BATCH_SIZE = 50;
 
 async function fetchBatch(
     ids: number[],
@@ -152,8 +152,8 @@ async function fetchBatch(
 ): Promise<boolean> {
     let hasChanges = false;
 
-    for (let i = 0; i < ids.length; i += MAX_BATCH_SIZE) {
-        const chunk = ids.slice(i, i + MAX_BATCH_SIZE);
+    for (let i = 0; i < ids.length; i += MAX_PICTURES_BATCH_SIZE) {
+        const chunk = ids.slice(i, i + MAX_PICTURES_BATCH_SIZE);
 
         try {
             const response = await firstValueFrom(options.getPicturesBatch(chunk));
