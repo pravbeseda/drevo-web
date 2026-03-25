@@ -335,7 +335,7 @@ Workflow:
 - `PictureLightboxComponent`: render when open, close on Esc, close on backdrop click, fit/zoom toggle
 - `article-content`: клик по `.pic img` → lightbox.open()
 
-### Этап 5: Editor Picture Preview — подсветка и превью `@NNN@` в редакторе
+### Этап 5: Editor Picture Preview — подсветка и превью `@NNN@` в редакторе ✅
 
 **Scope**: Коды картинок `@NNN@` в CodeMirror-редакторе автоматически подсвечиваются и предзагружаются при открытии. Найденные коды помечаются цветом (pending → resolved / error). При наведении на resolved-код — моментальный tooltip с превью миниатюры и подписью. Клик по превью открывает lightbox (этап 4). Несуществующие коды помечаются ошибочным стилем (красный + wavy underline).
 
