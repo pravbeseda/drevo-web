@@ -119,6 +119,12 @@ $theme-colors: (
         dark: $md-grey-800,
     ),
 
+    // Picture detail
+    picture-background: (
+        light: $md-grey-900,
+        dark: #111,
+    ),
+
     // Editor base (surface, chrome)
     editor-selection-bg: (
         light: $md-blue-100,

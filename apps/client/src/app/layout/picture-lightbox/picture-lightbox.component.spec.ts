@@ -32,6 +32,7 @@ describe('PictureLightboxComponent', () => {
         isZoomed: isZoomed.asReadonly(),
         currentPicture: currentPicture.asReadonly(),
         close: jest.fn(),
+        closeWithoutNavigation: jest.fn(),
         toggleZoom: jest.fn(),
     };
 
@@ -160,7 +161,7 @@ describe('PictureLightboxComponent', () => {
 
         spectator.component.onDetailLinkClick();
 
-        expect(mockLightboxService.close).toHaveBeenCalled();
+        expect(mockLightboxService.closeWithoutNavigation).toHaveBeenCalled();
     });
 
     it('should render detail link with correct routerLink', () => {
