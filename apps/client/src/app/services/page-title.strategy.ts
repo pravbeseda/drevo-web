@@ -5,6 +5,7 @@ import { LoggerService } from '@drevo-web/core';
 
 const DEFAULT_TITLE = 'Древо';
 const TITLE_SUFFIX = ' - Древо';
+const MAX_TITLE_LENGTH = 50;
 
 @Injectable()
 export class PageTitleStrategy extends TitleStrategy {
@@ -18,8 +19,9 @@ export class PageTitleStrategy extends TitleStrategy {
 
         if (resolved) {
             this._pageTitle.set(resolved.title);
+            const truncated = this.truncateTitle(resolved.title);
             const titlePrefix = resolved.route.data['titlePrefix'] as string | undefined;
-            const docTitle = titlePrefix ? `${titlePrefix} ${resolved.title}` : resolved.title;
+            const docTitle = titlePrefix ? `${titlePrefix} ${truncated}` : truncated;
             this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
         } else {
             this._pageTitle.set(DEFAULT_TITLE);
@@ -52,6 +54,13 @@ export class PageTitleStrategy extends TitleStrategy {
             }
         }
         return undefined;
+    }
+
+    private truncateTitle(title: string): string {
+        if (title.length <= MAX_TITLE_LENGTH) {
+            return title;
+        }
+        return title.slice(0, MAX_TITLE_LENGTH) + '…';
     }
 
     /**

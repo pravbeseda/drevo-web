@@ -167,6 +167,35 @@ describe('PageTitleStrategy', () => {
             expect(titleService.setTitle).toHaveBeenCalledWith('* Берёза - Древо');
         });
 
+        it('should truncate long title in document title but keep full title in pageTitle signal', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const longTitle = 'А'.repeat(60);
+            const route = makeRoute({
+                titleSource: 'article',
+                article: { title: longTitle },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            expect(spectator.service.pageTitle()).toBe(longTitle);
+            expect(titleService.setTitle).toHaveBeenCalledWith('А'.repeat(50) + '… - Древо');
+        });
+
+        it('should not truncate short title in document title', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({
+                titleSource: 'article',
+                article: { title: 'Берёза' },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            expect(spectator.service.pageTitle()).toBe('Берёза');
+            expect(titleService.setTitle).toHaveBeenCalledWith('Берёза - Древо');
+        });
+
         it('should not inherit titlePrefix from parent route', () => {
             const titleService = spectator.inject(Title);
             jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);

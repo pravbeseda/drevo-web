@@ -6,9 +6,12 @@ $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 +
 
 .picture-card {
     position: relative;
+    display: block;
     overflow: hidden;
     cursor: pointer;
     border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
 
     &--capped {
         display: flex;

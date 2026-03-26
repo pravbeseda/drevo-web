@@ -59,7 +59,7 @@ export class PictureLightboxComponent {
     onDetailLinkClick(): void {
         this.logger.info('Navigating to picture detail', { id: this.lightboxService.currentPicture()?.id });
         this.exitFullscreen();
-        this.lightboxService.close();
+        this.lightboxService.closeWithoutNavigation();
     }
 
     private enterFullscreen(): void {

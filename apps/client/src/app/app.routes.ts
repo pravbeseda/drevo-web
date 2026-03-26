@@ -31,7 +31,6 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'pictures',
-                title: 'Иллюстрации',
                 loadChildren: () => import('./features/picture/picture.routes').then(m => m.PICTURES_ROUTES),
             },
             {

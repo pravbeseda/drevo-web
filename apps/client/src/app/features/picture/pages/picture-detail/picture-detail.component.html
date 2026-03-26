@@ -1,0 +1,86 @@
+@if (picture(); as pic) {
+    <app-sidebar-action
+        [order]="10"
+        icon="content_copy"
+        label="Копировать код вставки"
+        priority="secondary"
+        (activated)="copyInsertCode()"
+    />
+    <app-sidebar-action
+        [order]="20"
+        icon="edit"
+        label="Изменить"
+        priority="primary"
+        (activated)="editPicture()"
+    />
+    <div class="detail__card">
+        <div
+            class="detail__image"
+            (click)="onImageClick()"
+            (keydown.enter)="onImageClick()"
+            (keydown.space)="onImageClick(); $event.preventDefault()"
+            tabindex="0"
+            role="button"
+            data-testid="detail-image"
+        >
+            <img
+                [src]="pic.imageUrl"
+                [alt]="pic.title"
+                loading="eager"
+            />
+        </div>
+        <div class="detail__info">
+            <div class="detail__section">
+                <div class="detail__label">Описание</div>
+                <div
+                    class="detail__value"
+                    data-testid="detail-title"
+                >
+                    {{ pic.title }}
+                </div>
+            </div>
+            <div class="detail__section">
+                <div class="detail__label">Кто разместил</div>
+                <div
+                    class="detail__value"
+                    data-testid="detail-author"
+                >
+                    {{ pic.user }}
+                </div>
+            </div>
+            <div class="detail__section">
+                <div class="detail__label">Время размещения</div>
+                <div class="detail__value">{{ pic.date | formatDate }}</div>
+            </div>
+            @if (pic.width && pic.height) {
+                <div class="detail__section">
+                    <div class="detail__label">Размер</div>
+                    <div
+                        class="detail__value"
+                        data-testid="detail-dimensions"
+                    >
+                        {{ pic.width }} × {{ pic.height }} px
+                    </div>
+                </div>
+            }
+            <div class="detail__section">
+                <div class="detail__label">Используется в статьях</div>
+                <div class="detail__placeholder">Список статей (скоро)</div>
+            </div>
+        </div>
+    </div>
+} @else if (isLoadError()) {
+    <app-error
+        title="Ошибка загрузки"
+        message="Не удалось загрузить данные иллюстрации. Попробуйте обновить страницу."
+        [showHomeButton]="true"
+        data-testid="detail-load-error"
+    />
+} @else {
+    <app-error
+        title="Иллюстрация не найдена"
+        message="Запрашиваемая иллюстрация не существует или была удалена."
+        [showHomeButton]="true"
+        data-testid="detail-error"
+    />
+}

@@ -14,10 +14,15 @@ export class PictureCardComponent {
     readonly rowHeight = input.required<number>();
 
     readonly isCapped = computed(() => this.height() < this.rowHeight());
+    readonly detailUrl = computed(() => `/pictures/${this.picture().id}`);
 
     readonly pictureClick = output<Picture>();
 
-    onClick(): void {
+    onClick(event: MouseEvent): void {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        event.preventDefault();
         this.pictureClick.emit(this.picture());
     }
 }

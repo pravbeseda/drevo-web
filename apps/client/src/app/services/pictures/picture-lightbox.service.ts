@@ -78,6 +78,18 @@ export class PictureLightboxService {
     }
 
     close(): void {
+        this.closeInternal(true);
+    }
+
+    /**
+     * Close without navigating back in history.
+     * Use when the caller handles navigation itself (e.g. routerLink).
+     */
+    closeWithoutNavigation(): void {
+        this.closeInternal(false);
+    }
+
+    private closeInternal(navigateBack: boolean): void {
         if (!this._isOpen()) {
             return;
         }
@@ -90,7 +102,9 @@ export class PictureLightboxService {
 
         if (this.hashPushed) {
             this.hashPushed = false;
-            this.location.back();
+            if (navigateBack) {
+                this.location.back();
+            }
         }
     }
 
