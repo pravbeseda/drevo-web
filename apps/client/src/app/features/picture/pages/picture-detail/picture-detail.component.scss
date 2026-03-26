@@ -14,12 +14,12 @@
 }
 
 .detail__image {
-    background: var(--themed-picture-background);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     min-height: 450px;
     cursor: zoom-in;
+    padding: 20px;
 
     &:focus-visible {
         outline: 2px solid var(--themed-link-color);
@@ -27,8 +27,8 @@
     }
 
     img {
-        max-width: 90%;
-        max-height: 90%;
+        max-width: 100%;
+        max-height: 80vh;
         object-fit: contain;
     }
 }
