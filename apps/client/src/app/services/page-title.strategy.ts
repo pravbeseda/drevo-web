@@ -19,8 +19,9 @@ export class PageTitleStrategy extends TitleStrategy {
 
         if (resolved) {
             this._pageTitle.set(resolved.title);
+            const truncated = this.truncateTitle(resolved.title);
             const titlePrefix = resolved.route.data['titlePrefix'] as string | undefined;
-            const docTitle = titlePrefix ? `${titlePrefix} ${resolved.title}` : resolved.title;
+            const docTitle = titlePrefix ? `${titlePrefix} ${truncated}` : truncated;
             this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
         } else {
             this._pageTitle.set(DEFAULT_TITLE);
@@ -49,7 +50,7 @@ export class PageTitleStrategy extends TitleStrategy {
         if (result) {
             const resolved = result.route.data[result.value as string] as { readonly title: string } | undefined;
             if (resolved?.title) {
-                return { title: this.truncateTitle(resolved.title), route: result.route };
+                return { title: resolved.title, route: result.route };
             }
         }
         return undefined;

@@ -4,6 +4,7 @@ import { Route } from '@angular/router';
 export const PICTURES_ROUTES: Route[] = [
     {
         path: '',
+        title: 'Иллюстрации',
         loadComponent: () => import('./pages/picture-page/picture-page.component').then(m => m.PicturePageComponent),
     },
     {
