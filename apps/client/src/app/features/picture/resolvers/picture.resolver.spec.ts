@@ -1,5 +1,6 @@
 import { resolvePicture } from './picture.resolver';
-import { ActivatedRouteSnapshot, convertToParamMap, Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { Picture } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
@@ -22,104 +23,91 @@ function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnap
 
 describe('resolvePicture', () => {
     let pictureService: jest.Mocked<Pick<PictureService, 'getPicture'>>;
-    let router: jest.Mocked<Pick<Router, 'navigate'>>;
 
     beforeEach(() => {
         pictureService = { getPicture: jest.fn() };
-        router = { navigate: jest.fn() };
     });
 
     it('should return picture when valid ID is provided', done => {
         pictureService.getPicture.mockReturnValue(of(mockPicture));
         const route = createRouteSnapshot({ id: '42' });
 
-        resolvePicture(
-            pictureService as unknown as PictureService,
-            router as unknown as Router,
-            route
-        ).subscribe(result => {
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
             expect(result).toEqual(mockPicture);
             expect(pictureService.getPicture).toHaveBeenCalledWith(42);
-            expect(router.navigate).not.toHaveBeenCalled();
             done();
         });
     });
 
-    it('should redirect to /pictures for non-numeric ID', () => {
+    it('should return not-found for non-numeric ID', done => {
         const route = createRouteSnapshot({ id: 'abc' });
 
-        const result$ = resolvePicture(
-            pictureService as unknown as PictureService,
-            router as unknown as Router,
-            route
-        );
-
-        let emitted = false;
-        result$.subscribe(() => (emitted = true));
-
-        expect(emitted).toBe(false);
-        expect(router.navigate).toHaveBeenCalledWith(['/pictures']);
-        expect(pictureService.getPicture).not.toHaveBeenCalled();
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            expect(pictureService.getPicture).not.toHaveBeenCalled();
+            done();
+        });
     });
 
-    it('should redirect to /pictures for zero ID', () => {
+    it('should return not-found for zero ID', done => {
         const route = createRouteSnapshot({ id: '0' });
 
-        const result$ = resolvePicture(
-            pictureService as unknown as PictureService,
-            router as unknown as Router,
-            route
-        );
-
-        let emitted = false;
-        result$.subscribe(() => (emitted = true));
-
-        expect(emitted).toBe(false);
-        expect(router.navigate).toHaveBeenCalledWith(['/pictures']);
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            done();
+        });
     });
 
-    it('should redirect to /pictures for negative ID', () => {
+    it('should return not-found for negative ID', done => {
         const route = createRouteSnapshot({ id: '-5' });
 
-        const result$ = resolvePicture(
-            pictureService as unknown as PictureService,
-            router as unknown as Router,
-            route
-        );
-
-        let emitted = false;
-        result$.subscribe(() => (emitted = true));
-
-        expect(emitted).toBe(false);
-        expect(router.navigate).toHaveBeenCalledWith(['/pictures']);
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            done();
+        });
     });
 
-    it('should redirect to /pictures for missing ID param', () => {
+    it('should return not-found for missing ID param', done => {
         const route = createRouteSnapshot({});
 
-        const result$ = resolvePicture(
-            pictureService as unknown as PictureService,
-            router as unknown as Router,
-            route
-        );
-
-        let emitted = false;
-        result$.subscribe(() => (emitted = true));
-
-        expect(emitted).toBe(false);
-        expect(router.navigate).toHaveBeenCalledWith(['/pictures']);
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            done();
+        });
     });
 
-    it('should return undefined on HTTP error', done => {
-        pictureService.getPicture.mockReturnValue(throwError(() => new Error('Server error')));
+    it('should return not-found on 404 HTTP error', done => {
+        pictureService.getPicture.mockReturnValue(
+            throwError(() => new HttpErrorResponse({ status: 404 }))
+        );
         const route = createRouteSnapshot({ id: '42' });
 
-        resolvePicture(
-            pictureService as unknown as PictureService,
-            router as unknown as Router,
-            route
-        ).subscribe(result => {
-            expect(result).toBeUndefined();
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            done();
+        });
+    });
+
+    it('should return load-error on 500 HTTP error', done => {
+        pictureService.getPicture.mockReturnValue(
+            throwError(() => new HttpErrorResponse({ status: 500 }))
+        );
+        const route = createRouteSnapshot({ id: '42' });
+
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('load-error');
+            done();
+        });
+    });
+
+    it('should return load-error on network error', done => {
+        pictureService.getPicture.mockReturnValue(
+            throwError(() => new Error('Network error'))
+        );
+        const route = createRouteSnapshot({ id: '42' });
+
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('load-error');
             done();
         });
     });

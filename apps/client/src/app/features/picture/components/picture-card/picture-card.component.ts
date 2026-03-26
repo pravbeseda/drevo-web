@@ -19,6 +19,9 @@ export class PictureCardComponent {
     readonly pictureClick = output<Picture>();
 
     onClick(event: MouseEvent): void {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+            return;
+        }
         event.preventDefault();
         this.pictureClick.emit(this.picture());
     }

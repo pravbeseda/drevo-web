@@ -96,7 +96,7 @@ describe('PictureDetailComponent', () => {
         });
     });
 
-    describe('without picture data (404)', () => {
+    describe('with not-found result', () => {
         const createComponent = createComponentFactory({
             component: PictureDetailComponent,
             providers: [
@@ -105,7 +105,7 @@ describe('PictureDetailComponent', () => {
                 mockProvider(NotificationService),
                 {
                     provide: ActivatedRoute,
-                    useValue: { data: of({ picture: undefined }) },
+                    useValue: { data: of({ picture: 'not-found' }) },
                 },
                 { provide: PLATFORM_ID, useValue: 'browser' },
                 { provide: WINDOW, useValue: mockWindow },
@@ -117,11 +117,40 @@ describe('PictureDetailComponent', () => {
             spectator = createComponent();
         });
 
-        it('should show error component', () => {
+        it('should show not-found error', () => {
             spectator.detectChanges();
             const error = spectator.query('[data-testid="detail-error"]');
             expect(error).toBeTruthy();
             expect(error?.textContent).toContain('Иллюстрация не найдена');
+        });
+    });
+
+    describe('with load-error result', () => {
+        const createComponent = createComponentFactory({
+            component: PictureDetailComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(PictureLightboxService),
+                mockProvider(NotificationService),
+                {
+                    provide: ActivatedRoute,
+                    useValue: { data: of({ picture: 'load-error' }) },
+                },
+                { provide: PLATFORM_ID, useValue: 'browser' },
+                { provide: WINDOW, useValue: mockWindow },
+            ],
+            detectChanges: false,
+        });
+
+        beforeEach(() => {
+            spectator = createComponent();
+        });
+
+        it('should show load error', () => {
+            spectator.detectChanges();
+            const error = spectator.query('[data-testid="detail-load-error"]');
+            expect(error).toBeTruthy();
+            expect(error?.textContent).toContain('Ошибка загрузки');
         });
     });
 });

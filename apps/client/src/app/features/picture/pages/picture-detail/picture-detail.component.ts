@@ -1,12 +1,12 @@
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
+import { PictureResolveResult } from '../../resolvers/picture.resolver';
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
-import { Picture } from '@drevo-web/shared';
 import { FormatDatePipe } from '@drevo-web/ui';
 import { map } from 'rxjs/operators';
 
@@ -25,7 +25,16 @@ export class PictureDetailComponent {
     private readonly window = inject(WINDOW);
     private readonly platformId = inject(PLATFORM_ID);
 
-    readonly picture = toSignal(this.route.data.pipe(map(data => data['picture'] as Picture | undefined)));
+    private readonly resolveResult = toSignal(
+        this.route.data.pipe(map(data => data['picture'] as PictureResolveResult)),
+    );
+
+    readonly picture = computed(() => {
+        const result = this.resolveResult();
+        return typeof result === 'object' ? result : undefined;
+    });
+
+    readonly isLoadError = computed(() => this.resolveResult() === 'load-error');
 
     onImageClick(): void {
         const pic = this.picture();
@@ -46,7 +55,7 @@ export class PictureDetailComponent {
         }
 
         const code = `@${pic.id}@`;
-        this.window?.navigator.clipboard
+        this.window?.navigator?.clipboard
             .writeText(code)
             .then(() => {
                 this.notificationService.success('Код скопирован');

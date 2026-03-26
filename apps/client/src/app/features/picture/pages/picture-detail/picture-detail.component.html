@@ -18,6 +18,7 @@
             class="detail__image"
             (click)="onImageClick()"
             (keydown.enter)="onImageClick()"
+            (keydown.space)="onImageClick(); $event.preventDefault()"
             tabindex="0"
             role="button"
             data-testid="detail-image"
@@ -68,6 +69,13 @@
             </div>
         </div>
     </div>
+} @else if (isLoadError()) {
+    <app-error
+        title="Ошибка загрузки"
+        message="Не удалось загрузить данные иллюстрации. Попробуйте обновить страницу."
+        [showHomeButton]="true"
+        data-testid="detail-load-error"
+    />
 } @else {
     <app-error
         title="Иллюстрация не найдена"
