@@ -1,4 +1,18 @@
 @if (picture(); as pic) {
+    <app-sidebar-action
+        [order]="10"
+        icon="content_copy"
+        label="Копировать код вставки"
+        priority="secondary"
+        (activated)="copyInsertCode()"
+    />
+    <app-sidebar-action
+        [order]="20"
+        icon="edit"
+        label="Изменить"
+        priority="primary"
+        (activated)="editPicture()"
+    />
     <div class="detail__card">
         <div
             class="detail__image"
@@ -8,20 +22,23 @@
             role="button"
             data-testid="detail-image"
         >
-            <img [src]="pic.imageUrl" [alt]="pic.title" loading="eager" />
+            <img
+                [src]="pic.imageUrl"
+                [alt]="pic.title"
+                loading="eager"
+            />
         </div>
         <div class="detail__info">
-            <div class="detail__top-row">
-                <button class="detail__copy-code" (click)="copyInsertCode()" data-testid="copy-code">
-                    <span class="detail__copy-code-text">&#64;{{ pic.id }}&#64;</span>
-                    <ui-icon name="content_copy" size="small" />
-                </button>
-            </div>
-            <h1 class="detail__title" data-testid="detail-title">{{ pic.title }}</h1>
+            <h1
+                class="detail__title"
+                data-testid="detail-title"
+            >
+                {{ pic.title }}
+            </h1>
             <div class="detail__author">
                 <div class="detail__author-details">
                     <span class="detail__author-name">{{ pic.user }}</span>
-                    <span class="detail__author-date">{{ pic.date | formatTime }}</span>
+                    <span class="detail__author-date">{{ pic.date | formatDate }}</span>
                 </div>
             </div>
             @if (pic.width && pic.height) {

@@ -41,34 +41,6 @@
     overflow-y: auto;
 }
 
-.detail__top-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.detail__copy-code {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--themed-secondary-bg);
-    border: 1px solid var(--themed-border-color);
-    border-radius: 6px;
-    padding: 6px 12px;
-    color: var(--themed-text-secondary);
-    cursor: pointer;
-    transition: background 0.15s;
-
-    &:hover {
-        background: var(--themed-menu-hover-background);
-    }
-}
-
-.detail__copy-code-text {
-    font-family: 'SF Mono', Monaco, Consolas, monospace;
-    font-size: 13px;
-}
-
 .detail__title {
     font-size: 22px;
     font-weight: 600;

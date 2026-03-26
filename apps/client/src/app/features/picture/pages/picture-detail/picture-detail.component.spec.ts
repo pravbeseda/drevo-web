@@ -86,9 +86,9 @@ describe('PictureDetailComponent', () => {
             expect(lightbox.open).toHaveBeenCalledWith(42);
         });
 
-        it('should copy insert code on button click', () => {
+        it('should copy insert code to clipboard', () => {
             spectator.detectChanges();
-            spectator.click('[data-testid="copy-code"]');
+            spectator.component.copyInsertCode();
             expect(mockWriteText).toHaveBeenCalledWith('@42@');
         });
     });

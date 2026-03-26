@@ -1,17 +1,18 @@
-import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
+import { ErrorComponent } from '../../../../shared/components/error/error.component';
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
-import { FormatTimePipe, IconComponent } from '@drevo-web/ui';
+import { FormatDatePipe } from '@drevo-web/ui';
 import { map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-picture-detail',
-    imports: [ErrorComponent, FormatTimePipe, IconComponent],
+    imports: [ErrorComponent, SidebarActionComponent, FormatDatePipe],
     templateUrl: './picture-detail.component.html',
     styleUrl: './picture-detail.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,10 @@ export class PictureDetailComponent {
             this.logger.info('Opening lightbox from detail', { id: pic.id });
             this.lightboxService.open(pic.id);
         }
+    }
+
+    editPicture(): void {
+        this.notificationService.info('Функция еще не реализована');
     }
 
     copyInsertCode(): void {
