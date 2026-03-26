@@ -29,26 +29,26 @@
             />
         </div>
         <div class="detail__info">
-            <h1
-                class="detail__title"
-                data-testid="detail-title"
-            >
-                {{ pic.title }}
-            </h1>
-            <div class="detail__author">
-                <div class="detail__author-details">
-                    <span class="detail__author-name">{{ pic.user }}</span>
-                    <span class="detail__author-date">{{ pic.date | formatDate }}</span>
-                </div>
+            <div class="detail__section">
+                <div class="detail__label">Описание</div>
+                <div class="detail__value">{{ pic.title }}</div>
+            </div>
+            <div class="detail__section">
+                <div class="detail__label">Кто разместил</div>
+                <div class="detail__value">{{ pic.user }}</div>
+            </div>
+            <div class="detail__section">
+                <div class="detail__label">Время размещения</div>
+                <div class="detail__value">{{ pic.date | formatDate }}</div>
             </div>
             @if (pic.width && pic.height) {
                 <div class="detail__section">
-                    <div class="detail__section-title">Размеры</div>
-                    <span class="detail__dimensions">{{ pic.width }} × {{ pic.height }} px</span>
+                    <div class="detail__label">Размер</div>
+                    <div class="detail__value">{{ pic.width }} × {{ pic.height }} px</div>
                 </div>
             }
             <div class="detail__section">
-                <div class="detail__section-title">Используется в статьях</div>
+                <div class="detail__label">Используется в статьях</div>
                 <div class="detail__placeholder">Список статей (скоро)</div>
             </div>
         </div>
