@@ -2,7 +2,7 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, PLATFORM_ID } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
@@ -25,9 +25,7 @@ export class PictureDetailComponent {
     private readonly window = inject(WINDOW);
     private readonly platformId = inject(PLATFORM_ID);
 
-    private readonly routeData = toSignal(this.route.data.pipe(map(data => data['picture'] as Picture | undefined)));
-
-    readonly picture = computed(() => this.routeData());
+    readonly picture = toSignal(this.route.data.pipe(map(data => data['picture'] as Picture | undefined)));
 
     onImageClick(): void {
         const pic = this.picture();
@@ -48,9 +46,15 @@ export class PictureDetailComponent {
         }
 
         const code = `@${pic.id}@`;
-        this.window?.navigator.clipboard.writeText(code).then(() => {
-            this.notificationService.success('Код скопирован');
-            this.logger.info('Insert code copied', { id: pic.id, code });
-        });
+        this.window?.navigator.clipboard
+            .writeText(code)
+            .then(() => {
+                this.notificationService.success('Код скопирован');
+                this.logger.info('Insert code copied', { id: pic.id, code });
+            })
+            .catch((error: unknown) => {
+                this.logger.error('Failed to copy insert code', error);
+                this.notificationService.error(`Не удалось скопировать код ${code}`);
+            });
     }
 }

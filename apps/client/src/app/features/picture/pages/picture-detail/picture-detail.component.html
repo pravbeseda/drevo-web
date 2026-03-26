@@ -31,11 +31,21 @@
         <div class="detail__info">
             <div class="detail__section">
                 <div class="detail__label">Описание</div>
-                <div class="detail__value">{{ pic.title }}</div>
+                <div
+                    class="detail__value"
+                    data-testid="detail-title"
+                >
+                    {{ pic.title }}
+                </div>
             </div>
             <div class="detail__section">
                 <div class="detail__label">Кто разместил</div>
-                <div class="detail__value">{{ pic.user }}</div>
+                <div
+                    class="detail__value"
+                    data-testid="detail-author"
+                >
+                    {{ pic.user }}
+                </div>
             </div>
             <div class="detail__section">
                 <div class="detail__label">Время размещения</div>
@@ -44,7 +54,12 @@
             @if (pic.width && pic.height) {
                 <div class="detail__section">
                     <div class="detail__label">Размер</div>
-                    <div class="detail__value">{{ pic.width }} × {{ pic.height }} px</div>
+                    <div
+                        class="detail__value"
+                        data-testid="detail-dimensions"
+                    >
+                        {{ pic.width }} × {{ pic.height }} px
+                    </div>
                 </div>
             }
             <div class="detail__section">

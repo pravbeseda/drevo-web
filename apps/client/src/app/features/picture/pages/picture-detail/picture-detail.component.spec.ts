@@ -57,6 +57,7 @@ describe('PictureDetailComponent', () => {
         it('should display picture title', () => {
             spectator.detectChanges();
             const title = spectator.query('[data-testid="detail-title"]');
+            expect(title).toBeTruthy();
             expect(title?.textContent?.trim()).toBe('Вид на Кремль');
         });
 
@@ -69,13 +70,15 @@ describe('PictureDetailComponent', () => {
 
         it('should display author name', () => {
             spectator.detectChanges();
-            const author = spectator.query('.detail__author-name');
+            const author = spectator.query('[data-testid="detail-author"]');
+            expect(author).toBeTruthy();
             expect(author?.textContent?.trim()).toBe('Иванов И.И.');
         });
 
         it('should display dimensions', () => {
             spectator.detectChanges();
-            const dims = spectator.query('.detail__dimensions');
+            const dims = spectator.query('[data-testid="detail-dimensions"]');
+            expect(dims).toBeTruthy();
             expect(dims?.textContent?.trim()).toBe('1920 × 1280 px');
         });
 

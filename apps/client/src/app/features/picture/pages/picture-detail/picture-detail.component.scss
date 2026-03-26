@@ -52,7 +52,7 @@ $_available-height: calc(98vh - #{$header-height} - #{$_image-padding} * 2);
 }
 
 .detail__value {
-    font-size: 1rem;
+    font-size: $font-size-md;
     color: var(--themed-text-primary);
 }
 
@@ -62,7 +62,7 @@ $_available-height: calc(98vh - #{$header-height} - #{$_image-padding} * 2);
     border-radius: 8px;
     padding: 16px;
     color: var(--themed-text-muted);
-    font-size: 1rem;
+    font-size: $font-size-md;
     text-align: center;
 }
 
