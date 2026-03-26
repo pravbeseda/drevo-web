@@ -420,13 +420,13 @@ Workflow:
 **Scope**: Страница `/pictures/:id` — только просмотр, без редактирования.
 
 **Решения (все вопросы закрыты):**
-- [x] **Q1: UI layout** — Pinterest-style карточка: изображение слева, панель информации справа. На мобильных (`≤768px`) — колонки стакаются (изображение сверху, информация под ним). Без кнопки «Назад», без аватара пользователя. Mockup: `tmp/picture-detail-v3-responsive.html`
+- [x] **Q1: UI layout** — изображение слева, панель информации (460px) справа. На мобильных (`≤1024px`, совпадает с FAB-брейкпоинтом) — колонки стакаются (изображение сверху, max 50vh; информация под ним). Без кнопки «Назад», без аватара пользователя. Скролл один — на весь компонент, без вложенных скроллов
 - [x] **Q2: Zoom стратегия** — клик по изображению → `lightboxService.open(picture.id)` (переиспользуем готовый lightbox)
 - [x] **Q3: Error handling** — невалидный id (не число) → redirect на `/pictures`. 404 от API → показать ошибку на месте ("Иллюстрация не найдена") со ссылкой на `/pictures`, URL сохраняется
 - [x] **Q4: Loading state** — resolver загружает данные до рендера компонента (как в article). Пустой экран во время загрузки (Angular router ждёт resolve)
 - [x] **Q5: Кнопка "Назад"** — Не нужна. Навигация через стандартные средства браузера/приложения
-- [x] **Q6: Page title** — через resolver + `PageTitleStrategy`: route `data: { titleSource: 'picture' }` → strategy берёт `picture.title` → `"{title} — Древо"`. Обрезка до 50 символов с `…` — в `PageTitleStrategy` (универсально для всех routes). Если picture не загружен — fallback на дефолтный `"Древо"`
-- [x] **Q7: Код вставки** — показывать `@{id}@` кнопкой. Клик → копировать в буфер (Clipboard API) + toast `NotificationService` ("Код скопирован")
+- [x] **Q6: Page title** — через resolver + `PageTitleStrategy`: route `data: { titleSource: 'picture', titlePrefix: '🖼️' }` → strategy берёт `picture.title` → `"🖼️ {title} — Древо"`. Обрезка до 50 символов с `…` — в `PageTitleStrategy` (универсально для всех routes). Если picture не загружен — fallback на дефолтный `"Древо"`
+- [x] **Q7: Код вставки** — через `app-sidebar-action` (копирование кода) и `app-sidebar-action` (редактирование). Клик → копировать `@{id}@` в буфер (Clipboard API) + toast `NotificationService` ("Код скопирован")
 
 **Компоненты:**
 
@@ -443,51 +443,19 @@ Workflow:
    - Dependencies: `PictureLightboxService`, `NotificationService`, `ActivatedRoute`, `LoggerService`, `PLATFORM_ID`
 
 3. **Template** (`picture-detail.component.html`):
-   ```html
-   @if (picture(); as pic) {
-       <div class="detail__card">
-           <div class="detail__image" (click)="onImageClick()" (keydown.enter)="onImageClick()"
-                tabindex="0" role="button" data-testid="detail-image">
-               <img [src]="pic.imageUrl" [alt]="pic.title" loading="eager" />
-           </div>
-           <div class="detail__info">
-               <div class="detail__top-row">
-                   <button class="detail__copy-code" (click)="copyInsertCode()" data-testid="copy-code">
-                       @@{{ pic.id }}@@  <!-- icon: content_copy -->
-                   </button>
-               </div>
-               <h1 class="detail__title" data-testid="detail-title">{{ pic.title }}</h1>
-               <div class="detail__author">
-                   <span class="detail__author-name">{{ pic.user }}</span>
-                   <span class="detail__author-date">{{ pic.date | formatTime }}</span>
-               </div>
-               <div class="detail__section">
-                   <div class="detail__section-title">Размеры</div>
-                   <span>{{ pic.width }} × {{ pic.height }} px</span>
-               </div>
-               <div class="detail__section">
-                   <div class="detail__section-title">Используется в статьях</div>
-                   <div class="detail__placeholder">Список статей (скоро)</div>
-               </div>
-           </div>
-       </div>
-   } @else {
-       <div class="detail__error">
-           <p>Иллюстрация не найдена</p>
-           <a routerLink="/pictures">Перейти к галерее</a>
-       </div>
-   }
-   ```
+   - Действия вынесены в `app-sidebar-action` (копирование кода, редактирование) — на десктопе отображаются в правом сайдбаре, на мобильных — как FAB-кнопки
+   - Info-секция — унифицированные блоки `detail__section` с `detail__label` (серый uppercase заголовок) + `detail__value` (основной текст): «Описание», «Кто разместил», «Время размещения», «Размер», «Используется в статьях»
+   - Ошибка — через переиспользуемый `app-error` компонент
 
 4. **Стили** (`picture-detail.component.scss`):
-   - `.detail__card` — `display: grid; grid-template-columns: 1fr 380px; border-radius: 16px; overflow: hidden; box-shadow; background: var(--themed-primary-bg)`
-   - `.detail__image` — `background: var(--themed-picture-background); display: flex; align-items: center; justify-content: center; min-height: 450px; cursor: zoom-in`
-   - `.detail__image img` — `max-width: 100%; max-height: 80vh; object-fit: contain`
+   - `.detail__card` — `display: grid; grid-template-columns: 1fr 460px` (без border-radius, box-shadow, overflow: hidden)
+   - `.detail__image` — `display: flex; align-items: flex-start; justify-content: center; cursor: zoom-in; padding: 20px`
+   - `.detail__image img` — `max-width: 100%; max-height: calc(98vh - header - padding); object-fit: contain` — картинка всегда умещается в видимой области
    - `.detail__info` — `padding: 24px; display: flex; flex-direction: column; gap: 20px`
-   - `.detail__copy-code` — monospace, border, border-radius, hover effect, `cursor: pointer`
-   - Responsive `@media (max-width: $breakpoint-desktop)`: изображение сужается (info panel остаётся 380px), картинка центрируется по меньшей стороне
-   - Responsive `@media (max-width: $breakpoint-tablet)`: `grid-template-columns: 1fr`, image `min-height: 280px`
-   - Все цвета через `var(--themed-*)` токены. Новый токен `--themed-picture-background` добавить в `_theme-colors.scss`
+   - `.detail__label` — `font-size: $font-size-sm; color: --themed-text-muted; text-transform: uppercase`
+   - `.detail__value` — `font-size: 1rem; color: --themed-text-primary`
+   - Один responsive брейкпоинт `@media (max-width: $breakpoint-desktop)`: `grid-template-columns: 1fr`, image `max-height: 50vh`, padding уменьшен
+   - Все цвета через `var(--themed-*)` токены, без кастомных токенов
 
 5. **Методы компонента**:
    - `onImageClick()` → `this.lightboxService.open(picture.id)` + log
@@ -500,10 +468,10 @@ Workflow:
        loadComponent: () => import('./pages/picture-detail/picture-detail.component')
            .then(m => m.PictureDetailComponent),
        resolve: { picture: pictureResolver },
-       data: { titleSource: 'picture' },
+       data: { titleSource: 'picture', titlePrefix: '🖼️' },
    }
    ```
-   `PageTitleStrategy` читает `titleSource: 'picture'` → берёт `route.data['picture'].title` → обрезает до 50 символов с `…` → устанавливает `"{title} — Древо"`. Обрезка реализована в `PageTitleStrategy` универсально. Если picture не загружен — fallback на дефолтный `"Древо"`.
+   `PageTitleStrategy` читает `titleSource: 'picture'` → берёт `route.data['picture'].title`, `titlePrefix: '🖼️'` → устанавливает `"🖼️ {title} — Древо"`. Обрезка до 50 символов с `…` — в `PageTitleStrategy` универсально. Если picture не загружен — fallback на дефолтный `"Древо"`.
 
 7. **Lightbox detail link** — уже реализована: `[routerLink]="['/pictures', picture.id]"` в lightbox footer. При переходе lightbox закрывается.
 

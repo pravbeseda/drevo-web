@@ -12,6 +12,6 @@ export const PICTURES_ROUTES: Route[] = [
         loadComponent: () =>
             import('./pages/picture-detail/picture-detail.component').then(m => m.PictureDetailComponent),
         resolve: { picture: pictureResolver },
-        data: { titleSource: 'picture' },
+        data: { titleSource: 'picture', titlePrefix: '🖼️' },
     },
 ];
