@@ -1,14 +1,12 @@
-<div
+<a
     class="picture-card"
     [class.picture-card--capped]="isCapped()"
-    role="button"
-    tabindex="0"
+    [attr.href]="detailUrl()"
     [attr.aria-label]="picture().title"
     [style.width.px]="width()"
     [style.height.px]="rowHeight()"
-    (click)="onClick()"
-    (keydown.enter)="onClick()"
-    (keydown.space)="onClick(); $event.preventDefault()"
+    (click)="onClick($event)"
+    (keydown.space)="$event.preventDefault()"
     data-testid="picture-card"
 >
     <img
@@ -21,4 +19,4 @@
     <div class="picture-card__overlay">
         <span class="picture-card__title">{{ picture().title }}</span>
     </div>
-</div>
+</a>
