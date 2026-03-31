@@ -9,13 +9,13 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { PictureArticle } from '@drevo-web/shared';
-import { FormatDatePipe } from '@drevo-web/ui';
+import { FormatDatePipe, SpinnerComponent } from '@drevo-web/ui';
 import { of, startWith, switchMap } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-picture-detail',
-    imports: [ErrorComponent, SidebarActionComponent, FormatDatePipe, RouterLink],
+    imports: [ErrorComponent, SidebarActionComponent, FormatDatePipe, RouterLink, SpinnerComponent],
     templateUrl: './picture-detail.component.html',
     styleUrl: './picture-detail.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

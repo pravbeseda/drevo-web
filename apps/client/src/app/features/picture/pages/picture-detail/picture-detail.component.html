@@ -66,12 +66,11 @@
             <div class="detail__section">
                 <div class="detail__label">Используется в статьях</div>
                 @if (articlesLoading()) {
-                    <div
-                        class="detail__value detail__value--muted"
+                    <ui-spinner
+                        [diameter]="24"
+                        [strokeWidth]="3"
                         data-testid="detail-articles-loading"
-                    >
-                        Загрузка…
-                    </div>
+                    />
                 } @else if (articles(); as articleList) {
                     @if (articleList.length > 0) {
                         <div
