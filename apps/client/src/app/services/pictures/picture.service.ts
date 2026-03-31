@@ -4,6 +4,7 @@ import { Injectable, inject } from '@angular/core';
 import {
     Picture,
     PictureArticle,
+    PictureArticleDto,
     PictureBatchResponse,
     PictureDto,
     PictureListParams,
@@ -122,7 +123,9 @@ export class PictureService {
      * Get articles that use a specific picture
      */
     getPictureArticles(pictureId: number): Observable<readonly PictureArticle[]> {
-        return this.pictureApiService.getPictureArticles(pictureId);
+        return this.pictureApiService.getPictureArticles(pictureId).pipe(
+            map(dtos => dtos.map(dto => this.mapPictureArticle(dto))),
+        );
     }
 
     private mapEditResponse(dto: PictureDto | PicturePendingDto): PictureEditResult {
@@ -159,6 +162,13 @@ export class PictureService {
             height: dto.pic_height ?? undefined,
             imageUrl: `/images/${dto.pic_folder}/${paddedId}.jpg`,
             thumbnailUrl: `/pictures/thumbs/${dto.pic_folder}/${paddedId}.jpg`,
+        };
+    }
+
+    private mapPictureArticle(dto: PictureArticleDto): PictureArticle {
+        return {
+            id: dto.id,
+            title: dto.title,
         };
     }
 
