@@ -24,7 +24,7 @@ export function resolvePicture(
     }
 
     const id = Number(idParam);
-    if (isNaN(id) || id <= 0) {
+    if (isNaN(id) || id <= 0 || !Number.isInteger(id)) {
         return of('not-found' as const);
     }
 

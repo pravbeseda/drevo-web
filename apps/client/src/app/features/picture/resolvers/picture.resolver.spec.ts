@@ -67,6 +67,16 @@ describe('resolvePicture', () => {
         });
     });
 
+    it('should return not-found for fractional ID', done => {
+        const route = createRouteSnapshot({ id: '1.5' });
+
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            expect(pictureService.getPicture).not.toHaveBeenCalled();
+            done();
+        });
+    });
+
     it('should return not-found for missing ID param', done => {
         const route = createRouteSnapshot({});
 
