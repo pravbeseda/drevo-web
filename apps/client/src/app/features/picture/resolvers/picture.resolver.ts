@@ -16,7 +16,7 @@ export type PictureResolveResult = Picture | 'not-found' | 'load-error';
  */
 export function resolvePicture(
     pictureService: PictureService,
-    route: ActivatedRouteSnapshot
+    route: ActivatedRouteSnapshot,
 ): Observable<PictureResolveResult> {
     const idParam = route.paramMap.get('id');
     if (!idParam) {
@@ -34,9 +34,8 @@ export function resolvePicture(
                 return of('not-found' as const);
             }
             return of('load-error' as const);
-        })
+        }),
     );
 }
 
-export const pictureResolver: ResolveFn<PictureResolveResult> = route =>
-    resolvePicture(inject(PictureService), route);
+export const pictureResolver: ResolveFn<PictureResolveResult> = route => resolvePicture(inject(PictureService), route);

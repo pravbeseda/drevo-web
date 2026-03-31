@@ -67,9 +67,7 @@ export class PictureService {
      * Returns picture for moderators, pending for regular users.
      */
     updateTitle(id: number, title: string): Observable<PictureEditResult> {
-        return this.pictureApiService.updateTitle(id, title).pipe(
-            map(dto => this.mapEditResponse(dto)),
-        );
+        return this.pictureApiService.updateTitle(id, title).pipe(map(dto => this.mapEditResponse(dto)));
     }
 
     /**
@@ -77,9 +75,7 @@ export class PictureService {
      * Returns picture for moderators, pending for regular users.
      */
     editPicture(id: number, formData: FormData): Observable<PictureEditResult> {
-        return this.pictureApiService.editPicture(id, formData).pipe(
-            map(dto => this.mapEditResponse(dto)),
-        );
+        return this.pictureApiService.editPicture(id, formData).pipe(map(dto => this.mapEditResponse(dto)));
     }
 
     /**
@@ -87,9 +83,7 @@ export class PictureService {
      * Returns picture for moderators, pending for regular users.
      */
     deletePicture(id: number): Observable<PictureEditResult> {
-        return this.pictureApiService.deletePicture(id).pipe(
-            map(dto => this.mapEditResponse(dto)),
-        );
+        return this.pictureApiService.deletePicture(id).pipe(map(dto => this.mapEditResponse(dto)));
     }
 
     /**
@@ -123,9 +117,9 @@ export class PictureService {
      * Get articles that use a specific picture
      */
     getPictureArticles(pictureId: number): Observable<readonly PictureArticle[]> {
-        return this.pictureApiService.getPictureArticles(pictureId).pipe(
-            map(dtos => dtos.map(dto => this.mapPictureArticle(dto))),
-        );
+        return this.pictureApiService
+            .getPictureArticles(pictureId)
+            .pipe(map(dtos => dtos.map(dto => this.mapPictureArticle(dto))));
     }
 
     private mapEditResponse(dto: PictureDto | PicturePendingDto): PictureEditResult {
@@ -189,9 +183,7 @@ export class PictureService {
             currentThumbnailUrl: `/pictures/thumbs/${dto.pic_folder}/${paddedPicId}.jpg`,
             currentWidth: dto.pic_width ?? undefined,
             currentHeight: dto.pic_height ?? undefined,
-            pendingImageUrl: hasPendingFile
-                ? `/images/pending/${dto.pp_pic_id}_pp${dto.pp_id}.jpg`
-                : undefined,
+            pendingImageUrl: hasPendingFile ? `/images/pending/${dto.pp_pic_id}_pp${dto.pp_id}.jpg` : undefined,
         };
     }
 }

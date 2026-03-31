@@ -48,10 +48,16 @@ export class PictureDetailComponent {
                 id
                     ? this.pictureService.getPictureArticles(id).pipe(
                           map(articles => ({ articles, loading: false as const })),
-                          startWith({ articles: undefined as readonly PictureArticle[] | undefined, loading: true as const }),
+                          startWith({
+                              articles: undefined as readonly PictureArticle[] | undefined,
+                              loading: true as const,
+                          }),
                           catchError((error: unknown) => {
                               this.logger.error('Failed to load articles', error);
-                              return of({ articles: undefined as readonly PictureArticle[] | undefined, loading: false as const });
+                              return of({
+                                  articles: undefined as readonly PictureArticle[] | undefined,
+                                  loading: false as const,
+                              });
                           }),
                       )
                     : of({ articles: undefined as readonly PictureArticle[] | undefined, loading: false as const }),
