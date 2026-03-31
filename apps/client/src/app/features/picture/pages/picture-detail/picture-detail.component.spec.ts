@@ -1,12 +1,13 @@
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
+import { PictureService } from '../../../../services/pictures/picture.service';
 import { PictureDetailComponent } from './picture-detail.component';
 import { PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
-import { Picture } from '@drevo-web/shared';
+import { Picture, PictureArticle } from '@drevo-web/shared';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
+import { of, EMPTY } from 'rxjs';
 
 const mockPicture: Picture = {
     id: 42,
@@ -20,6 +21,11 @@ const mockPicture: Picture = {
     thumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
 };
 
+const mockArticles: readonly PictureArticle[] = [
+    { id: 10, title: 'Москва' },
+    { id: 20, title: 'Достопримечательности' },
+];
+
 const mockWriteText = jest.fn().mockResolvedValue(undefined);
 const mockWindow = {
     navigator: { clipboard: { writeText: mockWriteText } },
@@ -27,6 +33,7 @@ const mockWindow = {
 
 describe('PictureDetailComponent', () => {
     let spectator: Spectator<PictureDetailComponent>;
+    let pictureService: jest.Mocked<PictureService>;
 
     describe('with picture data', () => {
         const createComponent = createComponentFactory({
@@ -34,6 +41,7 @@ describe('PictureDetailComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
+                mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)) }),
                 mockProvider(NotificationService),
                 {
                     provide: ActivatedRoute,
@@ -48,6 +56,8 @@ describe('PictureDetailComponent', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             spectator = createComponent();
+            pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+            pictureService.getPictureArticles.mockReturnValue(of(mockArticles));
         });
 
         it('should create', () => {
@@ -94,6 +104,34 @@ describe('PictureDetailComponent', () => {
             spectator.component.copyInsertCode();
             expect(mockWriteText).toHaveBeenCalledWith('@42@');
         });
+
+        it('should load articles for the picture', () => {
+            spectator.detectChanges();
+            expect(pictureService.getPictureArticles).toHaveBeenCalledWith(42);
+        });
+
+        it('should display article links', () => {
+            spectator.detectChanges();
+            const links = spectator.queryAll('[data-testid="detail-article-link"]');
+            expect(links).toHaveLength(2);
+            expect(links[0].textContent?.trim()).toBe('Москва');
+            expect(links[1].textContent?.trim()).toBe('Достопримечательности');
+        });
+
+        it('should link articles to correct routes', () => {
+            spectator.detectChanges();
+            const links = spectator.queryAll<HTMLAnchorElement>('[data-testid="detail-article-link"]');
+            expect(links[0].getAttribute('href')).toBe('/articles/10');
+            expect(links[1].getAttribute('href')).toBe('/articles/20');
+        });
+
+        it('should show empty state when no articles', () => {
+            pictureService.getPictureArticles.mockReturnValue(of([]));
+            spectator.detectChanges();
+            const empty = spectator.query('[data-testid="detail-articles-empty"]');
+            expect(empty).toBeTruthy();
+            expect(empty?.textContent?.trim()).toBe('Не используется в статьях');
+        });
     });
 
     describe('with not-found result', () => {
@@ -102,6 +140,7 @@ describe('PictureDetailComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
+                mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
                 mockProvider(NotificationService),
                 {
                     provide: ActivatedRoute,
@@ -131,6 +170,7 @@ describe('PictureDetailComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
+                mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
                 mockProvider(NotificationService),
                 {
                     provide: ActivatedRoute,

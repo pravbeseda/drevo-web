@@ -1,4 +1,4 @@
-import { PictureDto, PicturesListResponseDto } from '@drevo-web/shared';
+import { PictureArticleDto, PictureDto, PicturePendingDto, PicturePendingListResponseDto, PicturesListResponseDto } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 import { PictureApiService } from './picture-api.service';
@@ -24,6 +24,22 @@ describe('PictureService', () => {
         pic_title: 'Храм Христа Спасителя',
         pic_user: 'Иван Иванов',
         pic_date: '2025-03-10T14:30:00+00:00',
+        pic_width: 800,
+        pic_height: 600,
+    };
+
+    const mockPendingDto: PicturePendingDto = {
+        pp_id: 10,
+        pp_pic_id: 123,
+        pp_type: 'edit_title',
+        pp_title: 'Новая подпись',
+        pp_width: null,
+        pp_height: null,
+        pp_user: 'Пётр Петров',
+        pp_date: '2025-03-11T10:00:00+00:00',
+        pending: true,
+        pic_title: 'Храм Христа Спасителя',
+        pic_folder: '004',
         pic_width: 800,
         pic_height: 600,
     };
@@ -195,13 +211,168 @@ describe('PictureService', () => {
             expect(pictureApiService.updateTitle).toHaveBeenCalledWith(123, 'Новая подпись');
         });
 
-        it('should map API response to frontend model', done => {
+        it('should return picture when moderator (direct edit)', done => {
             const updatedDto: PictureDto = { ...mockPictureDto, pic_title: 'Новая подпись' };
             pictureApiService.updateTitle.mockReturnValue(of(updatedDto));
 
             spectator.service.updateTitle(123, 'Новая подпись').subscribe(result => {
-                expect(result.title).toBe('Новая подпись');
-                expect(result.id).toBe(123);
+                expect(result.picture).toBeDefined();
+                expect(result.picture?.title).toBe('Новая подпись');
+                expect(result.pending).toBeUndefined();
+                done();
+            });
+        });
+
+        it('should return pending when regular user', done => {
+            pictureApiService.updateTitle.mockReturnValue(of(mockPendingDto));
+
+            spectator.service.updateTitle(123, 'Новая подпись').subscribe(result => {
+                expect(result.pending).toBeDefined();
+                expect(result.pending?.title).toBe('Новая подпись');
+                expect(result.pending?.pendingType).toBe('edit_title');
+                expect(result.picture).toBeUndefined();
+                done();
+            });
+        });
+    });
+
+    describe('editPicture', () => {
+        it('should call pictureApiService.editPicture with correct params', () => {
+            pictureApiService.editPicture.mockReturnValue(of(mockPictureDto));
+            const formData = new FormData();
+
+            spectator.service.editPicture(123, formData).subscribe();
+
+            expect(pictureApiService.editPicture).toHaveBeenCalledWith(123, formData);
+        });
+
+        it('should return picture when moderator', done => {
+            pictureApiService.editPicture.mockReturnValue(of(mockPictureDto));
+
+            spectator.service.editPicture(123, new FormData()).subscribe(result => {
+                expect(result.picture).toBeDefined();
+                expect(result.pending).toBeUndefined();
+                done();
+            });
+        });
+
+        it('should return pending when regular user', done => {
+            const filePending: PicturePendingDto = { ...mockPendingDto, pp_type: 'edit_both', pp_width: 1024, pp_height: 768 };
+            pictureApiService.editPicture.mockReturnValue(of(filePending));
+
+            spectator.service.editPicture(123, new FormData()).subscribe(result => {
+                expect(result.pending).toBeDefined();
+                expect(result.pending?.pendingType).toBe('edit_both');
+                expect(result.pending?.pendingImageUrl).toBe('/images/pending/123_pp10.jpg');
+                expect(result.picture).toBeUndefined();
+                done();
+            });
+        });
+    });
+
+    describe('deletePicture', () => {
+        it('should call pictureApiService.deletePicture with correct id', () => {
+            pictureApiService.deletePicture.mockReturnValue(of(mockPictureDto));
+
+            spectator.service.deletePicture(123).subscribe();
+
+            expect(pictureApiService.deletePicture).toHaveBeenCalledWith(123);
+        });
+    });
+
+    describe('getPending', () => {
+        it('should map pending list response', done => {
+            const pendingListDto: PicturePendingListResponseDto = {
+                items: [mockPendingDto],
+                total: 1,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            };
+            pictureApiService.getPending.mockReturnValue(of(pendingListDto));
+
+            spectator.service.getPending().subscribe(result => {
+                expect(result.total).toBe(1);
+                expect(result.items).toHaveLength(1);
+
+                const pending = result.items[0];
+                expect(pending.id).toBe(10);
+                expect(pending.pictureId).toBe(123);
+                expect(pending.pendingType).toBe('edit_title');
+                expect(pending.title).toBe('Новая подпись');
+                expect(pending.user).toBe('Пётр Петров');
+                expect(pending.date).toBeInstanceOf(Date);
+                expect(pending.currentTitle).toBe('Храм Христа Спасителя');
+                expect(pending.currentImageUrl).toBe('/images/004/000123.jpg');
+                expect(pending.currentThumbnailUrl).toBe('/pictures/thumbs/004/000123.jpg');
+                expect(pending.pendingImageUrl).toBeUndefined();
+                done();
+            });
+        });
+
+        it('should generate pendingImageUrl for file changes', done => {
+            const filePendingDto: PicturePendingDto = {
+                ...mockPendingDto,
+                pp_type: 'edit_file',
+                pp_width: 1024,
+                pp_height: 768,
+            };
+            const pendingListDto: PicturePendingListResponseDto = {
+                items: [filePendingDto],
+                total: 1,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            };
+            pictureApiService.getPending.mockReturnValue(of(pendingListDto));
+
+            spectator.service.getPending().subscribe(result => {
+                expect(result.items[0].pendingImageUrl).toBe('/images/pending/123_pp10.jpg');
+                done();
+            });
+        });
+    });
+
+    describe('approvePending', () => {
+        it('should delegate to pictureApiService', () => {
+            pictureApiService.approvePending.mockReturnValue(of(undefined));
+
+            spectator.service.approvePending(10).subscribe();
+
+            expect(pictureApiService.approvePending).toHaveBeenCalledWith(10);
+        });
+    });
+
+    describe('rejectPending', () => {
+        it('should delegate to pictureApiService', () => {
+            pictureApiService.rejectPending.mockReturnValue(of(undefined));
+
+            spectator.service.rejectPending(10).subscribe();
+
+            expect(pictureApiService.rejectPending).toHaveBeenCalledWith(10);
+        });
+    });
+
+    describe('cancelPending', () => {
+        it('should delegate to pictureApiService', () => {
+            pictureApiService.cancelPending.mockReturnValue(of(undefined));
+
+            spectator.service.cancelPending(10).subscribe();
+
+            expect(pictureApiService.cancelPending).toHaveBeenCalledWith(10);
+        });
+    });
+
+    describe('getPictureArticles', () => {
+        it('should return articles from API', done => {
+            const articles: readonly PictureArticleDto[] = [
+                { id: 1, title: 'Статья 1' },
+                { id: 2, title: 'Статья 2' },
+            ];
+            pictureApiService.getPictureArticles.mockReturnValue(of(articles));
+
+            spectator.service.getPictureArticles(123).subscribe(result => {
+                expect(result).toEqual(articles);
                 done();
             });
         });

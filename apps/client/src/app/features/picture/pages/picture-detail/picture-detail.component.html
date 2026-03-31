@@ -65,7 +65,38 @@
             }
             <div class="detail__section">
                 <div class="detail__label">Используется в статьях</div>
-                <div class="detail__placeholder">Список статей (скоро)</div>
+                @if (articlesLoading()) {
+                    <div
+                        class="detail__value detail__value--muted"
+                        data-testid="detail-articles-loading"
+                    >
+                        Загрузка…
+                    </div>
+                } @else if (articles(); as articleList) {
+                    @if (articleList.length > 0) {
+                        <div
+                            class="detail__articles"
+                            data-testid="detail-articles"
+                        >
+                            @for (article of articleList; track article.id) {
+                                <a
+                                    class="detail__article-link"
+                                    [routerLink]="['/articles', article.id]"
+                                    data-testid="detail-article-link"
+                                >
+                                    {{ article.title }}
+                                </a>
+                            }
+                        </div>
+                    } @else {
+                        <div
+                            class="detail__value detail__value--muted"
+                            data-testid="detail-articles-empty"
+                        >
+                            Не используется в статьях
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>
