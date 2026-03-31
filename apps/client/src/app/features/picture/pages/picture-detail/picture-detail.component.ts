@@ -4,13 +4,14 @@ import { ErrorComponent } from '../../../../shared/components/error/error.compon
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { PictureResolveResult } from '../../resolvers/picture.resolver';
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, PLATFORM_ID, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { PictureArticle } from '@drevo-web/shared';
 import { FormatDatePipe } from '@drevo-web/ui';
-import { map } from 'rxjs/operators';
+import { of, startWith, switchMap } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-picture-detail',
@@ -27,7 +28,6 @@ export class PictureDetailComponent {
     private readonly logger = inject(LoggerService).withContext('PictureDetail');
     private readonly window = inject(WINDOW);
     private readonly platformId = inject(PLATFORM_ID);
-    private readonly destroyRef = inject(DestroyRef);
 
     private readonly resolveResult = toSignal(
         this.route.data.pipe(map(data => data['picture'] as PictureResolveResult)),
@@ -40,37 +40,27 @@ export class PictureDetailComponent {
 
     readonly isLoadError = computed(() => this.resolveResult() === 'load-error');
 
-    private readonly _articles = signal<readonly PictureArticle[] | undefined>(undefined);
-    readonly articles = this._articles.asReadonly();
+    private readonly pictureId = computed(() => this.picture()?.id);
 
-    private readonly _articlesLoading = signal(false);
-    readonly articlesLoading = this._articlesLoading.asReadonly();
+    private readonly articlesResult = toSignal(
+        toObservable(this.pictureId).pipe(
+            switchMap(id =>
+                id
+                    ? this.pictureService.getPictureArticles(id).pipe(
+                          map(articles => ({ articles, loading: false as const })),
+                          startWith({ articles: undefined as readonly PictureArticle[] | undefined, loading: true as const }),
+                          catchError((error: unknown) => {
+                              this.logger.error('Failed to load articles', error);
+                              return of({ articles: undefined as readonly PictureArticle[] | undefined, loading: false as const });
+                          }),
+                      )
+                    : of({ articles: undefined as readonly PictureArticle[] | undefined, loading: false as const }),
+            ),
+        ),
+    );
 
-    constructor() {
-        effect(() => {
-            const pic = this.picture();
-            if (pic) {
-                this.loadArticles(pic.id);
-            }
-        });
-    }
-
-    private loadArticles(pictureId: number): void {
-        this._articlesLoading.set(true);
-        this.pictureService
-            .getPictureArticles(pictureId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: articles => {
-                    this._articles.set(articles);
-                    this._articlesLoading.set(false);
-                },
-                error: (error: unknown) => {
-                    this.logger.error('Failed to load articles', error);
-                    this._articlesLoading.set(false);
-                },
-            });
-    }
+    readonly articles = computed(() => this.articlesResult()?.articles);
+    readonly articlesLoading = computed(() => this.articlesResult()?.loading ?? false);
 
     onImageClick(): void {
         const pic = this.picture();
