@@ -236,9 +236,9 @@ CREATE TABLE `picture_pending` (
 
 ```
 /images/{folder}/{id}.jpg                           ← текущий файл (стабильный URL)
-/images/pending/{folder}/{id}_pp{pp_id}.jpg         ← файлы pending изменений
+/images/pending/{id}_pp{pp_id}.jpg                  ← файлы pending изменений (плоская структура)
 /pictures/thumbs/{folder}/{id}.jpg                  ← текущий thumbnail
-/pictures/thumbs/pending/{folder}/{id}_pp{pp_id}.jpg ← pending thumbnails
+/pictures/thumbs/pending/{id}_pp{pp_id}.jpg          ← pending thumbnails (плоская структура)
 ```
 
 Нет `archive/` — старые файлы не сохраняются (на совести модератора).
@@ -540,7 +540,7 @@ features/picture/
 images/pending/
 ```
 
-Подпапки `{folder}/` внутри создаются по необходимости.
+Плоская структура — все pending-файлы в одной директории, без подпапок.
 
 **7.3. PHP: модель `PicturePending`**
 
@@ -556,7 +556,7 @@ images/pending/
 - **`submitEdit($picId, $user, $title?, $file?)`** — отправить изменение на модерацию
   - Найти существующий pending этого пользователя для этой картинки (`pp_pic_id=:id AND pp_user=:user`). Если есть → удалить + cleanup файлов из `pending/`
   - Определяет `pp_type` по наличию title/file: `edit_title`, `edit_file`, `edit_both`
-  - Если file: валидация (JPEG, ≤500KB, `getimagesize()`), сохранение в `pending/{folder}/{id}_pp{pp_id}.jpg`
+  - Если file: валидация (JPEG, ≤500KB, `getimagesize()`), сохранение в `pending/{id}_pp{pp_id}.jpg`
   - Return: `PicturePending` модель
 
 - **`submitDelete($picId, $user)`** — отправить запрос на удаление
@@ -596,35 +596,41 @@ images/pending/
 
 **7.5. Endpoints (PicturesApiController)**
 
-1. **`POST /api/pictures/{id}/edit`** — изменить картинку
-   - Body: multipart — `pic_title` (string, optional), `file` (uploaded file, optional). Минимум одно из двух
+1. **`PATCH /api/pictures/{id}`** — изменить только заголовок
+   - Body: JSON — `{pic_title: string}`
    - Авторизация: залогиненный пользователь
    - Модератор → `directEdit()`, response: `{success: true, data: PictureDto}`
    - Пользователь → `submitEdit()`, response: `{success: true, data: PicturePendingDto, pending: true}`
 
-2. **`POST /api/pictures/{id}/delete`** — удалить картинку
+2. **`PUT /api/pictures/{id}`** — заменить файл (и опционально заголовок)
+   - Body: multipart — `pic_title` (string, optional), `file` (uploaded file, required)
    - Авторизация: залогиненный пользователь
-   - Модератор → `directDelete()`, response: `{success: true}`
+   - Модератор → `directEdit()`, response: `{success: true, data: PictureDto}`
+   - Пользователь → `submitEdit()`, response: `{success: true, data: PicturePendingDto, pending: true}`
+
+3. **`DELETE /api/pictures/{id}`** — удалить картинку
+   - Авторизация: залогиненный пользователь
+   - Модератор → `directDelete()`, response: `{success: true, data: PictureDto}`
    - Пользователь → `submitDelete()`, response: `{success: true, data: PicturePendingDto, pending: true}`
    - Если используется в статьях: `{success: false, error: "Иллюстрация используется в статьях", data: {articles: [{id, title}]}}`
 
-3. **`POST /api/pictures/pending/{id}/approve`** — одобрить pending
+4. **`POST /api/pictures/pending/{id}/approve`** — одобрить pending
    - Авторизация: только модератор
    - Response: `{success: true}`
 
-4. **`POST /api/pictures/pending/{id}/reject`** — отклонить pending
+5. **`POST /api/pictures/pending/{id}/reject`** — отклонить pending
    - Авторизация: только модератор
    - Response: `{success: true}`
 
-5. **`POST /api/pictures/pending/{id}/cancel`** — отменить свой pending
+6. **`POST /api/pictures/pending/{id}/cancel`** — отменить свой pending
    - Авторизация: залогиненный пользователь, только свои
    - Response: `{success: true}`
 
-6. **`GET /api/pictures/{id}/articles`** — статьи, использующие картинку
+7. **`GET /api/pictures/{id}/articles`** — статьи, использующие картинку
    - Переиспользовать существующую логику: модель `Pictures` → связь через `articles_pictures` + `pictures_links`
    - Response: `{success: true, data: {items: [{id: int, title: string}]}}`
 
-7. **`GET /api/pictures/pending?page=&size=`** — список pending (для страницы "Изменения")
+8. **`GET /api/pictures/pending?page=&size=`** — список pending (для страницы "Изменения")
    - Пагинация: `page`, `size` (default 25)
    - Response: `{success: true, data: {items: PicturePendingDto[], total, page, pageSize, totalPages}}`
    - Сортировка: `pp_date DESC`
@@ -652,9 +658,9 @@ images/pending/
 
 | Действие | Файл | Thumbnail |
 |----------|------|-----------|
-| Submit edit_file | → `images/pending/{folder}/{id}_pp{pp_id}.jpg` | Генерируется существующим механизмом |
+| Submit edit_file | → `images/pending/{id}_pp{pp_id}.jpg` | Генерируется существующим механизмом |
 | Approve edit_file | Pending → `images/{folder}/{id}.jpg` (замена) | Удалить текущий thumbnail (пересоздастся) |
-| Reject / Cancel edit_file | Удалить `images/pending/{folder}/{id}_pp{pp_id}.jpg` | Удалить pending thumbnail если создан |
+| Reject / Cancel edit_file | Удалить `images/pending/{id}_pp{pp_id}.jpg` | Удалить pending thumbnail если создан |
 | Approve delete | Удалить `images/{folder}/{id}.jpg` и `pictures/thumbs/{folder}/{id}.jpg` | — |
 | Direct edit (moderator) | Новый файл → `images/{folder}/{id}.jpg` (замена) | Удалить текущий thumbnail (пересоздастся) |
 | Direct delete (moderator) | Удалить файл + thumbnail | — |
