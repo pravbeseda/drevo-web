@@ -278,6 +278,29 @@ describe('PictureService', () => {
 
             expect(pictureApiService.deletePicture).toHaveBeenCalledWith(123);
         });
+
+        it('should return picture when moderator (direct delete)', done => {
+            pictureApiService.deletePicture.mockReturnValue(of(mockPictureDto));
+
+            spectator.service.deletePicture(123).subscribe(result => {
+                expect(result.picture).toBeDefined();
+                expect(result.picture?.id).toBe(123);
+                expect(result.pending).toBeUndefined();
+                done();
+            });
+        });
+
+        it('should return pending when regular user', done => {
+            pictureApiService.deletePicture.mockReturnValue(of(mockPendingDto));
+
+            spectator.service.deletePicture(123).subscribe(result => {
+                expect(result.pending).toBeDefined();
+                expect(result.pending?.id).toBe(10);
+                expect(result.pending?.pendingType).toBe('edit_title');
+                expect(result.picture).toBeUndefined();
+                done();
+            });
+        });
     });
 
     describe('getPending', () => {
