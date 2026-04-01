@@ -660,7 +660,7 @@ images/pending/
   pp_user: string,
   pp_date: string (ISO datetime),
   pending: true,                   // маркер pending-ответа
-  // JOIN с pictures — текущее состояние для diff (присутствуют если relation загружена):
+  // JOIN с pictures — текущее состояние для diff (всегда включены):
   pic_title: string,
   pic_folder: string,
   pic_width: int | null,
