@@ -32,12 +32,50 @@
         <div class="detail__info">
             <div class="detail__section">
                 <div class="detail__label">Описание</div>
-                <div
-                    class="detail__value"
-                    data-testid="detail-title"
-                >
-                    {{ pic.title }}
-                </div>
+                @if (isEditingTitle()) {
+                    <div
+                        class="detail__title-edit"
+                        data-testid="detail-title-edit"
+                    >
+                        <textarea
+                            #titleInput
+                            class="detail__title-input"
+                            rows="4"
+                            [formControl]="titleControl"
+                            (input)="autoResizeTextarea()"
+                            (keydown.enter)="onTitleEnter($event)"
+                            (keydown.escape)="cancelTitleEdit()"
+                            (blur)="onTitleBlur()"
+                            data-testid="detail-title-input"
+                        ></textarea>
+                        @if (titleControl.invalid && titleControl.dirty) {
+                            <div
+                                class="detail__title-error"
+                                data-testid="detail-title-error"
+                            >
+                                @if (titleControl.hasError('required') || titleControl.hasError('minlength')) {
+                                    Минимум 5 символов
+                                } @else if (titleControl.hasError('maxlength')) {
+                                    Максимум 500 символов
+                                }
+                            </div>
+                        }
+                        <div class="detail__title-hint">Enter — сохранить, Esc — отмена</div>
+                    </div>
+                } @else {
+                    <div
+                        class="detail__value"
+                        [class.detail__value--editable]="canEdit()"
+                        [attr.tabindex]="canEdit() ? 0 : null"
+                        [attr.role]="canEdit() ? 'button' : null"
+                        [attr.aria-label]="canEdit() ? 'Редактировать описание' : null"
+                        (click)="startTitleEdit()"
+                        (keydown.enter)="startTitleEdit()"
+                        data-testid="detail-title"
+                    >
+                        {{ displayTitle() }}
+                    </div>
+                }
             </div>
             <div class="detail__section">
                 <div class="detail__label">Кто разместил</div>
@@ -49,7 +87,7 @@
                 </div>
             </div>
             <div class="detail__section">
-                <div class="detail__label">Время размещения</div>
+                <div class="detail__label">Последнее обновление</div>
                 <div class="detail__value">{{ pic.date | formatDate }}</div>
             </div>
             @if (pic.width && pic.height) {
@@ -92,7 +130,7 @@
                             class="detail__value detail__value--muted"
                             data-testid="detail-articles-empty"
                         >
-                            Не используется в статьях
+                            Нет
                         </div>
                     }
                 } @else {
