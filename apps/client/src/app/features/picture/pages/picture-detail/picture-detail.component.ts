@@ -98,6 +98,15 @@ export class PictureDetailComponent {
     readonly articlesLoading = computed(() => this.articlesResult()?.loading ?? false);
 
     constructor() {
+        effect(
+            () => {
+                this.picture(); // track picture changes
+                this._titleOverride.set(undefined);
+                this._isEditingTitle.set(false);
+            },
+            { allowSignalWrites: true },
+        );
+
         effect(() => {
             const el = this.titleInputRef()?.nativeElement;
             if (el) {
@@ -112,6 +121,7 @@ export class PictureDetailComponent {
 
     startTitleEdit(): void {
         if (!this.canEdit() || this._isEditingTitle()) return;
+        this.blurHandledByKeyboard = false;
         this.titleControl.setValue(this.displayTitle());
         this.titleControl.markAsPristine();
         this._isEditingTitle.set(true);

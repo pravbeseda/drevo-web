@@ -74,6 +74,7 @@
                         [attr.aria-label]="canEdit() ? 'Редактировать описание' : null"
                         (click)="startTitleEdit()"
                         (keydown.enter)="startTitleEdit()"
+                        (keydown.space)="startTitleEdit(); $event.preventDefault()"
                         data-testid="detail-title"
                     >
                         {{ displayTitle() }}
