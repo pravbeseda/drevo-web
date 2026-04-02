@@ -427,14 +427,14 @@ Workflow:
 - `createPicturePreviewExtension()`: создаёт валидный CM6 extension; pending → resolved после batch fetch; pending → error для notFound; кэширование (повторный docChanged не вызывает `getPicturesBatch`)
 - EditorComponent: `customExtensions` input передаётся в `createState()`
 
-### Этап 6 (D2): Detail Page — просмотр метаданных
+### Этап 6 (D2): Detail Page — просмотр метаданных ✅
 
 **Scope**: Страница `/pictures/:id` — только просмотр, без редактирования.
 
 **Решения (все вопросы закрыты):**
 - [x] **Q1: UI layout** — изображение слева, панель информации (460px) справа. На мобильных (`≤1024px`, совпадает с FAB-брейкпоинтом) — колонки стакаются (изображение сверху, max 50vh; информация под ним). Без кнопки «Назад», без аватара пользователя. Скролл один — на весь компонент, без вложенных скроллов
 - [x] **Q2: Zoom стратегия** — клик по изображению → `lightboxService.open(picture.id)` (переиспользуем готовый lightbox)
-- [x] **Q3: Error handling** — невалидный id (не число) → redirect на `/pictures`. 404 от API → показать ошибку на месте ("Иллюстрация не найдена") со ссылкой на `/pictures`, URL сохраняется
+- [x] **Q3: Error handling** — невалидный id (не число) и 404 от API → показать ошибку "Иллюстрация не найдена" на месте, URL сохраняется. Ошибка загрузки → отдельное сообщение "Не удалось загрузить" с кнопкой на главную
 - [x] **Q4: Loading state** — resolver загружает данные до рендера компонента (как в article). Пустой экран во время загрузки (Angular router ждёт resolve)
 - [x] **Q5: Кнопка "Назад"** — Не нужна. Навигация через стандартные средства браузера/приложения
 - [x] **Q6: Page title** — через resolver + `PageTitleStrategy`: route `data: { titleSource: 'picture', titlePrefix: '🖼️' }` → strategy берёт `picture.title` → `"🖼️ {title} — Древо"`. Обрезка до 50 символов с `…` — в `PageTitleStrategy` (универсально для всех routes). Если picture не загружен — fallback на дефолтный `"Древо"`
@@ -443,21 +443,23 @@ Workflow:
 **Компоненты:**
 
 1. **`pictureResolver`** (`features/picture/resolvers/picture.resolver.ts`)
-   - `ResolveFn<Picture | undefined>`
-   - Валидация route param `id` (число, >0). Невалидный → `router.navigate(['/pictures'])`, return `EMPTY`
-   - `PictureService.getPicture(id).pipe(catchError(() => of(undefined)))`
-   - Паттерн: аналогично `articleResolver`
+   - `ResolveFn<PictureResolveResult>` где `PictureResolveResult = Picture | 'not-found' | 'load-error'`
+   - Валидация route param `id` (число, >0, целое). Невалидный / отсутствует → `'not-found'`
+   - 404 от API → `'not-found'`, прочие ошибки → `'load-error'`
+   - Чистая функция `resolvePicture(pictureService, route)` вынесена для тестируемости без DI
 
 2. **`PictureDetailComponent`** (`features/picture/pages/picture-detail/`)
    - Route: `/pictures/:id`
-   - Данные из resolver: `picture = toSignal(route.data.pipe(map(data => data['picture'] as Picture | undefined)))` — без собственной загрузки
-   - Если `picture()` === `undefined` → показать "Иллюстрация не найдена" + ссылка на `/pictures`
-   - Dependencies: `PictureLightboxService`, `NotificationService`, `ActivatedRoute`, `LoggerService`, `PLATFORM_ID`
+   - Данные из resolver: `resolveResult = toSignal(route.data.pipe(map(data => data['picture'] as PictureResolveResult)))` — без собственной загрузки
+   - Три состояния: `picture()` (объект Picture), `isLoadError()` (ошибка загрузки), else (не найден)
+   - Асинхронная загрузка статей через `toObservable(pictureId).pipe(switchMap(...))` с loading/error states
+   - Dependencies: `PictureLightboxService`, `PictureService`, `NotificationService`, `ActivatedRoute`, `LoggerService`, `WINDOW`, `PLATFORM_ID`
 
 3. **Template** (`picture-detail.component.html`):
    - Действия вынесены в `app-sidebar-action` (копирование кода, редактирование) — на десктопе отображаются в правом сайдбаре, на мобильных — как FAB-кнопки
    - Info-секция — унифицированные блоки `detail__section` с `detail__label` (серый uppercase заголовок) + `detail__value` (основной текст): «Описание», «Кто разместил», «Время размещения», «Размер», «Используется в статьях»
-   - Ошибка — через переиспользуемый `app-error` компонент
+   - Секция «Используется в статьях» — асинхронная загрузка: spinner → список ссылок / "Не используется" / "Не удалось загрузить"
+   - Два error state: load-error (`app-error` "Ошибка загрузки") и not-found (`app-error` "Иллюстрация не найдена")
 
 4. **Стили** (`picture-detail.component.scss`):
    - `.detail__card` — `display: grid; grid-template-columns: 1fr 460px` (без border-radius, box-shadow, overflow: hidden)
@@ -505,16 +507,19 @@ features/picture/
 
 `picture.resolver.spec.ts`:
 - Валидный id → возвращает `Picture`
-- Невалидный id (не число, ≤0) → redirect на `/pictures`, return `EMPTY`
-- 404 от API → возвращает `undefined`
+- Невалидный id (не число, ≤0, дробное) / отсутствует → `'not-found'`
+- 404 от API → `'not-found'`
+- Другая ошибка API → `'load-error'`
 
 `picture-detail.component.spec.ts`:
 - Отображение изображения (`data-testid="detail-image"`), title, автора, даты из resolved data
-- `picture === undefined` → показ ошибки "Иллюстрация не найдена" + ссылка на `/pictures`
+- `'not-found'` → показ ошибки "Иллюстрация не найдена"
+- `'load-error'` → показ ошибки "Ошибка загрузки"
 - Клик по изображению → `lightboxService.open(picture.id)`
 - Клик по кнопке копирования → `clipboard.writeText('@{id}@')` + notification
+- Секция статей: loading spinner → список ссылок, пустое, ошибка
 
-### Этап 7 (D3): Backend — модерация изменений картинок
+### Этап 7 (D3): Backend — модерация изменений картинок ✅
 
 **Scope**: Только backend (PHP). Таблица `pictures_pending`, endpoints для submit/approve/reject/cancel, прямые edit endpoints для модератора, эндпоинт статей по картинке. Блокирует этапы 8 и 9.
 
@@ -683,48 +688,125 @@ images/pending/
 
 **Scope**: Frontend models и services для модерации (перенесены из Этапа 7) + расширение detail page с редактированием.
 
-**8.1. Frontend models (новые):**
+**8.1. Frontend models (новые) ✅:**
 - `PicturePendingDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
-- `PicturePending` в `libs/shared/src/lib/models/picture.ts`
+- `PicturePending`, `PicturePendingListResponse` в `libs/shared/src/lib/models/picture.ts`
 - `PictureArticleDto` — `{id: number, title: string}` (для эндпоинта статей по картинке)
+- `PictureEditResult` в `picture.service.ts` — `{ picture: Picture | undefined, pending: PicturePending | undefined }`
 
-**8.2. Frontend services (расширение):**
-- `PictureApiService`: добавить `editPicture()`, `deletePicture()`, `approvePending()`, `rejectPending()`, `cancelPending()`, `getPending()`, `getPictureArticles()`
-- `PictureService`: маппинг новых DTO
+**8.2. Frontend services (расширение) ✅:**
+- `PictureApiService`: добавлены `updateTitle()`, `editPicture()`, `deletePicture()`, `approvePending()`, `rejectPending()`, `cancelPending()`, `getPending()`, `getPictureArticles()`
+- `PictureService`: маппинг всех DTO, `mapEditResponse()` с dispatch по `pending: true` маркеру, `mapPicturePending()` с генерацией `pendingImageUrl`
 
-**8.3. Функциональность UI:**
+**8.3. Секция "Используется в статьях" на detail page ✅:**
+- Асинхронная загрузка через `toObservable(pictureId).pipe(switchMap(...))`
+- Три состояния: loading (spinner), success (список ссылок / "Не используется"), error ("Не удалось загрузить")
+- `data-testid` атрибуты для всех состояний
 
-1. **Редактирование описания**
-   - Inline-edit: клик по title → text input → сохранение
-   - Или отдельная форма (решить при реализации)
-   - Вызов `PictureService.editPicture(id, { title: newTitle })`
-   - Пользователь: уведомление "Изменение отправлено на модерацию"
-   - Модератор: изменения применяются сразу
+---
 
-2. **Перезаливка файла**
-   - Кнопка "Заменить файл" → file input
-   - Preview загруженного файла перед отправкой
-   - Валидация на клиенте: формат (JPEG), размер (≤500KB)
-   - Вызов `PictureService.editPicture(id, { file })` (multipart)
+**8.4. Редактирование описания ✅**
 
-3. **Удаление**
-   - Кнопка "Удалить" → confirmation dialog
-   - Если используется в статьях → показать предупреждение, заблокировать (данные из `getPictureArticles()`)
-   - Вызов `PictureService.deletePicture(id)`
+Inline-edit для описания на detail page.
 
-4. **Pending на detail page**
-   - Если у текущего пользователя есть pending для этой картинки — показать статус + кнопка "Отменить"
-   - Для модератора: показать все pending для этой картинки, сгруппированные. Diff с текущим состоянием. Кнопки approve/reject
-
-5. **Секция "Используется в статьях"**
-   - Данные из `GET /api/pictures/{id}/articles`
-   - Список ссылок `[{id, title}]` → клик → переход на статью
+1. Клик по описанию → textarea с текущим значением (auto-focus, auto-select, auto-resize)
+2. Валидация через `FormControl` с `Validators.required`, `minLength(5)`, `maxLength(500)` — ошибки показываются при вводе (когда `dirty`), не при сохранении
+3. Сохранение → `PictureService.updateTitle(id, newTitle)`
+4. Обработка ответа:
+   - `result.picture` (модератор) → обновить отображаемые данные на месте + notification success
+   - `result.pending` (пользователь) → уведомление "Изменение отправлено на модерацию", вернуть old title
+5. Три способа завершения: Enter → сохранить, Escape → отменить, blur → сохранить (если валидно) / отменить (если невалидно)
+6. Флаг `blurHandledByKeyboard` предотвращает двойное действие при Enter/Escape (которые тоже вызывают blur)
 
 **Тесты:**
-- Edit title flow, file upload flow, delete flow
-- Pending display + cancel
-- Moderator approve/reject controls
-- Articles list display
+- Клик → переход в режим редактирования, FormControl инициализирован текущим значением
+- Ошибка валидации отображается при вводе (dirty), не отображается до начала ввода
+- Enter с невалидным значением → блокирует сохранение
+- Enter с изменённым значением → `updateTitle()`
+- Blur с неизменённым значением → закрытие без запроса
+- Blur с изменённым значением → сохранение
+- Blur с невалидным значением → отмена (откат)
+- Escape → отмена
+- Обработка ответов: moderator (success notification), user (moderation notification), error (error notification)
+
+---
+
+**8.5. Замена файла**
+
+Загрузка нового файла вместо текущего.
+
+1. Sidebar action "Заменить файл" → скрытый file input
+2. Клиентская валидация: только JPEG (`accept="image/jpeg"`), размер ≤500KB
+3. Preview выбранного файла перед отправкой (confirmation dialog с превью)
+4. Title обязателен при замене файла (PUT) → показать текущий title с возможностью изменить
+5. Отправка → `PictureService.editPicture(id, formData)` (multipart: file + pic_title)
+6. Обработка ответа:
+   - `result.picture` (модератор) → обновить картинку + метаданные на странице
+   - `result.pending` (пользователь) → уведомление "Изменение отправлено на модерацию"
+7. Loading state на кнопке во время загрузки
+
+**Тесты:**
+- File input валидация (не JPEG, >500KB)
+- Preview dialog
+- Отправка FormData + обработка ответа
+- Loading state
+
+---
+
+**8.6. Удаление**
+
+Удаление иллюстрации с проверкой использования.
+
+1. Sidebar action "Удалить" → confirmation dialog
+2. Если секция статей уже загружена и `articles.length > 0` → заблокировать кнопку удаления (или показать причину в диалоге)
+3. Confirmation dialog: "Вы уверены? Это действие необратимо"
+4. Отправка → `PictureService.deletePicture(id)`
+5. Обработка ответа:
+   - `result.picture` (модератор) → redirect на `/pictures` + уведомление "Иллюстрация удалена"
+   - `result.pending` (пользователь) → уведомление "Запрос на удаление отправлен на модерацию"
+6. Обработка ошибки 409 (статьи добавились между загрузкой страницы и удалением) → показать список статей
+
+**Тесты:**
+- Кнопка заблокирована когда есть связанные статьи
+- Confirmation dialog + подтверждение → вызов `deletePicture()`
+- Redirect после успешного удаления (модератор)
+- Уведомление о pending (пользователь)
+- Обработка 409
+
+---
+
+**8.7. Отображение pending-статуса + отмена**
+
+Показ pending-состояния для текущего пользователя на detail page.
+
+1. После мутации (edit title / upload / delete), если ответ вернул `result.pending` → сохранить в локальный signal + показать banner
+2. Banner: тип изменения ("Изменение описания", "Замена файла", "Запрос на удаление") + "Ожидает модерации" + кнопка "Отменить"
+3. "Отменить" → `PictureService.cancelPending(pendingId)` → убрать banner
+4. Дизайн: banner в верхней части info-секции, информационный стиль
+
+**Тесты:**
+- Banner появляется после мутации с pending-ответом
+- Кнопка "Отменить" → вызов `cancelPending()` + скрытие banner
+- Banner не показывается если ответ — прямое изменение (модератор)
+
+---
+
+**Порядок реализации:**
+
+```
+8.1 Models ✅ → 8.2 Services ✅ → 8.3 Articles list ✅
+                                         ↓
+                                   8.4 Edit title ✅
+                                         ↓
+                                   8.5 File upload
+                                         ↓
+                                   8.6 Delete
+                                         ↓
+                                   8.7 Pending status + cancel
+```
+
+8.4-8.6 последовательны (каждый добавляет мутацию, паттерн обработки ответа устанавливается в 8.4 и переиспользуется).
+8.7 зависит от хотя бы одной мутации (8.4) для отображения pending-ответа.
 
 ### Этап 9 (D5): Страница "Изменения / Иллюстрации" — `/history/pictures`
 
@@ -768,13 +850,15 @@ images/pending/
 ## Зависимости между этапами
 
 ```
-Этап 4 (D1: Lightbox)        ─┐
-                               ├── Этап 5 (Editor Preview) — зависит от Lightbox (клик → open)
-Этап 6 (D2: Detail View)     ─┤── можно параллельно
-Этап 7 (D3: Backend Version) ─┤
-Этап 10 (D6: Editor Picker)  ─┘
+Этап 4 (D1: Lightbox) ✅      ─┐
+                                ├── Этап 5 (Editor Preview) ✅
+Этап 6 (D2: Detail View) ✅   ─┤
+Этап 7 (D3: Backend) ✅       ─┤
+Этап 10 (D6: Editor Picker)   ─┘  (независим)
 
-Этап 7 завершён ──→ Этап 8 (D4: Frontend + Detail Edit) ──→ Этап 9 (D5: Изменения/Иллюстрации)
+Этап 7 ✅ → Этап 8.1-8.3 ✅ → 8.4 Edit Title ✅ → 8.5 File Upload → 8.6 Delete → 8.7 Pending
+                                                                                    ↓
+                                                        Этап 9 (D5: Изменения/Иллюстрации)
 ```
 
 ---
@@ -804,11 +888,14 @@ images/pending/
 | `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints (edit, delete, pending/approve/reject/cancel, articles) | 7 |
 | `legacy-drevo-yii/.../models/PicturesPending.php` | Новая AR-модель | 7 |
 | `legacy-drevo-yii/.../components/PictureModerationService.php` | Новый сервис модерации | 7 |
-| `libs/shared/src/lib/models/dto/picture.dto.ts` | PicturePendingDto, PictureArticleDto | 8 |
-| `libs/shared/src/lib/models/picture.ts` | PicturePending model | 8 |
-| `app/services/pictures/picture-api.service.ts` | Новые методы (edit, delete, approve, reject, cancel, pending, articles) | 8 |
-| `app/services/pictures/picture.service.ts` | Маппинг новых DTO | 8 |
-| `features/picture/pages/picture-detail/` | Расширение: редактирование, удаление, модерация | 8 |
+| `libs/shared/src/lib/models/dto/picture.dto.ts` | PicturePendingDto, PictureArticleDto | 8.1 ✅ |
+| `libs/shared/src/lib/models/picture.ts` | PicturePending, PicturePendingListResponse | 8.1 ✅ |
+| `app/services/pictures/picture-api.service.ts` | Все CRUD + moderation методы | 8.2 ✅ |
+| `app/services/pictures/picture.service.ts` | Маппинг всех DTO, PictureEditResult | 8.2 ✅ |
+| `features/picture/pages/picture-detail/` | Inline-edit title (FormControl + save on blur) | 8.4 ✅ |
+| `features/picture/pages/picture-detail/` | File upload UI | 8.5 |
+| `features/picture/pages/picture-detail/` | Delete + confirmation | 8.6 |
+| `features/picture/pages/picture-detail/` | Pending banner + cancel | 8.7 |
 | `features/history/pages/pictures-history/` | Pending list + pictures by date | 9 |
 
 ## Переиспользуемые паттерны
@@ -835,7 +922,7 @@ images/pending/
    - Lightbox из контента статьи (клик по картинке)
    - Lightbox: fit ↔ zoom, Esc, Back button, крестик
    - Редактор: `@NNN@` подсвечен, hover → превью, клик → lightbox
-   - `/pictures/:id` — редактирование title, upload, delete (пользователь → pending, модератор → прямое)
+   - `/pictures/:id` — inline-edit title (8.4), upload file (8.5), delete (8.6), pending banner + cancel (8.7)
    - `/history/pictures` — pending list для модератора + pictures by date
 
 ## Рассмотренные альтернативы

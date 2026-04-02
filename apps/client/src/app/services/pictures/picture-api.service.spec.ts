@@ -42,6 +42,22 @@ describe('PictureApiService', () => {
         pic_height: 600,
     };
 
+    const mockPendingDto = {
+        pp_id: 10,
+        pp_pic_id: 123,
+        pp_type: 'edit_title',
+        pp_title: 'Новая подпись',
+        pp_width: null,
+        pp_height: null,
+        pp_user: 'Пётр Петров',
+        pp_date: '2025-03-11T10:00:00+00:00',
+        pending: true,
+        pic_title: 'Храм Христа Спасителя',
+        pic_folder: '004',
+        pic_width: 800,
+        pic_height: 600,
+    };
+
     describe('getPictures', () => {
         it('should call HTTP GET with correct URL and params', () => {
             spectator.service.getPictures('храм', 2, 50).subscribe(result => {
@@ -221,22 +237,6 @@ describe('PictureApiService', () => {
             req.flush({ success: false, error: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
         });
     });
-
-    const mockPendingDto = {
-        pp_id: 10,
-        pp_pic_id: 123,
-        pp_type: 'edit_title',
-        pp_title: 'Новая подпись',
-        pp_width: null,
-        pp_height: null,
-        pp_user: 'Пётр Петров',
-        pp_date: '2025-03-11T10:00:00+00:00',
-        pending: true,
-        pic_title: 'Храм Христа Спасителя',
-        pic_folder: '004',
-        pic_width: 800,
-        pic_height: 600,
-    };
 
     describe('editPicture', () => {
         it('should call HTTP PUT with FormData', () => {
