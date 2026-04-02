@@ -56,14 +56,25 @@ $_available-height: calc(98vh - #{$header-height} - #{$_image-padding} * 2);
     color: var(--themed-text-primary);
 }
 
-.detail__placeholder {
-    background: var(--themed-secondary-bg);
-    border: 1px dashed var(--themed-border-color);
-    border-radius: 8px;
-    padding: 16px;
+.detail__value--muted {
     color: var(--themed-text-muted);
+    font-style: italic;
+}
+
+.detail__articles {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail__article-link {
     font-size: $font-size-md;
-    text-align: center;
+    color: var(--themed-link-color);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 @media (max-width: $breakpoint-desktop) {

@@ -88,4 +88,30 @@ describe('PictureCardComponent', () => {
         const card = spectator.query('[data-testid="picture-card"]');
         expect(card).not.toHaveClass('picture-card--capped');
     });
+
+    it('should render as anchor with correct href', () => {
+        const card = spectator.query('[data-testid="picture-card"]') as HTMLAnchorElement;
+        expect(card.tagName).toBe('A');
+        expect(card.getAttribute('href')).toBe('/pictures/123');
+    });
+
+    it('should prevent default and emit pictureClick on regular click', () => {
+        const emitSpy = jest.spyOn(spectator.component.pictureClick, 'emit');
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        const card = spectator.query('[data-testid="picture-card"]') as HTMLElement;
+        card.dispatchEvent(event);
+
+        expect(emitSpy).toHaveBeenCalledWith(mockPicture);
+        expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('should not emit pictureClick on Ctrl+click', () => {
+        const emitSpy = jest.spyOn(spectator.component.pictureClick, 'emit');
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
+        const card = spectator.query('[data-testid="picture-card"]') as HTMLElement;
+        card.dispatchEvent(event);
+
+        expect(emitSpy).not.toHaveBeenCalled();
+        expect(event.defaultPrevented).toBe(false);
+    });
 });

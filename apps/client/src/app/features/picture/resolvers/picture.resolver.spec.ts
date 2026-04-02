@@ -67,6 +67,16 @@ describe('resolvePicture', () => {
         });
     });
 
+    it('should return not-found for fractional ID', done => {
+        const route = createRouteSnapshot({ id: '1.5' });
+
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
+            expect(result).toBe('not-found');
+            expect(pictureService.getPicture).not.toHaveBeenCalled();
+            done();
+        });
+    });
+
     it('should return not-found for missing ID param', done => {
         const route = createRouteSnapshot({});
 
@@ -77,9 +87,7 @@ describe('resolvePicture', () => {
     });
 
     it('should return not-found on 404 HTTP error', done => {
-        pictureService.getPicture.mockReturnValue(
-            throwError(() => new HttpErrorResponse({ status: 404 }))
-        );
+        pictureService.getPicture.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
         const route = createRouteSnapshot({ id: '42' });
 
         resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
@@ -89,9 +97,7 @@ describe('resolvePicture', () => {
     });
 
     it('should return load-error on 500 HTTP error', done => {
-        pictureService.getPicture.mockReturnValue(
-            throwError(() => new HttpErrorResponse({ status: 500 }))
-        );
+        pictureService.getPicture.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
         const route = createRouteSnapshot({ id: '42' });
 
         resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {
@@ -101,9 +107,7 @@ describe('resolvePicture', () => {
     });
 
     it('should return load-error on network error', done => {
-        pictureService.getPicture.mockReturnValue(
-            throwError(() => new Error('Network error'))
-        );
+        pictureService.getPicture.mockReturnValue(throwError(() => new Error('Network error')));
         const route = createRouteSnapshot({ id: '42' });
 
         resolvePicture(pictureService as unknown as PictureService, route).subscribe(result => {

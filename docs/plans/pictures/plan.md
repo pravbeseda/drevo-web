@@ -189,62 +189,74 @@ VirtualScroller виртуализирует строки (не отдельны
 
 ---
 
-## Governance: версионирование картинок
+## Governance: модерация изменений картинок
 
 ### Модель
 
-Упрощённое версионирование, консистентное со статьями:
-- Каждое изменение (title, файл, удаление) = новая версия с `approved: 0` (Pending)
-- Картинка показывает последнюю одобренную версию
-- Модератор одобряет/отклоняет версии
-- Для модераторов изменения auto-approve (`approved: 1`)
+Модерируемая очередь без истории версий:
+- Обычный пользователь: изменения (title, файл, удаление) → pending запись в `pictures_pending` → модератор approve/reject
+- Модератор: правки напрямую в `pictures`, без pending
+- Создание новой картинки (`create`) — без модерации, сразу в `pictures`
 - Удаление невозможно, если картинка используется в статьях
-- Diff для title: простое "было → стало"
-- Diff для файла: два thumbnail рядом
+- Diff для модератора: текущее состояние из `pictures` vs предложенное из `pictures_pending`
+- Обработанные pending записи удаляются — история изменений не хранится (сознательное решение, может быть добавлена позже)
+- `pictures.pic_date` обновляется при каждом изменении
 
-### Таблица `picture_versions` (новая)
+### Concurrent pending
 
-| Колонка | Тип | Описание |
-|---------|-----|----------|
-| `pv_id` | int PK | Auto-increment |
-| `pv_pic_id` | int FK | → pictures.pic_id |
-| `pv_type` | enum | `create`, `edit_title`, `edit_file`, `edit_both`, `delete` |
-| `pv_title` | varchar | Новое значение title (full state) |
-| `pv_width` | int NULL | Новые размеры (при замене файла) |
-| `pv_height` | int NULL | |
-| `pv_user` | varchar(32) | Автор изменения |
-| `pv_date` | datetime | Дата |
-| `pv_approved` | tinyint | -1 (rejected), 0 (pending), 1 (approved) |
-| `pv_moderator` | varchar(32) NULL | Модератор |
-| `pv_moderate_date` | datetime NULL | Дата модерации |
-| `pv_comment` | text NULL | Комментарий модератора |
-| `pv_old_title` | varchar NULL | Предыдущее значение title (для diff) |
+- **Один пользователь**: новый pending заменяет предыдущий того же пользователя для той же картинки (удаляет старый + cleanup файлов из `pending/`)
+- **Разные пользователи**: конкурирующие pending допускаются, блокировки нет
+- **Cancel**: пользователь может отменить свой pending. Cleanup файлов из `pending/`
+- **Approve**: при approve — применить изменения к `pictures`, удалить обработанный pending. Все остальные pending для того же `pp_pic_id` автоматически удаляются (+ cleanup файлов)
+- **Race condition protection**: перед approve/cancel проверка что запись всё ещё существует в `pictures_pending`. Если нет → ошибка "Запись уже обработана"
+- **Файлы только для `edit_file` / `edit_both`**: `edit_title` и `delete` не создают файлов в `pending/`
 
-### Хранение файлов
+### Таблица `pictures_pending` (новая)
 
-**Вариант: Stable URL + архивная директория** (рекомендован)
+```sql
+CREATE TABLE `pictures_pending` (
+  `pp_id` int NOT NULL AUTO_INCREMENT,
+  `pp_pic_id` int NOT NULL,
+  `pp_type` enum('edit_title','edit_file','edit_both','delete') NOT NULL,
+  `pp_title` varchar(255) DEFAULT NULL COMMENT 'Предложенный title (для edit_title/edit_both)',
+  `pp_width` int DEFAULT NULL COMMENT 'Размеры нового файла (для edit_file/edit_both)',
+  `pp_height` int DEFAULT NULL,
+  `pp_user` varchar(32) NOT NULL,
+  `pp_date` datetime NOT NULL,
+  PRIMARY KEY (`pp_id`),
+  KEY `idx_pp_pic_id` (`pp_pic_id`),
+  KEY `idx_pp_user` (`pp_user`),
+  KEY `idx_pp_date` (`pp_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+Нет колонок `status`, `moderator`, `moderate_date`, `comment` — записи удаляются после обработки.
+
+### Хранение файлов pending
 
 ```
-/images/{folder}/{id}.jpg                           ← текущая одобренная версия (стабильный URL)
-/images/archive/{folder}/{id}_v{pv_id}.jpg          ← старые версии файлов
-/images/pending/{folder}/{id}_v{pv_id}.jpg          ← файлы pending версий
+/images/{folder}/{id}.jpg                           ← текущий файл (стабильный URL)
+/images/pending/{id}_pp{pp_id}.jpg                  ← файлы pending изменений (плоская структура)
 /pictures/thumbs/{folder}/{id}.jpg                  ← текущий thumbnail
-/pictures/thumbs/archive/{folder}/{id}_v{pv_id}.jpg ← старые thumbnails
-/pictures/thumbs/pending/{folder}/{id}_v{pv_id}.jpg ← pending thumbnails
+/pictures/thumbs/pending/{id}_pp{pp_id}.jpg          ← pending thumbnails (плоская структура)
 ```
+
+Нет `archive/` — старые файлы не сохраняются (на совести модератора).
 
 Workflow:
-- Upload (pending): сохраняем в `pending/`, генерируем thumbnail в `thumbs/pending/`
-- Approve: текущий файл → `archive/` с `_v{old_pv_id}`, pending → основной путь
-- Reject: удаляем из `pending/`
-- Soft-delete (approve): файл → `archive/`, удаляем из основного пути
+- Submit edit_file/edit_both: файл → `pending/`, thumbnail генерируется существующим механизмом при первом запросе
+- Approve edit_file/edit_both: pending файл → основной путь (заменяет текущий). Удалить текущий thumbnail (пересоздастся). Обновить `pictures.pic_width`, `pic_height`, `pic_date`
+- Approve edit_title: обновить `pictures.pic_title`, `pic_date`
+- Approve edit_both: оба действия выше
+- Approve delete: удалить файл + thumbnail с диска, удалить запись из `pictures`, удалить все pending для этого pic_id
+- Reject / Cancel: удалить файл из `pending/`, удалить запись из `pictures_pending`
 
 Обратная совместимость: все существующие `@{id}@` продолжают работать без изменений.
 
-Рассмотренные альтернативы:
-- **Symlinks** — усложняют деплой, не все хостинги поддерживают
-- **PHP-контроллер** — каждый запрос через PHP, убивает кэширование
-- **Content-addressed (hash)** — overkill, ломает существующие URL
+### Страница "Изменения / Иллюстрации"
+
+1. **Сверху**: pending items из `pictures_pending`, сгруппированные по картинке. Модератор видит diff с текущим состоянием из `pictures` (title diff, thumbnail сравнение). Кнопки approve/reject для каждого pending
+2. **Ниже**: записи из `pictures` отсортированные по `pic_date DESC` — недавно изменённые/созданные картинки
 
 ---
 
@@ -256,8 +268,8 @@ Workflow:
 - `PicturesApiController` наследует `BaseApiController`
 - `GET /api/pictures/list?page=&size=&q=` — пагинированный список с поиском по `pic_title`
 - `GET /api/pictures/{id}` — детальная информация
-- `POST /api/pictures/{id}/update-title` — изменение подписи
-- `POST /api/pictures/{id}/upload` — загрузка/перезаливка файла
+- ~~`POST /api/pictures/{id}/update-title`~~ — удалён в Этапе 7, заменён на `POST /api/pictures/{id}/edit` (с модерацией для пользователей)
+- ~~`POST /api/pictures/{id}/upload`~~ — удалён в Этапе 7, заменён на `POST /api/pictures/{id}/edit` (с модерацией для пользователей)
 - Добавить `pic_width`, `pic_height` в таблицу + бэкфилл скрипт
 - Ответ list обёрнут в `ApiResponse<T>`: `{success: true, data: {items: [...], total, page, pageSize, totalPages}}`
 - Каждый item: `{pic_id, pic_folder, pic_title, pic_user, pic_date, pic_width, pic_height}` (snake_case с префиксом, как в БД)
@@ -502,97 +514,240 @@ features/picture/
 - Клик по изображению → `lightboxService.open(picture.id)`
 - Клик по кнопке копирования → `clipboard.writeText('@{id}@')` + notification
 
-### Этап 7 (D3): Backend — версионирование картинок
+### Этап 7 (D3): Backend — модерация изменений картинок
 
-**Scope**: API и БД для governance модели. Блокирует этапы 8 и 9.
+**Scope**: Только backend (PHP). Таблица `pictures_pending`, endpoints для submit/approve/reject/cancel, прямые edit endpoints для модератора, эндпоинт статей по картинке. Блокирует этапы 8 и 9.
 
-**Backend (PHP):**
-- Миграция: создать таблицу `picture_versions` (см. секцию "Governance")
-- Создать директории `images/archive/`, `images/pending/`, `pictures/thumbs/archive/`, `pictures/thumbs/pending/`
-- Новые/изменённые endpoints:
-  - `POST /api/pictures/{id}/edit` — создать версию (title и/или file). Для модератора — auto-approve. Body: `{pic_title?, file?}`. Response: `{data: PictureVersionDto}`
-  - `POST /api/pictures/{id}/delete` — создать intention на удаление. Проверка: если используется в статьях → `400 Bad Request` с информацией. Для модератора — auto-approve + soft-delete
-  - `POST /api/pictures/moderate` — approve/reject версию. Body: `{pv_id, approved: 1|-1, comment?}`. При approve edit: обновить `pictures`, переместить файлы. При approve delete: soft-delete
-  - `GET /api/pictures/history?page=&size=&filter=` — список версий с фильтрами (`all`, `unchecked`, `my`). Response: пагинированный список `PictureVersionDto[]`
-  - `GET /api/pictures/{id}/history` — версии конкретной картинки
-- Валидация при upload: формат (только jpg/jpeg), max размер файла, `getimagesize()` для dimensions
+**Решения:**
+- [x] Модерируемая очередь без истории версий — `pictures_pending` хранит только ожидающие модерации записи
+- [x] Обработанные pending удаляются из таблицы
+- [x] Модератор правит `pictures` напрямую, без pending
+- [x] Создание картинки — без модерации, сразу в `pictures`
+- [x] Hard delete при удалении, старые файлы не сохраняются
+- [x] SQL без миграционного фреймворка
+- [x] Thumbnail генерируется существующим механизмом при первом запросе — новый код не нужен
+- [x] Валидация: JPEG only, max 500KB (ограничение размера не проверяется для модераторов), `getimagesize()` для dimensions, title 5-500 символов
+- [x] Переиспользовать существующую логику легаси (модели, `PictureService.php`) — не дублировать
+- [x] `pictures.pic_date` обновляется при каждом изменении
 
-**Frontend models (новые):**
-- `PictureVersionDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
-- `PictureVersion` в `libs/shared/src/lib/models/picture.ts`
+**7.1. SQL: создать таблицу `pictures_pending`**
 
-**Frontend services (расширение):**
-- `PictureApiService`: добавить `editPicture()`, `deletePicture()`, `moderateVersion()`, `getPictureHistory()`, `getGlobalPictureHistory()`
+См. секцию "Governance" выше.
+
+**7.2. Создать директорию**
+
+```
+images/pending/
+```
+
+Плоская структура — все pending-файлы в одной директории, без подпапок.
+
+**7.3. PHP: модель `PicturesPending`**
+
+- AR-модель для таблицы `pictures_pending`
+- Relations: `belongsTo` → `Pictures` (по `pp_pic_id`)
+- Scopes: `byPicture($picId)`, `byUser($user)`
+- Валидация: `pp_type` in `['edit_title', 'edit_file', 'edit_both', 'delete']`, `pp_title` max 255, `pp_user` max 32
+
+**7.4. PHP: сервис `PictureModerationService`**
+
+Бизнес-логика модерации. Переиспользует существующий `PictureService` для файловых операций.
+
+Методы:
+- **`submitEdit($picId, $user, $title?, $file?)`** — отправить изменение на модерацию
+  - Проверка доступа: `assertCanCreate()` (WRITABLE_ROLES)
+  - Валидация title (5-500 символов) и/или file (JPEG, ≤500KB, `getimagesize()`)
+  - Найти существующий pending этого пользователя для этой картинки (`pp_pic_id=:id AND pp_user=:user`). Если есть → удалить + cleanup файлов из `pending/`
+  - Определяет `pp_type` по наличию title/file: `edit_title`, `edit_file`, `edit_both`
+  - Если file: сохранение в `pending/{id}_pp{pp_id}.jpg` (после создания записи, чтобы иметь pp_id)
+  - Return: `PicturesPending` модель
+
+- **`submitDelete($picId, $user)`** — отправить запрос на удаление
+  - Проверка доступа: `assertCanCreate()` (WRITABLE_ROLES)
+  - Проверка: картинка используется в статьях → 409 с информацией
+  - Найти существующий pending этого пользователя → удалить + cleanup
+  - Return: `PicturesPending` модель
+
+- **`cancel($ppId, $user)`** — отменить свой pending
+  - Проверка: `pp_user=:user`. Если не свой → 403
+  - Cleanup файлов из `pending/` если `edit_file` / `edit_both`
+  - Удалить запись из `pictures_pending`
+
+- **`approve($ppId, $moderator)`** — одобрить pending
+  - Проверка: запись существует. Если нет → ошибка "Запись уже обработана"
+  - Транзакция: обновление `pictures` + удаление всех pending для этого `pp_pic_id`
+  - Для edit_title: `PictureService.updateTitle()` (обновляет title, letter, date)
+  - Для edit_file: обновить `pictures.pic_width`, `pic_height`, `pic_date`
+  - Для edit_both: обновить title, letter, width, height, date
+  - Для delete: **повторная проверка использования в статьях** (могли добавиться после submit) → удалить запись из `pictures`
+  - После commit: файловые операции (перемещение pending → main, удаление thumbnails, cleanup pending файлов других пользователей)
+  - Return: `Pictures` (для edit) или `null` (для delete)
+
+- **`reject($ppId, $moderator)`** — отклонить pending
+  - Проверка: запись существует
+  - Cleanup файлов из `pending/` если `edit_file` / `edit_both`
+  - Удалить запись из `pictures_pending`
+
+- **`directEdit($picId, $title?, $file?)`** — прямое редактирование модератором
+  - Проверка доступа: `assertCanModify()` (MODERATOR_ROLES)
+  - Минуя pending — сразу обновляет `pictures`
+  - Если title + file: валидация обоих, файл во временный путь (.tmp), сохранение в БД, rename
+  - Если только title: делегирует в `PictureService.updateTitle()`
+  - Если только file: валидация (без проверки размера для модератора), замена файла, удаление thumbnail
+  - Return: `Pictures`
+
+- **`directDelete($picId)`** — прямое удаление модератором
+  - Проверка доступа: `assertCanModify()` (MODERATOR_ROLES)
+  - Проверка использования в статьях → 409
+  - Транзакция: удалить все pending для pic_id + удалить запись из `pictures`
+  - После commit: удалить файл + thumbnail, cleanup pending файлов
+  - Return: `int` pic_id
+
+**7.5. Endpoints (PicturesApiController)**
+
+1. **`PATCH /api/pictures/{id}`** — изменить только заголовок
+   - Body: JSON — `{pic_title: string}` (обязательное поле, 400 если пусто)
+   - Авторизация: залогиненный пользователь
+   - Модератор → `directEdit()`, response: `{success: true, data: PictureDto}`
+   - Пользователь → `submitEdit()`, response: `{success: true, data: PicturePendingDto}` (PicturePendingDto содержит `pending: true`)
+
+2. **`PUT /api/pictures/{id}`** — заменить файл и заголовок
+   - Body: multipart — `pic_title` (string, обязательное), `file` (uploaded file, обязательное)
+   - Авторизация: залогиненный пользователь
+   - Модератор → `directEdit()`, response: `{success: true, data: PictureDto}`
+   - Пользователь → `submitEdit()`, response: `{success: true, data: PicturePendingDto}`
+
+3. **`DELETE /api/pictures/{id}`** — удалить картинку
+   - Авторизация: залогиненный пользователь
+   - Модератор → `directDelete()`, response: `{success: true, data: PictureDto}`
+   - Пользователь → `submitDelete()`, response: `{success: true, data: PicturePendingDto}`
+   - Если используется в статьях: `409 {success: false, error: "Иллюстрация используется в статьях", data: {articles: [{id, title}]}}`
+
+4. **`POST /api/pictures/pending/{id}/approve`** — одобрить pending
+   - Авторизация: только модератор (`requireRole(MODERATOR_ROLES)`)
+   - Response: `{success: true, data: null}`
+
+5. **`POST /api/pictures/pending/{id}/reject`** — отклонить pending
+   - Авторизация: только модератор (`requireRole(MODERATOR_ROLES)`)
+   - Response: `{success: true, data: null}`
+
+6. **`POST /api/pictures/pending/{id}/cancel`** — отменить свой pending
+   - Авторизация: залогиненный пользователь, только свои (проверка `pp_user` в сервисе)
+   - Response: `{success: true, data: null}`
+
+7. **`GET /api/pictures/{id}/articles`** — статьи, использующие картинку
+   - Авторизация: не требуется (CSRF/origin exempt)
+   - Переиспользует `PictureService.getArticlesByPicture()` (junction `articles_pictures` + `pictures_links`)
+   - Response: `{success: true, data: {items: [{id: int, title: string}]}}`
+
+8. **`GET /api/pictures/pending?page=&size=`** — список pending (для страницы "Изменения")
+   - Авторизация: не требуется (гостям — пустой список без ошибки)
+   - Пагинация: `page`, `size` (default 25, max 100)
+   - Response: `{success: true, data: {items: PicturePendingDto[], total, page, pageSize, totalPages}}`
+   - Сортировка: `pp_date DESC`
+   - Каждый item включает данные картинки (JOIN с `pictures` через `with`) для отображения diff
+
+**7.6. `PicturePendingDto` (формат ответа)**
+
+```
+{
+  pp_id: int,
+  pp_pic_id: int,
+  pp_type: "edit_title" | "edit_file" | "edit_both" | "delete",
+  pp_title: string | null,        // предложенный title
+  pp_width: int | null,            // предложенные dimensions
+  pp_height: int | null,
+  pp_user: string,
+  pp_date: string (ISO datetime),
+  pending: true,                   // маркер pending-ответа
+  // JOIN с pictures — текущее состояние для diff (всегда включены):
+  pic_title: string,
+  pic_folder: string,
+  pic_width: int | null,
+  pic_height: int | null
+}
+```
+
+**7.7. Файловые операции**
+
+| Действие | Файл | Thumbnail |
+|----------|------|-----------|
+| Submit edit_file | → `images/pending/{id}_pp{pp_id}.jpg` | Генерируется существующим механизмом |
+| Approve edit_file | Pending → `images/{folder}/{id}.jpg` (замена) | Удалить текущий thumbnail (пересоздастся) |
+| Reject / Cancel edit_file | Удалить `images/pending/{id}_pp{pp_id}.jpg` | Удалить pending thumbnail если создан |
+| Approve delete | Удалить `images/{folder}/{id}.jpg` и `pictures/thumbs/{folder}/{id}.jpg` | — |
+| Direct edit (moderator) | Новый файл → `images/{folder}/{id}.jpg` (замена) | Удалить текущий thumbnail (пересоздастся) |
+| Direct delete (moderator) | Удалить файл + thumbnail | — |
+
+### Этап 8 (D4): Detail Page — редактирование + frontend models/services
+
+**Scope**: Frontend models и services для модерации (перенесены из Этапа 7) + расширение detail page с редактированием.
+
+**8.1. Frontend models (новые):**
+- `PicturePendingDto` в `libs/shared/src/lib/models/dto/picture.dto.ts`
+- `PicturePending` в `libs/shared/src/lib/models/picture.ts`
+- `PictureArticleDto` — `{id: number, title: string}` (для эндпоинта статей по картинке)
+
+**8.2. Frontend services (расширение):**
+- `PictureApiService`: добавить `editPicture()`, `deletePicture()`, `approvePending()`, `rejectPending()`, `cancelPending()`, `getPending()`, `getPictureArticles()`
 - `PictureService`: маппинг новых DTO
 
-### Этап 8 (D4): Detail Page — редактирование
-
-**Scope**: Расширение detail page из этапа 6 + интеграция с версионированием.
-
-**Функциональность:**
+**8.3. Функциональность UI:**
 
 1. **Редактирование описания**
    - Inline-edit: клик по title → text input → сохранение
    - Или отдельная форма (решить при реализации)
    - Вызов `PictureService.editPicture(id, { title: newTitle })`
+   - Пользователь: уведомление "Изменение отправлено на модерацию"
+   - Модератор: изменения применяются сразу
 
 2. **Перезаливка файла**
    - Кнопка "Заменить файл" → file input
    - Preview загруженного файла перед отправкой
-   - Валидация на клиенте: формат, размер
+   - Валидация на клиенте: формат (JPEG), размер (≤500KB)
    - Вызов `PictureService.editPicture(id, { file })` (multipart)
 
 3. **Удаление**
    - Кнопка "Удалить" → confirmation dialog
-   - Если используется в статьях → показать предупреждение, заблокировать
+   - Если используется в статьях → показать предупреждение, заблокировать (данные из `getPictureArticles()`)
    - Вызов `PictureService.deletePicture(id)`
 
-4. **Pending версии на detail page**
-   - Если есть pending версии — показать блок с ними
-   - Для модератора: кнопки approve/reject + поле комментария
-   - Diff для title: выделение изменений (было → стало)
-   - Diff для файла: два thumbnail рядом (текущий vs предложенный)
+4. **Pending на detail page**
+   - Если у текущего пользователя есть pending для этой картинки — показать статус + кнопка "Отменить"
+   - Для модератора: показать все pending для этой картинки, сгруппированные. Diff с текущим состоянием. Кнопки approve/reject
 
-5. **UX для пользователей vs модераторов**
-   - Одинаковый UI контролов
-   - Пользователь: после действия — уведомление "Изменение отправлено на модерацию"
-   - Модератор: изменения применяются сразу (auto-approve)
+5. **Секция "Используется в статьях"**
+   - Данные из `GET /api/pictures/{id}/articles`
+   - Список ссылок `[{id, title}]` → клик → переход на статью
 
 **Тесты:**
 - Edit title flow, file upload flow, delete flow
-- Pending versions display
+- Pending display + cancel
 - Moderator approve/reject controls
+- Articles list display
 
-### Этап 9 (D5): History — `/history/pictures`
+### Этап 9 (D5): Страница "Изменения / Иллюстрации" — `/history/pictures`
 
-**Scope**: Полноценная страница истории изменений картинок (замена заглушки).
+**Scope**: Страница модерации + обзор недавних изменений (замена заглушки).
 
 **Компоненты:**
 
-1. **`PicturesHistoryComponent`** (расширение `features/history/pages/pictures-history/`)
-   - Переиспользование паттерна из `articles-history`:
-     - Virtual scroller для списка
-     - Date headers между группами по дате
-     - Фильтры: все / непроверенные / мои (как у статей)
-   - Каждая запись:
-     - Thumbnail картинки
-     - Тип изменения (создание / редактирование title / замена файла / удаление)
-     - Автор и дата
-     - Для title edit: diff (было → стало)
-     - Для file edit: два маленьких thumbnail
-     - Статус (pending / approved / rejected)
-   - Для модератора: кнопки approve/reject inline
-   - Клик по записи → detail page картинки
-
-2. **`PictureHistoryService`** (`app/services/pictures/` или `features/history/services/`)
-   - Загрузка и пагинация истории
-   - Фильтрация
-   - Маппинг в display items с date headers
+1. **`PicturesHistoryComponent`** (`features/history/pages/pictures-history/`)
+   - **Секция "Ожидают проверки"** (только для модератора):
+     - Pending items из `GET /api/pictures/pending`, сгруппированные по картинке
+     - Для каждого pending: diff с текущим состоянием из `pictures` (title diff, thumbnail сравнение для file changes)
+     - Кнопки approve/reject для каждого pending
+     - Если несколько pending на одну картинку — группировка, модератор решает по каждому отдельно
+   - **Секция "Недавние иллюстрации"**:
+     - Записи из `GET /api/pictures/list` отсортированные по `pic_date DESC`
+     - Thumbnail, title, автор, дата
+     - Клик → detail page
 
 **Тесты:**
-- History list rendering, filtering, pagination
-- Moderator controls
-- Date grouping
+- Pending list rendering, grouping by picture
+- Moderator approve/reject controls
+- Pictures chronological list
+- Empty states (нет pending, нет картинок)
 
 ### Этап 10 (D6): Editor Picker Integration
 
@@ -619,7 +774,7 @@ features/picture/
 Этап 7 (D3: Backend Version) ─┤
 Этап 10 (D6: Editor Picker)  ─┘
 
-Этап 7 завершён ──→ Этап 8 (D4: Detail Edit) ──→ Этап 9 (D5: History)
+Этап 7 завершён ──→ Этап 8 (D4: Frontend + Detail Edit) ──→ Этап 9 (D5: Изменения/Иллюстрации)
 ```
 
 ---
@@ -646,12 +801,15 @@ features/picture/
 | `features/article/pages/article-edit/article-edit.component.ts` | Создать и передать extension в editor | 5 |
 | `features/picture/picture.routes.ts` | Добавить `:id` route | 6 |
 | `features/picture/pages/picture-detail/` | Новый компонент | 6, 8 |
-| `libs/shared/src/lib/models/dto/picture.dto.ts` | PictureVersionDto | 7 |
-| `libs/shared/src/lib/models/picture.ts` | PictureVersion model | 7 |
-| `app/services/pictures/picture-api.service.ts` | Новые методы | 7 |
-| `app/services/pictures/picture.service.ts` | Новые методы | 7 |
-| `features/history/pages/pictures-history/` | Полноценная реализация | 9 |
-| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints | 7 |
+| `legacy-drevo-yii/.../controllers/api/PicturesApiController.php` | Новые endpoints (edit, delete, pending/approve/reject/cancel, articles) | 7 |
+| `legacy-drevo-yii/.../models/PicturesPending.php` | Новая AR-модель | 7 |
+| `legacy-drevo-yii/.../components/PictureModerationService.php` | Новый сервис модерации | 7 |
+| `libs/shared/src/lib/models/dto/picture.dto.ts` | PicturePendingDto, PictureArticleDto | 8 |
+| `libs/shared/src/lib/models/picture.ts` | PicturePending model | 8 |
+| `app/services/pictures/picture-api.service.ts` | Новые методы (edit, delete, approve, reject, cancel, pending, articles) | 8 |
+| `app/services/pictures/picture.service.ts` | Маппинг новых DTO | 8 |
+| `features/picture/pages/picture-detail/` | Расширение: редактирование, удаление, модерация | 8 |
+| `features/history/pages/pictures-history/` | Pending list + pictures by date | 9 |
 
 ## Переиспользуемые паттерны
 
@@ -662,8 +820,7 @@ features/picture/
 | Wiki decoration (Decoration.mark) | `wiki-highlighter.service.ts` | 5 |
 | CM6 hoverTooltip | `@codemirror/view` | 5 |
 | Two-layer services | `article-api.service.ts` + `article.service.ts` | 7 |
-| Versioning + approval | `article.ts`, `moderation.ts` | 7, 8 |
-| History list + filters | `articles-history/` component + service | 9 |
+| History page layout | `articles-history/` — секция pending + хронологический список | 9 |
 | Dual-mode (MODAL_DATA) | `features/search/search.component.ts` | 10 |
 | VirtualScroller API | `libs/ui/virtual-scroller/` | 9 |
 
@@ -678,8 +835,8 @@ features/picture/
    - Lightbox из контента статьи (клик по картинке)
    - Lightbox: fit ↔ zoom, Esc, Back button, крестик
    - Редактор: `@NNN@` подсвечен, hover → превью, клик → lightbox
-   - `/pictures/:id` — редактирование title, upload, delete (с модерацией)
-   - `/history/pictures` — история с фильтрами и модерацией
+   - `/pictures/:id` — редактирование title, upload, delete (пользователь → pending, модератор → прямое)
+   - `/history/pictures` — pending list для модератора + pictures by date
 
 ## Рассмотренные альтернативы
 
@@ -719,10 +876,14 @@ features/picture/
 - **Минусы**: `object-fit: contain` оставляет пустоты, `object-fit: cover` обрезает
 - **Причина отклонения**: Противоречит требованию "картинки не должны обрезаться"
 
-### Governance: Очередь изменений (отклонен)
-- **Идея**: Отдельная таблица `picture_edits` вместо версионирования
-- **Плюсы**: Проще реализовать
-- **Причина отклонения**: Не консистентно с паттерном статей, не масштабируется для полной истории
+### Governance: Полное версионирование (отклонен)
+- **Идея**: Таблица `picture_versions` хранит все изменения (pending + approved + rejected). Три файловые зоны (pending/archive/main). `pv_old_title`, `pv_folder`, archive naming с семантикой, FK без constraint. Рассмотрены варианты: Revision-Based (MediaWiki), Delta-based, Separate Concerns (3 таблицы)
+- **Плюсы**: Полная история изменений, точные diffs
+- **Причина отклонения**: Нарастающая сложность — concurrent versions, base version tracking, archive file semantics, soft-delete vs hard-delete. Версионирования картинок нет и сейчас; модерируемая очередь без истории покрывает текущие потребности. Полное версионирование может быть добавлено позже
+
+### Soft-delete с `pic_deleted` колонкой (отклонен)
+- **Идея**: Добавить `pic_deleted tinyint` в `pictures`, при удалении ставить `pic_deleted=1`
+- **Причина отклонения**: Усложняет все запросы к `pictures` (`WHERE pic_deleted=0`). Hard delete проще и соответствует текущему поведению
 
 ### Хранение файлов: Symlinks (отклонен)
 - **Идея**: Все файлы по version_id + symlink для текущего
