@@ -171,6 +171,14 @@ describe('PictureDetailComponent', () => {
             expect(empty?.textContent?.trim()).toBe('Нет');
         });
 
+        it('should show error state when articles fail to load', () => {
+            pictureService.getPictureArticles.mockReturnValue(throwError(() => new Error('Network error')));
+            spectator.detectChanges();
+            const error = spectator.query('[data-testid="detail-articles-error"]');
+            expect(error).toBeTruthy();
+            expect(error?.textContent?.trim()).toBe('Не удалось загрузить');
+        });
+
         describe('title editing', () => {
             it('should show editable class on title', () => {
                 spectator.detectChanges();

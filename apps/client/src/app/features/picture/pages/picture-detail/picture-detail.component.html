@@ -6,13 +6,15 @@
         priority="secondary"
         (activated)="copyInsertCode()"
     />
-    <app-sidebar-action
-        [order]="20"
-        icon="edit"
-        label="Изменить"
-        priority="primary"
-        (activated)="editPicture()"
-    />
+    @if (canEdit()) {
+        <app-sidebar-action
+            [order]="20"
+            icon="edit"
+            label="Изменить"
+            priority="primary"
+            (activated)="editPicture()"
+        />
+    }
     <div class="detail__card">
         <div
             class="detail__image"
@@ -42,6 +44,7 @@
                             class="detail__title-input"
                             rows="4"
                             [formControl]="titleControl"
+                            [disabled]="isSavingTitle()"
                             (input)="autoResizeTextarea()"
                             (keydown.enter)="onTitleEnter($event)"
                             (keydown.escape)="cancelTitleEdit()"
