@@ -2,6 +2,7 @@ import { workspaceRoot } from '@nx/devkit';
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
+const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
 
 export default defineConfig({
     testDir: './tests',
@@ -13,7 +14,7 @@ export default defineConfig({
     reporter: [['html', { outputFolder: './playwright-report', open: 'never' }], ['list']],
 
     use: {
-        baseURL: 'http://localhost:4200',
+        baseURL,
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
