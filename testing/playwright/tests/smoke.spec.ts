@@ -5,7 +5,7 @@ test.describe('Smoke test', () => {
     test('authenticated user sees main page with header', async ({ authenticatedPage }) => {
         const layout = new LayoutPage(authenticatedPage);
         await authenticatedPage.goto('/');
-        await layout.waitForLoaded();
+        await layout.waitForReady();
 
         await expect(layout.header).toBeVisible();
         await layout.openAccountMenu();
