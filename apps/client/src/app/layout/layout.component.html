@@ -3,7 +3,10 @@
     [class.sidebar-collapsed]="!isDrawerOpen()"
     [class.skip-transition]="skipTransition()"
 >
-    <header class="header">
+    <header
+        class="header"
+        data-testid="header"
+    >
         <app-header></app-header>
         <ui-navigation-progress [isNavigating]="isNavigating()" />
     </header>
@@ -19,6 +22,7 @@
         class="left"
         [class.drawer-open]="isDrawerOpen()"
         aria-label="Primary sidebar"
+        data-testid="sidebar"
     >
         <div class="left-content">
             <app-sidebar-nav />

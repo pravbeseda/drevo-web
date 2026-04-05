@@ -81,6 +81,10 @@ ENV/
 
 legacy-drevo-yii
 .nginx-conf-for-ai
+# Playwright
+playwright-report/
+test-results/
+
 # Testing secrets
 .act.secrets
 
