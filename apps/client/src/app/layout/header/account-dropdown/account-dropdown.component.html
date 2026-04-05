@@ -8,6 +8,7 @@
     <ui-icon-button
         icon="account_circle"
         label="Аккаунт"
+        data-testid="account-button"
         [uiDropdownMenuTriggerFor]="menuContent"
     />
 
@@ -15,7 +16,10 @@
         <ui-dropdown-menu>
             @if (isAuthenticated()) {
                 <div class="dropdown-header">
-                    <span class="dropdown-header-title">
+                    <span
+                        class="dropdown-header-title"
+                        data-testid="user-name"
+                    >
                         {{ displayName() }}
                     </span>
                     <span class="dropdown-header-subtitle">

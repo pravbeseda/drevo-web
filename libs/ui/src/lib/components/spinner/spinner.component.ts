@@ -7,6 +7,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     templateUrl: './spinner.component.html',
     styleUrl: './spinner.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: { 'data-testid': 'spinner' },
 })
 export class SpinnerComponent {
     diameter = input<number>(40);
