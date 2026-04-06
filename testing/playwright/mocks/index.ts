@@ -5,5 +5,6 @@ export {
     createPictureDtoList,
     createPicturesListResponse,
     createPictureArticleDto,
+    createPicturePendingDto,
     mockPictureData,
 } from './pictures';

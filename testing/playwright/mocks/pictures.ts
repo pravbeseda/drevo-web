@@ -1,4 +1,4 @@
-import { PictureDto, PictureArticleDto, PicturesListResponseDto } from '@drevo-web/shared';
+import { PictureDto, PictureArticleDto, PicturePendingDto, PicturesListResponseDto } from '@drevo-web/shared';
 
 /** Create a single PictureDto with overrides */
 export function createPictureDto(overrides: Partial<PictureDto> = {}, index = 1): PictureDto {
@@ -40,6 +40,26 @@ export function createPictureArticleDto(overrides: Partial<PictureArticleDto> = 
     return {
         id: index,
         title: `Статья ${index}`,
+        ...overrides,
+    };
+}
+
+/** Create a PicturePendingDto with overrides */
+export function createPicturePendingDto(overrides: Partial<PicturePendingDto> = {}, index = 1): PicturePendingDto {
+    return {
+        pp_id: index,
+        pp_pic_id: overrides.pp_pic_id ?? 1,
+        pp_type: 'edit_title',
+        pp_title: `Новый заголовок ${index}`,
+        pp_width: null,
+        pp_height: null,
+        pp_user: 'testuser',
+        pp_date: '2025-01-15 12:00:00',
+        pending: true,
+        pic_title: `Иллюстрация ${index}`,
+        pic_folder: `folder${index}`,
+        pic_width: 800,
+        pic_height: 600,
         ...overrides,
     };
 }

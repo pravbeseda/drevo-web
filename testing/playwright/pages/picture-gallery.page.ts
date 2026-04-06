@@ -1,7 +1,6 @@
 import { BasePage } from './base.page';
 
 export class PictureGalleryPage extends BasePage {
-    readonly page_ = this.page;
     readonly root = this.page.getByTestId('pictures-page');
     readonly searchBar = this.page.getByTestId('pictures-search-bar');
     readonly searchInput = this.searchBar.locator('input');

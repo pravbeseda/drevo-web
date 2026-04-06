@@ -52,13 +52,16 @@ test.describe('Picture detail', () => {
     });
 
     test.describe('Articles section', () => {
+        test.beforeEach(async ({ authenticatedPage: page }) => {
+            await mockPictureThumbs(page);
+            await mockPictureDetail(page, PICTURE_ID, PICTURE);
+        });
+
         test('shows linked articles', async ({ authenticatedPage: page }) => {
             const articles = [
                 createPictureArticleDto({ id: 10, title: 'Первая статья' }),
                 createPictureArticleDto({ id: 20, title: 'Вторая статья' }),
             ];
-            await mockPictureThumbs(page);
-            await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, articles);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
@@ -70,8 +73,6 @@ test.describe('Picture detail', () => {
         });
 
         test('shows empty message when no articles', async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
-            await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
@@ -82,9 +83,6 @@ test.describe('Picture detail', () => {
         });
 
         test('shows error when articles fail to load', async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
-            await mockPictureDetail(page, PICTURE_ID, PICTURE);
-            // Mock articles endpoint with error
             await page.route(`**/api/pictures/${PICTURE_ID}/articles`, route =>
                 route.fulfill({ status: 500, json: { success: false, error: 'Server error' } }),
             );
@@ -98,38 +96,33 @@ test.describe('Picture detail', () => {
     });
 
     test.describe('Title editing', () => {
+        test.beforeEach(async ({ authenticatedPage: page }) => {
+            await mockPictureThumbs(page);
+            await mockPictureDetail(page, PICTURE_ID, PICTURE);
+            await mockPictureArticles(page, PICTURE_ID, []);
+            detail = new PictureDetailPage(page);
+            await page.goto(`/pictures/${PICTURE_ID}`);
+            await detail.waitForReady();
+        });
+
         test('allows editing title and saves successfully (moderator)', async ({ authenticatedPage: page }) => {
             const updatedPicture = createPictureDto({
                 pic_id: PICTURE_ID,
                 pic_title: 'Обновлённое описание',
                 pic_user: 'testuser',
             });
-            await mockPictureThumbs(page);
-            await mockPictureDetail(page, PICTURE_ID, PICTURE);
-            await mockPictureArticles(page, PICTURE_ID, []);
             await mockPictureUpdateTitle(page, PICTURE_ID, updatedPicture);
-            detail = new PictureDetailPage(page);
-            await page.goto(`/pictures/${PICTURE_ID}`);
-            await detail.waitForReady();
 
             await detail.editTitle('Обновлённое описание');
 
-            // Title should update to new value after save
             await expect(detail.title).toHaveText('Обновлённое описание');
         });
 
         test('sends pending request for regular user', async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
-            await mockPictureDetail(page, PICTURE_ID, PICTURE);
-            await mockPictureArticles(page, PICTURE_ID, []);
             await mockPictureUpdateTitlePending(page, PICTURE_ID);
-            detail = new PictureDetailPage(page);
-            await page.goto(`/pictures/${PICTURE_ID}`);
-            await detail.waitForReady();
 
             await detail.editTitle('Новое описание на модерацию');
 
-            // After pending response, editing mode should close and title remains original
             await expect(detail.title).toBeVisible();
             await expect(detail.titleEdit).not.toBeVisible();
         });

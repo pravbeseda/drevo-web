@@ -1,5 +1,5 @@
 import { apiError, apiSuccess, mockUsers } from '../mocks';
-import { createPictureDtoList, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
+import { createPictureDtoList, createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
 import { PictureDto, PicturesListResponseDto, User } from '@drevo-web/shared';
 import { Page } from '@playwright/test';
 
@@ -189,23 +189,8 @@ export async function mockPictureUpdateTitlePending(page: Page, id: number): Pro
     await page.route(`**/api/pictures/${id}`, route => {
         const method = route.request().method();
         if (method !== 'PATCH') return route.fallback();
-        return route.fulfill({
-            json: apiSuccess({
-                pp_id: 100,
-                pp_pic_id: id,
-                pp_type: 'edit_title',
-                pp_title: 'New title',
-                pp_width: null,
-                pp_height: null,
-                pp_user: 'testuser',
-                pp_date: '2025-01-15 12:00:00',
-                pending: true,
-                pic_title: 'Old title',
-                pic_folder: 'folder1',
-                pic_width: 800,
-                pic_height: 600,
-            }),
-        });
+        const pending = createPicturePendingDto({ pp_pic_id: id, pp_title: 'New title', pic_title: 'Old title' });
+        return route.fulfill({ json: apiSuccess(pending) });
     });
 }
 
