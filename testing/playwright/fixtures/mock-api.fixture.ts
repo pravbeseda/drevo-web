@@ -41,6 +41,14 @@ export async function mockLoginSuccess(page: Page, user: User = mockUsers.authen
             json: apiSuccess({ isAuthenticated: true, user, csrfToken: 'new-csrf-token' }),
         }),
     );
+
+    // Update /api/auth/me to return authenticated state after login
+    await page.unroute('**/api/auth/me');
+    await page.route('**/api/auth/me', route =>
+        route.fulfill({
+            json: apiSuccess({ isAuthenticated: true, user }),
+        }),
+    );
 }
 
 /** Mock POST /api/auth/login — failed login with error code */

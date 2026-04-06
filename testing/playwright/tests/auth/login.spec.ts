@@ -1,4 +1,5 @@
 import { test, expect, mockLoginSuccess, mockLoginError } from '../../fixtures';
+import { apiSuccess, mockUsers } from '../../mocks';
 import { LoginPage } from '../../pages/login.page';
 
 const unknownErrorMessage = 'Произошла ошибка при входе. Попробуйте еще раз.';
@@ -169,21 +170,7 @@ test.describe('Login page', () => {
             await page.route('**/api/auth/login', async route => {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await route.fulfill({
-                    json: {
-                        success: true,
-                        data: {
-                            isAuthenticated: true,
-                            user: {
-                                id: 1,
-                                login: 'testuser',
-                                name: 'Test User',
-                                email: 'test@example.com',
-                                role: 'user',
-                                permissions: { canEdit: true, canModerate: false, canAdmin: false },
-                            },
-                            csrfToken: 'new-token',
-                        },
-                    },
+                    json: apiSuccess({ isAuthenticated: true, user: mockUsers.authenticated, csrfToken: 'new-token' }),
                 });
             });
 
