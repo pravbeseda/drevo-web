@@ -161,7 +161,7 @@ testing/
 
 ### D2: Login page — тесты авторизации ✅
 
-`LoginPage` PO, `mockLoginSuccess`/`mockLoginError` fixtures, `data-testid` в login template. 17 тестов: форма/валидация, happy path с редиректом, returnUrl (включая open redirect protection), ошибки (INVALID_CREDENTIALS, ACCOUNT_NOT_ACTIVE, 500), loading state.
+`LoginPage` PO, `mockLoginSuccess`/`mockLoginError` fixtures, `data-testid` в login template. 15 тестов: форма/валидация, happy path с редиректом, returnUrl (включая open redirect protection), ошибки (INVALID_CREDENTIALS, ACCOUNT_NOT_ACTIVE, 500), loading state.
 
 ### D3: Logout + Auth guard
 - [ ] `tests/auth/logout.spec.ts` — клик "Выйти" → редирект на /login, ошибка logout
