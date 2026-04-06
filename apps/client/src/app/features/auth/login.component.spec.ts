@@ -8,6 +8,8 @@ import { TextInputComponent, CheckboxComponent, ButtonComponent } from '@drevo-w
 import { AuthService } from '../../services/auth/auth.service';
 import { LoginComponent } from './login.component';
 
+const unknownErrorMessage = 'Произошла ошибка при входе. Попробуйте еще раз.';
+
 describe('LoginComponent', () => {
     let spectator: Spectator<LoginComponent>;
     let authServiceMock: jest.Mocked<Pick<AuthService, 'login'>>;
@@ -216,7 +218,7 @@ describe('LoginComponent', () => {
             spectator.component.onSubmit();
 
             expect(spectator.component.errorMessage()).toBe(
-                'Аккаунт не активирован. Проверьте email для подтверждения.'
+                'Аккаунт не активирован. Проверьте email для подтверждения.',
             );
         });
 
@@ -231,7 +233,7 @@ describe('LoginComponent', () => {
             expect(spectator.component.errorMessage()).toBe('Неверный логин или пароль.');
         });
 
-        it('should display custom error message from server', () => {
+        it('should display default error message for custom error message from server', () => {
             authServiceMock.login.mockReturnValue(throwError(() => ({ message: 'Custom error message' })));
             spectator = createComponent();
 
@@ -239,7 +241,7 @@ describe('LoginComponent', () => {
             spectator.component.loginForm.controls.password.setValue('password123');
             spectator.component.onSubmit();
 
-            expect(spectator.component.errorMessage()).toBe('Custom error message');
+            expect(spectator.component.errorMessage()).toBe(unknownErrorMessage);
         });
 
         it('should display default error message for unknown errors', () => {
@@ -250,7 +252,7 @@ describe('LoginComponent', () => {
             spectator.component.loginForm.controls.password.setValue('password123');
             spectator.component.onSubmit();
 
-            expect(spectator.component.errorMessage()).toBe('Произошла ошибка при входе. Попробуйте позже.');
+            expect(spectator.component.errorMessage()).toBe(unknownErrorMessage);
         });
 
         it('should render error alert when errorMessage is set', () => {

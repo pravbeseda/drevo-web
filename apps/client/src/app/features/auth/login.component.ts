@@ -76,7 +76,7 @@ export class LoginComponent implements OnInit {
                 finalize(() => {
                     this.isSubmitting.set(false);
                     this.loginForm.enable();
-                })
+                }),
             )
             .subscribe({
                 next: () => {
@@ -89,13 +89,13 @@ export class LoginComponent implements OnInit {
             });
     }
 
-    private getErrorMessage(error: { message?: string; code?: string }): string {
+    private getErrorMessage(error: { code?: string }): string {
         if (error.code === 'ACCOUNT_NOT_ACTIVE') {
             return 'Аккаунт не активирован. Проверьте email для подтверждения.';
         }
         if (error.code === 'INVALID_CREDENTIALS') {
             return 'Неверный логин или пароль.';
         }
-        return error.message || 'Произошла ошибка при входе. Попробуйте позже.';
+        return 'Произошла ошибка при входе. Попробуйте еще раз.';
     }
 }
