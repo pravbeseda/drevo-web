@@ -31,11 +31,12 @@
 testing/
   playwright/
     PLAN.md                          # Этот файл
-    playwright.config.ts             # Конфигурация Playwright
+    playwright.config.ts             # Конфигурация Playwright (5 проектов, coverage)
     tsconfig.json                    # TypeScript config
     fixtures/                        # Базовые fixtures
       index.ts                       # Главный экспорт (test, expect)
-      auth.fixture.ts                # Аутентификация
+      auth.fixture.ts                # Аутентификация (наследует coverage fixture)
+      coverage.fixture.ts            # Автоматический сбор V8 coverage (при COVERAGE=true)
       mock-api.fixture.ts            # Fixture-функции для мокирования API по группам
     mocks/                           # Фабрики мок-данных
       index.ts                       # Реэкспорт всех фабрик
@@ -148,13 +149,63 @@ testing/
 
 ---
 
-## Coverage (Deliverable 1.5)
+## Deliverable 1.5: Coverage + CI + кроссбраузерность ✅
 
-- **Инструмент**: monocart-reporter — V8 coverage + source maps
-- **Build**: отдельная конфигурация `coverage` в `project.json` с `sourceMap: true`
+### Coverage
+
+- **Инструмент**: `monocart-reporter` + `monocart-coverage-reports` — V8 coverage с source maps
+- **Build**: конфигурация `coverage` в `apps/client/project.json` — `sourceMap: true`, `optimization: false`, `outputMode: "static"`, без SSR
+- **Reporter**: `monocart-reporter` в `playwright.config.ts`, активируется при `COVERAGE=true`
+- **Fixture**: `coverage.fixture.ts` — auto-fixture, собирает V8 JS coverage через `page.coverage` API и передаёт в monocart через `addCoverageReport()`
+- **Фильтрация**: entryFilter по `localhost:4200`, sourceFilter по `apps/` и `libs/` (без `node_modules`)
+- **Отчёты**: `v8` (HTML) + `console-details` (таблица в консоли)
 - **Команда**: `yarn test:playwright:coverage`
-- **CI**: отдельный шаг в `coverage.yml`, badge `integration coverage` на GitHub Pages
 - **V8 coverage только в Chromium** — ограничение API
+- **Порог**: нет — только отчёт, порог добавим позже
+- **Serving**: Angular 21 с `outputMode: "static"` генерирует `index.csr.html` → копируем в `index.html` для SPA-routing через `serve -s`
+
+### CI: integration-тесты при PR
+
+Workflow `.github/workflows/playwright.yml` — на PR в `main` и push в `main`.
+
+- **Build**: `nx build client --configuration=coverage` (через webServer в playwright.config)
+- **Serve**: `serve` (devDependency) с `-s` для SPA fallback
+- **Browsers**: только Chromium (кэшируется через `actions/cache`)
+- **Coverage**: собирается в том же прогоне
+- **Артефакты**: `playwright-report`, `playwright-coverage` (always), `playwright-test-results` (on failure)
+- **Timeout**: 15 минут
+
+### Кроссбраузерность
+
+#### Проекты в `playwright.config.ts`
+
+| Проект | Device | Engine | Когда запускается |
+|--------|--------|--------|-------------------|
+| `chromium` | Desktop Chrome | Chromium | Каждый PR (+ coverage) |
+| `firefox` | Desktop Firefox | Gecko | Вручную (workflow_dispatch) |
+| `webkit` | Desktop Safari | WebKit | Вручную (workflow_dispatch) |
+| `mobile-chrome` | Pixel 5 | Chromium | Вручную (workflow_dispatch) |
+| `mobile-safari` | iPhone 13 | WebKit | Вручную (workflow_dispatch) |
+
+#### Стратегия запуска
+
+- **На каждый PR**: только `chromium` — быстрая обратная связь + coverage
+- **Вручную** (`workflow_dispatch`): `.github/workflows/playwright-cross-browser.yml` — полный набор или отдельный браузер
+- **Параметр `browsers`**: `all` (по умолчанию) / `firefox` / `webkit` / `mobile-chrome` / `mobile-safari`
+- **Timeout**: 30 минут (cross-browser)
+
+### Скрипты в `package.json`
+
+```bash
+yarn test:playwright            # Chromium (по умолчанию)
+yarn test:playwright:coverage   # Chromium + V8 coverage
+yarn test:playwright:firefox    # Firefox
+yarn test:playwright:webkit     # WebKit (Safari)
+yarn test:playwright:mobile     # Mobile Chrome + Mobile Safari
+yarn test:playwright:all        # Все 5 проектов
+yarn test:playwright:ui         # Playwright UI mode
+yarn test:playwright:headed     # Headed mode
+```
 
 ---
 
@@ -184,10 +235,11 @@ testing/
 ### Phase 5: Editor + Search
 - [ ] Тесты: editor, search
 
-### Phase 6: Кроссбраузерность + полировка
-- [ ] Firefox, WebKit, мобильные projects
-- [ ] Отдельный CI workflow (по расписанию, не на каждый PR)
+### Phase 6: Полировка
+- [ ] Добавить порог coverage когда достаточно тестов (monocart поддерживает `watermarks`)
+- [ ] Badge `integration coverage` на GitHub Pages (интеграция с `coverage.yml`)
 - [ ] Документация для разработчиков
+- [ ] Добавить CSS coverage в coverage fixture (рядом с JS coverage)
 
 ### Миграция из client-e2e
 По мере реализации фаз — тесты с замоканным API переносятся из `apps/client-e2e/` в `testing/playwright/`. В `client-e2e` остаются только E2E-тесты с реальным бэкендом.
@@ -206,3 +258,9 @@ testing/
 8. **Visual regression отложен** — с placeholder-данными ценность скриншот-тестов низкая.
 9. **Fixture-функции вместо builder-класса** — идиоматичный Playwright-подход.
 10. **Нотификации — отдельный хелпер** — snackbar глобален, не принадлежит конкретному PO.
+11. **CI при PR — только Chromium** — быстрая обратная связь, coverage собирается в том же прогоне.
+12. **Кроссбраузерность — workflow_dispatch** — полный набор (Firefox, WebKit, мобильные) запускается вручную, не блокирует PR.
+13. **Порог coverage отложен** — сначала наберём тесты, потом зафиксируем минимум.
+14. **Coverage через auto-fixture** — `coverage.fixture.ts` с `addCoverageReport()` из monocart-reporter, автоматически собирает V8 данные для каждого теста.
+15. **Static build для coverage** — `outputMode: "static"` без SSR, `index.csr.html` → `index.html` копирование для SPA-routing.
+16. **`serve` в devDependencies** — для стабильного serving static-билда в CI без зависимости от npx cache.

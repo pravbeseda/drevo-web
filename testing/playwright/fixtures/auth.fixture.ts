@@ -1,4 +1,5 @@
-import { test as base, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
+import { test as coverageTest } from './coverage.fixture';
 import { mockAuthApi, mockUnauthenticatedApi } from './mock-api.fixture';
 
 export interface AuthFixtures {
@@ -8,7 +9,7 @@ export interface AuthFixtures {
     unauthenticatedPage: Page;
 }
 
-export const test = base.extend<AuthFixtures>({
+export const test = coverageTest.extend<AuthFixtures>({
     authenticatedPage: async ({ page }, use) => {
         await mockAuthApi(page);
         await use(page);
