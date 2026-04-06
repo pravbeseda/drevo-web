@@ -1,12 +1,12 @@
-<div class="pictures-page">
+<div class="pictures-page" data-testid="pictures-page">
     <app-picture-search-bar (searchChange)="onSearchChange($event)" />
 
     @if (isLoading()) {
-        <div class="pictures-page__loading">
+        <div class="pictures-page__loading" data-testid="pictures-loading">
             <ui-spinner />
         </div>
     } @else if (hasResults()) {
-        <div class="pictures-page__gallery" #galleryContainer>
+        <div class="pictures-page__gallery" #galleryContainer data-testid="pictures-gallery">
             <ui-virtual-scroller
                 [items]="rows()"
                 [itemSize]="208"
@@ -24,6 +24,6 @@
             </ui-virtual-scroller>
         </div>
     } @else if (showNoResults()) {
-        <div class="pictures-page__empty">Ничего не найдено</div>
+        <div class="pictures-page__empty" data-testid="pictures-empty">Ничего не найдено</div>
     }
 </div>

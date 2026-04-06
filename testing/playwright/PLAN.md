@@ -42,13 +42,19 @@ testing/
       index.ts                       # Реэкспорт всех фабрик
       users.ts                       # Мок-пользователи
       common.ts                      # Общие хелперы (apiSuccess, apiError)
+      pictures.ts                    # Фабрики для иллюстраций (createPictureDto, etc.)
     pages/                           # Page Object Models
       base.page.ts                   # Абстрактный BasePage с waitForReady()
       layout.page.ts                 # Header, sidebar, account dropdown
+      picture-gallery.page.ts        # Галерея иллюстраций
+      picture-detail.page.ts         # Детальная страница иллюстрации
     helpers/                         # Утилиты
       notification.ts                # Хелпер для работы с snackbar-нотификациями
     tests/                           # Тесты (по фичам)
       smoke.spec.ts                  # Smoke-тест
+      pictures/
+        picture-gallery.spec.ts      # Галерея: отображение, поиск, пагинация, ошибки
+        picture-detail.spec.ts       # Деталь: метаданные, статьи, редактирование, 404
 ```
 
 ---
@@ -167,48 +173,51 @@ testing/
 
 `LayoutPage` дополнен `logoutButton` + `clickLogout()`. `mockLogoutError` fixture. `data-testid="logout-button"` в account-dropdown шаблоне. 2 теста logout (успех + ошибка сервера), 3 теста auth-guard (redirect неавторизованного, returnUrl, доступ авторизованного).
 
-### D4: Layout — header, sidebar
+### D4: Pictures ✅
+
+Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`, `createPicturesListResponse`, `createPictureArticleDto`, `mockPictureData`. Fixture functions: `mockPicturesApi`, `mockPicturesEmpty`, `mockPicturesError`, `mockPicturesSearch`, `mockPictureDetail`, `mockPictureNotFound`, `mockPictureDetailError`, `mockPictureArticles`, `mockPictureUpdateTitle`, `mockPictureUpdateTitlePending`, `mockPictureThumbs`. Page Objects: `PictureGalleryPage`, `PictureDetailPage`. `data-testid` добавлены в `picture-page` (page, loading, gallery, empty) и `picture-search-bar`.
+
+- [x] Mock factories: pictures list, picture detail, articles
+- [x] `PictureGalleryPage`, `PictureDetailPage` page objects
+- [x] Image mock helper (placeholder для `/pictures/thumbs/**` и `/pictures/full/**`)
+- [x] `data-testid` в gallery компоненты (`pictures-page`, `pictures-loading`, `pictures-gallery`, `pictures-empty`, `pictures-search-bar`)
+- [x] `tests/pictures/picture-gallery.spec.ts` — 8 тестов: отображение, поиск (с результатами + пустой), пустое состояние, ошибка сервера, пагинация
+- [x] `tests/pictures/picture-detail.spec.ts` — 13 тестов: изображение/заголовок/автор/размеры, связанные статьи (есть/пусто/ошибка), редактирование заголовка (модератор/pending), 404/ошибка/невалидный ID, скрытие размеров
+- [ ] `tests/pictures/picture-moderation.spec.ts` — отложено (компонент модерации ещё не реализован)
+
+### D5: Layout — header, sidebar
 - [ ] `data-testid` в header, sidebar, theme-toggle, font-scale-control
 - [ ] `tests/layout/header.spec.ts` — имя пользователя, account dropdown
 - [ ] `tests/layout/sidebar.spec.ts` — навигация, collapsed/expanded, сохранение состояния
 - [ ] `tests/layout/theme.spec.ts` — переключение темы, сохранение
 - [ ] `tests/layout/font-scale.spec.ts` — изменение масштаба, границы, сохранение
 
-### D5: Main page
+### D6: Main page
 - [ ] Mock factories: articles list (`mocks/articles.ts`)
 - [ ] `MainPage` page object
 - [ ] `data-testid` в main page компоненты
 - [ ] `tests/main-page.spec.ts` — отображение, список статей, пустой список, ошибка, навигация к статье
 
-### D6: Article — просмотр
+### D7: Article — просмотр
 - [ ] Mock factories: article detail, article version
 - [ ] `ArticlePage` page object
 - [ ] `data-testid` в article-view, article-tabs
 - [ ] `tests/article/article-view.spec.ts` — заголовок, содержимое, 404, ошибка, версия
 - [ ] `tests/article/article-tabs.spec.ts` — переключение табов, история, ссылки сюда
 
-### D7: Article — редактирование
+### D8: Article — редактирование
 - [ ] `ArticleEditPage` page object
 - [ ] Mock: save, preview, inwork, moderate endpoints
 - [ ] `data-testid` в article-edit, moderation компоненты
 - [ ] `tests/article/article-edit.spec.ts` — редактор, сохранение, ошибки, preview, auto-save
 - [ ] `tests/article/article-moderation.spec.ts` — кнопки модерации, одобрение/отклонение
 
-### D8: History + Diff
+### D9: History + Diff
 - [ ] Mock factories: history list, version pairs
 - [ ] `HistoryPage`, `DiffPage` page objects
 - [ ] `data-testid` в history, diff компоненты
 - [ ] `tests/history/history-page.spec.ts` — табы, пагинация, пустой список
 - [ ] `tests/history/diff-page.spec.ts` — сравнение версий, diff-разметка
-
-### D9: Pictures
-- [ ] Mock factories: pictures list, picture detail, pending
-- [ ] `PictureGalleryPage`, `PictureDetailPage` page objects
-- [ ] Image mock helper (placeholder для `/pictures/thumbs/**`)
-- [ ] `data-testid` в gallery, detail, moderation компоненты
-- [ ] `tests/pictures/picture-gallery.spec.ts` — masonry, поиск, пагинация
-- [ ] `tests/pictures/picture-detail.spec.ts` — метаданные, связанные статьи, 404
-- [ ] `tests/pictures/picture-moderation.spec.ts` — pending, approve/reject
 
 ### D10: Editor + Search
 - [ ] `tests/editor/editor.spec.ts` — загрузка iframe, доступ
@@ -236,7 +245,7 @@ testing/
 3. **V8 coverage только в Chromium** — Firefox/WebKit только для кроссбраузерной проверки.
 4. **E2E остаются в `apps/client-e2e/`** — integration-тесты отдельно (`yarn test:playwright`).
 5. **CI без Docker** — бэкенд замокирован, Docker избыточен.
-6. **Приоритет фич**: auth → layout → main → article → history → pictures → editor → search.
+6. **Приоритет фич**: auth → pictures → layout → main → article → history → editor → search.
 7. **Полнота тестов** — happy path + error states + edge cases для каждой фичи.
 8. **Visual regression отложен** — с placeholder-данными ценность скриншот-тестов низкая.
 9. **Fixture-функции вместо builder-класса** — идиоматичный Playwright-подход.
