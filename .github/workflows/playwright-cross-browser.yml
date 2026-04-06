@@ -1,0 +1,91 @@
+name: Playwright Cross-Browser Tests
+
+permissions:
+    contents: read
+
+on:
+    workflow_dispatch:
+        inputs:
+            browsers:
+                description: 'Browser projects to run'
+                required: true
+                default: 'all'
+                type: choice
+                options:
+                    - all
+                    - firefox
+                    - webkit
+                    - mobile-chrome
+                    - mobile-safari
+
+jobs:
+    cross-browser-tests:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Cache Playwright browsers
+              id: playwright-cache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: playwright-all-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+                  restore-keys: |
+                      playwright-all-${{ runner.os }}-
+
+            - name: Install all Playwright browsers
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
+              run: npx playwright install --with-deps
+
+            - name: Install Playwright deps (cached)
+              if: steps.playwright-cache.outputs.cache-hit == 'true'
+              run: npx playwright install-deps
+
+            - name: Build application
+              run: yarn nx run client:build:coverage
+
+            - name: Copy index.html for SPA routing
+              run: cp dist/apps/client/browser/index.csr.html dist/apps/client/browser/index.html
+
+            - name: Determine projects
+              id: projects
+              run: |
+                  if [ "${{ inputs.browsers }}" = "all" ]; then
+                    echo "flags=--project=chromium --project=firefox --project=webkit --project=mobile-chrome --project=mobile-safari" >> $GITHUB_OUTPUT
+                  else
+                    echo "flags=--project=${{ inputs.browsers }}" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Run cross-browser tests
+              run: |
+                  npx serve dist/apps/client/browser -l 4200 -s &
+                  yarn wait-on http://localhost:4200 --timeout 30000
+                  npx playwright test --config=testing/playwright/playwright.config.ts ${{ steps.projects.outputs.flags }}
+              env:
+                  CI: true
+                  BASE_URL: http://localhost:4200
+
+            - name: Upload test report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: cross-browser-report-${{ inputs.browsers }}
+                  path: testing/playwright/playwright-report/
+                  retention-days: 14
+
+            - name: Upload test results
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: cross-browser-test-results-${{ inputs.browsers }}
+                  path: testing/playwright/test-results/
+                  retention-days: 7

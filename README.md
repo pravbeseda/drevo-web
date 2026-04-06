@@ -1,4 +1,5 @@
 [![Coverage](https://img.shields.io/endpoint?url=https://pravbeseda.github.io/drevo-web/badge.json)](https://pravbeseda.github.io/drevo-web/)
+[![Playwright](https://img.shields.io/endpoint?url=https://pravbeseda.github.io/drevo-web/badge-integration.json)](https://pravbeseda.github.io/drevo-web/integration/index.html)
 
 # Drevo-Web
 

@@ -64,6 +64,13 @@
                     "optimization": false,
                     "extractLicenses": false,
                     "sourceMap": true
+                },
+                "coverage": {
+                    "optimization": false,
+                    "extractLicenses": false,
+                    "sourceMap": true,
+                    "outputMode": "static",
+                    "ssr": false
                 }
             },
             "defaultConfiguration": "production"
