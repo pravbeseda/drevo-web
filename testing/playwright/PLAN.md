@@ -149,100 +149,84 @@ testing/
 
 ---
 
-## Deliverable 1.5: Coverage + CI + кроссбраузерность ✅
+## Выполнено
 
-### Coverage
+### Deliverable 1.5: Инфраструктура + Coverage + CI + кроссбраузерность ✅
 
-- **Инструмент**: `monocart-reporter` + `monocart-coverage-reports` — V8 coverage с source maps
-- **Build**: конфигурация `coverage` в `apps/client/project.json` — `sourceMap: true`, `optimization: false`, `outputMode: "static"`, без SSR
-- **Reporter**: `monocart-reporter` в `playwright.config.ts`, активируется при `COVERAGE=true`
-- **Fixture**: `coverage.fixture.ts` — auto-fixture, собирает V8 JS coverage через `page.coverage` API и передаёт в monocart через `addCoverageReport()`
-- **Фильтрация**: entryFilter по `localhost:4200`, sourceFilter по `apps/` и `libs/` (без `node_modules`)
-- **Отчёты**: `v8` (HTML) + `console-details` (таблица в консоли)
-- **Команда**: `yarn test:playwright:coverage`
-- **V8 coverage только в Chromium** — ограничение API
-- **Порог**: нет — только отчёт, порог добавим позже
-- **Serving**: Angular 21 с `outputMode: "static"` генерирует `index.csr.html` → копируем в `index.html` для SPA-routing через `serve -s`
-
-### CI: integration-тесты при PR
-
-Workflow `.github/workflows/playwright.yml` — на PR в `main` и push в `main`.
-
-- **Build**: `nx build client --configuration=coverage` (через webServer в playwright.config)
-- **Serve**: `serve` (devDependency) с `-s` для SPA fallback
-- **Browsers**: только Chromium (кэшируется через `actions/cache`)
-- **Coverage**: собирается в том же прогоне
-- **Артефакты**: `playwright-report`, `playwright-coverage` (always), `playwright-test-results` (on failure)
-- **Timeout**: 15 минут
-
-### Кроссбраузерность
-
-#### Проекты в `playwright.config.ts`
-
-| Проект | Device | Engine | Когда запускается |
-|--------|--------|--------|-------------------|
-| `chromium` | Desktop Chrome | Chromium | Каждый PR (+ coverage) |
-| `firefox` | Desktop Firefox | Gecko | Вручную (workflow_dispatch) |
-| `webkit` | Desktop Safari | WebKit | Вручную (workflow_dispatch) |
-| `mobile-chrome` | Pixel 5 | Chromium | Вручную (workflow_dispatch) |
-| `mobile-safari` | iPhone 13 | WebKit | Вручную (workflow_dispatch) |
-
-#### Стратегия запуска
-
-- **На каждый PR**: только `chromium` — быстрая обратная связь + coverage
-- **Вручную** (`workflow_dispatch`): `.github/workflows/playwright-cross-browser.yml` — полный набор или отдельный браузер
-- **Параметр `browsers`**: `all` (по умолчанию) / `firefox` / `webkit` / `mobile-chrome` / `mobile-safari`
-- **Timeout**: 30 минут (cross-browser)
-
-### Скрипты в `package.json`
-
-```bash
-yarn test:playwright            # Chromium (по умолчанию)
-yarn test:playwright:coverage   # Chromium + V8 coverage
-yarn test:playwright:firefox    # Firefox
-yarn test:playwright:webkit     # WebKit (Safari)
-yarn test:playwright:mobile     # Mobile Chrome + Mobile Safari
-yarn test:playwright:all        # Все 5 проектов
-yarn test:playwright:ui         # Playwright UI mode
-yarn test:playwright:headed     # Headed mode
-```
+Создана полная инфраструктура: конфигурация Playwright (5 проектов), fixture-система (auth, coverage, mock-api), Page Objects (BasePage, LayoutPage), моки (users, common), smoke-тест. Coverage через monocart-reporter + V8 API. CI: `playwright.yml` (Chromium на PR) + `playwright-cross-browser.yml` (все браузеры, workflow_dispatch). Скрипты в package.json для всех режимов запуска.
 
 ---
 
-## Roadmap
+## Deliverables
 
-### Phase 1: Auth + Layout
-- [ ] Page objects: `LoginPage`
-- [ ] Тесты: login, logout, auth-guard, header, sidebar, theme, font-scale
-- [ ] Image mock helper
-- [ ] `data-testid` для всех затронутых компонентов
+### D2: Login page — тесты авторизации ✅
 
-### Phase 2: Main + Article (просмотр)
-- [ ] Mock factories: articles
-- [ ] Page objects: `MainPage`, `ArticlePage`
-- [ ] Тесты: main-page, article-view, article-tabs
+`LoginPage` PO, `mockLoginSuccess`/`mockLoginError` fixtures, `data-testid` в login template. 17 тестов: форма/валидация, happy path с редиректом, returnUrl (включая open redirect protection), ошибки (INVALID_CREDENTIALS, ACCOUNT_NOT_ACTIVE, 500), loading state.
 
-### Phase 3: Article (редактирование) + History
-- [ ] Mock factories: history
-- [ ] Page objects: `ArticleEditPage`, `DiffPage`, `HistoryPage`
-- [ ] Тесты: article-edit, article-moderation, article-history, history-page, diff-page
+### D3: Logout + Auth guard
+- [ ] `tests/auth/logout.spec.ts` — клик "Выйти" → редирект на /login, ошибка logout
+- [ ] `tests/auth/auth-guard.spec.ts` — редирект неавторизованного, сохранение returnUrl, доступ авторизованного
+- [ ] Дополнить `LayoutPage` методами для account dropdown (кнопка "Выйти")
 
-### Phase 4: Pictures
-- [ ] Mock factories: pictures
-- [ ] Page objects: `PictureGalleryPage`, `PictureDetailPage`
-- [ ] Тесты: picture-gallery, picture-detail, picture-moderation
+### D4: Layout — header, sidebar
+- [ ] `data-testid` в header, sidebar, theme-toggle, font-scale-control
+- [ ] `tests/layout/header.spec.ts` — имя пользователя, account dropdown
+- [ ] `tests/layout/sidebar.spec.ts` — навигация, collapsed/expanded, сохранение состояния
+- [ ] `tests/layout/theme.spec.ts` — переключение темы, сохранение
+- [ ] `tests/layout/font-scale.spec.ts` — изменение масштаба, границы, сохранение
 
-### Phase 5: Editor + Search
-- [ ] Тесты: editor, search
+### D5: Main page
+- [ ] Mock factories: articles list (`mocks/articles.ts`)
+- [ ] `MainPage` page object
+- [ ] `data-testid` в main page компоненты
+- [ ] `tests/main-page.spec.ts` — отображение, список статей, пустой список, ошибка, навигация к статье
 
-### Phase 6: Полировка
-- [ ] Добавить порог coverage когда достаточно тестов (monocart поддерживает `watermarks`)
-- [ ] Badge `integration coverage` на GitHub Pages (интеграция с `coverage.yml`)
+### D6: Article — просмотр
+- [ ] Mock factories: article detail, article version
+- [ ] `ArticlePage` page object
+- [ ] `data-testid` в article-view, article-tabs
+- [ ] `tests/article/article-view.spec.ts` — заголовок, содержимое, 404, ошибка, версия
+- [ ] `tests/article/article-tabs.spec.ts` — переключение табов, история, ссылки сюда
+
+### D7: Article — редактирование
+- [ ] `ArticleEditPage` page object
+- [ ] Mock: save, preview, inwork, moderate endpoints
+- [ ] `data-testid` в article-edit, moderation компоненты
+- [ ] `tests/article/article-edit.spec.ts` — редактор, сохранение, ошибки, preview, auto-save
+- [ ] `tests/article/article-moderation.spec.ts` — кнопки модерации, одобрение/отклонение
+
+### D8: History + Diff
+- [ ] Mock factories: history list, version pairs
+- [ ] `HistoryPage`, `DiffPage` page objects
+- [ ] `data-testid` в history, diff компоненты
+- [ ] `tests/history/history-page.spec.ts` — табы, пагинация, пустой список
+- [ ] `tests/history/diff-page.spec.ts` — сравнение версий, diff-разметка
+
+### D9: Pictures
+- [ ] Mock factories: pictures list, picture detail, pending
+- [ ] `PictureGalleryPage`, `PictureDetailPage` page objects
+- [ ] Image mock helper (placeholder для `/pictures/thumbs/**`)
+- [ ] `data-testid` в gallery, detail, moderation компоненты
+- [ ] `tests/pictures/picture-gallery.spec.ts` — masonry, поиск, пагинация
+- [ ] `tests/pictures/picture-detail.spec.ts` — метаданные, связанные статьи, 404
+- [ ] `tests/pictures/picture-moderation.spec.ts` — pending, approve/reject
+
+### D10: Editor + Search
+- [ ] `tests/editor/editor.spec.ts` — загрузка iframe, доступ
+- [ ] `SearchPage` page object
+- [ ] `tests/search/search.spec.ts` — результаты, пустой, debounce, навигация
+
+### D11: Полировка
+- [ ] Порог coverage (monocart `watermarks`)
+- [ ] Badge `integration coverage` на GitHub Pages
+- [ ] CSS coverage в coverage fixture
 - [ ] Документация для разработчиков
-- [ ] Добавить CSS coverage в coverage fixture (рядом с JS coverage)
 
-### Миграция из client-e2e
-По мере реализации фаз — тесты с замоканным API переносятся из `apps/client-e2e/` в `testing/playwright/`. В `client-e2e` остаются только E2E-тесты с реальным бэкендом.
+---
+
+## Миграция из client-e2e
+
+По мере реализации deliverables — тесты с замоканным API переносятся из `apps/client-e2e/` в `testing/playwright/`. В `client-e2e` остаются только E2E-тесты с реальным бэкендом.
 
 ---
 
@@ -253,7 +237,7 @@ yarn test:playwright:headed     # Headed mode
 3. **V8 coverage только в Chromium** — Firefox/WebKit только для кроссбраузерной проверки.
 4. **E2E остаются в `apps/client-e2e/`** — integration-тесты отдельно (`yarn test:playwright`).
 5. **CI без Docker** — бэкенд замокирован, Docker избыточен.
-6. **Приоритет фич**: auth → main → article → picture → history → editor → search.
+6. **Приоритет фич**: auth → layout → main → article → history → pictures → editor → search.
 7. **Полнота тестов** — happy path + error states + edge cases для каждой фичи.
 8. **Visual regression отложен** — с placeholder-данными ценность скриншот-тестов низкая.
 9. **Fixture-функции вместо builder-класса** — идиоматичный Playwright-подход.

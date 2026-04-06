@@ -3,16 +3,19 @@
         <h1>Вход</h1>
 
         <form
+            data-testid="login-form"
             [formGroup]="loginForm"
             (ngSubmit)="onSubmit()"
         >
             <ui-text-input
+                data-testid="username-input"
                 label="Логин"
                 autocomplete="username"
                 formControlName="username"
             />
 
             <ui-text-input
+                data-testid="password-input"
                 label="Пароль"
                 type="password"
                 autocomplete="current-password"
@@ -20,12 +23,14 @@
             />
 
             <ui-checkbox
+                data-testid="remember-me-checkbox"
                 label="Запомнить меня"
                 formControlName="rememberMe"
             />
 
             @if (errorMessage()) {
                 <div
+                    data-testid="error-message"
                     class="error-message"
                     role="alert"
                 >
@@ -34,6 +39,7 @@
             }
 
             <ui-button
+                data-testid="submit-button"
                 type="submit"
                 accent="primary"
                 [loading]="isSubmitting()"
