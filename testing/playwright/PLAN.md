@@ -163,10 +163,9 @@ testing/
 
 `LoginPage` PO, `mockLoginSuccess`/`mockLoginError` fixtures, `data-testid` в login template. 15 тестов: форма/валидация, happy path с редиректом, returnUrl (включая open redirect protection), ошибки (INVALID_CREDENTIALS, ACCOUNT_NOT_ACTIVE, 500), loading state.
 
-### D3: Logout + Auth guard
-- [ ] `tests/auth/logout.spec.ts` — клик "Выйти" → редирект на /login, ошибка logout
-- [ ] `tests/auth/auth-guard.spec.ts` — редирект неавторизованного, сохранение returnUrl, доступ авторизованного
-- [ ] Дополнить `LayoutPage` методами для account dropdown (кнопка "Выйти")
+### D3: Logout + Auth guard ✅
+
+`LayoutPage` дополнен `logoutButton` + `clickLogout()`. `mockLogoutError` fixture. `data-testid="logout-button"` в account-dropdown шаблоне. 2 теста logout (успех + ошибка сервера), 3 теста auth-guard (redirect неавторизованного, returnUrl, доступ авторизованного).
 
 ### D4: Layout — header, sidebar
 - [ ] `data-testid` в header, sidebar, theme-toggle, font-scale-control

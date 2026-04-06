@@ -66,6 +66,17 @@ export async function mockLoginError(
     );
 }
 
+/** Mock POST /api/auth/logout — server error (logout still clears local state) */
+export async function mockLogoutError(page: Page, status = 500): Promise<void> {
+    await page.unroute('**/api/auth/logout');
+    await page.route('**/api/auth/logout', route =>
+        route.fulfill({
+            status,
+            json: apiError('Internal server error'),
+        }),
+    );
+}
+
 /** Mock a specific endpoint with a server error */
 export async function mockApiError(page: Page, pattern: string, status: number, message: string): Promise<void> {
     await page.route(pattern, route =>
