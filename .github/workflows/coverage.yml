@@ -53,6 +53,10 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit == 'true'
               run: npx playwright install-deps chromium
 
+            # Save unit coverage before Playwright (monocart-reporter cleans coverage/ dir)
+            - name: Save unit coverage
+              run: cp -r coverage coverage-unit
+
             - name: Run integration tests with coverage
               run: yarn test:playwright:coverage
               env:
@@ -68,7 +72,7 @@ jobs:
                   TOTAL_LINES=0
                   COVERED_LINES=0
 
-                  for dir in coverage/apps/* coverage/libs/*; do
+                  for dir in coverage-unit/apps/* coverage-unit/libs/*; do
                     if [ -f "$dir/coverage-summary.json" ]; then
                       LINES=$(jq '.total.lines.total' "$dir/coverage-summary.json")
                       COVERED=$(jq '.total.lines.covered' "$dir/coverage-summary.json")
@@ -96,7 +100,7 @@ jobs:
                   cat > coverage/merged/badge.json << EOF
                   {
                     "schemaVersion": 1,
-                    "label": "coverage",
+                    "label": "unit",
                     "message": "${UNIT_PCT}%",
                     "color": "$UNIT_COLOR"
                   }
@@ -161,10 +165,12 @@ jobs:
                   </html>
                   HTMLEOF
 
-                  # Copy all HTML reports to merged directory
-                  cp -r coverage/apps coverage/merged/ 2>/dev/null || true
-                  cp -r coverage/libs coverage/merged/ 2>/dev/null || true
+                  # Copy unit HTML reports from saved directory
+                  cp -r coverage-unit/apps coverage/merged/ 2>/dev/null || true
+                  cp -r coverage-unit/libs coverage/merged/ 2>/dev/null || true
+                  # Copy integration reports + monocart assets (JS app for coverage viewer)
                   cp -r coverage/integration coverage/merged/ 2>/dev/null || true
+                  cp -r coverage/assets coverage/merged/ 2>/dev/null || true
 
             - name: Setup Pages
               uses: actions/configure-pages@v4
