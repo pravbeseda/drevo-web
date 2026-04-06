@@ -1,5 +1,5 @@
 import { apiError, apiSuccess, mockUsers } from '../mocks';
-import { createPictureDtoList, createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
+import { createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
 import { PictureDto, PicturesListResponseDto, User } from '@drevo-web/shared';
 import { Page } from '@playwright/test';
 
