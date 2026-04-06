@@ -5,13 +5,10 @@ const isCI = !!process.env['CI'];
 const isCoverage = !!process.env['COVERAGE'];
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
 
-const buildCommand = isCoverage
-    ? 'yarn nx run client:build:coverage'
-    : 'yarn nx run client:serve --no-hmr';
-
 const webServerConfig = isCoverage
     ? {
-          command: `${buildCommand} && cp dist/apps/client/browser/index.csr.html dist/apps/client/browser/index.html && npx serve dist/apps/client/browser -l 4200 -s`,
+          command:
+              'yarn nx run client:build:coverage && cp dist/apps/client/browser/index.csr.html dist/apps/client/browser/index.html && npx serve dist/apps/client/browser -l 4200 -s',
           url: 'http://localhost:4200',
           reuseExistingServer: !isCI,
           cwd: workspaceRoot,
@@ -62,7 +59,7 @@ export default defineConfig({
         video: 'retain-on-failure',
     },
 
-    webServer: webServerConfig,
+    webServer: process.env['BASE_URL'] ? undefined : webServerConfig,
 
     projects: [
         {

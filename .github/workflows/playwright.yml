@@ -59,7 +59,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: playwright-coverage
-                  path: coverage/coverage/
+                  path: coverage/integration/
                   retention-days: 14
 
             - name: Upload test results

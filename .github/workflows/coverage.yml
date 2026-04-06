@@ -35,6 +35,7 @@ jobs:
 
             # --- Integration coverage ---
 
+            # TODO: extract Playwright cache+install steps into .github/actions/setup-playwright composite action
             - name: Cache Playwright browsers
               id: playwright-cache
               uses: actions/cache@v4

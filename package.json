@@ -107,6 +107,7 @@
         "tslib": "^2.3.0",
         "typescript": "5.9.3",
         "typescript-eslint": "^8.33.1",
+        "wait-on": "^9.0.4",
         "zone.js": "0.16.0"
     }
 }

@@ -68,7 +68,7 @@ jobs:
             - name: Run cross-browser tests
               run: |
                   npx serve dist/apps/client/browser -l 4200 -s &
-                  npx wait-on http://localhost:4200 --timeout 30000
+                  yarn wait-on http://localhost:4200 --timeout 30000
                   npx playwright test --config=testing/playwright/playwright.config.ts ${{ steps.projects.outputs.flags }}
               env:
                   CI: true
