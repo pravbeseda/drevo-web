@@ -28,14 +28,42 @@ jobs:
             - name: Install dependencies
               run: yarn install --frozen-lockfile
 
-            - name: Run tests with coverage
+            # --- Unit coverage ---
+
+            - name: Run unit tests with coverage
               run: yarn test:coverage
+
+            # --- Integration coverage ---
+
+            - name: Cache Playwright browsers
+              id: playwright-cache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+                  restore-keys: |
+                      playwright-${{ runner.os }}-
+
+            - name: Install Playwright Chromium
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
+              run: npx playwright install chromium --with-deps
+
+            - name: Install Playwright deps (cached)
+              if: steps.playwright-cache.outputs.cache-hit == 'true'
+              run: npx playwright install-deps chromium
+
+            - name: Run integration tests with coverage
+              run: yarn test:playwright:coverage
+              env:
+                  CI: true
+
+            # --- Merge reports ---
 
             - name: Merge coverage reports
               run: |
                   mkdir -p coverage/merged
 
-                  # Find all coverage directories and merge json-summary
+                  # --- Unit coverage badge ---
                   TOTAL_LINES=0
                   COVERED_LINES=0
 
@@ -49,32 +77,56 @@ jobs:
                   done
 
                   if [ $TOTAL_LINES -gt 0 ]; then
-                    PERCENTAGE=$(echo "scale=2; $COVERED_LINES * 100 / $TOTAL_LINES" | bc)
+                    UNIT_PCT=$(echo "scale=2; $COVERED_LINES * 100 / $TOTAL_LINES" | bc)
                   else
-                    PERCENTAGE=0
+                    UNIT_PCT=0
                   fi
 
-                  echo "Coverage: $PERCENTAGE%"
+                  echo "Unit coverage: $UNIT_PCT%"
 
-                  # Create badge JSON for shields.io
-                  if (( $(echo "$PERCENTAGE >= 80" | bc -l) )); then
-                    COLOR="brightgreen"
-                  elif (( $(echo "$PERCENTAGE >= 60" | bc -l) )); then
-                    COLOR="yellow"
+                  if (( $(echo "$UNIT_PCT >= 80" | bc -l) )); then
+                    UNIT_COLOR="brightgreen"
+                  elif (( $(echo "$UNIT_PCT >= 60" | bc -l) )); then
+                    UNIT_COLOR="yellow"
                   else
-                    COLOR="red"
+                    UNIT_COLOR="red"
                   fi
 
                   cat > coverage/merged/badge.json << EOF
                   {
                     "schemaVersion": 1,
                     "label": "coverage",
-                    "message": "${PERCENTAGE}%",
-                    "color": "$COLOR"
+                    "message": "${UNIT_PCT}%",
+                    "color": "$UNIT_COLOR"
                   }
                   EOF
 
-                  # Create index.html that lists all coverage reports
+                  # --- Integration coverage badge ---
+                  INT_PCT=0
+                  INT_SUMMARY="coverage/integration/coverage-summary.json"
+                  if [ -f "$INT_SUMMARY" ]; then
+                    INT_PCT=$(jq '.total.lines.pct' "$INT_SUMMARY")
+                    echo "Integration coverage: $INT_PCT%"
+                  fi
+
+                  if (( $(echo "$INT_PCT >= 80" | bc -l) )); then
+                    INT_COLOR="brightgreen"
+                  elif (( $(echo "$INT_PCT >= 60" | bc -l) )); then
+                    INT_COLOR="yellow"
+                  else
+                    INT_COLOR="red"
+                  fi
+
+                  cat > coverage/merged/badge-integration.json << EOF
+                  {
+                    "schemaVersion": 1,
+                    "label": "playwright",
+                    "message": "${INT_PCT}%",
+                    "color": "$INT_COLOR"
+                  }
+                  EOF
+
+                  # --- Index page ---
                   cat > coverage/merged/index.html << 'HTMLEOF'
                   <!DOCTYPE html>
                   <html>
@@ -83,6 +135,7 @@ jobs:
                     <style>
                       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
                       h1 { color: #333; }
+                      h2 { color: #555; margin-top: 30px; }
                       ul { list-style: none; padding: 0; }
                       li { margin: 10px 0; }
                       a { color: #0366d6; text-decoration: none; font-size: 18px; }
@@ -91,12 +144,17 @@ jobs:
                   </head>
                   <body>
                     <h1>Coverage Reports</h1>
+                    <h2>Unit Tests (Jest)</h2>
                     <ul>
                       <li><a href="apps/client/index.html">client</a></li>
                       <li><a href="libs/core/index.html">core</a></li>
                       <li><a href="libs/editor/index.html">editor</a></li>
                       <li><a href="libs/shared/index.html">shared</a></li>
                       <li><a href="libs/ui/index.html">ui</a></li>
+                    </ul>
+                    <h2>Integration Tests (Playwright)</h2>
+                    <ul>
+                      <li><a href="integration/index.html">Integration Coverage Report</a></li>
                     </ul>
                   </body>
                   </html>
@@ -105,6 +163,7 @@ jobs:
                   # Copy all HTML reports to merged directory
                   cp -r coverage/apps coverage/merged/ 2>/dev/null || true
                   cp -r coverage/libs coverage/merged/ 2>/dev/null || true
+                  cp -r coverage/integration coverage/merged/ 2>/dev/null || true
 
             - name: Setup Pages
               uses: actions/configure-pages@v4

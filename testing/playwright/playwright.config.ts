@@ -33,11 +33,12 @@ if (isCoverage) {
             name: 'Playwright Coverage Report',
             outputFile: './coverage/report.html',
             coverage: {
+                outputDir: './coverage/integration',
                 entryFilter: (entry: { url: string }) => entry.url.includes('localhost:4200'),
                 sourceFilter: (sourcePath: string) =>
                     (sourcePath.startsWith('apps/') || sourcePath.startsWith('libs/')) &&
                     !sourcePath.includes('node_modules'),
-                reports: ['v8', 'console-details'],
+                reports: ['v8', 'console-details', 'json-summary'],
             },
         },
     ]);
