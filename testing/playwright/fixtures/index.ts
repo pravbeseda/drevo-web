@@ -5,5 +5,6 @@ export {
     mockUnauthenticatedApi,
     mockLoginSuccess,
     mockLoginError,
+    mockLogoutError,
     mockApiError,
 } from './mock-api.fixture';
