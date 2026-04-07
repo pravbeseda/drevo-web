@@ -223,6 +223,8 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 5. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
 6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 7. **No `title` attribute** — use `matTooltip` for visual hints or `aria-label` for accessible name without visual hint
+8. **Test-first bug fixing** — when a bug is reported and existing tests pass, first write a failing test (unit or Playwright, whichever fits) that asserts the correct behavior. Only then fix the bug until the test passes. This ensures every bug fix is covered by a regression test
+9. **Failing tests are a red flag, not an obstacle** — if code changes cause an existing test to fail, do NOT simply fix the test to make it pass. First investigate whether the new code broke expected behavior. Only modify the test if the behavioral change is intentional and justified (e.g. a deliberate API change, not a side effect). When in doubt, fix the code, not the test
 
 ## Key Patterns
 
@@ -358,6 +360,61 @@ describe('MyComponent', () => {
   });
 });
 ```
+
+## Integration Testing (Playwright)
+
+Standalone Playwright test suite in `testing/playwright/` — **separate from** `apps/client-e2e/`. Tests run against the dev server with **mocked API** (no real backend required).
+
+### Structure
+
+```
+testing/playwright/
+  playwright.config.ts         # Config: 5 projects (chromium, firefox, webkit, mobile-chrome, mobile-safari)
+  fixtures/                    # Playwright fixtures (auth, mock-api, coverage)
+    auth.fixture.ts            # authenticatedPage / unauthenticatedPage fixtures
+    mock-api.fixture.ts        # API mock helpers (mockAuthApi, mockPicturesApi, etc.)
+    coverage.fixture.ts        # Code coverage collection
+    index.ts                   # Re-exports all fixtures
+  pages/                       # Page Object Model
+    base.page.ts               # Abstract BasePage with waitForReady()
+    login.page.ts
+    layout.page.ts
+    picture-gallery.page.ts
+    picture-detail.page.ts
+  mocks/                       # Mock data factories
+    common.ts                  # apiSuccess(), apiError() wrappers
+    users.ts                   # mockUsers
+    pictures.ts                # createPictureDto(), createPictureDtoList(), etc.
+    index.ts                   # Re-exports
+  helpers/                     # Shared test helpers
+    notification.ts            # getNotification() helper
+  tests/                       # Test specs organized by feature
+    smoke.spec.ts
+    auth/
+    pictures/
+```
+
+### Commands
+
+```bash
+yarn test:playwright               # Run in Chromium only
+yarn test:playwright:all           # All 5 browser projects
+yarn test:playwright:firefox       # Firefox only
+yarn test:playwright:webkit        # WebKit only
+yarn test:playwright:mobile        # Mobile Chrome + Mobile Safari
+yarn test:playwright:ui            # Playwright UI mode
+yarn test:playwright:headed        # Headed mode (visible browser)
+yarn test:playwright:coverage      # With code coverage (monocart-reporter)
+```
+
+### Conventions
+
+1. **Always import `test` and `expect` from `fixtures/`** — not from `@playwright/test` directly. The custom `test` provides `authenticatedPage` / `unauthenticatedPage` fixtures with pre-configured API mocks
+2. **Page Object Model** — all page interactions go through PO classes extending `BasePage`. Each PO implements `waitForReady()` for page readiness
+3. **Mock data via factories** — use `createPictureDto()`, `createPictureDtoList()` etc. from `mocks/` to generate test data
+4. **API mocking via `page.route()`** — mock helpers in `fixtures/mock-api.fixture.ts` intercept API requests at the network level
+5. **Element selectors via `data-testid`** — same convention as unit tests
+6. **Tests organized by feature** — mirror the app's feature structure in `tests/` subdirectories
 
 ## Logging
 
