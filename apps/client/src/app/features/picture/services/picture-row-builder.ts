@@ -3,6 +3,8 @@ import { Picture } from '@drevo-web/shared';
 const DEFAULT_ASPECT_RATIO = 3 / 4;
 // Keep in sync with $picture-gap in picture-row.component.scss
 const GAP = 8;
+// Guard against floating-point residuals in uncappedAspectSum after iterated subtractions
+const ASPECT_SUM_EPSILON = 1e-9;
 // Keep in sync with legacy ImageHelper.php resize(400, 400)
 const THUMB_MAX_WIDTH = 400;
 const THUMB_MAX_HEIGHT = 400;
@@ -97,11 +99,7 @@ function getMaxDisplayHeight(picture: Picture): number {
  * Capped items (thumbnail-limited) contribute fixed width; uncapped items stretch to fill the rest.
  * Iterates because raising height for uncapped items may cause new items to hit their cap.
  */
-function finalizeRow(
-    items: readonly RowEntry[],
-    containerWidth: number,
-    fixedHeight?: number,
-): PictureRow {
+function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHeight?: number): PictureRow {
     const totalGap = (items.length - 1) * GAP;
     const availableWidth = containerWidth - totalGap;
 
@@ -116,7 +114,8 @@ function finalizeRow(
     let uncappedAspectSum = items.reduce((sum, item) => sum + item.aspectRatio, 0);
 
     for (let iter = 0; iter < items.length; iter++) {
-        const rowHeight = uncappedAspectSum > 0 ? (availableWidth - cappedWidthSum) / uncappedAspectSum : 0;
+        const rowHeight =
+            uncappedAspectSum > ASPECT_SUM_EPSILON ? (availableWidth - cappedWidthSum) / uncappedAspectSum : 0;
         let changed = false;
 
         for (let i = 0; i < items.length; i++) {
@@ -133,7 +132,7 @@ function finalizeRow(
     }
 
     const rowHeight =
-        uncappedAspectSum > 0
+        uncappedAspectSum > ASPECT_SUM_EPSILON
             ? (availableWidth - cappedWidthSum) / uncappedAspectSum
             : Math.min(...items.map(item => item.maxDisplayHeight));
 
