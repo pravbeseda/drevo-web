@@ -67,6 +67,13 @@ describe('VirtualScrollerComponent', () => {
     });
 
     describe('loadMore emission guards', () => {
+        // These tests exercise the scroll$ path (native scroll events → throttleTime).
+        // The rangeChange$ path (viewport.renderedRangeStream → debounceTime(0)), which fixes
+        // the wide-screen case where all items fit without scrolling, is not unit-testable here:
+        // JSDOM has no layout engine, so renderedRangeStream never emits in Jest.
+        // Wide-screen auto-load is covered by the Playwright test
+        // "auto-loads more pictures on wide viewport when all fit without scrolling".
+
         it('should NOT emit loadMore when isLoading is true', fakeAsync(() => {
             const loadMoreSpy = jest.fn();
 
