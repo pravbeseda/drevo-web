@@ -7,9 +7,9 @@ import {
     mockPicturesSearch,
     mockPictureThumbs,
 } from '../../fixtures';
-import { apiSuccess } from '../../mocks/common';
-import { createPictureDtoList, createPicturesListResponse } from '../../mocks/pictures';
+import { apiSuccess, createPictureDtoList, createPicturesListResponse } from '../../mocks';
 import { PictureGalleryPage } from '../../pages/picture-gallery.page';
+import { Page } from '@playwright/test';
 
 test.describe('Picture gallery', () => {
     let gallery: PictureGalleryPage;
@@ -116,26 +116,7 @@ test.describe('Picture gallery', () => {
 
     test.describe('Pagination', () => {
         test('loads more pictures when scrolling to the bottom', async ({ authenticatedPage: page }) => {
-            const page1Items = createPictureDtoList(25, 1);
-            const page1Response = createPicturesListResponse(page1Items, { total: 50, totalPages: 2 });
-
-            const page2Items = createPictureDtoList(25, 26);
-            const page2Response = createPicturesListResponse(page2Items, { total: 50, page: 2, totalPages: 2 });
-
-            await mockPictureThumbs(page);
-
-            // Route handler that returns page 1 or page 2 based on query param
-            await page.route(/\/api\/pictures(\?.*)?$/, route => {
-                const url = new URL(route.request().url());
-                const pageParam = url.searchParams.get('page');
-                const response = pageParam === '2' ? page2Response : page1Response;
-                return route.fulfill({ json: apiSuccess(response) });
-            });
-
-            gallery = new PictureGalleryPage(page);
-            await page.goto('/pictures');
-            await gallery.waitForReady();
-            await gallery.waitForGallery();
+            gallery = await setupPaginatedGallery(page);
 
             const initialCount = await gallery.cards.count();
 
@@ -157,25 +138,7 @@ test.describe('Picture gallery', () => {
             // Wide viewport: 2300x1100 — all 25 pictures fit, no scrollbar appears
             await page.setViewportSize({ width: 2300, height: 1100 });
 
-            const page1Items = createPictureDtoList(25, 1);
-            const page1Response = createPicturesListResponse(page1Items, { total: 50, totalPages: 2 });
-
-            const page2Items = createPictureDtoList(25, 26);
-            const page2Response = createPicturesListResponse(page2Items, { total: 50, page: 2, totalPages: 2 });
-
-            await mockPictureThumbs(page);
-
-            await page.route(/\/api\/pictures(\?.*)?$/, route => {
-                const url = new URL(route.request().url());
-                const pageParam = url.searchParams.get('page');
-                const response = pageParam === '2' ? page2Response : page1Response;
-                return route.fulfill({ json: apiSuccess(response) });
-            });
-
-            gallery = new PictureGalleryPage(page);
-            await page.goto('/pictures');
-            await gallery.waitForReady();
-            await gallery.waitForGallery();
+            gallery = await setupPaginatedGallery(page);
 
             // On a wide screen, all 25 items fit without scroll.
             // The component should detect this and auto-load the next page.
@@ -186,3 +149,26 @@ test.describe('Picture gallery', () => {
         });
     });
 });
+
+async function setupPaginatedGallery(page: Page): Promise<PictureGalleryPage> {
+    const page1Items = createPictureDtoList(25, 1);
+    const page1Response = createPicturesListResponse(page1Items, { total: 50, totalPages: 2 });
+
+    const page2Items = createPictureDtoList(25, 26);
+    const page2Response = createPicturesListResponse(page2Items, { total: 50, page: 2, totalPages: 2 });
+
+    await mockPictureThumbs(page);
+
+    await page.route(/\/api\/pictures(\?.*)?$/, route => {
+        const url = new URL(route.request().url());
+        const pageParam = url.searchParams.get('page');
+        const response = pageParam === '2' ? page2Response : page1Response;
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+
+    const galleryPage = new PictureGalleryPage(page);
+    await page.goto('/pictures');
+    await galleryPage.waitForReady();
+    await galleryPage.waitForGallery();
+    return galleryPage;
+}
