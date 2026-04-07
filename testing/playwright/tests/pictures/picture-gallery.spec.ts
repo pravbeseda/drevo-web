@@ -7,9 +7,9 @@ import {
     mockPicturesSearch,
     mockPictureThumbs,
 } from '../../fixtures';
-import { apiSuccess } from '../../mocks/common';
-import { createPictureDtoList, createPicturesListResponse } from '../../mocks/pictures';
+import { apiSuccess, createPictureDtoList, createPicturesListResponse } from '../../mocks';
 import { PictureGalleryPage } from '../../pages/picture-gallery.page';
+import { Page } from '@playwright/test';
 
 test.describe('Picture gallery', () => {
     let gallery: PictureGalleryPage;
@@ -116,39 +116,66 @@ test.describe('Picture gallery', () => {
 
     test.describe('Pagination', () => {
         test('loads more pictures when scrolling to the bottom', async ({ authenticatedPage: page }) => {
-            const page1Items = createPictureDtoList(25, 1);
-            const page1Response = createPicturesListResponse(page1Items, { total: 50, totalPages: 2 });
-
-            const page2Items = createPictureDtoList(25, 26);
-            const page2Response = createPicturesListResponse(page2Items, { total: 50, page: 2, totalPages: 2 });
-
-            await mockPictureThumbs(page);
-
-            // Route handler that returns page 1 or page 2 based on query param
-            await page.route(/\/api\/pictures(\?.*)?$/, route => {
-                const url = new URL(route.request().url());
-                const pageParam = url.searchParams.get('page');
-                const response = pageParam === '2' ? page2Response : page1Response;
-                return route.fulfill({ json: apiSuccess(response) });
-            });
-
-            gallery = new PictureGalleryPage(page);
-            await page.goto('/pictures');
-            await gallery.waitForReady();
-            await gallery.waitForGallery();
+            // 50 pictures on page 1 (~13 rows at standard viewport) ensures a scrollbar appears
+            // and auto-load does not fire before the user scrolls
+            gallery = await setupPaginatedGallery(page, { firstPageSize: 50 });
 
             const initialCount = await gallery.cards.count();
 
-            // Scroll the virtual scroller viewport to the bottom to trigger loadMore
             await page.locator('cdk-virtual-scroll-viewport').evaluate(el => {
                 el.scrollTop = el.scrollHeight;
             });
 
-            // Wait for more cards to appear
             await expect(async () => {
-                const newCount = await gallery.cards.count();
-                expect(newCount).toBeGreaterThan(initialCount);
+                const count = await gallery.cards.count();
+                expect(count).toBeGreaterThan(initialCount);
+            }).toPass({ timeout: 5000 });
+        });
+
+        test('auto-loads more pictures on wide viewport when all fit without scrolling', async ({
+            authenticatedPage: page,
+        }) => {
+            // Wide viewport: 2300x1100 — all 25 pictures fit, no scrollbar appears
+            await page.setViewportSize({ width: 2300, height: 1100 });
+
+            gallery = await setupPaginatedGallery(page);
+
+            // On a wide screen, all 25 items fit without scroll.
+            // The component should detect this and auto-load the next page.
+            await expect(async () => {
+                const totalCount = await gallery.cards.count();
+                expect(totalCount).toBeGreaterThan(25);
             }).toPass({ timeout: 5000 });
         });
     });
 });
+
+async function setupPaginatedGallery(
+    page: Page,
+    options: { firstPageSize?: number } = {},
+): Promise<PictureGalleryPage> {
+    const firstPageSize = options.firstPageSize ?? 25;
+    const page2Count = 25;
+    const total = firstPageSize + page2Count;
+
+    const page1Items = createPictureDtoList(firstPageSize, 1);
+    const page1Response = createPicturesListResponse(page1Items, { total, pageSize: firstPageSize });
+
+    const page2Items = createPictureDtoList(page2Count, firstPageSize + 1);
+    const page2Response = createPicturesListResponse(page2Items, { total, page: 2, totalPages: 2 });
+
+    await mockPictureThumbs(page);
+
+    await page.route(/\/api\/pictures(\?.*)?$/, route => {
+        const url = new URL(route.request().url());
+        const pageParam = url.searchParams.get('page');
+        const response = pageParam === '2' ? page2Response : page1Response;
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+
+    const galleryPage = new PictureGalleryPage(page);
+    await page.goto('/pictures');
+    await galleryPage.waitForReady();
+    await galleryPage.waitForGallery();
+    return galleryPage;
+}
