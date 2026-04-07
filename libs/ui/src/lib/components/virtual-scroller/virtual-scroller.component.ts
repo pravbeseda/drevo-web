@@ -17,7 +17,7 @@ import {
     viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, merge, throttleTime } from 'rxjs';
+import { debounceTime, filter, merge, throttleTime } from 'rxjs';
 
 export { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 
@@ -105,8 +105,9 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
         );
 
         // Also check when CDK updates the rendered range — covers the case where
-        // all items fit in the viewport without scrolling (e.g. wide screen)
-        const rangeChange$ = viewport.renderedRangeStream;
+        // all items fit in the viewport without scrolling (e.g. wide screen).
+        // debounceTime(0) collapses any synchronous batch of range updates into one emission.
+        const rangeChange$ = viewport.renderedRangeStream.pipe(debounceTime(0));
 
         merge(scroll$, rangeChange$)
             .pipe(
