@@ -116,19 +116,19 @@ test.describe('Picture gallery', () => {
 
     test.describe('Pagination', () => {
         test('loads more pictures when scrolling to the bottom', async ({ authenticatedPage: page }) => {
-            gallery = await setupPaginatedGallery(page);
+            // 50 pictures on page 1 (~13 rows at standard viewport) ensures a scrollbar appears
+            // and auto-load does not fire before the user scrolls
+            gallery = await setupPaginatedGallery(page, { firstPageSize: 50 });
 
             const initialCount = await gallery.cards.count();
 
-            // Scroll the virtual scroller viewport to the bottom to trigger loadMore
             await page.locator('cdk-virtual-scroll-viewport').evaluate(el => {
                 el.scrollTop = el.scrollHeight;
             });
 
-            // Wait for more cards to appear
             await expect(async () => {
-                const newCount = await gallery.cards.count();
-                expect(newCount).toBeGreaterThan(initialCount);
+                const count = await gallery.cards.count();
+                expect(count).toBeGreaterThan(initialCount);
             }).toPass({ timeout: 5000 });
         });
 
@@ -150,12 +150,19 @@ test.describe('Picture gallery', () => {
     });
 });
 
-async function setupPaginatedGallery(page: Page): Promise<PictureGalleryPage> {
-    const page1Items = createPictureDtoList(25, 1);
-    const page1Response = createPicturesListResponse(page1Items, { total: 50, totalPages: 2 });
+async function setupPaginatedGallery(
+    page: Page,
+    options: { firstPageSize?: number } = {},
+): Promise<PictureGalleryPage> {
+    const firstPageSize = options.firstPageSize ?? 25;
+    const page2Count = 25;
+    const total = firstPageSize + page2Count;
 
-    const page2Items = createPictureDtoList(25, 26);
-    const page2Response = createPicturesListResponse(page2Items, { total: 50, page: 2, totalPages: 2 });
+    const page1Items = createPictureDtoList(firstPageSize, 1);
+    const page1Response = createPicturesListResponse(page1Items, { total, totalPages: 2 });
+
+    const page2Items = createPictureDtoList(page2Count, firstPageSize + 1);
+    const page2Response = createPicturesListResponse(page2Items, { total, page: 2, totalPages: 2 });
 
     await mockPictureThumbs(page);
 

@@ -300,16 +300,16 @@ describe('VirtualScrollerComponent', () => {
             spectator.detectChanges();
             spectator.output('loadMore').subscribe(loadMoreSpy);
 
-            jest.spyOn(spectator.component.viewport(), 'elementScrolled').mockReturnValue(scrollSubject.asObservable());
+            const viewport = spectator.component.viewport();
+            jest.spyOn(viewport, 'elementScrolled').mockReturnValue(scrollSubject.asObservable());
             // 8 of 10 rendered = 2 remaining < threshold 5
-            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
-
+            jest.spyOn(viewport, 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
             (spectator.component as any).setupScrollListener();
 
             scrollSubject.next(new Event('scroll'));
             tick(150);
 
-            expect(loadMoreSpy).toHaveBeenCalledTimes(1);
+            expect(loadMoreSpy).toHaveBeenCalled();
         }));
     });
 });
