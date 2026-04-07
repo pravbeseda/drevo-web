@@ -5,9 +5,9 @@ permissions:
 
 on:
     push:
-        branches: [main]
+        branches: [standalone]
     pull_request:
-        branches: [main]
+        branches: [standalone]
 
 jobs:
     integration-tests:

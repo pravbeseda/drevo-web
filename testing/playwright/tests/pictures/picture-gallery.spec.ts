@@ -159,7 +159,7 @@ async function setupPaginatedGallery(
     const total = firstPageSize + page2Count;
 
     const page1Items = createPictureDtoList(firstPageSize, 1);
-    const page1Response = createPicturesListResponse(page1Items, { total, totalPages: 2 });
+    const page1Response = createPicturesListResponse(page1Items, { total, pageSize: firstPageSize });
 
     const page2Items = createPictureDtoList(page2Count, firstPageSize + 1);
     const page2Response = createPicturesListResponse(page2Items, { total, page: 2, totalPages: 2 });
