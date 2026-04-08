@@ -256,3 +256,5 @@ Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`
 14. **Coverage через auto-fixture** — `coverage.fixture.ts` с `addCoverageReport()` из monocart-reporter, автоматически собирает V8 данные для каждого теста.
 15. **Static build для coverage** — `outputMode: "static"` без SSR, `index.csr.html` → `index.html` копирование для SPA-routing.
 16. **`serve` в devDependencies** — для стабильного serving static-билда в CI без зависимости от npx cache.
+17. **Sidebar-тесты — desktop only** — на mobile (<768px) sidebar стартует закрытым (drawer-оверлей), игнорируя localStorage. Тесты Collapsed/Expanded и часть State Persistence помечены `test.skip(isMobile)`.
+18. **Dropdown close — Escape вместо повторного клика** — `CdkMenuTrigger` не гарантирует закрытие повторным кликом на webkit. Вместо этого используем `page.keyboard.press('Escape')`, которое CDK обрабатывает единообразно.

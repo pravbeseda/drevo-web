@@ -2,6 +2,7 @@
     @for (item of navItems; track item.route) {
         <a
             class="nav-item"
+            data-testid="nav-item"
             [routerLink]="item.route"
             routerLinkActive="active"
             [attr.aria-label]="item.label"
