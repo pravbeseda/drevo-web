@@ -113,7 +113,7 @@ export class PicturePageComponent implements OnInit {
         this.resizeObserver = new ResizeObserver(entries => {
             const entry = entries[0];
             if (entry) {
-                this.resizeSubject.next(entry.contentRect.width);
+                this.resizeSubject.next(Math.floor(entry.contentRect.width));
             }
         });
         this.resizeObserver.observe(viewport);

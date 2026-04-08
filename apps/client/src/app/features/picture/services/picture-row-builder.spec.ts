@@ -163,4 +163,29 @@ describe('buildRows', () => {
             }
         }
     });
+
+    it('should not produce astronomical row height when all items in a full row are thumbnail-capped', () => {
+        // Regression: IEEE 754 floating-point residual in uncappedAspectSum after all items are capped.
+        //
+        // Setup: 45 pictures of 71×3px, containerWidth=3476.001 (fractional — ResizeObserver returns floats),
+        // targetRowHeight=200. maxDisplayHeight = 3 (tiny thumbnail, no upscaling).
+        //
+        // In finalizeRow for the full row (44 items):
+        //   availableWidth = 3476.001 - 8 - 43*8 = 3124.001
+        //   uncappedAspectSum (accumulated via +=) = 44 × float(71/3) ≈ 1041.3333333333328
+        //     (slightly LESS than exact 3124/3 due to IEEE 754 rounding in float(71/3))
+        //   → rowH = 3124.001 / 1041.3333... = 3.0000... > 3 = maxDisplayHeight
+        //   → all 44 items get capped
+        //   → uncappedAspectSum is decremented 44 times: residual ≈ +1.21e-13 (tiny positive!)
+        //   → cappedWidthSum = 44 × ((71/3)*3) = 44 × 71 = 3124 (exact)
+        //   → finalRowH = (3124.001 - 3124) / 1.21e-13 = 0.001 / 1.21e-13 ≈ 8.28e+9 px  ← BUG
+        //
+        // Correct answer: rowHeight should fall back to Math.min(maxDisplayHeights) = 3
+        const pictures = Array.from({ length: 45 }, (_, i) => makePicture(i + 1, 71, 3));
+        const rows = buildRows(pictures, 3476.001, 200);
+
+        // Full row (first 44 items): all capped, row height must not be astronomical
+        expect(rows[0].items).toHaveLength(44);
+        expect(rows[0].height).toBeLessThanOrEqual(3);
+    });
 });

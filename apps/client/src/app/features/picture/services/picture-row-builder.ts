@@ -97,11 +97,7 @@ function getMaxDisplayHeight(picture: Picture): number {
  * Capped items (thumbnail-limited) contribute fixed width; uncapped items stretch to fill the rest.
  * Iterates because raising height for uncapped items may cause new items to hit their cap.
  */
-function finalizeRow(
-    items: readonly RowEntry[],
-    containerWidth: number,
-    fixedHeight?: number,
-): PictureRow {
+function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHeight?: number): PictureRow {
     const totalGap = (items.length - 1) * GAP;
     const availableWidth = containerWidth - totalGap;
 
@@ -113,7 +109,7 @@ function finalizeRow(
     // Full row — iteratively solve for row height with thumbnail caps
     const capped = new Array<boolean>(items.length).fill(false);
     let cappedWidthSum = 0;
-    let uncappedAspectSum = items.reduce((sum, item) => sum + item.aspectRatio, 0);
+    let uncappedAspectSum = sumUncappedAspects(items, capped);
 
     for (let iter = 0; iter < items.length; iter++) {
         const rowHeight = uncappedAspectSum > 0 ? (availableWidth - cappedWidthSum) / uncappedAspectSum : 0;
@@ -122,14 +118,14 @@ function finalizeRow(
         for (let i = 0; i < items.length; i++) {
             if (!capped[i] && rowHeight > items[i].maxDisplayHeight) {
                 capped[i] = true;
-                const fixedWidth = items[i].aspectRatio * items[i].maxDisplayHeight;
-                cappedWidthSum += fixedWidth;
-                uncappedAspectSum -= items[i].aspectRatio;
+                cappedWidthSum += items[i].aspectRatio * items[i].maxDisplayHeight;
                 changed = true;
             }
         }
 
         if (!changed) break;
+        // Recompute from scratch to avoid floating-point drift from iterated subtractions
+        uncappedAspectSum = sumUncappedAspects(items, capped);
     }
 
     const rowHeight =
@@ -138,6 +134,10 @@ function finalizeRow(
             : Math.min(...items.map(item => item.maxDisplayHeight));
 
     return buildRowResult(items, rowHeight);
+}
+
+function sumUncappedAspects(items: readonly RowEntry[], capped: readonly boolean[]): number {
+    return items.reduce((sum, item, i) => (capped[i] ? sum : sum + item.aspectRatio), 0);
 }
 
 function buildRowResult(items: readonly RowEntry[], rowHeight: number): PictureRow {
