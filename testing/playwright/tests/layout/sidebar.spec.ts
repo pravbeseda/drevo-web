@@ -65,7 +65,7 @@ test.describe('Sidebar', () => {
             // ignoring localStorage — skip mobile.
             test.skip(isMobile, 'Mobile layout ignores localStorage for sidebar state');
 
-            await page.context().addInitScript(() => {
+            await page.addInitScript(() => {
                 localStorage.setItem('drevo-sidebar-open', 'true');
             });
             layout = new LayoutPage(page);
@@ -75,8 +75,10 @@ test.describe('Sidebar', () => {
             await layout.expectSidebarExpanded();
         });
 
-        test('restores collapsed state from localStorage', async ({ authenticatedPage: page }) => {
-            await page.context().addInitScript(() => {
+        test('restores collapsed state from localStorage', async ({ authenticatedPage: page, isMobile }) => {
+            test.skip(isMobile, 'Mobile layout ignores localStorage for sidebar state');
+
+            await page.addInitScript(() => {
                 localStorage.setItem('drevo-sidebar-open', 'false');
             });
             layout = new LayoutPage(page);
