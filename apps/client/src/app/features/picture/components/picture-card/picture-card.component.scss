@@ -12,12 +12,12 @@ $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 +
     border-radius: 4px;
     text-decoration: none;
     color: inherit;
+    background: var(--themed-secondary-bg);
 
     &--capped {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        background: var(--themed-secondary-bg);
     }
 
     &__image {

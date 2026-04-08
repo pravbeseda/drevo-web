@@ -3,6 +3,7 @@ import { Picture } from '@drevo-web/shared';
 const DEFAULT_ASPECT_RATIO = 3 / 4;
 // Keep in sync with $picture-gap in picture-row.component.scss
 const GAP = 8;
+const MIN_ROW_HEIGHT = 200;
 // Keep in sync with legacy ImageHelper.php resize(400, 400)
 const THUMB_MAX_WIDTH = 400;
 const THUMB_MAX_HEIGHT = 400;
@@ -30,8 +31,9 @@ interface RowEntry {
  * Algorithm:
  * 1. For each picture, compute aspect ratio and max display height (thumbnail constraint)
  * 2. Add pictures to current row using effective width (capped by thumbnail size)
- * 3. When row is full, compute row height so uncapped items fill remaining space exactly
- * 4. Capped items keep their max height and get vertical padding via align-items:center
+ * 3. When row is full, compute row height via sorted single-pass capping
+ * 4. If all items are capped, use MIN_ROW_HEIGHT fallback; gaps remain fixed at GAP,
+ *    so any remaining space stays at the row end
  * 5. Last row uses target height (not stretched to fill)
  */
 export function buildRows(
@@ -93,51 +95,50 @@ function getMaxDisplayHeight(picture: Picture): number {
 }
 
 /**
- * Compute row height so the row fills containerWidth exactly.
- * Capped items (thumbnail-limited) contribute fixed width; uncapped items stretch to fill the rest.
- * Iterates because raising height for uncapped items may cause new items to hit their cap.
+ * Compute row height so the row visually fills containerWidth (gaps remain fixed at GAP).
+ *
+ * Sorted single-pass capping: process items by maxDisplayHeight ascending.
+ * Mathematically guaranteed: if rowHeight <= maxH[i], then rowHeight <= maxH[j] for all j > i
+ * (sorted ascending). One pass, no iterations.
+ *
+ * If all items are capped, rowHeight falls back to max(MIN_ROW_HEIGHT, max(maxDisplayHeights)).
  */
 function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHeight?: number): PictureRow {
     const totalGap = (items.length - 1) * GAP;
     const availableWidth = containerWidth - totalGap;
 
     if (fixedHeight !== undefined) {
-        // Last row — fixed height, cap individual items
         return buildRowResult(items, fixedHeight);
     }
 
-    // Full row — iteratively solve for row height with thumbnail caps
-    const capped = new Array<boolean>(items.length).fill(false);
+    const sortedIndices = items
+        .map((_, i) => i)
+        .sort((a, b) => items[a].maxDisplayHeight - items[b].maxDisplayHeight);
+
     let cappedWidthSum = 0;
-    let uncappedAspectSum = sumUncappedAspects(items, capped);
+    let uncappedAspectSum = items.reduce((sum, item) => sum + item.aspectRatio, 0);
+    let allCapped = true;
 
-    for (let iter = 0; iter < items.length; iter++) {
-        const rowHeight = uncappedAspectSum > 0 ? (availableWidth - cappedWidthSum) / uncappedAspectSum : 0;
-        let changed = false;
+    for (const idx of sortedIndices) {
+        const item = items[idx];
+        const rowHeight = uncappedAspectSum > 0
+            ? (availableWidth - cappedWidthSum) / uncappedAspectSum
+            : 0;
 
-        for (let i = 0; i < items.length; i++) {
-            if (!capped[i] && rowHeight > items[i].maxDisplayHeight) {
-                capped[i] = true;
-                cappedWidthSum += items[i].aspectRatio * items[i].maxDisplayHeight;
-                changed = true;
-            }
+        if (rowHeight <= item.maxDisplayHeight) {
+            allCapped = false;
+            break;
         }
 
-        if (!changed) break;
-        // Recompute from scratch to avoid floating-point drift from iterated subtractions
-        uncappedAspectSum = sumUncappedAspects(items, capped);
+        cappedWidthSum += item.aspectRatio * item.maxDisplayHeight;
+        uncappedAspectSum -= item.aspectRatio;
     }
 
-    const rowHeight =
-        uncappedAspectSum > 0
-            ? (availableWidth - cappedWidthSum) / uncappedAspectSum
-            : Math.min(...items.map(item => item.maxDisplayHeight));
+    const rowHeight = allCapped
+        ? Math.max(MIN_ROW_HEIGHT, Math.max(...items.map(it => it.maxDisplayHeight)))
+        : (availableWidth - cappedWidthSum) / uncappedAspectSum;
 
     return buildRowResult(items, rowHeight);
-}
-
-function sumUncappedAspects(items: readonly RowEntry[], capped: readonly boolean[]): number {
-    return items.reduce((sum, item, i) => (capped[i] ? sum : sum + item.aspectRatio), 0);
 }
 
 function buildRowResult(items: readonly RowEntry[], rowHeight: number): PictureRow {
