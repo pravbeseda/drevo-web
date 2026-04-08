@@ -1,6 +1,7 @@
 import { Picture } from '@drevo-web/shared';
 
 const DEFAULT_ASPECT_RATIO = 3 / 4;
+// Keep in sync with $picture-gap in picture-row.component.scss
 const GAP = 8;
 const MIN_ROW_HEIGHT = 200;
 // Keep in sync with legacy ImageHelper.php resize(400, 400)
@@ -16,7 +17,6 @@ export interface PictureRowItem {
 export interface PictureRow {
     readonly items: readonly PictureRowItem[];
     readonly height: number;
-    readonly gap: number;
 }
 
 interface RowEntry {
@@ -108,7 +108,7 @@ function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHe
     const availableWidth = containerWidth - totalGap;
 
     if (fixedHeight !== undefined) {
-        return buildRowResult(items, fixedHeight, containerWidth);
+        return buildRowResult(items, fixedHeight);
     }
 
     const sortedIndices = items
@@ -138,27 +138,19 @@ function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHe
         ? Math.max(MIN_ROW_HEIGHT, Math.max(...items.map(it => it.maxDisplayHeight)))
         : (availableWidth - cappedWidthSum) / uncappedAspectSum;
 
-    return buildRowResult(items, rowHeight, containerWidth);
+    return buildRowResult(items, rowHeight);
 }
 
-function buildRowResult(
-    items: readonly RowEntry[],
-    rowHeight: number,
-    containerWidth: number,
-): PictureRow {
-    const resultItems = items.map(item => {
-        const itemHeight = Math.min(rowHeight, item.maxDisplayHeight);
-        return {
-            picture: item.picture,
-            width: Math.round(item.aspectRatio * itemHeight),
-            height: Math.round(itemHeight),
-        };
-    });
-
-    const totalItemsWidth = resultItems.reduce((sum, item) => sum + item.width, 0);
-    const gap = items.length > 1
-        ? (containerWidth - totalItemsWidth) / (items.length - 1)
-        : 0;
-
-    return { height: rowHeight, items: resultItems, gap };
+function buildRowResult(items: readonly RowEntry[], rowHeight: number): PictureRow {
+    return {
+        height: rowHeight,
+        items: items.map(item => {
+            const itemHeight = Math.min(rowHeight, item.maxDisplayHeight);
+            return {
+                picture: item.picture,
+                width: Math.round(item.aspectRatio * itemHeight),
+                height: Math.round(itemHeight),
+            };
+        }),
+    };
 }

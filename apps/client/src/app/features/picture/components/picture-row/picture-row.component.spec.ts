@@ -20,7 +20,6 @@ describe('PictureRowComponent', () => {
 
     const mockRow: PictureRow = {
         height: 200,
-        gap: 8,
         items: [
             { picture: makePicture(1), width: 266, height: 200 },
             { picture: makePicture(2), width: 266, height: 200 },

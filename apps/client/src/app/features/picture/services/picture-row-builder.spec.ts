@@ -50,14 +50,14 @@ describe('buildRows', () => {
         const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 150, 300));
         const rows = buildRows(pictures, 1000, 200);
 
-        // Non-last rows should fill container width via dynamic gap
+        // Non-last rows should fill container width (items width + gaps ≈ container width)
         if (rows.length > 1) {
             const firstRow = rows[0];
+            const gap = 8;
             const totalWidth =
-                firstRow.items.reduce((sum, item) => sum + item.width, 0) +
-                (firstRow.items.length - 1) * firstRow.gap;
-            // Container width minus right margin (GAP = 8)
-            expect(totalWidth).toBeCloseTo(1000 - 8, 5);
+                firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * gap;
+            // Container width minus right margin (GAP = 8), ±1px rounding tolerance
+            expect(Math.abs(totalWidth - (1000 - gap))).toBeLessThanOrEqual(firstRow.items.length);
         }
     });
 
@@ -189,15 +189,14 @@ describe('buildRows', () => {
         expect(firstRow.items).toHaveLength(3);
         // All-capped fallback: row height is at least MIN_ROW_HEIGHT
         expect(firstRow.height).toBeGreaterThanOrEqual(200);
-        // Dynamic gap wider than normal GAP to fill container
-        expect(firstRow.gap).toBeGreaterThan(8);
-        // Total width (items + gaps) = containerWidth
+        // Items fit within container; remaining space is on the right
         const containerWidth = 800 - 8;
-        const totalWidth = firstRow.items.reduce((sum, item) => sum + item.width, 0);
-        expect(totalWidth + (firstRow.items.length - 1) * firstRow.gap).toBeCloseTo(containerWidth, 5);
+        const totalWidth =
+            firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * 8;
+        expect(totalWidth).toBeLessThanOrEqual(containerWidth + firstRow.items.length);
     });
 
-    it('should fill container exactly for a mixed row with capped and uncapped items', () => {
+    it('should fill container width for a mixed row with capped and uncapped items', () => {
         // Portrait: 200×400 (aspect=0.5, maxH=400, uncapped)
         // Landscape: 600×400 (aspect=1.5, maxH≈267, uncapped)
         // Panoramic: 1200×400 (aspect=3, maxH≈133, capped)
@@ -212,24 +211,11 @@ describe('buildRows', () => {
 
         const firstRow = rows[0];
         expect(firstRow.items).toHaveLength(3);
-        // Total width (items + gaps) = containerWidth exactly
+        // Uncapped items stretch to fill container: totalItemsWidth + (n-1)*8 ≈ containerWidth
         const containerWidth = 900 - 8;
-        const totalWidth = firstRow.items.reduce((sum, item) => sum + item.width, 0);
-        expect(totalWidth + (firstRow.items.length - 1) * firstRow.gap).toBeCloseTo(containerWidth, 5);
-    });
-
-    it('should absorb rounding errors via dynamic gap for all non-last rows', () => {
-        // Verify totalItemsWidth + (n-1)*gap = containerWidth for every non-last row
-        const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 150, 300));
-        const rows = buildRows(pictures, 1000, 200);
-
-        const containerWidth = 1000 - 8;
-        for (let i = 0; i < rows.length - 1; i++) {
-            const row = rows[i];
-            const totalWidth =
-                row.items.reduce((sum, item) => sum + item.width, 0) +
-                (row.items.length - 1) * row.gap;
-            expect(totalWidth).toBeCloseTo(containerWidth, 5);
-        }
+        const gap = 8;
+        const totalWidth =
+            firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * gap;
+        expect(Math.abs(totalWidth - containerWidth)).toBeLessThanOrEqual(firstRow.items.length);
     });
 });
