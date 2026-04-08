@@ -98,10 +98,9 @@ function getMaxDisplayHeight(picture: Picture): number {
  *
  * Sorted single-pass capping: process items by maxDisplayHeight ascending.
  * Mathematically guaranteed: if rowHeight <= maxH[i], then rowHeight <= maxH[j] for all j > i
- * (sorted ascending and rowHeight can only decrease as items are capped). One pass, no iterations.
+ * (sorted ascending). One pass, no iterations.
  *
  * If all items are capped, rowHeight falls back to max(MIN_ROW_HEIGHT, max(maxDisplayHeights)).
- * Dynamic gap absorbs rounding errors from Math.round() and fills underfilled rows.
  */
 function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHeight?: number): PictureRow {
     const totalGap = (items.length - 1) * GAP;

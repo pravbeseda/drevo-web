@@ -168,7 +168,7 @@ describe('buildRows', () => {
         // Regression: all-capped row with float residuals previously produced astronomical heights.
         //
         // Setup: 45 pictures of 71×3px (maxDisplayHeight = 3), container 3476.001px.
-        // Sorted single-pass: all items exceed rowHeight → allCapped = true.
+        // Sorted single-pass: rowHeight > maxH for every item → allCapped = true.
         // Correct answer: rowHeight = max(MIN_ROW_HEIGHT=200, max(3)) = 200.
         const pictures = Array.from({ length: 45 }, (_, i) => makePicture(i + 1, 71, 3));
         const rows = buildRows(pictures, 3476.001, 200);
@@ -187,13 +187,13 @@ describe('buildRows', () => {
 
         const firstRow = rows[0];
         expect(firstRow.items).toHaveLength(3);
-        // All-capped fallback: row height is at least MIN_ROW_HEIGHT
-        expect(firstRow.height).toBeGreaterThanOrEqual(200);
-        // Items fit within container; remaining space is on the right
-        const containerWidth = 800 - 8;
-        const totalWidth =
-            firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * 8;
-        expect(totalWidth).toBeLessThanOrEqual(containerWidth + firstRow.items.length);
+        // All-capped fallback: row height = MIN_ROW_HEIGHT (> max(50))
+        expect(firstRow.height).toBe(200);
+        // Each item is capped: height = maxDisplayHeight(50), width = aspectRatio(4) * 50 = 200
+        firstRow.items.forEach(item => {
+            expect(item.height).toBe(50);
+            expect(item.width).toBe(200);
+        });
     });
 
     it('should fill container width for a mixed row with capped and uncapped items', () => {
