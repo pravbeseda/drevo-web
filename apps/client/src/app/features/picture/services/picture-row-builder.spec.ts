@@ -50,14 +50,14 @@ describe('buildRows', () => {
         const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 150, 300));
         const rows = buildRows(pictures, 1000, 200);
 
-        // Non-last rows should fill container width (items width + gaps ≈ container width)
+        // Non-last rows should fill container width via dynamic gap
         if (rows.length > 1) {
             const firstRow = rows[0];
-            const gap = 8;
             const totalWidth =
-                firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * gap;
-            // Container width minus right margin (GAP = 8), ±1px rounding tolerance
-            expect(Math.abs(totalWidth - (1000 - gap))).toBeLessThanOrEqual(firstRow.items.length);
+                firstRow.items.reduce((sum, item) => sum + item.width, 0) +
+                (firstRow.items.length - 1) * firstRow.gap;
+            // Container width minus right margin (GAP = 8)
+            expect(totalWidth).toBeCloseTo(1000 - 8, 5);
         }
     });
 
@@ -165,27 +165,71 @@ describe('buildRows', () => {
     });
 
     it('should not produce astronomical row height when all items in a full row are thumbnail-capped', () => {
-        // Regression: IEEE 754 floating-point residual in uncappedAspectSum after all items are capped.
+        // Regression: all-capped row with float residuals previously produced astronomical heights.
         //
-        // Setup: 45 pictures of 71×3px, containerWidth=3476.001 (fractional — ResizeObserver returns floats),
-        // targetRowHeight=200. maxDisplayHeight = 3 (tiny thumbnail, no upscaling).
-        //
-        // In finalizeRow for the full row (44 items):
-        //   availableWidth = 3476.001 - 8 - 43*8 = 3124.001
-        //   uncappedAspectSum (accumulated via +=) = 44 × float(71/3) ≈ 1041.3333333333328
-        //     (slightly LESS than exact 3124/3 due to IEEE 754 rounding in float(71/3))
-        //   → rowH = 3124.001 / 1041.3333... = 3.0000... > 3 = maxDisplayHeight
-        //   → all 44 items get capped
-        //   → uncappedAspectSum is decremented 44 times: residual ≈ +1.21e-13 (tiny positive!)
-        //   → cappedWidthSum = 44 × ((71/3)*3) = 44 × 71 = 3124 (exact)
-        //   → finalRowH = (3124.001 - 3124) / 1.21e-13 = 0.001 / 1.21e-13 ≈ 8.28e+9 px  ← BUG
-        //
-        // Correct answer: rowHeight should fall back to Math.min(maxDisplayHeights) = 3
+        // Setup: 45 pictures of 71×3px (maxDisplayHeight = 3), container 3476.001px.
+        // Sorted single-pass: all items exceed rowHeight → allCapped = true.
+        // Correct answer: rowHeight = max(MIN_ROW_HEIGHT=200, max(3)) = 200.
         const pictures = Array.from({ length: 45 }, (_, i) => makePicture(i + 1, 71, 3));
         const rows = buildRows(pictures, 3476.001, 200);
 
-        // Full row (first 44 items): all capped, row height must not be astronomical
+        // Full row (first 44 items): all capped, height must be MIN_ROW_HEIGHT, not astronomical
         expect(rows[0].items).toHaveLength(44);
-        expect(rows[0].height).toBeLessThanOrEqual(3);
+        expect(rows[0].height).toBe(200);
+    });
+
+    it('should use MIN_ROW_HEIGHT fallback when all items in a full row are thumbnail-capped', () => {
+        // 6 panoramic pictures (200×50, aspect=4, maxDisplayHeight=50)
+        // First 3 form a full non-last row where all items are capped
+        // Fallback: rowHeight = max(MIN_ROW_HEIGHT=200, max(50)) = 200
+        const pictures = Array.from({ length: 6 }, (_, i) => makePicture(i + 1, 200, 50));
+        const rows = buildRows(pictures, 800, 200);
+
+        const firstRow = rows[0];
+        expect(firstRow.items).toHaveLength(3);
+        // All-capped fallback: row height is at least MIN_ROW_HEIGHT
+        expect(firstRow.height).toBeGreaterThanOrEqual(200);
+        // Dynamic gap wider than normal GAP to fill container
+        expect(firstRow.gap).toBeGreaterThan(8);
+        // Total width (items + gaps) = containerWidth
+        const containerWidth = 800 - 8;
+        const totalWidth = firstRow.items.reduce((sum, item) => sum + item.width, 0);
+        expect(totalWidth + (firstRow.items.length - 1) * firstRow.gap).toBeCloseTo(containerWidth, 5);
+    });
+
+    it('should fill container exactly for a mixed row with capped and uncapped items', () => {
+        // Portrait: 200×400 (aspect=0.5, maxH=400, uncapped)
+        // Landscape: 600×400 (aspect=1.5, maxH≈267, uncapped)
+        // Panoramic: 1200×400 (aspect=3, maxH≈133, capped)
+        // Container 900px; first 3 form a full non-last row
+        const pictures = [
+            makePicture(1, 200, 400), // portrait
+            makePicture(2, 600, 400), // landscape
+            makePicture(3, 1200, 400), // panoramic (capped)
+            makePicture(4, 1200, 400), // extra to force row finalization
+        ];
+        const rows = buildRows(pictures, 900, 200);
+
+        const firstRow = rows[0];
+        expect(firstRow.items).toHaveLength(3);
+        // Total width (items + gaps) = containerWidth exactly
+        const containerWidth = 900 - 8;
+        const totalWidth = firstRow.items.reduce((sum, item) => sum + item.width, 0);
+        expect(totalWidth + (firstRow.items.length - 1) * firstRow.gap).toBeCloseTo(containerWidth, 5);
+    });
+
+    it('should absorb rounding errors via dynamic gap for all non-last rows', () => {
+        // Verify totalItemsWidth + (n-1)*gap = containerWidth for every non-last row
+        const pictures = Array.from({ length: 20 }, (_, i) => makePicture(i + 1, 150, 300));
+        const rows = buildRows(pictures, 1000, 200);
+
+        const containerWidth = 1000 - 8;
+        for (let i = 0; i < rows.length - 1; i++) {
+            const row = rows[i];
+            const totalWidth =
+                row.items.reduce((sum, item) => sum + item.width, 0) +
+                (row.items.length - 1) * row.gap;
+            expect(totalWidth).toBeCloseTo(containerWidth, 5);
+        }
     });
 });

@@ -1,8 +1,7 @@
-// Keep in sync with GAP in picture-row-builder.ts
 $picture-gap: 8px;
 
 .picture-row {
     display: flex;
-    gap: $picture-gap;
+    // gap is set dynamically via [style.gap.px]
     margin-bottom: $picture-gap;
 }
