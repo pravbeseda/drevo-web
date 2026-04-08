@@ -32,7 +32,8 @@ interface RowEntry {
  * 1. For each picture, compute aspect ratio and max display height (thumbnail constraint)
  * 2. Add pictures to current row using effective width (capped by thumbnail size)
  * 3. When row is full, compute row height via sorted single-pass capping
- * 4. If all items are capped, use MIN_ROW_HEIGHT fallback; space is distributed via dynamic gap
+ * 4. If all items are capped, use MIN_ROW_HEIGHT fallback; gaps remain fixed at GAP,
+ *    so any remaining space stays at the row end
  * 5. Last row uses target height (not stretched to fill)
  */
 export function buildRows(
@@ -94,7 +95,7 @@ function getMaxDisplayHeight(picture: Picture): number {
 }
 
 /**
- * Compute row height and dynamic gap so the row visually fills containerWidth.
+ * Compute row height so the row visually fills containerWidth (gaps remain fixed at GAP).
  *
  * Sorted single-pass capping: process items by maxDisplayHeight ascending.
  * Mathematically guaranteed: if rowHeight <= maxH[i], then rowHeight <= maxH[j] for all j > i
