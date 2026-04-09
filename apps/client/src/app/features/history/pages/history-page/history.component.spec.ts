@@ -4,10 +4,10 @@ import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { HistoryComponent } from './history.component';
 
 const EXPECTED_TABS = [
-    { label: 'Статьи', route: '/history/articles' },
-    { label: 'Новости', route: '/history/news' },
-    { label: 'Сообщения', route: '/history/forum' },
-    { label: 'Иллюстрации', route: '/history/pictures' },
+    { label: 'Статьи', route: '/history/articles', testId: 'history-tab-articles' },
+    { label: 'Новости', route: '/history/news', testId: 'history-tab-news' },
+    { label: 'Сообщения', route: '/history/forum', testId: 'history-tab-forum' },
+    { label: 'Иллюстрации', route: '/history/pictures', testId: 'history-tab-pictures' },
 ];
 
 describe('HistoryComponent', () => {
