@@ -1,16 +1,23 @@
-<div class="search-container">
+<div
+    class="search-container"
+    data-testid="search-container"
+>
     <ui-text-input
+        data-testid="search-input"
         label="Поиск"
         placeholder="Введите запрос..."
         (valueChanged)="onSearchChange($event)"
     />
 
     @if (isLoading()) {
-        <ui-spinner />
+        <ui-spinner data-testid="search-loading" />
     }
 
     @if (hasResults()) {
-        <div class="search-results">
+        <div
+            class="search-results"
+            data-testid="search-results"
+        >
             <div class="search-results-header">Найдено: {{ totalResults() }}</div>
             <ui-virtual-scroller
                 class="search-results-scroller"
@@ -26,6 +33,7 @@
                 >
                     <a
                         class="search-result-item"
+                        data-testid="search-result-item"
                         [routerLink]="['/articles', result.id]"
                         (click)="closeModal()"
                         [innerHTML]="result.title | highlight: searchQuery()"
@@ -34,6 +42,11 @@
             </ui-virtual-scroller>
         </div>
     } @else if (showNoResults()) {
-        <div class="search-no-results">Ничего не найдено</div>
+        <div
+            class="search-no-results"
+            data-testid="search-no-results"
+        >
+            Ничего не найдено
+        </div>
     }
 </div>

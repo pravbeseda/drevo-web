@@ -7,6 +7,9 @@ export class LayoutPage extends BasePage {
     readonly pageTitle = this.page.getByTestId('page-title');
     readonly hamburgerButton = this.page.getByTestId('hamburger-button');
 
+    // Search
+    readonly searchButton = this.page.getByTestId('search-button');
+
     // Account dropdown
     readonly accountButton = this.page.getByTestId('account-button');
     readonly userName = this.page.getByTestId('user-name');
@@ -63,6 +66,12 @@ export class LayoutPage extends BasePage {
     async clickLogout(): Promise<void> {
         await this.openAccountMenu();
         await this.logoutButton.click();
+    }
+
+    /** Click the search icon to open the search modal */
+    async openSearch(): Promise<void> {
+        await this.searchButton.click();
+        await this.page.getByTestId('search-container').waitFor({ state: 'visible' });
     }
 
     /** Open the font-scale popup */
