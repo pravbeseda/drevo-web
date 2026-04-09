@@ -1,5 +1,10 @@
 <div class="confirmation-dialog">
-    <h2 class="confirmation-dialog__title">{{ config.title }}</h2>
+    <h2
+        class="confirmation-dialog__title"
+        data-testid="confirmation-dialog-title"
+    >
+        {{ config.title }}
+    </h2>
     <div class="confirmation-dialog__content">
         <p class="confirmation-dialog__message">{{ config.message }}</p>
     </div>
@@ -10,7 +15,9 @@
                 [accent]="button.accent ?? 'secondary'"
                 [fullWidth]="true"
                 (click)="select(button.key)"
-            >{{ button.label }}</ui-button>
+            >
+                {{ button.label }}
+            </ui-button>
         }
     </div>
 </div>

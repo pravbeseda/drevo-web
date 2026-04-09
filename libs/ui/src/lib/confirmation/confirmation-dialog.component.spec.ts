@@ -37,7 +37,7 @@ describe('ConfirmationDialogComponent', () => {
     it('should display title', () => {
         setup();
 
-        expect(spectator.query('.confirmation-dialog__title')).toHaveText('Удалить черновик?');
+        expect(spectator.query('[data-testid="confirmation-dialog-title"]')).toHaveText('Удалить черновик?');
     });
 
     it('should display message', () => {

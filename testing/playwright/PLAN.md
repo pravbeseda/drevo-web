@@ -206,11 +206,11 @@ Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`
 - [x] `tests/article/article-tabs.spec.ts` — stub-табы (новости/обсуждение/ссылки), история (пустая/ошибка), навигация версия→статья, прямой URL (7 тестов)
 
 ### D8: Article — редактирование
-- [ ] `ArticleEditPage` page object
-- [ ] Mock: save, preview, inwork, moderate endpoints
-- [ ] `data-testid` в article-edit, moderation компоненты
-- [ ] `tests/article/article-edit.spec.ts` — редактор, сохранение, ошибки, preview, auto-save
-- [ ] `tests/article/article-moderation.spec.ts` — кнопки модерации, одобрение/отклонение
+- [x] `ArticleEditPage` page object
+- [x] Mock: save, preview, inwork, moderate endpoints
+- [x] `data-testid` в article-edit, moderation компоненты
+- [x] `tests/article/article-edit.spec.ts` — редактор, сохранение, ошибки, preview
+- [x] `tests/article/article-moderation.spec.ts` — кнопки модерации, одобрение/отклонение
 
 ### D9: History + Diff
 - [ ] Mock factories: history list, version pairs

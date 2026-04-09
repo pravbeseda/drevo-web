@@ -2,7 +2,10 @@ import { apiError, apiSuccess, mockUsers } from '../mocks';
 import {
     createArticleHistoryResponse,
     createArticlesSearchResponse,
+    createModerationResponseDto,
+    createSaveArticleVersionResponseDto,
     mockArticleData,
+    mockArticleEditData,
     mockArticleViewData,
 } from '../mocks/articles';
 import { createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
@@ -10,8 +13,10 @@ import {
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    ModerationResponseDto,
     PictureDto,
     PicturesListResponseDto,
+    SaveArticleVersionResponseDto,
     User,
 } from '@drevo-web/shared';
 import { Page } from '@playwright/test';
@@ -296,5 +301,108 @@ export async function mockArticleHistoryError(page: Page, articleId: number, sta
             return route.fulfill({ status, json: apiError('Internal server error') });
         }
         return route.fallback();
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Article edit
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/articles/version/:versionId — for the edit route resolver */
+export async function mockArticleVersion(
+    page: Page,
+    versionId: number,
+    data: ArticleVersionDto = mockArticleEditData.version,
+): Promise<void> {
+    await page.route(`**/api/articles/version/${versionId}`, route =>
+        route.fulfill({ json: apiSuccess(data) }),
+    );
+}
+
+/** Mock GET /api/articles/version/:versionId — server error */
+export async function mockArticleVersionError(page: Page, versionId: number, status = 500): Promise<void> {
+    await page.route(`**/api/articles/version/${versionId}`, route =>
+        route.fulfill({ status, json: apiError('Internal server error') }),
+    );
+}
+
+/** Mock POST /api/articles/save — success */
+export async function mockArticleSave(
+    page: Page,
+    response: SaveArticleVersionResponseDto = createSaveArticleVersionResponseDto(),
+): Promise<void> {
+    await page.route('**/api/articles/save', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+}
+
+/** Mock POST /api/articles/save — error */
+export async function mockArticleSaveError(page: Page, status: number, message?: string): Promise<void> {
+    await page.route('**/api/articles/save', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ status, json: apiError(message ?? 'Internal server error') });
+    });
+}
+
+/** Mock POST /api/articles/preview — success, returns formatted HTML */
+export async function mockArticlePreview(page: Page, html = '<p>Отформатированный текст</p>'): Promise<void> {
+    await page.route('**/api/articles/preview', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess({ content: html }) });
+    });
+}
+
+/** Mock POST /api/articles/preview — error */
+export async function mockArticlePreviewError(page: Page, status = 500): Promise<void> {
+    await page.route('**/api/articles/preview', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ status, json: apiError('Internal server error') });
+    });
+}
+
+/** Mock POST /api/articles/moderate — success */
+export async function mockArticleModerate(
+    page: Page,
+    response: ModerationResponseDto = createModerationResponseDto(),
+): Promise<void> {
+    await page.route('**/api/articles/moderate', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+}
+
+/** Mock POST /api/articles/moderate — error */
+export async function mockArticleModerateError(page: Page, status = 500): Promise<void> {
+    await page.route('**/api/articles/moderate', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ status, json: apiError('Internal server error') });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Inwork
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/inwork/check — returns optional current editor */
+export async function mockInworkCheck(page: Page, editor?: string): Promise<void> {
+    await page.route('**/api/inwork/check**', route =>
+        route.fulfill({ json: apiSuccess({ editor }) }),
+    );
+}
+
+/** Mock POST /api/inwork/mark — success (no-op response) */
+export async function mockInworkMark(page: Page): Promise<void> {
+    await page.route('**/api/inwork/mark', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(undefined) });
+    });
+}
+
+/** Mock POST /api/inwork/clear — success (no-op response) */
+export async function mockInworkClear(page: Page): Promise<void> {
+    await page.route('**/api/inwork/clear', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(undefined) });
     });
 }

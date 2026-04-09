@@ -2,6 +2,7 @@
 <div class="floating-sidebar">
     @for (action of actions(); track action.id) {
         <ui-action-button
+            [attr.data-testid]="action.testId || null"
             [icon]="action.icon"
             [svgIcon]="action.svgIcon"
             [label]="action.label"
@@ -18,7 +19,7 @@
 <div class="fab-container">
     @if (mainAction(); as main) {
         <ui-action-button
-            data-testid="fab-main"
+            [attr.data-testid]="main.testId || 'fab-main'"
             [icon]="main.icon"
             [svgIcon]="main.svgIcon"
             [label]="main.label"
@@ -47,6 +48,7 @@
             >
                 @for (action of menuActions(); track action.id) {
                     <ui-action-button
+                        [attr.data-testid]="action.testId || null"
                         [icon]="action.icon"
                         [svgIcon]="action.svgIcon"
                         [label]="action.label"
