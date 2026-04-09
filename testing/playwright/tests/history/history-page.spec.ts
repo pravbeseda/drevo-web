@@ -38,14 +38,14 @@ test.describe('History page', () => {
     test('clicking news tab navigates to /history/news', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabNews.dispatchEvent('click');
+        await history.tabNews.click();
         await expect(page).toHaveURL(/\/history\/news/);
     });
 
     test('clicking forum tab navigates to /history/forum', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabForum.dispatchEvent('click');
+        await history.tabForum.click();
         await expect(page).toHaveURL(/\/history\/forum/);
     });
 
