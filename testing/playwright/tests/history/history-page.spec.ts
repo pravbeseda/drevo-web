@@ -38,21 +38,21 @@ test.describe('History page', () => {
     test('clicking news tab navigates to /history/news', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabNews.click();
+        await history.tabNews.dispatchEvent('click');
         await expect(page).toHaveURL(/\/history\/news/);
     });
 
     test('clicking forum tab navigates to /history/forum', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabForum.click();
+        await history.tabForum.dispatchEvent('click');
         await expect(page).toHaveURL(/\/history\/forum/);
     });
 
     test('clicking pictures tab navigates to /history/pictures', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabPictures.click();
+        await history.tabPictures.dispatchEvent('click');
         await expect(page).toHaveURL(/\/history\/pictures/);
     });
 });

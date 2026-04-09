@@ -39,13 +39,16 @@ test.describe('Diff page', () => {
         await page.goto(`/history/articles/diff/${VERSION1}`);
         await diff.waitForReady();
 
-        const initialLabel = await diff.toggleButton.getAttribute('aria-label').catch(() => null)
-            ?? await diff.toggleButton.textContent() ?? '';
-        await diff.toggleButton.click();
-        const updatedLabel = await diff.toggleButton.getAttribute('aria-label').catch(() => null)
+        const getLabel = async () =>
+            await diff.toggleButton.getAttribute('aria-label').catch(() => null)
             ?? await diff.toggleButton.textContent() ?? '';
 
-        expect(initialLabel).not.toBe(updatedLabel);
+        const initialLabel = await getLabel();
+        await diff.toggleButton.click();
+        await expect(async () => {
+            const updatedLabel = await getLabel();
+            expect(updatedLabel).not.toBe(initialLabel);
+        }).toPass({ timeout: 5000 });
     });
 
     test('shows error when no previous version exists', async ({ authenticatedPage: page }) => {
