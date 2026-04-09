@@ -15,6 +15,7 @@
 
 @if (!service.isLoading() && !service.hasError() && service.hasItems()) {
     <ui-virtual-scroller
+        data-testid="history-list"
         [items]="service.displayItems()"
         [totalItems]="service.displayTotalItems()"
         [isLoading]="service.isLoadingMore()"

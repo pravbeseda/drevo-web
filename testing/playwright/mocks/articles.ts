@@ -6,6 +6,8 @@ import {
     ArticleVersionDto,
     ModerationResponseDto,
     SaveArticleVersionResponseDto,
+    VersionForDiffDto,
+    VersionPairsResponseDto,
 } from '@drevo-web/shared';
 
 /** Create a single ArticleSearchResultDto with overrides */
@@ -167,4 +169,39 @@ export const mockArticleEditData = {
         content: 'Исходный текст статьи',
         approved: 0,
     }),
+};
+
+/** Create a single VersionForDiffDto with overrides */
+export function createVersionForDiffDto(
+    overrides: Partial<VersionForDiffDto> = {},
+    index = 1,
+): VersionForDiffDto {
+    return {
+        articleId: 42,
+        versionId: index * 100,
+        content: `Содержимое версии ${index}`,
+        author: 'testuser',
+        date: `2025-01-${String(index).padStart(2, '0')}T12:00:00`,
+        title: 'Тестовая статья',
+        info: `Правка ${index}`,
+        approved: 1,
+        ...overrides,
+    };
+}
+
+/** Create a VersionPairsResponseDto (response from GET /api/articles/versionpairs) */
+export function createVersionPairsResponse(
+    current: Partial<VersionForDiffDto> = {},
+    previous: Partial<VersionForDiffDto> = {},
+): VersionPairsResponseDto {
+    return {
+        current: createVersionForDiffDto({ versionId: 200, ...current }, 2),
+        previous: createVersionForDiffDto({ versionId: 199, ...previous }, 1),
+    };
+}
+
+/** Pre-built mock data for diff scenarios */
+export const mockDiffData = {
+    /** Default version pair for diff page tests (current=200, previous=199) */
+    default: createVersionPairsResponse(),
 };

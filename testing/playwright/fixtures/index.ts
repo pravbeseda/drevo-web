@@ -38,5 +38,10 @@ export {
     mockInworkCheck,
     mockInworkMark,
     mockInworkClear,
+    mockGlobalHistory,
+    mockGlobalHistoryError,
+    mockVersionPairs,
+    mockVersionPairsNoHistory,
+    mockVersionPairsServerError,
     bypassSsr,
 } from './mock-api.fixture';

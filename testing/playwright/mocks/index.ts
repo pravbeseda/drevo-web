@@ -9,6 +9,9 @@ export {
     createArticleHistoryItemDto,
     createArticleHistoryResponse,
     mockArticleViewData,
+    createVersionForDiffDto,
+    createVersionPairsResponse,
+    mockDiffData,
 } from './articles';
 export {
     createPictureDto,

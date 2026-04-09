@@ -10,15 +10,22 @@
 <app-sidebar-action
     [icon]="diffType() === 'cm' ? 'looks_two' : 'looks_one'"
     [label]="diffType() === 'cm' ? 'Переключить на JsDiff' : 'Переключить на CodeMirror'"
+    testId="diff-toggle"
     (activated)="toggleDiffType()"
 />
 
 @if (data.error()) {
-    <div class="diff-page-error">
+    <div
+        class="diff-page-error"
+        data-testid="diff-error"
+    >
         <p>{{ data.error() }}</p>
     </div>
 } @else if (data.versionPairs(); as pairs) {
-    <div class="diff-page-meta">
+    <div
+        class="diff-page-meta"
+        data-testid="diff-meta"
+    >
         <span class="diff-page-meta-versions">
             <app-version-label [version]="pairs.previous" />
             <span class="version-arrow">&rarr;</span>

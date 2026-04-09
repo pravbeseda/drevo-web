@@ -3,10 +3,10 @@ import { RouterOutlet } from '@angular/router';
 import { TabItem, TabsComponent } from '@drevo-web/ui';
 
 const HISTORY_TABS: TabItem[] = [
-    { label: 'Статьи', route: '/history/articles' },
-    { label: 'Новости', route: '/history/news' },
-    { label: 'Сообщения', route: '/history/forum' },
-    { label: 'Иллюстрации', route: '/history/pictures' },
+    { label: 'Статьи', route: '/history/articles', testId: 'history-tab-articles' },
+    { label: 'Новости', route: '/history/news', testId: 'history-tab-news' },
+    { label: 'Сообщения', route: '/history/forum', testId: 'history-tab-forum' },
+    { label: 'Иллюстрации', route: '/history/pictures', testId: 'history-tab-pictures' },
 ];
 
 @Component({
