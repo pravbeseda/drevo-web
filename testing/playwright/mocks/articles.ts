@@ -124,5 +124,5 @@ export const mockArticleViewData = {
     historyItems: [
         createArticleHistoryItemDto({ versionId: 1, articleId: 42, title: 'Тестовая статья' }, 1),
         createArticleHistoryItemDto({ versionId: 2, articleId: 42, title: 'Тестовая статья' }, 2),
-    ] as ArticleHistoryItemDto[],
+    ] as const satisfies readonly ArticleHistoryItemDto[],
 };

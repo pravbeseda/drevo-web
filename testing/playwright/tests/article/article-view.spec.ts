@@ -7,23 +7,13 @@ import {
     mockArticleVersionShow,
     bypassSsr,
 } from '../../fixtures';
-import { createArticleVersionDto } from '../../mocks/articles';
+import { mockArticleViewData } from '../../mocks/articles';
 import { ArticlePage } from '../../pages/article.page';
 
 const ARTICLE_ID = 42;
 const VERSION_ID = 99;
-const ARTICLE = createArticleVersionDto({
-    articleId: ARTICLE_ID,
-    versionId: 420,
-    title: 'Тестовая статья',
-    content: '<p>Содержимое тестовой статьи</p>',
-});
-const VERSION = createArticleVersionDto({
-    articleId: ARTICLE_ID,
-    versionId: VERSION_ID,
-    title: 'Тестовая статья',
-    approved: 0,
-});
+const ARTICLE = mockArticleViewData.single;
+const VERSION = mockArticleViewData.version;
 
 test.describe('Article view', () => {
     let article: ArticlePage;

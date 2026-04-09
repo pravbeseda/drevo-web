@@ -7,24 +7,15 @@ import {
     mockArticleHistoryError,
 } from '../../fixtures';
 import {
-    createArticleVersionDto,
     createArticleHistoryResponse,
+    mockArticleViewData,
 } from '../../mocks/articles';
 import { ArticlePage } from '../../pages/article.page';
 
 const ARTICLE_ID = 42;
 const VERSION_ID = 99;
-const ARTICLE = createArticleVersionDto({
-    articleId: ARTICLE_ID,
-    versionId: 420,
-    title: 'Тестовая статья',
-});
-const VERSION = createArticleVersionDto({
-    articleId: ARTICLE_ID,
-    versionId: VERSION_ID,
-    title: 'Тестовая статья',
-    approved: 0,
-});
+const ARTICLE = mockArticleViewData.single;
+const VERSION = mockArticleViewData.version;
 
 test.describe('Article tabs', () => {
     let article: ArticlePage;
