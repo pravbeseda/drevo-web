@@ -1,7 +1,8 @@
 import { test, expect, mockAuthApi, mockArticleShow, mockArticleModerate, bypassSsr } from '../../fixtures';
-import { createArticleVersionDto, mockArticleViewData } from '../../mocks/articles';
+import { createArticleVersionDto } from '../../mocks/articles';
 import { mockUsers } from '../../mocks';
 import { ArticlePage } from '../../pages/article.page';
+import { getNotification } from '../../helpers/notification';
 
 const ARTICLE_ID = 42;
 
@@ -13,7 +14,13 @@ const PENDING_ARTICLE = createArticleVersionDto({
     approved: 0,
 });
 
-const APPROVED_ARTICLE = mockArticleViewData.single;
+const APPROVED_ARTICLE = createArticleVersionDto({
+    articleId: ARTICLE_ID,
+    versionId: 420,
+    title: 'Тестовая статья',
+    content: '<p>Содержимое тестовой статьи</p>',
+    approved: 1,
+});
 
 test.describe('Article moderation', () => {
     let article: ArticlePage;
@@ -56,14 +63,14 @@ test.describe('Article moderation', () => {
             await article.moderationAction.click();
             await expect(article.moderationApproveButton).toBeVisible();
             await article.moderationApproveButton.click();
-            await expect(page.locator('.mat-mdc-snack-bar-container.toast-success')).toBeVisible();
+            await expect(getNotification(page, 'success')).toBeVisible();
         });
 
         test('moderator can reject a pending version', async ({ authenticatedPage: page }) => {
             await mockArticleModerate(page);
             await article.moderationAction.click();
             await article.moderationRejectButton.click();
-            await expect(page.locator('.mat-mdc-snack-bar-container.toast-success')).toBeVisible();
+            await expect(getNotification(page, 'success')).toBeVisible();
         });
     });
 

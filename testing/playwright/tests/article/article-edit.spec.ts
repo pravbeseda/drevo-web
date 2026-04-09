@@ -13,6 +13,7 @@ import {
 } from '../../fixtures';
 import { mockArticleViewData, mockArticleEditData } from '../../mocks/articles';
 import { ArticleEditPage } from '../../pages/article-edit.page';
+import { getNotification } from '../../helpers/notification';
 
 const ARTICLE_ID = 42;
 const VERSION_ID = 420;
@@ -41,7 +42,7 @@ test.describe('Article edit', () => {
 
         test('shows info notification when saving unchanged content', async ({ authenticatedPage: page }) => {
             await editPage.clickSave();
-            await expect(page.locator('.mat-mdc-snack-bar-container.toast-info')).toContainText(
+            await expect(getNotification(page, 'info')).toContainText(
                 'Нет изменений для сохранения',
             );
         });
@@ -57,14 +58,14 @@ test.describe('Article edit', () => {
             await mockArticleSaveError(page, 500);
             await editPage.typeInEditor('Новый текст');
             await editPage.clickSave();
-            await expect(page.locator('.mat-mdc-snack-bar-container.toast-error')).toBeVisible();
+            await expect(getNotification(page, 'error')).toBeVisible();
         });
 
         test('shows 403 error notification when save is not authorized', async ({ authenticatedPage: page }) => {
             await mockArticleSaveError(page, 403, 'Нет прав для сохранения');
             await editPage.typeInEditor('Новый текст');
             await editPage.clickSave();
-            await expect(page.locator('.mat-mdc-snack-bar-container.toast-error')).toContainText(
+            await expect(getNotification(page, 'error')).toContainText(
                 'Нет прав для сохранения',
             );
         });
@@ -91,8 +92,8 @@ test.describe('Article edit', () => {
             await mockInworkClear(page);
             editPage = new ArticleEditPage(page);
             await page.goto(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
-            await expect(page.locator('.confirmation-dialog__title')).toBeVisible();
-            await expect(page.locator('.confirmation-dialog__title')).toContainText('Статья редактируется');
+            await expect(page.getByTestId('confirmation-dialog-title')).toBeVisible();
+            await expect(page.getByTestId('confirmation-dialog-title')).toContainText('Статья редактируется');
         });
     });
 });

@@ -17,8 +17,6 @@ export class ArticlePage extends BasePage {
 
     /** Moderation sidebar action button (visible for moderators only) */
     readonly moderationAction = this.page.getByTestId('moderation-action');
-    /** Side panel opened by moderation action */
-    readonly sidePanel = this.page.getByTestId('side-panel');
     /** Approve button inside the moderation panel */
     readonly moderationApproveButton = this.page.getByTestId('moderation-approve-button');
     /** Send to review button inside the moderation panel */
