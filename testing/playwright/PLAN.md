@@ -185,16 +185,16 @@ Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`
 - [x] `tests/pictures/picture-detail.spec.ts` — 13 тестов: изображение/заголовок/автор/размеры, связанные статьи (есть/пусто/ошибка), редактирование заголовка (модератор/pending), 404/ошибка/невалидный ID, скрытие размеров
 - [ ] `tests/pictures/picture-moderation.spec.ts` — отложено (компонент модерации ещё не реализован)
 
-### D5: Layout — header, sidebar
-- [ ] `data-testid` в header, sidebar, theme-toggle, font-scale-control
-- [ ] `tests/layout/header.spec.ts` — имя пользователя, account dropdown
-- [ ] `tests/layout/sidebar.spec.ts` — навигация, collapsed/expanded, сохранение состояния
-- [ ] `tests/layout/theme.spec.ts` — переключение темы, сохранение
-- [ ] `tests/layout/font-scale.spec.ts` — изменение масштаба, границы, сохранение
+### D5: Layout — header, sidebar ✅
+- [x] `data-testid` в header, sidebar, theme-toggle, font-scale-control
+- [x] `tests/layout/header.spec.ts` — имя пользователя, account dropdown
+- [x] `tests/layout/sidebar.spec.ts` — навигация, collapsed/expanded, сохранение состояния
+- [x] `tests/layout/theme.spec.ts` — переключение темы, сохранение
+- [x] `tests/layout/font-scale.spec.ts` — изменение масштаба, границы, сохранение
 
 ### D6: Main page
-- [ ] Mock factories: articles list (`mocks/articles.ts`)
-- [ ] `MainPage` page object
+- [x] Mock factories: articles list (`mocks/articles.ts`)
+- [x] `MainPage` page object
 - [ ] `data-testid` в main page компоненты
 - [ ] `tests/main-page.spec.ts` — отображение, список статей, пустой список, ошибка, навигация к статье
 
