@@ -1,6 +1,7 @@
 import { apiError, apiSuccess, mockUsers } from '../mocks';
+import { createArticlesSearchResponse, mockArticleData } from '../mocks/articles';
 import { createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
-import { PictureDto, PicturesListResponseDto, User } from '@drevo-web/shared';
+import { ArticleSearchResponseDto, PictureDto, PicturesListResponseDto, User } from '@drevo-web/shared';
 import { Page } from '@playwright/test';
 
 /** Mock auth endpoints for an authenticated user */
@@ -206,5 +207,31 @@ export async function mockPictureThumbs(page: Page): Promise<void> {
     );
     await page.route('**/pictures/full/**', route =>
         route.fulfill({ body: pixel, contentType: 'image/png' }),
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Articles
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/articles/search — returns paginated articles list */
+export async function mockArticlesApi(
+    page: Page,
+    response: ArticleSearchResponseDto = createArticlesSearchResponse(mockArticleData.smallList),
+): Promise<void> {
+    await page.route('**/api/articles/search**', route =>
+        route.fulfill({ json: apiSuccess(response) }),
+    );
+}
+
+/** Mock GET /api/articles/search — empty list */
+export async function mockArticlesEmpty(page: Page): Promise<void> {
+    await mockArticlesApi(page, createArticlesSearchResponse([]));
+}
+
+/** Mock GET /api/articles/search — server error */
+export async function mockArticlesError(page: Page, status = 500): Promise<void> {
+    await page.route('**/api/articles/search**', route =>
+        route.fulfill({ status, json: apiError('Internal server error') }),
     );
 }

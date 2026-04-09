@@ -18,4 +18,7 @@ export {
     mockPictureUpdateTitle,
     mockPictureUpdateTitlePending,
     mockPictureThumbs,
+    mockArticlesApi,
+    mockArticlesEmpty,
+    mockArticlesError,
 } from './mock-api.fixture';
