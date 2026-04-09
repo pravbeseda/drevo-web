@@ -22,7 +22,7 @@ export abstract class BasePage {
      */
     async openMobileMenu(): Promise<void> {
         const menuToggle = this.page.locator('[data-testid="fab-menu-toggle"] .action-button:visible');
-        if (await menuToggle.isVisible({ timeout: 500 }).catch(() => false)) {
+        if (await menuToggle.isVisible()) {
             const isOpen = await this.page.locator('.speed-dial.open').isVisible().catch(() => false);
             if (!isOpen) {
                 await menuToggle.click();
