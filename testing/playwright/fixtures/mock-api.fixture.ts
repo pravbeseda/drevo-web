@@ -28,7 +28,7 @@ export async function bypassSsr(page: Page, urlPattern: string): Promise<void> {
             const response = await route.fetch({ url: baseUrl });
             await route.fulfill({ response });
         } else {
-            await route.continue();
+            await route.fallback();
         }
     });
 }
