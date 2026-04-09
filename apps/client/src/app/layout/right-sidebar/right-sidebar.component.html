@@ -2,6 +2,7 @@
 <div class="floating-sidebar">
     @for (action of actions(); track action.id) {
         <ui-action-button
+            [attr.data-testid]="action.testId || null"
             [icon]="action.icon"
             [svgIcon]="action.svgIcon"
             [label]="action.label"

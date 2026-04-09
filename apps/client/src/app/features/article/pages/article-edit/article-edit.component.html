@@ -10,6 +10,7 @@
         label="Сохранить"
         priority="primary"
         [disabled]="isSaving()"
+        testId="save-action"
         (activated)="save()"
     />
     <app-sidebar-action
@@ -18,10 +19,14 @@
         label="Отмена"
         priority="secondary"
         [disabled]="isSaving()"
+        testId="cancel-action"
         (activated)="cancel()"
     />
 
-    <ui-workspace (activeTabChange)="onTabChange($event)">
+    <ui-workspace
+        data-testid="article-edit"
+        (activeTabChange)="onTabChange($event)"
+    >
         <ui-workspace-tab
             label="Редактор"
             icon="edit"
@@ -29,6 +34,7 @@
         >
             <ng-template>
                 <lib-editor
+                    data-testid="editor-container"
                     [content]="editorContent()"
                     [customExtensions]="editorExtensions"
                     [linksStatus]="updateLinksState()"

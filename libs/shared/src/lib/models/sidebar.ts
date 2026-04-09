@@ -10,5 +10,6 @@ export interface SidebarAction {
     readonly order?: number;
     readonly disabled?: boolean;
     readonly badge?: number;
+    readonly testId?: string;
     readonly action?: () => void;
 }

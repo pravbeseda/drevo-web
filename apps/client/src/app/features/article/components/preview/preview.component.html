@@ -1,9 +1,18 @@
 @if (isLoading()) {
-    <div class="preview-loading">
+    <div
+        class="preview-loading"
+        data-testid="preview-loading"
+    >
         <ui-spinner />
     </div>
 } @else if (error()) {
-    <app-error [message]="error()" />
+    <app-error
+        data-testid="preview-error"
+        [message]="error()"
+    />
 } @else {
-    <app-article-content [content]="previewHtml()" />
+    <app-article-content
+        data-testid="preview-content"
+        [content]="previewHtml()"
+    />
 }

@@ -4,6 +4,8 @@ import {
     ArticleSearchResponseDto,
     ArticleSearchResultDto,
     ArticleVersionDto,
+    ModerationResponseDto,
+    SaveArticleVersionResponseDto,
 } from '@drevo-web/shared';
 
 /** Create a single ArticleSearchResultDto with overrides */
@@ -125,4 +127,44 @@ export const mockArticleViewData = {
         createArticleHistoryItemDto({ versionId: 1, articleId: 42, title: 'Тестовая статья' }, 1),
         createArticleHistoryItemDto({ versionId: 2, articleId: 42, title: 'Тестовая статья' }, 2),
     ] as const satisfies readonly ArticleHistoryItemDto[],
+};
+
+/** Create a SaveArticleVersionResponseDto (response from POST /api/articles/save) */
+export function createSaveArticleVersionResponseDto(
+    overrides: Partial<SaveArticleVersionResponseDto> = {},
+): SaveArticleVersionResponseDto {
+    return {
+        articleId: 42,
+        versionId: 421,
+        title: 'Тестовая статья',
+        content: '<p>Содержимое тестовой статьи</p>',
+        author: 'testuser',
+        date: '2025-01-15T13:00:00',
+        approved: 0,
+        ...overrides,
+    };
+}
+
+/** Create a ModerationResponseDto (response from POST /api/articles/moderate) */
+export function createModerationResponseDto(
+    overrides: Partial<ModerationResponseDto> = {},
+): ModerationResponseDto {
+    return {
+        versionId: 420,
+        articleId: 42,
+        approved: 1,
+        ...overrides,
+    };
+}
+
+/** Pre-built mock data for article edit scenarios */
+export const mockArticleEditData = {
+    /** Version loaded for editing (article ID 42, version ID 420) */
+    version: createArticleVersionDto({
+        articleId: 42,
+        versionId: 420,
+        title: 'Тестовая статья',
+        content: 'Исходный текст статьи',
+        approved: 0,
+    }),
 };
