@@ -43,6 +43,7 @@ test.describe('Article moderation', () => {
             article = new ArticlePage(page);
             await page.goto(`/articles/${ARTICLE_ID}`);
             await article.waitForReady();
+            await article.openMobileMenu();
 
             await expect(article.moderationAction).toBeVisible();
         });
@@ -60,6 +61,7 @@ test.describe('Article moderation', () => {
 
         test('moderator can approve a pending version', async ({ authenticatedPage: page }) => {
             await mockArticleModerate(page);
+            await article.openMobileMenu();
             await article.moderationAction.click();
             await expect(article.moderationApproveButton).toBeVisible();
             await article.moderationApproveButton.click();
@@ -68,6 +70,7 @@ test.describe('Article moderation', () => {
 
         test('moderator can reject a pending version', async ({ authenticatedPage: page }) => {
             await mockArticleModerate(page);
+            await article.openMobileMenu();
             await article.moderationAction.click();
             await article.moderationRejectButton.click();
             await expect(getNotification(page, 'success')).toBeVisible();
@@ -82,6 +85,7 @@ test.describe('Article moderation', () => {
             article = new ArticlePage(page);
             await page.goto(`/articles/${ARTICLE_ID}`);
             await article.waitForReady();
+            await article.openMobileMenu();
             await article.moderationAction.click();
 
             await expect(article.moderationApproveButton).not.toBeAttached();

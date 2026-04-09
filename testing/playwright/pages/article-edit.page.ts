@@ -5,10 +5,10 @@ export class ArticleEditPage extends BasePage {
     readonly root = this.page.getByTestId('article-edit');
     /** CodeMirror editor container */
     readonly editorContainer = this.page.getByTestId('editor-container');
-    /** Save sidebar action button */
-    readonly saveAction = this.page.getByTestId('save-action');
-    /** Cancel sidebar action button */
-    readonly cancelAction = this.page.getByTestId('cancel-action');
+    /** Save sidebar action button (desktop sidebar or mobile FAB) */
+    readonly saveAction = this.sidebarAction('save-action');
+    /** Cancel sidebar action button (desktop sidebar or mobile FAB) */
+    readonly cancelAction = this.sidebarAction('cancel-action');
     /** Preview formatted content */
     readonly previewContent = this.page.getByTestId('preview-content');
     /** Preview loading spinner */

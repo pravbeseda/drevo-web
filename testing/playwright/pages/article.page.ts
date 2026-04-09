@@ -15,8 +15,8 @@ export class ArticlePage extends BasePage {
     readonly tabHistory = this.page.getByTestId('tab-history');
     readonly tabLinkedhere = this.page.getByTestId('tab-linkedhere');
 
-    /** Moderation sidebar action button (visible for moderators only) */
-    readonly moderationAction = this.page.getByTestId('moderation-action');
+    /** Moderation sidebar action button (desktop sidebar or mobile FAB, visible for moderators only) */
+    readonly moderationAction = this.sidebarAction('moderation-action');
     /** Approve button inside the moderation panel */
     readonly moderationApproveButton = this.page.getByTestId('moderation-approve-button');
     /** Send to review button inside the moderation panel */
