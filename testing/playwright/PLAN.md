@@ -212,12 +212,17 @@ Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`
 - [x] `tests/article/article-edit.spec.ts` — редактор, сохранение, ошибки, preview
 - [x] `tests/article/article-moderation.spec.ts` — кнопки модерации, одобрение/отклонение
 
-### D9: History + Diff
-- [ ] Mock factories: history list, version pairs
-- [ ] `HistoryPage`, `DiffPage` page objects
-- [ ] `data-testid` в history, diff компоненты
-- [ ] `tests/history/history-page.spec.ts` — табы, пагинация, пустой список
-- [ ] `tests/history/diff-page.spec.ts` — сравнение версий, diff-разметка
+### D9: History + Diff ✅
+- [x] Mock factories: `createVersionForDiffDto`, `createVersionPairsResponse`, `mockDiffData` (`mocks/articles.ts`)
+- [x] Fixture functions: `mockGlobalHistory`, `mockGlobalHistoryError`, `mockVersionPairs`, `mockVersionPairsNoHistory`, `mockVersionPairsServerError` (`fixtures/mock-api.fixture.ts`)
+- [x] `testId` support added to `TabItem` / `TabsComponent` (`libs/ui`)
+- [x] `testId` added to `HISTORY_TABS` in `HistoryComponent`
+- [x] `data-testid="diff-error"`, `data-testid="diff-meta"`, `testId="diff-toggle"` in `DiffPageComponent`
+- [x] `data-testid="history-list"` on `<ui-virtual-scroller>` in `ArticleHistoryListComponent`
+- [x] `HistoryPage` page object (`pages/history.page.ts`)
+- [x] `DiffPage` page object (`pages/diff.page.ts`)
+- [x] `tests/history/history-page.spec.ts` — 7 тестов: redirect, список, пустой, ошибка, навигация по вкладкам
+- [x] `tests/history/diff-page.spec.ts` — 6 тестов: одна версия, две версии, toggle, NO_PREVIOUS_VERSION, 500, невалидный ID
 
 ### D10: Editor + Search
 - [ ] `tests/editor/editor.spec.ts` — загрузка iframe, доступ

@@ -9,6 +9,7 @@
             routerLinkActive
             #rla="routerLinkActive"
             [active]="rla.isActive"
+            [attr.data-testid]="tab.testId ?? null"
         >
             {{ tab.label }}
             @if (tab.badge !== undefined) {

@@ -7,6 +7,7 @@ export interface TabItem {
     readonly label: string;
     readonly route: string;
     readonly badge?: number;
+    readonly testId?: string;
 }
 
 @Component({

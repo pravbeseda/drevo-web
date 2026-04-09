@@ -1,4 +1,11 @@
-import { apiError, apiSuccess, mockUsers } from '../mocks';
+import {
+    apiError,
+    apiSuccess,
+    createPicturePendingDto,
+    createPicturesListResponse,
+    mockPictureData,
+    mockUsers,
+} from '../mocks';
 import {
     createArticleHistoryResponse,
     createArticlesSearchResponse,
@@ -7,8 +14,8 @@ import {
     mockArticleData,
     mockArticleEditData,
     mockArticleViewData,
+    mockDiffData,
 } from '../mocks/articles';
-import { createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
 import {
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
@@ -18,6 +25,7 @@ import {
     PicturesListResponseDto,
     SaveArticleVersionResponseDto,
     User,
+    VersionPairsResponseDto,
 } from '@drevo-web/shared';
 import { Page } from '@playwright/test';
 
@@ -314,9 +322,7 @@ export async function mockArticleVersion(
     versionId: number,
     data: ArticleVersionDto = mockArticleEditData.version,
 ): Promise<void> {
-    await page.route(`**/api/articles/version/${versionId}`, route =>
-        route.fulfill({ json: apiSuccess(data) }),
-    );
+    await page.route(`**/api/articles/version/${versionId}`, route => route.fulfill({ json: apiSuccess(data) }));
 }
 
 /** Mock GET /api/articles/version/:versionId — server error */
@@ -386,9 +392,7 @@ export async function mockArticleModerateError(page: Page, status = 500): Promis
 
 /** Mock GET /api/inwork/check — returns optional current editor */
 export async function mockInworkCheck(page: Page, editor?: string): Promise<void> {
-    await page.route('**/api/inwork/check**', route =>
-        route.fulfill({ json: apiSuccess({ editor }) }),
-    );
+    await page.route('**/api/inwork/check**', route => route.fulfill({ json: apiSuccess({ editor }) }));
 }
 
 /** Mock POST /api/inwork/mark — success (no-op response) */
@@ -404,5 +408,73 @@ export async function mockInworkClear(page: Page): Promise<void> {
     await page.route('**/api/inwork/clear', route => {
         if (route.request().method() !== 'POST') return route.fallback();
         return route.fulfill({ json: apiSuccess(undefined) });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// History (global)
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/articles/history — returns all items (no articleId filter) */
+export async function mockGlobalHistory(
+    page: Page,
+    response: ArticleHistoryResponseDto = createArticleHistoryResponse(
+        Array.from(
+            { length: 5 },
+            (_, i) => mockArticleViewData.historyItems[i % mockArticleViewData.historyItems.length],
+        ),
+    ),
+): Promise<void> {
+    await page.route('**/api/articles/history**', route => route.fulfill({ json: apiSuccess(response) }));
+}
+
+/** Mock GET /api/articles/history — server error */
+export async function mockGlobalHistoryError(page: Page, status = 500): Promise<void> {
+    await page.route('**/api/articles/history**', route =>
+        route.fulfill({ status, json: apiError('Internal server error') }),
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Diff (version pairs)
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/articles/versionpairs?version1=:version1 — returns version pairs */
+export async function mockVersionPairs(
+    page: Page,
+    version1: number,
+    response: VersionPairsResponseDto = mockDiffData.default,
+): Promise<void> {
+    await page.route('**/api/articles/versionpairs**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('version1') === String(version1)) {
+            return route.fulfill({ json: apiSuccess(response) });
+        }
+        return route.fallback();
+    });
+}
+
+/** Mock GET /api/articles/versionpairs — no previous version (404 + NO_PREVIOUS_VERSION) */
+export async function mockVersionPairsNoHistory(page: Page, version1: number): Promise<void> {
+    await page.route('**/api/articles/versionpairs**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('version1') === String(version1)) {
+            return route.fulfill({
+                status: 404,
+                json: apiError('Not found', 'NO_PREVIOUS_VERSION'),
+            });
+        }
+        return route.fallback();
+    });
+}
+
+/** Mock GET /api/articles/versionpairs — generic server error */
+export async function mockVersionPairsServerError(page: Page, version1: number, status = 500): Promise<void> {
+    await page.route('**/api/articles/versionpairs**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('version1') === String(version1)) {
+            return route.fulfill({ status, json: apiError('Internal server error') });
+        }
+        return route.fallback();
     });
 }
