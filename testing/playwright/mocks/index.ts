@@ -5,6 +5,10 @@ export {
     createArticleDtoList,
     createArticlesSearchResponse,
     mockArticleData,
+    createArticleVersionDto,
+    createArticleHistoryItemDto,
+    createArticleHistoryResponse,
+    mockArticleViewData,
 } from './articles';
 export {
     createPictureDto,

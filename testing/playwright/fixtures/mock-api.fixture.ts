@@ -1,8 +1,37 @@
 import { apiError, apiSuccess, mockUsers } from '../mocks';
-import { createArticlesSearchResponse, mockArticleData } from '../mocks/articles';
+import {
+    createArticleHistoryResponse,
+    createArticlesSearchResponse,
+    mockArticleData,
+    mockArticleViewData,
+} from '../mocks/articles';
 import { createPicturePendingDto, createPicturesListResponse, mockPictureData } from '../mocks/pictures';
-import { ArticleSearchResponseDto, PictureDto, PicturesListResponseDto, User } from '@drevo-web/shared';
+import {
+    ArticleHistoryResponseDto,
+    ArticleSearchResponseDto,
+    ArticleVersionDto,
+    PictureDto,
+    PicturesListResponseDto,
+    User,
+} from '@drevo-web/shared';
 import { Page } from '@playwright/test';
+
+/**
+ * Bypass SSR for a specific route pattern by serving a client-only HTML shell.
+ * Use this when testing error states on SSR-enabled routes, since page.route()
+ * only intercepts browser-level requests (not server-side HTTP calls from SSR).
+ */
+export async function bypassSsr(page: Page, urlPattern: string): Promise<void> {
+    await page.route(urlPattern, async (route, request) => {
+        if (request.resourceType() === 'document') {
+            const baseUrl = new URL(request.url()).origin;
+            const response = await route.fetch({ url: baseUrl });
+            await route.fulfill({ response });
+        } else {
+            await route.continue();
+        }
+    });
+}
 
 /** Mock auth endpoints for an authenticated user */
 export async function mockAuthApi(page: Page, user: User = mockUsers.authenticated): Promise<void> {
@@ -54,12 +83,7 @@ export async function mockLoginSuccess(page: Page, user: User = mockUsers.authen
 }
 
 /** Mock POST /api/auth/login — failed login with error code */
-export async function mockLoginError(
-    page: Page,
-    status: number,
-    message: string,
-    errorCode?: string,
-): Promise<void> {
+export async function mockLoginError(page: Page, status: number, message: string, errorCode?: string): Promise<void> {
     await page.route('**/api/auth/login', route =>
         route.fulfill({
             status,
@@ -101,9 +125,7 @@ export async function mockPicturesApi(
     page: Page,
     response: PicturesListResponseDto = createPicturesListResponse(mockPictureData.fullPage),
 ): Promise<void> {
-    await page.route(PICTURES_LIST_RE, route =>
-        route.fulfill({ json: apiSuccess(response) }),
-    );
+    await page.route(PICTURES_LIST_RE, route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 /** Mock GET /api/pictures — empty list */
@@ -114,20 +136,13 @@ export async function mockPicturesEmpty(page: Page): Promise<void> {
 
 /** Mock GET /api/pictures — server error */
 export async function mockPicturesError(page: Page, status = 500): Promise<void> {
-    await page.route(PICTURES_LIST_RE, route =>
-        route.fulfill({ status, json: apiError('Internal server error') }),
-    );
+    await page.route(PICTURES_LIST_RE, route => route.fulfill({ status, json: apiError('Internal server error') }));
 }
 
 /** Mock GET /api/pictures with search — returns filtered subset or custom response */
-export async function mockPicturesSearch(
-    page: Page,
-    response: PicturesListResponseDto,
-): Promise<void> {
+export async function mockPicturesSearch(page: Page, response: PicturesListResponseDto): Promise<void> {
     await page.unroute(PICTURES_LIST_RE);
-    await page.route(PICTURES_LIST_RE, route =>
-        route.fulfill({ json: apiSuccess(response) }),
-    );
+    await page.route(PICTURES_LIST_RE, route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 /** Mock GET /api/pictures/:id — single picture detail */
@@ -173,11 +188,7 @@ export async function mockPictureArticles(
 }
 
 /** Mock PATCH /api/pictures/:id — title update (direct edit, moderator response) */
-export async function mockPictureUpdateTitle(
-    page: Page,
-    id: number,
-    updatedPicture: PictureDto,
-): Promise<void> {
+export async function mockPictureUpdateTitle(page: Page, id: number, updatedPicture: PictureDto): Promise<void> {
     await page.route(`**/api/pictures/${id}`, route => {
         const method = route.request().method();
         if (method !== 'PATCH') return route.fallback();
@@ -202,12 +213,8 @@ export async function mockPictureThumbs(page: Page): Promise<void> {
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==',
         'base64',
     );
-    await page.route('**/pictures/thumbs/**', route =>
-        route.fulfill({ body: pixel, contentType: 'image/png' }),
-    );
-    await page.route('**/pictures/full/**', route =>
-        route.fulfill({ body: pixel, contentType: 'image/png' }),
-    );
+    await page.route('**/pictures/thumbs/**', route => route.fulfill({ body: pixel, contentType: 'image/png' }));
+    await page.route('**/pictures/full/**', route => route.fulfill({ body: pixel, contentType: 'image/png' }));
 }
 
 // ---------------------------------------------------------------------------
@@ -219,9 +226,7 @@ export async function mockArticlesApi(
     page: Page,
     response: ArticleSearchResponseDto = createArticlesSearchResponse(mockArticleData.smallList),
 ): Promise<void> {
-    await page.route('**/api/articles/search**', route =>
-        route.fulfill({ json: apiSuccess(response) }),
-    );
+    await page.route('**/api/articles/search**', route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 /** Mock GET /api/articles/search — empty list */
@@ -234,4 +239,62 @@ export async function mockArticlesError(page: Page, status = 500): Promise<void>
     await page.route('**/api/articles/search**', route =>
         route.fulfill({ status, json: apiError('Internal server error') }),
     );
+}
+
+/** Mock GET /api/articles/show/:id — single article for the article page */
+export async function mockArticleShow(
+    page: Page,
+    id: number,
+    data: ArticleVersionDto = mockArticleViewData.single,
+): Promise<void> {
+    await page.route(`**/api/articles/show/${id}`, route => route.fulfill({ json: apiSuccess(data) }));
+}
+
+/** Mock GET /api/articles/show/:id — 404 not found */
+export async function mockArticleShowNotFound(page: Page, id: number): Promise<void> {
+    await page.route(`**/api/articles/show/${id}`, route =>
+        route.fulfill({ status: 404, json: apiError('Article not found') }),
+    );
+}
+
+/** Mock GET /api/articles/show/:id — server error */
+export async function mockArticleShowError(page: Page, id: number, status = 500): Promise<void> {
+    await page.route(`**/api/articles/show/${id}`, route =>
+        route.fulfill({ status, json: apiError('Internal server error') }),
+    );
+}
+
+/** Mock GET /api/articles/version-show/:versionId */
+export async function mockArticleVersionShow(
+    page: Page,
+    versionId: number,
+    data: ArticleVersionDto = mockArticleViewData.version,
+): Promise<void> {
+    await page.route(`**/api/articles/version-show/${versionId}`, route => route.fulfill({ json: apiSuccess(data) }));
+}
+
+/** Mock GET /api/articles/history for a specific article */
+export async function mockArticleHistory(
+    page: Page,
+    articleId: number,
+    response: ArticleHistoryResponseDto = createArticleHistoryResponse(mockArticleViewData.historyItems),
+): Promise<void> {
+    await page.route('**/api/articles/history**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('articleId') === String(articleId)) {
+            return route.fulfill({ json: apiSuccess(response) });
+        }
+        return route.fallback();
+    });
+}
+
+/** Mock GET /api/articles/history for a specific article — server error */
+export async function mockArticleHistoryError(page: Page, articleId: number, status = 500): Promise<void> {
+    await page.route('**/api/articles/history**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('articleId') === String(articleId)) {
+            return route.fulfill({ status, json: apiError('Internal server error') });
+        }
+        return route.fallback();
+    });
 }

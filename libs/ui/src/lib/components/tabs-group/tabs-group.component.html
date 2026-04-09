@@ -13,6 +13,7 @@
                     [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }"
                     [class.tab-link--active]="tab.isActive ? tab.isActive() : rla.isActive"
                     [attr.aria-label]="tab.label"
+                    [attr.data-testid]="tab.testId ?? null"
                 >
                     <ui-icon
                         class="tab-icon"

@@ -106,4 +106,21 @@ describe('TabsGroupComponent', () => {
         expect(icons[3].tooltip()).toBe('Версии');
         expect(icons[4].tooltip()).toBe('Кто ссылается');
     });
+
+    it('should render data-testid when testId is provided', () => {
+        spectator.setInput('groups', [
+            {
+                items: [
+                    { label: 'Tab', route: '/test', icon: 'article', testId: 'my-tab' },
+                ],
+            },
+        ]);
+        const link = spectator.query('.tab-link');
+        expect(link).toHaveAttribute('data-testid', 'my-tab');
+    });
+
+    it('should not render data-testid when testId is not provided', () => {
+        const link = spectator.query('.tab-link');
+        expect(link).not.toHaveAttribute('data-testid');
+    });
 });

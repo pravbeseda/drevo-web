@@ -198,12 +198,12 @@ Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`
 - [ ] `data-testid` в main page компоненты
 - [ ] `tests/main-page.spec.ts` — отображение, список статей, пустой список, ошибка, навигация к статье
 
-### D7: Article — просмотр
-- [ ] Mock factories: article detail, article version
-- [ ] `ArticlePage` page object
-- [ ] `data-testid` в article-view, article-tabs
-- [ ] `tests/article/article-view.spec.ts` — заголовок, содержимое, 404, ошибка, версия
-- [ ] `tests/article/article-tabs.spec.ts` — переключение табов, история, ссылки сюда
+### D7: Article — просмотр ✅
+- [x] Mock factories: article detail (`createArticleVersionDto`), history (`createArticleHistoryItemDto`, `createArticleHistoryResponse`), `mockArticleViewData`
+- [x] `ArticlePage` page object
+- [x] `data-testid` в article-view (`article-page`, `article-error`, `article-content`), article-tabs (`article-stub`), tabs-group (`testId` на каждом табе)
+- [x] `tests/article/article-view.spec.ts` — отображение, 404, 500, невалидный ID, версия (7 тестов)
+- [x] `tests/article/article-tabs.spec.ts` — stub-табы (новости/обсуждение/ссылки), история (пустая/ошибка), навигация версия→статья, прямой URL (7 тестов)
 
 ### D8: Article — редактирование
 - [ ] `ArticleEditPage` page object

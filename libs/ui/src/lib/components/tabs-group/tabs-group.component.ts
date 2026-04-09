@@ -10,6 +10,7 @@ export interface TabGroupItem {
     readonly badge?: number;
     readonly exactRouteMatch?: boolean;
     readonly isActive?: Signal<boolean>;
+    readonly testId?: string;
 }
 
 export interface TabGroup {
