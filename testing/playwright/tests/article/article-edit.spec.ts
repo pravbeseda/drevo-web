@@ -1,6 +1,7 @@
 import {
     test,
     expect,
+    bypassSsr,
     mockArticleShow,
     mockArticleVersion,
     mockArticleSave,
@@ -25,6 +26,7 @@ test.describe('Article edit', () => {
 
     test.describe('Editor page', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
+            await bypassSsr(page, `**/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
             await mockArticleShow(page, ARTICLE_ID, ARTICLE);
             await mockArticleVersion(page, VERSION_ID, VERSION);
             await mockInworkCheck(page);
@@ -85,6 +87,7 @@ test.describe('Article edit', () => {
 
     test.describe('Inwork', () => {
         test('shows warning dialog when another user is currently editing', async ({ authenticatedPage: page }) => {
+            await bypassSsr(page, `**/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
             await mockArticleShow(page, ARTICLE_ID, ARTICLE);
             await mockArticleVersion(page, VERSION_ID, VERSION);
             await mockInworkCheck(page, 'другой пользователь');

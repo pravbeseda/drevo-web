@@ -44,7 +44,7 @@ export class ArticleEditPage extends BasePage {
     async typeInEditor(text: string): Promise<void> {
         const cmContent = this.editorContainer.locator('.cm-content');
         await cmContent.click();
-        await this.page.keyboard.press('Control+a');
+        await this.page.keyboard.press('ControlOrMeta+a');
         await this.page.keyboard.type(text);
     }
 }
