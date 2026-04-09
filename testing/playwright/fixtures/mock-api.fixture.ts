@@ -418,12 +418,7 @@ export async function mockInworkClear(page: Page): Promise<void> {
 /** Mock GET /api/articles/history — returns all items (no articleId filter) */
 export async function mockGlobalHistory(
     page: Page,
-    response: ArticleHistoryResponseDto = createArticleHistoryResponse(
-        Array.from(
-            { length: 5 },
-            (_, i) => mockArticleViewData.historyItems[i % mockArticleViewData.historyItems.length],
-        ),
-    ),
+    response: ArticleHistoryResponseDto = createArticleHistoryResponse([...mockArticleViewData.historyItems]),
 ): Promise<void> {
     await page.route('**/api/articles/history**', route => route.fulfill({ json: apiSuccess(response) }));
 }

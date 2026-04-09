@@ -67,4 +67,17 @@ describe('TabsComponent', () => {
         const panel = spectator.query('mat-tab-nav-panel');
         expect(panel).toBeTruthy();
     });
+
+    it('should render data-testid when testId is provided', () => {
+        spectator.setInput('tabs', [{ label: 'With ID', route: '/with-id', testId: 'my-tab' }]);
+        const link = spectator.query('[data-testid="my-tab"]');
+        expect(link).toBeTruthy();
+    });
+
+    it('should not render data-testid when testId is not provided', () => {
+        const links = spectator.queryAll('a[mat-tab-link]');
+        links.forEach(link => {
+            expect(link.getAttribute('data-testid')).toBeNull();
+        });
+    });
 });
