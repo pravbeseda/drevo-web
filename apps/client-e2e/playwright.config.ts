@@ -1,6 +1,6 @@
 import { workspaceRoot } from '@nx/devkit';
 import { nxE2EPreset } from '@nx/playwright/preset';
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
@@ -53,43 +53,7 @@ export default defineConfig({
               ]
             : []),
 
-        // UI Tests - require browser
-        {
-            name: 'chromium',
-            testIgnore: /api\/.*\.spec\.ts/,
-            use: { ...devices['Desktop Chrome'] },
-        },
-
-        {
-            name: 'firefox',
-            testIgnore: /api\/.*\.spec\.ts/,
-            use: { ...devices['Desktop Firefox'] },
-        },
-
-        {
-            name: 'webkit',
-            testIgnore: /api\/.*\.spec\.ts/,
-            use: { ...devices['Desktop Safari'] },
-        },
-
-        // Uncomment for mobile browsers support
-        /* {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    }, */
-
-        // Uncomment for branded browsers
-        /* {
-      name: 'Microsoft Edge',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    },
-    {
-      name: 'Google Chrome',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    } */
+        // UI integration tests have been moved to testing/playwright/
+        // This project now only contains API contract tests against real backend
     ],
 });
