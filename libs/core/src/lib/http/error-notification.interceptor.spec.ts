@@ -77,6 +77,29 @@ describe('ErrorNotificationInterceptor', () => {
                 'Сетевая ошибка. Проверьте подключение к интернету.'
             );
         });
+
+        it('should NOT show error notification for non-API asset requests', () => {
+            spectator.service.get('/img/topics/topic_event.svg').subscribe({ error: () => {} });
+
+            spectator.expectOne('/img/topics/topic_event.svg', HttpMethod.GET).flush(null, {
+                status: 404,
+                statusText: 'Not Found',
+            });
+
+            expect(notificationService.error).not.toHaveBeenCalled();
+        });
+
+        it('should show error notification for absolute API URLs', () => {
+            const url = 'https://drevo-info.ru/api/articles/show/1';
+            spectator.service.get(url).subscribe({ error: () => {} });
+
+            spectator.expectOne(url, HttpMethod.GET).flush(null, {
+                status: 404,
+                statusText: 'Not Found',
+            });
+
+            expect(notificationService.error).toHaveBeenCalledWith('Не найдено.');
+        });
     });
 
     describe('SKIP_ERROR_NOTIFICATION context token', () => {
