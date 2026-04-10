@@ -7,6 +7,7 @@ import {
     HttpHandler,
     HttpEvent,
     HttpErrorResponse,
+    HttpContextToken,
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { Injectable, inject, Injector } from '@angular/core';
@@ -19,8 +20,8 @@ const CSRF_ENDPOINTS = ['/api/auth/csrf'];
 const AUTH_ENDPOINTS = ['/api/auth/login', '/api/auth/logout'];
 const AUTH_CHECK_ENDPOINT = '/api/auth/me';
 
-// Custom header to mark requests that have already been retried for CSRF
-const CSRF_RETRY_HEADER = 'X-CSRF-Retry';
+// Internal request marker to prevent infinite CSRF retry loops without affecting CORS preflight
+export const CSRF_ALREADY_RETRIED = new HttpContextToken<boolean>(() => false);
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -108,7 +109,7 @@ export class AuthInterceptor implements HttpInterceptor {
             error.status === 403 &&
             error.error?.errorCode === 'CSRF_VALIDATION_FAILED' &&
             this.isStateChangingMethod(request.method) &&
-            !request.headers.has(CSRF_RETRY_HEADER) // Prevent infinite retry loops
+            !request.context.get(CSRF_ALREADY_RETRIED) // Prevent infinite retry loops
         ) {
             // If no refresh is in progress, start one with shareReplay
             // so all concurrent failures share the same token refresh
@@ -124,9 +125,9 @@ export class AuthInterceptor implements HttpInterceptor {
             return this.refreshingToken$.pipe(
                 switchMap(newToken => {
                     const retryRequest = request.clone({
+                        context: request.context.set(CSRF_ALREADY_RETRIED, true),
                         setHeaders: {
                             'X-CSRF-Token': newToken,
-                            [CSRF_RETRY_HEADER]: 'true', // Mark as retried to prevent loops
                         },
                         withCredentials: true,
                     });

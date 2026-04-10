@@ -1,4 +1,4 @@
-import { HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse, HttpContext } from '@angular/common/http';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -6,7 +6,7 @@ import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
-import { AuthInterceptor, authInterceptorProvider } from './auth.interceptor';
+import { AuthInterceptor, authInterceptorProvider, CSRF_ALREADY_RETRIED } from './auth.interceptor';
 
 jest.mock('../../environments/environment', () => ({
     environment: { apiUrl: 'http://test-api' },
@@ -407,25 +407,17 @@ describe('AuthInterceptor', () => {
                     const retryRequest = (handler.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
                     expect(retryRequest.headers.get('X-CSRF-Token')).toBe('new-csrf-token');
                     expect(retryRequest.withCredentials).toBe(true);
-                    // Verify retry marker header is set
-                    expect(retryRequest.headers.get('X-CSRF-Retry')).toBe('true');
+                    expect(retryRequest.headers.has('X-CSRF-Retry')).toBe(false);
+                    expect(retryRequest.context.get(CSRF_ALREADY_RETRIED)).toBe(true);
                     done();
                 },
             });
         });
 
-        it('should NOT retry if request already has X-CSRF-Retry header (prevent infinite loops)', done => {
-            // Create a request that already has the retry header (simulating a retried request)
-            const request = new HttpRequest(
-                'POST',
-                'http://test-api/api/resource',
-                {},
-                {
-                    headers: new (jest.requireActual('@angular/common/http').HttpHeaders)({
-                        'X-CSRF-Retry': 'true',
-                    }),
-                }
-            );
+        it('should NOT retry if request is already marked as retried in context (prevent infinite loops)', done => {
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {}, {
+                context: new HttpContext().set(CSRF_ALREADY_RETRIED, true),
+            });
 
             const handler = createErrorHandler(403, {
                 errorCode: 'CSRF_VALIDATION_FAILED',
