@@ -55,6 +55,10 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
     }
 
     private handleError(request: HttpRequest<unknown>, error: HttpErrorResponse): void {
+        if (!this.isApiRequest(request.url)) {
+            return;
+        }
+
         // Check if notifications are completely skipped for this request
         if (request.context.get(SKIP_ERROR_NOTIFICATION)) {
             return;
@@ -71,6 +75,14 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
         const message = customMessage || this.errorMapper.mapError(error).message;
 
         this.notification.error(message);
+    }
+
+    private isApiRequest(url: string): boolean {
+        try {
+            return new URL(url, 'http://dummy').pathname.startsWith('/api/');
+        } catch {
+            return url.startsWith('/api/');
+        }
     }
 }
 

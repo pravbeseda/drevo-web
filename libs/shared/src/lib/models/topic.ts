@@ -23,7 +23,7 @@ export const TOPICS: readonly Topic[] = [
 ];
 
 export function getTopicIconPath(icon: string): string {
-    return `/images/topics/${icon}.svg`;
+    return `/img/topics/${icon}.svg`;
 }
 
 export function getTopicsByIds(ids: readonly number[]): readonly Topic[] {
