@@ -1,4 +1,3 @@
-import { workspaceRoot } from '@nx/devkit';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { defineConfig } from '@playwright/test';
 
@@ -23,6 +22,19 @@ const enableApiTests =
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+// API tests don't need a web server — they run against a real backend directly
+const apiProjects = enableApiTests
+    ? [
+          {
+              name: 'api',
+              testMatch: /api\/.*\.spec\.ts/,
+              use: {
+                  baseURL: apiBaseURL,
+              },
+          },
+      ]
+    : [];
+
 export default defineConfig({
     ...nxE2EPreset(__filename, { testDir: './src' }),
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -31,29 +43,8 @@ export default defineConfig({
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
     },
-    /* Run your local dev server before starting the tests */
-    webServer: {
-        command: 'yarn nx run client:serve --no-hmr',
-        url: 'http://localhost:4200/editor',
-        reuseExistingServer: !process.env.CI,
-        cwd: workspaceRoot,
-    },
-    projects: [
-        // API Tests - no browser required, fast execution
-        // Only run when ENABLE_API_TESTS=true (requires real backend)
-        ...(enableApiTests
-            ? [
-                  {
-                      name: 'api',
-                      testMatch: /api\/.*\.spec\.ts/,
-                      use: {
-                          baseURL: apiBaseURL,
-                      },
-                  },
-              ]
-            : []),
-
-        // UI integration tests have been moved to testing/playwright/
-        // This project now only contains API contract tests against real backend
-    ],
+    // UI integration tests have been moved to testing/playwright/
+    // This project now only contains API contract tests against real backend
+    // No webServer needed — API tests hit the real backend directly
+    projects: apiProjects,
 });
