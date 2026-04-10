@@ -52,7 +52,16 @@ test.describe('History page', () => {
     test('clicking pictures tab navigates to /history/pictures', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabPictures.dispatchEvent('click');
+
+        // On mobile, mat-tab-nav-bar's pagination arrow may partially overlay the last tab,
+        // pushing its center beyond the viewport. Click the visible left part of the tab.
+        const paginateAfter = page.locator('.mat-mdc-tab-header-pagination-after');
+        if (await paginateAfter.isVisible()) {
+            await history.tabPictures.click({ position: { x: 10, y: 10 } });
+        } else {
+            await history.tabPictures.click();
+        }
+
         await expect(page).toHaveURL(/\/history\/pictures/);
     });
 });
