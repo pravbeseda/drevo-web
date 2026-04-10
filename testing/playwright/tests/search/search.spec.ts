@@ -106,7 +106,7 @@ test.describe('Search modal', () => {
         const firstArticleId = mockArticleData.smallList[0].id;
         await mockArticleShow(page, firstArticleId, mockArticleViewData.single);
 
-        await search.firstResult().click();
+        await search.firstResult.click();
 
         await expect(page).toHaveURL(new RegExp(`/articles/${firstArticleId}`));
         await expect(search.container).not.toBeVisible();

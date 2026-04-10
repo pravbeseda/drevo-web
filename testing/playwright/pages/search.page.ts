@@ -6,6 +6,7 @@ export class SearchPage extends BasePage {
     readonly loading = this.page.getByTestId('search-loading');
     readonly results = this.page.getByTestId('search-results');
     readonly resultItems = this.page.getByTestId('search-result-item');
+    readonly firstResult = this.resultItems.first();
     readonly noResults = this.page.getByTestId('search-no-results');
 
     async waitForReady(): Promise<void> {
@@ -14,9 +15,5 @@ export class SearchPage extends BasePage {
 
     async typeQuery(query: string): Promise<void> {
         await this.searchInput.fill(query);
-    }
-
-    firstResult() {
-        return this.resultItems.first();
     }
 }
