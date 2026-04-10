@@ -1,6 +1,9 @@
 @if (editorConfig$ | async; as editorConfig) {
     @if (editorConfig.content !== null) {
-        <div class="container">
+        <div
+            class="container"
+            data-testid="editor-container"
+        >
             <div class="content">
                 <lib-editor
                     [content]="editorConfig.content"
@@ -12,8 +15,14 @@
             </div>
         </div>
     } @else {
-        <div class="skeleton-textarea"></div>
+        <div
+            class="skeleton-textarea"
+            data-testid="editor-skeleton"
+        ></div>
     }
 } @else {
-    <div class="skeleton-textarea"></div>
+    <div
+        class="skeleton-textarea"
+        data-testid="editor-skeleton"
+    ></div>
 }

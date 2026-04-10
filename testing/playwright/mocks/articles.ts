@@ -9,6 +9,7 @@ import {
     VersionForDiffDto,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
+import { mockUsers } from './users';
 
 /** Create a single ArticleSearchResultDto with overrides */
 export function createArticleDto(overrides: Partial<ArticleSearchResultDto> = {}, index = 1): ArticleSearchResultDto {
@@ -180,7 +181,7 @@ export function createVersionForDiffDto(
         articleId: 42,
         versionId: index * 100,
         content: `Содержимое версии ${index}`,
-        author: 'testuser',
+        author: mockUsers.authenticated.login,
         date: `2025-01-${String(index).padStart(2, '0')}T12:00:00`,
         title: 'Тестовая статья',
         info: `Правка ${index}`,

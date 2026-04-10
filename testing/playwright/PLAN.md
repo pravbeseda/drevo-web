@@ -224,10 +224,15 @@ Mock factories (`mocks/pictures.ts`): `createPictureDto`, `createPictureDtoList`
 - [x] `tests/history/history-page.spec.ts` — 7 тестов: redirect, список, пустой, ошибка, навигация по вкладкам
 - [x] `tests/history/diff-page.spec.ts` — 6 тестов: одна версия, две версии, toggle, NO_PREVIOUS_VERSION, 500, невалидный ID
 
-### D10: Editor + Search
-- [ ] `tests/editor/editor.spec.ts` — загрузка iframe, доступ
-- [ ] `SearchPage` page object
-- [ ] `tests/search/search.spec.ts` — результаты, пустой, debounce, навигация
+### D10: Editor + Search ✅
+- [x] `data-testid="editor-skeleton"` и `data-testid="editor-container"` в `SharedEditorComponent`
+- [x] `data-testid="search-button"` в `HeaderComponent`
+- [x] `data-testid` в `SearchComponent`: `search-container`, `search-input`, `search-loading`, `search-results`, `search-result-item`, `search-no-results`
+- [x] `EditorPage` page object (`pages/editor.page.ts`) — `skeleton`, `container`, `waitForReady()`
+- [x] `SearchPage` page object (`pages/search.page.ts`) — `container`, `searchInput`, `results`, `resultItems`, `noResults`, `typeQuery()`, `firstResult()`
+- [x] `LayoutPage` дополнен `searchButton` + `openSearch()`
+- [x] `tests/editor/editor.spec.ts` — 2 теста: redirect неавторизованного, skeleton при ожидании iframe postMessage
+- [x] `tests/search/search.spec.ts` — 5 тестов: открытие модала, результаты, пустой результат, debounce (1 запрос на быстрый ввод), навигация + закрытие модала
 
 ### D11: Полировка
 - [ ] Порог coverage (monocart `watermarks`)

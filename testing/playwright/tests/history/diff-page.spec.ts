@@ -39,9 +39,7 @@ test.describe('Diff page', () => {
         await page.goto(`/history/articles/diff/${VERSION1}`);
         await diff.waitForReady();
 
-        const getLabel = async () =>
-            await diff.toggleButton.getAttribute('aria-label').catch(() => null)
-            ?? await diff.toggleButton.textContent() ?? '';
+        const getLabel = () => diff.toggleButton.getAttribute('aria-label');
 
         const initialLabel = await getLabel();
         await diff.toggleButton.click();
