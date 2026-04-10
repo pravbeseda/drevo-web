@@ -77,6 +77,10 @@ export class AuthInterceptor implements HttpInterceptor {
 
     private addCsrfAndSend(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
         return this.csrfService.getCsrfToken().pipe(
+            catchError(error => {
+                this.logger.error('Failed to get CSRF token', error);
+                return throwError(() => error);
+            }),
             switchMap(csrfToken => {
                 const csrfRequest = request.clone({
                     setHeaders: {
@@ -84,10 +88,6 @@ export class AuthInterceptor implements HttpInterceptor {
                     },
                 });
                 return next.handle(csrfRequest).pipe(catchError(error => this.handleError(error, request, next)));
-            }),
-            catchError(error => {
-                this.logger.error('Failed to get CSRF token', error);
-                return throwError(() => error);
             })
         );
     }

@@ -371,6 +371,25 @@ describe('AuthInterceptor', () => {
                 },
             });
         });
+
+        it('should not log token fetch failure when request fails after token was added', done => {
+            const requestError = new HttpErrorResponse({ status: 500, error: { error: 'Server error' } });
+            const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
+            const handler = {
+                handle: jest.fn().mockReturnValue(throwError(() => requestError)),
+            };
+
+            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+                error: error => {
+                    expect(error).toBe(requestError);
+                    expect(loggerService.mockLogger.error).not.toHaveBeenCalledWith(
+                        'Failed to get CSRF token',
+                        requestError
+                    );
+                    done();
+                },
+            });
+        });
     });
 
     describe('CSRF validation failure (403) - single request', () => {
