@@ -239,7 +239,7 @@ describe('ArticleContentComponent', () => {
     });
 
     describe('picture lightbox', () => {
-        it('should open lightbox when clicking image inside .pic with .html suffix', () => {
+        it('should open lightbox for legacy picture link with .html suffix in source', () => {
             spectator.setInput(
                 'content',
                 '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'

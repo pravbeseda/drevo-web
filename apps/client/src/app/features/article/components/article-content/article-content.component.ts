@@ -228,7 +228,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
     /**
      * Extract picture ID from anchor href within a .pic container.
-     * Expected href format: /pictures/{id} or /pictures/{id}.html
+     * Expected href format: /pictures/{id} (the .html suffix is stripped in preprocessContent).
      */
     private extractPictureId(target: HTMLElement): number | undefined {
         const anchor = target.closest('a');
@@ -237,7 +237,7 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
             return undefined;
         }
 
-        const match = /^\/pictures\/(\d+)(?:\.html)?$/.exec(href);
+        const match = /^\/pictures\/(\d+)$/.exec(href);
         if (!match) {
             return undefined;
         }
