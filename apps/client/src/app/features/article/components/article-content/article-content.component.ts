@@ -157,6 +157,8 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
      * Preprocess HTML content:
      * - Remove elements with class="map" and their content
      * - Convert onclick="javascript:..." to data-onclick
+     * - Strip legacy .html suffix from /pictures/NN.html hrefs so that
+     *   middle-click / "open in new tab" targets the Angular route
      * This prevents browser from trying to execute undefined functions
      * Uses regex to work in both browser and SSR contexts
      */
@@ -166,6 +168,9 @@ export class ArticleContentComponent implements OnInit, OnDestroy {
 
         // Convert onclick to data-onclick
         processed = processed.replace(/\s+onclick=(["'])(javascript:[\s\S]*?)\1/gi, ' data-onclick=$1$2$1');
+
+        // Rewrite /pictures/NN.html → /pictures/NN in href attributes
+        processed = processed.replace(/(\shref=(["']))(\/pictures\/\d+)\.html\2/gi, '$1$3$2');
 
         return processed;
     }
