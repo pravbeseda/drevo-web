@@ -239,7 +239,7 @@ describe('ArticleContentComponent', () => {
     });
 
     describe('picture lightbox', () => {
-        it('should open lightbox when clicking image inside .pic with .html suffix', () => {
+        it('should open lightbox for legacy picture link with .html suffix in source', () => {
             spectator.setInput(
                 'content',
                 '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'
@@ -296,6 +296,29 @@ describe('ArticleContentComponent', () => {
 
             expect(spy).toHaveBeenCalled();
             expect(lightboxService.open).toHaveBeenCalledWith(789);
+        });
+
+        it('should strip .html suffix from picture hrefs in rendered DOM', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'
+            );
+            spectator.detectChanges();
+
+            const anchor = spectator.query('.pic a') as HTMLAnchorElement;
+            expect(anchor.getAttribute('href')).toBe('/pictures/5319');
+        });
+
+        it('should leave non-picture .html links untouched', () => {
+            spectator.setInput(
+                'content',
+                '<a href="/articles/42.html">Article</a><a href="https://example.com/x.html">External</a>'
+            );
+            spectator.detectChanges();
+
+            const anchors = spectator.queryAll('a') as HTMLAnchorElement[];
+            expect(anchors[0].getAttribute('href')).toBe('/articles/42.html');
+            expect(anchors[1].getAttribute('href')).toBe('https://example.com/x.html');
         });
     });
 
