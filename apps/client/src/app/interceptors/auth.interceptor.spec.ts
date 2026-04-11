@@ -384,7 +384,7 @@ describe('AuthInterceptor', () => {
                     expect(error).toBe(requestError);
                     expect(loggerService.mockLogger.error).not.toHaveBeenCalledWith(
                         'Failed to get CSRF token',
-                        requestError
+                        expect.anything()
                     );
                     done();
                 },
