@@ -110,9 +110,11 @@ test.describe('Article edit', () => {
     test.describe('Article content after save', () => {
         // Regression: after saving, the article view should show the newly saved content,
         // not the stale version from before editing.
-        // Bug: Angular resolver does not re-run when navigating back to the parent route
-        // because the :id param hasn't changed, so ArticlePageService retains old data.
+        // Bug: the parent route's resolver doesn't re-run when navigating back from
+        // version/:versionId/edit to the empty "article" tab (the :id param hasn't
+        // changed), so route.data still emits the stale article.
         test('shows updated content on article page after successful save', async ({ authenticatedPage: page }) => {
+            const NEW_VERSION_ID = VERSION_ID + 1;
             const OLD_CONTENT_TEXT = 'Старое содержимое статьи';
             const NEW_CONTENT_TEXT = 'Новое содержимое статьи';
 
@@ -124,7 +126,7 @@ test.describe('Article edit', () => {
 
             const newArticle = createArticleVersionDto({
                 articleId: ARTICLE_ID,
-                versionId: VERSION_ID + 1,
+                versionId: NEW_VERSION_ID,
                 content: `<p>${NEW_CONTENT_TEXT}</p>`,
             });
 
@@ -140,7 +142,7 @@ test.describe('Article edit', () => {
             await mockInworkClear(page);
             await mockArticleSave(
                 page,
-                createSaveArticleVersionResponseDto({ articleId: ARTICLE_ID, versionId: VERSION_ID + 1 }),
+                createSaveArticleVersionResponseDto({ articleId: ARTICLE_ID, versionId: NEW_VERSION_ID }),
             );
 
             await bypassSsr(page, `**/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
