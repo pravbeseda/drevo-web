@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+// Backend limit per request (WikiLinksApiController::MAX_LINKS)
 const MAX_LINKS = 500;
 
 @Injectable()
@@ -14,17 +15,12 @@ export class LinksService {
             return of({});
         }
 
-        const chunks: string[][] = [];
-        for (let i = 0; i < links.length; i += MAX_LINKS) {
-            chunks.push(links.slice(i, i + MAX_LINKS));
-        }
-
-        if (chunks.length === 1) {
-            return this.linksApiService.checkLinks(chunks[0]);
-        }
+        const chunks = Array.from({ length: Math.ceil(links.length / MAX_LINKS) }, (_, i) =>
+            links.slice(i * MAX_LINKS, (i + 1) * MAX_LINKS),
+        );
 
         return forkJoin(chunks.map(chunk => this.linksApiService.checkLinks(chunk))).pipe(
-            map(results => Object.assign({}, ...results))
+            map(results => Object.assign({}, ...results)),
         );
     }
 }

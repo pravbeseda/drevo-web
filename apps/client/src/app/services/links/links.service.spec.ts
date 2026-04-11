@@ -69,7 +69,7 @@ describe('LinksService', () => {
         it('should merge results from all batches', () => {
             const links = Array.from({ length: 501 }, (_, i) => `link${i}`);
             const batch1Result = Object.fromEntries(links.slice(0, 500).map(l => [l, true]));
-            const batch2Result = { link500: false };
+            const batch2Result = { 'extra-link': false };
 
             linksApiService.checkLinks
                 .mockReturnValueOnce(of(batch1Result))
