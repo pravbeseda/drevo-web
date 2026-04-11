@@ -1,6 +1,9 @@
 import { LinksApiService } from './links-api.service';
 import { inject, Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+const MAX_LINKS = 500;
 
 @Injectable()
 export class LinksService {
@@ -11,6 +14,17 @@ export class LinksService {
             return of({});
         }
 
-        return this.linksApiService.checkLinks(links);
+        const chunks: string[][] = [];
+        for (let i = 0; i < links.length; i += MAX_LINKS) {
+            chunks.push(links.slice(i, i + MAX_LINKS));
+        }
+
+        if (chunks.length === 1) {
+            return this.linksApiService.checkLinks(chunks[0]);
+        }
+
+        return forkJoin(chunks.map(chunk => this.linksApiService.checkLinks(chunk))).pipe(
+            map(results => Object.assign({}, ...results))
+        );
     }
 }

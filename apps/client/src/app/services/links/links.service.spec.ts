@@ -44,5 +44,43 @@ describe('LinksService', () => {
             expect(linksApiService.checkLinks).toHaveBeenCalledWith(['link1', 'link2']);
             expect(result).toEqual(mockResult);
         });
+
+        it('should call checkLinks once when links count does not exceed 500', () => {
+            const links = Array.from({ length: 500 }, (_, i) => `link${i}`);
+            linksApiService.checkLinks.mockReturnValue(of({}));
+
+            spectator.service.getLinkStatuses(links).subscribe();
+
+            expect(linksApiService.checkLinks).toHaveBeenCalledTimes(1);
+            expect(linksApiService.checkLinks).toHaveBeenCalledWith(links);
+        });
+
+        it('should split links into batches of 500 when array exceeds limit', () => {
+            const links = Array.from({ length: 501 }, (_, i) => `link${i}`);
+            linksApiService.checkLinks.mockReturnValue(of({}));
+
+            spectator.service.getLinkStatuses(links).subscribe();
+
+            expect(linksApiService.checkLinks).toHaveBeenCalledTimes(2);
+            expect(linksApiService.checkLinks).toHaveBeenNthCalledWith(1, links.slice(0, 500));
+            expect(linksApiService.checkLinks).toHaveBeenNthCalledWith(2, links.slice(500));
+        });
+
+        it('should merge results from all batches', () => {
+            const links = Array.from({ length: 501 }, (_, i) => `link${i}`);
+            const batch1Result = Object.fromEntries(links.slice(0, 500).map(l => [l, true]));
+            const batch2Result = { link500: false };
+
+            linksApiService.checkLinks
+                .mockReturnValueOnce(of(batch1Result))
+                .mockReturnValueOnce(of(batch2Result));
+
+            let result: Record<string, boolean> | undefined;
+            spectator.service.getLinkStatuses(links).subscribe(r => {
+                result = r;
+            });
+
+            expect(result).toEqual({ ...batch1Result, ...batch2Result });
+        });
     });
 });
