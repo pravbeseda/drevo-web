@@ -4,7 +4,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 // Backend limit per request (WikiLinksApiController::MAX_LINKS)
-const MAX_LINKS = 500;
+export const MAX_LINKS = 500;
 
 @Injectable()
 export class LinksService {

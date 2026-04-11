@@ -1,7 +1,7 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 import { LinksApiService } from './links-api.service';
-import { LinksService } from './links.service';
+import { LinksService, MAX_LINKS } from './links.service';
 
 describe('LinksService', () => {
     let spectator: SpectatorService<LinksService>;
@@ -45,8 +45,8 @@ describe('LinksService', () => {
             expect(result).toEqual(mockResult);
         });
 
-        it('should call checkLinks once when links count does not exceed 500', () => {
-            const links = Array.from({ length: 500 }, (_, i) => `link${i}`);
+        it('should call checkLinks once when links count does not exceed MAX_LINKS', () => {
+            const links = Array.from({ length: MAX_LINKS }, (_, i) => `link${i}`);
             linksApiService.checkLinks.mockReturnValue(of({}));
 
             spectator.service.getLinkStatuses(links).subscribe();
@@ -55,20 +55,20 @@ describe('LinksService', () => {
             expect(linksApiService.checkLinks).toHaveBeenCalledWith(links);
         });
 
-        it('should split links into batches of 500 when array exceeds limit', () => {
-            const links = Array.from({ length: 501 }, (_, i) => `link${i}`);
+        it('should split links into batches of MAX_LINKS when array exceeds limit', () => {
+            const links = Array.from({ length: MAX_LINKS + 1 }, (_, i) => `link${i}`);
             linksApiService.checkLinks.mockReturnValue(of({}));
 
             spectator.service.getLinkStatuses(links).subscribe();
 
             expect(linksApiService.checkLinks).toHaveBeenCalledTimes(2);
-            expect(linksApiService.checkLinks).toHaveBeenNthCalledWith(1, links.slice(0, 500));
-            expect(linksApiService.checkLinks).toHaveBeenNthCalledWith(2, links.slice(500));
+            expect(linksApiService.checkLinks).toHaveBeenNthCalledWith(1, links.slice(0, MAX_LINKS));
+            expect(linksApiService.checkLinks).toHaveBeenNthCalledWith(2, links.slice(MAX_LINKS));
         });
 
         it('should merge results from all batches', () => {
-            const links = Array.from({ length: 501 }, (_, i) => `link${i}`);
-            const batch1Result = Object.fromEntries(links.slice(0, 500).map(l => [l, true]));
+            const links = Array.from({ length: MAX_LINKS + 1 }, (_, i) => `link${i}`);
+            const batch1Result = Object.fromEntries(links.slice(0, MAX_LINKS).map(l => [l, true]));
             const batch2Result = { 'extra-link': false };
 
             linksApiService.checkLinks
