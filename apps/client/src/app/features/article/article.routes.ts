@@ -18,6 +18,17 @@ export const ARTICLE_ROUTES: Route[] = [
         loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
         providers: [ArticlePageService, DraftEditorService],
         resolve: { article: articleResolver },
+        runGuardsAndResolvers: (from, to) => {
+            // Different article — re-run resolver (default paramsChange behavior)
+            if (from.paramMap.get('id') !== to.paramMap.get('id')) return true;
+
+            // Re-fetch whenever the user returns to the empty-child "article" tab
+            // from any other child route (edit, version view, history, etc.).
+            // This also catches edits made in another tab or by another user.
+            const fromPath = from.firstChild?.routeConfig?.path;
+            const toPath = to.firstChild?.routeConfig?.path;
+            return toPath === '' && fromPath !== '';
+        },
         data: { titleSource: 'article' },
         children: [
             {
