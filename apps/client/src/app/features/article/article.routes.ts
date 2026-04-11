@@ -4,7 +4,25 @@ import { articleResolver } from './resolvers/article.resolver';
 import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
-import { Route } from '@angular/router';
+import { ActivatedRouteSnapshot, Route } from '@angular/router';
+
+/**
+ * Predicate for the `:id` article route's `runGuardsAndResolvers`.
+ *
+ * Re-runs the resolver when:
+ * - the article `:id` changes (default `paramsChange` behavior), or
+ * - the user returns to the empty-child "article" tab from any other child
+ *   route (edit, version view, history, etc.). This keeps the article content
+ *   fresh after an edit and also catches changes made in another tab or by
+ *   another user.
+ */
+export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
+    if (from.paramMap.get('id') !== to.paramMap.get('id')) return true;
+
+    const fromPath = from.firstChild?.routeConfig?.path;
+    const toPath = to.firstChild?.routeConfig?.path;
+    return toPath === '' && fromPath !== '';
+}
 
 export const ARTICLE_ROUTES: Route[] = [
     {
@@ -18,17 +36,7 @@ export const ARTICLE_ROUTES: Route[] = [
         loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
         providers: [ArticlePageService, DraftEditorService],
         resolve: { article: articleResolver },
-        runGuardsAndResolvers: (from, to) => {
-            // Different article — re-run resolver (default paramsChange behavior)
-            if (from.paramMap.get('id') !== to.paramMap.get('id')) return true;
-
-            // Re-fetch whenever the user returns to the empty-child "article" tab
-            // from any other child route (edit, version view, history, etc.).
-            // This also catches edits made in another tab or by another user.
-            const fromPath = from.firstChild?.routeConfig?.path;
-            const toPath = to.firstChild?.routeConfig?.path;
-            return toPath === '' && fromPath !== '';
-        },
+        runGuardsAndResolvers: shouldRerunArticleResolver,
         data: { titleSource: 'article' },
         children: [
             {
