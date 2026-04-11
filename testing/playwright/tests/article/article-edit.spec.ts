@@ -12,8 +12,15 @@ import {
     mockInworkMark,
     mockInworkClear,
 } from '../../fixtures';
-import { mockArticleViewData, mockArticleEditData } from '../../mocks/articles';
+import {
+    createArticleVersionDto,
+    createSaveArticleVersionResponseDto,
+    mockArticleViewData,
+    mockArticleEditData,
+} from '../../mocks/articles';
+import { apiSuccess } from '../../mocks';
 import { ArticleEditPage } from '../../pages/article-edit.page';
+import { ArticlePage } from '../../pages/article.page';
 import { getNotification } from '../../helpers/notification';
 
 const ARTICLE_ID = 42;
@@ -97,6 +104,65 @@ test.describe('Article edit', () => {
             await page.goto(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
             await expect(page.getByTestId('confirmation-dialog-title')).toBeVisible();
             await expect(page.getByTestId('confirmation-dialog-title')).toContainText('Статья редактируется');
+        });
+    });
+
+    test.describe('Article content after save', () => {
+        // Regression: after saving, the article view should show the newly saved content,
+        // not the stale version from before editing.
+        // Bug: Angular resolver does not re-run when navigating back to the parent route
+        // because the :id param hasn't changed, so ArticlePageService retains old data.
+        test('shows updated content on article page after successful save', async ({ authenticatedPage: page }) => {
+            const OLD_CONTENT_TEXT = 'Старое содержимое статьи';
+            const NEW_CONTENT_TEXT = 'Новое содержимое статьи';
+
+            const oldArticle = createArticleVersionDto({
+                articleId: ARTICLE_ID,
+                versionId: VERSION_ID,
+                content: `<p>${OLD_CONTENT_TEXT}</p>`,
+            });
+
+            const newArticle = createArticleVersionDto({
+                articleId: ARTICLE_ID,
+                versionId: VERSION_ID + 1,
+                content: `<p>${NEW_CONTENT_TEXT}</p>`,
+            });
+
+            // Dynamic mock: returns old article initially, new article after save completes
+            let serveNewContent = false;
+            await page.route(`**/api/articles/show/${ARTICLE_ID}`, route =>
+                route.fulfill({ json: apiSuccess(serveNewContent ? newArticle : oldArticle) }),
+            );
+
+            await mockArticleVersion(page, VERSION_ID, mockArticleEditData.version);
+            await mockInworkCheck(page);
+            await mockInworkMark(page);
+            await mockInworkClear(page);
+            await mockArticleSave(
+                page,
+                createSaveArticleVersionResponseDto({ articleId: ARTICLE_ID, versionId: VERSION_ID + 1 }),
+            );
+
+            await bypassSsr(page, `**/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
+            await page.goto(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
+
+            const editPageObj = new ArticleEditPage(page);
+            await editPageObj.waitForReady();
+
+            // From this point, the show endpoint will return the new content
+            // so that a re-fetch (if the resolver re-runs) yields the updated article
+            serveNewContent = true;
+
+            await editPageObj.typeInEditor('Новый текст');
+            await editPageObj.clickSave();
+
+            await page.waitForURL(`**/articles/${ARTICLE_ID}`);
+
+            const articlePage = new ArticlePage(page);
+            await articlePage.waitForReady();
+
+            // Fails without a fix: resolver doesn't re-run, old content is shown
+            await expect(articlePage.content).toContainText(NEW_CONTENT_TEXT);
         });
     });
 });
