@@ -4,7 +4,10 @@ author: 'Drevo CI/CD'
 
 inputs:
     environment:
-        description: 'Target environment (staging/production)'
+        description: 'Environment name — used for release directory (~/releases/<env>/) and logs'
+        required: true
+    pm2-app-name:
+        description: 'PM2 application name (e.g. drevo-beta, drevo-release, drevo-production)'
         required: true
     ssh-private-key:
         description: 'SSH private key for deployment'
@@ -26,9 +29,6 @@ inputs:
         description: 'Source path to deploy from'
         required: true
         default: 'dist/apps/client'
-    target-path:
-        description: 'Target path on server (relative to user home)'
-        required: true
     environment-url:
         description: 'Environment URL for notifications'
         required: false
@@ -85,30 +85,17 @@ runs:
           run: |
               echo "⚡ Executing atomic deployment..."
 
-              # Determine app name based on environment
-              if [ "${{ inputs.environment }}" = "staging" ]; then
-                APP_NAME="drevo-staging"
-              elif [ "${{ inputs.environment }}" = "production" ]; then
-                APP_NAME="drevo-production"
-              elif [ "${{ inputs.environment }}" = "standalone" ]; then
-                APP_NAME="drevo-standalone"
-              else
-                echo "❌ Invalid environment: ${{ inputs.environment }}"
-                exit 1
-              fi
-
-              # Determine deployment path
               DEPLOY_PATH="~/releases/${{ inputs.environment }}-current"
 
               echo "📋 Deployment parameters:"
               echo "  - Environment: ${{ inputs.environment }}"
               echo "  - Version: ${{ inputs.version }}"
-              echo "  - App Name: $APP_NAME"
+              echo "  - App Name: ${{ inputs.pm2-app-name }}"
               echo "  - Deploy Path: $DEPLOY_PATH"
 
               ssh -p ${{ inputs.ssh-port }} \
                 ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-                "~/deploy.sh '${{ inputs.version }}' '$APP_NAME' '$DEPLOY_PATH' '${{ inputs.environment }}'"
+                "~/deploy.sh '${{ inputs.version }}' '${{ inputs.pm2-app-name }}' '$DEPLOY_PATH' '${{ inputs.environment }}'"
               echo "✅ Atomic deployment completed"
 
         - name: Verify deployment
@@ -121,23 +108,11 @@ runs:
                 ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
                 "if [ -L ~/releases/${{ inputs.environment }}-current ]; then ls -la ~/releases/${{ inputs.environment }}-current && readlink ~/releases/${{ inputs.environment }}-current; else echo 'Symlink ~/releases/${{ inputs.environment }}-current does not exist'; fi"
 
-              # Determine app name for PM2 verification
-              if [ "${{ inputs.environment }}" = "staging" ]; then
-                APP_NAME="drevo-staging"
-              elif [ "${{ inputs.environment }}" = "production" ]; then
-                APP_NAME="drevo-production"
-              elif [ "${{ inputs.environment }}" = "standalone" ]; then
-                APP_NAME="drevo-standalone"
-              else
-                echo "❌ Invalid environment: ${{ inputs.environment }}"
-                exit 1
-              fi
-
               # Load nvm for non-interactive SSH and verify PM2 status
               echo "🔍 Verifying PM2 status..."
               ssh -p ${{ inputs.ssh-port }} \
                 ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} \
-                "set -o pipefail; export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"; pm2 show $APP_NAME | head -10"
+                "set -o pipefail; export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"; pm2 show ${{ inputs.pm2-app-name }} | head -10"
 
               echo "✅ Deployment verification completed"
 
