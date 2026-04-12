@@ -7,9 +7,9 @@
 1. Заморозить старую iframe-версию приложения на отдельной ветке `iframe`, сохранив возможность при необходимости «разморозить» CI для хотфиксов.
 2. Сделать ветку `main` основной веткой разработки, переместив в неё текущее содержимое `standalone` без переписывания истории и без force-push.
 3. Настроить на новой `main` две deploy-цели:
-    - **beta** — push в main → date-based версия → `drevo-beta` (порт 4010, существующий).
+    - **beta** — push в main → date-based версия (`yymmdd-HHMM`) → `drevo-beta` (порт 4010, существующий).
     - **release** — тэг `X.Y.Z` → semver версия + GitHub Release → `drevo-release` (порт 4011, новый).
-4. Сохранить уже задеплоенные iframe-приложения (`drevo-staging`, `drevo-production`) рабочими; CI/CD для них перевести в «ручной» режим (`workflow_dispatch`) на ветке `iframe`.
+4. Сохранить `drevo-production` (iframe release) рабочим; CI/CD для него перевести в «ручной» режим (`workflow_dispatch`) на ветке `iframe`. `drevo-staging` — удалить (не нужен).
 
 ### Ключевые свойства плана
 
@@ -42,7 +42,6 @@ iframe            — замороженная старая версия (был
 
 | PM2 name | Port | BASE_PATH | Роль | Ветка |
 |---|---|---|---|---|
-| `drevo-staging` | 4001 | `/staging` | iframe beta (legacy) | iframe |
 | `drevo-production` | 4002 | `/` | iframe release (legacy) | iframe |
 | `drevo-beta` | 4010 | `/` | main beta (date version) | main |
 | `drevo-release` | 4011 | `/` | main release (semver) | main tag `X.Y.Z` |
@@ -59,13 +58,11 @@ iframe            — замороженная старая версия (был
 
 **На iframe:**
 - `ci-iframe.yml` — push/PR → lint+test+build (safety net для хотфиксов)
-- `cd-iframe-staging.yml` — workflow_dispatch → deploy в drevo-staging
 - `cd-iframe-release.yml` — workflow_dispatch с input'ом `tag` → deploy в drevo-production
 - `security-scan.yml` (тот же файл, триггерится и здесь через `push: ['**']`)
 
 ### GitHub Environments
 
-- `staging` (legacy, для iframe)
 - `production` (legacy, для iframe)
 - `beta` — **новый**, для drevo-beta
 - `release` — **новый**, для drevo-release
@@ -94,6 +91,8 @@ iframe            — замороженная старая версия (был
 | 13 | Tag release tests | Full test run before deploy |
 | 14 | Branch protection on main | Variant C: required PR + status checks |
 | 15 | Safety nets | Pre-migration git tags + PM2 dump backup |
+| 16 | drevo-staging fate | Remove entirely — iframe keeps only drevo-production |
+| 17 | Beta version format | `yymmdd-HHMM` (short year) instead of `yyyymmdd-HHMM` |
 
 ## 4. Pre-migration state (snapshot for reference)
 
@@ -271,11 +270,19 @@ iframe            — замороженная старая версия (был
     curl -sS http://localhost:4011 | head -20
     ```
 6. **Обновить nginx**: добавить новый server/location-блок, проксирующий внешний URL релиза на `127.0.0.1:4011`. Примерный шаблон — скопировать существующий блок для `drevo-production` и заменить порт/имя. Перезагрузить nginx: `sudo nginx -t && sudo nginx -s reload`.
-7. **Сохранить PM2 dump**: `pm2 save`.
+7. **Удалить drevo-staging** (больше не нужен — для iframe оставляем только drevo-production):
+    ```bash
+    pm2 stop drevo-staging
+    pm2 delete drevo-staging
+    rm -rf ~/releases/staging ~/releases/staging-current ~/releases/staging-previous
+    rm -f ~/logs/staging-*.log
+    ```
+    Также удалить nginx-блок для staging и перезагрузить: `sudo nginx -t && sudo nginx -s reload`.
+8. **Сохранить PM2 dump**: `pm2 save`.
 
 **Checkpoint**:
-- `pm2 list` показывает **четыре** процесса: `drevo-staging`, `drevo-production`, `drevo-beta`, `drevo-release`.
-- `drevo-standalone` отсутствует.
+- `pm2 list` показывает **три** процесса: `drevo-production`, `drevo-beta`, `drevo-release`.
+- `drevo-standalone` и `drevo-staging` отсутствуют.
 - Внешний URL beta (тот же, что был у standalone) отдаёт корректный HTML.
 - Внешний URL release отдаёт HTML (тот же билд, что и beta — временно, пока не задеплоим через CI).
 - Лог `pm2 logs drevo-beta` чистый, `drevo-release` — тоже.
@@ -292,7 +299,7 @@ pm2 resurrect
 
 ### Phase 3 — Перевод standalone workflow на drevo-beta
 
-**Goal**: обновить `standalone.yml`, чтобы он деплоил в `drevo-beta`. Удалить блок `drevo-standalone` из `ecosystem.config.js`.
+**Goal**: обновить `standalone.yml`, чтобы он деплоил в `drevo-beta`. Удалить блоки `drevo-standalone` и `drevo-staging` из `ecosystem.config.js`.
 
 **Branch**: `refactor/standalone-to-beta` (от standalone)
 
@@ -305,7 +312,7 @@ pm2 resurrect
     ```
     **Job-level `environment: standalone` — не трогать.** GH environment `beta` ещё не создан (Phase 4). Job-level environment управляет только GH secrets/protection, а SSH-secrets уже на repo-level. Строка обновится на `environment: beta` в Phase 5 при создании `cd-main-beta.yml`.
 
-2. **`scripts/ecosystem.config.js`** — удалить блок `drevo-standalone` целиком (drevo-beta и drevo-release остаются).
+2. **`scripts/ecosystem.config.js`** — удалить блоки `drevo-standalone` и `drevo-staging` целиком (drevo-production, drevo-beta и drevo-release остаются).
 
 3. **`scripts/deploy.sh`** — никаких изменений: регулярки уже обобщены в Phase 1.
 
@@ -337,7 +344,9 @@ pm2 resurrect
     - Тот же набор, + `RELEASE_URL` var (внешний URL релизного приложения).
     - Optional: настроить required reviewers = self (чтобы дополнительно подтверждать production-деплой через GH UI).
 
-3. (Опционально) Удалить environment `standalone`, когда всё заработает — это уже Phase 10.
+3. Удалить environment **`staging`** (drevo-staging удалён в Phase 2, environment больше не нужен).
+
+4. (Опционально) Удалить environment `standalone`, когда всё заработает — это уже Phase 10.
 
 **Checkpoint**: в GitHub Settings → Environments видны `beta` и `release` с корректными vars/secrets.
 
@@ -383,6 +392,8 @@ pm2 resurrect
                 # Скопировать шаги deploy из standalone.yml, ВАЖНО:
                 # - environment: 'beta'
                 # - pm2-app-name: 'drevo-beta'
+                # - VERSION: изменить формат с date +'%Y%m%d-%H%M' на date +'%y%m%d-%H%M'
+                #   (сокращённый год: 260412-1530 вместо 20260412-1530)
                 ...
     ```
 
@@ -506,31 +517,6 @@ pm2 resurrect
                 branches: [iframe]
         ```
         Обновить `nrwl/nx-set-shas` → `main-branch-name: 'iframe'`.
-    - **`.github/workflows/cd-iframe-staging.yml`** — self-contained (без `workflow_run`), триггер только ручной:
-        ```yaml
-        name: CD iframe Staging (manual)
-
-        on:
-            workflow_dispatch:
-                inputs:
-                    ref:
-                        description: 'Branch/SHA to deploy'
-                        required: true
-                        default: 'iframe'
-
-        jobs:
-            deploy:
-                runs-on: ubuntu-latest
-                environment: staging
-                steps:
-                    - uses: actions/checkout@v4
-                      with:
-                          ref: ${{ inputs.ref }}
-                    # далее — скопировать build + deploy шаги из cd-staging.yml,
-                    # передать в action:
-                    #     environment: 'staging'
-                    #     pm2-app-name: 'drevo-staging'
-        ```
     - **`.github/workflows/cd-iframe-release.yml`** — триггер только ручной, с вводом тэга:
         ```yaml
         name: CD iframe Release (manual)
@@ -571,9 +557,9 @@ pm2 resurrect
     **Также**: в iframe ещё нет нового `action.yml` и `ecosystem.config.js` (они были refactored в Phase 1 на standalone, iframe форкнулся раньше). Для iframe-workflow'ов нужно **cherry-pick'ом** или прямым копированием перенести на iframe:
     - `.github/actions/deploy/action.yml` (refactored версия)
     - `scripts/deploy.sh` (refactored версия)
-    - `scripts/ecosystem.config.js` (нам нужны блоки `drevo-staging`, `drevo-production` и обязательно `drevo-beta`/`drevo-release`, чтобы при случайном запуске деплой iframe не перезаписал беты — хотя action.yml теперь передаёт pm2-app-name явно, но сам файл ecosystem.config.js копируется целиком на сервер и мог бы перезаписать конфиг beta/release с порта 4010/4011).
+    - `scripts/ecosystem.config.js` (нам нужны блоки `drevo-production`, `drevo-beta` и `drevo-release`, чтобы при случайном запуске деплой iframe не перезаписал беты — хотя action.yml теперь передаёт pm2-app-name явно, но сам файл ecosystem.config.js копируется целиком на сервер и мог бы перезаписать конфиг beta/release с порта 4010/4011).
 
-    **Важное уточнение по ecosystem.config.js**: на iframe надо положить **полный** файл с всеми четырьмя PM2-приложениями (drevo-staging + drevo-production + drevo-beta + drevo-release), иначе деплой iframe перезапишет ecosystem.config.js на сервере, удалив оттуда beta/release и порт 4010/4011 перестанет подниматься после reboot сервера.
+    **Важное уточнение по ecosystem.config.js**: на iframe надо положить **полный** файл с всеми тремя PM2-приложениями (drevo-production + drevo-beta + drevo-release), иначе деплой iframe перезапишет ecosystem.config.js на сервере, удалив оттуда beta/release и порт 4010/4011 перестанет подниматься после reboot сервера.
 
     Проще всего — взять соответствующие файлы из standalone HEAD и скопировать в iframe:
     ```bash
@@ -594,7 +580,7 @@ pm2 resurrect
 **Checkpoint**:
 - `origin/iframe` существует, HEAD — один коммит поверх `61cc2a9`.
 - `origin/main` — без изменений (все ещё `61cc2a9`).
-- В `iframe` файлы: `ci-iframe.yml`, `cd-iframe-staging.yml`, `cd-iframe-release.yml`, `security-scan.yml`, refactored `action.yml`, `deploy.sh`, `ecosystem.config.js` с 4 PM2-блоками.
+- В `iframe` файлы: `ci-iframe.yml`, `cd-iframe-release.yml`, `security-scan.yml`, refactored `action.yml`, `deploy.sh`, `ecosystem.config.js` с 3 PM2-блоками.
 - В `iframe` НЕТ: `ci.yml`, `cd-staging.yml`, `cd-production.yml`, `standalone.yml`.
 - `security-scan.yml` побайтово совпадает на обеих ветках: `diff <(git show origin/standalone:.github/workflows/security-scan.yml) <(git show origin/iframe:.github/workflows/security-scan.yml)` — пустой вывод.
 
@@ -766,7 +752,7 @@ pm2 resurrect
     - Описание веток: `main` — active, `iframe` — frozen legacy.
     - Pipeline: `cd-main-beta.yml` на push, `cd-main-release.yml` на тэг.
     - Таблица PM2-приложений: добавить `drevo-beta` (4010), `drevo-release` (4011).
-    - Раздел «Hotfix iframe» — как вручную запускать `cd-iframe-staging.yml` / `cd-iframe-release.yml` через Actions UI.
+    - Раздел «Hotfix iframe» — как вручную запускать `cd-iframe-release.yml` через Actions UI.
 
 2. **`CLAUDE.md`** (корень, project instructions) — добавить раздел «Branches»:
     ```markdown
@@ -808,8 +794,8 @@ pm2 resurrect
 | Фаза 5→7 затягивается, beta долго не обновляется | Средняя | Среднее | Выполнять 5, 6, 7 одним сосредоточенным сеансом. Phase 6 предполагает готовые шаблоны файлов; заранее подготовить их в черновике. |
 | Downtime при rename drevo-standalone → drevo-beta | Высокая (плановая) | Низкое (секунды) | Выполнять в low-traffic окно. Тест на staging невозможен — делаем сразу на сервере. |
 | Workflow upload Sentry падает (missing secrets) | Средняя | Низкое (не блокирует deploy) | Шаг Sentry в workflow'ах имеет graceful fallback (предупреждение вместо ошибки) — наследовано из `standalone.yml`. |
-| Случайно удалить drevo-staging/production вместе со standalone | Низкая | Высокое | Никогда не вызывать `pm2 delete` без явного имени. В Phase 2 — только drevo-standalone. Проверять `pm2 list` до и после. |
-| Забыть обновить `ecosystem.config.js` на iframe → при hotfix-деплое iframe затрёт на сервере конфиг с beta/release | Средняя | Высокое | Phase 6 явно включает синхронизацию полного ecosystem.config.js на iframe. Проверять перед первым hotfix-деплоем. |
+| Случайно удалить drevo-production вместе со standalone | Низкая | Высокое | Никогда не вызывать `pm2 delete` без явного имени. В Phase 2 — только drevo-standalone и drevo-staging. Проверять `pm2 list` до и после. |
+| Забыть обновить `ecosystem.config.js` на iframe → при hotfix-деплое iframe затрёт на сервере конфиг с beta/release | Средняя | Высокое | Phase 6 явно включает синхронизацию полного ecosystem.config.js (3 PM2-блока) на iframe. Проверять перед первым hotfix-деплоем. |
 | Git fast-forward main → standalone не проходит (кто-то успел пушнуть в main) | Низкая | Низкое | До Phase 7 запустить `git fetch origin && git log origin/main..origin/standalone` — убедиться что main не двигался с `61cc2a9`. |
 | Branch protection на main мешает push'у после Phase 7 | Средняя | Низкое | Mitigated by design: Phase 7 настраивает protection **без** required status checks; они добавляются в Phase 8 step 7, после первого успешного run'а `cd-main-beta.yml`. |
 | GH Environment `beta` не создан к моменту merge Phase 5 PR | Средняя | Низкое (job падает на старте) | Phase 4 сделать до Phase 5. Проверить перед merge Phase 5, что `beta` и `release` environments существуют. |
@@ -829,8 +815,7 @@ pm2 resurrect
 2. Создать feature-ветку от iframe, внести правку.
 3. Открыть PR → iframe. `ci-iframe.yml` отработает автоматически.
 4. Merge в iframe.
-5. В GitHub Actions вручную запустить `cd-iframe-staging.yml` → выбрать `iframe` branch → проверить.
-6. Если нужен релиз: `git tag iframe-0.0.19 && git push origin iframe-0.0.19`. Затем в Actions вручную запустить `cd-iframe-release.yml` с input `tag: iframe-0.0.19`.
+5. Если нужен релиз: `git tag iframe-0.0.19 && git push origin iframe-0.0.19`. Затем в Actions вручную запустить `cd-iframe-release.yml` с input `tag: iframe-0.0.19`.
 
 ### Release workflow на main
 
@@ -868,8 +853,8 @@ git push origin iframe
 
 - Каждый деплой beta — проверить date-версию в footer приложения.
 - Первый release — проверить, что Sentry корректно размечает ошибки source map'ами.
-- Проверить, что iframe URL (`drevo-staging`, `drevo-production`) всё ещё работают — они не должны были измениться.
-- В еженедельном review: убедиться, что `pm2 list` показывает все четыре приложения в статусе `online`.
+- Проверить, что iframe URL (`drevo-production`) всё ещё работает — он не должен был измениться.
+- В еженедельном review: убедиться, что `pm2 list` показывает все три приложения в статусе `online`.
 
 ## 8. Appendix: command cheat sheet
 
@@ -910,11 +895,14 @@ cp -rP ~/releases/standalone/"$CURRENT_VERSION" ~/releases/release/"$CURRENT_VER
 ln -sfn ~/releases/beta/"$CURRENT_VERSION" ~/releases/beta-current
 ln -sfn ~/releases/release/"$CURRENT_VERSION" ~/releases/release-current
 pm2 stop drevo-standalone && pm2 delete drevo-standalone
+pm2 stop drevo-staging && pm2 delete drevo-staging
 pm2 start ~/ecosystem.config.js --only drevo-beta
 pm2 start ~/ecosystem.config.js --only drevo-release
 pm2 save
 pm2 list
 curl -sS http://localhost:4010 | head -5
 curl -sS http://localhost:4011 | head -5
-# + nginx: добавить release server-блок, reload
+# + nginx: добавить release server-блок, удалить staging server-блок, reload
+rm -rf ~/releases/staging ~/releases/staging-current ~/releases/staging-previous
+rm -f ~/logs/staging-*.log
 ```
