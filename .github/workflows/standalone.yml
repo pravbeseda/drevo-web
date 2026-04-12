@@ -130,8 +130,8 @@ jobs:
             - name: Deploy
               uses: ./.github/actions/deploy
               with:
-                  environment: 'standalone'
-                  pm2-app-name: 'drevo-standalone'
+                  environment: 'beta'
+                  pm2-app-name: 'drevo-beta'
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
                   ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
                   ssh-user: ${{ secrets.SSH_USER }}
