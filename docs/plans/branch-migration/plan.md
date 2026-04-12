@@ -117,7 +117,7 @@ iframe            — замороженная старая версия (был
 
 ---
 
-### Phase 0 — Safety snapshot
+### Phase 0 — Safety snapshot ✅
 
 **Goal**: создать точки отката до начала любых изменений.
 
@@ -156,7 +156,7 @@ iframe            — замороженная старая версия (был
 
 ---
 
-### Phase 1 — Refactor deploy-подсистемы (action.yml / deploy.sh / ecosystem.config.js)
+### Phase 1 — Refactor deploy-подсистемы (action.yml / deploy.sh / ecosystem.config.js) ✅
 
 **Goal**: устранить анти-паттерн с if-чейном в `action.yml`, подготовить `ecosystem.config.js` к новым PM2-приложениям, обновить валидации в `deploy.sh`. Никаких серверных изменений, никакого изменения поведения. Старый `standalone.yml` продолжает деплоить в `drevo-standalone`.
 

@@ -55,13 +55,13 @@ jobs:
               uses: ./.github/actions/deploy
               with:
                   environment: 'staging'
+                  pm2-app-name: 'drevo-staging'
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
                   ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
                   ssh-user: ${{ secrets.SSH_USER }}
                   ssh-host: ${{ secrets.SSH_HOST }}
                   ssh-port: ${{ secrets.SSH_PORT || '22' }}
                   source-path: 'dist/apps/client'
-                  target-path: 'staging'
                   environment-url: ${{ vars.STAGING_URL }}
                   version: ${{ steps.get_version.outputs.version }}
 
