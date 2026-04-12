@@ -221,7 +221,7 @@ iframe            — замороженная старая версия (был
 
 ---
 
-### Phase 2 — Серверная миграция (создание drevo-beta и drevo-release)
+### Phase 2 — Серверная миграция (создание drevo-beta и drevo-release) ✅
 
 **Goal**: на сервере создать два новых PM2-приложения. drevo-standalone пока остаётся работать.
 
@@ -297,7 +297,7 @@ pm2 resurrect
 
 ---
 
-### Phase 3 — Перевод standalone workflow на drevo-beta
+### Phase 3 — Перевод standalone workflow на drevo-beta ✅
 
 **Goal**: обновить `standalone.yml`, чтобы он деплоил в `drevo-beta`. Удалить блоки `drevo-standalone` и `drevo-staging` из `ecosystem.config.js`.
 
