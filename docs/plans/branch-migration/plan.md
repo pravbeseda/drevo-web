@@ -8,12 +8,12 @@
 2. Сделать ветку `main` основной веткой разработки, переместив в неё текущее содержимое `standalone` без переписывания истории и без force-push.
 3. Настроить на новой `main` две deploy-цели:
     - **beta** — push в main → date-based версия → `drevo-beta` (порт 4010, существующий).
-    - **release** — тэг `v*` → semver версия + GitHub Release → `drevo-release` (порт 4011, новый).
+    - **release** — тэг `X.Y.Z` → semver версия + GitHub Release → `drevo-release` (порт 4011, новый).
 4. Сохранить уже задеплоенные iframe-приложения (`drevo-staging`, `drevo-production`) рабочими; CI/CD для них перевести в «ручной» режим (`workflow_dispatch`) на ветке `iframe`.
 
 ### Ключевые свойства плана
 
-- **Non-destructive git**: никаких force-push'ей. Переход `standalone → main` реализуется fast-forward'ом, т.к. `main` — прямой предок `standalone` (fork-point = текущий HEAD main, `61cc2a9`).
+- **Non-destructive happy path**: forward-миграция не использует force-push. Переход `standalone → main` реализуется fast-forward'ом, т.к. `main` — прямой предок `standalone` (fork-point = текущий HEAD main, `61cc2a9`). **Единственное исключение** — аварийный rollback Phase 7, где допускается `git push --force-with-lease` с safety-тэга как last-resort механизм. В happy path он не выполняется.
 - **Reversible**: safety-тэги на текущие HEAD'ы `main` и `standalone`, PM2 dump backup, каждая фаза имеет rollback-инструкцию.
 - **Phased**: 12 фаз (0–11) с контрольной точкой после каждой + опциональная Phase 12 (follow-up). Фазы можно прерывать и возобновлять.
 - **Минимальный downtime beta**: запланированное окно недоступности beta-деплоя ≈ от начала фазы 5 до конца фазы 8 (должно укладываться в минуты-десятки минут при непрерывной работе).
@@ -28,7 +28,15 @@ iframe            — замороженная старая версия (был
 (standalone)      — удалена
 ```
 
-Существующие тэги `0.0.1`…`0.0.18` остаются привязаны к своим коммитам (они внутри истории `iframe`). Новые релизы на main используют стандартный `v*` (например, `v0.1.0`). Хотфиксы iframe (если будут) используют префикс `iframe-v*` — но триггерятся только вручную.
+#### Tag namespaces
+
+| Branch | Pattern | Example | Триггер |
+|--------|---------|---------|---------|
+| (legacy) | `X.Y.Z` + `vX.Y.Z` (дубли) | `0.0.18` / `v0.0.18` | уже не используется |
+| main | `X.Y.Z` (без `v`) | `0.1.0` | `cd-main-release.yml` автоматически |
+| iframe | `iframe-X.Y.Z` | `iframe-0.0.19` | `cd-iframe-release.yml` вручную |
+
+Три пространства не пересекаются. Старые тэги `0.0.1`–`0.0.18` и их `v`-дубли (`v0.0.1`–`v0.0.18`) остаются привязаны к своим коммитам (они внутри истории `iframe`). Хотфиксы iframe (если будут) используют префикс `iframe-` — триггерятся только вручную.
 
 ### PM2 / server
 
@@ -37,13 +45,13 @@ iframe            — замороженная старая версия (был
 | `drevo-staging` | 4001 | `/staging` | iframe beta (legacy) | iframe |
 | `drevo-production` | 4002 | `/` | iframe release (legacy) | iframe |
 | `drevo-beta` | 4010 | `/` | main beta (date version) | main |
-| `drevo-release` | 4011 | `/` | main release (semver) | main tag `v*` |
+| `drevo-release` | 4011 | `/` | main release (semver) | main tag `X.Y.Z` |
 
 ### GitHub Actions workflows
 
 **На main:**
 - `cd-main-beta.yml` — push/PR → lint+test+build+playwright; на push дополнительно deploy в drevo-beta + Sentry source maps
-- `cd-main-release.yml` — тэг `v*` → полный CI + build + deploy в drevo-release + GitHub Release + Sentry source maps
+- `cd-main-release.yml` — тэг `[0-9]*` → полный CI + build + deploy в drevo-release + GitHub Release + Sentry source maps
 - `coverage.yml` — push в main → публикация coverage-репортов на GitHub Pages
 - `playwright.yml` — push/PR → Playwright integration tests
 - `security-scan.yml` — push `**` + PR `main`/`iframe` → gitleaks
@@ -75,11 +83,11 @@ iframe            — замороженная старая версия (был
 | 2 | standalone branch fate | Delete after flip |
 | 3 | iframe CI level | Variant C: CI auto on PR, CD manual (workflow_dispatch) |
 | 4 | Gitleaks scope | push `['**']` + PR `main`/`iframe` |
-| 5 | Tag prefixes | `v*` for main, `iframe-v*` for iframe (manual only) |
-| 6 | Existing tags 0.0.1–0.0.18 | Unchanged |
+| 5 | Tag prefixes | `X.Y.Z` (без `v`) for main, `iframe-X.Y.Z` for iframe (manual only) |
+| 6 | Existing tags 0.0.1–0.0.18 + v-дубли | Unchanged |
 | 7 | drevo-standalone rename | Rename to drevo-beta (with server migration) |
 | 8 | New release PM2 name | `drevo-release` on port 4011 |
-| 9 | action.yml refactor | Now — parameterize pm2-app-name, remove if-chain |
+| 9 | action.yml refactor | Now — add pm2-app-name input, remove if-chain, remove dead target-path input |
 | 10 | Workflow structure on main | Variant A: two self-contained files |
 | 11 | Sentry source maps | Yes for both beta and release |
 | 12 | GH Environments | Create new `beta` and `release` (do not reuse `standalone`) |
@@ -94,7 +102,7 @@ iframe            — замороженная старая версия (был
 - Default branch: `standalone`
 - Open PRs: none
 - Common ancestor main ↔ standalone: `61cc2a9` (= main's HEAD)
-- Latest release tag: `0.0.18` (2025-10-09)
+- Latest release tags: `0.0.18` + `v0.0.18` (2025-10-09)
 
 ### Preexisting anti-patterns to fix during migration
 
@@ -157,18 +165,17 @@ iframe            — замороженная старая версия (был
 
 **Changes**:
 
-1. **`.github/actions/deploy/action.yml`** — добавить новые inputs и убрать if-chain:
+1. **`.github/actions/deploy/action.yml`** — добавить `pm2-app-name` input, убрать if-chain, удалить мёртвый `target-path` input:
     ```yaml
     inputs:
         pm2-app-name:
             description: 'PM2 application name (e.g. drevo-beta, drevo-release)'
             required: true
-        target-path-name:
-            description: 'Name used in ~/releases/{name}/ and ~/releases/{name}-current (e.g. beta, release, staging)'
-            required: true
-        # ... existing inputs ...
+        # environment — остаётся, задаёт имя каталога (~/releases/<env>/) и используется в логах
+        # target-path — УДАЛИТЬ (объявлен, но нигде не используется в runs:)
+        # ... existing inputs (ssh-*, source-path, version, environment-url) ...
     ```
-    Удалить оба блока `if [ "${{ inputs.environment }}" = ... ]` (в deploy и в verify), заменить на прямое использование `${{ inputs.pm2-app-name }}` и `${{ inputs.target-path-name }}`. `environment` input оставляем, но он становится чисто информативным (используется только в логах и в GitHub environment).
+    Удалить оба блока `if [ "${{ inputs.environment }}" = ... ]` (в deploy и в verify), заменить на прямое использование `${{ inputs.pm2-app-name }}`. Input `environment` продолжает задавать имя каталога: action использует `${{ inputs.environment }}` для `~/releases/<env>/` и `~/releases/<env>-current` (без изменений в этой логике). Удалить неиспользуемый input `target-path` (объявлен в текущем `action.yml:29-31`, но нигде не подставляется в runs-блоке; `standalone.yml:140` и `cd-production.yml:94` передают его впустую).
 
 2. **`scripts/deploy.sh`** — заменить хардкод-регулярки на общие проверки:
     ```bash
@@ -183,6 +190,8 @@ iframe            — замороженная старая версия (был
         exit 1
     fi
     ```
+    `deploy.sh` продолжает принимать 4 аргумента: `<version> <app_name> <deploy_path> <environment>`. 4-й аргумент (`ENVIRONMENT`) по-прежнему задаёт имя каталога `~/releases/<env>/` и симлинка `<env>-current`. Изменяется только валидация: whitelist `staging|production|standalone` заменяется на regex `^[a-z][a-z0-9-]*$`. Значения, которые будут передаваться: `beta`, `release`, `staging`, `production`.
+
     Также удалить legacy-ветки поддержки старого 2/3-аргументного формата вызова — они не используются (`action.yml` вызывает с 4 аргументами). Это уменьшает поверхность ошибки.
 
 3. **`scripts/ecosystem.config.js`** — добавить два новых PM2-блока **рядом** с существующими (не удаляя drevo-standalone!):
@@ -191,16 +200,16 @@ iframe            — замороженная старая версия (был
 
     Временное наличие и drevo-standalone и drevo-beta — ожидаемо. Старый удалится в Phase 3.
 
-4. **`.github/workflows/standalone.yml`** — обновить вызов action.yml (но НЕ менять target/app name):
+4. **`.github/workflows/standalone.yml`** — обновить вызов action.yml, передать новый `pm2-app-name` (но НЕ менять environment/app name — пока ещё standalone):
     ```yaml
     - name: Deploy
       uses: ./.github/actions/deploy
       with:
           environment: 'standalone'
           pm2-app-name: 'drevo-standalone'     # пока ещё старое
-          target-path-name: 'standalone'       # пока ещё старое
-          # ... остальные параметры ...
+          # ... остальные параметры (ssh-*, source-path, version) ...
     ```
+    Удалить передачу `target-path: 'standalone'` (мёртвый input, удалён из action.yml).
 
 **PR**: `refactor/deploy-infrastructure` → `standalone`. Merge после успешного CI.
 
@@ -217,7 +226,16 @@ iframe            — замороженная старая версия (был
 
 **Goal**: на сервере создать два новых PM2-приложения. drevo-standalone пока остаётся работать.
 
+**Downtime window**: ~5–30 секунд на PORT 4010 между `pm2 delete drevo-standalone` и успешным стартом `drevo-beta`. Убедиться, что окно планового обслуживания открыто.
+
 **Steps** (выполняются на сервере под пользователем github-deploy):
+
+0. **Verify Phase 1 deploy propagated changes to server**:
+    ```bash
+    grep -c "name: 'drevo-beta'" ~/ecosystem.config.js    # ожидаем: 1
+    grep -c "name: 'drevo-release'" ~/ecosystem.config.js  # ожидаем: 1
+    ```
+    Если хотя бы один grep вернул 0 — Phase 1 deploy не дошёл до сервера. Остановиться, проверить последний run `standalone.yml` в GitHub Actions, **не продолжать Phase 2**.
 
 1. **Подготовить каталоги и симлинки для drevo-beta**:
     ```bash
@@ -229,7 +247,7 @@ iframe            — замороженная старая версия (был
     cp -rP ~/releases/standalone/"$CURRENT_VERSION" ~/releases/beta/"$CURRENT_VERSION"
     ln -sfn ~/releases/beta/"$CURRENT_VERSION" ~/releases/beta-current
     ```
-2. **Остановить старый drevo-standalone** (если используется порт 4010, новый drevo-beta не сможет подняться на том же порту одновременно — придётся принять секундный даунтайм):
+2. **Остановить старый drevo-standalone**. Он занимает PORT 4010 (`ecosystem.config.js:73`), который нужен новому drevo-beta → одновременная работа невозможна, секундный даунтайм 4010 — ожидаемая часть этой фазы:
     ```bash
     pm2 stop drevo-standalone
     pm2 delete drevo-standalone
@@ -280,18 +298,12 @@ pm2 resurrect
 
 **Changes**:
 
-1. **`.github/workflows/standalone.yml`** — в шаге Deploy заменить:
+1. **`.github/workflows/standalone.yml`** — в шаге Deploy заменить input'ы action:
     ```yaml
-    environment: 'beta'           # было 'standalone'
+    environment: 'beta'           # было 'standalone' — задаёт серверный путь ~/releases/beta/
     pm2-app-name: 'drevo-beta'    # было 'drevo-standalone'
-    target-path-name: 'beta'      # было 'standalone'
     ```
-    Также передать корректный `environment` на уровне job:
-    ```yaml
-    deploy:
-        environment: beta  # было standalone — это GH environment, который нужно создать в Phase 4
-    ```
-    **Важно**: эту строку можно оставить как `standalone` до Phase 4, и обновить уже в Phase 5 вместе с переносом на `cd-main-beta.yml`. Альтернативно — создать GH environment `beta` до merge этого PR.
+    **Job-level `environment: standalone` — не трогать.** GH environment `beta` ещё не создан (Phase 4). Job-level environment управляет только GH secrets/protection, а SSH-secrets уже на repo-level. Строка обновится на `environment: beta` в Phase 5 при создании `cd-main-beta.yml`.
 
 2. **`scripts/ecosystem.config.js`** — удалить блок `drevo-standalone` целиком (drevo-beta и drevo-release остаются).
 
@@ -371,17 +383,16 @@ pm2 resurrect
                 # Скопировать шаги deploy из standalone.yml, ВАЖНО:
                 # - environment: 'beta'
                 # - pm2-app-name: 'drevo-beta'
-                # - target-path-name: 'beta'
                 ...
     ```
 
-2. **Создать `.github/workflows/cd-main-release.yml`** на базе `cd-production.yml` + упрощения (semver из тэга остаётся):
+2. **Создать `.github/workflows/cd-main-release.yml`** — на базе `standalone.yml` с добавлениями из `cd-production.yml`:
     ```yaml
     name: CD Main Release
 
     on:
         push:
-            tags: ['v*']
+            tags: ['[0-9]*']
 
     permissions:
         contents: write  # для создания GH Release
@@ -399,17 +410,18 @@ pm2 resurrect
             runs-on: ubuntu-latest
             environment: release
             steps:
-                # Взять steps из cd-production.yml:
-                # - get_version (из тэга)
-                # - generate_changelog
-                # - sed APP_VERSION и SENTRY_DSN (как в standalone.yml)
-                # - build production
-                # - upload sourcemaps to Sentry
-                # - deploy через action:
+                # Собрать из двух источников:
+                # - Version: extraction из git tag (cd-production.yml:22-33) вместо date-генерации
+                # - sed APP_VERSION + SENTRY_DSN: взять из standalone.yml:67-92 (полный цикл: и version, и Sentry DSN)
+                # - Upload source maps to Sentry: взять из standalone.yml:96-129
+                # - Changelog generation: взять из cd-production.yml:39-57
+                # - Build: npx nx build client --configuration=production
+                # - Deploy через action:
                 #     environment: 'release'
                 #     pm2-app-name: 'drevo-release'
-                #     target-path-name: 'release'
-                # - softprops/action-gh-release
+                # - GH Release: softprops/action-gh-release (из cd-production.yml:98-121)
+                #   ВАЖНО: tag_name использовать ${{ github.ref_name }} (без strip'а v),
+                #   чтобы не создавать дубль-тэг (как было со старыми 0.0.X + v0.0.X)
     ```
 
 3. **Обновить `.github/workflows/coverage.yml`**:
@@ -429,8 +441,12 @@ pm2 resurrect
             branches: [main]   # было [standalone]
     ```
 
-5. **Обновить `.github/workflows/security-scan.yml`**:
+5. **Обновить `.github/workflows/security-scan.yml`** — добавить header-комментарий и обновить триггеры:
     ```yaml
+    # ⚠️ This file must be kept byte-identical on main and iframe branches.
+    # Gitleaks must run identically regardless of which branch a feature branch is forked from.
+    # If you change triggers/config here, mirror the change to the other branch immediately.
+
     on:
         push:
             branches: ['**']
@@ -465,9 +481,19 @@ pm2 resurrect
 
 **Steps**:
 
-1. Создать локальную ветку `iframe`:
+0. **Verify Phase 1+3 changes are on standalone** (перед копированием файлов в iframe):
     ```bash
     git fetch origin
+    # Content-based checks:
+    git show origin/standalone:scripts/ecosystem.config.js | grep -q "drevo-beta" \
+        && echo "✅ drevo-beta block present" || echo "❌ Phase 1 not merged"
+    git show origin/standalone:scripts/ecosystem.config.js | grep -q "drevo-standalone" \
+        && echo "❌ Phase 3 not merged (drevo-standalone still present)" || echo "✅ drevo-standalone removed"
+    ```
+    Если хотя бы один check красный — не продолжать Phase 6.
+
+1. Создать локальную ветку `iframe`:
+    ```bash
     git checkout -b iframe origin/main
     ```
 2. Создать файлы:
@@ -504,7 +530,6 @@ pm2 resurrect
                     # передать в action:
                     #     environment: 'staging'
                     #     pm2-app-name: 'drevo-staging'
-                    #     target-path-name: 'staging'
         ```
     - **`.github/workflows/cd-iframe-release.yml`** — триггер только ручной, с вводом тэга:
         ```yaml
@@ -514,7 +539,7 @@ pm2 resurrect
             workflow_dispatch:
                 inputs:
                     tag:
-                        description: 'Existing tag to release (e.g. iframe-v0.0.19)'
+                        description: 'Existing tag to release (e.g. iframe-0.0.19)'
                         required: true
 
         jobs:
@@ -526,19 +551,14 @@ pm2 resurrect
                       with:
                           ref: ${{ inputs.tag }}
                     # steps из cd-production.yml без автотриггера;
-                    # APP_VERSION = inputs.tag без префикса iframe-v;
+                    # APP_VERSION = inputs.tag без префикса iframe-;
                     # передать в action:
                     #     environment: 'production'
                     #     pm2-app-name: 'drevo-production'
-                    #     target-path-name: 'production'
         ```
-    - **`.github/workflows/security-scan.yml`** — обновить под новый scope:
-        ```yaml
-        on:
-            push:
-                branches: ['**']
-            pull_request:
-                branches: [main, iframe]
+    - **`.github/workflows/security-scan.yml`** — **скопировать один-в-один из standalone** (файл должен быть побайтово идентичен на main и iframe — см. header-комментарий, добавленный в Phase 5):
+        ```bash
+        git checkout origin/standalone -- .github/workflows/security-scan.yml
         ```
 
     Удалить файлы:
@@ -576,6 +596,7 @@ pm2 resurrect
 - `origin/main` — без изменений (все ещё `61cc2a9`).
 - В `iframe` файлы: `ci-iframe.yml`, `cd-iframe-staging.yml`, `cd-iframe-release.yml`, `security-scan.yml`, refactored `action.yml`, `deploy.sh`, `ecosystem.config.js` с 4 PM2-блоками.
 - В `iframe` НЕТ: `ci.yml`, `cd-staging.yml`, `cd-production.yml`, `standalone.yml`.
+- `security-scan.yml` побайтово совпадает на обеих ветках: `diff <(git show origin/standalone:.github/workflows/security-scan.yml) <(git show origin/iframe:.github/workflows/security-scan.yml)` — пустой вывод.
 
 **Rollback**: `git push --delete origin iframe && git branch -D iframe`. Всё.
 
@@ -606,10 +627,10 @@ pm2 resurrect
     git branch -D standalone
     ```
 
-4. Настроить branch protection (Variant C, решение 5.1):
+4. Настроить branch protection (Variant C, решение 5.1), **начальный набор без required status checks** (они будут добавлены в Phase 8 после первого run'а `cd-main-beta.yml`):
     - **main**:
         - Require pull request before merge: ON, required approvals: 0.
-        - Require status checks to pass: ON — добавить checks из cd-main-beta.yml (`ci`).
+        - Require status checks to pass: **OFF на этом этапе** (check-run `ci` ещё не запускался на main — его нет в dropdown'е; включим в Phase 8).
         - Restrict force pushes: ON.
         - Restrict deletions: ON.
     - **iframe**:
@@ -626,7 +647,7 @@ pm2 resurrect
 - `git ls-remote --heads origin` показывает `main` и `iframe`, но не `standalone`.
 - `origin/main` HEAD = `f14fb0a` (бывший standalone HEAD).
 - GitHub default branch = `main`.
-- Branch protection включена.
+- Branch protection включена (PR required + force-push/deletion restricted; required checks — ещё нет, будут после Phase 8).
 - Никаких безуспешных push'ей/force'ов не было.
 
 **Rollback** (если что-то пошло не так ДО удаления standalone):
@@ -655,14 +676,20 @@ pm2 resurrect
 4. Наблюдать за `cd-main-beta.yml` в Actions:
     - job `ci` — зелёный
     - job `deploy` — зелёный
-    - в логах deploy видно «version: <date>», `pm2-app-name: drevo-beta`, `target-path-name: beta`
+    - в логах deploy видно «version: <date>», `pm2-app-name: drevo-beta`, `environment: beta`
 5. Проверить beta URL в браузере — показывает новую date-версию в `version-display` компоненте.
 6. Проверить Sentry — появился новый release ID с date-версией, source maps загружены.
+7. **Финализировать branch protection на main**:
+    - Settings → Branches → main → Edit.
+    - Включить `Require status checks to pass before merging`.
+    - В dropdown'е выбрать check-run `ci` (теперь доступен — отработал на smoke-PR).
+    - Сохранить.
 
 **Checkpoint**:
 - `cd-main-beta.yml` отработал зелёным.
 - beta URL показывает свежую версию.
 - Sentry отрапортовал новый release.
+- Branch protection на main теперь включает required check `ci`.
 
 **Rollback**: если deploy упал — идёт стандартная отладка; откатывать миграцию не нужно, проблема локализована в workflow-файле.
 
@@ -670,32 +697,32 @@ pm2 resurrect
 
 ### Phase 9 — Smoke-test release deploy
 
-**Goal**: проверить, что `cd-main-release.yml` корректно обрабатывает тэг `v*`, деплоит в `drevo-release`, создаёт GitHub Release и грузит source maps в Sentry.
+**Goal**: проверить, что `cd-main-release.yml` корректно обрабатывает тэг `[0-9]*`, деплоит в `drevo-release`, создаёт GitHub Release и грузит source maps в Sentry.
 
 **Steps**:
 
-1. На свежей main создать тэг (рекомендую начать с `v0.1.0` — явно отличается от старой iframe-нумерации `0.0.x`):
+1. На свежей main создать тэг (начинаем с `0.1.0` — явно отличается от старой iframe-нумерации `0.0.x`):
     ```bash
     git checkout main
     git pull
-    git tag -a v0.1.0 -m "First release from new main branch"
-    git push origin v0.1.0
+    git tag -a 0.1.0 -m "First release from new main branch"
+    git push origin 0.1.0
     ```
 2. Наблюдать за `cd-main-release.yml` в Actions:
     - job `ci` (full test run) — зелёный
     - job `deploy` — зелёный
-    - в логах: semver из тэга, `pm2-app-name: drevo-release`, sentry release `v0.1.0`
+    - в логах: semver из тэга, `pm2-app-name: drevo-release`, sentry release `0.1.0`
     - GitHub Release создан автоматически с changelog
-3. Проверить release URL — отдаёт v0.1.0 билд.
-4. Проверить Sentry → Releases — новый release `v0.1.0` с source maps.
+3. Проверить release URL — отдаёт 0.1.0 билд.
+4. Проверить Sentry → Releases — новый release `0.1.0` с source maps.
 
 **Checkpoint**:
 - Workflow отработал зелёным.
-- GitHub Release `v0.1.0` виден в Releases tab.
+- GitHub Release `0.1.0` виден в Releases tab.
 - release URL отдаёт свежий билд.
-- Sentry показывает release v0.1.0.
+- Sentry показывает release 0.1.0.
 
-**Rollback**: если pipeline упал — отладить workflow; откатывать миграцию не нужно. При необходимости — `git push --delete origin v0.1.0` и `gh release delete v0.1.0`.
+**Rollback**: если pipeline упал — отладить workflow; откатывать миграцию не нужно. При необходимости — `git push --delete origin 0.1.0` и `gh release delete 0.1.0`.
 
 ---
 
@@ -745,8 +772,8 @@ pm2 resurrect
     ```markdown
     ## Branches
 
-    - `main` — active development, default branch. Push triggers beta deploy (drevo-beta, port 4010). Tag `v*` triggers release deploy (drevo-release, port 4011).
-    - `iframe` — frozen legacy (old Yii-era wrapper). CI runs automatically on PR; CD is manual-only via workflow_dispatch. Hotfix tags: `iframe-v*`.
+    - `main` — active development, default branch. Push triggers beta deploy (drevo-beta, port 4010). Tag `X.Y.Z` triggers release deploy (drevo-release, port 4011).
+    - `iframe` — frozen legacy (old Yii-era wrapper). CI runs automatically on PR; CD is manual-only via workflow_dispatch. Hotfix tags: `iframe-X.Y.Z`.
     ```
     И обновить раздел «Commands»/«Project Structure», если в нём упоминается `standalone`.
 
@@ -754,7 +781,9 @@ pm2 resurrect
 
 4. **`docs/pm2-setup.md`**, **`docs/server-github-setup.md`** — актуализировать PM2-приложения и environment'ы.
 
-5. **`docs/plans/branch-migration/plan.md`** (этот файл) — оставить как исторический артефакт, добавив в начало пометку «Completed YYYY-MM-DD».
+5. **`README-deployment.md`** — добавить правило синхронизации `ecosystem.config.js` между main и iframe (ссылка на Section 7 Post-migration notes).
+
+6. **`docs/plans/branch-migration/plan.md`** (этот файл) — оставить как исторический артефакт, добавив в начало пометку «Completed YYYY-MM-DD».
 
 **PR**: `docs/branch-migration-update` → `main`. Merge после зелёного CI.
 
@@ -764,240 +793,11 @@ pm2 resurrect
 
 ### Phase 12 (OPTIONAL, follow-up) — Upgrade release trigger: `workflow_dispatch` + auto-bump
 
-**Статус**: **необязательная**. Не блокирует миграцию. Выполнять через 2–4 недели после завершения Phase 11 — после того как новый pipeline стабилизируется и будет сделано 1–3 успешных релиза через обычный `git tag`.
+**Статус**: **необязательная**. Не блокирует миграцию. Выполнять через 2–4 недели после стабилизации нового pipeline'а.
 
-**Goal**: заменить/дополнить триггер `cd-main-release.yml` с «push tag `v*`» на ручной `workflow_dispatch` с автоматическим semver-bump. Устранить класс ошибок «поставил тэг не на ту версию / не на тот коммит / забыл запушить».
+**Summary**: заменить ручной `git tag` на `workflow_dispatch` с auto-bump. Добавляет guard'ы (only main, only green CI), dry-run, auto-version compute. Устраняет класс ошибок «не та версия / не тот коммит / забыл push».
 
-#### Motivation
-
-Текущий подход (Phase 9: `git tag vX.Y.Z && git push origin vX.Y.Z`) имеет три слабости, которые реально выстреливают в solo-dev сценарии:
-
-1. **Версию выбирает человек по памяти.** Через месяц между релизами легко забыть, какая была предыдущая, и поставить `v0.2.0` вместо `v0.1.1` (или наоборот).
-2. **Тэг можно поставить на любой коммит**, включая WIP-ветку или красный main. Никакой валидации. Один неаккуратный `git tag v1.0.0 HEAD~5 && git push origin v1.0.0` — и в прод уехал билд пятидневной давности.
-3. **Легко забыть push.** `git tag vX.Y.Z` без `git push origin vX.Y.Z` = тишина, релиза нет, но локально «кажется, что он есть».
-
-`workflow_dispatch` с auto-bump закрывает все три:
-
-- Версия вычисляется автоматически из последнего тэга + `bump_type` (patch/minor/major), ввод руками не нужен.
-- Workflow валидирует, что запущен на `main` и что HEAD зелёный перед созданием тэга.
-- Тэг создаётся **внутри** CI, запустив `git push` нативно от GitHub Actions — «забыть push» невозможно.
-- Environment `release` уже имеет `required reviewers = self` (из Phase 4) → дополнительный click-to-confirm через GH UI.
-- Аудит-лог в Actions: кто когда какую версию выпустил, на каком SHA — всё видно.
-
-#### Non-goals
-
-- **Не переходим на Release Please / semantic-release.** Это следующий шаг, но требует дисциплины Conventional Commits — вернёмся к этому через 3–6 месяцев, когда новый main устаканится.
-- **Не удаляем триггер на `push tags: ['v*']`.** Оставляем оба триггера параллельно: новый (`workflow_dispatch`) — основной, старый (`tags`) — backup на случай, если workflow_dispatch по какой-то причине недоступен или нужно вручную запустить релиз из коммита с уже существующим тэгом.
-
-#### Design
-
-**Вариант реализации**: один workflow `cd-main-release.yml` с двумя триггерами и compute-version job.
-
-```yaml
-name: CD Main Release
-
-on:
-    push:
-        tags: ['v*']                    # backup: ручной git tag всё ещё работает
-    workflow_dispatch:
-        inputs:
-            bump_type:
-                description: 'Semver bump'
-                required: true
-                type: choice
-                options: [patch, minor, major]
-            dry_run:
-                description: 'Dry run: compute version but do not create tag/deploy'
-                required: false
-                type: boolean
-                default: false
-
-permissions:
-    contents: write  # для создания тэга и GH Release
-
-concurrency:
-    group: release
-    cancel-in-progress: false
-
-jobs:
-    compute-version:
-        # Job запускается только для workflow_dispatch;
-        # на push tag мы уже знаем версию из github.ref_name
-        if: github.event_name == 'workflow_dispatch'
-        runs-on: ubuntu-latest
-        outputs:
-            version: ${{ steps.bump.outputs.version }}
-            tag: ${{ steps.bump.outputs.tag }}
-        steps:
-            - name: Guard — only from main
-              if: github.ref != 'refs/heads/main'
-              run: |
-                  echo "::error::workflow_dispatch for releases is only allowed from main (current: ${{ github.ref }})"
-                  exit 1
-
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0  # нужна вся история тэгов
-                  ref: main
-
-            - name: Guard — HEAD must be green
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  # Проверить, что последний CI-прогон на этом SHA зелёный
-                  SHA=$(git rev-parse HEAD)
-                  status=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
-                      --jq '[.check_runs[] | select(.name == "ci")] | map(.conclusion) | unique')
-                  echo "CI check-runs on $SHA: $status"
-                  if ! echo "$status" | grep -q '"success"'; then
-                      echo "::error::Latest CI on main ($SHA) is not green. Refusing to release."
-                      exit 1
-                  fi
-
-            - name: Compute next version
-              id: bump
-              run: |
-                  latest=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "v0.0.0")
-                  current="${latest#v}"
-                  IFS='.' read -r major minor patch <<< "$current"
-                  case "${{ inputs.bump_type }}" in
-                      major) major=$((major+1)); minor=0; patch=0 ;;
-                      minor) minor=$((minor+1)); patch=0 ;;
-                      patch) patch=$((patch+1)) ;;
-                  esac
-                  new_version="${major}.${minor}.${patch}"
-                  new_tag="v${new_version}"
-
-                  # Sanity: тэг ещё не существует
-                  if git rev-parse "$new_tag" >/dev/null 2>&1; then
-                      echo "::error::Tag $new_tag already exists"
-                      exit 1
-                  fi
-
-                  echo "version=$new_version" >> "$GITHUB_OUTPUT"
-                  echo "tag=$new_tag" >> "$GITHUB_OUTPUT"
-                  echo "Latest: $latest → next ($inputs.bump_type): $new_tag"
-
-            - name: Create and push tag
-              if: ${{ !inputs.dry_run }}
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git tag -a "${{ steps.bump.outputs.tag }}" -m "Release ${{ steps.bump.outputs.version }}"
-                  git push origin "${{ steps.bump.outputs.tag }}"
-
-            - name: Dry run summary
-              if: ${{ inputs.dry_run }}
-              run: |
-                  echo "::notice::DRY RUN — would create tag ${{ steps.bump.outputs.tag }} and release"
-
-    release:
-        # Запускается в двух случаях:
-        # 1) push тэга v* (классический путь — остался как backup)
-        # 2) workflow_dispatch после compute-version (не dry_run)
-        if: |
-            github.event_name == 'push' ||
-            (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
-        needs: [compute-version]
-        # needs-условие для workflow_dispatch → в push'е needs пустой
-        # (в GH Actions needs выполняется только если upstream job реально запущен)
-        runs-on: ubuntu-latest
-        environment: release
-        steps:
-            - name: Resolve version
-              id: version
-              run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                      echo "version=${{ needs.compute-version.outputs.version }}" >> "$GITHUB_OUTPUT"
-                      echo "tag=${{ needs.compute-version.outputs.tag }}" >> "$GITHUB_OUTPUT"
-                  else
-                      TAG="${GITHUB_REF_NAME}"
-                      echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
-                      echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-                  fi
-
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-                  ref: ${{ steps.version.outputs.tag }}
-
-            # ... далее как в оригинальном cd-main-release.yml:
-            # - setup-node
-            # - install
-            # - sed APP_VERSION + SENTRY_DSN
-            # - nx build
-            # - upload sourcemaps to Sentry
-            # - deploy через .github/actions/deploy
-            # - softprops/action-gh-release
-```
-
-**Ключевые особенности**:
-
-1. **`concurrency: release`** — только один релиз одновременно. Защищает от двух параллельных workflow_dispatch.
-2. **Guard на main** — нельзя запустить workflow_dispatch с другой ветки (в UI это возможно, но workflow откажется).
-3. **Guard на зелёный CI** — проверяет через `gh api`, что check-run `ci` на HEAD main успешен. Если красный — отказ.
-4. **Dry run** — input `dry_run: true` позволяет увидеть, какая версия была бы создана, без реального создания тэга. Полезно для sanity-check перед первым «настоящим» запуском.
-5. **Двойной триггер** — push тэга оставлен как fallback. Если вдруг захочется руками поставить `iframe-v0.0.19`-style тэг или любой другой edge case — старый путь работает.
-6. **`compute-version` и `release` — разные jobs** — чтобы логика bump'а была изолирована и легко тестировалась отдельно от тяжёлого deploy-job'а.
-
-#### Branch
-
-`refactor/release-workflow-dispatch` от main.
-
-#### Changes
-
-1. **`.github/workflows/cd-main-release.yml`** — обновить по схеме выше.
-2. **`docs/plans/branch-migration/plan.md`** — отметить Phase 12 как завершённую (после успешного smoke-test).
-3. **`CLAUDE.md`** или **`README-deployment.md`** — обновить раздел «Release workflow»:
-    ```markdown
-    ## Release workflow
-
-    **Primary (recommended):** GitHub Actions → `CD Main Release` → Run workflow → select `main` → choose bump type (patch/minor/major) → Run.
-
-    **Backup:** manual `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z` — also works, pipeline identical.
-    ```
-
-#### Validation plan
-
-1. **Dry run** через workflow_dispatch с `bump_type: patch, dry_run: true`. Ожидаемое: job `compute-version` печатает «next version = vN.M.(P+1)», job `release` не запускается. Нет нового тэга.
-2. **Dry run с `bump_type: minor`** — проверить, что patch сбрасывается в 0.
-3. **Реальный запуск** с `bump_type: patch, dry_run: false` — создаётся настоящий тэг, отрабатывает full pipeline (CI → build → deploy → Sentry → GH Release). Deploy идёт в drevo-release.
-4. **Guard-test**: запустить workflow_dispatch с ветки, отличной от main (в UI выбрать любую feature-ветку) — должно упасть с ошибкой «only allowed from main».
-5. **Backup-path**: вручную поставить `git tag vX.Y.Z+1 && git push origin vX.Y.Z+1` — pipeline должен отработать идентично (без compute-version job'а, сразу в release).
-
-#### Checkpoint
-
-- `cd-main-release.yml` содержит оба триггера (`push: tags` + `workflow_dispatch`).
-- Dry run через workflow_dispatch отработал без создания тэга.
-- Реальный запуск через workflow_dispatch создал тэг, запустил CI + deploy, опубликовал GH Release.
-- Backup-путь (ручной `git tag`) тоже работает — проверен хотя бы одним контрольным релизом.
-- `CLAUDE.md` / `README-deployment.md` отражает новый primary-путь выпуска релиза.
-
-#### Rollback
-
-Тривиальный: revert merge commit с правками `cd-main-release.yml` → workflow возвращается к Phase 9 конфигурации (только `push: tags`). Все существующие релизы, которые были сделаны через workflow_dispatch, остаются валидными (тэги уже в git).
-
-Если дело дошло до удаления некорректно созданного тэга:
-```bash
-# Локально
-git tag -d vX.Y.Z
-# На remote
-git push --delete origin vX.Y.Z
-# GitHub Release (если был создан)
-gh release delete vX.Y.Z --cleanup-tag
-```
-
-#### Known limitations и будущие улучшения
-
-1. **Changelog всё ещё автогенерируется через `generate_release_notes: true` GitHub API** — это приемлемо, но не идеально. Следующий шаг — подключить `conventional-changelog` для структурированного changelog по секциям (Features/Fixes/BREAKING). Требует дисциплины Conventional Commits.
-2. **Авто-обнаружение breaking change** (и принудительный major bump) невозможно без Conventional Commits. Пока человек сам решает, `minor` это или `major`.
-3. **Version file sync** — если в проекте появится `package.json` с версией или `VERSION` файл, workflow должен будет их коммитить перед созданием тэга. Сейчас версия живёт только в git-тэгах, что проще.
-4. **Release Please как следующий шаг** — когда commit-дисциплина Conventional Commits войдёт в привычку, логично перейти с auto-bump через input на полностью автоматический bump из коммит-сообщений. Это отдельный, независимый рефакторинг.
-
-#### Когда НЕ делать Phase 12
-
-- Если за 3+ месяца после Phase 11 не было ни одного случая ошибки с версионированием (не то что поставил, не то что забыл push, не то что тэгнул не тот commit) — возможно, ручные тэги достаточны для твоего workflow'а. Не чините то, что не сломано.
-- Если планируется переход на Release Please/semantic-release в ближайшие 1–2 месяца — тогда Phase 12 станет лишним шагом в сторону; лучше сразу делать Release Please.
+**Подробности** → [phase-12-release-dispatch.md](./phase-12-release-dispatch.md)
 
 ---
 
@@ -1011,11 +811,11 @@ gh release delete vX.Y.Z --cleanup-tag
 | Случайно удалить drevo-staging/production вместе со standalone | Низкая | Высокое | Никогда не вызывать `pm2 delete` без явного имени. В Phase 2 — только drevo-standalone. Проверять `pm2 list` до и после. |
 | Забыть обновить `ecosystem.config.js` на iframe → при hotfix-деплое iframe затрёт на сервере конфиг с beta/release | Средняя | Высокое | Phase 6 явно включает синхронизацию полного ecosystem.config.js на iframe. Проверять перед первым hotfix-деплоем. |
 | Git fast-forward main → standalone не проходит (кто-то успел пушнуть в main) | Низкая | Низкое | До Phase 7 запустить `git fetch origin && git log origin/main..origin/standalone` — убедиться что main не двигался с `61cc2a9`. |
-| Branch protection на main мешает push'у после Phase 7 | Средняя | Низкое | Настроить protection с `required_status_checks` только после первого успешного deploy в beta (Phase 8). Или временно разрешить admin bypass. |
+| Branch protection на main мешает push'у после Phase 7 | Средняя | Низкое | Mitigated by design: Phase 7 настраивает protection **без** required status checks; они добавляются в Phase 8 step 7, после первого успешного run'а `cd-main-beta.yml`. |
 | GH Environment `beta` не создан к моменту merge Phase 5 PR | Средняя | Низкое (job падает на старте) | Phase 4 сделать до Phase 5. Проверить перед merge Phase 5, что `beta` и `release` environments существуют. |
 | Неверный порт в nginx (drevo-release недоступен снаружи) | Низкая | Среднее | Тест сразу после Phase 2: `curl -I https://<release-url>/` — должен отдать 200/302 (даже на «заглушечном» билде). |
 | Случайный коммит с секретом в ветку без security-scan | Очень низкая | Высокое | После Phase 5/6 gitleaks настроен на `push: ['**']` — покрывает все ветки. Проверить, что файл приехал и в main, и в iframe. |
-| (Phase 12) Version-bump на основе `git describe` ошибается, если кто-то удалил latest тэг | Очень низкая | Низкое | Phase 12 compute-version job валидирует, что рассчитанный тэг ещё не существует. Если удалён старый тэг — восстановить `git push origin refs/tags/vX.Y.Z`. |
+| (Phase 12) Version-bump на основе `git describe` ошибается, если кто-то удалил latest тэг | Очень низкая | Низкое | Phase 12 compute-version job валидирует, что рассчитанный тэг ещё не существует. Если удалён старый тэг — восстановить `git push origin refs/tags/X.Y.Z`. См. [phase-12-release-dispatch.md](./phase-12-release-dispatch.md). |
 | (Phase 12) Одновременный запуск двух workflow_dispatch создаёт два тэга подряд | Низкая | Среднее | В Phase 12 workflow задан `concurrency: release` с `cancel-in-progress: false` — второй запуск ждёт завершения первого. |
 | (Phase 12) Check-run guard «CI зелёный» падает на коммитах, где `ci` job назван иначе | Низкая | Низкое | После первого запуска проверить реальное имя check-run через `gh api .../check-runs` и скорректировать jq-фильтр. |
 
@@ -1030,13 +830,13 @@ gh release delete vX.Y.Z --cleanup-tag
 3. Открыть PR → iframe. `ci-iframe.yml` отработает автоматически.
 4. Merge в iframe.
 5. В GitHub Actions вручную запустить `cd-iframe-staging.yml` → выбрать `iframe` branch → проверить.
-6. Если нужен релиз: `git tag iframe-v0.0.19 && git push origin iframe-v0.0.19`. Затем в Actions вручную запустить `cd-iframe-release.yml` с input `tag: iframe-v0.0.19`.
+6. Если нужен релиз: `git tag iframe-0.0.19 && git push origin iframe-0.0.19`. Затем в Actions вручную запустить `cd-iframe-release.yml` с input `tag: iframe-0.0.19`.
 
 ### Release workflow на main
 
 1. `git checkout main && git pull`
-2. `git tag -a vX.Y.Z -m "Release X.Y.Z"`
-3. `git push origin vX.Y.Z`
+2. `git tag -a X.Y.Z -m "Release X.Y.Z"`
+3. `git push origin X.Y.Z`
 4. `cd-main-release.yml` запустится автоматически: CI → build → deploy в drevo-release → GitHub Release → Sentry.
 
 ### Как проверить состояние серверных приложений
@@ -1050,6 +850,19 @@ pm2 logs drevo-beta --lines 50
 ls -la ~/releases/beta-current ~/releases/release-current
 readlink ~/releases/beta-current
 ```
+
+### Синхронизация ecosystem.config.js между main и iframe
+
+`ecosystem.config.js` scp'ается на сервер при каждом деплое любой ветки (`action.yml:52-54`). Main и iframe **должны содержать идентичные версии файла**. Если изменить файл на main (например, добавить параметр, поменять `max_memory_restart`) — нужно зеркалить изменение на iframe:
+
+```bash
+git checkout iframe && git pull
+git checkout main -- scripts/ecosystem.config.js
+git commit -m "chore(iframe): sync ecosystem.config.js from main"
+git push origin iframe
+```
+
+Иначе следующий hotfix-деплой iframe перезатрёт серверный конфиг старой версией, и после reboot PM2 может вести себя иначе (или не поднять beta/release).
 
 ### Мониторинг после миграции (первые 2 недели)
 
@@ -1084,6 +897,9 @@ git tag -d pre-migration-main-YYYYMMDD pre-migration-standalone-YYYYMMDD
 ```bash
 # Server-side Phase 2 (rename drevo-standalone → drevo-beta)
 ssh github-deploy@<host>
+# Step 0: verify Phase 1 deploy propagated
+grep -c "name: 'drevo-beta'" ~/ecosystem.config.js    # expect: 1
+grep -c "name: 'drevo-release'" ~/ecosystem.config.js  # expect: 1
 pm2 save
 cp ~/.pm2/dump.pm2 ~/.pm2/dump.pm2.pre-migration
 STANDALONE_CURRENT=$(readlink ~/releases/standalone-current)
