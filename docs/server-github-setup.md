@@ -196,21 +196,24 @@ Click **"New repository variable"** and add:
 
 Navigate to: **Settings → Environments**
 
-#### Create Staging Environment:
+#### Create Beta Environment:
 1. Click **"New environment"**
-2. Name: `staging`
+2. Name: `beta`
 3. **Protection rules**: None (leave empty)
-4. Click **"Configure environment"**
-5. No additional configuration needed
+4. **Deployment branches**: `main` only
 
-#### Create Production Environment:
+#### Create Release Environment:
+1. Click **"New environment"**
+2. Name: `release`
+3. **Protection rules**: None (leave empty)
+4. **Deployment branches**: Selected branches and tags — add rule: `X.Y.Z` (semver tags)
+
+#### Create Production Environment (iframe legacy):
 1. Click **"New environment"**
 2. Name: `production`
 3. **Protection rules**:
    - ✅ **Required reviewers**: Add yourself
-   - ✅ **Deployment branches**: Selected branches and tags
-     - Add rule: `main`
-     - Add rule: `v*`
+   - ✅ **Deployment branches**: `iframe` only
 4. Click **"Save protection rules"**
 
 ## Part 4: Verification Tests

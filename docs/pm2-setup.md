@@ -120,19 +120,19 @@ pm2 startup
 pm2 status
 
 # Детальная информация о приложении
-pm2 show drevo-standalone
+pm2 show drevo-beta
 
 # Логи приложения
-pm2 logs drevo-standalone
+pm2 logs drevo-beta
 
 # Рестарт приложения
-pm2 restart drevo-standalone
+pm2 restart drevo-beta
 
 # Остановка приложения
-pm2 stop drevo-standalone
+pm2 stop drevo-beta
 
 # Удаление приложения из PM2
-pm2 delete drevo-standalone
+pm2 delete drevo-beta
 
 # Мониторинг в реальном времени
 pm2 monit

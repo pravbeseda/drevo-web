@@ -11,12 +11,13 @@ This guide explains the different scripts available for building, deploying, and
 
 **Usage**:
 ```bash
-# New format (recommended)
+# Examples
+./scripts/deploy.sh "250413-1430" "drevo-beta" "~/releases/beta-current" "beta"
+./scripts/deploy.sh "1.2.0" "drevo-release" "~/releases/release-current" "release"
 ./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
-./scripts/deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
 
 # Dry run mode
-./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production" --dry-run
+./scripts/deploy.sh "1.2.0" "drevo-release" "~/releases/release-current" "release" --dry-run
 ```
 
 **What it does**:
@@ -76,9 +77,9 @@ Each environment uses different paths and ports:
 
 | Environment | Base Path | Port | PM2 App Name |
 |-------------|-----------|------|--------------|
-| **Production** | `/` | 4002 | drevo-production |
-| **Staging** | `/staging` | 4001 | drevo-staging |
-| **Standalone** | `/` | 4010 | drevo-standalone |
+| **Production** (iframe) | `/` | 4002 | drevo-production |
+| **Beta** | `/` | 4010 | drevo-beta |
+| **Release** | `/` | 4011 | drevo-release |
 | **Local dev** | `/` | 4200 | N/A |
 
 ---
@@ -89,9 +90,9 @@ Each environment uses different paths and ports:
 # 🔧 LOCAL DEVELOPMENT
 yarn serve                # Start dev server (http://localhost:4200)
 
-# 🚀 PRODUCTION DEPLOYMENT  
-./scripts/deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
-./scripts/deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
+# 🚀 DEPLOYMENT  
+./scripts/deploy.sh "250413-1430" "drevo-beta" "~/releases/beta-current" "beta"
+./scripts/deploy.sh "1.2.0" "drevo-release" "~/releases/release-current" "release"
 
 # 📦 MANUAL BUILD + START
 yarn build && yarn start
@@ -104,4 +105,4 @@ yarn build && yarn start
 - **deploy.sh**: Production deployment only, uses atomic symlinks and PM2
 - **yarn serve**: For local development with HMR
 - **yarn build + start**: For testing production SSR locally
-- Staging uses `--base-href=/staging/` passed via CI/CD pipeline
+- Beta and release use `--base-href=/` passed via CI/CD pipeline

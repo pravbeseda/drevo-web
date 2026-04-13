@@ -4,6 +4,11 @@
 
 **Drevo-Web** — Nx monorepo with Angular 21 application. Migration from legacy Yii1 app to modern stack.
 
+## Branches
+
+- `main` — active development, default branch. Push triggers beta deploy (drevo-beta, port 4010). Tag `X.Y.Z` triggers release deploy (drevo-release, port 4011).
+- `iframe` — frozen legacy (old Yii-era wrapper). CI runs automatically on PR; CD is manual-only via workflow_dispatch. Hotfix tags: `iframe-X.Y.Z`.
+
 ## Tech Stack
 
 | Category | Technology |
