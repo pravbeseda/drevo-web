@@ -328,7 +328,7 @@ pm2 resurrect
 
 ---
 
-### Phase 4 — GitHub Environments
+### Phase 4 — GitHub Environments ✅
 
 **Goal**: создать новые GH environments `beta` и `release` с соответствующими vars.
 
@@ -354,7 +354,7 @@ pm2 resurrect
 
 ---
 
-### Phase 5 — Подготовка новых workflow'ов на standalone
+### Phase 5 — Подготовка новых workflow'ов на standalone ✅
 
 **Goal**: на ветке standalone создать `cd-main-beta.yml` и `cd-main-release.yml`, обновить `coverage.yml`/`playwright.yml`/`security-scan.yml`, **удалить** устаревшие `ci.yml`/`cd-staging.yml`/`cd-production.yml`/`standalone.yml` и stale-конфиг `.github/branch-protection.yml`.
 
