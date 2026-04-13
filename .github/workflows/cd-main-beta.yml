@@ -1,10 +1,10 @@
-name: CI/CD Standalone
+name: CD Main Beta
 
 on:
     push:
-        branches: [standalone]
+        branches: [main]
     pull_request:
-        branches: [standalone]
+        branches: [main]
 
 permissions:
     contents: read
@@ -30,7 +30,7 @@ jobs:
 
             - uses: nrwl/nx-set-shas@v4
               with:
-                  main-branch-name: 'standalone'
+                  main-branch-name: 'main'
 
             - name: Run affected tasks
               run: |
@@ -40,15 +40,15 @@ jobs:
 
             - name: Build verification
               run: |
-                  echo "🔍 Verifying standalone build..."
+                  echo "Verifying build..."
                   npx nx build client --configuration=production
-                  echo "✅ Standalone build successful"
+                  echo "Build successful"
 
     deploy:
-        if: github.event_name == 'push' && github.ref == 'refs/heads/standalone'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         needs: ci
         runs-on: ubuntu-latest
-        environment: standalone
+        environment: beta
 
         steps:
             - uses: actions/checkout@v4
@@ -66,9 +66,9 @@ jobs:
               env:
                   SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
               run: |
-                  VERSION=$(date +'%Y%m%d-%H%M')
+                  VERSION=$(date +'%y%m%d-%H%M')
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  echo "📋 Building standalone version: $VERSION"
+                  echo "Building beta version: $VERSION"
 
                   # Replace version placeholder
                   sed -i "s/__VERSION_PLACEHOLDER__/$VERSION/g" apps/client/src/environments/environment.prod.ts
@@ -101,23 +101,23 @@ jobs:
                   VERSION: ${{ steps.build.outputs.version }}
               run: |
                   if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-                    echo "⚠️ SENTRY_AUTH_TOKEN not set, skipping source map upload"
+                    echo "SENTRY_AUTH_TOKEN not set, skipping source map upload"
                     exit 0
                   fi
 
                   if [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
-                    echo "⚠️ SENTRY_ORG or SENTRY_PROJECT not set, skipping source map upload"
+                    echo "SENTRY_ORG or SENTRY_PROJECT not set, skipping source map upload"
                     exit 0
                   fi
 
                   fail_step() {
-                    echo "❌ $1"
+                    echo "Source map upload failed: $1"
                     exit 1
                   }
 
-                  echo "📤 Uploading source maps to Sentry for release $VERSION..."
+                  echo "Uploading source maps to Sentry for release $VERSION..."
 
-                  echo "🔹 Uploading source maps from ./dist/apps/client/browser..."
+                  echo "Uploading source maps from ./dist/apps/client/browser..."
                   if ! npx sentry-cli sourcemaps upload \
                     --release="$VERSION" \
                     --url-prefix "~/" \
@@ -125,27 +125,35 @@ jobs:
                     fail_step "Sentry source map upload failed for version $VERSION"
                   fi
 
-                  echo "✅ Source maps uploaded for release $VERSION"
+                  echo "Source maps uploaded for release $VERSION"
 
             - name: Deploy
               uses: ./.github/actions/deploy
               with:
-                  environment: 'standalone'
+                  environment: 'beta'
+                  pm2-app-name: 'drevo-beta'
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
                   ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
                   ssh-user: ${{ secrets.SSH_USER }}
                   ssh-host: ${{ secrets.SSH_HOST }}
                   ssh-port: ${{ secrets.SSH_PORT || '22' }}
                   source-path: 'dist/apps/client'
-                  target-path: 'standalone'
                   version: ${{ steps.build.outputs.version }}
 
             - name: Notify deployment
               if: always()
+              env:
+                  BETA_URL: ${{ vars.BETA_URL }}
               run: |
                   if [ "${{ job.status }}" == "success" ]; then
-                    echo "✅ Standalone deployment successful"
+                    echo "Beta deployment successful"
+                    echo "### ✅ Beta deployed" >> $GITHUB_STEP_SUMMARY
+                    echo "**Version**: ${{ steps.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+                    if [ -n "$BETA_URL" ]; then
+                      echo "**URL**: $BETA_URL" >> $GITHUB_STEP_SUMMARY
+                    fi
                   else
-                    echo "❌ Standalone deployment failed"
+                    echo "Beta deployment failed"
+                    echo "### ❌ Beta deployment failed" >> $GITHUB_STEP_SUMMARY
                     exit 1
                   fi

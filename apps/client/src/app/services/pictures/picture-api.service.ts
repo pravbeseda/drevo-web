@@ -118,21 +118,21 @@ export class PictureApiService {
     }
 
     /**
-     * Replace picture file (and optionally title) via PUT.
+     * Replace picture file (and optionally title).
      * Returns PictureDto for moderators or PicturePendingDto for regular users.
      */
     editPicture(id: number, formData: FormData): Observable<PictureDto | PicturePendingDto> {
         return this.http
-            .put<ApiResponse<PictureDto | PicturePendingDto>>(
-                `${this.apiUrl}/api/pictures/${id}`,
+            .post<ApiResponse<PictureDto | PicturePendingDto>>(
+                `${this.apiUrl}/api/pictures/${id}/file`,
                 formData,
-                { withCredentials: true }
+                { withCredentials: true },
             )
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 

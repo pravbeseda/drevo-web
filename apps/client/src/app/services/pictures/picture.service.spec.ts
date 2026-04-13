@@ -100,13 +100,14 @@ describe('PictureService', () => {
             });
         });
 
-        it('should generate correct image and thumbnail URLs', done => {
+        it('should generate correct image and thumbnail URLs with cache buster', done => {
             pictureApiService.getPictures.mockReturnValue(of(mockListResponseDto));
 
             spectator.service.getPictures().subscribe(result => {
                 const picture = result.items[0];
-                expect(picture.imageUrl).toBe('/images/004/000123.jpg');
-                expect(picture.thumbnailUrl).toBe('/pictures/thumbs/004/000123.jpg');
+                const expectedTimestamp = new Date('2025-03-10T14:30:00+00:00').getTime();
+                expect(picture.imageUrl).toBe(`/images/004/000123.jpg?v=${expectedTimestamp}`);
+                expect(picture.thumbnailUrl).toBe(`/pictures/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
                 done();
             });
         });
@@ -161,12 +162,13 @@ describe('PictureService', () => {
             });
         });
 
-        it('should generate correct URLs', done => {
+        it('should generate correct URLs with cache buster', done => {
             pictureApiService.getPicture.mockReturnValue(of(mockPictureDto));
 
             spectator.service.getPicture(123).subscribe(result => {
-                expect(result.imageUrl).toBe('/images/004/000123.jpg');
-                expect(result.thumbnailUrl).toBe('/pictures/thumbs/004/000123.jpg');
+                const expectedTimestamp = new Date('2025-03-10T14:30:00+00:00').getTime();
+                expect(result.imageUrl).toBe(`/images/004/000123.jpg?v=${expectedTimestamp}`);
+                expect(result.thumbnailUrl).toBe(`/pictures/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
                 done();
             });
         });
@@ -195,8 +197,9 @@ describe('PictureService', () => {
             pictureApiService.getPicture.mockReturnValue(of(smallIdDto));
 
             spectator.service.getPicture(5).subscribe(result => {
-                expect(result.imageUrl).toBe('/images/001/000005.jpg');
-                expect(result.thumbnailUrl).toBe('/pictures/thumbs/001/000005.jpg');
+                const expectedTimestamp = new Date(mockPictureDto.pic_date).getTime();
+                expect(result.imageUrl).toBe(`/images/001/000005.jpg?v=${expectedTimestamp}`);
+                expect(result.thumbnailUrl).toBe(`/pictures/thumbs/001/000005.jpg?v=${expectedTimestamp}`);
                 done();
             });
         });

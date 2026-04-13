@@ -1,10 +1,9 @@
 #!/bin/bash
 
 # Atomic deployment script for Drevo Web
-# New Usage: ./deploy.sh <version> <app_name> <deploy_path> <environment>
-# Example: ./deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
-# Example: ./deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
-# Legacy Usage: ./deploy.sh <environment> <version> (for backward compatibility)
+# Usage: ./deploy.sh <version> <app_name> <deploy_path> <environment>
+# Example: ./deploy.sh "20240923-0900" "drevo-beta" "~/releases/beta-current" "beta"
+# Example: ./deploy.sh "1.2.0" "drevo-release" "~/releases/release-current" "release"
 
 set -euo pipefail
 
@@ -70,80 +69,33 @@ EOF
     fi
 }
 
-# Argument validation - support both new and legacy parameter formats
-if [ $# -eq 2 ]; then
-    # Legacy format: ./deploy.sh <environment> <version>
-    log_warn "Using legacy parameter format - this will be deprecated"
-    ENVIRONMENT="$1"
-    VERSION="$2"
-    DRY_RUN=false
-    
-    # Determine app name and deploy path from environment
-    if [ "$ENVIRONMENT" = "staging" ]; then
-        APP_NAME="drevo-staging"
-        DEPLOY_PATH_PARAM="$HOME/releases/staging-current"
-    elif [ "$ENVIRONMENT" = "production" ]; then
-        APP_NAME="drevo-production"
-        DEPLOY_PATH_PARAM="$HOME/releases/production-current"
-    else
-        log_error "Invalid environment: $ENVIRONMENT"
-        exit 1
-    fi
-    
-elif [ $# -eq 3 ] && [ "$3" = "--dry-run" ]; then
-    # Legacy format with dry-run: ./deploy.sh <environment> <version> --dry-run
-    log_warn "Using legacy parameter format with dry-run - this will be deprecated"
-    ENVIRONMENT="$1"
-    VERSION="$2"
-    DRY_RUN=true
-    
-    # Determine app name and deploy path from environment
-    if [ "$ENVIRONMENT" = "staging" ]; then
-        APP_NAME="drevo-staging"
-        DEPLOY_PATH_PARAM="$HOME/releases/staging-current"
-    elif [ "$ENVIRONMENT" = "production" ]; then
-        APP_NAME="drevo-production"  
-        DEPLOY_PATH_PARAM="$HOME/releases/production-current"
-    else
-        log_error "Invalid environment: $ENVIRONMENT"
-        exit 1
-    fi
-    
-elif [ $# -eq 4 ]; then
-    # New format: ./deploy.sh <version> <app_name> <deploy_path> <environment>
+# Argument validation
+if [ $# -eq 4 ]; then
     VERSION="$1"
     APP_NAME="$2"
     DEPLOY_PATH_PARAM="$3"
     ENVIRONMENT="$4"
     DRY_RUN=false
-    
+
     # Expand tilde in deploy path if needed
     DEPLOY_PATH_PARAM="${DEPLOY_PATH_PARAM/#\~/$HOME}"
-    
+
 elif [ $# -eq 5 ] && [ "$5" = "--dry-run" ]; then
-    # New format with dry-run: ./deploy.sh <version> <app_name> <deploy_path> <environment> --dry-run
     VERSION="$1"
     APP_NAME="$2"
     DEPLOY_PATH_PARAM="$3"
     ENVIRONMENT="$4"
     DRY_RUN=true
-    
+
     # Expand tilde in deploy path if needed
     DEPLOY_PATH_PARAM="${DEPLOY_PATH_PARAM/#\~/$HOME}"
-    
+
 else
     log_error "Usage: $0 <version> <app_name> <deploy_path> <environment> [--dry-run]"
-    log_error "  New format (recommended):"
-    log_error "    Version: Version string (e.g., '1.2.0' or '20240923-0900')"
-    log_error "    App Name: PM2 app name (e.g., 'drevo-staging' or 'drevo-production')"
-    log_error "    Deploy Path: Deployment directory path (e.g., '~/releases/staging-current')"
-    log_error "    Environment: staging or production"
-    log_error ""
-    log_error "  Legacy format (deprecated):"
-    log_error "    $0 <environment> <version> [--dry-run]"
-    log_error "    Environment: staging or production"
-    log_error "    Version format: YYYYMMDD-HHMM for staging, X.Y.Z for production"
-    log_error ""
+    log_error "  Version: Version string (e.g., '1.2.0' or '260412-1430')"
+    log_error "  App Name: PM2 app name (e.g., 'drevo-beta' or 'drevo-release')"
+    log_error "  Deploy Path: Deployment directory path (e.g., '~/releases/beta-current')"
+    log_error "  Environment: Environment name (e.g., 'beta', 'release', 'production')"
     log_error "  Optional: --dry-run for testing without making changes"
     exit 1
 fi
@@ -161,14 +113,14 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 # Validate environment
-if [[ ! "$ENVIRONMENT" =~ ^(staging|production|standalone)$ ]]; then
-    log_error "Environment must be 'staging', 'production', or 'standalone', got: $ENVIRONMENT"
+if [[ ! "$ENVIRONMENT" =~ ^[a-z][a-z0-9-]*$ ]]; then
+    log_error "Environment must be lowercase alphanumeric with dashes, got: $ENVIRONMENT"
     exit 1
 fi
 
 # Validate app name format
-if [[ ! "$APP_NAME" =~ ^drevo-(staging|production|standalone)$ ]]; then
-    log_error "App name must be 'drevo-staging', 'drevo-production', or 'drevo-standalone', got: $APP_NAME"
+if [[ ! "$APP_NAME" =~ ^drevo-[a-z0-9-]+$ ]]; then
+    log_error "App name must match drevo-*, got: $APP_NAME"
     exit 1
 fi
 

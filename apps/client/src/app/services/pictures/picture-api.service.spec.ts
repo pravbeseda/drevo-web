@@ -239,14 +239,14 @@ describe('PictureApiService', () => {
     });
 
     describe('editPicture', () => {
-        it('should call HTTP PUT with FormData', () => {
+        it('should call HTTP POST to /file endpoint with FormData', () => {
             const formData = new FormData();
             formData.append('pic_title', 'Новая подпись');
 
             spectator.service.editPicture(123, formData).subscribe();
 
-            const req = httpController.expectOne('/api/pictures/123');
-            expect(req.request.method).toBe('PUT');
+            const req = httpController.expectOne('/api/pictures/123/file');
+            expect(req.request.method).toBe('POST');
             expect(req.request.withCredentials).toBe(true);
             expect(req.request.body).toBe(formData);
             req.flush({ success: true, data: mockPictureDto });

@@ -15,7 +15,7 @@ Nx monorepo migrating from Yii1 PHP to Angular 21 + Node.js. Uses zoneless chang
 
 **Key patterns**: Standalone components only, `inject()` for DI, `ChangeDetectionStrategy.OnPush`, lazy routes via `loadComponent()`.
 
-**Branches**: `standalone` (default) - full Angular app development; `main` - iframe mode with `/new` prefix.
+**Branches**: `main` (default) - active development. Push triggers beta deploy, tag `X.Y.Z` triggers release. `iframe` - frozen legacy (manual deploy only).
 
 ## Commands
 

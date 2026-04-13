@@ -3,6 +3,8 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { PictureService } from '../../../../services/pictures/picture.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
+import { ReplaceFileDialogData, ReplaceFileDialogResult } from '../../components/replace-file-dialog/replace-file-dialog.component';
+import { TITLE_MAX_LENGTH, TITLE_MIN_LENGTH } from '../../constants/picture.constants';
 import { PictureResolveResult } from '../../resolvers/picture.resolver';
 import { isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, PLATFORM_ID, signal, viewChild } from '@angular/core';
@@ -11,12 +13,12 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { PictureArticle } from '@drevo-web/shared';
-import { FormatDatePipe, SpinnerComponent } from '@drevo-web/ui';
+import { FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
 import { of, startWith, switchMap } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, finalize, map } from 'rxjs/operators';
 
-const TITLE_MIN_LENGTH = 5;
-const TITLE_MAX_LENGTH = 500;
+const MAX_FILE_SIZE_BYTES = 500 * 1024;
+const ALLOWED_FILE_TYPE = 'image/jpeg';
 
 @Component({
     selector: 'app-picture-detail',
@@ -31,12 +33,14 @@ export class PictureDetailComponent {
     private readonly lightboxService = inject(PictureLightboxService);
     private readonly pictureService = inject(PictureService);
     private readonly notificationService = inject(NotificationService);
+    private readonly modalService = inject(ModalService);
     private readonly logger = inject(LoggerService).withContext('PictureDetail');
     private readonly window = inject(WINDOW);
     private readonly platformId = inject(PLATFORM_ID);
     private readonly destroyRef = inject(DestroyRef);
 
     private readonly titleInputRef = viewChild<ElementRef<HTMLTextAreaElement>>('titleInput');
+    private readonly fileInputRef = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
     private readonly resolveResult = toSignal(
         this.route.data.pipe(map(data => data['picture'] as PictureResolveResult)),
@@ -67,6 +71,12 @@ export class PictureDetailComponent {
     readonly isEditingTitle = this._isEditingTitle.asReadonly();
     readonly isSavingTitle = this._isSavingTitle.asReadonly();
     readonly displayTitle = computed(() => this._titleOverride() ?? this.picture()?.title ?? '');
+
+    // File replacement
+    private readonly _isUploading = signal(false);
+    private readonly _imageOverride = signal<string | undefined>(undefined);
+    readonly isUploading = this._isUploading.asReadonly();
+    readonly displayImageUrl = computed(() => this._imageOverride() ?? this.picture()?.imageUrl ?? '');
 
     // Articles
     private readonly pictureId = computed(() => this.picture()?.id);
@@ -102,6 +112,7 @@ export class PictureDetailComponent {
             () => {
                 this.picture(); // track picture changes
                 this._titleOverride.set(undefined);
+                this._imageOverride.set(undefined);
                 this._isEditingTitle.set(false);
             },
             { allowSignalWrites: true },
@@ -197,14 +208,106 @@ export class PictureDetailComponent {
 
     onImageClick(): void {
         const pic = this.picture();
-        if (pic) {
-            this.logger.info('Opening lightbox from detail', { id: pic.id });
+        if (!pic) return;
+
+        this.logger.info('Opening lightbox from detail', { id: pic.id });
+
+        const imageOverride = this._imageOverride();
+        if (imageOverride) {
+            this.lightboxService.openWithPicture({
+                ...pic,
+                title: this.displayTitle(),
+                imageUrl: imageOverride,
+            });
+        } else {
             this.lightboxService.open(pic.id);
         }
     }
 
     editPicture(): void {
-        this.notificationService.info('Функция еще не реализована');
+        if (this._isUploading()) return;
+        this.fileInputRef()?.nativeElement.click();
+    }
+
+    onFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        // Reset input so the same file can be re-selected
+        input.value = '';
+
+        if (!file) return;
+
+        if (file.type !== ALLOWED_FILE_TYPE) {
+            this.notificationService.error('Допустимый формат — только JPEG');
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            this.notificationService.error('Максимальный размер файла — 500 КБ');
+            return;
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+
+        this.modalService
+            .open<ReplaceFileDialogData, ReplaceFileDialogResult>(
+                () =>
+                    import('../../components/replace-file-dialog/replace-file-dialog.component').then(
+                        m => m.ReplaceFileDialogComponent,
+                    ),
+                {
+                    data: { currentTitle: this.displayTitle(), previewUrl },
+                    width: '500px',
+                },
+            )
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(result => {
+                if (result) {
+                    this.uploadFile(file, result.title, previewUrl);
+                } else {
+                    URL.revokeObjectURL(previewUrl);
+                }
+            });
+    }
+
+    private uploadFile(file: File, title: string, previewUrl: string): void {
+        const pic = this.picture();
+        if (!pic) {
+            URL.revokeObjectURL(previewUrl);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('pic_title', title);
+
+        this._isUploading.set(true);
+
+        this.pictureService
+            .editPicture(pic.id, formData)
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => {
+                    this._isUploading.set(false);
+                    URL.revokeObjectURL(previewUrl);
+                }),
+            )
+            .subscribe({
+                next: result => {
+                    if (result.picture) {
+                        this._titleOverride.set(result.picture.title);
+                        this._imageOverride.set(result.picture.imageUrl);
+                        this.notificationService.success('Файл заменён');
+                    } else if (result.pending) {
+                        this.notificationService.info('Изменение отправлено на модерацию');
+                    }
+                    this.logger.info('File replacement submitted', { id: pic.id });
+                },
+                error: (err: unknown) => {
+                    this.logger.error('Failed to replace file', err);
+                    this.notificationService.error('Не удалось заменить файл');
+                },
+            });
     }
 
     copyInsertCode(): void {

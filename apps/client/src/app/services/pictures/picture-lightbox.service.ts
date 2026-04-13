@@ -53,6 +53,25 @@ export class PictureLightboxService {
         this._openSubject.next(pictureId);
     }
 
+    /**
+     * Open lightbox with a pre-loaded picture (skips API fetch).
+     * Useful when the caller already has the up-to-date picture data
+     * (e.g. after file replacement with cache-busted URL).
+     */
+    openWithPicture(picture: Picture): void {
+        this.logger.info('Opening lightbox with preloaded picture', { pictureId: picture.id });
+
+        const wasOpen = this._isOpen();
+
+        this._isOpen.set(true);
+        this._isLoading.set(false);
+        this._isZoomed.set(false);
+        this._currentPicture.set(picture);
+
+        this.updateHash(picture.id, wasOpen);
+        this.hashPushed = true;
+    }
+
     private listenOpen(): void {
         this._openSubject
             .pipe(

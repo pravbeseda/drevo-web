@@ -1,0 +1,196 @@
+name: CD Main Release
+
+on:
+    push:
+        tags: ['[0-9]*']
+
+permissions:
+    contents: write
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Install Playwright
+              run: yarn playwright install --with-deps
+
+            - name: Lint and test
+              run: |
+                  yarn nx run-many -t lint --parallel=3
+                  yarn nx run-many -t test --parallel=3
+                  yarn nx run-many -t e2e
+
+            - name: Build verification
+              run: npx nx build client --configuration=production
+
+    deploy:
+        needs: ci
+        runs-on: ubuntu-latest
+        environment: release
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Get version from tag
+              id: get_version
+              run: |
+                  VERSION="${GITHUB_REF_NAME}"
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "Release version: $VERSION"
+
+            - name: Get current timestamp
+              id: get_timestamp
+              run: echo "timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
+
+            - name: Generate changelog
+              id: changelog
+              run: |
+                  # Get the previous tag
+                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+                  if [ -z "$PREVIOUS_TAG" ]; then
+                    echo "changelog<<EOF" >> $GITHUB_OUTPUT
+                    git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+                    echo "" >> $GITHUB_OUTPUT
+                    echo "EOF" >> $GITHUB_OUTPUT
+                  else
+                    echo "changelog<<EOF" >> $GITHUB_OUTPUT
+                    git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+                    echo "" >> $GITHUB_OUTPUT
+                    echo "EOF" >> $GITHUB_OUTPUT
+                  fi
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Generate version and build
+              id: build
+              env:
+                  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+                  APP_VERSION: ${{ steps.get_version.outputs.version }}
+              run: |
+                  echo "Building release version: $APP_VERSION"
+
+                  # Replace version placeholder
+                  sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
+
+                  # Replace Sentry DSN placeholder
+                  if [ -n "$SENTRY_DSN" ]; then
+                    echo "Configuring Sentry DSN..."
+                    sed -i "s|__SENTRY_DSN_PLACEHOLDER__|$SENTRY_DSN|g" apps/client/src/environments/environment.prod.ts
+                  else
+                    echo "Warning: SENTRY_DSN secret is not set, Sentry will be disabled"
+                    sed -i "s|__SENTRY_DSN_PLACEHOLDER__||g" apps/client/src/environments/environment.prod.ts
+                  fi
+
+                  # Verify the replacement (hide sensitive DSN)
+                  echo "Environment file after replacement:"
+                  if [ -n "$SENTRY_DSN" ]; then
+                    awk -v dsn="$SENTRY_DSN" '{gsub(dsn, "[SENTRY_DSN_HIDDEN]"); print}' apps/client/src/environments/environment.prod.ts
+                  else
+                    cat apps/client/src/environments/environment.prod.ts
+                  fi
+
+                  npx nx build client --configuration=production
+
+            - name: Upload source maps to Sentry
+              env:
+                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+                  SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+                  VERSION: ${{ steps.get_version.outputs.version }}
+              run: |
+                  if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+                    echo "SENTRY_AUTH_TOKEN not set, skipping source map upload"
+                    exit 0
+                  fi
+
+                  if [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
+                    echo "SENTRY_ORG or SENTRY_PROJECT not set, skipping source map upload"
+                    exit 0
+                  fi
+
+                  fail_step() {
+                    echo "Source map upload failed: $1"
+                    exit 1
+                  }
+
+                  echo "Uploading source maps to Sentry for release $VERSION..."
+
+                  echo "Uploading source maps from ./dist/apps/client/browser..."
+                  if ! npx sentry-cli sourcemaps upload \
+                    --release="$VERSION" \
+                    --url-prefix "~/" \
+                    ./dist/apps/client/browser; then
+                    fail_step "Sentry source map upload failed for version $VERSION"
+                  fi
+
+                  echo "Source maps uploaded for release $VERSION"
+
+            - name: Create build archive
+              run: |
+                  cd dist/apps/client
+                  tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
+                  cd ../../..
+
+            - name: Deploy
+              uses: ./.github/actions/deploy
+              with:
+                  environment: 'release'
+                  pm2-app-name: 'drevo-release'
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+                  ssh-user: ${{ secrets.SSH_USER }}
+                  ssh-host: ${{ secrets.SSH_HOST }}
+                  ssh-port: ${{ secrets.SSH_PORT || '22' }}
+                  source-path: 'dist/apps/client'
+                  version: ${{ steps.get_version.outputs.version }}
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  name: Release ${{ steps.get_version.outputs.version }}
+                  generate_release_notes: true
+                  body: |
+                      **Release ${{ steps.get_version.outputs.version }}**
+
+                      **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
+                      **Environment**: Release
+                      ${{ vars.RELEASE_URL && format('**URL**: {0}', vars.RELEASE_URL) || '' }}
+
+                      **Changes in this release:**
+                      ${{ steps.changelog.outputs.changelog }}
+                  draft: false
+                  prerelease: false
+                  files: |
+                      drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
+
+            - name: Notify deployment
+              if: always()
+              run: |
+                  if [ "${{ job.status }}" == "success" ]; then
+                    echo "Release deployment successful: ${{ steps.get_version.outputs.version }}"
+                  else
+                    echo "Release deployment failed"
+                    exit 1
+                  fi
