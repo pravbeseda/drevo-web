@@ -588,7 +588,7 @@ pm2 resurrect
 
 ---
 
-### Phase 7 — Git flip
+### Phase 7 — Git flip ✅
 
 **Goal**: перевести `main` на содержимое `standalone`, сменить default branch, удалить standalone.
 
