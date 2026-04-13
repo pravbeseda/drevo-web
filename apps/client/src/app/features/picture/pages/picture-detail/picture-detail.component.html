@@ -10,9 +10,19 @@
         <app-sidebar-action
             [order]="20"
             icon="edit"
-            label="Изменить"
+            label="Заменить файл"
             priority="primary"
+            [disabled]="isUploading()"
+            testId="sidebar-action-replace-file"
             (activated)="editPicture()"
+        />
+        <input
+            #fileInput
+            type="file"
+            accept="image/jpeg"
+            class="detail__file-input"
+            (change)="onFileSelected($event)"
+            data-testid="detail-file-input"
         />
     }
     <div class="detail__card">
@@ -26,8 +36,8 @@
             data-testid="detail-image"
         >
             <img
-                [src]="pic.imageUrl"
-                [alt]="pic.title"
+                [src]="displayImageUrl()"
+                [alt]="displayTitle()"
                 loading="eager"
             />
         </div>

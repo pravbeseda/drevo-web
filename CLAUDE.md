@@ -70,6 +70,7 @@ app/features/
     services/                # Feature-scoped services (not providedIn: 'root')
     resolvers/               # Route resolvers
     models/                  # Feature-local types and interfaces
+    constants/               # Feature-local constants
     article.routes.ts        # Feature routes
   history/
     pages/
@@ -90,9 +91,10 @@ app/features/
 3. **`components/`** — non-routed components used within this feature only
 4. **`services/`** — only feature-scoped services (provided in component or route `providers`, not `providedIn: 'root'`). Global domain services live in `app/services/`
 5. **`resolvers/`** — route resolvers belonging to this feature
-6. **`models/`** — feature-local types, interfaces, constants. Created only when needed
-7. **Feature routes file** — each feature has its own `*.routes.ts`, imported lazily from `app.routes.ts`
-8. **Small features** — if a feature is a single component (no subcomponents, services, or resolvers), files live directly in `features/X/` without `pages/` subfolder. Add `pages/`, `components/`, `services/` as the feature grows
+6. **`models/`** — feature-local types and interfaces. Created only when needed
+7. **`constants/`** — feature-local constants shared across multiple components within the feature. Created only when needed
+8. **Feature routes file** — each feature has its own `*.routes.ts`, imported lazily from `app.routes.ts`
+9. **Small features** — if a feature is a single component (no subcomponents, services, or resolvers), files live directly in `features/X/` without `pages/` subfolder. Add `pages/`, `components/`, `services/` as the feature grows
 
 #### Where types and models live
 
@@ -100,7 +102,8 @@ app/features/
 |-------|----------|---------|
 | Cross-app (shared between libs/apps) | `@drevo-web/shared` | `Article`, `User`, `ApiResponse` |
 | Cross-feature (shared between 2+ features) | `app/shared/models/` | `FilterEntry`, `FilterGroup` |
-| Feature-local | `features/X/models/` | `ArticleApi` |
+| Feature-local types | `features/X/models/` | `ArticleApi` |
+| Feature-local constants | `features/X/constants/` | `TITLE_MIN_LENGTH` |
 
 #### `shared/` rules
 

@@ -124,6 +124,44 @@ describe('PictureLightboxService', () => {
         });
     });
 
+    describe('openWithPicture', () => {
+        it('should set picture directly without loading', () => {
+            spectator.service.openWithPicture(mockPicture);
+
+            expect(spectator.service.isOpen()).toBe(true);
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(spectator.service.currentPicture()).toEqual(mockPicture);
+        });
+
+        it('should not call getPicture', () => {
+            spectator.service.openWithPicture(mockPicture);
+
+            expect(pictureService.getPicture).not.toHaveBeenCalled();
+        });
+
+        it('should push hash to browser history', () => {
+            spectator.service.openWithPicture(mockPicture);
+
+            expect(location.go).toHaveBeenCalledWith('/articles/1#picture=123');
+        });
+
+        it('should reset zoom', () => {
+            spectator.service.openWithPicture(mockPicture);
+
+            expect(spectator.service.isZoomed()).toBe(false);
+        });
+
+        it('should use replaceState when already open', () => {
+            const subject = new Subject<Picture>();
+            pictureService.getPicture.mockReturnValue(subject.asObservable());
+            spectator.service.open(999);
+
+            spectator.service.openWithPicture(mockPicture);
+
+            expect(location.replaceState).toHaveBeenCalledWith('/articles/1#picture=123');
+        });
+    });
+
     describe('close', () => {
         it('should reset all state', () => {
             pictureService.getPicture.mockReturnValue(of(mockPicture));
