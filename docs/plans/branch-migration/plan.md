@@ -486,7 +486,7 @@ pm2 resurrect
 
 ---
 
-### Phase 6 — Подготовка ветки iframe
+### Phase 6 — Подготовка ветки iframe ✅
 
 **Goal**: создать ветку `iframe` из `origin/main` (`61cc2a9`), запушить туда iframe-specific workflow'ы. **main при этом не трогается.**
 
