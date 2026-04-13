@@ -176,11 +176,10 @@ jobs:
 
                       **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
                       **Environment**: Release
+                      ${{ vars.RELEASE_URL && format('**URL**: {0}', vars.RELEASE_URL) || '' }}
 
                       **Changes in this release:**
                       ${{ steps.changelog.outputs.changelog }}
-
-                      **Deployment**: Files deployed successfully
                   draft: false
                   prerelease: false
                   files: |

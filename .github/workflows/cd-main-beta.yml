@@ -142,10 +142,18 @@ jobs:
 
             - name: Notify deployment
               if: always()
+              env:
+                  BETA_URL: ${{ vars.BETA_URL }}
               run: |
                   if [ "${{ job.status }}" == "success" ]; then
                     echo "Beta deployment successful"
+                    echo "### ✅ Beta deployed" >> $GITHUB_STEP_SUMMARY
+                    echo "**Version**: ${{ steps.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+                    if [ -n "$BETA_URL" ]; then
+                      echo "**URL**: $BETA_URL" >> $GITHUB_STEP_SUMMARY
+                    fi
                   else
                     echo "Beta deployment failed"
+                    echo "### ❌ Beta deployment failed" >> $GITHUB_STEP_SUMMARY
                     exit 1
                   fi
