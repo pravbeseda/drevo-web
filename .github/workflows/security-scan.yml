@@ -1,15 +1,14 @@
+# This file must be kept byte-identical on main and iframe branches.
+# Gitleaks must run identically regardless of which branch a feature branch is forked from.
+# If you change triggers/config here, mirror the change to the other branch immediately.
+
 name: Gitleaks Security Scan
 
 on:
     push:
-        branches:
-            - main
-            - develop
-            - 'feature/**'
+        branches: ['**']
     pull_request:
-        branches:
-            - main
-            - develop
+        branches: [main, iframe]
 
 permissions:
     contents: read

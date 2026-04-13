@@ -328,7 +328,7 @@ pm2 resurrect
 
 ---
 
-### Phase 4 — GitHub Environments
+### Phase 4 — GitHub Environments ✅
 
 **Goal**: создать новые GH environments `beta` и `release` с соответствующими vars.
 
