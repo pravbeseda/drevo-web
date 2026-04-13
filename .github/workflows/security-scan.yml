@@ -1,42 +1,41 @@
+# This file must be kept byte-identical on main and iframe branches.
+# Gitleaks must run identically regardless of which branch a feature branch is forked from.
+# If you change triggers/config here, mirror the change to the other branch immediately.
+
 name: Gitleaks Security Scan
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - 'feature/**'
-  pull_request:
-    branches:
-      - main
-      - develop
+    push:
+        branches: ['**']
+    pull_request:
+        branches: [main, iframe]
 
 permissions:
-  contents: read
-  security-events: write  # For uploading SARIF results
+    contents: read
+    security-events: write # For uploading SARIF results
 
 jobs:
-  gitleaks:
-    name: Scan for secrets
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for full scan
+    gitleaks:
+        name: Scan for secrets
+        runs-on: ubuntu-latest
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for Organizations, not personal accounts.
-        with:
-          # Scan all commits in PR, or last commit on push
-          args: --verbose --redact
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Fetch all history for full scan
 
-      - name: Upload SARIF report
-        if: failure()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
+            - name: Run Gitleaks
+              uses: gitleaks/gitleaks-action@v2
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for Organizations, not personal accounts.
+              with:
+                  # Scan all commits in PR, or last commit on push
+                  args: --verbose --redact
+
+            - name: Upload SARIF report
+              if: failure()
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: results.sarif

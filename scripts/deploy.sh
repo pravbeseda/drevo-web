@@ -1,10 +1,9 @@
 #!/bin/bash
 
 # Atomic deployment script for Drevo Web
-# New Usage: ./deploy.sh <version> <app_name> <deploy_path> <environment>
-# Example: ./deploy.sh "20240923-0900" "drevo-staging" "~/releases/staging-current" "staging"
-# Example: ./deploy.sh "1.2.0" "drevo-production" "~/releases/production-current" "production"
-# Legacy Usage: ./deploy.sh <environment> <version> (for backward compatibility)
+# Usage: ./deploy.sh <version> <app_name> <deploy_path> <environment>
+# Example: ./deploy.sh "20240923-0900" "drevo-beta" "~/releases/beta-current" "beta"
+# Example: ./deploy.sh "1.2.0" "drevo-release" "~/releases/release-current" "release"
 
 set -euo pipefail
 
@@ -70,80 +69,33 @@ EOF
     fi
 }
 
-# Argument validation - support both new and legacy parameter formats
-if [ $# -eq 2 ]; then
-    # Legacy format: ./deploy.sh <environment> <version>
-    log_warn "Using legacy parameter format - this will be deprecated"
-    ENVIRONMENT="$1"
-    VERSION="$2"
-    DRY_RUN=false
-    
-    # Determine app name and deploy path from environment
-    if [ "$ENVIRONMENT" = "staging" ]; then
-        APP_NAME="drevo-staging"
-        DEPLOY_PATH_PARAM="$HOME/releases/staging-current"
-    elif [ "$ENVIRONMENT" = "production" ]; then
-        APP_NAME="drevo-production"
-        DEPLOY_PATH_PARAM="$HOME/releases/production-current"
-    else
-        log_error "Invalid environment: $ENVIRONMENT"
-        exit 1
-    fi
-    
-elif [ $# -eq 3 ] && [ "$3" = "--dry-run" ]; then
-    # Legacy format with dry-run: ./deploy.sh <environment> <version> --dry-run
-    log_warn "Using legacy parameter format with dry-run - this will be deprecated"
-    ENVIRONMENT="$1"
-    VERSION="$2"
-    DRY_RUN=true
-    
-    # Determine app name and deploy path from environment
-    if [ "$ENVIRONMENT" = "staging" ]; then
-        APP_NAME="drevo-staging"
-        DEPLOY_PATH_PARAM="$HOME/releases/staging-current"
-    elif [ "$ENVIRONMENT" = "production" ]; then
-        APP_NAME="drevo-production"  
-        DEPLOY_PATH_PARAM="$HOME/releases/production-current"
-    else
-        log_error "Invalid environment: $ENVIRONMENT"
-        exit 1
-    fi
-    
-elif [ $# -eq 4 ]; then
-    # New format: ./deploy.sh <version> <app_name> <deploy_path> <environment>
+# Argument validation
+if [ $# -eq 4 ]; then
     VERSION="$1"
     APP_NAME="$2"
     DEPLOY_PATH_PARAM="$3"
     ENVIRONMENT="$4"
     DRY_RUN=false
-    
+
     # Expand tilde in deploy path if needed
     DEPLOY_PATH_PARAM="${DEPLOY_PATH_PARAM/#\~/$HOME}"
-    
+
 elif [ $# -eq 5 ] && [ "$5" = "--dry-run" ]; then
-    # New format with dry-run: ./deploy.sh <version> <app_name> <deploy_path> <environment> --dry-run
     VERSION="$1"
     APP_NAME="$2"
     DEPLOY_PATH_PARAM="$3"
     ENVIRONMENT="$4"
     DRY_RUN=true
-    
+
     # Expand tilde in deploy path if needed
     DEPLOY_PATH_PARAM="${DEPLOY_PATH_PARAM/#\~/$HOME}"
-    
+
 else
     log_error "Usage: $0 <version> <app_name> <deploy_path> <environment> [--dry-run]"
-    log_error "  New format (recommended):"
-    log_error "    Version: Version string (e.g., '1.2.0' or '20240923-0900')"
-    log_error "    App Name: PM2 app name (e.g., 'drevo-staging' or 'drevo-production')"
-    log_error "    Deploy Path: Deployment directory path (e.g., '~/releases/staging-current')"
-    log_error "    Environment: staging or production"
-    log_error ""
-    log_error "  Legacy format (deprecated):"
-    log_error "    $0 <environment> <version> [--dry-run]"
-    log_error "    Environment: staging or production"
-    log_error "    Version format: YYYYMMDD-HHMM for staging, X.Y.Z for production"
-    log_error ""
+    log_error "  Version: Version string (e.g., '1.2.0' or '260412-1430')"
+    log_error "  App Name: PM2 app name (e.g., 'drevo-beta' or 'drevo-release')"
+    log_error "  Deploy Path: Deployment directory path (e.g., '~/releases/beta-current')"
+    log_error "  Environment: Environment name (e.g., 'beta', 'release', 'production')"
     log_error "  Optional: --dry-run for testing without making changes"
     exit 1
 fi
@@ -161,14 +113,14 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 # Validate environment
-if [[ ! "$ENVIRONMENT" =~ ^(staging|production)$ ]]; then
-    log_error "Environment must be 'staging' or 'production', got: $ENVIRONMENT"
+if [[ ! "$ENVIRONMENT" =~ ^[a-z][a-z0-9-]*$ ]]; then
+    log_error "Environment must be lowercase alphanumeric with dashes, got: $ENVIRONMENT"
     exit 1
 fi
 
 # Validate app name format
-if [[ ! "$APP_NAME" =~ ^drevo-(staging|production)$ ]]; then
-    log_error "App name must be 'drevo-staging' or 'drevo-production', got: $APP_NAME"
+if [[ ! "$APP_NAME" =~ ^drevo-[a-z0-9-]+$ ]]; then
+    log_error "App name must match drevo-*, got: $APP_NAME"
     exit 1
 fi
 
@@ -192,6 +144,14 @@ RELEASE_DIR="$RELEASES_DIR/$VERSION"
 CURRENT_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-current"
 PREVIOUS_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-previous"
 LOGS_DIR="$BASE_DIR/logs"
+
+# Ensure node/pm2 are in PATH for non-interactive SSH sessions (e.g. nvm)
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    log_info "Loading nvm for non-interactive shell..."
+    export NVM_DIR="$HOME/.nvm"
+    # shellcheck source=/dev/null
+    . "$NVM_DIR/nvm.sh"
+fi
 
 # Release readiness check
 log_info "Checking release readiness..."
@@ -227,6 +187,10 @@ if [ -L "$CURRENT_LINK" ]; then
     if [ "$DRY_RUN" = true ]; then
         log_info "[DRY RUN] Would save current symlink for rollback"
     else
+        # Must remove destination first: cp -P only prevents source dereference,
+        # but still follows destination symlinks. If PREVIOUS_LINK points to a
+        # directory, cp would copy INTO it instead of replacing the symlink.
+        rm -f "$PREVIOUS_LINK"
         cp -P "$CURRENT_LINK" "$PREVIOUS_LINK" || {
             log_warn "Failed to save current symlink for rollback"
         }
@@ -289,36 +253,62 @@ fi
 # PM2 management - Auto restart after deployment
 log_info "Performing PM2 restart..."
 
+# Verify node and pm2 are available before proceeding
+if ! command -v node >/dev/null 2>&1; then
+    log_error "node is not available in PATH"
+    log_error "Ensure Node.js is installed and accessible in non-interactive shells"
+    exit 1
+fi
+
+if ! command -v pm2 >/dev/null 2>&1; then
+    log_error "pm2 is not available in PATH"
+    log_error "Ensure PM2 is installed globally: npm install -g pm2"
+    exit 1
+fi
+
+log_info "Using node $(node -v) from $(command -v node)"
+log_info "Using pm2 $(pm2 -v) from $(command -v pm2)"
+
 if [ "$DRY_RUN" = true ]; then
     log_info "[DRY RUN] Would execute PM2 restart: pm2 reload ecosystem.config.js --only $APP_NAME"
 else
     PM2_COMMAND="pm2 reload ecosystem.config.js --only $APP_NAME"
-    
+
     log_info "Executing PM2 restart: $PM2_COMMAND"
-    
+
     if $PM2_COMMAND; then
         log_info "✅ PM2 restart completed successfully"
-        
+
         # Wait a moment for PM2 to settle
         sleep 2
-        
+
         # Verify PM2 status
         log_info "Verifying PM2 status..."
         if pm2 show "$APP_NAME" >/dev/null 2>&1; then
             log_info "✅ PM2 process '$APP_NAME' is running"
-            
+
             # Show current status
             log_info "Current PM2 status:"
             pm2 status | grep -E "(id|$APP_NAME)" || pm2 status
+
+            # Save PM2 process list for auto-restart after server reboot
+            log_info "Saving PM2 process list..."
+            if pm2 save; then
+                log_info "✅ PM2 process list saved successfully"
+                log_info "Application will auto-restart after server reboot"
+            else
+                log_warn "⚠️ Failed to save PM2 process list"
+                log_warn "Application may not auto-restart after server reboot"
+            fi
         else
             log_error "❌ PM2 process '$APP_NAME' is not running after restart"
             log_error "Manual intervention may be required"
-            # Don't fail deployment, but warn
+            exit 1
         fi
     else
         log_error "❌ PM2 restart failed"
         log_error "Manual PM2 restart required: $PM2_COMMAND"
-        # Don't fail deployment, but warn that manual restart is needed
+        exit 1
     fi
 fi
 
@@ -381,10 +371,12 @@ elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" 
     echo ""
     log_info "🎉 Deployment completed successfully!"
     log_info "✅ PM2 process restarted automatically"
+    log_info "✅ PM2 process list saved for auto-restart after server reboot"
     log_info "📋 Next steps (optional verification):"
     log_info "1. Check detailed status: pm2 show $APP_NAME"
     log_info "2. Monitor logs: pm2 logs $APP_NAME"
     log_info "3. Verify version display: pm2 status"
+    log_info "4. Verify startup script: pm2 startup (should show current configuration)"
     echo ""
     
 else

@@ -1,0 +1,42 @@
+name: CI iframe
+
+on:
+    push:
+        branches: [iframe]
+    pull_request:
+        branches: [iframe]
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Install Playwright
+              run: yarn playwright install --with-deps
+
+            - uses: nrwl/nx-set-shas@v4
+              with:
+                  main-branch-name: 'iframe'
+
+            - name: Run affected tasks
+              run: |
+                  yarn nx affected -t lint,test,build --parallel=3
+                  yarn nx affected -t e2e
+
+            - name: Build verification
+              if: github.event_name == 'push' && github.ref == 'refs/heads/iframe'
+              run: |
+                  echo "Verifying production build..."
+                  npx nx build client --configuration=production
+                  echo "Build successful"
