@@ -1,5 +1,7 @@
 # Branch migration: standalone → main, iframe freeze, new release pipeline
 
+> **Completed 2026-04-13.** This document is kept as a historical artifact.
+
 ## 1. Overview
 
 ### Goal
@@ -643,7 +645,7 @@ pm2 resurrect
 
 ---
 
-### Phase 8 — Smoke-test beta deploy
+### Phase 8 — Smoke-test beta deploy ✅
 
 **Goal**: убедиться, что `cd-main-beta.yml` срабатывает и реально деплоит в drevo-beta.
 
@@ -681,7 +683,7 @@ pm2 resurrect
 
 ---
 
-### Phase 9 — Smoke-test release deploy
+### Phase 9 — Smoke-test release deploy ✅
 
 **Goal**: проверить, что `cd-main-release.yml` корректно обрабатывает тэг `[0-9]*`, деплоит в `drevo-release`, создаёт GitHub Release и грузит source maps в Sentry.
 
@@ -712,7 +714,7 @@ pm2 resurrect
 
 ---
 
-### Phase 10 — Cleanup
+### Phase 10 — Cleanup ✅
 
 **Goal**: убрать временные подпорки, удалить старый GH environment.
 

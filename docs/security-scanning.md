@@ -122,8 +122,8 @@ git commit --no-verify -m "your message"
 ## Continuous Monitoring
 
 The GitHub Action runs automatically on:
-- Every push to `main`, `standalone`, or `feature/*` branches
-- Every pull request to `main` or `standalone`
+- Every push to `main`, `iframe`, or `feature/*` branches
+- Every pull request to `main` or `iframe`
 
 Check results in:
 - **Actions tab**: See workflow runs

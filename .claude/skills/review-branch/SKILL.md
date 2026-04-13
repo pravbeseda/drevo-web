@@ -1,21 +1,21 @@
 ---
 name: review-branch
-description: Review current branch changes against standalone branch
+description: Review current branch changes against main branch
 ---
 
 # Review Branch
 
-Review all changes on the current branch compared to `standalone`.
+Review all changes on the current branch compared to `main`.
 
 ## Context
 
 **Current branch:** !`git rev-parse --abbrev-ref HEAD`
 
 **Changed files:**
-!`git diff standalone...HEAD --name-status`
+!`git diff main...HEAD --name-status`
 
 **Diff:**
-!`git diff standalone...HEAD`
+!`git diff main...HEAD`
 
 ## Instructions
 

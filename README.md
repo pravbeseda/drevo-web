@@ -112,9 +112,8 @@ The project uses GitHub Actions for CI/CD.
 
 ### Branches
 
-- **`standalone`** — default branch, active development of the standalone Angular application
-- `main` — PR target branch for standalone development
-- `staging` — staging deployment
+- **`main`** — default branch, active development. Push triggers beta deploy. Tag `X.Y.Z` triggers release deploy.
+- `iframe` — frozen legacy (old Yii-era wrapper). CD is manual-only via `workflow_dispatch`. Hotfix tags: `iframe-X.Y.Z`.
 
 ### Workflows
 
@@ -122,9 +121,9 @@ The project uses GitHub Actions for CI/CD.
 |----------|------|---------|
 | CI | `ci.yml` | Push & PR to all branches |
 | Coverage | `coverage.yml` | After CI |
-| Staging Deploy | `cd-staging.yml` | Push to `staging` |
-| Production Deploy | `cd-production.yml` | Push to `production` |
-| Standalone Build | `standalone.yml` | Manual |
+| Beta Deploy | `cd-main-beta.yml` | Push to `main` |
+| Release Deploy | `cd-main-release.yml` | Tag `X.Y.Z` on `main` |
+| Iframe Release | `cd-iframe-release.yml` | Manual (`workflow_dispatch`) |
 | Security Scan | `security-scan.yml` | Push & PR |
 
 ### Security Scanning
@@ -137,27 +136,28 @@ Automated security scanning to prevent secrets from being committed:
 
 ### Version Management
 
-- Semantic versioning with automatic tags on production deployments
-- Version bump via commit messages: `#major`, `#minor`, default is patch
+- **Beta**: date-based versions (`yymmdd-HHMM`), automatic on push to `main`
+- **Release**: semantic versioning (`X.Y.Z`), triggered by git tag + GitHub Release
 
 ### Branch Protection
 
-- Protected branches: `standalone`, `staging`, `main`
-- Required pull request reviews and passing status checks
+- Protected branch: `main` (required PR reviews, passing status checks)
 - Feature branches deleted after merge
 
 ## Deployment
 
 Atomic deployment via symlink switching, managed by PM2.
 
+| PM2 App | Port | Role | Branch |
+|---------|------|------|--------|
+| `drevo-production` | 4002 | iframe release (legacy) | `iframe` |
+| `drevo-beta` | 4010 | main beta (date version) | `main` |
+| `drevo-release` | 4011 | main release (semver) | `main` tag `X.Y.Z` |
+
 ### Prerequisites
 
-1. GitHub repository secrets:
-   - `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`
-   - `STAGING_SSH_USER`, `STAGING_SSH_HOST`, `STAGING_PATH`
-   - `PRODUCTION_SSH_USER`, `PRODUCTION_SSH_HOST`, `PRODUCTION_PATH`
-
-2. GitHub environments: `staging`, `production`
+1. GitHub repository secrets: `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `SSH_USER`, `SSH_HOST`, `SSH_PORT`
+2. GitHub environments: `beta`, `release`, `production`
 
 ### Manual Deployment
 
@@ -166,5 +166,5 @@ Atomic deployment via symlink switching, managed by PM2.
 yarn build
 
 # Deploy using deploy script
-./scripts/deploy.sh /path/to/deploy environment
+./scripts/deploy.sh <version> <pm2-app-name> <symlink-path> <environment>
 ```
