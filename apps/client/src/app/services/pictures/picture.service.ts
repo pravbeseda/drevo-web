@@ -71,7 +71,7 @@ export class PictureService {
     }
 
     /**
-     * Replace picture file (and optionally title) via PUT.
+     * Replace picture file (and optionally title).
      * Returns picture for moderators, pending for regular users.
      */
     editPicture(id: number, formData: FormData): Observable<PictureEditResult> {

@@ -286,11 +286,11 @@ export class PictureDetailComponent {
         this.pictureService
             .editPicture(pic.id, formData)
             .pipe(
+                takeUntilDestroyed(this.destroyRef),
                 finalize(() => {
                     this._isUploading.set(false);
                     URL.revokeObjectURL(previewUrl);
                 }),
-                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe({
                 next: result => {
