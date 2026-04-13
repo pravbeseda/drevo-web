@@ -18,6 +18,18 @@ export class PictureDetailPage extends BasePage {
     readonly articlesEmpty = this.page.getByTestId('detail-articles-empty');
     readonly articlesError = this.page.getByTestId('detail-articles-error');
 
+    // File replacement
+    readonly fileInput = this.page.getByTestId('detail-file-input');
+    readonly replaceFileAction = this.sidebarAction('sidebar-action-replace-file');
+
+    // Replace file dialog
+    readonly replaceDialogTitle = this.page.getByTestId('replace-file-dialog-title');
+    readonly replaceDialogPreview = this.page.getByTestId('replace-file-dialog-preview');
+    readonly replaceDialogTitleInput = this.page.getByTestId('replace-file-dialog-title-input');
+    readonly replaceDialogTitleError = this.page.getByTestId('replace-file-dialog-title-error');
+    readonly replaceDialogConfirm = this.page.getByTestId('replace-file-dialog-confirm');
+    readonly replaceDialogCancel = this.page.getByTestId('replace-file-dialog-cancel');
+
     // Error states
     readonly loadError = this.page.getByTestId('detail-load-error');
     readonly notFoundError = this.page.getByTestId('detail-error');

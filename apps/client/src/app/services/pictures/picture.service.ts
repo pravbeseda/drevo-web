@@ -145,6 +145,7 @@ export class PictureService {
 
     private mapPicture(dto: PictureDto): Picture {
         const paddedId = String(dto.pic_id).padStart(6, '0');
+        const cacheBuster = new Date(dto.pic_date).getTime();
 
         return {
             id: dto.pic_id,
@@ -154,8 +155,8 @@ export class PictureService {
             date: new Date(dto.pic_date),
             width: dto.pic_width ?? undefined,
             height: dto.pic_height ?? undefined,
-            imageUrl: `/images/${dto.pic_folder}/${paddedId}.jpg`,
-            thumbnailUrl: `/pictures/thumbs/${dto.pic_folder}/${paddedId}.jpg`,
+            imageUrl: `/images/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
+            thumbnailUrl: `/pictures/thumbs/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
         };
     }
 

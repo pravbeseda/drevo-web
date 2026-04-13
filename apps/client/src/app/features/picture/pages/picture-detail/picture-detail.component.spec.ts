@@ -7,6 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
 import { Picture, PictureArticle, User } from '@drevo-web/shared';
+import { ModalService } from '@drevo-web/ui';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
 
@@ -75,7 +76,9 @@ describe('PictureDetailComponent', () => {
                 mockProvider(PictureService, {
                     getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
                     updateTitle: jest.fn(),
+                    editPicture: jest.fn(),
                 }),
+                mockProvider(ModalService),
                 mockProvider(NotificationService),
                 {
                     provide: AuthService,
@@ -330,6 +333,214 @@ describe('PictureDetailComponent', () => {
                 expect(spectator.query('[data-testid="detail-title-input"]')).toBeTruthy();
             });
         });
+
+        describe('file replacement', () => {
+            function createValidFile(size = 100 * 1024): File {
+                return new File([new ArrayBuffer(size)], 'photo.jpg', { type: 'image/jpeg' });
+            }
+
+            function createMockFileList(file: File): FileList {
+                return Object.assign([file], { item: (i: number) => (i === 0 ? file : null), length: 1 }) as unknown as FileList;
+            }
+
+            function triggerFileSelect(s: Spectator<PictureDetailComponent>, file: File): void {
+                s.detectChanges();
+                const input = s.query<HTMLInputElement>('[data-testid="detail-file-input"]');
+                expect(input).toBeTruthy();
+
+                Object.defineProperty(input, 'files', { value: createMockFileList(file), configurable: true });
+                input?.dispatchEvent(new Event('change'));
+            }
+
+            beforeEach(() => {
+                globalThis.URL.createObjectURL = jest.fn().mockReturnValue('blob:preview-url');
+                globalThis.URL.revokeObjectURL = jest.fn();
+            });
+
+            it('should show error for non-JPEG file', () => {
+                const pngFile = new File([new ArrayBuffer(100)], 'photo.png', { type: 'image/png' });
+                const notification = spectator.inject(NotificationService);
+
+                triggerFileSelect(spectator, pngFile);
+
+                expect(notification.error).toHaveBeenCalledWith('Допустимый формат — только JPEG');
+            });
+
+            it('should show error for file exceeding 500KB', () => {
+                const largeFile = createValidFile(501 * 1024);
+                const notification = spectator.inject(NotificationService);
+
+                triggerFileSelect(spectator, largeFile);
+
+                expect(notification.error).toHaveBeenCalledWith('Максимальный размер файла — 500 КБ');
+            });
+
+            it('should open dialog for valid file', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of(undefined));
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(modalService.open).toHaveBeenCalledWith(
+                    expect.any(Function),
+                    expect.objectContaining({
+                        data: { currentTitle: 'Вид на Кремль', previewUrl: 'blob:preview-url' },
+                        width: '500px',
+                    }),
+                );
+            });
+
+            it('should revoke object URL on dialog cancel', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of(undefined));
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-url');
+            });
+
+            it('should not call editPicture on dialog cancel', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of(undefined));
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(pictureService.editPicture).not.toHaveBeenCalled();
+            });
+
+            it('should call editPicture with FormData on confirm', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Новое описание' }));
+                const mockResult: PictureEditResult = {
+                    picture: { ...mockPicture, title: 'Новое описание' },
+                    pending: undefined,
+                };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(pictureService.editPicture).toHaveBeenCalledWith(42, expect.any(FormData));
+                const formData = pictureService.editPicture.mock.calls[0][1] as FormData;
+                expect(formData.get('pic_title')).toBe('Новое описание');
+                expect(formData.get('file')).toBeTruthy();
+            });
+
+            it('should update image and title on moderator success', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Новое описание' }));
+                const updatedPicture: Picture = {
+                    ...mockPicture,
+                    title: 'Новое описание',
+                    imageUrl: '/images/0000/0042.jpg?v=12345',
+                };
+                const mockResult: PictureEditResult = { picture: updatedPicture, pending: undefined };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+                const notification = spectator.inject(NotificationService);
+
+                triggerFileSelect(spectator, createValidFile());
+                spectator.detectChanges();
+
+                expect(notification.success).toHaveBeenCalledWith('Файл заменён');
+                expect(spectator.component.displayTitle()).toBe('Новое описание');
+                expect(spectator.component.displayImageUrl()).toBe('/images/0000/0042.jpg?v=12345');
+            });
+
+            it('should show pending notification for regular user', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Вид на Кремль' }));
+                const mockResult: PictureEditResult = {
+                    picture: undefined,
+                    pending: {
+                        id: 1,
+                        pictureId: 42,
+                        pendingType: 'edit_both',
+                        title: 'Вид на Кремль',
+                        width: undefined,
+                        height: undefined,
+                        user: 'editor',
+                        date: new Date(),
+                        currentTitle: 'Вид на Кремль',
+                        currentImageUrl: '/images/0000/0042.jpg',
+                        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+                        currentWidth: 1920,
+                        currentHeight: 1280,
+                        pendingImageUrl: '/images/pending/42_pp1.jpg',
+                    },
+                };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+                const notification = spectator.inject(NotificationService);
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(notification.info).toHaveBeenCalledWith('Изменение отправлено на модерацию');
+            });
+
+            it('should show error notification on upload failure', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Вид на Кремль' }));
+                pictureService.editPicture.mockReturnValue(throwError(() => new Error('Upload failed')));
+                const notification = spectator.inject(NotificationService);
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(notification.error).toHaveBeenCalledWith('Не удалось заменить файл');
+            });
+
+            it('should set uploading state during upload', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Вид на Кремль' }));
+                const mockResult: PictureEditResult = {
+                    picture: { ...mockPicture },
+                    pending: undefined,
+                };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+
+                expect(spectator.component.isUploading()).toBe(false);
+
+                triggerFileSelect(spectator, createValidFile());
+
+                // After completion, uploading should be false again
+                expect(spectator.component.isUploading()).toBe(false);
+            });
+
+            it('should revoke object URL after upload completes', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Вид на Кремль' }));
+                const mockResult: PictureEditResult = {
+                    picture: { ...mockPicture },
+                    pending: undefined,
+                };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+
+                triggerFileSelect(spectator, createValidFile());
+
+                expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-url');
+            });
+
+            it('should open lightbox with overridden image after replacement', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Новое описание' }));
+                const updatedPicture: Picture = {
+                    ...mockPicture,
+                    title: 'Новое описание',
+                    imageUrl: '/images/0000/0042.jpg?v=12345',
+                };
+                const mockResult: PictureEditResult = { picture: updatedPicture, pending: undefined };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+                const lightbox = spectator.inject(PictureLightboxService);
+
+                triggerFileSelect(spectator, createValidFile());
+                spectator.detectChanges();
+
+                spectator.component.onImageClick();
+                expect(lightbox.openWithPicture).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        imageUrl: '/images/0000/0042.jpg?v=12345',
+                        title: 'Новое описание',
+                    }),
+                );
+            });
+        });
     });
 
     describe('without edit permission', () => {
@@ -339,6 +550,7 @@ describe('PictureDetailComponent', () => {
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)) }),
+                mockProvider(ModalService),
                 mockProvider(NotificationService),
                 { provide: AuthService, useValue: { user$: of(mockReadonlyUser) } },
                 {
@@ -377,6 +589,7 @@ describe('PictureDetailComponent', () => {
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
+                mockProvider(ModalService),
                 mockProvider(NotificationService),
                 { provide: AuthService, useValue: { user$: of(mockEditableUser) } },
                 {
@@ -408,6 +621,7 @@ describe('PictureDetailComponent', () => {
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
+                mockProvider(ModalService),
                 mockProvider(NotificationService),
                 { provide: AuthService, useValue: { user$: of(mockEditableUser) } },
                 {

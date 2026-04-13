@@ -1,0 +1,81 @@
+@use 'tokens' as *;
+
+.replace-file-dialog {
+    padding: 24px;
+    border: 1px solid var(--themed-border-color);
+    border-radius: 28px;
+
+    &__title {
+        margin: 0 0 16px;
+        font-size: 20px;
+        font-weight: 500;
+    }
+
+    &__preview {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 16px;
+        background: var(--themed-secondary-bg);
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    &__image {
+        max-width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 24px;
+    }
+
+    &__label {
+        font-size: $font-size-sm;
+        color: var(--themed-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__input {
+        font-size: $font-size-md;
+        font-family: inherit;
+        line-height: 1.4;
+        color: var(--themed-text-primary);
+        background: var(--themed-primary-bg);
+        border: 1px solid var(--themed-border-color);
+        border-radius: 4px;
+        padding: 8px;
+        width: 100%;
+        box-sizing: border-box;
+        outline: none;
+        resize: vertical;
+
+        &:focus {
+            border-color: var(--themed-link-color);
+        }
+    }
+
+    &__error {
+        font-size: $font-size-sm;
+        color: var(--themed-text-error);
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    @media (min-width: $breakpoint-tablet) {
+        &__actions {
+            flex-direction: row;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+    }
+}

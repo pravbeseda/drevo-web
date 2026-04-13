@@ -135,6 +135,15 @@ $_available-height: calc(98vh - #{$header-height} - #{$_image-padding} * 2);
     }
 }
 
+.detail__file-input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
 @media (max-width: $breakpoint-desktop) {
     :host {
         padding: 12px;

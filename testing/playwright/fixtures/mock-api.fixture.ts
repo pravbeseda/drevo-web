@@ -219,6 +219,39 @@ export async function mockPictureUpdateTitlePending(page: Page, id: number): Pro
     });
 }
 
+/** Mock POST /api/pictures/:id/file — file replacement (moderator, direct edit) */
+export async function mockPictureReplaceFile(page: Page, id: number, updatedPicture: PictureDto): Promise<void> {
+    await page.route(`**/api/pictures/${id}/file`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(updatedPicture) });
+    });
+}
+
+/** Mock POST /api/pictures/:id/file — file replacement returns pending (regular user) */
+export async function mockPictureReplaceFilePending(page: Page, id: number): Promise<void> {
+    await page.route(`**/api/pictures/${id}/file`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        const pending = createPicturePendingDto({
+            pp_pic_id: id,
+            pp_type: 'edit_both',
+            pp_title: 'Updated title',
+            pic_title: 'Old title',
+        });
+        return route.fulfill({ json: apiSuccess(pending) });
+    });
+}
+
+/** Mock POST /api/pictures/:id/file — server error */
+export async function mockPictureReplaceFileError(page: Page, id: number, status = 500): Promise<void> {
+    await page.route(`**/api/pictures/${id}/file`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ status, json: apiError('Upload failed') });
+    });
+}
+
 /** Mock /pictures/thumbs/** — return a 1x1 transparent PNG placeholder */
 export async function mockPictureThumbs(page: Page): Promise<void> {
     // 1x1 transparent PNG

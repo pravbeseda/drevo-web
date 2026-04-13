@@ -1,0 +1,67 @@
+<div class="replace-file-dialog">
+    <h2
+        class="replace-file-dialog__title"
+        data-testid="replace-file-dialog-title"
+    >
+        Замена файла
+    </h2>
+
+    <div class="replace-file-dialog__preview">
+        <img
+            class="replace-file-dialog__image"
+            [src]="previewUrl"
+            alt="Превью нового файла"
+            data-testid="replace-file-dialog-preview"
+        />
+    </div>
+
+    <div class="replace-file-dialog__field">
+        <label
+            class="replace-file-dialog__label"
+            for="replace-file-title"
+        >
+            Описание
+        </label>
+        <textarea
+            id="replace-file-title"
+            class="replace-file-dialog__input"
+            rows="3"
+            [formControl]="titleControl"
+            data-testid="replace-file-dialog-title-input"
+        ></textarea>
+        @if (titleControl.invalid && titleControl.dirty) {
+            <div
+                class="replace-file-dialog__error"
+                data-testid="replace-file-dialog-title-error"
+            >
+                @if (titleControl.hasError('required') || titleControl.hasError('minlength')) {
+                    Минимум 5 символов
+                } @else if (titleControl.hasError('maxlength')) {
+                    Максимум 500 символов
+                }
+            </div>
+        }
+    </div>
+
+    <div class="replace-file-dialog__actions">
+        <ui-button
+            variant="outlined"
+            accent="secondary"
+            [fullWidth]="true"
+            (click)="cancel()"
+            data-testid="replace-file-dialog-cancel"
+        >
+            Отмена
+        </ui-button>
+        <ui-button
+            variant="filled"
+            accent="primary"
+            [fullWidth]="true"
+            [disabled]="titleControl.invalid"
+            (click)="confirm()"
+            data-testid="replace-file-dialog-confirm"
+        >
+            Заменить
+        </ui-button>
+    </div>
+</div>
