@@ -2,12 +2,13 @@ import { AuthService } from '../../../../services/auth/auth.service';
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PictureEditResult, PictureService } from '../../../../services/pictures/picture.service';
 import { PictureDetailComponent } from './picture-detail.component';
+import { HttpErrorResponse } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
 import { Picture, PictureArticle, User } from '@drevo-web/shared';
-import { ModalService } from '@drevo-web/ui';
+import { ConfirmationService, ModalService } from '@drevo-web/ui';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
 
@@ -77,8 +78,10 @@ describe('PictureDetailComponent', () => {
                     getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
                     updateTitle: jest.fn(),
                     editPicture: jest.fn(),
+                    deletePicture: jest.fn(),
                 }),
                 mockProvider(ModalService),
+                mockProvider(ConfirmationService),
                 mockProvider(NotificationService),
                 {
                     provide: AuthService,
@@ -340,7 +343,10 @@ describe('PictureDetailComponent', () => {
             }
 
             function createMockFileList(file: File): FileList {
-                return Object.assign([file], { item: (i: number) => (i === 0 ? file : null), length: 1 }) as unknown as FileList;
+                return Object.assign([file], {
+                    item: (i: number) => (i === 0 ? file : null),
+                    length: 1,
+                }) as unknown as FileList;
             }
 
             function triggerFileSelect(s: Spectator<PictureDetailComponent>, file: File): void {
@@ -539,6 +545,154 @@ describe('PictureDetailComponent', () => {
                         title: 'Новое описание',
                     }),
                 );
+            });
+        });
+        describe('deletion', () => {
+            let confirmationService: jest.Mocked<ConfirmationService>;
+            let notification: jest.Mocked<NotificationService>;
+            let routerNavigateSpy: jest.SpyInstance;
+
+            beforeEach(() => {
+                confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+                notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+                routerNavigateSpy = jest.spyOn(spectator.inject(Router), 'navigate').mockResolvedValue(true);
+            });
+
+            it('should disable delete button when articles exist', () => {
+                spectator.detectChanges();
+                expect(spectator.component.canDelete()).toBe(false);
+            });
+
+            it('should enable delete button when no articles', () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                expect(spectator.component.canDelete()).toBe(true);
+            });
+
+            it('should enable delete button when articles are still loading', () => {
+                pictureService.getPictureArticles.mockReturnValue(EMPTY);
+                spectator.detectChanges();
+                expect(spectator.component.canDelete()).toBe(true);
+            });
+
+            it('should open confirmation dialog on delete', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('cancel'));
+
+                await spectator.component.deletePicture();
+
+                expect(confirmationService.open).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Удаление иллюстрации',
+                        message: 'Вы уверены, что хотите удалить эту иллюстрацию?',
+                        disableClose: true,
+                    }),
+                );
+            });
+
+            it('should not call API when confirmation cancelled', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('cancel'));
+
+                await spectator.component.deletePicture();
+
+                expect(pictureService.deletePicture).not.toHaveBeenCalled();
+            });
+
+            it('should redirect and show success on moderator delete', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('confirm'));
+                const mockResult: PictureEditResult = {
+                    picture: mockPicture,
+                    pending: undefined,
+                };
+                pictureService.deletePicture.mockReturnValue(of(mockResult));
+
+                await spectator.component.deletePicture();
+
+                expect(pictureService.deletePicture).toHaveBeenCalledWith(42);
+                expect(notification.success).toHaveBeenCalledWith('Иллюстрация удалена');
+                expect(routerNavigateSpy).toHaveBeenCalledWith(['/pictures']);
+            });
+
+            it('should show pending notification without redirect for regular user', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('confirm'));
+                const mockResult: PictureEditResult = {
+                    picture: undefined,
+                    pending: {
+                        id: 1,
+                        pictureId: 42,
+                        pendingType: 'delete',
+                        title: undefined,
+                        width: undefined,
+                        height: undefined,
+                        user: 'editor',
+                        date: new Date(),
+                        currentTitle: 'Вид на Кремль',
+                        currentImageUrl: '/images/0000/0042.jpg',
+                        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+                        currentWidth: 1920,
+                        currentHeight: 1280,
+                        pendingImageUrl: undefined,
+                    },
+                };
+                pictureService.deletePicture.mockReturnValue(of(mockResult));
+
+                await spectator.component.deletePicture();
+
+                expect(notification.info).toHaveBeenCalledWith('Запрос на удаление отправлен на модерацию');
+                expect(routerNavigateSpy).not.toHaveBeenCalled();
+            });
+
+            it('should show custom error on 409 conflict', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('confirm'));
+                pictureService.deletePicture.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
+
+                await spectator.component.deletePicture();
+
+                expect(notification.error).toHaveBeenCalledWith(
+                    'Иллюстрация используется в статьях и не может быть удалена',
+                );
+            });
+
+            it('should show generic error on other failures', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('confirm'));
+                pictureService.deletePicture.mockReturnValue(throwError(() => new Error('Server error')));
+
+                await spectator.component.deletePicture();
+
+                expect(notification.error).toHaveBeenCalledWith('Не удалось удалить иллюстрацию');
+            });
+
+            it('should reset isDeleting after completion', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('confirm'));
+                const mockResult: PictureEditResult = { picture: mockPicture, pending: undefined };
+                pictureService.deletePicture.mockReturnValue(of(mockResult));
+
+                expect(spectator.component.isDeleting()).toBe(false);
+                await spectator.component.deletePicture();
+                expect(spectator.component.isDeleting()).toBe(false);
+            });
+
+            it('should reset isDeleting after error', async () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                confirmationService.open.mockReturnValue(of('confirm'));
+                pictureService.deletePicture.mockReturnValue(throwError(() => new Error('fail')));
+
+                await spectator.component.deletePicture();
+                expect(spectator.component.isDeleting()).toBe(false);
             });
         });
     });

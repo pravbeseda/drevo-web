@@ -1,7 +1,8 @@
 import { DEFAULT_PICTURES_PAGE_SIZE, MAX_PICTURES_BATCH_SIZE } from './picture.constants';
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import {
     ApiResponse,
     PictureArticleDto,
@@ -145,7 +146,7 @@ export class PictureApiService {
         return this.http
             .delete<ApiResponse<PictureDto | PicturePendingDto>>(
                 `${this.apiUrl}/api/pictures/${id}`,
-                { withCredentials: true }
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [409]) },
             )
             .pipe(
                 map(response => {

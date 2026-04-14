@@ -731,7 +731,7 @@ Inline-edit для описания на detail page.
 
 ---
 
-**8.5. Замена файла**
+**8.5. Замена файла ✅**
 
 Загрузка нового файла вместо текущего.
 
@@ -753,7 +753,7 @@ Inline-edit для описания на detail page.
 
 ---
 
-**8.6. Удаление**
+**8.6. Удаление ✅**
 
 Удаление иллюстрации с проверкой использования.
 
@@ -798,9 +798,9 @@ Inline-edit для описания на detail page.
                                          ↓
                                    8.4 Edit title ✅
                                          ↓
-                                   8.5 File upload
+                                   8.5 File upload ✅
                                          ↓
-                                   8.6 Delete
+                                   8.6 Delete ✅
                                          ↓
                                    8.7 Pending status + cancel
 ```
@@ -856,7 +856,7 @@ Inline-edit для описания на detail page.
 Этап 7 (D3: Backend) ✅       ─┤
 Этап 10 (D6: Editor Picker)   ─┘  (независим)
 
-Этап 7 ✅ → Этап 8.1-8.3 ✅ → 8.4 Edit Title ✅ → 8.5 File Upload → 8.6 Delete → 8.7 Pending
+Этап 7 ✅ → Этап 8.1-8.3 ✅ → 8.4 Edit Title ✅ → 8.5 File Upload ✅ → 8.6 Delete ✅ → 8.7 Pending
                                                                                     ↓
                                                         Этап 9 (D5: Изменения/Иллюстрации)
 ```
@@ -893,8 +893,8 @@ Inline-edit для описания на detail page.
 | `app/services/pictures/picture-api.service.ts` | Все CRUD + moderation методы | 8.2 ✅ |
 | `app/services/pictures/picture.service.ts` | Маппинг всех DTO, PictureEditResult | 8.2 ✅ |
 | `features/picture/pages/picture-detail/` | Inline-edit title (FormControl + save on blur) | 8.4 ✅ |
-| `features/picture/pages/picture-detail/` | File upload UI | 8.5 |
-| `features/picture/pages/picture-detail/` | Delete + confirmation | 8.6 |
+| `features/picture/pages/picture-detail/` | File upload UI | 8.5 ✅ |
+| `features/picture/pages/picture-detail/` | Delete + confirmation | 8.6 ✅ |
 | `features/picture/pages/picture-detail/` | Pending banner + cancel | 8.7 |
 | `features/history/pages/pictures-history/` | Pending list + pictures by date | 9 |
 
