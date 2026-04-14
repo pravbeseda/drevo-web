@@ -29,8 +29,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { PictureArticle } from '@drevo-web/shared';
 import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
-import { firstValueFrom, of, startWith, switchMap } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { of, startWith, switchMap } from 'rxjs';
+import { catchError, filter, finalize, map, tap } from 'rxjs/operators';
 
 const MAX_FILE_SIZE_BYTES = 500 * 1024;
 const ALLOWED_FILE_TYPE = 'image/jpeg';
@@ -139,7 +139,7 @@ export class PictureDetailComponent {
     readonly articles = computed(() => this.articlesResult()?.articles);
     readonly articlesLoading = computed(() => this.articlesResult()?.loading ?? false);
     readonly canDelete = computed(() => {
-        if (this._isDeleting() || this._isUploading()) return false;
+        if (this._isDeleting() || this._isUploading() || this.articlesLoading()) return false;
         const articleList = this.articles();
         return !articleList || articleList.length === 0;
     });
@@ -347,36 +347,29 @@ export class PictureDetailComponent {
             });
     }
 
-    async deletePicture(): Promise<void> {
+    deletePicture(): void {
         const pic = this.picture();
         if (!pic || !this.canDelete()) return;
 
-        let result: string | undefined;
-        try {
-            result = await firstValueFrom(
-                this.confirmationService.open({
-                    title: 'Удаление иллюстрации',
-                    message: 'Вы уверены, что хотите удалить эту иллюстрацию?',
-                    buttons: [
-                        { key: 'cancel', label: 'Отмена' },
-                        { key: 'confirm', label: 'Удалить', accent: 'danger' },
-                    ],
-                    disableClose: true,
-                }),
-            );
-        } catch {
-            return;
-        }
-
-        if (result !== 'confirm') return;
-
-        this._isDeleting.set(true);
-
-        this.pictureService
-            .deletePicture(pic.id)
+        this.confirmationService
+            .open({
+                title: 'Удаление иллюстрации',
+                message: 'Вы уверены, что хотите удалить эту иллюстрацию?',
+                buttons: [
+                    { key: 'cancel', label: 'Отмена' },
+                    { key: 'confirm', label: 'Удалить', accent: 'danger' },
+                ],
+                disableClose: true,
+            })
             .pipe(
+                filter(result => result === 'confirm'),
+                tap(() => this._isDeleting.set(true)),
+                switchMap(() =>
+                    this.pictureService.deletePicture(pic.id).pipe(
+                        finalize(() => this._isDeleting.set(false)),
+                    ),
+                ),
                 takeUntilDestroyed(this.destroyRef),
-                finalize(() => this._isDeleting.set(false)),
             )
             .subscribe({
                 next: editResult => {

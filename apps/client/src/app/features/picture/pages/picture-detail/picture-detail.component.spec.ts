@@ -569,18 +569,18 @@ describe('PictureDetailComponent', () => {
                 expect(spectator.component.canDelete()).toBe(true);
             });
 
-            it('should enable delete button when articles are still loading', () => {
+            it('should disable delete button when articles are still loading', () => {
                 pictureService.getPictureArticles.mockReturnValue(EMPTY);
                 spectator.detectChanges();
-                expect(spectator.component.canDelete()).toBe(true);
+                expect(spectator.component.canDelete()).toBe(false);
             });
 
-            it('should open confirmation dialog on delete', async () => {
+            it('should open confirmation dialog on delete', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('cancel'));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
 
                 expect(confirmationService.open).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -591,17 +591,17 @@ describe('PictureDetailComponent', () => {
                 );
             });
 
-            it('should not call API when confirmation cancelled', async () => {
+            it('should not call API when confirmation cancelled', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('cancel'));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
 
                 expect(pictureService.deletePicture).not.toHaveBeenCalled();
             });
 
-            it('should redirect and show success on moderator delete', async () => {
+            it('should redirect and show success on moderator delete', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('confirm'));
@@ -611,14 +611,14 @@ describe('PictureDetailComponent', () => {
                 };
                 pictureService.deletePicture.mockReturnValue(of(mockResult));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
 
                 expect(pictureService.deletePicture).toHaveBeenCalledWith(42);
                 expect(notification.success).toHaveBeenCalledWith('Иллюстрация удалена');
                 expect(routerNavigateSpy).toHaveBeenCalledWith(['/pictures']);
             });
 
-            it('should show pending notification without redirect for regular user', async () => {
+            it('should show pending notification without redirect for regular user', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('confirm'));
@@ -643,37 +643,37 @@ describe('PictureDetailComponent', () => {
                 };
                 pictureService.deletePicture.mockReturnValue(of(mockResult));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
 
                 expect(notification.info).toHaveBeenCalledWith('Запрос на удаление отправлен на модерацию');
                 expect(routerNavigateSpy).not.toHaveBeenCalled();
             });
 
-            it('should show custom error on 409 conflict', async () => {
+            it('should show custom error on 409 conflict', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('confirm'));
                 pictureService.deletePicture.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
 
                 expect(notification.error).toHaveBeenCalledWith(
                     'Иллюстрация используется в статьях и не может быть удалена',
                 );
             });
 
-            it('should show generic error on other failures', async () => {
+            it('should show generic error on other failures', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('confirm'));
                 pictureService.deletePicture.mockReturnValue(throwError(() => new Error('Server error')));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
 
                 expect(notification.error).toHaveBeenCalledWith('Не удалось удалить иллюстрацию');
             });
 
-            it('should reset isDeleting after completion', async () => {
+            it('should reset isDeleting after completion', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('confirm'));
@@ -681,17 +681,17 @@ describe('PictureDetailComponent', () => {
                 pictureService.deletePicture.mockReturnValue(of(mockResult));
 
                 expect(spectator.component.isDeleting()).toBe(false);
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
                 expect(spectator.component.isDeleting()).toBe(false);
             });
 
-            it('should reset isDeleting after error', async () => {
+            it('should reset isDeleting after error', () => {
                 pictureService.getPictureArticles.mockReturnValue(of([]));
                 spectator.detectChanges();
                 confirmationService.open.mockReturnValue(of('confirm'));
                 pictureService.deletePicture.mockReturnValue(throwError(() => new Error('fail')));
 
-                await spectator.component.deletePicture();
+                spectator.component.deletePicture();
                 expect(spectator.component.isDeleting()).toBe(false);
             });
         });
