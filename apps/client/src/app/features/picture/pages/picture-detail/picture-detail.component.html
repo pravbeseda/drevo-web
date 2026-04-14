@@ -51,6 +51,23 @@
             />
         </div>
         <div class="detail__info">
+            @if (pendingChange()) {
+                <div class="detail__pending-banner" data-testid="detail-pending-banner">
+                    <ui-icon name="schedule" class="detail__pending-icon" />
+                    <span class="detail__pending-text" data-testid="detail-pending-text">
+                        {{ pendingLabel() }} — ожидает модерации
+                    </span>
+                    <ui-button
+                        variant="text"
+                        [disabled]="isCancellingPending()"
+                        [loading]="isCancellingPending()"
+                        (click)="cancelPending()"
+                        data-testid="detail-pending-cancel"
+                    >
+                        Отменить
+                    </ui-button>
+                </div>
+            }
             <div class="detail__section">
                 <div class="detail__label">Описание</div>
                 @if (isEditingTitle()) {

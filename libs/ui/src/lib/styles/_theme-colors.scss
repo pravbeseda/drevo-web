@@ -418,6 +418,20 @@ $theme-colors: (
         light: $md-grey-100,
         dark: $md-grey-800,
     ),
+
+    // Info banner colors
+    info-bg: (
+        light: $md-blue-50,
+        dark: rgba($md-blue-400, 0.15),
+    ),
+    info-border: (
+        light: $md-blue-200,
+        dark: rgba($md-blue-400, 0.3),
+    ),
+    info-text: (
+        light: $md-blue-800,
+        dark: $md-blue-300,
+    ),
 );
 
 // ============================================================================

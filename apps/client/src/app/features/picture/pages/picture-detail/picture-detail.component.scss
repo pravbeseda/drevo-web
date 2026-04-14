@@ -38,6 +38,28 @@ $_available-height: calc(98vh - #{$header-height} - #{$_image-padding} * 2);
     gap: 20px;
 }
 
+.detail__pending-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--themed-info-bg);
+    border: 1px solid var(--themed-info-border);
+    border-radius: 8px;
+}
+
+.detail__pending-icon {
+    color: var(--themed-info-text);
+    flex-shrink: 0;
+}
+
+.detail__pending-text {
+    flex: 1;
+    min-width: 0;
+    color: var(--themed-info-text);
+    font-size: $font-size-md;
+}
+
 .detail__section {
     display: flex;
     flex-direction: column;

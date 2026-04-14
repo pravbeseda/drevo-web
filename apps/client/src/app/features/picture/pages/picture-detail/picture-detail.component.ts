@@ -27,8 +27,8 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
-import { PictureArticle } from '@drevo-web/shared';
-import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
+import { PictureArticle, PicturePending } from '@drevo-web/shared';
+import { ButtonComponent, ConfirmationService, FormatDatePipe, IconComponent, ModalService, SpinnerComponent } from '@drevo-web/ui';
 import { of, startWith, switchMap } from 'rxjs';
 import { catchError, filter, finalize, map, tap } from 'rxjs/operators';
 
@@ -38,7 +38,9 @@ const ALLOWED_FILE_TYPE = 'image/jpeg';
 @Component({
     selector: 'app-picture-detail',
     imports: [
+        ButtonComponent,
         ErrorComponent,
+        IconComponent,
         ReactiveFormsModule,
         SidebarActionComponent,
         FormatDatePipe,
@@ -109,6 +111,24 @@ export class PictureDetailComponent {
     // Deletion
     private readonly _isDeleting = signal(false);
     readonly isDeleting = this._isDeleting.asReadonly();
+
+    // Pending state
+    private readonly _pendingChange = signal<PicturePending | undefined>(undefined);
+    readonly pendingChange = this._pendingChange.asReadonly();
+    private readonly _isCancellingPending = signal(false);
+    readonly isCancellingPending = this._isCancellingPending.asReadonly();
+
+    private static readonly PENDING_LABELS: Record<PicturePending['pendingType'], string> = {
+        edit_title: 'Изменение описания',
+        edit_file: 'Замена файла',
+        edit_both: 'Изменение описания и замена файла',
+        delete: 'Запрос на удаление',
+    };
+
+    readonly pendingLabel = computed(() => {
+        const pending = this._pendingChange();
+        return pending ? PictureDetailComponent.PENDING_LABELS[pending.pendingType] : '';
+    });
 
     // Articles
     private readonly pictureId = computed(() => this.picture()?.id);
@@ -217,6 +237,7 @@ export class PictureDetailComponent {
                         this._titleOverride.set(result.picture.title);
                         this.notificationService.success('Описание обновлено');
                     } else if (result.pending) {
+                        this._pendingChange.set(result.pending);
                         this.notificationService.info('Изменение отправлено на модерацию');
                     }
                     this.logger.info('Title update submitted', { id: pic.id, title: value });
@@ -336,6 +357,7 @@ export class PictureDetailComponent {
                         this._imageOverride.set(result.picture.imageUrl);
                         this.notificationService.success('Файл заменён');
                     } else if (result.pending) {
+                        this._pendingChange.set(result.pending);
                         this.notificationService.info('Изменение отправлено на модерацию');
                     }
                     this.logger.info('File replacement submitted', { id: pic.id });
@@ -377,6 +399,7 @@ export class PictureDetailComponent {
                         this.notificationService.success('Иллюстрация удалена');
                         this.router.navigate(['/pictures']);
                     } else if (editResult.pending) {
+                        this._pendingChange.set(editResult.pending);
                         this.notificationService.info('Запрос на удаление отправлен на модерацию');
                     }
                     this.logger.info('Delete submitted', { id: pic.id });
@@ -388,6 +411,30 @@ export class PictureDetailComponent {
                         this.notificationService.error('Не удалось удалить иллюстрацию');
                     }
                     this.logger.error('Failed to delete picture', err);
+                },
+            });
+    }
+
+    cancelPending(): void {
+        const pending = this._pendingChange();
+        if (!pending || this._isCancellingPending()) return;
+
+        this._isCancellingPending.set(true);
+        this.pictureService
+            .cancelPending(pending.id)
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this._isCancellingPending.set(false)),
+            )
+            .subscribe({
+                next: () => {
+                    this._pendingChange.set(undefined);
+                    this.notificationService.success('Изменение отменено');
+                    this.logger.info('Pending change cancelled', { pendingId: pending.id });
+                },
+                error: (err: unknown) => {
+                    this.logger.error('Failed to cancel pending change', err);
+                    this.notificationService.error('Не удалось отменить изменение');
                 },
             });
     }

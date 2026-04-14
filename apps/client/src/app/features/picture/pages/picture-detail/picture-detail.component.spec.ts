@@ -7,7 +7,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
-import { Picture, PictureArticle, User } from '@drevo-web/shared';
+import { Picture, PictureArticle, PicturePending, User } from '@drevo-web/shared';
 import { ConfirmationService, ModalService } from '@drevo-web/ui';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
@@ -28,6 +28,26 @@ const mockArticles: readonly PictureArticle[] = [
     { id: 10, title: 'Москва' },
     { id: 20, title: 'Достопримечательности' },
 ];
+
+function createMockPending(overrides: Partial<PicturePending> = {}): PicturePending {
+    return {
+        id: 1,
+        pictureId: 42,
+        pendingType: 'edit_title',
+        title: 'Новый заголовок',
+        width: undefined,
+        height: undefined,
+        user: 'editor',
+        date: new Date(),
+        currentTitle: 'Вид на Кремль',
+        currentImageUrl: '/images/0000/0042.jpg',
+        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+        currentWidth: 1920,
+        currentHeight: 1280,
+        pendingImageUrl: undefined,
+        ...overrides,
+    };
+}
 
 const mockEditableUser: User = {
     id: 1,
@@ -693,6 +713,138 @@ describe('PictureDetailComponent', () => {
 
                 spectator.component.deletePicture();
                 expect(spectator.component.isDeleting()).toBe(false);
+            });
+        });
+
+        describe('pending banner', () => {
+            it('should show banner after title edit with pending response', () => {
+                const pending = createMockPending({ pendingType: 'edit_title' });
+                const mockResult: PictureEditResult = { picture: undefined, pending };
+                pictureService.updateTitle.mockReturnValue(of(mockResult));
+
+                enterEditMode(spectator);
+                setTitleValue(spectator, 'Новый заголовок');
+                spectator.dispatchKeyboardEvent('[data-testid="detail-title-input"]', 'keydown', 'Enter');
+                spectator.detectChanges();
+
+                const banner = spectator.query('[data-testid="detail-pending-banner"]');
+                expect(banner).toBeTruthy();
+                expect(spectator.query('[data-testid="detail-pending-text"]')?.textContent?.trim()).toBe(
+                    'Изменение описания — ожидает модерации',
+                );
+            });
+
+            it('should show banner after file upload with pending response', () => {
+                const modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+                modalService.open.mockReturnValue(of({ title: 'Вид на Кремль' }));
+                globalThis.URL.createObjectURL = jest.fn().mockReturnValue('blob:preview-url');
+                globalThis.URL.revokeObjectURL = jest.fn();
+
+                const pending = createMockPending({ pendingType: 'edit_file' });
+                const mockResult: PictureEditResult = { picture: undefined, pending };
+                pictureService.editPicture.mockReturnValue(of(mockResult));
+
+                spectator.detectChanges();
+                const input = spectator.query<HTMLInputElement>('[data-testid="detail-file-input"]');
+                const file = new File([new ArrayBuffer(100)], 'photo.jpg', { type: 'image/jpeg' });
+                Object.defineProperty(input, 'files', {
+                    value: Object.assign([file], { item: (i: number) => (i === 0 ? file : null), length: 1 }),
+                    configurable: true,
+                });
+                input?.dispatchEvent(new Event('change'));
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="detail-pending-text"]')?.textContent?.trim()).toBe(
+                    'Замена файла — ожидает модерации',
+                );
+            });
+
+            it('should show banner after delete with pending response', () => {
+                pictureService.getPictureArticles.mockReturnValue(of([]));
+                spectator.detectChanges();
+                const confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+                confirmationService.open.mockReturnValue(of('confirm'));
+                const pending = createMockPending({ pendingType: 'delete' });
+                const mockResult: PictureEditResult = { picture: undefined, pending };
+                pictureService.deletePicture.mockReturnValue(of(mockResult));
+
+                spectator.component.deletePicture();
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="detail-pending-text"]')?.textContent?.trim()).toBe(
+                    'Запрос на удаление — ожидает модерации',
+                );
+            });
+
+            it('should not show banner for direct change (moderator)', () => {
+                const mockResult: PictureEditResult = {
+                    picture: { ...mockPicture, title: 'Новый заголовок' },
+                    pending: undefined,
+                };
+                pictureService.updateTitle.mockReturnValue(of(mockResult));
+
+                enterEditMode(spectator);
+                setTitleValue(spectator, 'Новый заголовок');
+                spectator.dispatchKeyboardEvent('[data-testid="detail-title-input"]', 'keydown', 'Enter');
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="detail-pending-banner"]')).toBeNull();
+            });
+
+            it('should cancel pending and hide banner on cancel click', () => {
+                const pending = createMockPending();
+                const mockResult: PictureEditResult = { picture: undefined, pending };
+                pictureService.updateTitle.mockReturnValue(of(mockResult));
+                pictureService.cancelPending = jest.fn().mockReturnValue(of(undefined));
+                const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+
+                enterEditMode(spectator);
+                setTitleValue(spectator, 'Новый заголовок');
+                spectator.dispatchKeyboardEvent('[data-testid="detail-title-input"]', 'keydown', 'Enter');
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="detail-pending-banner"]')).toBeTruthy();
+
+                spectator.click('[data-testid="detail-pending-cancel"]');
+                spectator.detectChanges();
+
+                expect(pictureService.cancelPending).toHaveBeenCalledWith(1);
+                expect(notification.success).toHaveBeenCalledWith('Изменение отменено');
+                expect(spectator.query('[data-testid="detail-pending-banner"]')).toBeNull();
+            });
+
+            it('should show error notification when cancel fails', () => {
+                const pending = createMockPending();
+                const mockResult: PictureEditResult = { picture: undefined, pending };
+                pictureService.updateTitle.mockReturnValue(of(mockResult));
+                pictureService.cancelPending = jest.fn().mockReturnValue(throwError(() => new Error('fail')));
+                const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+
+                enterEditMode(spectator);
+                setTitleValue(spectator, 'Новый заголовок');
+                spectator.dispatchKeyboardEvent('[data-testid="detail-title-input"]', 'keydown', 'Enter');
+                spectator.detectChanges();
+
+                spectator.click('[data-testid="detail-pending-cancel"]');
+                spectator.detectChanges();
+
+                expect(notification.error).toHaveBeenCalledWith('Не удалось отменить изменение');
+                expect(spectator.query('[data-testid="detail-pending-banner"]')).toBeTruthy();
+            });
+
+            it('should show correct label for edit_both type', () => {
+                const pending = createMockPending({ pendingType: 'edit_both' });
+                const mockResult: PictureEditResult = { picture: undefined, pending };
+                pictureService.updateTitle.mockReturnValue(of(mockResult));
+
+                enterEditMode(spectator);
+                setTitleValue(spectator, 'Новый заголовок');
+                spectator.dispatchKeyboardEvent('[data-testid="detail-title-input"]', 'keydown', 'Enter');
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="detail-pending-text"]')?.textContent?.trim()).toBe(
+                    'Изменение описания и замена файла — ожидает модерации',
+                );
             });
         });
     });
