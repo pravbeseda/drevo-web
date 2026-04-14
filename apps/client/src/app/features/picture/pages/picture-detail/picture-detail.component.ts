@@ -3,26 +3,48 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { PictureService } from '../../../../services/pictures/picture.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { ReplaceFileDialogData, ReplaceFileDialogResult } from '../../components/replace-file-dialog/replace-file-dialog.component';
+import {
+    ReplaceFileDialogData,
+    ReplaceFileDialogResult,
+} from '../../components/replace-file-dialog/replace-file-dialog.component';
 import { TITLE_MAX_LENGTH, TITLE_MIN_LENGTH } from '../../constants/picture.constants';
 import { PictureResolveResult } from '../../resolvers/picture.resolver';
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, PLATFORM_ID, signal, viewChild } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    effect,
+    ElementRef,
+    inject,
+    PLATFORM_ID,
+    signal,
+    viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { PictureArticle } from '@drevo-web/shared';
-import { FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
+import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
 import { of, startWith, switchMap } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { catchError, filter, finalize, map, tap } from 'rxjs/operators';
 
 const MAX_FILE_SIZE_BYTES = 500 * 1024;
 const ALLOWED_FILE_TYPE = 'image/jpeg';
 
 @Component({
     selector: 'app-picture-detail',
-    imports: [ErrorComponent, ReactiveFormsModule, SidebarActionComponent, FormatDatePipe, RouterLink, SpinnerComponent],
+    imports: [
+        ErrorComponent,
+        ReactiveFormsModule,
+        SidebarActionComponent,
+        FormatDatePipe,
+        RouterLink,
+        SpinnerComponent,
+    ],
     templateUrl: './picture-detail.component.html',
     styleUrl: './picture-detail.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +56,8 @@ export class PictureDetailComponent {
     private readonly pictureService = inject(PictureService);
     private readonly notificationService = inject(NotificationService);
     private readonly modalService = inject(ModalService);
+    private readonly confirmationService = inject(ConfirmationService);
+    private readonly router = inject(Router);
     private readonly logger = inject(LoggerService).withContext('PictureDetail');
     private readonly window = inject(WINDOW);
     private readonly platformId = inject(PLATFORM_ID);
@@ -60,7 +84,11 @@ export class PictureDetailComponent {
     // Title inline editing
     readonly titleControl = new FormControl('', {
         nonNullable: true,
-        validators: [Validators.required, Validators.minLength(TITLE_MIN_LENGTH), Validators.maxLength(TITLE_MAX_LENGTH)],
+        validators: [
+            Validators.required,
+            Validators.minLength(TITLE_MIN_LENGTH),
+            Validators.maxLength(TITLE_MAX_LENGTH),
+        ],
     });
 
     private readonly _isEditingTitle = signal(false);
@@ -77,6 +105,10 @@ export class PictureDetailComponent {
     private readonly _imageOverride = signal<string | undefined>(undefined);
     readonly isUploading = this._isUploading.asReadonly();
     readonly displayImageUrl = computed(() => this._imageOverride() ?? this.picture()?.imageUrl ?? '');
+
+    // Deletion
+    private readonly _isDeleting = signal(false);
+    readonly isDeleting = this._isDeleting.asReadonly();
 
     // Articles
     private readonly pictureId = computed(() => this.picture()?.id);
@@ -106,6 +138,11 @@ export class PictureDetailComponent {
 
     readonly articles = computed(() => this.articlesResult()?.articles);
     readonly articlesLoading = computed(() => this.articlesResult()?.loading ?? false);
+    readonly canDelete = computed(() => {
+        if (this._isDeleting() || this._isUploading() || this.articlesLoading()) return false;
+        const articleList = this.articles();
+        return articleList?.length === 0;
+    });
 
     constructor() {
         effect(
@@ -306,6 +343,51 @@ export class PictureDetailComponent {
                 error: (err: unknown) => {
                     this.logger.error('Failed to replace file', err);
                     this.notificationService.error('Не удалось заменить файл');
+                },
+            });
+    }
+
+    deletePicture(): void {
+        const pic = this.picture();
+        if (!pic || !this.canDelete()) return;
+
+        this.confirmationService
+            .open({
+                title: 'Удаление иллюстрации',
+                message: 'Вы уверены, что хотите удалить эту иллюстрацию?',
+                buttons: [
+                    { key: 'cancel', label: 'Отмена' },
+                    { key: 'confirm', label: 'Удалить', accent: 'danger' },
+                ],
+                disableClose: true,
+            })
+            .pipe(
+                filter(result => result === 'confirm'),
+                tap(() => this._isDeleting.set(true)),
+                switchMap(() =>
+                    this.pictureService.deletePicture(pic.id).pipe(
+                        finalize(() => this._isDeleting.set(false)),
+                    ),
+                ),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe({
+                next: editResult => {
+                    if (editResult.picture) {
+                        this.notificationService.success('Иллюстрация удалена');
+                        this.router.navigate(['/pictures']);
+                    } else if (editResult.pending) {
+                        this.notificationService.info('Запрос на удаление отправлен на модерацию');
+                    }
+                    this.logger.info('Delete submitted', { id: pic.id });
+                },
+                error: (err: unknown) => {
+                    if (err instanceof HttpErrorResponse && err.status === 409) {
+                        this.notificationService.error('Иллюстрация используется в статьях и не может быть удалена');
+                    } else {
+                        this.notificationService.error('Не удалось удалить иллюстрацию');
+                    }
+                    this.logger.error('Failed to delete picture', err);
                 },
             });
     }

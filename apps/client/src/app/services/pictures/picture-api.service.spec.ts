@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { PictureApiService } from './picture-api.service';
 
@@ -260,6 +261,14 @@ describe('PictureApiService', () => {
             const req = httpController.expectOne('/api/pictures/123');
             expect(req.request.method).toBe('DELETE');
             expect(req.request.withCredentials).toBe(true);
+            req.flush({ success: true, data: mockPictureDto });
+        });
+
+        it('should set SKIP_ERROR_FOR_STATUSES context for 409', () => {
+            spectator.service.deletePicture(123).subscribe();
+
+            const req = httpController.expectOne('/api/pictures/123');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([409]);
             req.flush({ success: true, data: mockPictureDto });
         });
 

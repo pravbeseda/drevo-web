@@ -47,6 +47,7 @@ test.describe('Picture detail — file replacement', () => {
     });
 
     test('shows replace file action button', async () => {
+        await detail.openMobileMenu();
         await expect(detail.replaceFileAction).toBeVisible();
     });
 

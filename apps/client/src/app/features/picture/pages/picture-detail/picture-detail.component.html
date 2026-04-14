@@ -3,7 +3,7 @@
         [order]="10"
         icon="content_copy"
         label="Копировать код вставки"
-        priority="secondary"
+        priority="primary"
         (activated)="copyInsertCode()"
     />
     @if (canEdit()) {
@@ -11,7 +11,7 @@
             [order]="20"
             icon="edit"
             label="Заменить файл"
-            priority="primary"
+            priority="secondary"
             [disabled]="isUploading()"
             testId="sidebar-action-replace-file"
             (activated)="editPicture()"
@@ -23,6 +23,15 @@
             class="detail__file-input"
             (change)="onFileSelected($event)"
             data-testid="detail-file-input"
+        />
+        <app-sidebar-action
+            [order]="30"
+            icon="delete"
+            label="Удалить"
+            priority="secondary"
+            [disabled]="!canDelete()"
+            testId="sidebar-action-delete"
+            (activated)="deletePicture()"
         />
     }
     <div class="detail__card">

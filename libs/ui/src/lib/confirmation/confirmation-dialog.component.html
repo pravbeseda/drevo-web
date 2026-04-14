@@ -14,6 +14,7 @@
                 [variant]="button.variant ?? 'outlined'"
                 [accent]="button.accent ?? 'secondary'"
                 [fullWidth]="true"
+                [attr.data-testid]="'confirmation-dialog-' + button.key"
                 (click)="select(button.key)"
             >
                 {{ button.label }}
