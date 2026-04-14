@@ -35,8 +35,8 @@ export class PictureDetailPage extends BasePage {
 
     // Confirmation dialog
     readonly confirmationTitle = this.page.getByTestId('confirmation-dialog-title');
-    readonly confirmationConfirm = this.page.locator('.confirmation-dialog__actions ui-button:last-child');
-    readonly confirmationCancel = this.page.locator('.confirmation-dialog__actions ui-button:first-child');
+    readonly confirmationConfirm = this.page.getByTestId('confirmation-dialog-confirm');
+    readonly confirmationCancel = this.page.getByTestId('confirmation-dialog-cancel');
 
     // Error states
     readonly loadError = this.page.getByTestId('detail-load-error');
