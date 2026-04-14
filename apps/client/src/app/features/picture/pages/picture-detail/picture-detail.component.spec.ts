@@ -705,6 +705,7 @@ describe('PictureDetailComponent', () => {
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)) }),
                 mockProvider(ModalService),
+                mockProvider(ConfirmationService),
                 mockProvider(NotificationService),
                 { provide: AuthService, useValue: { user$: of(mockReadonlyUser) } },
                 {
@@ -744,6 +745,7 @@ describe('PictureDetailComponent', () => {
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
                 mockProvider(ModalService),
+                mockProvider(ConfirmationService),
                 mockProvider(NotificationService),
                 { provide: AuthService, useValue: { user$: of(mockEditableUser) } },
                 {
@@ -776,6 +778,7 @@ describe('PictureDetailComponent', () => {
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
                 mockProvider(ModalService),
+                mockProvider(ConfirmationService),
                 mockProvider(NotificationService),
                 { provide: AuthService, useValue: { user$: of(mockEditableUser) } },
                 {

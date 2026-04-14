@@ -141,7 +141,7 @@ export class PictureDetailComponent {
     readonly canDelete = computed(() => {
         if (this._isDeleting() || this._isUploading() || this.articlesLoading()) return false;
         const articleList = this.articles();
-        return !articleList || articleList.length === 0;
+        return articleList?.length === 0;
     });
 
     constructor() {
