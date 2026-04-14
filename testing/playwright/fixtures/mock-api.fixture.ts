@@ -252,6 +252,37 @@ export async function mockPictureReplaceFileError(page: Page, id: number, status
     });
 }
 
+/** Mock DELETE /api/pictures/:id — successful deletion (moderator) */
+export async function mockPictureDelete(page: Page, id: number, picture: PictureDto): Promise<void> {
+    await page.route(`**/api/pictures/${id}`, route => {
+        const method = route.request().method();
+        if (method !== 'DELETE') return route.fallback();
+        return route.fulfill({ json: apiSuccess(picture) });
+    });
+}
+
+/** Mock DELETE /api/pictures/:id — pending deletion (regular user) */
+export async function mockPictureDeletePending(page: Page, id: number): Promise<void> {
+    await page.route(`**/api/pictures/${id}`, route => {
+        const method = route.request().method();
+        if (method !== 'DELETE') return route.fallback();
+        const pending = createPicturePendingDto({ pp_pic_id: id, pp_type: 'delete', pp_title: null });
+        return route.fulfill({ json: apiSuccess(pending) });
+    });
+}
+
+/** Mock DELETE /api/pictures/:id — 409 conflict (picture used in articles) */
+export async function mockPictureDeleteConflict(page: Page, id: number): Promise<void> {
+    await page.route(`**/api/pictures/${id}`, route => {
+        const method = route.request().method();
+        if (method !== 'DELETE') return route.fallback();
+        return route.fulfill({
+            status: 409,
+            json: apiError('Иллюстрация используется в статьях'),
+        });
+    });
+}
+
 /** Mock /pictures/thumbs/** — return a 1x1 transparent PNG placeholder */
 export async function mockPictureThumbs(page: Page): Promise<void> {
     // 1x1 transparent PNG

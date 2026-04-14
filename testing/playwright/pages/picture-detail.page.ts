@@ -30,6 +30,14 @@ export class PictureDetailPage extends BasePage {
     readonly replaceDialogConfirm = this.page.getByTestId('replace-file-dialog-confirm');
     readonly replaceDialogCancel = this.page.getByTestId('replace-file-dialog-cancel');
 
+    // Deletion
+    readonly deleteAction = this.sidebarAction('sidebar-action-delete');
+
+    // Confirmation dialog
+    readonly confirmationTitle = this.page.getByTestId('confirmation-dialog-title');
+    readonly confirmationConfirm = this.page.locator('.confirmation-dialog__actions ui-button:last-child');
+    readonly confirmationCancel = this.page.locator('.confirmation-dialog__actions ui-button:first-child');
+
     // Error states
     readonly loadError = this.page.getByTestId('detail-load-error');
     readonly notFoundError = this.page.getByTestId('detail-error');
