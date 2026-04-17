@@ -459,6 +459,20 @@ export class PictureDetailComponent {
             });
     }
 
+    private applyApprovedPending(pending: PicturePending): void {
+        if (pending.pendingType === 'delete') {
+            this.notificationService.success('Иллюстрация удалена');
+            this.router.navigate(['/pictures']);
+            return;
+        }
+        if (pending.title !== undefined) {
+            this._titleOverride.set(pending.title);
+        }
+        if (pending.pendingImageUrl) {
+            this._imageOverride.set(pending.pendingImageUrl);
+        }
+    }
+
     private refreshPending(): void {
         this._refreshPendingSubject.next();
     }
@@ -505,6 +519,9 @@ export class PictureDetailComponent {
             )
             .subscribe({
                 next: () => {
+                    if (pendingAction === 'approve') {
+                        this.applyApprovedPending(pending);
+                    }
                     this.refreshPending();
                     this.notificationService.success(config.successMessage);
                     this.logger.info(config.logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
