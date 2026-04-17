@@ -121,7 +121,7 @@ export class PictureDetailComponent {
     private readonly _pendingActionInProgress = signal<number | undefined>(undefined);
     readonly pendingActionInProgress = this._pendingActionInProgress.asReadonly();
 
-    private readonly pendingResult = toSignal(
+    readonly pendingChanges = toSignal(
         merge(toObservable(this.pictureId), this._refreshPendingSubject.pipe(map(() => this.pictureId()))).pipe(
             switchMap(id =>
                 id
@@ -136,13 +136,6 @@ export class PictureDetailComponent {
         ),
         { initialValue: [] as readonly PicturePending[] },
     );
-    readonly pendingChanges = computed(() => this.pendingResult());
-    readonly handlePendingAction = (pending: PicturePending, action: PendingAction): void => {
-        this.runPendingAction(pending, action);
-    };
-    readonly handlePendingImageClick = (pending: PicturePending): void => {
-        this.openPendingImage(pending);
-    };
 
     private readonly articlesResult = toSignal(
         toObservable(this.pictureId).pipe(
@@ -421,7 +414,7 @@ export class PictureDetailComponent {
             });
     }
 
-    private openPendingImage(pending: PicturePending): void {
+    openPendingImage(pending: PicturePending): void {
         const picture = this.picture();
         if (!picture || !pending.pendingImageUrl) return;
 
@@ -465,11 +458,15 @@ export class PictureDetailComponent {
             this.router.navigate(['/pictures']);
             return;
         }
-        if (pending.title !== undefined) {
-            this._titleOverride.set(pending.title);
+        if (pending.pendingType === 'edit_title' || pending.pendingType === 'edit_both') {
+            if (pending.title !== undefined) {
+                this._titleOverride.set(pending.title);
+            }
         }
-        if (pending.pendingImageUrl) {
-            this._imageOverride.set(pending.pendingImageUrl);
+        if (pending.pendingType === 'edit_file' || pending.pendingType === 'edit_both') {
+            if (pending.pendingImageUrl) {
+                this._imageOverride.set(pending.pendingImageUrl);
+            }
         }
     }
 
@@ -477,7 +474,7 @@ export class PictureDetailComponent {
         this._refreshPendingSubject.next();
     }
 
-    private runPendingAction(pending: PicturePending, pendingAction: PendingAction): void {
+    runPendingAction(pending: PicturePending, pendingAction: PendingAction): void {
         if (this._pendingActionInProgress() === pending.id) return;
 
         const actionConfig: Record<

@@ -4,8 +4,6 @@ import { PendingBannerComponent } from './pending-banner.component';
 
 describe('PendingBannerComponent', () => {
     let spectator: Spectator<PendingBannerComponent>;
-    const actionHandler = jest.fn();
-    const imageClickHandler = jest.fn();
 
     const mockPending: PicturePending = {
         id: 10,
@@ -35,8 +33,6 @@ describe('PendingBannerComponent', () => {
                 pending: mockPending,
                 currentUserName: 'Editor',
                 canModerate: false,
-                actionHandler,
-                imageClickHandler,
             },
         });
     });
@@ -83,11 +79,21 @@ describe('PendingBannerComponent', () => {
         expect(preview.getAttribute('src')).toBe('/images/pending/42_pp10.jpg');
     });
 
-    it('should emit actions', () => {
+    it('should emit action output on button click', () => {
+        const actionSpy = jest.fn();
+        spectator.output('action').subscribe(actionSpy);
+
         spectator.click('[data-testid="pending-banner-cancel"]');
+
+        expect(actionSpy).toHaveBeenCalledWith({ pending: expect.objectContaining({ id: 10 }), action: 'cancel' });
+    });
+
+    it('should emit imageClick output on image click', () => {
+        const imageClickSpy = jest.fn();
+        spectator.output('imageClick').subscribe(imageClickSpy);
+
         spectator.click('[data-testid="pending-banner-new-image"]');
 
-        expect(actionHandler).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }), 'cancel');
-        expect(imageClickHandler).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }));
+        expect(imageClickSpy).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }));
     });
 });

@@ -1,5 +1,5 @@
 import { PendingAction } from '../../../../shared/models/pending.model';
-import { ChangeDetectionStrategy, Component, Input, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { PicturePending, PicturePendingType } from '@drevo-web/shared';
 import { ButtonComponent, IconComponent } from '@drevo-web/ui';
 
@@ -22,8 +22,8 @@ export class PendingBannerComponent {
     readonly currentUserName = input.required<string>();
     readonly canModerate = input.required<boolean>();
     readonly isBusy = input(false);
-    @Input() actionHandler?: (pending: PicturePending, action: PendingAction) => void;
-    @Input() imageClickHandler?: (pending: PicturePending) => void;
+    readonly action = output<{ readonly pending: PicturePending; readonly action: PendingAction }>();
+    readonly imageClick = output<PicturePending>();
 
     readonly isOwn = computed(() => this.pending().user === this.currentUserName());
     readonly pendingLabel = computed(() => PENDING_LABELS[this.pending().pendingType]);
@@ -36,10 +36,10 @@ export class PendingBannerComponent {
     readonly hasNewImage = computed(() => this.pending().pendingImageUrl !== undefined);
 
     emitAction(action: PendingAction): void {
-        this.actionHandler?.(this.pending(), action);
+        this.action.emit({ pending: this.pending(), action });
     }
 
     emitImageClick(): void {
-        this.imageClickHandler?.(this.pending());
+        this.imageClick.emit(this.pending());
     }
 }
