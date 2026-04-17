@@ -1,4 +1,4 @@
-import { PendingAction } from '../../../../shared/models/pending.model';
+import { PendingAction } from '../../models/pending.model';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { PicturePending, PicturePendingType } from '@drevo-web/shared';
 import { ButtonComponent, IconComponent } from '@drevo-web/ui';

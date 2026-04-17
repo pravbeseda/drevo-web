@@ -3,13 +3,13 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { PictureService } from '../../../../services/pictures/picture.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { PendingAction } from '../../../../shared/models/pending.model';
 import { PendingBannerComponent } from '../../components/pending-banner/pending-banner.component';
 import {
     ReplaceFileDialogData,
     ReplaceFileDialogResult,
 } from '../../components/replace-file-dialog/replace-file-dialog.component';
 import { TITLE_MAX_LENGTH, TITLE_MIN_LENGTH } from '../../constants/picture.constants';
+import { PendingAction } from '../../models/pending.model';
 import { PictureResolveResult } from '../../resolvers/picture.resolver';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -31,7 +31,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
 import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
-import { merge, of, startWith, Subject, switchMap } from 'rxjs';
+import { merge, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 import { catchError, filter, finalize, map, tap } from 'rxjs/operators';
 
 const MAX_FILE_SIZE_BYTES = 500 * 1024;
@@ -477,39 +477,34 @@ export class PictureDetailComponent {
     runPendingAction(pending: PicturePending, pendingAction: PendingAction): void {
         if (this._pendingActionInProgress() === pending.id) return;
 
-        const actionConfig: Record<
-            PendingAction,
-            {
-                readonly request: (pendingId: number) => ReturnType<PictureService['cancelPending']>;
-                readonly successMessage: string;
-                readonly errorMessage: string;
-                readonly logMessage: string;
-            }
-        > = {
-            cancel: {
-                request: pendingId => this.pictureService.cancelPending(pendingId),
-                successMessage: 'Изменение отменено',
-                errorMessage: 'Не удалось отменить изменение',
-                logMessage: 'Pending cancellation submitted',
-            },
-            approve: {
-                request: pendingId => this.pictureService.approvePending(pendingId),
-                successMessage: 'Изменение одобрено',
-                errorMessage: 'Не удалось одобрить изменение',
-                logMessage: 'Pending approval submitted',
-            },
-            reject: {
-                request: pendingId => this.pictureService.rejectPending(pendingId),
-                successMessage: 'Изменение отклонено',
-                errorMessage: 'Не удалось отклонить изменение',
-                logMessage: 'Pending rejection submitted',
-            },
-        };
-        const config = actionConfig[pendingAction];
+        let request$: Observable<void>;
+        let successMessage: string;
+        let errorMessage: string;
+        let logMessage: string;
+
+        switch (pendingAction) {
+            case 'cancel':
+                request$ = this.pictureService.cancelPending(pending.id);
+                successMessage = 'Изменение отменено';
+                errorMessage = 'Не удалось отменить изменение';
+                logMessage = 'Pending cancellation submitted';
+                break;
+            case 'approve':
+                request$ = this.pictureService.approvePending(pending.id);
+                successMessage = 'Изменение одобрено';
+                errorMessage = 'Не удалось одобрить изменение';
+                logMessage = 'Pending approval submitted';
+                break;
+            case 'reject':
+                request$ = this.pictureService.rejectPending(pending.id);
+                successMessage = 'Изменение отклонено';
+                errorMessage = 'Не удалось отклонить изменение';
+                logMessage = 'Pending rejection submitted';
+                break;
+        }
 
         this._pendingActionInProgress.set(pending.id);
-        config
-            .request(pending.id)
+        request$
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => this._pendingActionInProgress.set(undefined)),
@@ -520,12 +515,12 @@ export class PictureDetailComponent {
                         this.applyApprovedPending(pending);
                     }
                     this.refreshPending();
-                    this.notificationService.success(config.successMessage);
-                    this.logger.info(config.logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
+                    this.notificationService.success(successMessage);
+                    this.logger.info(logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
                 },
                 error: (error: unknown) => {
-                    this.notificationService.error(config.errorMessage);
-                    this.logger.error(config.logMessage, error);
+                    this.notificationService.error(errorMessage);
+                    this.logger.error(logMessage, error);
                 },
             });
     }
