@@ -3,11 +3,13 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { PictureService } from '../../../../services/pictures/picture.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
+import { PendingBannerComponent } from '../../components/pending-banner/pending-banner.component';
 import {
     ReplaceFileDialogData,
     ReplaceFileDialogResult,
 } from '../../components/replace-file-dialog/replace-file-dialog.component';
 import { TITLE_MAX_LENGTH, TITLE_MIN_LENGTH } from '../../constants/picture.constants';
+import { PendingAction } from '../../models/pending.model';
 import { PictureResolveResult } from '../../resolvers/picture.resolver';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -27,9 +29,9 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
-import { PictureArticle } from '@drevo-web/shared';
+import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
 import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
-import { of, startWith, switchMap } from 'rxjs';
+import { merge, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 import { catchError, filter, finalize, map, tap } from 'rxjs/operators';
 
 const MAX_FILE_SIZE_BYTES = 500 * 1024;
@@ -41,6 +43,7 @@ const ALLOWED_FILE_TYPE = 'image/jpeg';
         ErrorComponent,
         ReactiveFormsModule,
         SidebarActionComponent,
+        PendingBannerComponent,
         FormatDatePipe,
         RouterLink,
         SpinnerComponent,
@@ -80,6 +83,8 @@ export class PictureDetailComponent {
     readonly isLoadError = computed(() => this.resolveResult() === 'load-error');
 
     readonly canEdit = computed(() => this.user()?.permissions.canEdit ?? false);
+    readonly canModerate = computed(() => this.user()?.permissions.canModerate ?? false);
+    readonly currentUserName = computed(() => this.user()?.name ?? '');
 
     // Title inline editing
     readonly titleControl = new FormControl('', {
@@ -112,6 +117,25 @@ export class PictureDetailComponent {
 
     // Articles
     private readonly pictureId = computed(() => this.picture()?.id);
+    private readonly _refreshPendingSubject = new Subject<void>();
+    private readonly _pendingActionInProgress = signal<number | undefined>(undefined);
+    readonly pendingActionInProgress = this._pendingActionInProgress.asReadonly();
+
+    readonly pendingChanges = toSignal(
+        merge(toObservable(this.pictureId), this._refreshPendingSubject.pipe(map(() => this.pictureId()))).pipe(
+            switchMap(id =>
+                id
+                    ? this.pictureService.getPicturePending(id).pipe(
+                          catchError((error: unknown) => {
+                              this.logger.error('Failed to load picture pending changes', error);
+                              return of([] as readonly PicturePending[]);
+                          }),
+                      )
+                    : of([] as readonly PicturePending[]),
+            ),
+        ),
+        { initialValue: [] as readonly PicturePending[] },
+    );
 
     private readonly articlesResult = toSignal(
         toObservable(this.pictureId).pipe(
@@ -145,15 +169,12 @@ export class PictureDetailComponent {
     });
 
     constructor() {
-        effect(
-            () => {
-                this.picture(); // track picture changes
-                this._titleOverride.set(undefined);
-                this._imageOverride.set(undefined);
-                this._isEditingTitle.set(false);
-            },
-            { allowSignalWrites: true },
-        );
+        effect(() => {
+            this.picture(); // track picture changes
+            this._titleOverride.set(undefined);
+            this._imageOverride.set(undefined);
+            this._isEditingTitle.set(false);
+        });
 
         effect(() => {
             const el = this.titleInputRef()?.nativeElement;
@@ -217,6 +238,7 @@ export class PictureDetailComponent {
                         this._titleOverride.set(result.picture.title);
                         this.notificationService.success('Описание обновлено');
                     } else if (result.pending) {
+                        this.refreshPending();
                         this.notificationService.info('Изменение отправлено на модерацию');
                     }
                     this.logger.info('Title update submitted', { id: pic.id, title: value });
@@ -336,6 +358,7 @@ export class PictureDetailComponent {
                         this._imageOverride.set(result.picture.imageUrl);
                         this.notificationService.success('Файл заменён');
                     } else if (result.pending) {
+                        this.refreshPending();
                         this.notificationService.info('Изменение отправлено на модерацию');
                     }
                     this.logger.info('File replacement submitted', { id: pic.id });
@@ -365,9 +388,7 @@ export class PictureDetailComponent {
                 filter(result => result === 'confirm'),
                 tap(() => this._isDeleting.set(true)),
                 switchMap(() =>
-                    this.pictureService.deletePicture(pic.id).pipe(
-                        finalize(() => this._isDeleting.set(false)),
-                    ),
+                    this.pictureService.deletePicture(pic.id).pipe(finalize(() => this._isDeleting.set(false))),
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -377,6 +398,7 @@ export class PictureDetailComponent {
                         this.notificationService.success('Иллюстрация удалена');
                         this.router.navigate(['/pictures']);
                     } else if (editResult.pending) {
+                        this.refreshPending();
                         this.notificationService.info('Запрос на удаление отправлен на модерацию');
                     }
                     this.logger.info('Delete submitted', { id: pic.id });
@@ -390,6 +412,25 @@ export class PictureDetailComponent {
                     this.logger.error('Failed to delete picture', err);
                 },
             });
+    }
+
+    openPendingImage(pending: PicturePending): void {
+        const picture = this.picture();
+        if (!picture || !pending.pendingImageUrl) return;
+
+        const lightboxPicture: Picture = {
+            ...picture,
+            id: pending.pictureId,
+            title: pending.title ?? pending.currentTitle,
+            user: pending.user,
+            date: pending.date,
+            width: pending.width ?? pending.currentWidth,
+            height: pending.height ?? pending.currentHeight,
+            imageUrl: pending.pendingImageUrl,
+            thumbnailUrl: pending.pendingImageUrl,
+        };
+
+        this.lightboxService.openWithPicture(lightboxPicture);
     }
 
     copyInsertCode(): void {
@@ -408,6 +449,79 @@ export class PictureDetailComponent {
             .catch((error: unknown) => {
                 this.logger.error('Failed to copy insert code', error);
                 this.notificationService.error(`Не удалось скопировать код ${code}`);
+            });
+    }
+
+    private applyApprovedPending(pending: PicturePending): void {
+        if (pending.pendingType === 'delete') {
+            this.notificationService.success('Иллюстрация удалена');
+            this.router.navigate(['/pictures']);
+            return;
+        }
+        if (pending.pendingType === 'edit_title' || pending.pendingType === 'edit_both') {
+            if (pending.title !== undefined) {
+                this._titleOverride.set(pending.title);
+            }
+        }
+        if (pending.pendingType === 'edit_file' || pending.pendingType === 'edit_both') {
+            if (pending.pendingImageUrl) {
+                this._imageOverride.set(pending.pendingImageUrl);
+            }
+        }
+    }
+
+    private refreshPending(): void {
+        this._refreshPendingSubject.next();
+    }
+
+    runPendingAction(pending: PicturePending, pendingAction: PendingAction): void {
+        if (this._pendingActionInProgress() === pending.id) return;
+
+        let request$: Observable<void>;
+        let successMessage: string;
+        let errorMessage: string;
+        let logMessage: string;
+
+        switch (pendingAction) {
+            case 'cancel':
+                request$ = this.pictureService.cancelPending(pending.id);
+                successMessage = 'Изменение отменено';
+                errorMessage = 'Не удалось отменить изменение';
+                logMessage = 'Pending cancellation submitted';
+                break;
+            case 'approve':
+                request$ = this.pictureService.approvePending(pending.id);
+                successMessage = 'Изменение одобрено';
+                errorMessage = 'Не удалось одобрить изменение';
+                logMessage = 'Pending approval submitted';
+                break;
+            case 'reject':
+                request$ = this.pictureService.rejectPending(pending.id);
+                successMessage = 'Изменение отклонено';
+                errorMessage = 'Не удалось отклонить изменение';
+                logMessage = 'Pending rejection submitted';
+                break;
+        }
+
+        this._pendingActionInProgress.set(pending.id);
+        request$
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this._pendingActionInProgress.set(undefined)),
+            )
+            .subscribe({
+                next: () => {
+                    if (pendingAction === 'approve') {
+                        this.applyApprovedPending(pending);
+                    }
+                    this.refreshPending();
+                    this.notificationService.success(successMessage);
+                    this.logger.info(logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
+                },
+                error: (error: unknown) => {
+                    this.notificationService.error(errorMessage);
+                    this.logger.error(logMessage, error);
+                },
             });
     }
 }

@@ -22,6 +22,7 @@ export class ButtonComponent {
     variant = input<ButtonVariant>('filled');
     accent = input<ButtonAccent>('secondary');
     type = input<ButtonType>('button');
+    testId = input<string>();
     disabled = input<boolean>(false);
     loading = input<boolean>(false);
     fullWidth = input<boolean>(false);

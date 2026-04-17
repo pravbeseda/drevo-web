@@ -7,7 +7,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
-import { Picture, PictureArticle, User } from '@drevo-web/shared';
+import { Picture, PictureArticle, PicturePending, User } from '@drevo-web/shared';
 import { ConfirmationService, ModalService } from '@drevo-web/ui';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
@@ -52,6 +52,26 @@ const mockWindow = {
     navigator: { clipboard: { writeText: mockWriteText } },
 } as unknown as Window;
 
+function createPending(overrides: Partial<PicturePending> = {}): PicturePending {
+    return {
+        id: 1,
+        pictureId: 42,
+        pendingType: 'edit_title',
+        title: 'Новый заголовок',
+        width: undefined,
+        height: undefined,
+        user: 'Editor',
+        date: new Date('2025-03-11T10:00:00Z'),
+        currentTitle: 'Вид на Кремль',
+        currentImageUrl: '/images/0000/0042.jpg',
+        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+        currentWidth: 1920,
+        currentHeight: 1280,
+        pendingImageUrl: undefined,
+        ...overrides,
+    };
+}
+
 function enterEditMode(spectator: Spectator<PictureDetailComponent>): void {
     spectator.detectChanges();
     spectator.click('[data-testid="detail-title"]');
@@ -76,9 +96,13 @@ describe('PictureDetailComponent', () => {
                 mockProvider(PictureLightboxService),
                 mockProvider(PictureService, {
                     getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
+                    getPicturePending: jest.fn().mockReturnValue(of([])),
                     updateTitle: jest.fn(),
                     editPicture: jest.fn(),
                     deletePicture: jest.fn(),
+                    cancelPending: jest.fn(),
+                    approvePending: jest.fn(),
+                    rejectPending: jest.fn(),
                 }),
                 mockProvider(ModalService),
                 mockProvider(ConfirmationService),
@@ -102,6 +126,7 @@ describe('PictureDetailComponent', () => {
             spectator = createComponent();
             pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
             pictureService.getPictureArticles.mockReturnValue(of(mockArticles));
+            pictureService.getPicturePending.mockReturnValue(of([]));
         });
 
         it('should create', () => {
@@ -154,6 +179,11 @@ describe('PictureDetailComponent', () => {
             expect(pictureService.getPictureArticles).toHaveBeenCalledWith(42);
         });
 
+        it('should load pending changes for the picture', () => {
+            spectator.detectChanges();
+            expect(pictureService.getPicturePending).toHaveBeenCalledWith(42);
+        });
+
         it('should display article links', () => {
             spectator.detectChanges();
             const links = spectator.queryAll('[data-testid="detail-article-link"]');
@@ -183,6 +213,98 @@ describe('PictureDetailComponent', () => {
             const error = spectator.query('[data-testid="detail-articles-error"]');
             expect(error).toBeTruthy();
             expect(error?.textContent?.trim()).toBe('Не удалось загрузить');
+        });
+
+        describe('pending banners', () => {
+            it('should render all pending banners returned by backend', () => {
+                pictureService.getPicturePending.mockReturnValue(
+                    of([
+                        createPending({ id: 1, title: 'Первый pending' }),
+                        createPending({
+                            id: 2,
+                            user: 'Другой пользователь',
+                            title: 'Второй pending',
+                            pendingType: 'edit_both',
+                            pendingImageUrl: '/images/pending/42_pp2.jpg',
+                        }),
+                    ]),
+                );
+
+                spectator.detectChanges();
+
+                expect(spectator.queryAll('[data-testid="pending-banner"]')).toHaveLength(2);
+                expect(spectator.queryAll('[data-testid="pending-banner-text"]')[0]).toHaveText(
+                    'Изменение описания — ожидает модерации',
+                );
+            });
+
+            it('should show cancel button for own pending', () => {
+                pictureService.getPicturePending.mockReturnValue(of([createPending()]));
+
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="pending-banner-cancel"]')).toBeTruthy();
+                expect(spectator.query('[data-testid="pending-banner-author"]')).toBeNull();
+            });
+
+            it('should show author for foreign pending to regular user', () => {
+                pictureService.getPicturePending.mockReturnValue(of([createPending({ user: 'Другой пользователь' })]));
+
+                spectator.detectChanges();
+
+                expect(spectator.query('[data-testid="pending-banner-author"]')).toHaveText('Другой пользователь');
+                expect(spectator.query('[data-testid="pending-banner-cancel"]')).toBeNull();
+                expect(spectator.query('[data-testid="pending-banner-approve"]')).toBeNull();
+            });
+
+            it('should open lightbox with pending image preview', () => {
+                const lightbox = spectator.inject(PictureLightboxService);
+                pictureService.getPicturePending.mockReturnValue(
+                    of([
+                        createPending({
+                            pendingType: 'edit_both',
+                            pendingImageUrl: '/images/pending/42_pp1.jpg',
+                            width: 1024,
+                            height: 768,
+                        }),
+                    ]),
+                );
+
+                spectator.detectChanges();
+                spectator.click('[data-testid="pending-banner-new-image"]');
+
+                expect(lightbox.openWithPicture).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        id: 42,
+                        title: 'Новый заголовок',
+                        imageUrl: '/images/pending/42_pp1.jpg',
+                        width: 1024,
+                        height: 768,
+                    }),
+                );
+            });
+
+            it('should cancel own pending and refresh pending list', () => {
+                pictureService.getPicturePending.mockReturnValue(of([createPending()]));
+                pictureService.cancelPending.mockReturnValue(of(undefined));
+                const notification = spectator.inject(NotificationService);
+
+                spectator.detectChanges();
+                spectator.click('[data-testid="pending-banner-cancel"]');
+
+                expect(pictureService.cancelPending).toHaveBeenCalledWith(1);
+                expect(notification.success).toHaveBeenCalledWith('Изменение отменено');
+                expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+            });
+
+            it('should keep page working when pending loading fails', () => {
+                pictureService.getPicturePending.mockReturnValue(throwError(() => new Error('Pending failed')));
+
+                spectator.detectChanges();
+
+                expect(spectator.queryAll('[data-testid="pending-banner"]')).toHaveLength(0);
+                expect(spectator.query('[data-testid="detail-title"]')).toHaveText('Вид на Кремль');
+            });
         });
 
         describe('title editing', () => {
@@ -297,22 +419,7 @@ describe('PictureDetailComponent', () => {
             it('should show moderation message for user save', () => {
                 const mockResult: PictureEditResult = {
                     picture: undefined,
-                    pending: {
-                        id: 1,
-                        pictureId: 42,
-                        pendingType: 'edit_title',
-                        title: 'Новый заголовок',
-                        width: undefined,
-                        height: undefined,
-                        user: 'editor',
-                        date: new Date(),
-                        currentTitle: 'Вид на Кремль',
-                        currentImageUrl: '/images/0000/0042.jpg',
-                        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
-                        currentWidth: 1920,
-                        currentHeight: 1280,
-                        pendingImageUrl: undefined,
-                    },
+                    pending: createPending({ user: 'editor' }),
                 };
                 pictureService.updateTitle.mockReturnValue(of(mockResult));
                 const notification = spectator.inject(NotificationService);
@@ -323,6 +430,7 @@ describe('PictureDetailComponent', () => {
                 expect(notification.info).toHaveBeenCalledWith('Изменение отправлено на модерацию');
                 const title = spectator.query('[data-testid="detail-title"]');
                 expect(title?.textContent?.trim()).toBe('Вид на Кремль');
+                expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
             });
 
             it('should show error notification on API failure', () => {
@@ -456,22 +564,12 @@ describe('PictureDetailComponent', () => {
                 modalService.open.mockReturnValue(of({ title: 'Вид на Кремль' }));
                 const mockResult: PictureEditResult = {
                     picture: undefined,
-                    pending: {
-                        id: 1,
-                        pictureId: 42,
+                    pending: createPending({
                         pendingType: 'edit_both',
                         title: 'Вид на Кремль',
-                        width: undefined,
-                        height: undefined,
                         user: 'editor',
-                        date: new Date(),
-                        currentTitle: 'Вид на Кремль',
-                        currentImageUrl: '/images/0000/0042.jpg',
-                        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
-                        currentWidth: 1920,
-                        currentHeight: 1280,
                         pendingImageUrl: '/images/pending/42_pp1.jpg',
-                    },
+                    }),
                 };
                 pictureService.editPicture.mockReturnValue(of(mockResult));
                 const notification = spectator.inject(NotificationService);
@@ -479,6 +577,7 @@ describe('PictureDetailComponent', () => {
                 triggerFileSelect(spectator, createValidFile());
 
                 expect(notification.info).toHaveBeenCalledWith('Изменение отправлено на модерацию');
+                expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
             });
 
             it('should show error notification on upload failure', () => {
@@ -624,22 +723,11 @@ describe('PictureDetailComponent', () => {
                 confirmationService.open.mockReturnValue(of('confirm'));
                 const mockResult: PictureEditResult = {
                     picture: undefined,
-                    pending: {
-                        id: 1,
-                        pictureId: 42,
+                    pending: createPending({
                         pendingType: 'delete',
                         title: undefined,
-                        width: undefined,
-                        height: undefined,
                         user: 'editor',
-                        date: new Date(),
-                        currentTitle: 'Вид на Кремль',
-                        currentImageUrl: '/images/0000/0042.jpg',
-                        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
-                        currentWidth: 1920,
-                        currentHeight: 1280,
-                        pendingImageUrl: undefined,
-                    },
+                    }),
                 };
                 pictureService.deletePicture.mockReturnValue(of(mockResult));
 
@@ -647,6 +735,7 @@ describe('PictureDetailComponent', () => {
 
                 expect(notification.info).toHaveBeenCalledWith('Запрос на удаление отправлен на модерацию');
                 expect(routerNavigateSpy).not.toHaveBeenCalled();
+                expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
             });
 
             it('should show custom error on 409 conflict', () => {
@@ -703,7 +792,10 @@ describe('PictureDetailComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
-                mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)) }),
+                mockProvider(PictureService, {
+                    getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
+                    getPicturePending: jest.fn().mockReturnValue(of([])),
+                }),
                 mockProvider(ModalService),
                 mockProvider(ConfirmationService),
                 mockProvider(NotificationService),
@@ -743,7 +835,10 @@ describe('PictureDetailComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
-                mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
+                mockProvider(PictureService, {
+                    getPictureArticles: jest.fn().mockReturnValue(EMPTY),
+                    getPicturePending: jest.fn().mockReturnValue(of([])),
+                }),
                 mockProvider(ModalService),
                 mockProvider(ConfirmationService),
                 mockProvider(NotificationService),
@@ -770,13 +865,91 @@ describe('PictureDetailComponent', () => {
         });
     });
 
+    describe('with moderator user', () => {
+        const moderatorUser: User = {
+            id: 3,
+            login: 'moderator',
+            name: 'Moderator',
+            email: 'moderator@test.com',
+            role: 'moder',
+            permissions: { canEdit: true, canModerate: true, canAdmin: false },
+        };
+
+        const createComponent = createComponentFactory({
+            component: PictureDetailComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(PictureLightboxService),
+                mockProvider(PictureService, {
+                    getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
+                    getPicturePending: jest.fn().mockReturnValue(of([createPending({ user: 'Другой пользователь' })])),
+                    approvePending: jest.fn().mockReturnValue(of(undefined)),
+                    rejectPending: jest.fn().mockReturnValue(of(undefined)),
+                }),
+                mockProvider(ModalService),
+                mockProvider(ConfirmationService),
+                mockProvider(NotificationService),
+                {
+                    provide: AuthService,
+                    useValue: { user$: of(moderatorUser) },
+                },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { data: of({ picture: mockPicture }) },
+                },
+                { provide: PLATFORM_ID, useValue: 'browser' },
+                { provide: WINDOW, useValue: mockWindow },
+            ],
+            detectChanges: false,
+        });
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            spectator = createComponent();
+            pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+        });
+
+        it('should show approve and reject buttons for foreign pending', () => {
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="pending-banner-approve"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="pending-banner-reject"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="pending-banner-author"]')).toBeTruthy();
+        });
+
+        it('should approve pending and refresh list', () => {
+            const notification = spectator.inject(NotificationService);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-approve"]');
+
+            expect(pictureService.approvePending).toHaveBeenCalledWith(1);
+            expect(notification.success).toHaveBeenCalledWith('Изменение одобрено');
+            expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+        });
+
+        it('should reject pending and refresh list', () => {
+            const notification = spectator.inject(NotificationService);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-reject"]');
+
+            expect(pictureService.rejectPending).toHaveBeenCalledWith(1);
+            expect(notification.success).toHaveBeenCalledWith('Изменение отклонено');
+            expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+        });
+    });
+
     describe('with load-error result', () => {
         const createComponent = createComponentFactory({
             component: PictureDetailComponent,
             providers: [
                 mockLoggerProvider(),
                 mockProvider(PictureLightboxService),
-                mockProvider(PictureService, { getPictureArticles: jest.fn().mockReturnValue(EMPTY) }),
+                mockProvider(PictureService, {
+                    getPictureArticles: jest.fn().mockReturnValue(EMPTY),
+                    getPicturePending: jest.fn().mockReturnValue(of([])),
+                }),
                 mockProvider(ModalService),
                 mockProvider(ConfirmationService),
                 mockProvider(NotificationService),

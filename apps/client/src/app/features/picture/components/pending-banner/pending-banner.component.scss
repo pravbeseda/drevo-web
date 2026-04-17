@@ -1,0 +1,66 @@
+@use 'tokens' as *;
+
+:host {
+    display: block;
+}
+
+.pending-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--themed-hover-bg);
+    border: 1px solid var(--themed-border-color);
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    &__icon {
+        color: var(--themed-text-secondary);
+    }
+
+    &__text {
+        flex: 1 1 240px;
+        font-size: $font-size-sm;
+        color: var(--themed-text-primary);
+    }
+
+    &__author {
+        font-size: $font-size-sm;
+        color: var(--themed-text-secondary);
+    }
+
+    &__preview-title {
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: $font-size-sm;
+        background: var(--themed-primary-bg);
+        color: var(--themed-text-primary);
+        line-height: 1.4;
+    }
+
+    &__preview-image {
+        max-width: 100%;
+        max-height: 80px;
+        width: auto;
+        cursor: zoom-in;
+        border-radius: 8px;
+        align-self: flex-start;
+
+        &:focus-visible {
+            outline: 2px solid var(--themed-link-color);
+            outline-offset: 2px;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+}

@@ -3,6 +3,7 @@ import {
     expect,
     mockPictureDetail,
     mockPictureArticles,
+    mockPicturePending,
     mockPictureDelete,
     mockPictureDeletePending,
     mockPictureDeleteConflict,
@@ -33,6 +34,7 @@ test.describe('Picture detail — deletion', () => {
             await mockPictureArticles(page, PICTURE_ID, [
                 createPictureArticleDto({ id: 10, title: 'Статья 1' }),
             ]);
+            await mockPicturePending(page, PICTURE_ID);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
             await detail.waitForReady();
@@ -50,6 +52,7 @@ test.describe('Picture detail — deletion', () => {
             await mockPictureThumbs(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
+            await mockPicturePending(page, PICTURE_ID);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
             await detail.waitForReady();

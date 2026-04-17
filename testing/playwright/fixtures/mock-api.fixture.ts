@@ -200,6 +200,19 @@ export async function mockPictureArticles(
     );
 }
 
+/** Mock GET /api/pictures/:id/pending */
+export async function mockPicturePending(
+    page: Page,
+    pictureId: number,
+    pending: readonly PicturePendingDto[] = [],
+): Promise<void> {
+    await page.route(`**/api/pictures/${pictureId}/pending`, route => {
+        const method = route.request().method();
+        if (method !== 'GET') return route.fallback();
+        return route.fulfill({ json: apiSuccess({ items: pending }) });
+    });
+}
+
 /** Mock PATCH /api/pictures/:id — title update (direct edit, moderator response) */
 export async function mockPictureUpdateTitle(page: Page, id: number, updatedPicture: PictureDto): Promise<void> {
     await page.route(`**/api/pictures/${id}`, route => {
@@ -280,6 +293,33 @@ export async function mockPictureDeleteConflict(page: Page, id: number): Promise
             status: 409,
             json: apiError('Иллюстрация используется в статьях'),
         });
+    });
+}
+
+/** Mock POST /api/pictures/pending/:id/cancel */
+export async function mockPictureCancelPending(page: Page, pendingId: number): Promise<void> {
+    await page.route(`**/api/pictures/pending/${pendingId}/cancel`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(null) });
+    });
+}
+
+/** Mock POST /api/pictures/pending/:id/approve */
+export async function mockPictureApprovePending(page: Page, pendingId: number): Promise<void> {
+    await page.route(`**/api/pictures/pending/${pendingId}/approve`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(null) });
+    });
+}
+
+/** Mock POST /api/pictures/pending/:id/reject */
+export async function mockPictureRejectPending(page: Page, pendingId: number): Promise<void> {
+    await page.route(`**/api/pictures/pending/${pendingId}/reject`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(null) });
     });
 }
 

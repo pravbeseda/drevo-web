@@ -359,6 +359,41 @@ describe('PictureService', () => {
         });
     });
 
+    describe('getPicturePending', () => {
+        it('should delegate to pictureApiService with picture id', () => {
+            pictureApiService.getPicturePending.mockReturnValue(of([mockPendingDto]));
+
+            spectator.service.getPicturePending(123).subscribe();
+
+            expect(pictureApiService.getPicturePending).toHaveBeenCalledWith(123);
+        });
+
+        it('should map picture pending DTOs to frontend model', done => {
+            const filePendingDto: PicturePendingDto = {
+                ...mockPendingDto,
+                pp_type: 'edit_both',
+                pp_width: 1024,
+                pp_height: 768,
+            };
+            pictureApiService.getPicturePending.mockReturnValue(of([filePendingDto]));
+
+            spectator.service.getPicturePending(123).subscribe(result => {
+                expect(result).toHaveLength(1);
+                expect(result[0]).toEqual(
+                    expect.objectContaining({
+                        id: 10,
+                        pictureId: 123,
+                        pendingType: 'edit_both',
+                        title: 'Новая подпись',
+                        user: 'Пётр Петров',
+                        pendingImageUrl: '/images/pending/123_pp10.jpg',
+                    }),
+                );
+                done();
+            });
+        });
+    });
+
     describe('approvePending', () => {
         it('should delegate to pictureApiService', () => {
             pictureApiService.approvePending.mockReturnValue(of(undefined));

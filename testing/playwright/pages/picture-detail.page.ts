@@ -18,6 +18,16 @@ export class PictureDetailPage extends BasePage {
     readonly articlesEmpty = this.page.getByTestId('detail-articles-empty');
     readonly articlesError = this.page.getByTestId('detail-articles-error');
 
+    // Pending banners
+    readonly pendingBanners = this.page.getByTestId('pending-banner');
+    readonly pendingTexts = this.page.getByTestId('pending-banner-text');
+    readonly pendingCancel = this.page.getByTestId('pending-banner-cancel');
+    readonly pendingApprove = this.page.getByTestId('pending-banner-approve');
+    readonly pendingReject = this.page.getByTestId('pending-banner-reject');
+    readonly pendingAuthor = this.page.getByTestId('pending-banner-author');
+    readonly pendingNewTitle = this.page.getByTestId('pending-banner-new-title');
+    readonly pendingNewImage = this.page.getByTestId('pending-banner-new-image');
+
     // File replacement
     readonly fileInput = this.page.getByTestId('detail-file-input');
     readonly replaceFileAction = this.sidebarAction('sidebar-action-replace-file');

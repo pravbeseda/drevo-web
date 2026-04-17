@@ -101,6 +101,12 @@ export class PictureService {
         );
     }
 
+    getPicturePending(pictureId: number): Observable<readonly PicturePending[]> {
+        return this.pictureApiService
+            .getPicturePending(pictureId)
+            .pipe(map(dtos => dtos.map(dto => this.mapPicturePending(dto))));
+    }
+
     approvePending(pendingId: number): Observable<void> {
         return this.pictureApiService.approvePending(pendingId);
     }

@@ -178,6 +178,23 @@ export class PictureApiService {
     }
 
     /**
+     * Get all pending changes for a specific picture
+     */
+    getPicturePending(pictureId: number): Observable<readonly PicturePendingDto[]> {
+        return this.http
+            .get<ApiResponse<{ readonly items: readonly PicturePendingDto[] }>>(
+                `${this.apiUrl}/api/pictures/${pictureId}/pending`,
+                { withCredentials: true },
+            )
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data.items;
+                }),
+            );
+    }
+
+    /**
      * Approve a pending picture change (moderator only)
      */
     approvePending(pendingId: number): Observable<void> {
