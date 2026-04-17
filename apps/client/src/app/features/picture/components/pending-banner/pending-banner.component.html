@@ -15,12 +15,14 @@
         </span>
     </div>
 
-    <div
-        class="pending-banner__author"
-        data-testid="pending-banner-author"
-    >
-        {{ pending().user }}
-    </div>
+    @if (!isOwn()) {
+        <div
+            class="pending-banner__author"
+            data-testid="pending-banner-author"
+        >
+            {{ pending().user }}
+        </div>
+    }
 
     @if (hasNewTitle()) {
         <div

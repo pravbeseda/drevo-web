@@ -914,7 +914,7 @@ describe('PictureDetailComponent', () => {
 
             expect(spectator.query('[data-testid="pending-banner-approve"]')).toBeTruthy();
             expect(spectator.query('[data-testid="pending-banner-reject"]')).toBeTruthy();
-            expect(spectator.query('[data-testid="pending-banner-author"]')).toBeNull();
+            expect(spectator.query('[data-testid="pending-banner-author"]')).toBeTruthy();
         });
 
         it('should approve pending and refresh list', () => {

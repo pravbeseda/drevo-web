@@ -73,7 +73,7 @@ describe('PendingBannerComponent', () => {
 
         expect(spectator.query('[data-testid="pending-banner-approve"]')).toBeTruthy();
         expect(spectator.query('[data-testid="pending-banner-reject"]')).toBeTruthy();
-        expect(spectator.query('[data-testid="pending-banner-author"]')).toBeNull();
+        expect(spectator.query('[data-testid="pending-banner-author"]')).toHaveText('Another User');
     });
 
     it('should render title and image previews when pending contains them', () => {

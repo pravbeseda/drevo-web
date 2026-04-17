@@ -3,8 +3,8 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { PictureService } from '../../../../services/pictures/picture.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { PendingBannerComponent } from '../../components/pending-banner/pending-banner.component';
 import { PendingAction } from '../../../../shared/models/pending.model';
+import { PendingBannerComponent } from '../../components/pending-banner/pending-banner.component';
 import {
     ReplaceFileDialogData,
     ReplaceFileDialogResult,
