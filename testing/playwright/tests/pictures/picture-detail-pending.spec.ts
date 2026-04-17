@@ -93,7 +93,7 @@ test.describe('Picture detail pending banners', () => {
 
         await expect(detail.pendingApprove).toHaveCount(1);
         await expect(detail.pendingReject).toHaveCount(1);
-        await expect(detail.pendingAuthor).toHaveCount(0);
+        await expect(detail.pendingAuthor).toHaveCount(1);
         await expect(detail.pendingNewTitle).toHaveText('Текст на модерации');
     });
 
