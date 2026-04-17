@@ -1,0 +1,79 @@
+<div
+    class="pending-banner"
+    data-testid="pending-banner"
+>
+    <div class="pending-banner__header">
+        <ui-icon
+            name="schedule"
+            class="pending-banner__icon"
+        />
+        <span
+            class="pending-banner__text"
+            data-testid="pending-banner-text"
+        >
+            {{ pendingLabel() }} — ожидает модерации
+        </span>
+    </div>
+
+    <div
+        class="pending-banner__author"
+        data-testid="pending-banner-author"
+    >
+        {{ pending().user }}
+    </div>
+
+    @if (hasNewTitle()) {
+        <div
+            class="pending-banner__preview-title"
+            data-testid="pending-banner-new-title"
+        >
+            {{ pending().title }}
+        </div>
+    }
+
+    @if (hasNewImage()) {
+        <img
+            class="pending-banner__preview-image"
+            [src]="pending().pendingImageUrl"
+            alt="Превью нового изображения"
+            tabindex="0"
+            role="button"
+            data-testid="pending-banner-new-image"
+            (click)="emitImageClick()"
+            (keydown.enter)="emitImageClick()"
+            (keydown.space)="emitImageClick(); $event.preventDefault()"
+        />
+    }
+
+    <div class="pending-banner__actions">
+        @if (isOwn()) {
+            <ui-button
+                variant="outlined"
+                testId="pending-banner-cancel"
+                [disabled]="isBusy()"
+                (click)="emitAction('cancel')"
+            >
+                Отменить
+            </ui-button>
+        } @else if (canModerate()) {
+            <ui-button
+                variant="outlined"
+                accent="success"
+                testId="pending-banner-approve"
+                [disabled]="isBusy()"
+                (click)="emitAction('approve')"
+            >
+                Одобрить
+            </ui-button>
+            <ui-button
+                variant="outlined"
+                accent="danger"
+                testId="pending-banner-reject"
+                [disabled]="isBusy()"
+                (click)="emitAction('reject')"
+            >
+                Отклонить
+            </ui-button>
+        }
+    </div>
+</div>

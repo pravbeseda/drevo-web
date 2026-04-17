@@ -383,4 +383,33 @@ describe('PictureApiService', () => {
             req.flush({ success: true, data: { items: [] } });
         });
     });
+
+    describe('getPicturePending', () => {
+        it('should call HTTP GET with correct URL', done => {
+            spectator.service.getPicturePending(123).subscribe(result => {
+                expect(result).toEqual([mockPendingDto]);
+                done();
+            });
+
+            const req = httpController.expectOne('/api/pictures/123/pending');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush({
+                success: true,
+                data: {
+                    items: [mockPendingDto],
+                },
+            });
+        });
+
+        it('should return empty array when no pending changes exist', done => {
+            spectator.service.getPicturePending(123).subscribe(result => {
+                expect(result).toEqual([]);
+                done();
+            });
+
+            const req = httpController.expectOne('/api/pictures/123/pending');
+            req.flush({ success: true, data: { items: [] } });
+        });
+    });
 });

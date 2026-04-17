@@ -17,6 +17,7 @@
                 [class.full-width]="fullWidth()"
                 [class.disabled]="disabled() || loading()"
                 [attr.aria-disabled]="disabled() || loading() || null"
+                [attr.data-testid]="testId() ?? null"
                 (click)="onLinkClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
@@ -30,6 +31,7 @@
                 [class.full-width]="fullWidth()"
                 [class.disabled]="disabled() || loading()"
                 [attr.aria-disabled]="disabled() || loading() || null"
+                [attr.data-testid]="testId() ?? null"
                 (click)="onLinkClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
@@ -43,6 +45,7 @@
                 [class.full-width]="fullWidth()"
                 [class.disabled]="disabled() || loading()"
                 [attr.aria-disabled]="disabled() || loading() || null"
+                [attr.data-testid]="testId() ?? null"
                 (click)="onLinkClick($event)"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
@@ -58,6 +61,7 @@
                 [type]="type()"
                 [disabled]="disabled() || loading()"
                 [class.full-width]="fullWidth()"
+                [attr.data-testid]="testId() ?? null"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </button>
@@ -69,6 +73,7 @@
                 [type]="type()"
                 [disabled]="disabled() || loading()"
                 [class.full-width]="fullWidth()"
+                [attr.data-testid]="testId() ?? null"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </button>
@@ -80,6 +85,7 @@
                 [type]="type()"
                 [disabled]="disabled() || loading()"
                 [class.full-width]="fullWidth()"
+                [attr.data-testid]="testId() ?? null"
             >
                 <ng-container *ngTemplateOutlet="buttonContent" />
             </button>
