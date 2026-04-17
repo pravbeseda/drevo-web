@@ -3,6 +3,7 @@ import {
     expect,
     mockPictureDetail,
     mockPictureArticles,
+    mockPicturePending,
     mockPictureReplaceFile,
     mockPictureReplaceFilePending,
     mockPictureReplaceFileError,
@@ -41,6 +42,7 @@ test.describe('Picture detail — file replacement', () => {
         await mockPictureThumbs(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
+        await mockPicturePending(page, PICTURE_ID);
         detail = new PictureDetailPage(page);
         await page.goto(`/pictures/${PICTURE_ID}`);
         await detail.waitForReady();

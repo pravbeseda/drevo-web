@@ -5,6 +5,7 @@ import {
     mockPictureNotFound,
     mockPictureDetailError,
     mockPictureArticles,
+    mockPicturePending,
     mockPictureUpdateTitle,
     mockPictureUpdateTitlePending,
     mockPictureThumbs,
@@ -31,6 +32,7 @@ test.describe('Picture detail', () => {
             await mockPictureThumbs(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
+            await mockPicturePending(page, PICTURE_ID);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
             await detail.waitForReady();
@@ -58,6 +60,7 @@ test.describe('Picture detail', () => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
             await mockPictureThumbs(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
+            await mockPicturePending(page, PICTURE_ID);
         });
 
         test('shows linked articles', async ({ authenticatedPage: page }) => {
@@ -104,6 +107,7 @@ test.describe('Picture detail', () => {
             await mockPictureThumbs(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
+            await mockPicturePending(page, PICTURE_ID);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
             await detail.waitForReady();
