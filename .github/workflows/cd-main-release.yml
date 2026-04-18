@@ -3,54 +3,127 @@ name: CD Main Release
 on:
     push:
         tags: ['[0-9]*']
+    workflow_dispatch:
+        inputs:
+            bump_type:
+                description: 'Semver bump'
+                required: true
+                type: choice
+                options: [patch, minor, major]
+            dry_run:
+                description: 'Dry run: compute version but do not create tag/deploy'
+                required: false
+                type: boolean
+                default: false
 
 permissions:
     contents: write
 
+concurrency:
+    group: release
+    cancel-in-progress: false
+
 jobs:
-    ci:
+    compute-version:
+        if: github.event_name == 'workflow_dispatch'
         runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.bump.outputs.version }}
+            tag: ${{ steps.bump.outputs.tag }}
         steps:
+            - name: Guard — only from main
+              if: github.ref != 'refs/heads/main'
+              run: |
+                  echo "::error::workflow_dispatch for releases is only allowed from main (current: ${{ github.ref }})"
+                  exit 1
+
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  ref: main
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: 'yarn'
-
-            - name: Install dependencies
-              run: yarn install --frozen-lockfile
-
-            - name: Install Playwright
-              run: yarn playwright install --with-deps
-
-            - name: Lint and test
+            - name: Guard — HEAD must be green
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  yarn nx run-many -t lint --parallel=3
-                  yarn nx run-many -t test --parallel=3
-                  yarn nx run-many -t e2e
+                  SHA=$(git rev-parse HEAD)
+                  # Name "ci" must match the job id in .github/workflows/cd-main-beta.yml (jobs.ci).
+                  # If that job is renamed, update this selector — otherwise guard will always refuse.
+                  latest=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+                      --jq '[.check_runs[] | select(.name == "ci")] | sort_by(.started_at) | last')
+                  if [ -z "$latest" ] || [ "$latest" = "null" ]; then
+                      echo "::error::No 'ci' check-run found on main ($SHA). Refusing to release."
+                      exit 1
+                  fi
+                  conclusion=$(echo "$latest" | jq -r '.conclusion // "in_progress"')
+                  echo "Latest 'ci' check-run on $SHA: $conclusion"
+                  if [ "$conclusion" != "success" ]; then
+                      echo "::error::Latest CI on main ($SHA) is $conclusion. Refusing to release."
+                      exit 1
+                  fi
 
-            - name: Build verification
-              run: npx nx build client --configuration=production
+            - name: Compute next version
+              id: bump
+              run: |
+                  latest=$(git describe --tags --abbrev=0 --match '[0-9]*' 2>/dev/null || echo "0.0.0")
+                  current="$latest"
+                  IFS='.' read -r major minor patch <<< "$current"
+                  case "${{ inputs.bump_type }}" in
+                      major) major=$((major+1)); minor=0; patch=0 ;;
+                      minor) minor=$((minor+1)); patch=0 ;;
+                      patch) patch=$((patch+1)) ;;
+                  esac
+                  new_version="${major}.${minor}.${patch}"
 
-    deploy:
-        needs: ci
+                  if git rev-parse "$new_version" >/dev/null 2>&1; then
+                      echo "::error::Tag $new_version already exists"
+                      exit 1
+                  fi
+
+                  echo "version=$new_version" >> "$GITHUB_OUTPUT"
+                  echo "tag=$new_version" >> "$GITHUB_OUTPUT"
+                  echo "Latest: $latest → next (${{ inputs.bump_type }}): $new_version"
+
+            - name: Create and push tag
+              if: ${{ !inputs.dry_run }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git tag -a "${{ steps.bump.outputs.tag }}" \
+                      -m "Release ${{ steps.bump.outputs.version }}" \
+                      -m "See https://github.com/${{ github.repository }}/releases/tag/${{ steps.bump.outputs.tag }}"
+                  git push origin "${{ steps.bump.outputs.tag }}"
+
+            - name: Dry run summary
+              if: ${{ inputs.dry_run }}
+              run: |
+                  echo "::notice::DRY RUN — would create tag ${{ steps.bump.outputs.tag }} and release"
+
+    release:
+        if: |
+            !failure() && !cancelled() &&
+            (github.event_name == 'push' ||
+             (github.event_name == 'workflow_dispatch' && !inputs.dry_run))
+        needs: [compute-version]
         runs-on: ubuntu-latest
         environment: release
 
         steps:
+            - name: Resolve version
+              id: version
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                      echo "version=${{ needs.compute-version.outputs.version }}" >> "$GITHUB_OUTPUT"
+                      echo "tag=${{ needs.compute-version.outputs.tag }}" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+                      echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+                  fi
+
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-
-            - name: Get version from tag
-              id: get_version
-              run: |
-                  VERSION="${GITHUB_REF_NAME}"
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  echo "Release version: $VERSION"
+                  ref: ${{ steps.version.outputs.tag }}
 
             - name: Get current timestamp
               id: get_timestamp
@@ -59,8 +132,7 @@ jobs:
             - name: Generate changelog
               id: changelog
               run: |
-                  # Get the previous tag
-                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 --match '[0-9]*' HEAD~1 2>/dev/null || echo "")
 
                   if [ -z "$PREVIOUS_TAG" ]; then
                     echo "changelog<<EOF" >> $GITHUB_OUTPUT
@@ -86,14 +158,12 @@ jobs:
               id: build
               env:
                   SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-                  APP_VERSION: ${{ steps.get_version.outputs.version }}
+                  APP_VERSION: ${{ steps.version.outputs.version }}
               run: |
                   echo "Building release version: $APP_VERSION"
 
-                  # Replace version placeholder
                   sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
 
-                  # Replace Sentry DSN placeholder
                   if [ -n "$SENTRY_DSN" ]; then
                     echo "Configuring Sentry DSN..."
                     sed -i "s|__SENTRY_DSN_PLACEHOLDER__|$SENTRY_DSN|g" apps/client/src/environments/environment.prod.ts
@@ -102,7 +172,6 @@ jobs:
                     sed -i "s|__SENTRY_DSN_PLACEHOLDER__||g" apps/client/src/environments/environment.prod.ts
                   fi
 
-                  # Verify the replacement (hide sensitive DSN)
                   echo "Environment file after replacement:"
                   if [ -n "$SENTRY_DSN" ]; then
                     awk -v dsn="$SENTRY_DSN" '{gsub(dsn, "[SENTRY_DSN_HIDDEN]"); print}' apps/client/src/environments/environment.prod.ts
@@ -117,7 +186,7 @@ jobs:
                   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
                   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
                   SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-                  VERSION: ${{ steps.get_version.outputs.version }}
+                  VERSION: ${{ steps.version.outputs.version }}
               run: |
                   if [ -z "$SENTRY_AUTH_TOKEN" ]; then
                     echo "SENTRY_AUTH_TOKEN not set, skipping source map upload"
@@ -149,7 +218,7 @@ jobs:
             - name: Create build archive
               run: |
                   cd dist/apps/client
-                  tar -czf ../../../drevo-web-${{ steps.get_version.outputs.version }}.tar.gz *
+                  tar -czf ../../../drevo-web-${{ steps.version.outputs.version }}.tar.gz *
                   cd ../../..
 
             - name: Deploy
@@ -163,16 +232,16 @@ jobs:
                   ssh-host: ${{ secrets.SSH_HOST }}
                   ssh-port: ${{ secrets.SSH_PORT || '22' }}
                   source-path: 'dist/apps/client'
-                  version: ${{ steps.get_version.outputs.version }}
+                  version: ${{ steps.version.outputs.version }}
 
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v1
               with:
-                  tag_name: ${{ github.ref_name }}
-                  name: Release ${{ steps.get_version.outputs.version }}
+                  tag_name: ${{ steps.version.outputs.tag }}
+                  name: Release ${{ steps.version.outputs.version }}
                   generate_release_notes: true
                   body: |
-                      **Release ${{ steps.get_version.outputs.version }}**
+                      **Release ${{ steps.version.outputs.version }}**
 
                       **Deployed**: ${{ steps.get_timestamp.outputs.timestamp }}
                       **Environment**: Release
@@ -183,13 +252,13 @@ jobs:
                   draft: false
                   prerelease: false
                   files: |
-                      drevo-web-${{ steps.get_version.outputs.version }}.tar.gz
+                      drevo-web-${{ steps.version.outputs.version }}.tar.gz
 
             - name: Notify deployment
               if: always()
               run: |
                   if [ "${{ job.status }}" == "success" ]; then
-                    echo "Release deployment successful: ${{ steps.get_version.outputs.version }}"
+                    echo "Release deployment successful: ${{ steps.version.outputs.version }}"
                   else
                     echo "Release deployment failed"
                     exit 1

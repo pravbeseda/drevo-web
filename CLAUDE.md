@@ -9,6 +9,12 @@
 - `main` — active development, default branch. Push triggers beta deploy (drevo-beta, port 4010). Tag `X.Y.Z` triggers release deploy (drevo-release, port 4011).
 - `iframe` — frozen legacy (old Yii-era wrapper). CI runs automatically on PR; CD is manual-only via workflow_dispatch. Hotfix tags: `iframe-X.Y.Z`.
 
+## Release workflow
+
+**Primary (recommended):** GitHub Actions → `CD Main Release` → Run workflow → select `main` → choose bump type (patch/minor/major) → Run. Auto-computes next semver from last tag, validates main is green, creates tag, deploys.
+
+**Backup:** manual `git tag -a X.Y.Z -m "..." && git push origin X.Y.Z` — also works, pipeline identical.
+
 ## Tech Stack
 
 | Category | Technology |

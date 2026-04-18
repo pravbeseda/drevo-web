@@ -24,6 +24,7 @@
 
 - **Не переходим на Release Please / semantic-release.** Это следующий шаг, но требует дисциплины Conventional Commits — вернёмся к этому через 3–6 месяцев, когда новый main устаканится.
 - **Не удаляем триггер на `push tags: ['[0-9]*']`.** Оставляем оба триггера параллельно: новый (`workflow_dispatch`) — основной, старый (`tags`) — backup на случай, если workflow_dispatch по какой-то причине недоступен или нужно вручную запустить релиз из коммита с уже существующим тэгом.
+- **Не добавляем CI job в release workflow.** Текущий `cd-main-release.yml` содержит полный `ci` job (lint, test, e2e), но он дублирует проверки, уже пройденные перед merge в main. При solo-dev workflow + branch protection + required status checks в main физически не попадёт непроверенный код. Для `workflow_dispatch` guard «HEAD must be green» дополнительно проверяет CI status. Для backup path (`push tags`) — ответственность на разработчике, тэгирующем коммит вручную.
 
 ## Design
 
@@ -130,12 +131,17 @@ jobs:
         # Запускается в двух случаях:
         # 1) push тэга [0-9]* (классический путь — остался как backup)
         # 2) workflow_dispatch после compute-version (не dry_run)
+        #
+        # ВАЖНО: !failure() && !cancelled() обязательны!
+        # При push tag compute-version будет skipped (у него if: workflow_dispatch).
+        # По умолчанию GHA скипает зависимый job, если needs-job skipped.
+        # !failure() && !cancelled() заставляет GHA вычислить if-условие,
+        # при этом НЕ запускает release если compute-version упал (guard сработал).
         if: |
-            github.event_name == 'push' ||
-            (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+            !failure() && !cancelled() &&
+            (github.event_name == 'push' ||
+             (github.event_name == 'workflow_dispatch' && !inputs.dry_run))
         needs: [compute-version]
-        # needs-условие для workflow_dispatch → в push'е needs пустой
-        # (в GH Actions needs выполняется только если upstream job реально запущен)
         runs-on: ubuntu-latest
         environment: release
         steps:
@@ -155,32 +161,45 @@ jobs:
                   fetch-depth: 0
                   ref: ${{ steps.version.outputs.tag }}
 
-            # ... далее как в оригинальном cd-main-release.yml:
-            # - setup-node
-            # - install
+            # Далее — шаги из оригинального cd-main-release.yml (deploy job),
+            # но с заменой всех ссылок:
+            #   - github.ref_name → steps.version.outputs.tag (для tag_name)
+            #   - steps.get_version.outputs.version → steps.version.outputs.version
+            #
+            # Ключевые шаги:
+            # - setup-node + install
             # - sed APP_VERSION + SENTRY_DSN
             # - nx build
             # - upload sourcemaps to Sentry
             # - deploy через .github/actions/deploy
-            # - softprops/action-gh-release
+            # - softprops/action-gh-release (tag_name: steps.version.outputs.tag)
 ```
 
 ## Key features
 
 1. **`concurrency: release`** — только один релиз одновременно. Защищает от двух параллельных workflow_dispatch.
 2. **Guard на main** — нельзя запустить workflow_dispatch с другой ветки (в UI это возможно, но workflow откажется).
-3. **Guard на зелёный CI** — проверяет через `gh api`, что check-run `ci` на HEAD main успешен. Если красный — отказ.
+3. **Guard на зелёный CI** — проверяет через `gh api`, что check-run на HEAD main успешен. Если красный — отказ. **Важно**: имя check-run (`ci` в примере) нужно сверить с реальным именем перед реализацией: `gh api repos/OWNER/REPO/commits/SHA/check-runs --jq '.check_runs[].name'`. Если CI — отдельный workflow, имя будет включать имя workflow.
 4. **Dry run** — input `dry_run: true` позволяет увидеть, какая версия была бы создана, без реального создания тэга. Полезно для sanity-check перед первым «настоящим» запуском.
 5. **Двойной триггер** — push тэга оставлен как fallback. Если вдруг захочется руками поставить тэг или любой другой edge case — старый путь работает.
 6. **`compute-version` и `release` — разные jobs** — чтобы логика bump'а была изолирована и легко тестировалась отдельно от тяжёлого deploy-job'а.
+7. **Нет рекурсивного триггера** — когда `compute-version` делает `git push origin tag`, это push тэга, который формально матчит `push: tags: ['[0-9]*']`. Но `GITHUB_TOKEN` pushes [не триггерят workflows](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow) — двойного запуска не будет.
+8. **Без CI job** — CI не дублируется в release workflow. Код в main уже прошёл CI перед merge (branch protection). Для dispatch дополнительно проверяется guard «HEAD must be green».
 
 ## Branch
 
-`refactor/release-workflow-dispatch` от main.
+`task/new-release-trigger` от main.
 
 ## Changes
 
-1. **`.github/workflows/cd-main-release.yml`** — обновить по схеме выше.
+1. **`.github/workflows/cd-main-release.yml`** — обновить по схеме выше. Ключевые изменения:
+    - Добавить триггер `workflow_dispatch` с inputs `bump_type` и `dry_run`.
+    - Добавить job `compute-version` (guard'ы + semver bump + create tag).
+    - **Удалить job `ci`** — CI уже пройден перед merge в main.
+    - Переименовать `deploy` → `release`, добавить `needs: [compute-version]`.
+    - Добавить step «Resolve version» в начало release job.
+    - **Заменить все `github.ref_name`** на `steps.version.outputs.tag` (для tag_name) и **все `steps.get_version.outputs.version`** на `steps.version.outputs.version` — при `workflow_dispatch` `github.ref_name` = `main`, а не тэг.
+    - Добавить `concurrency: release`.
 2. **`docs/plans/branch-migration/plan.md`** — отметить Phase 12 как завершённую (после успешного smoke-test).
 3. **`CLAUDE.md`** или **`README-deployment.md`** — обновить раздел «Release workflow»:
     ```markdown
@@ -195,7 +214,7 @@ jobs:
 
 1. **Dry run** через workflow_dispatch с `bump_type: patch, dry_run: true`. Ожидаемое: job `compute-version` печатает «next version = N.M.(P+1)», job `release` не запускается. Нет нового тэга.
 2. **Dry run с `bump_type: minor`** — проверить, что patch сбрасывается в 0.
-3. **Реальный запуск** с `bump_type: patch, dry_run: false` — создаётся настоящий тэг, отрабатывает full pipeline (CI → build → deploy → Sentry → GH Release). Deploy идёт в drevo-release.
+3. **Реальный запуск** с `bump_type: patch, dry_run: false` — создаётся настоящий тэг, отрабатывает full pipeline (build → deploy → Sentry → GH Release). Deploy идёт в drevo-release.
 4. **Guard-test**: запустить workflow_dispatch с ветки, отличной от main (в UI выбрать любую feature-ветку) — должно упасть с ошибкой «only allowed from main».
 5. **Backup-path**: вручную поставить `git tag X.Y.Z+1 && git push origin X.Y.Z+1` — pipeline должен отработать идентично (без compute-version job'а, сразу в release).
 
@@ -203,7 +222,7 @@ jobs:
 
 - `cd-main-release.yml` содержит оба триггера (`push: tags` + `workflow_dispatch`).
 - Dry run через workflow_dispatch отработал без создания тэга.
-- Реальный запуск через workflow_dispatch создал тэг, запустил CI + deploy, опубликовал GH Release.
+- Реальный запуск через workflow_dispatch создал тэг, запустил build + deploy, опубликовал GH Release.
 - Backup-путь (ручной `git tag`) тоже работает — проверен хотя бы одним контрольным релизом.
 - `CLAUDE.md` / `README-deployment.md` отражает новый primary-путь выпуска релиза.
 
