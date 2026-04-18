@@ -20,8 +20,13 @@ import { ButtonComponent } from '@drevo-web/ui';
 })
 export class ReloadPromptComponent {
     readonly reload = output<void>();
+    readonly dismiss = output<void>();
 
     protected onReloadClick(): void {
         this.reload.emit();
+    }
+
+    protected onDismissClick(): void {
+        this.dismiss.emit();
     }
 }

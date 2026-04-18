@@ -3,6 +3,7 @@ const CHUNK_ERROR_PATTERNS: readonly RegExp[] = [
     /Loading CSS chunk \S+ failed/i,
     /Failed to fetch dynamically imported module/i,
     /error loading dynamically imported module/i,
+    /Importing a module script failed/i,
     /ChunkLoadError/i,
 ];
 

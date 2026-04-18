@@ -45,4 +45,12 @@ export class AppUpdateService {
         this.logger.info('User clicked reload after chunk load failure');
         this.window?.location.reload();
     }
+
+    dismiss(): void {
+        if (!this._chunkLoadFailed()) {
+            return;
+        }
+        this._chunkLoadFailed.set(false);
+        this.logger.info('User dismissed reload prompt; will reappear on next chunk load failure');
+    }
 }

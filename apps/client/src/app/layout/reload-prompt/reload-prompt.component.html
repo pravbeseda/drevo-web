@@ -1,8 +1,10 @@
 <div
     class="backdrop"
     data-testid="reload-prompt"
+    tabindex="-1"
     cdkTrapFocus
     cdkTrapFocusAutoCapture
+    (keydown.escape)="onDismissClick()"
 >
     <div class="card">
         <h2
@@ -17,6 +19,8 @@
         >
             Откройте новую версию, чтобы продолжить работу. Ваши несохранённые изменения могут быть потеряны.
         </p>
+        <!-- DOM order: reload first so cdkTrapFocusAutoCapture focuses it.
+             Visual order reversed via flex-direction: row-reverse in SCSS. -->
         <div class="actions">
             <ui-button
                 variant="filled"
@@ -25,6 +29,13 @@
                 (click)="onReloadClick()"
             >
                 Обновить
+            </ui-button>
+            <ui-button
+                variant="text"
+                testId="dismiss-button"
+                (click)="onDismissClick()"
+            >
+                Отмена
             </ui-button>
         </div>
     </div>
