@@ -47,11 +47,18 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   SHA=$(git rev-parse HEAD)
-                  status=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
-                      --jq '[.check_runs[] | select(.name == "ci")] | map(.conclusion) | unique')
-                  echo "CI check-runs on $SHA: $status"
-                  if ! echo "$status" | grep -q '"success"'; then
-                      echo "::error::Latest CI on main ($SHA) is not green. Refusing to release."
+                  # Name "ci" must match the job id in .github/workflows/cd-main-beta.yml (jobs.ci).
+                  # If that job is renamed, update this selector — otherwise guard will always refuse.
+                  latest=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+                      --jq '[.check_runs[] | select(.name == "ci")] | sort_by(.started_at) | last')
+                  if [ -z "$latest" ] || [ "$latest" = "null" ]; then
+                      echo "::error::No 'ci' check-run found on main ($SHA). Refusing to release."
+                      exit 1
+                  fi
+                  conclusion=$(echo "$latest" | jq -r '.conclusion // "in_progress"')
+                  echo "Latest 'ci' check-run on $SHA: $conclusion"
+                  if [ "$conclusion" != "success" ]; then
+                      echo "::error::Latest CI on main ($SHA) is $conclusion. Refusing to release."
                       exit 1
                   fi
 
@@ -82,7 +89,9 @@ jobs:
               run: |
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git tag -a "${{ steps.bump.outputs.tag }}" -m "Release ${{ steps.bump.outputs.version }}"
+                  git tag -a "${{ steps.bump.outputs.tag }}" \
+                      -m "Release ${{ steps.bump.outputs.version }}" \
+                      -m "See https://github.com/${{ github.repository }}/releases/tag/${{ steps.bump.outputs.tag }}"
                   git push origin "${{ steps.bump.outputs.tag }}"
 
             - name: Dry run summary
@@ -123,7 +132,7 @@ jobs:
             - name: Generate changelog
               id: changelog
               run: |
-                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 --match '[0-9]*' HEAD~1 2>/dev/null || echo "")
 
                   if [ -z "$PREVIOUS_TAG" ]; then
                     echo "changelog<<EOF" >> $GITHUB_OUTPUT
