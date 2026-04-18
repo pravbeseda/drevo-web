@@ -13,9 +13,9 @@ test.describe('Chunk reload prompt', () => {
         await page.waitForLoadState('networkidle');
 
         // Simulate post-deploy state: any further lazy JS chunk request 404s.
-        // We block all .js that are loaded *after* the initial bundle; already-loaded
-        // chunks stay cached in the browser, so the shell keeps working.
-        await page.route('**/*.js', route => route.abort());
+        // Only lazy chunks (chunk-*.js) are blocked; initial bundle / polyfills are
+        // left intact so the shell keeps working.
+        await page.route('**/chunk-*.js', route => route.abort());
 
         // SPA navigation to a lazy feature route → dynamic import fails →
         // Angular Router emits NavigationError → ChunkErrorHandler / NavigationError
@@ -36,7 +36,7 @@ test.describe('Chunk reload prompt', () => {
         await expect(reloadButton).toContainText('Обновить');
 
         // Restore network and the mocks needed for the reloaded page.
-        await page.unroute('**/*.js');
+        await page.unroute('**/chunk-*.js');
         await mockPictureThumbs(page);
         await mockPicturesApi(page);
 

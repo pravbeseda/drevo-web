@@ -13,7 +13,6 @@ import { ButtonComponent } from '@drevo-web/ui';
         'aria-modal': 'true',
         'aria-labelledby': 'reload-prompt-title',
         'aria-describedby': 'reload-prompt-body',
-        'aria-live': 'assertive',
     },
 })
 export class ReloadPromptComponent {

@@ -25,6 +25,9 @@ export class AppComponent {
     constructor() {
         this.logger.info('App initialized');
 
+        // Covers router navigations: in zoneless mode imperative router.navigate()
+        // rejections may bypass the global ErrorHandler, so we listen to NavigationError
+        // directly. ChunkErrorHandler complements this for non-router dynamic imports.
         this.router.events
             .pipe(
                 takeUntilDestroyed(),
