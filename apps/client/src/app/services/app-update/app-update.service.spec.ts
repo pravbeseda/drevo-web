@@ -76,4 +76,38 @@ describe('AppUpdateService', () => {
 
         expect(spectator.service.chunkLoadFailed()).toBe(false);
     });
+
+    it('dismiss() resets the signal and logs', () => {
+        const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        spectator.service.notifyChunkLoadFailure(new Error('Loading chunk 1 failed'), {
+            url: '/a',
+            source: 'error-handler',
+        });
+
+        spectator.service.dismiss();
+
+        expect(spectator.service.chunkLoadFailed()).toBe(false);
+        expect(logger.mockLogger.info).toHaveBeenCalledWith(
+            'User dismissed reload prompt; will reappear on next chunk load failure',
+        );
+    });
+
+    it('dismiss() is a no-op when signal is already false', () => {
+        const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
+
+        spectator.service.dismiss();
+
+        expect(logger.mockLogger.info).not.toHaveBeenCalled();
+    });
+
+    it('re-shows prompt after dismiss on next chunk load failure', () => {
+        const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
+        spectator.service.notifyChunkLoadFailure(new Error('a'), { url: '/a', source: 'error-handler' });
+        spectator.service.dismiss();
+
+        spectator.service.notifyChunkLoadFailure(new Error('b'), { url: '/b', source: 'router' });
+
+        expect(spectator.service.chunkLoadFailed()).toBe(true);
+        expect(logger.mockLogger.error).toHaveBeenCalledTimes(2);
+    });
 });
