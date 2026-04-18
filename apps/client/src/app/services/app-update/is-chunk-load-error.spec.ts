@@ -10,6 +10,7 @@ describe('isChunkLoadError', () => {
             new Error('Failed to fetch dynamically imported module: https://app/chunk.js'),
         ],
         ['error loading dynamically imported module', new Error('error loading dynamically imported module')],
+        ['Importing a module script failed (Safari)', new Error('Importing a module script failed.')],
     ])('returns true for %s', (_label, err) => {
         expect(isChunkLoadError(err)).toBe(true);
     });

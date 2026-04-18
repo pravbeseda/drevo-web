@@ -4,6 +4,7 @@ import { LayoutPage } from '../../pages/layout.page';
 test.describe('Chunk reload prompt', () => {
     test('shows overlay when a lazy chunk fails to load and reloads on click', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
         const layout = new LayoutPage(page);
 
@@ -11,6 +12,12 @@ test.describe('Chunk reload prompt', () => {
         await page.goto('/');
         await layout.waitForReady();
         await page.waitForLoadState('networkidle');
+
+        // On mobile the sidebar is a closed drawer — open it so nav-item is clickable.
+        if (isMobile) {
+            await layout.hamburgerButton.click();
+            await layout.expectSidebarExpanded();
+        }
 
         // Simulate post-deploy state: any further lazy JS chunk request 404s.
         // Only lazy chunks (chunk-*.js) are blocked; initial bundle / polyfills are
@@ -47,13 +54,18 @@ test.describe('Chunk reload prompt', () => {
         await expect(page.getByTestId('reload-prompt')).toHaveCount(0);
     });
 
-    test('does not show overlay on normal navigation', async ({ authenticatedPage: page }) => {
+    test('does not show overlay on normal navigation', async ({ authenticatedPage: page, isMobile }) => {
         await mockPictureThumbs(page);
         await mockPicturesApi(page);
 
         const layout = new LayoutPage(page);
         await page.goto('/');
         await layout.waitForReady();
+
+        if (isMobile) {
+            await layout.hamburgerButton.click();
+            await layout.expectSidebarExpanded();
+        }
 
         await layout.navItem('Иллюстрации').click();
         await page.waitForURL('**/pictures');
