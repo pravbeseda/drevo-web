@@ -1,9 +1,10 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 import { ButtonComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-reload-prompt',
-    imports: [ButtonComponent],
+    imports: [A11yModule, ButtonComponent],
     templateUrl: './reload-prompt.component.html',
     styleUrl: './reload-prompt.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
