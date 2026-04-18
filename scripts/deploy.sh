@@ -143,6 +143,12 @@ RELEASES_DIR="$RELEASES_BASE_DIR/$ENVIRONMENT"
 RELEASE_DIR="$RELEASES_DIR/$VERSION"
 CURRENT_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-current"
 PREVIOUS_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-previous"
+# Fallback ring: symlinks to previous N releases so nginx can serve hashed
+# assets of older builds to long-lived tabs after a deploy.
+PREV_LINK_1="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-1"
+PREV_LINK_2="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-2"
+PREV_LINK_3="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-3"
+PREV_LINK_4="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-4"
 LOGS_DIR="$BASE_DIR/logs"
 
 # Ensure node/pm2 are in PATH for non-interactive SSH sessions (e.g. nvm)
@@ -200,6 +206,12 @@ else
     log_warn "No current symlink found, skipping rollback preparation"
 fi
 
+# Capture old current target before switch — used for fallback ring rotation.
+OLD_CURRENT_TARGET=""
+if [ -L "$CURRENT_LINK" ]; then
+    OLD_CURRENT_TARGET=$(readlink "$CURRENT_LINK")
+fi
+
 # Simplified atomic symlink switching
 log_info "Performing atomic symlink switch..."
 
@@ -229,6 +241,48 @@ else
     fi
     
     log_info "Symlink created successfully: $CURRENT_LINK -> $RELEASE_DIR"
+fi
+
+# Rotate fallback ring: prev-3→prev-4, prev-2→prev-3, prev-1→prev-2, old current→prev-1.
+# Missing slots are skipped — the ring warms up over several deploys.
+log_info "Rotating release fallback ring..."
+
+rotate_ring_slot() {
+    local from="$1"
+    local to="$2"
+    if [ -L "$from" ]; then
+        local target
+        target=$(readlink "$from")
+        rm -f "$to"
+        ln -sfn "$target" "$to"
+    fi
+}
+
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Would rotate ring: prev-3→prev-4, prev-2→prev-3, prev-1→prev-2, old current→prev-1"
+else
+    rotate_ring_slot "$PREV_LINK_3" "$PREV_LINK_4"
+    rotate_ring_slot "$PREV_LINK_2" "$PREV_LINK_3"
+    rotate_ring_slot "$PREV_LINK_1" "$PREV_LINK_2"
+
+    if [ -n "$OLD_CURRENT_TARGET" ]; then
+        rm -f "$PREV_LINK_1"
+        ln -sfn "$OLD_CURRENT_TARGET" "$PREV_LINK_1"
+        log_info "Fallback ring: prev-1 → $OLD_CURRENT_TARGET"
+    else
+        log_info "No previous current symlink found — skipping prev-1 assignment (fresh environment)"
+    fi
+
+    for link in "$PREV_LINK_1" "$PREV_LINK_2" "$PREV_LINK_3" "$PREV_LINK_4"; do
+        if [ -L "$link" ]; then
+            ring_target=$(readlink "$link")
+            if [ -d "$ring_target" ]; then
+                log_info "  $(basename "$link") → $ring_target"
+            else
+                log_warn "  $(basename "$link") points to missing directory: $ring_target"
+            fi
+        fi
+    done
 fi
 
 # Create package.json for PM2 version display
