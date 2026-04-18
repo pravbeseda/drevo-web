@@ -143,6 +143,12 @@ RELEASES_DIR="$RELEASES_BASE_DIR/$ENVIRONMENT"
 RELEASE_DIR="$RELEASES_DIR/$VERSION"
 CURRENT_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-current"
 PREVIOUS_LINK="$RELEASES_BASE_DIR/$ENVIRONMENT-previous"
+# Fallback ring: symlinks to previous N releases so nginx can serve hashed
+# assets of older builds to long-lived tabs after a deploy.
+PREV_LINK_1="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-1"
+PREV_LINK_2="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-2"
+PREV_LINK_3="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-3"
+PREV_LINK_4="$RELEASES_BASE_DIR/$ENVIRONMENT-prev-4"
 LOGS_DIR="$BASE_DIR/logs"
 
 # Ensure node/pm2 are in PATH for non-interactive SSH sessions (e.g. nvm)
@@ -200,6 +206,12 @@ else
     log_warn "No current symlink found, skipping rollback preparation"
 fi
 
+# Capture old current target before switch — used for fallback ring rotation.
+OLD_CURRENT_TARGET=""
+if [ -L "$CURRENT_LINK" ]; then
+    OLD_CURRENT_TARGET=$(readlink "$CURRENT_LINK")
+fi
+
 # Simplified atomic symlink switching
 log_info "Performing atomic symlink switch..."
 
@@ -229,6 +241,55 @@ else
     fi
     
     log_info "Symlink created successfully: $CURRENT_LINK -> $RELEASE_DIR"
+fi
+
+# Rotate fallback ring: prev-3→prev-4, prev-2→prev-3, prev-1→prev-2, old current→prev-1.
+# Missing slots are skipped — the ring warms up over several deploys.
+log_info "Rotating release fallback ring..."
+
+rotate_ring_slot() {
+    local from="$1"
+    local to="$2"
+    if [ -L "$from" ]; then
+        local target
+        target=$(readlink "$from")
+        if [ -d "$target" ]; then
+            rm -f "$to"
+            ln -sfn "$target" "$to"
+        else
+            log_warn "Ring source $(basename "$from") points to missing directory ($target) — clearing $(basename "$to")"
+            rm -f "$to"
+        fi
+    fi
+}
+
+if [ "$DRY_RUN" = true ]; then
+    log_info "[DRY RUN] Would rotate ring: prev-3→prev-4, prev-2→prev-3, prev-1→prev-2, old current→prev-1"
+elif [ "$OLD_CURRENT_TARGET" = "$RELEASE_DIR" ]; then
+    log_info "Re-deploy of the same release — ring rotation skipped"
+else
+    rotate_ring_slot "$PREV_LINK_3" "$PREV_LINK_4"
+    rotate_ring_slot "$PREV_LINK_2" "$PREV_LINK_3"
+    rotate_ring_slot "$PREV_LINK_1" "$PREV_LINK_2"
+
+    if [ -n "$OLD_CURRENT_TARGET" ]; then
+        rm -f "$PREV_LINK_1"
+        ln -sfn "$OLD_CURRENT_TARGET" "$PREV_LINK_1"
+        log_info "Fallback ring: prev-1 → $OLD_CURRENT_TARGET"
+    else
+        log_info "No previous current symlink found — skipping prev-1 assignment (fresh environment)"
+    fi
+
+    for link in "$PREV_LINK_1" "$PREV_LINK_2" "$PREV_LINK_3" "$PREV_LINK_4"; do
+        if [ -L "$link" ]; then
+            ring_target=$(readlink "$link")
+            if [ -d "$ring_target" ]; then
+                log_info "  $(basename "$link") → $ring_target"
+            else
+                log_warn "  $(basename "$link") points to missing directory: $ring_target"
+            fi
+        fi
+    done
 fi
 
 # Create package.json for PM2 version display
@@ -315,6 +376,21 @@ fi
 # Automatic cleanup of releases
 log_info "Starting automatic cleanup of old releases..."
 
+# Collect directories referenced by active symlinks (current, previous, fallback ring).
+# These must never be deleted by cleanup, regardless of their mtime order.
+PROTECTED_DIRS=""
+for link in "$CURRENT_LINK" "$PREVIOUS_LINK" "$PREV_LINK_1" "$PREV_LINK_2" "$PREV_LINK_3" "$PREV_LINK_4"; do
+    if [ -L "$link" ]; then
+        target=$(readlink "$link")
+        # Resolve to absolute path so comparison with find output is reliable
+        case "$target" in
+            /*) abs_target="$target" ;;
+            *)  abs_target="$RELEASES_BASE_DIR/$target" ;;
+        esac
+        PROTECTED_DIRS="$PROTECTED_DIRS$abs_target"$'\n'
+    fi
+done
+
 # Find all directories in releases folder, sort by modification time (newest first)
 # Use stat to get modification time for proper sorting
 RELEASE_DIRS=$(find "$RELEASES_DIR" -maxdepth 1 -type d -not -path "$RELEASES_DIR" -exec stat -c '%Y %n' {} \; | sort -nr | cut -d' ' -f2-)
@@ -324,11 +400,15 @@ log_info "Found $RELEASE_COUNT releases in $RELEASES_DIR"
 
 if [ "$RELEASE_COUNT" -gt 5 ]; then
     RELEASES_TO_DELETE=$(echo "$RELEASE_DIRS" | tail -n +6)
-    
-    log_info "Cleaning up old releases (keeping latest 5):"
-    
+
+    log_info "Cleaning up old releases (keeping latest 5, plus releases referenced by active symlinks):"
+
     echo "$RELEASES_TO_DELETE" | while read -r dir; do
         if [ -n "$dir" ] && [ -d "$dir" ]; then
+            if printf '%s' "$PROTECTED_DIRS" | grep -Fxq "$dir"; then
+                log_info "Skipping protected release (referenced by symlink): $(basename "$dir")"
+                continue
+            fi
             if [ "$DRY_RUN" = true ]; then
                 log_info "[DRY RUN] Would delete old release: $(basename "$dir")"
             else
@@ -337,7 +417,7 @@ if [ "$RELEASE_COUNT" -gt 5 ]; then
             fi
         fi
     done
-    
+
     log_info "Cleanup completed"
 else
     log_info "No cleanup needed (total releases: $RELEASE_COUNT, limit: 5)"
@@ -362,6 +442,11 @@ elif [ -L "$CURRENT_LINK" ] && [ "$(readlink "$CURRENT_LINK")" = "$RELEASE_DIR" 
     if [ -L "$PREVIOUS_LINK" ]; then
         log_info "Previous version (for rollback): $(readlink "$PREVIOUS_LINK")"
     fi
+    for link in "$PREV_LINK_1" "$PREV_LINK_2" "$PREV_LINK_3" "$PREV_LINK_4"; do
+        if [ -L "$link" ]; then
+            log_info "Fallback $(basename "$link"): $(readlink "$link")"
+        fi
+    done
     log_info "==========================="
     echo ""
     
