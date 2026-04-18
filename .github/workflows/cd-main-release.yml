@@ -37,7 +37,7 @@ jobs:
                   echo "::error::workflow_dispatch for releases is only allowed from main (current: ${{ github.ref }})"
                   exit 1
 
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
               with:
                   fetch-depth: 0
                   ref: main
@@ -120,7 +120,7 @@ jobs:
                       echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
                   fi
 
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
               with:
                   fetch-depth: 0
                   ref: ${{ steps.version.outputs.tag }}
@@ -146,7 +146,7 @@ jobs:
                     echo "EOF" >> $GITHUB_OUTPUT
                   fi
 
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v5
               with:
                   node-version: '20'
                   cache: 'yarn'
@@ -235,7 +235,7 @@ jobs:
                   version: ${{ steps.version.outputs.version }}
 
             - name: Create GitHub Release
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v2
               with:
                   tag_name: ${{ steps.version.outputs.tag }}
                   name: Release ${{ steps.version.outputs.version }}
