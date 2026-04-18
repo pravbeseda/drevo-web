@@ -1,8 +1,8 @@
-import { ErrorHandler } from '@angular/core';
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { WINDOW } from '@drevo-web/core';
 import { AppUpdateService } from './app-update.service';
 import { ChunkErrorHandler } from './chunk-error-handler';
+import { ErrorHandler } from '@angular/core';
+import { WINDOW } from '@drevo-web/core';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('ChunkErrorHandler', () => {
     let spectator: SpectatorService<ChunkErrorHandler>;
@@ -36,6 +36,7 @@ describe('ChunkErrorHandler', () => {
 
         expect(appUpdateService.notifyChunkLoadFailure).toHaveBeenCalledWith(error, {
             url: '/profile?id=1',
+            source: 'error-handler',
         });
         expect(superHandleSpy).toHaveBeenCalledWith(error);
     });

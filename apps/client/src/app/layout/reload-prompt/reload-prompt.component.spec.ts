@@ -1,5 +1,5 @@
-import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { ReloadPromptComponent } from './reload-prompt.component';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 
 describe('ReloadPromptComponent', () => {
     let spectator: Spectator<ReloadPromptComponent>;

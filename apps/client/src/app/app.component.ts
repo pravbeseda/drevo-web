@@ -1,10 +1,9 @@
 import { LayoutComponent } from './layout/layout.component';
 import { ReloadPromptComponent } from './layout/reload-prompt/reload-prompt.component';
 import { AppUpdateService } from './services/app-update/app-update.service';
-import { isChunkLoadError } from './services/app-update/is-chunk-load-error';
 import { Component, inject } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, NavigationError, Router, RouterModule } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { filter, map, startWith } from 'rxjs/operators';
 
@@ -24,20 +23,6 @@ export class AppComponent {
 
     constructor() {
         this.logger.info('App initialized');
-
-        // Covers router navigations: in zoneless mode imperative router.navigate()
-        // rejections may bypass the global ErrorHandler, so we listen to NavigationError
-        // directly. ChunkErrorHandler complements this for non-router dynamic imports.
-        this.router.events
-            .pipe(
-                takeUntilDestroyed(),
-                filter((e): e is NavigationError => e instanceof NavigationError),
-            )
-            .subscribe(event => {
-                if (isChunkLoadError(event.error)) {
-                    this.appUpdateService.notifyChunkLoadFailure(event.error, { url: event.url });
-                }
-            });
     }
 
     readonly showLayout = toSignal(

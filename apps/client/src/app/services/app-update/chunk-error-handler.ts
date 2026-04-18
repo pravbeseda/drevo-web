@@ -12,7 +12,7 @@ export class ChunkErrorHandler extends ErrorHandler {
         if (isChunkLoadError(error)) {
             const loc = this.window?.location;
             const url = loc ? loc.pathname + loc.search : '';
-            this.appUpdateService.notifyChunkLoadFailure(error, { url });
+            this.appUpdateService.notifyChunkLoadFailure(error, { url, source: 'error-handler' });
         }
         super.handleError(error);
     }
