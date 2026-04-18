@@ -1,0 +1,29 @@
+<div
+    class="backdrop"
+    data-testid="reload-prompt"
+>
+    <div class="card">
+        <h2
+            id="reload-prompt-title"
+            class="title"
+        >
+            Приложение обновилось
+        </h2>
+        <p
+            id="reload-prompt-body"
+            class="body"
+        >
+            Откройте новую версию, чтобы продолжить работу. Ваши несохранённые изменения могут быть потеряны.
+        </p>
+        <div class="actions">
+            <ui-button
+                variant="filled"
+                accent="primary"
+                testId="reload-button"
+                (click)="onReloadClick()"
+            >
+                Обновить
+            </ui-button>
+        </div>
+    </div>
+</div>
