@@ -781,7 +781,7 @@ pm2 resurrect
 
 ### Phase 12 (OPTIONAL, follow-up) — Upgrade release trigger: `workflow_dispatch` + auto-bump
 
-**Статус**: **необязательная**. Не блокирует миграцию. Выполнять через 2–4 недели после стабилизации нового pipeline'а.
+**Статус**: **done** (PR #178, merged 2026-04-18).
 
 **Summary**: заменить ручной `git tag` на `workflow_dispatch` с auto-bump. Добавляет guard'ы (only main, only green CI), dry-run, auto-version compute. Устраняет класс ошибок «не та версия / не тот коммит / забыл push».
 
