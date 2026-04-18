@@ -3,7 +3,7 @@
 
 # Drevo-Web
 
-Nx monorepo with Angular 21 application for the Drevo project. Gradual migration from a legacy Yii1 app to a modern stack.
+Nx monorepo with Angular 21 application for the Drevo project. Gradual migration from a legacy Yii1 app to a modern stack
 
 ## Tech Stack
 
