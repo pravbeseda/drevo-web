@@ -1,11 +1,12 @@
+import { AppComponent } from './app.component';
+import { AppUpdateService } from './services/app-update/app-update.service';
+import { PageTitleStrategy } from './services/page-title.strategy';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
-import { AppComponent } from './app.component';
-import { PageTitleStrategy } from './services/page-title.strategy';
 
 describe('AppComponent', () => {
     let spectator: Spectator<AppComponent>;
@@ -18,6 +19,10 @@ describe('AppComponent', () => {
             provideRouter([]),
             MockProvider(PageTitleStrategy, {
                 pageTitle: signal('Древо'),
+            }),
+            MockProvider(AppUpdateService, {
+                chunkLoadFailed: signal(false).asReadonly(),
+                reload: jest.fn(),
             }),
         ],
     });

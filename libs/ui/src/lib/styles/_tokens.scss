@@ -24,6 +24,9 @@ $z-side-panel-backdrop: 400;
 $z-side-panel: 401;
 $sidebar-collapsed-padding: 12px;
 
+// App-blocking overlay (reload prompt) — must sit above every other overlay
+$z-app-blocker: 1000;
+
 // Typography
 $font-size-xs: 0.75rem;
 $font-size-sm: 0.8rem;
