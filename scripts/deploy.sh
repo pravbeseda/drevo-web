@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+# Files created during deploy must be readable by nginx (www-data group via setgid on releases/).
+umask 027
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
