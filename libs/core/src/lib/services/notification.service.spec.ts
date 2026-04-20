@@ -1,10 +1,18 @@
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
 import { createServiceFactory, SpectatorService, SpyObject } from '@ngneat/spectator/jest';
+import { Subject } from 'rxjs';
 import { NotificationService } from './notification.service';
 
 describe('NotificationService', () => {
     let spectator: SpectatorService<NotificationService>;
     let snackBar: SpyObject<MatSnackBar>;
+    let mockSnackBarRef: {
+        onAction: jest.Mock;
+        afterDismissed: jest.Mock;
+        dismiss: jest.Mock;
+    };
+    let onActionSubject: Subject<void>;
+    let afterDismissedSubject: Subject<{ dismissedByAction: boolean }>;
 
     const createService = createServiceFactory({
         service: NotificationService,
@@ -12,8 +20,17 @@ describe('NotificationService', () => {
     });
 
     beforeEach(() => {
+        onActionSubject = new Subject<void>();
+        afterDismissedSubject = new Subject<{ dismissedByAction: boolean }>();
+        mockSnackBarRef = {
+            onAction: jest.fn().mockReturnValue(onActionSubject.asObservable()),
+            afterDismissed: jest.fn().mockReturnValue(afterDismissedSubject.asObservable()),
+            dismiss: jest.fn(),
+        };
+
         spectator = createService();
         snackBar = spectator.inject(MatSnackBar);
+        snackBar.open.mockReturnValue(mockSnackBarRef as unknown as MatSnackBarRef<TextOnlySnackBar>);
         jest.useFakeTimers();
     });
 
@@ -112,6 +129,90 @@ describe('NotificationService', () => {
 
             spectator.service.info('Message');
             expect(snackBar.open).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('showPersistent()', () => {
+        it('should open snackbar with duration 0', () => {
+            spectator.service.showPersistent({
+                message: 'Persistent message',
+                actionLabel: 'Action',
+                onAction: jest.fn(),
+            });
+
+            expect(snackBar.open).toHaveBeenCalledWith('Persistent message', 'Action', {
+                duration: 0,
+                horizontalPosition: 'center',
+                verticalPosition: 'bottom',
+                panelClass: ['toast-info', 'toast-persistent'],
+                politeness: 'polite',
+            });
+        });
+
+        it('should use specified kind for panel class', () => {
+            spectator.service.showPersistent({
+                message: 'Error message',
+                actionLabel: 'Retry',
+                onAction: jest.fn(),
+                kind: 'error',
+            });
+
+            expect(snackBar.open).toHaveBeenCalledWith(
+                'Error message',
+                'Retry',
+                expect.objectContaining({
+                    panelClass: ['toast-error', 'toast-persistent'],
+                }),
+            );
+        });
+
+        it('should call onAction callback when action clicked', () => {
+            const onAction = jest.fn();
+            spectator.service.showPersistent({
+                message: 'Message',
+                actionLabel: 'Action',
+                onAction,
+            });
+
+            onActionSubject.next();
+
+            expect(onAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('should call onDismiss callback when snackbar dismissed', () => {
+            const onDismiss = jest.fn();
+            spectator.service.showPersistent({
+                message: 'Message',
+                actionLabel: 'Action',
+                onAction: jest.fn(),
+                onDismiss,
+            });
+
+            afterDismissedSubject.next({ dismissedByAction: false });
+
+            expect(onDismiss).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not fail if onDismiss is not provided', () => {
+            spectator.service.showPersistent({
+                message: 'Message',
+                actionLabel: 'Action',
+                onAction: jest.fn(),
+            });
+
+            expect(() => afterDismissedSubject.next({ dismissedByAction: false })).not.toThrow();
+        });
+
+        it('should return dismiss function', () => {
+            const dismiss = spectator.service.showPersistent({
+                message: 'Message',
+                actionLabel: 'Action',
+                onAction: jest.fn(),
+            });
+
+            dismiss();
+
+            expect(mockSnackBarRef.dismiss).toHaveBeenCalledTimes(1);
         });
     });
 });

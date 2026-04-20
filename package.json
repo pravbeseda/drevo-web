@@ -10,6 +10,8 @@
         "format:fix": "node ./node_modules/.bin/prettier . --write",
         "e2e": "yarn playwright test --config=apps/client-e2e/playwright.config.ts",
         "e2e:api": "yarn playwright test --project=api --config=apps/client-e2e/playwright.config.ts",
+        "prebuild": "node scripts/generate-version.js",
+        "prebuild:dev": "node scripts/generate-version.js",
         "build": "nx build client --configuration=production",
         "build:dev": "nx build client --configuration=development",
         "start": "node dist/apps/client/server/server.mjs",

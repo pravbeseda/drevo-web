@@ -4,7 +4,7 @@ import { AppUpdateService } from './services/app-update/app-update.service';
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, WINDOW } from '@drevo-web/core';
 import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
@@ -16,6 +16,7 @@ import { filter, map, startWith } from 'rxjs/operators';
 export class AppComponent {
     title = 'Древо';
 
+    private readonly window = inject(WINDOW);
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
     private readonly logger = inject(LoggerService).withContext('AppComponent');
@@ -23,6 +24,10 @@ export class AppComponent {
 
     constructor() {
         this.logger.info('App initialized');
+
+        if (this.window) {
+            this.appUpdateService.startVersionCheck();
+        }
     }
 
     readonly showLayout = toSignal(

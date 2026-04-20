@@ -6,6 +6,14 @@ const errorDurationMs = 6000;
 const messageDurationMs = 3000;
 const throttleTimeMs = 2000;
 
+export interface PersistentNotificationConfig {
+    readonly message: string;
+    readonly actionLabel: string;
+    readonly onAction: () => void;
+    readonly onDismiss?: () => void;
+    readonly kind?: ToastKind;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
     private readonly snackBar = inject(MatSnackBar);
@@ -42,5 +50,25 @@ export class NotificationService {
 
     info(message: string): void {
         this.show(message, 'info');
+    }
+
+    showPersistent(config: PersistentNotificationConfig): () => void {
+        const ref = this.snackBar.open(config.message, config.actionLabel, {
+            duration: 0,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: [`toast-${config.kind ?? 'info'}`, 'toast-persistent'],
+            politeness: 'polite',
+        });
+
+        ref.onAction().subscribe(() => {
+            config.onAction();
+        });
+
+        ref.afterDismissed().subscribe(() => {
+            config.onDismiss?.();
+        });
+
+        return () => ref.dismiss();
     }
 }
