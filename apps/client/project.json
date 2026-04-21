@@ -23,6 +23,11 @@
                     {
                         "glob": "**/*",
                         "input": "apps/client/public"
+                    },
+                    {
+                        "glob": "version.json",
+                        "input": "apps/client/src/assets",
+                        "output": "/assets"
                     }
                 ],
                 "styles": ["apps/client/src/styles.scss"],
