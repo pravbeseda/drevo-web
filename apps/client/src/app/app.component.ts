@@ -23,6 +23,7 @@ export class AppComponent {
 
     constructor() {
         this.logger.info('App initialized');
+        this.appUpdateService.startVersionCheck();
     }
 
     readonly showLayout = toSignal(
