@@ -65,8 +65,10 @@ export class NotificationService {
             config.onAction();
         });
 
-        ref.afterDismissed().subscribe(() => {
-            config.onDismiss?.();
+        ref.afterDismissed().subscribe(({ dismissedByAction }) => {
+            if (!dismissedByAction) {
+                config.onDismiss?.();
+            }
         });
 
         return () => ref.dismiss();

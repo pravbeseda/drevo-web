@@ -65,8 +65,8 @@ export class AppUpdateService {
         this.logger.error('Chunk load failure — reload prompt shown', { error, ...context });
     }
 
-    reload(): void {
-        this.logger.info('User clicked reload after chunk load failure');
+    reload(reason: 'chunk-load-failure' | 'version-update' = 'chunk-load-failure'): void {
+        this.logger.info('User clicked reload', { reason });
         this.window?.location.reload();
     }
 
@@ -89,7 +89,7 @@ export class AppUpdateService {
         this.notification.showPersistent({
             message: `Доступна новая версия ${info.version}`,
             actionLabel: 'Обновить',
-            onAction: () => this.reload(),
+            onAction: () => this.reload('version-update'),
             onDismiss: () => {
                 this.lastDismissedAt = Date.now();
                 this.scheduleReminder(info);

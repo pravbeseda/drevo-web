@@ -17,6 +17,7 @@ export class VersionCheckService {
     private readonly logger = inject(LoggerService).withContext('VersionCheckService');
     private readonly destroyRef = inject(DestroyRef);
 
+    private started = false;
     private currentVersion: string | undefined;
 
     private readonly _newVersionAvailable$ = new Subject<VersionInfo>();
@@ -27,12 +28,20 @@ export class VersionCheckService {
             return;
         }
 
-        this.fetchVersion().subscribe(info => {
-            if (info) {
-                this.currentVersion = info.version;
-                this.logger.info('Initial version loaded', { version: info.version });
-            }
-        });
+        if (this.started) {
+            this.logger.warn('startPolling() called more than once — ignoring');
+            return;
+        }
+        this.started = true;
+
+        this.fetchVersion()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(info => {
+                if (info) {
+                    this.currentVersion = info.version;
+                    this.logger.info('Initial version loaded', { version: info.version });
+                }
+            });
 
         timer(environment.versionCheckIntervalMs, environment.versionCheckIntervalMs)
             .pipe(

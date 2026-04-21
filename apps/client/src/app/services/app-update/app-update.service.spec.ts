@@ -89,7 +89,7 @@ describe('AppUpdateService', () => {
 
         spectator.service.reload();
 
-        expect(logger.mockLogger.info).toHaveBeenCalledWith('User clicked reload after chunk load failure');
+        expect(logger.mockLogger.info).toHaveBeenCalledWith('User clicked reload', { reason: 'chunk-load-failure' });
         expect(reload).toHaveBeenCalledTimes(1);
     });
 

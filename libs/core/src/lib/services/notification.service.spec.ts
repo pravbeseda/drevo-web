@@ -203,6 +203,20 @@ describe('NotificationService', () => {
             expect(() => afterDismissedSubject.next({ dismissedByAction: false })).not.toThrow();
         });
 
+        it('should not call onDismiss when dismissed by action', () => {
+            const onDismiss = jest.fn();
+            spectator.service.showPersistent({
+                message: 'Message',
+                actionLabel: 'Action',
+                onAction: jest.fn(),
+                onDismiss,
+            });
+
+            afterDismissedSubject.next({ dismissedByAction: true });
+
+            expect(onDismiss).not.toHaveBeenCalled();
+        });
+
         it('should return dismiss function', () => {
             const dismiss = spectator.service.showPersistent({
                 message: 'Message',

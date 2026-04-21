@@ -6,6 +6,5 @@ export const environment = {
     apiUrl: '',
     // Sentry DSN - empty in development to disable
     sentryDsn: '',
-    // Version check interval (30 sec for dev testing)
     versionCheckIntervalMs: 30 * 1000,
 };
