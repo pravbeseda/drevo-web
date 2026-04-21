@@ -1,11 +1,11 @@
 import { isChunkLoadError } from './is-chunk-load-error';
 import { VersionCheckService } from './version-check.service';
-import { Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationError, Router } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { VersionInfo } from '@drevo-web/shared';
-import { filter } from 'rxjs/operators';
+import { filter, Subscription, timer } from 'rxjs';
 
 const REMIND_AFTER_MS = 60 * 60 * 1000;
 
@@ -16,6 +16,7 @@ export class AppUpdateService {
     private readonly logger = inject(LoggerService).withContext('AppUpdateService');
     private readonly versionCheck = inject(VersionCheckService);
     private readonly notification = inject(NotificationService);
+    private readonly destroyRef = inject(DestroyRef);
 
     private readonly _chunkLoadFailed = signal(false);
     readonly chunkLoadFailed = this._chunkLoadFailed.asReadonly();
@@ -24,6 +25,7 @@ export class AppUpdateService {
     readonly newVersionAvailable = this._newVersionAvailable.asReadonly();
 
     private lastDismissedAt: number | undefined;
+    private reminderTimer?: Subscription;
 
     constructor() {
         // Covers router navigations: in zoneless mode imperative router.navigate()
@@ -78,6 +80,7 @@ export class AppUpdateService {
 
     private showUpdateSnackbar(info: VersionInfo): void {
         if (this.lastDismissedAt && Date.now() - this.lastDismissedAt < REMIND_AFTER_MS) {
+            this.scheduleReminder(info);
             return;
         }
 
@@ -89,7 +92,22 @@ export class AppUpdateService {
             onAction: () => this.reload(),
             onDismiss: () => {
                 this.lastDismissedAt = Date.now();
+                this.scheduleReminder(info);
             },
         });
+    }
+
+    private scheduleReminder(info: VersionInfo): void {
+        this.reminderTimer?.unsubscribe();
+
+        const elapsed = Date.now() - (this.lastDismissedAt ?? 0);
+        const remaining = Math.max(0, REMIND_AFTER_MS - elapsed);
+
+        this.reminderTimer = timer(remaining)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.lastDismissedAt = undefined;
+                this.showUpdateSnackbar(info);
+            });
     }
 }

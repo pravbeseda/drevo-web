@@ -35,7 +35,6 @@ describe('VersionCheckService', () => {
         });
 
         afterEach(() => {
-            spectator.service.ngOnDestroy();
             jest.useRealTimers();
         });
 
@@ -71,6 +70,23 @@ describe('VersionCheckService', () => {
 
             expect(emittedVersions).toHaveLength(1);
             expect(emittedVersions[0]).toEqual(v2);
+        });
+
+        it('should not emit again for the same new version on subsequent polls', () => {
+            const v1: VersionInfo = { version: '1.0.0', buildTime: '2026-04-20T00:00:00Z', commit: 'abc' };
+            const v2: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T01:00:00Z', commit: 'def' };
+
+            spectator.service.newVersionAvailable$.subscribe(info => emittedVersions.push(info));
+
+            http.get.mockReturnValue(of(v1));
+            spectator.service.startPolling();
+
+            http.get.mockReturnValue(of(v2));
+            jest.advanceTimersByTime(environment.versionCheckIntervalMs);
+            jest.advanceTimersByTime(environment.versionCheckIntervalMs);
+            jest.advanceTimersByTime(environment.versionCheckIntervalMs);
+
+            expect(emittedVersions).toHaveLength(1);
         });
 
         it('should not emit when version is the same', () => {
@@ -137,10 +153,6 @@ describe('VersionCheckService', () => {
             http = spectator.inject(HttpClient);
         });
 
-        afterEach(() => {
-            spectator.service.ngOnDestroy();
-        });
-
         it('should not poll during SSR', () => {
             spectator.service.startPolling();
 
@@ -170,7 +182,6 @@ describe('VersionCheckService', () => {
         });
 
         afterEach(() => {
-            spectator.service.ngOnDestroy();
             jest.useRealTimers();
         });
 

@@ -194,22 +194,23 @@ describe('AppUpdateService', () => {
             expect(notification.showPersistent).not.toHaveBeenCalled();
         });
 
-        it('should show notification again after cooldown expires', () => {
+        it('should show notification again after cooldown expires via reminder timer', () => {
             const notification = spectator.inject(NotificationService) as SpyObject<NotificationService>;
-            const v1: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T00:00:00Z', commit: 'def' };
-            const v2: VersionInfo = { version: '1.2.0', buildTime: '2026-04-20T01:00:00Z', commit: 'ghi' };
+            const version: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T00:00:00Z', commit: 'def' };
 
-            getNewVersionAvailable().next(v1);
+            getNewVersionAvailable().next(version);
             expect(notification.showPersistent).toHaveBeenCalledTimes(1);
 
             const onDismiss = notification.showPersistent.mock.calls[0][0].onDismiss;
             onDismiss?.();
             notification.showPersistent.mockClear();
 
-            jest.advanceTimersByTime(60 * 60 * 1000 + 1);
-            getNewVersionAvailable().next(v2);
+            jest.advanceTimersByTime(60 * 60 * 1000);
 
             expect(notification.showPersistent).toHaveBeenCalledTimes(1);
+            expect(notification.showPersistent).toHaveBeenCalledWith(
+                expect.objectContaining({ message: 'Доступна новая версия 1.1.0' }),
+            );
         });
 
         it('should reload when action button clicked', () => {

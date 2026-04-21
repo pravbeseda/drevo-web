@@ -1,21 +1,22 @@
 import { environment } from '../../../environments/environment';
 import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, OnDestroy } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, WINDOW } from '@drevo-web/core';
 import { VersionInfo } from '@drevo-web/shared';
-import { catchError, filter, of, Subject, switchMap, takeUntil, timer } from 'rxjs';
+import { catchError, filter, of, Subject, switchMap, timer } from 'rxjs';
 
 const VERSION_URL = '/assets/version.json';
 
 @Injectable({ providedIn: 'root' })
-export class VersionCheckService implements OnDestroy {
+export class VersionCheckService {
     private readonly http = inject(HttpClient);
     private readonly document = inject(DOCUMENT);
     private readonly window = inject(WINDOW);
     private readonly logger = inject(LoggerService).withContext('VersionCheckService');
+    private readonly destroyRef = inject(DestroyRef);
 
-    private readonly destroy$ = new Subject<void>();
     private currentVersion: string | undefined;
 
     private readonly _newVersionAvailable$ = new Subject<VersionInfo>();
@@ -35,7 +36,7 @@ export class VersionCheckService implements OnDestroy {
 
         timer(environment.versionCheckIntervalMs, environment.versionCheckIntervalMs)
             .pipe(
-                takeUntil(this.destroy$),
+                takeUntilDestroyed(this.destroyRef),
                 filter(() => this.document.visibilityState === 'visible'),
                 switchMap(() => this.fetchVersion()),
                 filter((info): info is VersionInfo => info !== undefined),
@@ -47,6 +48,7 @@ export class VersionCheckService implements OnDestroy {
                         newVersion: info.version,
                     });
                     this._newVersionAvailable$.next(info);
+                    this.currentVersion = info.version;
                 }
             });
     }
@@ -59,10 +61,5 @@ export class VersionCheckService implements OnDestroy {
                 return of(undefined);
             }),
         );
-    }
-
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
     }
 }
