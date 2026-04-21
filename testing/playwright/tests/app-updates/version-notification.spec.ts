@@ -78,7 +78,6 @@ test.describe('Version update notification', () => {
 
         await page.clock.fastForward(5 * 60 * 1000);
 
-        await page.waitForTimeout(500);
         await expect(page.getByText(/Доступна новая версия/)).toHaveCount(0);
     });
 });

@@ -5,7 +5,7 @@ import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, WINDOW } from '@drevo-web/core';
 import { VersionInfo } from '@drevo-web/shared';
-import { catchError, filter, of, Subject, switchMap, timer } from 'rxjs';
+import { catchError, filter, of, Observable, Subject, switchMap, timer } from 'rxjs';
 
 const VERSION_URL = '/assets/version.json';
 
@@ -53,7 +53,7 @@ export class VersionCheckService {
             });
     }
 
-    private fetchVersion() {
+    private fetchVersion(): Observable<VersionInfo | undefined> {
         const url = `${VERSION_URL}?_=${Date.now()}`;
         return this.http.get<VersionInfo>(url).pipe(
             catchError(err => {
