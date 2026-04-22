@@ -162,8 +162,6 @@ jobs:
               run: |
                   echo "Building release version: $APP_VERSION"
 
-                  sed -i "s/__VERSION_PLACEHOLDER__/$APP_VERSION/g" apps/client/src/environments/environment.prod.ts
-
                   if [ -n "$SENTRY_DSN" ]; then
                     echo "Configuring Sentry DSN..."
                     sed -i "s|__SENTRY_DSN_PLACEHOLDER__|$SENTRY_DSN|g" apps/client/src/environments/environment.prod.ts

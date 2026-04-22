@@ -71,9 +71,6 @@ jobs:
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "Building beta version: $VERSION"
 
-                  # Replace version placeholder
-                  sed -i "s/__VERSION_PLACEHOLDER__/$VERSION/g" apps/client/src/environments/environment.prod.ts
-
                   # Replace Sentry DSN placeholder
                   if [ -n "$SENTRY_DSN" ]; then
                     echo "Configuring Sentry DSN..."

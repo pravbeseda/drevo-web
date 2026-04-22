@@ -1,10 +1,9 @@
-const packageJson = require('../package.json');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 const commit = execSync('git rev-parse --short HEAD').toString().trim();
-const version = process.env.APP_VERSION || process.env.VERSION || packageJson.version;
+const version = process.env.APP_VERSION || process.env.VERSION || 'dev';
 
 const versionInfo = {
     version,
@@ -12,14 +11,21 @@ const versionInfo = {
     commit,
 };
 
-const outputPath = 'apps/client/public/version.json';
-const outputDir = path.dirname(outputPath);
+const versionJsonPath = 'apps/client/public/version.json';
+const buildInfoPath = 'apps/client/src/app/shared/build-info.ts';
 
-if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+for (const outputPath of [versionJsonPath, buildInfoPath]) {
+    const outputDir = path.dirname(outputPath);
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
 }
 
 // eslint-disable-next-line no-null/no-null
-fs.writeFileSync(outputPath, JSON.stringify(versionInfo, null, 2));
+fs.writeFileSync(versionJsonPath, JSON.stringify(versionInfo, null, 2));
+fs.writeFileSync(
+    buildInfoPath,
+    `// Default development fallback for fresh checkouts.\n// Updated by scripts/generate-version.js before build and serve.\nexport const BUILD_INFO = {\n    version: ${JSON.stringify(version)},\n} as const;\n`,
+);
 
 console.log('Generated version.json:', versionInfo);

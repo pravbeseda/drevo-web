@@ -1,8 +1,8 @@
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { VersionService } from './version.service';
 
-jest.mock('../../../environments/environment', () => ({
-    environment: { version: 'mocked-version' },
+jest.mock('../../shared/build-info', () => ({
+    BUILD_INFO: { version: 'mocked-version' },
 }));
 
 describe('VersionService', () => {
@@ -20,23 +20,7 @@ describe('VersionService', () => {
         expect(spectator.service).toBeTruthy();
     });
 
-    it('should return version from environment', () => {
-        expect(spectator.service.getVersion()).toBe('mocked-version');
-    });
-
-    it('should return development version', () => {
-        // Mock environment for this specific test
-        jest.doMock('../../../environments/environment', () => ({
-            environment: { version: 'dev' },
-        }));
-
-        // Re-create service with new mock
-        const devSpectator = createService();
-        expect(devSpectator.service.getVersion()).toBe('mocked-version'); // Will still be mocked-version due to Jest caching
-    });
-
-    it('should return production version', () => {
-        // Since we can't easily change the mock mid-test, just verify the mock works
+    it('should return version from build info', () => {
         expect(spectator.service.getVersion()).toBe('mocked-version');
     });
 });
