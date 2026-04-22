@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const commit = execSync('git rev-parse --short HEAD').toString().trim();
-const version = process.env.VERSION || packageJson.version;
+const version = process.env.APP_VERSION || process.env.VERSION || packageJson.version;
 
 const versionInfo = {
     version,
@@ -12,7 +12,7 @@ const versionInfo = {
     commit,
 };
 
-const outputPath = 'apps/client/src/assets/version.json';
+const outputPath = 'apps/client/public/version.json';
 const outputDir = path.dirname(outputPath);
 
 if (!fs.existsSync(outputDir)) {

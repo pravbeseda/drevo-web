@@ -8,7 +8,7 @@ const UPDATED_VERSION = { version: '1.1.0', buildTime: '2026-04-20T01:00:00Z', c
 const setupInitialVersion = async (page: Page) => {
     await page.clock.install({ time: new Date('2026-04-20T12:00:00Z') });
 
-    await page.route('**/assets/version.json*', route => route.fulfill({ json: INITIAL_VERSION }));
+    await page.route('**/version.json*', route => route.fulfill({ json: INITIAL_VERSION }));
 
     const layout = new LayoutPage(page);
     await page.goto('/');
@@ -17,8 +17,8 @@ const setupInitialVersion = async (page: Page) => {
 };
 
 const switchToUpdatedVersion = async (page: Page) => {
-    await page.unroute('**/assets/version.json*');
-    await page.route('**/assets/version.json*', route => route.fulfill({ json: UPDATED_VERSION }));
+    await page.unroute('**/version.json*');
+    await page.route('**/version.json*', route => route.fulfill({ json: UPDATED_VERSION }));
 
     await page.clock.fastForward(5 * 60 * 1000);
 };

@@ -7,7 +7,7 @@ import { LoggerService, WINDOW } from '@drevo-web/core';
 import { VersionInfo } from '@drevo-web/shared';
 import { catchError, filter, of, Observable, Subject, switchMap, timer } from 'rxjs';
 
-const VERSION_URL = '/assets/version.json';
+const VERSION_URL = '/version.json';
 
 @Injectable({ providedIn: 'root' })
 export class VersionCheckService {

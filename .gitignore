@@ -99,4 +99,4 @@ results.sarif
 .claude/settings.local.json
 
 # Generated version file
-apps/client/src/assets/version.json
+apps/client/public/version.json
