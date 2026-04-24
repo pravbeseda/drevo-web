@@ -25,7 +25,8 @@ for (const outputPath of [versionJsonPath, buildInfoPath]) {
 fs.writeFileSync(versionJsonPath, JSON.stringify(versionInfo, null, 2));
 fs.writeFileSync(
     buildInfoPath,
-    `// Default development fallback for fresh checkouts.\n// Updated by scripts/generate-version.js before build and serve.\nexport const BUILD_INFO = {\n    version: ${JSON.stringify(version)},\n} as const;\n`,
+    `// Default development fallback for fresh checkouts.\n// Updated by scripts/generate-version.js before build and serve.\nexport const BUILD_INFO = {\n    version: '${version}',\n} as const;\n`,
 );
 
 console.log('Generated version.json:', versionInfo);
+console.log('Generated build-info.ts:', { version });
