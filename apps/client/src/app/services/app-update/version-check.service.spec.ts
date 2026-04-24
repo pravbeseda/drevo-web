@@ -53,7 +53,7 @@ describe('VersionCheckService', () => {
             spectator.service.startPolling();
 
             expect(http.get).toHaveBeenCalledTimes(1);
-            expect(http.get).toHaveBeenCalledWith(expect.stringMatching(/\/assets\/version\.json\?_=\d+/));
+            expect(http.get).toHaveBeenCalledWith(expect.stringMatching(/\/version\.json\?_=\d+/));
         });
 
         it('should emit newVersionAvailable$ when version changes', () => {

@@ -8,6 +8,7 @@
     "targets": {
         "build": {
             "executor": "@angular-devkit/build-angular:application",
+            "dependsOn": ["generate-version"],
             "outputs": ["{options.outputPath}"],
             "options": {
                 "outputPath": "dist/apps/client",
@@ -23,11 +24,6 @@
                     {
                         "glob": "**/*",
                         "input": "apps/client/public"
-                    },
-                    {
-                        "glob": "version.json",
-                        "input": "apps/client/src/assets",
-                        "output": "/assets"
                     }
                 ],
                 "styles": ["apps/client/src/styles.scss"],
@@ -80,8 +76,15 @@
             },
             "defaultConfiguration": "production"
         },
+        "generate-version": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "node scripts/generate-version.js"
+            }
+        },
         "serve": {
             "executor": "@angular-devkit/build-angular:dev-server",
+            "dependsOn": ["generate-version"],
             "configurations": {
                 "production": {
                     "buildTarget": "client:build:production"

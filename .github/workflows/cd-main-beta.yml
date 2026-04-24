@@ -67,11 +67,9 @@ jobs:
                   SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
               run: |
                   VERSION=$(date +'%y%m%d-%H%M')
+                  export VERSION
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "Building beta version: $VERSION"
-
-                  # Replace version placeholder
-                  sed -i "s/__VERSION_PLACEHOLDER__/$VERSION/g" apps/client/src/environments/environment.prod.ts
 
                   # Replace Sentry DSN placeholder
                   if [ -n "$SENTRY_DSN" ]; then
