@@ -202,7 +202,7 @@ export class PictureApiService {
             .post<ApiResponse<null>>(
                 `${this.apiUrl}/api/pictures/pending/${pendingId}/approve`,
                 {},
-                { withCredentials: true }
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) },
             )
             .pipe(map(() => undefined));
     }
@@ -215,7 +215,7 @@ export class PictureApiService {
             .post<ApiResponse<null>>(
                 `${this.apiUrl}/api/pictures/pending/${pendingId}/reject`,
                 {},
-                { withCredentials: true }
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) },
             )
             .pipe(map(() => undefined));
     }
@@ -228,7 +228,7 @@ export class PictureApiService {
             .post<ApiResponse<null>>(
                 `${this.apiUrl}/api/pictures/pending/${pendingId}/cancel`,
                 {},
-                { withCredentials: true }
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) },
             )
             .pipe(map(() => undefined));
     }
