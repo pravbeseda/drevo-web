@@ -284,17 +284,50 @@ describe('PictureDetailComponent', () => {
                 );
             });
 
-            it('should cancel own pending and refresh pending list', () => {
+            it('should cancel own pending and reload page', () => {
                 pictureService.getPicturePending.mockReturnValue(of([createPending()]));
                 pictureService.cancelPending.mockReturnValue(of(undefined));
                 const notification = spectator.inject(NotificationService);
+                const router = spectator.inject(Router);
+                jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
                 spectator.detectChanges();
                 spectator.click('[data-testid="pending-banner-cancel"]');
 
                 expect(pictureService.cancelPending).toHaveBeenCalledWith(1);
                 expect(notification.success).toHaveBeenCalledWith('Изменение отменено');
-                expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+                expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+            });
+
+            it('should show info notification on cancel 404 and reload page', () => {
+                pictureService.getPicturePending.mockReturnValue(of([createPending()]));
+                pictureService.cancelPending.mockReturnValue(
+                    throwError(() => new HttpErrorResponse({ status: 404 })),
+                );
+                const notification = spectator.inject(NotificationService);
+                const router = spectator.inject(Router);
+                jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+                spectator.detectChanges();
+                spectator.click('[data-testid="pending-banner-cancel"]');
+
+                expect(notification.info).toHaveBeenCalledWith('Решение по этому предложению уже принято');
+                expect(notification.error).not.toHaveBeenCalled();
+                expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+            });
+
+            it('should show error notification on cancel generic error', () => {
+                pictureService.getPicturePending.mockReturnValue(of([createPending()]));
+                pictureService.cancelPending.mockReturnValue(
+                    throwError(() => new HttpErrorResponse({ status: 500 })),
+                );
+                const notification = spectator.inject(NotificationService);
+
+                spectator.detectChanges();
+                spectator.click('[data-testid="pending-banner-cancel"]');
+
+                expect(notification.error).toHaveBeenCalledWith('Не удалось отменить изменение');
+                expect(notification.info).not.toHaveBeenCalled();
             });
 
             it('should keep page working when pending loading fails', () => {
@@ -917,26 +950,132 @@ describe('PictureDetailComponent', () => {
             expect(spectator.query('[data-testid="pending-banner-author"]')).toBeTruthy();
         });
 
-        it('should approve pending and refresh list', () => {
+        it('should approve pending and reload page', () => {
             const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
             spectator.detectChanges();
             spectator.click('[data-testid="pending-banner-approve"]');
 
             expect(pictureService.approvePending).toHaveBeenCalledWith(1);
             expect(notification.success).toHaveBeenCalledWith('Изменение одобрено');
-            expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
         });
 
-        it('should reject pending and refresh list', () => {
+        it('should reject pending and reload page', () => {
             const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
             spectator.detectChanges();
             spectator.click('[data-testid="pending-banner-reject"]');
 
             expect(pictureService.rejectPending).toHaveBeenCalledWith(1);
             expect(notification.success).toHaveBeenCalledWith('Изменение отклонено');
-            expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+        });
+
+        it('should show info notification on approve 404 and reload page', () => {
+            pictureService.approvePending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404 })),
+            );
+            const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-approve"]');
+
+            expect(notification.info).toHaveBeenCalledWith(
+                'Решение по этому предложению уже принято, либо пользователь отменил предложение',
+            );
+            expect(notification.error).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+        });
+
+        it('should show info notification on reject 404 and reload page', () => {
+            pictureService.rejectPending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404 })),
+            );
+            const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-reject"]');
+
+            expect(notification.info).toHaveBeenCalledWith(
+                'Решение по этому предложению уже принято, либо пользователь отменил предложение',
+            );
+            expect(notification.error).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+        });
+
+        it('should show error notification on approve generic error', () => {
+            pictureService.approvePending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 500 })),
+            );
+            const notification = spectator.inject(NotificationService);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-approve"]');
+
+            expect(notification.error).toHaveBeenCalledWith('Не удалось одобрить изменение');
+            expect(notification.info).not.toHaveBeenCalled();
+        });
+
+        it('should show error notification on reject generic error', () => {
+            pictureService.rejectPending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 500 })),
+            );
+            const notification = spectator.inject(NotificationService);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-reject"]');
+
+            expect(notification.error).toHaveBeenCalledWith('Не удалось отклонить изменение');
+            expect(notification.info).not.toHaveBeenCalled();
+        });
+
+        it('should reload page on reject delete pending 404 (not redirect)', () => {
+            pictureService.rejectPending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404 })),
+            );
+            const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+            jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+            spectator.component.runPendingAction(
+                createPending({ user: 'Другой пользователь', pendingType: 'delete' }),
+                'reject',
+            );
+
+            expect(notification.info).toHaveBeenCalledWith(
+                'Решение по этому предложению уже принято, либо пользователь отменил предложение',
+            );
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+            expect(router.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should navigate to pictures list on approve delete pending 404', () => {
+            pictureService.approvePending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404 })),
+            );
+            const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+            spectator.component.runPendingAction(
+                createPending({ user: 'Другой пользователь', pendingType: 'delete' }),
+                'approve',
+            );
+
+            expect(notification.info).toHaveBeenCalledWith(
+                'Решение по этому предложению уже принято, либо пользователь отменил предложение',
+            );
+            expect(router.navigate).toHaveBeenCalledWith(['/pictures']);
         });
     });
 
