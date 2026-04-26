@@ -323,6 +323,33 @@ export async function mockPictureRejectPending(page: Page, pendingId: number): P
     });
 }
 
+/** Mock POST /api/pictures/pending/:id/cancel returning 404 */
+export async function mockPictureCancelPendingNotFound(page: Page, pendingId: number): Promise<void> {
+    await page.route(`**/api/pictures/pending/${pendingId}/cancel`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ status: 404, json: apiError('Not found') });
+    });
+}
+
+/** Mock POST /api/pictures/pending/:id/approve returning 404 */
+export async function mockPictureApprovePendingNotFound(page: Page, pendingId: number): Promise<void> {
+    await page.route(`**/api/pictures/pending/${pendingId}/approve`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ status: 404, json: apiError('Not found') });
+    });
+}
+
+/** Mock POST /api/pictures/pending/:id/reject returning 404 */
+export async function mockPictureRejectPendingNotFound(page: Page, pendingId: number): Promise<void> {
+    await page.route(`**/api/pictures/pending/${pendingId}/reject`, route => {
+        const method = route.request().method();
+        if (method !== 'POST') return route.fallback();
+        return route.fulfill({ status: 404, json: apiError('Not found') });
+    });
+}
+
 /** Mock /pictures/thumbs/** — return a 1x1 transparent PNG placeholder */
 export async function mockPictureThumbs(page: Page): Promise<void> {
     // 1x1 transparent PNG

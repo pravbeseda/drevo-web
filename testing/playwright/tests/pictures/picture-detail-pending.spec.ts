@@ -4,16 +4,22 @@ import {
     bypassSsr,
     mockAuthApi,
     mockPictureApprovePending,
+    mockPictureApprovePendingNotFound,
     mockPictureArticles,
     mockPictureCancelPending,
+    mockPictureCancelPendingNotFound,
     mockPictureDetail,
     mockPicturePending,
     mockPictureRejectPending,
+    mockPictureRejectPendingNotFound,
     mockPictureThumbs,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import { createPictureDto, createPicturePendingDto } from '../../mocks/pictures';
 import { mockUsers } from '../../mocks/users';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
+import { Page } from '@playwright/test';
+import { PicturePendingDto, PicturePendingType } from '@drevo-web/shared';
 
 const PICTURE_ID = 42;
 const PICTURE = createPictureDto({
@@ -216,4 +222,111 @@ test.describe('Picture detail pending banners', () => {
 
         await expect(detail.pendingBanners).toHaveCount(0);
     });
+});
+
+const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
+    { type: 'delete', label: 'удаление' },
+    { type: 'edit_title', label: 'изменение описания' },
+    { type: 'edit_both', label: 'изменение описания и файла' },
+];
+
+function createPendingByType(type: PicturePendingType, ppId: number, user: string): PicturePendingDto {
+    return createPicturePendingDto({
+        pp_id: ppId,
+        pp_pic_id: PICTURE_ID,
+        pp_user: user,
+        pp_type: type,
+        pp_title: type === 'delete' ? null : 'Новый заголовок',
+        pp_width: type === 'edit_both' ? 1200 : null,
+        pp_height: type === 'edit_both' ? 900 : null,
+    });
+}
+
+async function setupPageWithPending(
+    page: Page,
+    pendingItems: readonly PicturePendingDto[],
+    options?: { asModerator?: boolean },
+): Promise<PictureDetailPage> {
+    if (options?.asModerator) {
+        await mockAuthApi(page, mockUsers.moderator);
+    }
+    await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+    await mockPictureThumbs(page);
+    await mockPictureDetail(page, PICTURE_ID, PICTURE);
+    await mockPictureArticles(page, PICTURE_ID, []);
+    await mockPicturePending(page, PICTURE_ID, [...pendingItems]);
+
+    const detail = new PictureDetailPage(page);
+    await page.goto(`/pictures/${PICTURE_ID}`);
+    await detail.waitForReady();
+    return detail;
+}
+
+test.describe('Moderator pending action returns 404', () => {
+    const MODERATOR_ACTIONS: readonly { action: 'approve' | 'reject'; label: string }[] = [
+        { action: 'approve', label: 'принять' },
+        { action: 'reject', label: 'отклонить' },
+    ];
+
+    for (const { type, label: typeLabel } of PENDING_TYPES) {
+        for (const { action, label: actionLabel } of MODERATOR_ACTIONS) {
+            test(`${typeLabel} — ${actionLabel}: shows info notification on 404`, async ({ page }) => {
+                const PENDING_ID = 100;
+                const pendingItem = createPendingByType(type, PENDING_ID, 'Другой пользователь');
+
+                if (action === 'approve') {
+                    await mockPictureApprovePendingNotFound(page, PENDING_ID);
+                } else {
+                    await mockPictureRejectPendingNotFound(page, PENDING_ID);
+                }
+
+                const detail = await setupPageWithPending(page, [pendingItem], { asModerator: true });
+                await expect(detail.pendingBanners).toHaveCount(1);
+
+                const actionButton = action === 'approve' ? detail.pendingApprove : detail.pendingReject;
+                await actionButton.click();
+
+                const infoNotification = getNotification(page, 'info');
+                await expect(infoNotification).toContainText(
+                    'Решение по этому предложению уже принято, либо пользователь отменил предложение',
+                );
+                await expect(getNotification(page, 'error')).toHaveCount(0);
+
+                await expect(detail.pendingBanners).toHaveCount(0);
+            });
+        }
+    }
+});
+
+test.describe('User cancel pending returns 404', () => {
+    for (const { type, label: typeLabel } of PENDING_TYPES) {
+        test(`${typeLabel}: shows info notification and removes banner on 404`, async ({
+            authenticatedPage: page,
+        }) => {
+            const PENDING_ID_CANCEL = 200;
+            const PENDING_ID_OTHER = 201;
+
+            const cancelPending = createPendingByType(type, PENDING_ID_CANCEL, mockUsers.authenticated.name);
+            const otherPending = createPicturePendingDto({
+                pp_id: PENDING_ID_OTHER,
+                pp_pic_id: PICTURE_ID,
+                pp_user: 'Другой пользователь',
+                pp_type: 'edit_title',
+                pp_title: 'Чужой pending',
+            });
+
+            await mockPictureCancelPendingNotFound(page, PENDING_ID_CANCEL);
+
+            const detail = await setupPageWithPending(page, [cancelPending, otherPending]);
+            await expect(detail.pendingBanners).toHaveCount(2);
+
+            await detail.pendingCancel.click();
+
+            const infoNotification = getNotification(page, 'info');
+            await expect(infoNotification).toContainText('Решение по этому предложению уже принято');
+            await expect(getNotification(page, 'error')).toHaveCount(0);
+
+            await expect(detail.pendingBanners).toHaveCount(1);
+        });
+    }
 });
