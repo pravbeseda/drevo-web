@@ -458,9 +458,18 @@ export class PictureDetailComponent {
 
     private reloadCurrentPage(): void {
         const currentUrl = this.router.url;
-        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-            this.router.navigateByUrl(currentUrl);
-        });
+        this.router
+            .navigateByUrl('/', { skipLocationChange: true })
+            .then(success => {
+                if (success) {
+                    return this.router.navigateByUrl(currentUrl);
+                }
+                this.logger.error('Page reload: intermediate navigation was cancelled');
+                return false;
+            })
+            .catch((error: unknown) => {
+                this.logger.error('Page reload failed', error);
+            });
     }
 
     runPendingAction(pending: PicturePending, pendingAction: PendingAction): void {

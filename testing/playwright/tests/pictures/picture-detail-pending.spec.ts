@@ -17,8 +17,8 @@ import {
 import { getNotification, watchForNotification } from '../../helpers/notification';
 import { createPictureDto, createPicturePendingDto, mockUsers } from '../../mocks';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
-import { Page } from '@playwright/test';
 import { PicturePendingDto, PicturePendingType } from '@drevo-web/shared';
+import { Page } from '@playwright/test';
 
 const PICTURE_ID = 42;
 const PICTURE = createPictureDto({
@@ -31,6 +31,7 @@ const PICTURE = createPictureDto({
 const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
     { type: 'delete', label: 'удаление' },
     { type: 'edit_title', label: 'изменение описания' },
+    { type: 'edit_file', label: 'изменение файла' },
     { type: 'edit_both', label: 'изменение описания и файла' },
 ];
 
@@ -334,8 +335,8 @@ function createPendingByType(type: PicturePendingType, ppId: number, user: strin
         pp_pic_id: PICTURE_ID,
         pp_user: user,
         pp_type: type,
-        pp_title: type === 'delete' ? null : 'Новый заголовок',
-        pp_width: type === 'edit_both' ? 1200 : null,
-        pp_height: type === 'edit_both' ? 900 : null,
+        pp_title: type === 'delete' || type === 'edit_file' ? null : 'Новый заголовок',
+        pp_width: type === 'edit_file' || type === 'edit_both' ? 1200 : null,
+        pp_height: type === 'edit_file' || type === 'edit_both' ? 900 : null,
     });
 }
