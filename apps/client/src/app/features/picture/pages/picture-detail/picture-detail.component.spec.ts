@@ -284,17 +284,19 @@ describe('PictureDetailComponent', () => {
                 );
             });
 
-            it('should cancel own pending and refresh pending list', () => {
+            it('should cancel own pending and reload page', () => {
                 pictureService.getPicturePending.mockReturnValue(of([createPending()]));
                 pictureService.cancelPending.mockReturnValue(of(undefined));
                 const notification = spectator.inject(NotificationService);
+                const router = spectator.inject(Router);
+                jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
                 spectator.detectChanges();
                 spectator.click('[data-testid="pending-banner-cancel"]');
 
                 expect(pictureService.cancelPending).toHaveBeenCalledWith(1);
                 expect(notification.success).toHaveBeenCalledWith('Изменение отменено');
-                expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+                expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
             });
 
             it('should keep page working when pending loading fails', () => {
@@ -917,26 +919,30 @@ describe('PictureDetailComponent', () => {
             expect(spectator.query('[data-testid="pending-banner-author"]')).toBeTruthy();
         });
 
-        it('should approve pending and refresh list', () => {
+        it('should approve pending and reload page', () => {
             const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
             spectator.detectChanges();
             spectator.click('[data-testid="pending-banner-approve"]');
 
             expect(pictureService.approvePending).toHaveBeenCalledWith(1);
             expect(notification.success).toHaveBeenCalledWith('Изменение одобрено');
-            expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
         });
 
-        it('should reject pending and refresh list', () => {
+        it('should reject pending and reload page', () => {
             const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
             spectator.detectChanges();
             spectator.click('[data-testid="pending-banner-reject"]');
 
             expect(pictureService.rejectPending).toHaveBeenCalledWith(1);
             expect(notification.success).toHaveBeenCalledWith('Изменение отклонено');
-            expect(pictureService.getPicturePending).toHaveBeenCalledTimes(2);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
         });
     });
 

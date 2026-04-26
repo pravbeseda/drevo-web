@@ -452,26 +452,15 @@ export class PictureDetailComponent {
             });
     }
 
-    private applyApprovedPending(pending: PicturePending): void {
-        if (pending.pendingType === 'delete') {
-            this.notificationService.success('Иллюстрация удалена');
-            this.router.navigate(['/pictures']);
-            return;
-        }
-        if (pending.pendingType === 'edit_title' || pending.pendingType === 'edit_both') {
-            if (pending.title !== undefined) {
-                this._titleOverride.set(pending.title);
-            }
-        }
-        if (pending.pendingType === 'edit_file' || pending.pendingType === 'edit_both') {
-            if (pending.pendingImageUrl) {
-                this._imageOverride.set(pending.pendingImageUrl);
-            }
-        }
-    }
-
     private refreshPending(): void {
         this._refreshPendingSubject.next();
+    }
+
+    private reloadCurrentPage(): void {
+        const currentUrl = this.router.url;
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigateByUrl(currentUrl);
+        });
     }
 
     runPendingAction(pending: PicturePending, pendingAction: PendingAction): void {
@@ -511,14 +500,32 @@ export class PictureDetailComponent {
             )
             .subscribe({
                 next: () => {
-                    if (pendingAction === 'approve') {
-                        this.applyApprovedPending(pending);
-                    }
-                    this.refreshPending();
                     this.notificationService.success(successMessage);
                     this.logger.info(logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
+                    if (pendingAction === 'approve' && pending.pendingType === 'delete') {
+                        this.router.navigate(['/pictures']);
+                        return;
+                    }
+                    this.reloadCurrentPage();
                 },
                 error: (error: unknown) => {
+                    if (error instanceof HttpErrorResponse && error.status === 404) {
+                        const notFoundMessage =
+                            pendingAction === 'cancel'
+                                ? 'Решение по этому предложению уже принято'
+                                : 'Решение по этому предложению уже принято, либо пользователь отменил предложение';
+                        this.notificationService.info(notFoundMessage);
+                        if (pendingAction === 'approve' && pending.pendingType === 'delete') {
+                            this.router.navigate(['/pictures']);
+                        } else {
+                            this.reloadCurrentPage();
+                        }
+                        this.logger.info('Pending action returned 404', {
+                            pendingId: pending.id,
+                            action: pendingAction,
+                        });
+                        return;
+                    }
                     this.notificationService.error(errorMessage);
                     this.logger.error(logMessage, error);
                 },

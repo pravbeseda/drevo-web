@@ -15,8 +15,7 @@ import {
     mockPictureThumbs,
 } from '../../fixtures';
 import { getNotification } from '../../helpers/notification';
-import { createPictureDto, createPicturePendingDto } from '../../mocks/pictures';
-import { mockUsers } from '../../mocks/users';
+import { createPictureDto, createPicturePendingDto, mockUsers } from '../../mocks';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
 import { Page } from '@playwright/test';
 import { PicturePendingDto, PicturePendingType } from '@drevo-web/shared';
@@ -29,6 +28,11 @@ const PICTURE = createPictureDto({
     pic_width: 1024,
     pic_height: 768,
 });
+const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
+    { type: 'delete', label: 'удаление' },
+    { type: 'edit_title', label: 'изменение описания' },
+    { type: 'edit_both', label: 'изменение описания и файла' },
+];
 
 test.describe('Picture detail pending banners', () => {
     test('shows cancel button for own pending', async ({ authenticatedPage: page }) => {
@@ -224,44 +228,6 @@ test.describe('Picture detail pending banners', () => {
     });
 });
 
-const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
-    { type: 'delete', label: 'удаление' },
-    { type: 'edit_title', label: 'изменение описания' },
-    { type: 'edit_both', label: 'изменение описания и файла' },
-];
-
-function createPendingByType(type: PicturePendingType, ppId: number, user: string): PicturePendingDto {
-    return createPicturePendingDto({
-        pp_id: ppId,
-        pp_pic_id: PICTURE_ID,
-        pp_user: user,
-        pp_type: type,
-        pp_title: type === 'delete' ? null : 'Новый заголовок',
-        pp_width: type === 'edit_both' ? 1200 : null,
-        pp_height: type === 'edit_both' ? 900 : null,
-    });
-}
-
-async function setupPageWithPending(
-    page: Page,
-    pendingItems: readonly PicturePendingDto[],
-    options?: { asModerator?: boolean },
-): Promise<PictureDetailPage> {
-    if (options?.asModerator) {
-        await mockAuthApi(page, mockUsers.moderator);
-    }
-    await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-    await mockPictureThumbs(page);
-    await mockPictureDetail(page, PICTURE_ID, PICTURE);
-    await mockPictureArticles(page, PICTURE_ID, []);
-    await mockPicturePending(page, PICTURE_ID, [...pendingItems]);
-
-    const detail = new PictureDetailPage(page);
-    await page.goto(`/pictures/${PICTURE_ID}`);
-    await detail.waitForReady();
-    return detail;
-}
-
 test.describe('Moderator pending action returns 404', () => {
     const MODERATOR_ACTIONS: readonly { action: 'approve' | 'reject'; label: string }[] = [
         { action: 'approve', label: 'принять' },
@@ -280,7 +246,9 @@ test.describe('Moderator pending action returns 404', () => {
                     await mockPictureRejectPendingNotFound(page, PENDING_ID);
                 }
 
-                const detail = await setupPageWithPending(page, [pendingItem], { asModerator: true });
+                const detail = await setupPageWithDynamicPending(page, [pendingItem], [], {
+                    asModerator: true,
+                });
                 await expect(detail.pendingBanners).toHaveCount(1);
 
                 const actionButton = action === 'approve' ? detail.pendingApprove : detail.pendingReject;
@@ -300,9 +268,7 @@ test.describe('Moderator pending action returns 404', () => {
 
 test.describe('User cancel pending returns 404', () => {
     for (const { type, label: typeLabel } of PENDING_TYPES) {
-        test(`${typeLabel}: shows info notification and removes banner on 404`, async ({
-            authenticatedPage: page,
-        }) => {
+        test(`${typeLabel}: shows info notification and removes banner on 404`, async ({ authenticatedPage: page }) => {
             const PENDING_ID_CANCEL = 200;
             const PENDING_ID_OTHER = 201;
 
@@ -317,7 +283,7 @@ test.describe('User cancel pending returns 404', () => {
 
             await mockPictureCancelPendingNotFound(page, PENDING_ID_CANCEL);
 
-            const detail = await setupPageWithPending(page, [cancelPending, otherPending]);
+            const detail = await setupPageWithDynamicPending(page, [cancelPending, otherPending], [otherPending]);
             await expect(detail.pendingBanners).toHaveCount(2);
 
             await detail.pendingCancel.click();
@@ -330,3 +296,44 @@ test.describe('User cancel pending returns 404', () => {
         });
     }
 });
+
+async function setupPageWithDynamicPending(
+    page: Page,
+    initialPending: readonly PicturePendingDto[],
+    refreshedPending: readonly PicturePendingDto[],
+    options?: { asModerator?: boolean },
+): Promise<PictureDetailPage> {
+    if (options?.asModerator) {
+        await mockAuthApi(page, mockUsers.moderator);
+    }
+    await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+    await mockPictureThumbs(page);
+    await mockPictureDetail(page, PICTURE_ID, PICTURE);
+    await mockPictureArticles(page, PICTURE_ID, []);
+
+    let pendingRequestCount = 0;
+    await page.route(`**/api/pictures/${PICTURE_ID}/pending`, route => {
+        const method = route.request().method();
+        if (method !== 'GET') return route.fallback();
+        pendingRequestCount += 1;
+        const items = pendingRequestCount === 1 ? initialPending : refreshedPending;
+        return route.fulfill({ json: { success: true, data: { items } } });
+    });
+
+    const detail = new PictureDetailPage(page);
+    await page.goto(`/pictures/${PICTURE_ID}`);
+    await detail.waitForReady();
+    return detail;
+}
+
+function createPendingByType(type: PicturePendingType, ppId: number, user: string): PicturePendingDto {
+    return createPicturePendingDto({
+        pp_id: ppId,
+        pp_pic_id: PICTURE_ID,
+        pp_user: user,
+        pp_type: type,
+        pp_title: type === 'delete' ? null : 'Новый заголовок',
+        pp_width: type === 'edit_both' ? 1200 : null,
+        pp_height: type === 'edit_both' ? 900 : null,
+    });
+}
