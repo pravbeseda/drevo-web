@@ -316,6 +316,20 @@ describe('PictureDetailComponent', () => {
                 expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
             });
 
+            it('should show error notification on cancel generic error', () => {
+                pictureService.getPicturePending.mockReturnValue(of([createPending()]));
+                pictureService.cancelPending.mockReturnValue(
+                    throwError(() => new HttpErrorResponse({ status: 500 })),
+                );
+                const notification = spectator.inject(NotificationService);
+
+                spectator.detectChanges();
+                spectator.click('[data-testid="pending-banner-cancel"]');
+
+                expect(notification.error).toHaveBeenCalledWith('Не удалось отменить изменение');
+                expect(notification.info).not.toHaveBeenCalled();
+            });
+
             it('should keep page working when pending loading fails', () => {
                 pictureService.getPicturePending.mockReturnValue(throwError(() => new Error('Pending failed')));
 
@@ -996,6 +1010,53 @@ describe('PictureDetailComponent', () => {
             );
             expect(notification.error).not.toHaveBeenCalled();
             expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+        });
+
+        it('should show error notification on approve generic error', () => {
+            pictureService.approvePending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 500 })),
+            );
+            const notification = spectator.inject(NotificationService);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-approve"]');
+
+            expect(notification.error).toHaveBeenCalledWith('Не удалось одобрить изменение');
+            expect(notification.info).not.toHaveBeenCalled();
+        });
+
+        it('should show error notification on reject generic error', () => {
+            pictureService.rejectPending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 500 })),
+            );
+            const notification = spectator.inject(NotificationService);
+
+            spectator.detectChanges();
+            spectator.click('[data-testid="pending-banner-reject"]');
+
+            expect(notification.error).toHaveBeenCalledWith('Не удалось отклонить изменение');
+            expect(notification.info).not.toHaveBeenCalled();
+        });
+
+        it('should reload page on reject delete pending 404 (not redirect)', () => {
+            pictureService.rejectPending.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404 })),
+            );
+            const notification = spectator.inject(NotificationService);
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+            jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+            spectator.component.runPendingAction(
+                createPending({ user: 'Другой пользователь', pendingType: 'delete' }),
+                'reject',
+            );
+
+            expect(notification.info).toHaveBeenCalledWith(
+                'Решение по этому предложению уже принято, либо пользователь отменил предложение',
+            );
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/', { skipLocationChange: true });
+            expect(router.navigate).not.toHaveBeenCalled();
         });
 
         it('should navigate to pictures list on approve delete pending 404', () => {

@@ -13,6 +13,7 @@ import {
     mockPictureRejectPending,
     mockPictureRejectPendingNotFound,
     mockPictureThumbs,
+    mockPicturesEmpty,
 } from '../../fixtures';
 import { getNotification, watchForNotification } from '../../helpers/notification';
 import { createPictureDto, createPicturePendingDto, mockUsers } from '../../mocks';
@@ -226,6 +227,27 @@ test.describe('Picture detail pending banners', () => {
         ]);
 
         await expect(detail.pendingBanners).toHaveCount(0);
+    });
+});
+
+test.describe('Moderator approves delete pending', () => {
+    test('redirects to pictures list on approve delete', async ({ page }) => {
+        const PENDING_ID = 50;
+        const pendingItem = createPendingByType('delete', PENDING_ID, 'Другой пользователь');
+
+        await mockPictureApprovePending(page, PENDING_ID);
+        await mockPicturesEmpty(page);
+
+        const detail = await setupPageWithDynamicPending(page, [pendingItem], [], {
+            asModerator: true,
+        });
+        await expect(detail.pendingBanners).toHaveCount(1);
+
+        await detail.pendingApprove.click();
+
+        const successNotification = getNotification(page, 'success');
+        await expect(successNotification).toContainText('Изменение одобрено');
+        await page.waitForURL('**/pictures');
     });
 });
 
