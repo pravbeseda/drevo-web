@@ -14,7 +14,7 @@ import {
     mockPictureRejectPendingNotFound,
     mockPictureThumbs,
 } from '../../fixtures';
-import { getNotification } from '../../helpers/notification';
+import { getNotification, watchForNotification } from '../../helpers/notification';
 import { createPictureDto, createPicturePendingDto, mockUsers } from '../../mocks';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
 import { Page } from '@playwright/test';
@@ -251,6 +251,7 @@ test.describe('Moderator pending action returns 404', () => {
                 });
                 await expect(detail.pendingBanners).toHaveCount(1);
 
+                const didErrorAppear = await watchForNotification(page, 'error');
                 const actionButton = action === 'approve' ? detail.pendingApprove : detail.pendingReject;
                 await actionButton.click();
 
@@ -258,7 +259,7 @@ test.describe('Moderator pending action returns 404', () => {
                 await expect(infoNotification).toContainText(
                     'Решение по этому предложению уже принято, либо пользователь отменил предложение',
                 );
-                await expect(getNotification(page, 'error')).toHaveCount(0);
+                expect(await didErrorAppear()).toBe(false);
 
                 await expect(detail.pendingBanners).toHaveCount(0);
             });
@@ -286,11 +287,12 @@ test.describe('User cancel pending returns 404', () => {
             const detail = await setupPageWithDynamicPending(page, [cancelPending, otherPending], [otherPending]);
             await expect(detail.pendingBanners).toHaveCount(2);
 
+            const didErrorAppear = await watchForNotification(page, 'error');
             await detail.pendingCancel.click();
 
             const infoNotification = getNotification(page, 'info');
             await expect(infoNotification).toContainText('Решение по этому предложению уже принято');
-            await expect(getNotification(page, 'error')).toHaveCount(0);
+            expect(await didErrorAppear()).toBe(false);
 
             await expect(detail.pendingBanners).toHaveCount(1);
         });
