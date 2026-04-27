@@ -1,1 +1,106 @@
-<p>История изображений — в разработке</p>
+@if (service.isPendingLoading()) {
+    <div class="section-loading">
+        <ui-spinner />
+    </div>
+} @else if (service.hasPendingItems()) {
+    <section
+        class="pending-section"
+        data-testid="pending-section"
+    >
+        <h3 class="section-title">Ожидают проверки</h3>
+
+        <div class="pending-list">
+            @for (group of service.pendingGroups(); track group.pictureId) {
+                <app-picture-pending-card
+                    [group]="group"
+                    (pictureClick)="onPictureClick($event)"
+                />
+            }
+        </div>
+    </section>
+}
+
+<section
+    class="recent-section"
+    data-testid="recent-section"
+>
+    <h3 class="section-title">Недавние иллюстрации</h3>
+
+    @if (service.isRecentLoading()) {
+        <div class="section-loading">
+            <ui-spinner />
+        </div>
+    }
+
+    @if (!service.isRecentLoading() && service.hasRecentError()) {
+        <p
+            class="section-error"
+            data-testid="recent-error"
+        >
+            Не удалось загрузить данные
+        </p>
+    }
+
+    @if (!service.isRecentLoading() && !service.hasRecentError() && service.hasRecentItems()) {
+        <ui-virtual-scroller
+            data-testid="recent-list"
+            [items]="service.displayItems()"
+            [totalItems]="service.displayTotalItems()"
+            [isLoading]="service.isRecentLoadingMore()"
+            [trackByFn]="trackByFn"
+            (loadMore)="service.onLoadMore()"
+        >
+            <ng-template
+                uiVirtualScrollerItem
+                let-item
+            >
+                @if (item.type === 'header') {
+                    <div class="history-date-header">{{ item.date }}</div>
+                } @else {
+                    <div
+                        class="recent-item"
+                        data-testid="recent-item"
+                        tabindex="0"
+                        role="button"
+                        (click)="onPictureClick(item.data.id)"
+                        (keydown.enter)="onPictureClick(item.data.id)"
+                        (keydown.space)="onPictureClick(item.data.id); $event.preventDefault()"
+                    >
+                        <img
+                            class="recent-item__thumbnail"
+                            [src]="item.data.thumbnailUrl"
+                            [alt]="item.data.title"
+                            data-testid="recent-item-thumbnail"
+                        />
+                        <div class="recent-item__content">
+                            <span
+                                class="recent-item__title"
+                                data-testid="recent-item-title"
+                            >
+                                {{ item.data.title }}
+                            </span>
+                            <div class="recent-item__meta">
+                                <span class="recent-item__time">
+                                    {{ item.data.date | formatTime }}
+                                </span>
+                                ·
+                                <span class="recent-item__author">
+                                    {{ item.data.user }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </ng-template>
+        </ui-virtual-scroller>
+    }
+
+    @if (!service.isRecentLoading() && !service.hasRecentError() && !service.hasRecentItems()) {
+        <p
+            class="section-empty"
+            data-testid="recent-empty"
+        >
+            Нет иллюстраций
+        </p>
+    }
+</section>

@@ -1,5 +1,117 @@
+@use 'index' as *;
+
 :host {
-    display: block;
-    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--themed-text-primary);
+    margin: 0 0 12px;
+}
+
+.section-loading {
+    display: flex;
+    justify-content: center;
+    padding: 32px 0;
+}
+
+.section-empty {
+    color: var(--themed-text-muted);
+    text-align: center;
+    padding: 32px 0;
+}
+
+.section-error {
+    color: var(--themed-text-error);
+    text-align: center;
+    padding: 32px 0;
+}
+
+.pending-section {
+    flex-shrink: 0;
+}
+
+.pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recent-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+ui-virtual-scroller {
+    flex: 1;
+    min-height: 0;
+}
+
+.history-date-header {
+    font-weight: 500;
     color: var(--themed-text-secondary);
+    padding: 12px 0 4px;
+    border-bottom: 1px solid var(--themed-border-color);
+    margin-bottom: 4px;
+}
+
+.recent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--themed-hover-bg);
+    }
+
+    &:focus-visible {
+        outline: none;
+        background: var(--themed-hover-bg);
+    }
+
+    &__thumbnail {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 6px;
+        flex-shrink: 0;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    &__title {
+        font-size: 1rem;
+        color: var(--themed-text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__meta {
+        font-size: $font-size-md;
+        color: var(--themed-text-muted);
+        margin-top: 2px;
+    }
+
+    &__time {
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__author {
+        color: var(--themed-text-secondary);
+    }
 }

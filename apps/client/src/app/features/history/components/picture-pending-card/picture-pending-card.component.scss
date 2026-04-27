@@ -1,0 +1,75 @@
+@use 'tokens' as *;
+
+:host {
+    display: block;
+}
+
+.pending-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--themed-hover-bg);
+    border: 1px solid var(--themed-border-color);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--themed-active-bg);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--themed-link-color);
+        outline-offset: 2px;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    &__thumbnail {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    &__title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--themed-text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-left: 50px;
+        font-size: $font-size-md;
+    }
+
+    &__icon {
+        color: var(--themed-text-secondary);
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    &__type {
+        color: var(--themed-text-primary);
+    }
+
+    &__separator {
+        color: var(--themed-text-muted);
+    }
+
+    &__author {
+        color: var(--themed-text-secondary);
+    }
+}

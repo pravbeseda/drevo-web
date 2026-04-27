@@ -1,0 +1,49 @@
+<div
+    class="pending-card"
+    data-testid="pending-card"
+    tabindex="0"
+    role="button"
+    (click)="emitPictureClick()"
+    (keydown.enter)="emitPictureClick()"
+    (keydown.space)="emitPictureClick(); $event.preventDefault()"
+>
+    <div class="pending-card__header">
+        <img
+            class="pending-card__thumbnail"
+            [src]="group().currentThumbnailUrl"
+            [alt]="group().currentTitle"
+            data-testid="pending-card-thumbnail"
+        />
+        <span
+            class="pending-card__title"
+            data-testid="pending-card-title"
+        >
+            {{ group().currentTitle }}
+        </span>
+    </div>
+
+    @for (pending of group().items; track pending.id) {
+        <div
+            class="pending-card__item"
+            data-testid="pending-item"
+        >
+            <ui-icon
+                name="schedule"
+                class="pending-card__icon"
+            />
+            <span
+                class="pending-card__type"
+                data-testid="pending-item-type"
+            >
+                {{ getPendingLabel(pending.pendingType) }}
+            </span>
+            <span class="pending-card__separator">·</span>
+            <span
+                class="pending-card__author"
+                data-testid="pending-item-author"
+            >
+                {{ pending.user }}
+            </span>
+        </div>
+    }
+</div>
