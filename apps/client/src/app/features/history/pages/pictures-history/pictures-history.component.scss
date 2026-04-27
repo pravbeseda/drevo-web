@@ -4,14 +4,14 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    gap: 16px;
 }
 
 .section-title {
     font-size: 1rem;
     font-weight: 500;
     color: var(--themed-text-primary);
-    margin: 0 0 12px;
+    margin: 0;
+    padding: 12px 0 8px;
 }
 
 .section-loading {
@@ -32,26 +32,13 @@
     padding: 32px 0;
 }
 
-.pending-section {
-    flex-shrink: 0;
-}
-
-.pending-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.recent-section {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-}
-
 ui-virtual-scroller {
     flex: 1;
     min-height: 0;
+}
+
+app-picture-pending-card {
+    margin-bottom: 8px;
 }
 
 .history-date-header {

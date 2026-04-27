@@ -7,8 +7,10 @@ import { formatDateHeader, Picture, PicturePending } from '@drevo-web/shared';
 const PENDING_PAGE_SIZE = 200;
 
 export type PicturesDisplayItem =
+    | { readonly type: 'section-header'; readonly title: string }
     | { readonly type: 'header'; readonly date: string }
-    | { readonly type: 'picture'; readonly data: Picture };
+    | { readonly type: 'picture'; readonly data: Picture }
+    | { readonly type: 'pending'; readonly data: PendingGroup };
 
 export function buildDisplayItems(items: readonly Picture[], referenceDate: Date): readonly PicturesDisplayItem[] {
     if (items.length === 0) return [];
@@ -29,8 +31,16 @@ export function buildDisplayItems(items: readonly Picture[], referenceDate: Date
 }
 
 export const trackByFn = (_index: number, item: PicturesDisplayItem): string => {
-    if (item.type === 'header') return `header-${item.date}`;
-    return `picture-${item.data.id}`;
+    switch (item.type) {
+        case 'section-header':
+            return `section-${item.title}`;
+        case 'header':
+            return `header-${item.date}`;
+        case 'pending':
+            return `pending-${item.data.pictureId}`;
+        case 'picture':
+            return `picture-${item.data.id}`;
+    }
 };
 
 export interface PendingGroup {
@@ -92,6 +102,8 @@ export class PicturesHistoryService {
     readonly isRecentLoadingMore = this._isRecentLoadingMore.asReadonly();
     readonly hasRecentError = this._hasRecentError.asReadonly();
 
+    readonly isInitialLoading = computed(() => this._isPendingLoading() || this._isRecentLoading());
+
     readonly hasPendingItems = computed(() => this._pendingItems().length > 0);
     readonly pendingGroups = computed(() => groupByPicture(this._pendingItems()));
 
@@ -102,13 +114,39 @@ export class PicturesHistoryService {
         return loaded < total;
     });
 
-    readonly displayItems = computed<readonly PicturesDisplayItem[]>(() =>
-        buildDisplayItems(this._recentItems(), this._referenceDate()),
-    );
+    readonly hasItems = computed(() => this.hasPendingItems() || this.hasRecentItems());
+
+    readonly displayItems = computed<readonly PicturesDisplayItem[]>(() => {
+        const pendingGroups = this.pendingGroups();
+        const recentItems = buildDisplayItems(this._recentItems(), this._referenceDate());
+        const hasPending = pendingGroups.length > 0;
+
+        const result: PicturesDisplayItem[] = [];
+
+        if (hasPending) {
+            result.push({ type: 'section-header', title: 'Ожидают проверки' });
+            for (const group of pendingGroups) {
+                result.push({ type: 'pending', data: group });
+            }
+        }
+
+        if (recentItems.length > 0) {
+            if (hasPending) {
+                result.push({ type: 'section-header', title: 'Недавние иллюстрации' });
+            }
+            result.push(...recentItems);
+        }
+
+        return result;
+    });
 
     readonly displayTotalItems = computed(() => {
         const total = this._recentTotalItems();
-        if (total === 0) return 0;
+        const pendingGroups = this.pendingGroups();
+        const pendingCount = pendingGroups.length > 0 ? pendingGroups.length + 1 : 0;
+
+        if (total === 0 && pendingCount === 0) return 0;
+
         const loadedDisplayCount = this.displayItems().length;
         const loadedItemCount = this._recentItems().length;
         if (loadedItemCount >= total) return loadedDisplayCount;

@@ -9,17 +9,12 @@ describe('PicturesHistoryComponent', () => {
 
     const mockService = {
         init: jest.fn(),
-        isPendingLoading: signal(false),
-        hasPendingError: signal(false),
-        hasPendingItems: signal(false),
-        pendingGroups: signal([]),
-        isRecentLoading: signal(false),
-        isRecentLoadingMore: signal(false),
+        isInitialLoading: signal(false),
         hasRecentError: signal(false),
-        hasRecentItems: signal(false),
+        hasItems: signal(false),
+        isRecentLoadingMore: signal(false),
         displayItems: signal([]),
         displayTotalItems: signal(0),
-        hasMoreRecent: signal(false),
         onLoadMore: jest.fn(),
     };
 
@@ -36,6 +31,12 @@ describe('PicturesHistoryComponent', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockService.isInitialLoading.set(false);
+        mockService.hasRecentError.set(false);
+        mockService.hasItems.set(false);
+        mockService.isRecentLoadingMore.set(false);
+        mockService.displayItems.set([]);
+        mockService.displayTotalItems.set(0);
         spectator = createComponent();
     });
 
@@ -49,32 +50,13 @@ describe('PicturesHistoryComponent', () => {
         expect(mockService.init).toHaveBeenCalled();
     });
 
-    it('should show pending section when pending items exist', () => {
-        mockService.hasPendingItems.set(true);
-        mockService.pendingGroups.set([
-            {
-                pictureId: 10,
-                currentTitle: 'Test',
-                currentThumbnailUrl: '/thumb.jpg',
-                items: [],
-            },
-        ]);
+    it('should show loading spinner during initial load', () => {
+        mockService.isInitialLoading.set(true);
         spectator.detectChanges();
-        expect(spectator.query('[data-testid="pending-section"]')).toBeTruthy();
+        expect(spectator.query('ui-spinner')).toBeTruthy();
     });
 
-    it('should hide pending section when no pending items', () => {
-        mockService.hasPendingItems.set(false);
-        spectator.detectChanges();
-        expect(spectator.query('[data-testid="pending-section"]')).toBeFalsy();
-    });
-
-    it('should show recent section', () => {
-        spectator.detectChanges();
-        expect(spectator.query('[data-testid="recent-section"]')).toBeTruthy();
-    });
-
-    it('should show empty message when no recent items', () => {
+    it('should show empty message when no items', () => {
         spectator.detectChanges();
         expect(spectator.query('[data-testid="recent-empty"]')?.textContent?.trim()).toBe('Нет иллюстраций');
     });
@@ -85,6 +67,14 @@ describe('PicturesHistoryComponent', () => {
         expect(spectator.query('[data-testid="recent-error"]')?.textContent?.trim()).toBe(
             'Не удалось загрузить данные',
         );
+    });
+
+    it('should show virtual scroller when items exist', () => {
+        mockService.hasItems.set(true);
+        mockService.displayItems.set([{ type: 'header', date: 'Сегодня' }]);
+        mockService.displayTotalItems.set(1);
+        spectator.detectChanges();
+        expect(spectator.query('[data-testid="pictures-list"]')).toBeTruthy();
     });
 
     it('should navigate to picture detail on pictureClick', () => {
