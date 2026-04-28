@@ -77,6 +77,17 @@ describe('PicturesHistoryComponent', () => {
         expect(spectator.query('[data-testid="pictures-list"]')).toBeTruthy();
     });
 
+    it('should show items with inline error when recent fails but pending loaded', () => {
+        mockService.hasItems.set(true);
+        mockService.hasRecentError.set(true);
+        mockService.displayItems.set([{ type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } }]);
+        mockService.displayTotalItems.set(1);
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="pictures-list"]')).toBeTruthy();
+        expect(spectator.query('[data-testid="recent-error"]')).toBeTruthy();
+    });
+
     it('should navigate to picture detail on pictureClick', () => {
         spectator.detectChanges();
         const router = spectator.inject(Router);

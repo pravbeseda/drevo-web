@@ -91,6 +91,7 @@ html.dark-theme body {
 // CDK VIRTUAL SCROLL FIX
 // ============================================================================
 
+// Without right:0 the content wrapper overflows its parent boundaries
 .cdk-virtual-scroll-content-wrapper {
     right: 0;
 }

@@ -2,13 +2,6 @@
     <div class="section-loading">
         <ui-spinner />
     </div>
-} @else if (service.hasRecentError()) {
-    <p
-        class="section-error"
-        data-testid="recent-error"
-    >
-        Не удалось загрузить данные
-    </p>
 } @else if (service.hasItems()) {
     <ui-virtual-scroller
         data-testid="pictures-list"
@@ -71,6 +64,21 @@
             }
         </ng-template>
     </ui-virtual-scroller>
+    @if (service.hasRecentError()) {
+        <p
+            class="section-error"
+            data-testid="recent-error"
+        >
+            Не удалось загрузить данные
+        </p>
+    }
+} @else if (service.hasRecentError()) {
+    <p
+        class="section-error"
+        data-testid="recent-error"
+    >
+        Не удалось загрузить данные
+    </p>
 } @else {
     <p
         class="section-empty"
