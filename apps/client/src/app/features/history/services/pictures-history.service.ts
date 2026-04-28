@@ -7,7 +7,6 @@ import { formatDateHeader, Picture, PicturePending } from '@drevo-web/shared';
 const PENDING_PAGE_SIZE = 200;
 
 export type PicturesDisplayItem =
-    | { readonly type: 'section-header'; readonly title: string }
     | { readonly type: 'header'; readonly date: string }
     | { readonly type: 'picture'; readonly data: Picture }
     | { readonly type: 'pending'; readonly data: PendingGroup };
@@ -32,8 +31,6 @@ export function buildDisplayItems(items: readonly Picture[], referenceDate: Date
 
 export const trackByFn = (_index: number, item: PicturesDisplayItem): string => {
     switch (item.type) {
-        case 'section-header':
-            return `section-${item.title}`;
         case 'header':
             return `header-${item.date}`;
         case 'pending':
@@ -119,31 +116,21 @@ export class PicturesHistoryService {
     readonly displayItems = computed<readonly PicturesDisplayItem[]>(() => {
         const pendingGroups = this.pendingGroups();
         const recentItems = buildDisplayItems(this._recentItems(), this._referenceDate());
-        const hasPending = pendingGroups.length > 0;
 
         const result: PicturesDisplayItem[] = [];
 
-        if (hasPending) {
-            result.push({ type: 'section-header', title: 'Ожидают проверки' });
-            for (const group of pendingGroups) {
-                result.push({ type: 'pending', data: group });
-            }
+        for (const group of pendingGroups) {
+            result.push({ type: 'pending', data: group });
         }
 
-        if (recentItems.length > 0) {
-            if (hasPending) {
-                result.push({ type: 'section-header', title: 'Недавние иллюстрации' });
-            }
-            result.push(...recentItems);
-        }
+        result.push(...recentItems);
 
         return result;
     });
 
     readonly displayTotalItems = computed(() => {
         const total = this._recentTotalItems();
-        const pendingGroups = this.pendingGroups();
-        const pendingCount = pendingGroups.length > 0 ? pendingGroups.length + 1 : 0;
+        const pendingCount = this.pendingGroups().length;
 
         if (total === 0 && pendingCount === 0) return 0;
 

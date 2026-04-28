@@ -23,14 +23,6 @@
             let-item
         >
             @switch (item.type) {
-                @case ('section-header') {
-                    <h3
-                        class="section-title"
-                        data-testid="section-header"
-                    >
-                        {{ item.title }}
-                    </h3>
-                }
                 @case ('pending') {
                     <app-picture-pending-card
                         class="pending-card"
