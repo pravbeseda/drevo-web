@@ -92,4 +92,38 @@ describe('PicturePendingCardComponent', () => {
 
         expect(spectator.queryAll('[data-testid="pending-item"]')).toHaveLength(2);
     });
+
+    it('should show edit_file label', () => {
+        spectator = createComponent({
+            props: {
+                group: createGroup({ items: [createPending({ pendingType: 'edit_file' })] }),
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-item-type"]')?.textContent?.trim()).toBe('Замена файла');
+    });
+
+    it('should show edit_both label', () => {
+        spectator = createComponent({
+            props: {
+                group: createGroup({ items: [createPending({ pendingType: 'edit_both' })] }),
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-item-type"]')?.textContent?.trim()).toBe(
+            'Изменение описания и файла',
+        );
+    });
+
+    it('should emit pictureClick on Enter keydown', () => {
+        const spy = jest.spyOn(spectator.component.pictureClick, 'emit');
+        spectator.dispatchKeyboardEvent('[data-testid="pending-card"]', 'keydown', 'Enter');
+        expect(spy).toHaveBeenCalledWith(10);
+    });
+
+    it('should emit pictureClick on Space keydown', () => {
+        const spy = jest.spyOn(spectator.component.pictureClick, 'emit');
+        spectator.dispatchKeyboardEvent('[data-testid="pending-card"]', 'keydown', ' ');
+        expect(spy).toHaveBeenCalledWith(10);
+    });
 });

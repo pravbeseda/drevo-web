@@ -1,4 +1,4 @@
-import { PicturesHistoryService, buildDisplayItems } from './pictures-history.service';
+import { PicturesHistoryService, buildDisplayItems, trackByFn } from './pictures-history.service';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
@@ -199,6 +199,211 @@ describe('PicturesHistoryService', () => {
 
             expect(mockPictureService.getPictures).not.toHaveBeenCalled();
         });
+
+        it('should rollback page on load more error', () => {
+            mockPictureService.getPictures.mockReturnValue(
+                of({
+                    items: Array.from({ length: 25 }, (_, i) => createPicture({ id: i })),
+                    total: 50,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 2,
+                }),
+            );
+
+            spectator.service.init();
+
+            mockPictureService.getPictures.mockReturnValue(throwError(() => new Error('fail')));
+
+            spectator.service.onLoadMore();
+
+            expect(spectator.service.isRecentLoadingMore()).toBe(false);
+            expect(spectator.service.hasMoreRecent()).toBe(true);
+        });
+    });
+
+    describe('isInitialLoading', () => {
+        it('should be true when pending is loading', () => {
+            expect(spectator.service.isInitialLoading()).toBe(false);
+        });
+    });
+
+    describe('hasItems', () => {
+        it('should be true when only pending items exist', () => {
+            mockPictureService.getPending.mockReturnValue(
+                of({
+                    items: [createPending()],
+                    total: 1,
+                    page: 1,
+                    pageSize: 200,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.init();
+
+            expect(spectator.service.hasItems()).toBe(true);
+        });
+
+        it('should be true when only recent items exist', () => {
+            mockPictureService.getPictures.mockReturnValue(
+                of({
+                    items: [createPicture()],
+                    total: 1,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.init();
+
+            expect(spectator.service.hasItems()).toBe(true);
+        });
+
+        it('should be false when no items', () => {
+            spectator.service.init();
+
+            expect(spectator.service.hasItems()).toBe(false);
+        });
+    });
+
+    describe('displayItems', () => {
+        it('should combine pending groups and recent items', () => {
+            mockPictureService.getPending.mockReturnValue(
+                of({
+                    items: [createPending()],
+                    total: 1,
+                    page: 1,
+                    pageSize: 200,
+                    totalPages: 1,
+                }),
+            );
+            mockPictureService.getPictures.mockReturnValue(
+                of({
+                    items: [createPicture({ id: 20 })],
+                    total: 1,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.init();
+
+            const items = spectator.service.displayItems();
+            expect(items[0].type).toBe('pending');
+            expect(items[1].type).toBe('header');
+            expect(items[2].type).toBe('picture');
+        });
+
+        it('should return only pending items when no recent', () => {
+            mockPictureService.getPending.mockReturnValue(
+                of({
+                    items: [createPending()],
+                    total: 1,
+                    page: 1,
+                    pageSize: 200,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.init();
+
+            const items = spectator.service.displayItems();
+            expect(items).toHaveLength(1);
+            expect(items[0].type).toBe('pending');
+        });
+
+        it('should return only recent items when no pending', () => {
+            mockPictureService.getPictures.mockReturnValue(
+                of({
+                    items: [createPicture()],
+                    total: 1,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.init();
+
+            const items = spectator.service.displayItems();
+            expect(items).toHaveLength(2);
+            expect(items[0].type).toBe('header');
+            expect(items[1].type).toBe('picture');
+        });
+    });
+
+    describe('displayTotalItems', () => {
+        it('should return 0 when no items', () => {
+            spectator.service.init();
+
+            expect(spectator.service.displayTotalItems()).toBe(0);
+        });
+
+        it('should match display count when all loaded', () => {
+            mockPictureService.getPictures.mockReturnValue(
+                of({
+                    items: [createPicture()],
+                    total: 1,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.init();
+
+            expect(spectator.service.displayTotalItems()).toBe(spectator.service.displayItems().length);
+        });
+
+        it('should estimate total when not all loaded', () => {
+            mockPictureService.getPictures.mockReturnValue(
+                of({
+                    items: Array.from({ length: 25 }, (_, i) => createPicture({ id: i })),
+                    total: 50,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 2,
+                }),
+            );
+
+            spectator.service.init();
+
+            const displayCount = spectator.service.displayItems().length;
+            expect(spectator.service.displayTotalItems()).toBe(displayCount + 25);
+        });
+    });
+});
+
+describe('trackByFn', () => {
+    it('should return key for header item', () => {
+        expect(trackByFn(0, { type: 'header', date: 'Сегодня' })).toBe('header-Сегодня');
+    });
+
+    it('should return key for pending item', () => {
+        expect(
+            trackByFn(0, {
+                type: 'pending',
+                data: { pictureId: 10, currentTitle: '', currentThumbnailUrl: '', items: [] },
+            }),
+        ).toBe('pending-10');
+    });
+
+    it('should return key for picture item', () => {
+        const picture: Picture = {
+            id: 5,
+            folder: 'f',
+            title: 'T',
+            user: 'u',
+            date: new Date(),
+            width: undefined,
+            height: undefined,
+            imageUrl: '',
+            thumbnailUrl: '',
+        };
+        expect(trackByFn(0, { type: 'picture', data: picture })).toBe('picture-5');
     });
 });
 
