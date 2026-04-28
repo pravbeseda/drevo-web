@@ -45,11 +45,9 @@ export const HISTORY_ROUTES: Route[] = [
             },
             {
                 path: 'pictures',
-                title: 'История изображений',
+                title: 'История иллюстраций',
                 loadComponent: () =>
-                    import('./pages/pictures-history/pictures-history.component').then(
-                        m => m.PicturesHistoryComponent
-                    ),
+                    import('./pages/pictures-history/pictures-history.component').then(m => m.PicturesHistoryComponent),
             },
         ],
     },
