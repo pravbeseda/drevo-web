@@ -33,6 +33,7 @@
                 }
                 @case ('pending') {
                     <app-picture-pending-card
+                        class="pending-card"
                         [group]="item.data"
                         (pictureClick)="onPictureClick($event)"
                     />

@@ -37,7 +37,7 @@ ui-virtual-scroller {
     min-height: 0;
 }
 
-app-picture-pending-card {
+.pending-card {
     margin-bottom: 8px;
 }
 
@@ -86,6 +86,7 @@ app-picture-pending-card {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        margin-bottom: 4px;
     }
 
     &__meta {
