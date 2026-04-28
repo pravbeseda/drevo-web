@@ -6,9 +6,9 @@
 
 .pending-card {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px 12px;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 8px;
     margin-right: 4px;
     border-radius: 8px;
     background: var(--themed-hover-bg);
@@ -24,23 +24,22 @@
         outline-offset: 2px;
     }
 
-    &__header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    &__thumbnail {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 6px;
+        flex-shrink: 0;
     }
 
-    &__thumbnail {
-        width: 40px;
-        height: 40px;
-        object-fit: cover;
-        border-radius: 4px;
-        flex-shrink: 0;
+    &__content {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
     }
 
     &__title {
         font-size: 1rem;
-        font-weight: 500;
         color: var(--themed-text-primary);
         overflow: hidden;
         text-overflow: ellipsis;
@@ -52,8 +51,8 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        padding-left: 50px;
         font-size: $font-size-md;
+        margin-top: 2px;
     }
 
     &__icon {
