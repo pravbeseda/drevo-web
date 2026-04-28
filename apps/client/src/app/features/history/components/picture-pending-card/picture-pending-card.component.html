@@ -6,6 +6,7 @@
     (click)="emitPictureClick()"
     (keydown.enter)="emitPictureClick()"
     (keydown.space)="emitPictureClick(); $event.preventDefault()"
+    [attr.aria-label]="'Перейти к иллюстрации: ' + group().currentTitle"
 >
     <img
         class="pending-card__thumbnail"

@@ -1,14 +1,8 @@
+import { PENDING_TYPE_LABELS } from '../../../../shared/constants/pending-type-labels';
 import { PendingAction } from '../../models/pending.model';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { PicturePending, PicturePendingType } from '@drevo-web/shared';
+import { PicturePending } from '@drevo-web/shared';
 import { ButtonComponent, IconComponent } from '@drevo-web/ui';
-
-const PENDING_LABELS: Record<PicturePendingType, string> = {
-    edit_title: 'Изменение описания',
-    edit_file: 'Замена файла',
-    edit_both: 'Изменение описания и файла',
-    delete: 'Удаление иллюстрации',
-};
 
 @Component({
     selector: 'app-pending-banner',
@@ -26,7 +20,7 @@ export class PendingBannerComponent {
     readonly imageClick = output<PicturePending>();
 
     readonly isOwn = computed(() => this.pending().user === this.currentUserName());
-    readonly pendingLabel = computed(() => PENDING_LABELS[this.pending().pendingType]);
+    readonly pendingLabel = computed(() => PENDING_TYPE_LABELS[this.pending().pendingType]);
     readonly hasNewTitle = computed(() => {
         const pending = this.pending();
         return (

@@ -35,6 +35,7 @@
                         (click)="onPictureClick(item.data.id)"
                         (keydown.enter)="onPictureClick(item.data.id)"
                         (keydown.space)="onPictureClick(item.data.id); $event.preventDefault()"
+                        [attr.aria-label]="'Перейти к иллюстрации: ' + item.data.title"
                     >
                         <img
                             class="recent-item__thumbnail"
@@ -64,6 +65,14 @@
             }
         </ng-template>
     </ui-virtual-scroller>
+    @if (service.hasPendingError() && !service.hasPendingItems()) {
+        <p
+            class="section-error"
+            data-testid="pending-error"
+        >
+            Не удалось загрузить ожидающие модерации
+        </p>
+    }
     @if (service.hasRecentError()) {
         <p
             class="section-error"
@@ -72,7 +81,7 @@
             Не удалось загрузить данные
         </p>
     }
-} @else if (service.hasRecentError()) {
+} @else if (service.hasRecentError() || service.hasPendingError()) {
     <p
         class="section-error"
         data-testid="recent-error"

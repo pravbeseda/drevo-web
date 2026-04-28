@@ -30,7 +30,7 @@ const PICTURE = createPictureDto({
     pic_height: 768,
 });
 const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
-    { type: 'delete', label: 'Удаление' },
+    { type: 'delete', label: 'Удаление иллюстрации' },
     { type: 'edit_title', label: 'Изменение описания' },
     { type: 'edit_file', label: 'Замена файла' },
     { type: 'edit_both', label: 'Изменение описания и файла' },

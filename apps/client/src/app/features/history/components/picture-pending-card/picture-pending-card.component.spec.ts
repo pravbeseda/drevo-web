@@ -78,7 +78,7 @@ describe('PicturePendingCardComponent', () => {
             },
         });
 
-        expect(spectator.query('[data-testid="pending-item-type"]')?.textContent?.trim()).toBe('Удаление');
+        expect(spectator.query('[data-testid="pending-item-type"]')?.textContent?.trim()).toBe('Удаление иллюстрации');
     });
 
     it('should show multiple pending items in a group', () => {

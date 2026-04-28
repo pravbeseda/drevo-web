@@ -4,6 +4,7 @@ export class PicturesHistoryPage extends BasePage {
     readonly picturesList = this.page.getByTestId('pictures-list');
     readonly recentEmpty = this.page.getByTestId('recent-empty');
     readonly recentError = this.page.getByTestId('recent-error');
+    readonly pendingError = this.page.getByTestId('pending-error');
 
     readonly pendingCards = this.page.getByTestId('pending-card');
     readonly pendingCardTitles = this.page.getByTestId('pending-card-title');

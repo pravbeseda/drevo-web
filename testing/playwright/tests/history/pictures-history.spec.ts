@@ -13,6 +13,7 @@ import {
 } from '../../fixtures';
 import { createPicturePendingDto, createPictureDto, createPicturesListResponse } from '../../mocks';
 import { PicturesHistoryPage } from '../../pages/pictures-history.page';
+import { assertIsDefined } from '@drevo-web/shared';
 
 test.describe('Pictures history page', () => {
     test('shows recent items list', async ({ authenticatedPage: page }) => {
@@ -95,7 +96,7 @@ test.describe('Pictures history page', () => {
         const history = new PicturesHistoryPage(page);
         await history.waitForReady();
 
-        await expect(history.pendingItemTypes.first()).toHaveText('Удаление');
+        await expect(history.pendingItemTypes.first()).toHaveText('Удаление иллюстрации');
         await expect(history.pendingItemAuthors.first()).toHaveText('moderator');
     });
 
@@ -152,9 +153,9 @@ test.describe('Pictures history page', () => {
 
         const pendingBox = await history.pendingCards.first().boundingBox();
         const recentBox = await history.recentItems.first().boundingBox();
-        expect(pendingBox).toBeTruthy();
-        expect(recentBox).toBeTruthy();
-        expect(pendingBox!.y).toBeLessThan(recentBox!.y);
+        assertIsDefined(pendingBox, 'Pending card bounding box is undefined');
+        assertIsDefined(recentBox, 'Recent item bounding box is undefined');
+        expect(pendingBox.y).toBeLessThan(recentBox.y);
     });
 
     test('shows only pending cards when recent is empty', async ({ authenticatedPage: page }) => {

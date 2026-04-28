@@ -11,6 +11,8 @@ describe('PicturesHistoryComponent', () => {
         init: jest.fn(),
         isInitialLoading: signal(false),
         hasRecentError: signal(false),
+        hasPendingError: signal(false),
+        hasPendingItems: signal(false),
         hasItems: signal(false),
         isRecentLoadingMore: signal(false),
         displayItems: signal([]),
@@ -33,6 +35,8 @@ describe('PicturesHistoryComponent', () => {
         jest.clearAllMocks();
         mockService.isInitialLoading.set(false);
         mockService.hasRecentError.set(false);
+        mockService.hasPendingError.set(false);
+        mockService.hasPendingItems.set(false);
         mockService.hasItems.set(false);
         mockService.isRecentLoadingMore.set(false);
         mockService.displayItems.set([]);
@@ -85,6 +89,37 @@ describe('PicturesHistoryComponent', () => {
         spectator.detectChanges();
 
         expect(spectator.query('[data-testid="pictures-list"]')).toBeTruthy();
+        expect(spectator.query('[data-testid="recent-error"]')).toBeTruthy();
+    });
+
+    it('should show pending error when pending fails and no pending items', () => {
+        mockService.hasItems.set(true);
+        mockService.hasPendingError.set(true);
+        mockService.displayItems.set([{ type: 'header', date: 'Сегодня' }]);
+        mockService.displayTotalItems.set(1);
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="pending-error"]')?.textContent?.trim()).toBe(
+            'Не удалось загрузить ожидающие модерации',
+        );
+    });
+
+    it('should not show pending error when pending items exist', () => {
+        mockService.hasItems.set(true);
+        mockService.hasPendingError.set(true);
+        mockService.hasPendingItems.set(true);
+        mockService.displayItems.set([{ type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } }]);
+        mockService.displayTotalItems.set(1);
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="pending-error"]')).toBeNull();
+    });
+
+    it('should show error when both pending and recent fail and no items', () => {
+        mockService.hasPendingError.set(true);
+        mockService.hasRecentError.set(true);
+        spectator.detectChanges();
+
         expect(spectator.query('[data-testid="recent-error"]')).toBeTruthy();
     });
 
