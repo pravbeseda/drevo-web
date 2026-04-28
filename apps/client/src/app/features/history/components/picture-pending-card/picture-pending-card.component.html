@@ -23,6 +23,7 @@
         @for (pending of group().items; track pending.id) {
             <div
                 class="pending-card__item"
+                [class.pending-card__item--delete]="pending.pendingType === 'delete'"
                 data-testid="pending-item"
             >
                 <ui-icon

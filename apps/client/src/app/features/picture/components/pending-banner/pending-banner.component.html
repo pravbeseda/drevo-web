@@ -2,7 +2,10 @@
     class="pending-banner"
     data-testid="pending-banner"
 >
-    <div class="pending-banner__header">
+    <div
+        class="pending-banner__header"
+        [class.pending-banner__header--delete]="pending().pendingType === 'delete'"
+    >
         <ui-icon
             name="schedule"
             class="pending-banner__icon"
@@ -11,7 +14,7 @@
             class="pending-banner__text"
             data-testid="pending-banner-text"
         >
-            {{ pendingLabel() }} — ожидает модерации
+            {{ pendingLabel() }}
         </span>
     </div>
 

@@ -62,7 +62,12 @@
     }
 
     &__type {
-        color: var(--themed-text-primary);
+        color: var(--themed-text-secondary);
+    }
+
+    &__item--delete &__icon,
+    &__item--delete &__type {
+        color: var(--themed-text-error);
     }
 
     &__separator {
