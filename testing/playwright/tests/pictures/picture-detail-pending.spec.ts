@@ -30,10 +30,10 @@ const PICTURE = createPictureDto({
     pic_height: 768,
 });
 const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
-    { type: 'delete', label: 'удаление' },
-    { type: 'edit_title', label: 'изменение описания' },
-    { type: 'edit_file', label: 'изменение файла' },
-    { type: 'edit_both', label: 'изменение описания и файла' },
+    { type: 'delete', label: 'Удаление' },
+    { type: 'edit_title', label: 'Изменение описания' },
+    { type: 'edit_file', label: 'Замена файла' },
+    { type: 'edit_both', label: 'Изменение описания и файла' },
 ];
 
 test.describe('Picture detail pending banners', () => {
@@ -227,6 +227,100 @@ test.describe('Picture detail pending banners', () => {
         ]);
 
         await expect(detail.pendingBanners).toHaveCount(0);
+    });
+});
+
+test.describe('Pending banner labels and previews', () => {
+    for (const { type, label } of PENDING_TYPES) {
+        test(`shows correct label for ${type} pending`, async ({ authenticatedPage: page }) => {
+            await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+            await mockPictureThumbs(page);
+            await mockPictureDetail(page, PICTURE_ID, PICTURE);
+            await mockPictureArticles(page, PICTURE_ID, []);
+            await mockPicturePending(page, PICTURE_ID, [createPendingByType(type, 30, 'Автор')]);
+
+            const detail = new PictureDetailPage(page);
+            await page.goto(`/pictures/${PICTURE_ID}`);
+            await detail.waitForReady();
+
+            await expect(detail.pendingTexts.first()).toContainText(label);
+        });
+    }
+
+    test('shows image preview for edit_file pending', async ({ authenticatedPage: page }) => {
+        await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+        await mockPictureThumbs(page);
+        await mockPictureDetail(page, PICTURE_ID, PICTURE);
+        await mockPictureArticles(page, PICTURE_ID, []);
+        await mockPicturePending(page, PICTURE_ID, [
+            createPendingByType('edit_file', 31, mockUsers.authenticated.name),
+        ]);
+
+        const detail = new PictureDetailPage(page);
+        await page.goto(`/pictures/${PICTURE_ID}`);
+        await detail.waitForReady();
+
+        await expect(detail.pendingNewImage).toHaveCount(1);
+        await expect(detail.pendingNewTitle).toHaveCount(0);
+    });
+
+    test('shows title and image preview for edit_both pending', async ({ authenticatedPage: page }) => {
+        await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+        await mockPictureThumbs(page);
+        await mockPictureDetail(page, PICTURE_ID, PICTURE);
+        await mockPictureArticles(page, PICTURE_ID, []);
+        await mockPicturePending(page, PICTURE_ID, [
+            createPicturePendingDto({
+                pp_id: 32,
+                pp_pic_id: PICTURE_ID,
+                pp_user: mockUsers.authenticated.name,
+                pp_type: 'edit_both',
+                pp_title: 'Обновлённый заголовок',
+                pp_width: 1200,
+                pp_height: 900,
+            }),
+        ]);
+
+        const detail = new PictureDetailPage(page);
+        await page.goto(`/pictures/${PICTURE_ID}`);
+        await detail.waitForReady();
+
+        await expect(detail.pendingNewTitle).toHaveText('Обновлённый заголовок');
+        await expect(detail.pendingNewImage).toHaveCount(1);
+    });
+
+    test('does not show image preview for edit_title pending', async ({ authenticatedPage: page }) => {
+        await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+        await mockPictureThumbs(page);
+        await mockPictureDetail(page, PICTURE_ID, PICTURE);
+        await mockPictureArticles(page, PICTURE_ID, []);
+        await mockPicturePending(page, PICTURE_ID, [
+            createPendingByType('edit_title', 33, mockUsers.authenticated.name),
+        ]);
+
+        const detail = new PictureDetailPage(page);
+        await page.goto(`/pictures/${PICTURE_ID}`);
+        await detail.waitForReady();
+
+        await expect(detail.pendingNewImage).toHaveCount(0);
+        await expect(detail.pendingNewTitle).toHaveCount(1);
+    });
+
+    test('does not show title or image preview for delete pending', async ({ authenticatedPage: page }) => {
+        await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
+        await mockPictureThumbs(page);
+        await mockPictureDetail(page, PICTURE_ID, PICTURE);
+        await mockPictureArticles(page, PICTURE_ID, []);
+        await mockPicturePending(page, PICTURE_ID, [
+            createPendingByType('delete', 34, mockUsers.authenticated.name),
+        ]);
+
+        const detail = new PictureDetailPage(page);
+        await page.goto(`/pictures/${PICTURE_ID}`);
+        await detail.waitForReady();
+
+        await expect(detail.pendingNewImage).toHaveCount(0);
+        await expect(detail.pendingNewTitle).toHaveCount(0);
     });
 });
 
