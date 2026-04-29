@@ -22,6 +22,8 @@ import {
     ArticleVersionDto,
     ModerationResponseDto,
     PictureDto,
+    PicturePendingDto,
+    PicturePendingListResponseDto,
     PicturesListResponseDto,
     SaveArticleVersionResponseDto,
     User,
@@ -210,6 +212,41 @@ export async function mockPicturePending(
         const method = route.request().method();
         if (method !== 'GET') return route.fallback();
         return route.fulfill({ json: apiSuccess({ items: pending }) });
+    });
+}
+
+const PICTURES_PENDING_LIST_RE = /\/api\/pictures\/pending(\?.*)?$/;
+
+/** Mock GET /api/pictures/pending — global pending list */
+export async function mockPicturesPendingList(
+    page: Page,
+    items: readonly PicturePendingDto[] = [],
+): Promise<void> {
+    const response: PicturePendingListResponseDto = {
+        items,
+        total: items.length,
+        page: 1,
+        pageSize: 200,
+        totalPages: items.length > 0 ? 1 : 0,
+    };
+    await page.route(PICTURES_PENDING_LIST_RE, route => {
+        const method = route.request().method();
+        if (method !== 'GET') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+}
+
+/** Mock GET /api/pictures/pending — empty list */
+export async function mockPicturesPendingEmpty(page: Page): Promise<void> {
+    await mockPicturesPendingList(page, []);
+}
+
+/** Mock GET /api/pictures/pending — server error */
+export async function mockPicturesPendingError(page: Page, status = 500): Promise<void> {
+    await page.route(PICTURES_PENDING_LIST_RE, route => {
+        const method = route.request().method();
+        if (method !== 'GET') return route.fallback();
+        return route.fulfill({ status, json: apiError('Internal server error') });
     });
 }
 

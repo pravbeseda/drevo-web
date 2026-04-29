@@ -30,6 +30,11 @@
         color: var(--themed-text-primary);
     }
 
+    &__header--delete &__icon,
+    &__header--delete &__text {
+        color: var(--themed-text-error);
+    }
+
     &__author {
         font-size: $font-size-sm;
         color: var(--themed-text-secondary);
