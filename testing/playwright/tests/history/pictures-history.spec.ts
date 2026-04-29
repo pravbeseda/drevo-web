@@ -6,6 +6,7 @@ import {
     mockPicturesError,
     mockPicturesPendingList,
     mockPicturesPendingEmpty,
+    mockPicturesPendingError,
     mockPictureThumbs,
     mockPictureDetail,
     mockPictureArticles,
@@ -202,6 +203,24 @@ test.describe('Pictures history page', () => {
 
         await history.pendingCards.first().click();
         await page.waitForURL(`**/pictures/${PICTURE_ID}`);
+    });
+
+    test('shows inline pending error when pending fails but recent loads', async ({ authenticatedPage: page }) => {
+        await mockPicturesPendingError(page);
+        await mockPicturesApi(
+            page,
+            createPicturesListResponse([createPictureDto({ pic_id: 1, pic_title: 'Недавняя' })]),
+        );
+        await mockPictureThumbs(page);
+
+        await page.goto('/history/pictures');
+        const history = new PicturesHistoryPage(page);
+        await history.waitForReady();
+
+        await expect(history.picturesList).toBeVisible();
+        await expect(history.recentItems).toHaveCount(1);
+        await expect(history.pendingError).toBeVisible();
+        await expect(history.pendingError).toHaveText('Не удалось загрузить ожидающие модерации');
     });
 
     test('clicking recent item navigates to picture detail', async ({ authenticatedPage: page }) => {
