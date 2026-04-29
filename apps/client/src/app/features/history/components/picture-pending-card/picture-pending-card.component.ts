@@ -1,7 +1,6 @@
 import { PENDING_TYPE_LABELS } from '../../../../shared/constants/pending-type-labels';
 import { PendingGroup } from '../../services/pictures-history.service';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { PicturePendingType } from '@drevo-web/shared';
 import { IconComponent } from '@drevo-web/ui';
 
 @Component({
@@ -13,12 +12,9 @@ import { IconComponent } from '@drevo-web/ui';
 })
 export class PicturePendingCardComponent {
     readonly group = input.required<PendingGroup>();
+    protected readonly pendingLabels = PENDING_TYPE_LABELS;
 
     readonly pictureClick = output<number>();
-
-    getPendingLabel(pendingType: PicturePendingType): string {
-        return PENDING_TYPE_LABELS[pendingType];
-    }
 
     emitPictureClick(): void {
         this.pictureClick.emit(this.group().pictureId);
