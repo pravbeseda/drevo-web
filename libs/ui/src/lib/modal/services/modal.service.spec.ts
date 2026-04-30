@@ -201,48 +201,6 @@ describe('ModalService', () => {
         });
     });
 
-    describe('fullscreen mode', () => {
-        it('should apply fullscreen panel class and dimensions when fullscreen is true', () => {
-            spectator.service.open(mockLoader, { fullscreen: true });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    width: '90vw',
-                    maxWidth: '90vw',
-                    minHeight: '90vh',
-                    maxHeight: '90vh',
-                    panelClass: ['ui-modal-panel', 'ui-modal-fullscreen'],
-                })
-            );
-        });
-
-        it('should use default panel class when fullscreen is false', () => {
-            spectator.service.open(mockLoader, { fullscreen: false });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
-        });
-
-        it('should apply fullscreen in openWithRef', () => {
-            spectator.service.openWithRef(mockLoader, { fullscreen: true });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    width: '90vw',
-                    maxWidth: '90vw',
-                    minHeight: '90vh',
-                    panelClass: ['ui-modal-panel', 'ui-modal-fullscreen'],
-                })
-            );
-        });
-    });
-
     describe('type safety', () => {
         it('should preserve data type through configuration', () => {
             interface CustomData {

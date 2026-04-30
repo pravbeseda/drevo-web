@@ -41,20 +41,18 @@ export class ModalService {
         loader: LazyComponentLoader<unknown>,
         config: ModalConfig<TData>
     ): MatDialogConfig {
-        const isFullscreen = config.fullscreen ?? false;
-
         return {
             data: {
                 loader,
                 data: config.data,
             },
-            width: isFullscreen ? '90vw' : (config.width ?? '500px'),
+            width: config.width ?? '500px',
             minWidth: config.minWidth,
-            maxWidth: isFullscreen ? '90vw' : (config.maxWidth ?? '90vw'),
-            minHeight: isFullscreen ? '90vh' : config.minHeight,
+            maxWidth: config.maxWidth ?? '90vw',
+            height: config.height,
             maxHeight: '90vh',
             disableClose: config.disableClose ?? false,
-            panelClass: isFullscreen ? ['ui-modal-panel', 'ui-modal-fullscreen'] : ['ui-modal-panel'],
+            panelClass: ['ui-modal-panel'],
             autoFocus: 'first-tabbable',
             restoreFocus: true,
         };

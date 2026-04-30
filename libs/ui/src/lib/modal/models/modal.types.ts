@@ -7,10 +7,8 @@ export interface ModalConfig<TData = unknown> {
     width?: string;
     minWidth?: string;
     maxWidth?: string;
-    minHeight?: string;
-    maxHeight?: string;
+    height?: string;
     disableClose?: boolean;
-    fullscreen?: boolean;
 }
 
 export interface ModalRef<TResult = unknown> {
