@@ -1,4 +1,6 @@
+import { TOOLBAR_GROUPS } from '../../components/editor/editor-toolbar.config';
 import { russianPhrases } from '../../constants/editor-phrases';
+import { insertTagInView } from '../../helpers/insert-tag';
 import { continueLists, decreaseListIndent, increaseListIndent } from '../../helpers/list-commands';
 import { quoteKeymap } from '../../helpers/quote-commands';
 import { WikiHighlighterService } from '../wiki-highlighter/wiki-highlighter.service';
@@ -49,6 +51,12 @@ export class EditorFactoryService {
                     { key: 'Enter', run: continueLists },
                     { key: 'Tab', run: increaseListIndent },
                     { key: 'Shift-Tab', run: decreaseListIndent },
+                    ...TOOLBAR_GROUPS.flatMap(g => g.actions)
+                        .filter(a => a.keyBinding)
+                        .map(a => ({
+                            key: a.keyBinding as string,
+                            run: (view: EditorView) => insertTagInView(view, a.command),
+                        })),
                     ...defaultKeymap,
                     ...historyKeymap,
                     ...searchKeymap,

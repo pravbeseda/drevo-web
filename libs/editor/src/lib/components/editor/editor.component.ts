@@ -1,6 +1,9 @@
+import { CustomToolbarAction, TOOLBAR_GROUPS, ToolbarAction } from './editor-toolbar.config';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
+import { insertTagInView } from '../../helpers/insert-tag';
 import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
+import { isPlatformBrowser } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -14,18 +17,53 @@ import {
     Input,
     OnInit,
     Output,
+    PLATFORM_ID,
     ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { InsertTagCommand } from '@drevo-web/shared';
+import { IconComponent } from '@drevo-web/ui';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
 
 const LINKS_CHECK_DEBOUNCE_MS = 300;
 
+interface ToolbarActionView {
+    readonly id: string;
+    readonly icon: string;
+    readonly tooltipWithKey: string;
+    readonly command: InsertTagCommand;
+}
+
+interface ToolbarGroupView {
+    readonly actions: readonly ToolbarActionView[];
+}
+
+function buildTooltip(action: ToolbarAction, isMac: boolean): string {
+    if (!action.keyBinding) {
+        return action.tooltip;
+    }
+    const key = action.keyBinding
+        .replace('Mod', isMac ? '⌘' : 'Ctrl')
+        .replace(/-/g, isMac ? '' : '+');
+    return `${action.tooltip} (${key})`;
+}
+
+function buildToolbarGroups(isMac: boolean): readonly ToolbarGroupView[] {
+    return TOOLBAR_GROUPS.map(group => ({
+        actions: group.actions.map(action => ({
+            id: action.id,
+            icon: action.icon,
+            tooltipWithKey: buildTooltip(action, isMac),
+            command: action.command,
+        })),
+    }));
+}
+
 @Component({
     selector: 'lib-editor',
+    imports: [IconComponent],
     providers: [EditorFactoryService, WikiHighlighterService],
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
@@ -39,6 +77,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     readonly content = input.required<string>();
     readonly customExtensions = input<Extension[]>([]);
+    readonly showToolbar = input(true);
+    readonly customActions = input<CustomToolbarAction[]>([]);
 
     @Input()
     set insertTagCommand(command: InsertTagCommand | null) {
@@ -70,13 +110,19 @@ export class EditorComponent implements OnInit, AfterViewInit {
         return this.linksSubject.getValue();
     }
 
+    readonly toolbarGroups: readonly ToolbarGroupView[];
+
     private editor?: EditorView;
 
     private readonly destroyRef = inject(DestroyRef);
     private readonly editorFactory = inject(EditorFactoryService);
     private readonly wikiHighlighterService = inject(WikiHighlighterService);
+    private readonly platformId = inject(PLATFORM_ID);
 
     constructor() {
+        const isMac = isPlatformBrowser(this.platformId) && /Mac|iPhone|iPad/.test(navigator.userAgent);
+        this.toolbarGroups = buildToolbarGroups(isMac);
+
         effect(() => {
             const newContent = this.content();
             if (!this.editor) return;
@@ -116,31 +162,22 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.editor.contentDOM.setAttribute('autocorrect', 'on');
     }
 
+    insertText(command: InsertTagCommand): void {
+        this.insertTag(command);
+    }
+
     requestMeasure(): void {
         this.editor?.requestMeasure();
+    }
+
+    onToolbarAction(action: ToolbarActionView): void {
+        this.insertTag(action.command);
     }
 
     private insertTag(command: InsertTagCommand): void {
         if (!this.editor) {
             return;
         }
-
-        const view = this.editor;
-        const { state } = view;
-        const { from, to } = state.selection.main;
-
-        const selectedText = from === to ? command.sampleText : state.doc.sliceString(from, to);
-
-        const taggedText = `${command.tagOpen}${selectedText}${command.tagClose}`;
-
-        view.dispatch({
-            changes: { from, to, insert: taggedText },
-            selection: {
-                anchor: from + command.tagOpen.length,
-                head: from + command.tagOpen.length + selectedText.length,
-            },
-        });
-
-        view.focus();
+        insertTagInView(this.editor, command);
     }
 }

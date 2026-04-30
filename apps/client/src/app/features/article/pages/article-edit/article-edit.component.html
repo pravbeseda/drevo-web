@@ -37,6 +37,7 @@
                     data-testid="editor-container"
                     [content]="editorContent()"
                     [customExtensions]="editorExtensions"
+                    [customActions]="customToolbarActions"
                     [linksStatus]="updateLinksState()"
                     (updateLinksEvent)="updateLinks($event)"
                     (contentChanged)="contentChanged($event)"
