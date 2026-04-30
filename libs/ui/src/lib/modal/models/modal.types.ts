@@ -9,6 +9,7 @@ export interface ModalConfig<TData = unknown> {
     maxWidth?: string;
     height?: string;
     disableClose?: boolean;
+    border?: boolean;
 }
 
 export interface ModalRef<TResult = unknown> {

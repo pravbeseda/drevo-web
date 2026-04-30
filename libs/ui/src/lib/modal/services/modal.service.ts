@@ -52,7 +52,8 @@ export class ModalService {
             height: config.height,
             maxHeight: '90vh',
             disableClose: config.disableClose ?? false,
-            panelClass: ['ui-modal-panel'],
+            panelClass: (config.border ?? true) ? ['ui-modal-panel'] : ['ui-modal-panel', 'ui-modal-no-border'],
+            backdropClass: ['cdk-overlay-dark-backdrop', 'ui-modal-backdrop'],
             autoFocus: 'first-tabbable',
             restoreFocus: true,
         };

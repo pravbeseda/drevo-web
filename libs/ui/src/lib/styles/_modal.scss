@@ -1,12 +1,10 @@
-.ui-modal-panel {
-    mat-mdc-dialog-container,
-    .mdc-dialog__container {
-        height: 100%;
-    }
+.ui-modal-backdrop.cdk-overlay-dark-backdrop {
+    background: var(--themed-drawer-backdrop-bg);
+}
 
+.ui-modal-panel {
     .mat-mdc-dialog-surface {
-        display: flex;
-        flex-direction: column;
+        border: 1px solid var(--themed-border-color);
     }
 
     ui-modal-container {
@@ -15,4 +13,8 @@
         flex: 1;
         min-height: 0;
     }
+}
+
+.ui-modal-no-border .mat-mdc-dialog-surface {
+    border: none;
 }
