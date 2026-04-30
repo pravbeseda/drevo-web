@@ -32,6 +32,7 @@ const LINKS_CHECK_DEBOUNCE_MS = 300;
 interface ToolbarActionView {
     readonly id: string;
     readonly icon: string;
+    readonly fontSet?: string;
     readonly tooltipWithKey: string;
     readonly command: InsertTagCommand;
 }
@@ -55,6 +56,7 @@ function buildToolbarGroups(isMac: boolean): readonly ToolbarGroupView[] {
         actions: group.actions.map(action => ({
             id: action.id,
             icon: action.icon,
+            fontSet: action.fontSet,
             tooltipWithKey: buildTooltip(action, isMac),
             command: action.command,
         })),

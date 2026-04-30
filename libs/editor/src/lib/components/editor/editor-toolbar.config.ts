@@ -3,6 +3,7 @@ import { InsertTagCommand } from '@drevo-web/shared';
 export interface ToolbarAction {
     readonly id: string;
     readonly icon: string;
+    readonly fontSet?: string;
     readonly tooltip: string;
     readonly command: InsertTagCommand;
     readonly keyBinding?: string;
@@ -52,13 +53,15 @@ export const TOOLBAR_GROUPS: readonly ToolbarGroup[] = [
         actions: [
             {
                 id: 'heading',
-                icon: 'title',
+                icon: 'format_h1',
+                fontSet: 'material-symbols-rounded',
                 tooltip: 'Раздел',
                 command: { tagOpen: '== ', tagClose: ' ==', sampleText: 'раздел' },
             },
             {
                 id: 'subheading',
-                icon: 'format_size',
+                icon: 'format_h2',
+                fontSet: 'material-symbols-rounded',
                 tooltip: 'Подраздел',
                 command: { tagOpen: '=== ', tagClose: ' ===', sampleText: 'подраздел' },
             },
