@@ -280,11 +280,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                         m => m.PicturePageComponent,
                     ),
                 {
-                    width: '80vw',
-                    maxWidth: '80vw',
-                    minHeight: '80vh',
-                    maxHeight: '80vh',
-                    panelClass: 'picture-picker-panel',
+                    fullscreen: true,
                 },
             )
             .pipe(

@@ -10,7 +10,7 @@ export interface ModalConfig<TData = unknown> {
     minHeight?: string;
     maxHeight?: string;
     disableClose?: boolean;
-    panelClass?: string | string[];
+    fullscreen?: boolean;
 }
 
 export interface ModalRef<TResult = unknown> {

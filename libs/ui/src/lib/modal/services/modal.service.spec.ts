@@ -53,6 +53,7 @@ describe('ModalService', () => {
                     maxWidth: '90vw',
                     maxHeight: '90vh',
                     disableClose: false,
+                    panelClass: ['ui-modal-panel'],
                     autoFocus: 'first-tabbable',
                     restoreFocus: true,
                 })
@@ -101,30 +102,6 @@ describe('ModalService', () => {
                 ModalContainerComponent,
                 expect.objectContaining({
                     disableClose: true,
-                })
-            );
-        });
-
-        it('should add single custom panel class', () => {
-            spectator.service.open(mockLoader, { panelClass: 'custom-class' });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel', 'custom-class'],
-                })
-            );
-        });
-
-        it('should add multiple custom panel classes', () => {
-            spectator.service.open(mockLoader, {
-                panelClass: ['class-one', 'class-two'],
-            });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel', 'class-one', 'class-two'],
                 })
             );
         });
@@ -224,9 +201,24 @@ describe('ModalService', () => {
         });
     });
 
-    describe('buildPanelClasses (private method via public API)', () => {
-        it('should always include base panel class', () => {
-            spectator.service.open(mockLoader);
+    describe('fullscreen mode', () => {
+        it('should apply fullscreen panel class and dimensions when fullscreen is true', () => {
+            spectator.service.open(mockLoader, { fullscreen: true });
+
+            expect(dialogMock.open).toHaveBeenCalledWith(
+                ModalContainerComponent,
+                expect.objectContaining({
+                    width: '90vw',
+                    maxWidth: '90vw',
+                    minHeight: '90vh',
+                    maxHeight: '90vh',
+                    panelClass: ['ui-modal-panel', 'ui-modal-fullscreen'],
+                })
+            );
+        });
+
+        it('should use default panel class when fullscreen is false', () => {
+            spectator.service.open(mockLoader, { fullscreen: false });
 
             expect(dialogMock.open).toHaveBeenCalledWith(
                 ModalContainerComponent,
@@ -236,36 +228,16 @@ describe('ModalService', () => {
             );
         });
 
-        it('should handle undefined panelClass', () => {
-            spectator.service.open(mockLoader, { panelClass: undefined });
+        it('should apply fullscreen in openWithRef', () => {
+            spectator.service.openWithRef(mockLoader, { fullscreen: true });
 
             expect(dialogMock.open).toHaveBeenCalledWith(
                 ModalContainerComponent,
                 expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
-        });
-
-        it('should handle empty string panelClass', () => {
-            spectator.service.open(mockLoader, { panelClass: '' });
-
-            // Empty string is falsy, so it won't be added
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
-        });
-
-        it('should handle empty array panelClass', () => {
-            spectator.service.open(mockLoader, { panelClass: [] });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
+                    width: '90vw',
+                    maxWidth: '90vw',
+                    minHeight: '90vh',
+                    panelClass: ['ui-modal-panel', 'ui-modal-fullscreen'],
                 })
             );
         });
