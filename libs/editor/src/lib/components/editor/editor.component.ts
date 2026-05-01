@@ -3,7 +3,6 @@ import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { insertTagInView } from '../../helpers/insert-tag';
 import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
-import { isPlatformBrowser } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -17,12 +16,12 @@ import {
     Input,
     OnInit,
     Output,
-    PLATFORM_ID,
     ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import { WINDOW } from '@drevo-web/core';
 import { InsertTagCommand } from '@drevo-web/shared';
 import { IconComponent } from '@drevo-web/ui';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
@@ -119,10 +118,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly editorFactory = inject(EditorFactoryService);
     private readonly wikiHighlighterService = inject(WikiHighlighterService);
-    private readonly platformId = inject(PLATFORM_ID);
+    private readonly windowRef = inject(WINDOW, { optional: true });
 
     constructor() {
-        const isMac = isPlatformBrowser(this.platformId) && /Mac|iPhone|iPad/.test(navigator.userAgent);
+        const isMac = !!this.windowRef && /Mac|iPhone|iPad/.test(this.windowRef.navigator.userAgent);
         this.toolbarGroups = buildToolbarGroups(isMac);
 
         effect(() => {

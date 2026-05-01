@@ -29,7 +29,7 @@
         }
         @if (customActions().length > 0) {
             <div class="editor-toolbar__group">
-                @for (action of customActions(); track action.icon) {
+                @for (action of customActions(); track $index) {
                     <button
                         type="button"
                         class="editor-toolbar__button"

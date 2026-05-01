@@ -95,6 +95,17 @@ describe('ModalService', () => {
             );
         });
 
+        it('should add no-border class when border is false', () => {
+            spectator.service.open(mockLoader, { border: false });
+
+            expect(dialogMock.open).toHaveBeenCalledWith(
+                ModalContainerComponent,
+                expect.objectContaining({
+                    panelClass: ['ui-modal-panel', 'ui-modal-no-border'],
+                })
+            );
+        });
+
         it('should apply disableClose option', () => {
             spectator.service.open(mockLoader, { disableClose: true });
 

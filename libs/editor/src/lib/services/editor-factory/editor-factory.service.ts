@@ -1,4 +1,4 @@
-import { TOOLBAR_GROUPS } from '../../components/editor/editor-toolbar.config';
+import { TOOLBAR_GROUPS, ToolbarAction } from '../../components/editor/editor-toolbar.config';
 import { russianPhrases } from '../../constants/editor-phrases';
 import { insertTagInView } from '../../helpers/insert-tag';
 import { continueLists, decreaseListIndent, increaseListIndent } from '../../helpers/list-commands';
@@ -52,9 +52,9 @@ export class EditorFactoryService {
                     { key: 'Tab', run: increaseListIndent },
                     { key: 'Shift-Tab', run: decreaseListIndent },
                     ...TOOLBAR_GROUPS.flatMap(g => g.actions)
-                        .filter(a => a.keyBinding)
+                        .filter((a): a is ToolbarAction & { readonly keyBinding: string } => !!a.keyBinding)
                         .map(a => ({
-                            key: a.keyBinding as string,
+                            key: a.keyBinding,
                             run: (view: EditorView) => insertTagInView(view, a.command),
                         })),
                     ...defaultKeymap,
