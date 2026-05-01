@@ -42,7 +42,7 @@ export const TOOLBAR_GROUPS: readonly ToolbarGroup[] = [
         actions: [
             {
                 id: 'link',
-                icon: 'link',
+                icon: 'add_link',
                 tooltip: 'Ссылка',
                 command: { tagOpen: '((', tagClose: '))', sampleText: 'ссылка' },
                 keyBinding: 'Mod-k',

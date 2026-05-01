@@ -87,7 +87,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly editorExtensions: Extension[] = [this.picturePreviewExtension];
     readonly customToolbarActions: CustomToolbarAction[] = [
         {
-            icon: 'image',
+            icon: 'add_photo_alternate',
             tooltip: 'Вставить иллюстрацию',
             callback: () => this.openPicturePicker(),
         },
