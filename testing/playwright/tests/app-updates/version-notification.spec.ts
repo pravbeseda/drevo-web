@@ -1,4 +1,5 @@
 import { expect, test } from '../../fixtures';
+import { getVersionNotification, getVersionNotificationPattern, getVersionUpdateButton } from '../../helpers/version-notification';
 import { LayoutPage } from '../../pages/layout.page';
 import { Page } from '@playwright/test';
 
@@ -28,19 +29,20 @@ test.describe('Version update notification', () => {
         await setupInitialVersion(page);
         await switchToUpdatedVersion(page);
 
-        await expect(page.getByText('Доступна новая версия 1.1.0')).toBeVisible({ timeout: 10000 });
-        await expect(page.getByRole('button', { name: 'Обновить' })).toBeVisible();
+        await expect(getVersionNotification(page, '1.1.0')).toBeVisible({ timeout: 10000 });
+        await expect(getVersionUpdateButton(page)).toBeVisible();
     });
 
     test('reloads page on snackbar action click', async ({ authenticatedPage: page }) => {
         await setupInitialVersion(page);
         await switchToUpdatedVersion(page);
 
-        await expect(page.getByText('Доступна новая версия 1.1.0')).toBeVisible({ timeout: 10000 });
+        const notification = getVersionNotification(page, '1.1.0');
+        await expect(notification).toBeVisible({ timeout: 10000 });
 
-        await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: 'Обновить' }).click()]);
+        await Promise.all([page.waitForEvent('load'), getVersionUpdateButton(page).click()]);
 
-        await expect(page.getByText('Доступна новая версия 1.1.0')).toHaveCount(0);
+        await expect(notification).toHaveCount(0);
     });
 
     test('does not show snackbar when version is the same', async ({ authenticatedPage: page }) => {
@@ -48,6 +50,6 @@ test.describe('Version update notification', () => {
 
         await page.clock.fastForward(5 * 60 * 1000);
 
-        await expect(page.getByText(/Доступна новая версия/)).toHaveCount(0);
+        await expect(getVersionNotificationPattern(page)).toHaveCount(0);
     });
 });
