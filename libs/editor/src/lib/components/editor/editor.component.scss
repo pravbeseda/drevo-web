@@ -10,7 +10,7 @@
     align-items: center;
     gap: 2px;
     padding: 4px 8px;
-    border-bottom: 1px solid var(--themed-border);
+    border-bottom: 1px solid var(--themed-border-color);
     background: var(--themed-surface);
     overflow-x: auto;
     scrollbar-width: none;
@@ -30,7 +30,7 @@
     &__separator {
         width: 1px;
         height: 20px;
-        background: var(--themed-border);
+        background: var(--themed-border-color);
         margin: 0 4px;
         flex-shrink: 0;
     }
