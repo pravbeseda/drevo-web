@@ -13,10 +13,13 @@ export class LayoutPage extends BasePage {
     // Account dropdown
     readonly accountButton = this.page.getByTestId('account-button');
     readonly userName = this.page.getByTestId('user-name');
+    readonly userRole = this.page.getByTestId('user-role');
     readonly logoutButton = this.page.getByTestId('logout-button');
+    readonly downloadLogsButton = this.page.getByTestId('download-logs-button');
 
     // Theme toggle
     readonly themeToggle = this.page.getByTestId('theme-toggle');
+    readonly htmlElement = this.page.locator('html');
 
     // Font scale — component host elements (for clicks)
     readonly fontScaleToggle = this.page.getByTestId('font-scale-toggle');
@@ -47,19 +50,36 @@ export class LayoutPage extends BasePage {
         return this.sidebar.locator(`[data-testid="nav-item"][aria-label="${label}"]`);
     }
 
+    private readonly layoutRoot = this.page.locator('.layout');
+    private readonly fontScaleBackdrop = this.page.locator('.font-scale-backdrop');
+
     /** Assert sidebar is expanded (retries until true or timeout). */
     async expectSidebarExpanded(): Promise<void> {
-        await expect(this.page.locator('.layout')).not.toHaveClass(/sidebar-collapsed/);
+        await expect(this.layoutRoot).not.toHaveClass(/sidebar-collapsed/);
     }
 
     /** Assert sidebar is collapsed (retries until true or timeout). */
     async expectSidebarCollapsed(): Promise<void> {
-        await expect(this.page.locator('.layout')).toHaveClass(/sidebar-collapsed/);
+        await expect(this.layoutRoot).toHaveClass(/sidebar-collapsed/);
+    }
+
+    async expectDarkTheme(): Promise<void> {
+        await expect(this.htmlElement).toHaveClass(/dark-theme/);
+    }
+
+    async expectLightTheme(): Promise<void> {
+        await expect(this.htmlElement).not.toHaveClass(/dark-theme/);
+        await expect(this.htmlElement).toHaveClass(/light-theme/);
     }
 
     /** Open the account dropdown menu */
     async openAccountMenu(): Promise<void> {
         await this.accountButton.click();
+    }
+
+    /** Close the account dropdown via Escape key */
+    async closeAccountMenu(): Promise<void> {
+        await this.page.keyboard.press('Escape');
     }
 
     /** Open account dropdown and click logout */
@@ -82,7 +102,7 @@ export class LayoutPage extends BasePage {
 
     /** Close the font-scale popup by clicking the backdrop */
     async closeFontScalePopup(): Promise<void> {
-        await this.page.locator('.font-scale-backdrop').click({ force: true });
+        await this.fontScaleBackdrop.click({ force: true });
         await this.fontScalePopup.waitFor({ state: 'hidden' });
     }
 }

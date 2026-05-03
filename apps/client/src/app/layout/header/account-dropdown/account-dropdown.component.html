@@ -22,13 +22,17 @@
                     >
                         {{ displayName() }}
                     </span>
-                    <span class="dropdown-header-subtitle">
+                    <span
+                        class="dropdown-header-subtitle"
+                        data-testid="user-role"
+                    >
                         {{ roleLabel() }}
                     </span>
                 </div>
                 <hr class="dropdown-divider" />
                 <ui-dropdown-menu-item
                     icon="download"
+                    data-testid="download-logs-button"
                     (clicked)="downloadLogs()"
                 >
                     Скачать логи

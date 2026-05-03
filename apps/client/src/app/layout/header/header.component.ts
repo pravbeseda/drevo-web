@@ -32,7 +32,6 @@ export class HeaderComponent {
     openSearch(): void {
         this.modalService.open(() => import('../../features/search/search.component').then(m => m.SearchComponent), {
             width: '600px',
-            minHeight: '90vh',
         });
     }
 }

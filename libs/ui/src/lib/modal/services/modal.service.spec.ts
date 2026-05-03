@@ -53,6 +53,7 @@ describe('ModalService', () => {
                     maxWidth: '90vw',
                     maxHeight: '90vh',
                     disableClose: false,
+                    panelClass: ['ui-modal-panel'],
                     autoFocus: 'first-tabbable',
                     restoreFocus: true,
                 })
@@ -94,6 +95,17 @@ describe('ModalService', () => {
             );
         });
 
+        it('should add no-border class when border is false', () => {
+            spectator.service.open(mockLoader, { border: false });
+
+            expect(dialogMock.open).toHaveBeenCalledWith(
+                ModalContainerComponent,
+                expect.objectContaining({
+                    panelClass: ['ui-modal-panel', 'ui-modal-no-border'],
+                })
+            );
+        });
+
         it('should apply disableClose option', () => {
             spectator.service.open(mockLoader, { disableClose: true });
 
@@ -101,30 +113,6 @@ describe('ModalService', () => {
                 ModalContainerComponent,
                 expect.objectContaining({
                     disableClose: true,
-                })
-            );
-        });
-
-        it('should add single custom panel class', () => {
-            spectator.service.open(mockLoader, { panelClass: 'custom-class' });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel', 'custom-class'],
-                })
-            );
-        });
-
-        it('should add multiple custom panel classes', () => {
-            spectator.service.open(mockLoader, {
-                panelClass: ['class-one', 'class-two'],
-            });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel', 'class-one', 'class-two'],
                 })
             );
         });
@@ -221,53 +209,6 @@ describe('ModalService', () => {
             afterClosedSubject.complete();
 
             expect(results).toEqual([42]);
-        });
-    });
-
-    describe('buildPanelClasses (private method via public API)', () => {
-        it('should always include base panel class', () => {
-            spectator.service.open(mockLoader);
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
-        });
-
-        it('should handle undefined panelClass', () => {
-            spectator.service.open(mockLoader, { panelClass: undefined });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
-        });
-
-        it('should handle empty string panelClass', () => {
-            spectator.service.open(mockLoader, { panelClass: '' });
-
-            // Empty string is falsy, so it won't be added
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
-        });
-
-        it('should handle empty array panelClass', () => {
-            spectator.service.open(mockLoader, { panelClass: [] });
-
-            expect(dialogMock.open).toHaveBeenCalledWith(
-                ModalContainerComponent,
-                expect.objectContaining({
-                    panelClass: ['ui-modal-panel'],
-                })
-            );
         });
     });
 

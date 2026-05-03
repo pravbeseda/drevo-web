@@ -23,9 +23,9 @@ test.describe('Font scale control', () => {
             await expect(layout.fontScalePopup).toBeVisible();
         });
 
-        test('closes popup on backdrop click', async ({ authenticatedPage: page }) => {
+        test('closes popup on backdrop click', async () => {
             await layout.openFontScalePopup();
-            await page.locator('.font-scale-backdrop').click({ force: true });
+            await layout.closeFontScalePopup();
             await expect(layout.fontScalePopup).not.toBeVisible();
         });
     });

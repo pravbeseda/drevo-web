@@ -11,6 +11,7 @@
 // This generates --themed-* CSS variables that automatically switch with theme
 @use 'theme-colors';
 @use 'tokens' as *;
+@use 'modal';
 
 // ============================================================================
 // LIGHT THEME (default)
@@ -162,15 +163,6 @@ html.dark-theme body {
 
 .font-scale-backdrop {
     background: transparent;
-}
-
-// ============================================================================
-// DIFF MODAL PANEL
-// ============================================================================
-
-.diff-modal-panel .mat-mdc-dialog-surface {
-    padding: 0;
-    border-radius: 0;
 }
 
 // ============================================================================

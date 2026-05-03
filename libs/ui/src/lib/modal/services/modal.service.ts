@@ -12,25 +12,9 @@ export class ModalService {
         loader: LazyComponentLoader<unknown>,
         config: ModalConfig<TData> = {}
     ): Observable<TResult | undefined> {
-        const dialogConfig: MatDialogConfig = {
-            data: {
-                loader,
-                data: config.data,
-            },
-            width: config.width ?? '500px',
-            minWidth: config.minWidth,
-            maxWidth: config.maxWidth ?? '90vw',
-            minHeight: config.minHeight,
-            maxHeight: config.maxHeight ?? '90vh',
-            disableClose: config.disableClose ?? false,
-            panelClass: this.buildPanelClasses(config.panelClass),
-            autoFocus: 'first-tabbable',
-            restoreFocus: true,
-        };
-
         const dialogRef = this.dialog.open<ModalContainerComponent<TData, TResult>, unknown, TResult>(
             ModalContainerComponent,
-            dialogConfig
+            this.buildDialogConfig(loader, config)
         );
 
         return dialogRef.afterClosed();
@@ -40,24 +24,9 @@ export class ModalService {
         loader: LazyComponentLoader<unknown>,
         config: ModalConfig<TData> = {}
     ): { closed: Observable<TResult | undefined>; ref: ModalRef<TResult> } {
-        const dialogConfig: MatDialogConfig = {
-            data: {
-                loader,
-                data: config.data,
-            },
-            width: config.width ?? '500px',
-            minWidth: config.minWidth,
-            maxWidth: config.maxWidth ?? '90vw',
-            maxHeight: '90vh',
-            disableClose: config.disableClose ?? false,
-            panelClass: this.buildPanelClasses(config.panelClass),
-            autoFocus: 'first-tabbable',
-            restoreFocus: true,
-        };
-
         const dialogRef = this.dialog.open<ModalContainerComponent<TData, TResult>, unknown, TResult>(
             ModalContainerComponent,
-            dialogConfig
+            this.buildDialogConfig(loader, config)
         );
 
         return {
@@ -68,17 +37,25 @@ export class ModalService {
         };
     }
 
-    private buildPanelClasses(customClass?: string | string[]): string[] {
-        const classes = ['ui-modal-panel'];
-
-        if (customClass) {
-            if (Array.isArray(customClass)) {
-                classes.push(...customClass);
-            } else {
-                classes.push(customClass);
-            }
-        }
-
-        return classes;
+    private buildDialogConfig<TData>(
+        loader: LazyComponentLoader<unknown>,
+        config: ModalConfig<TData>
+    ): MatDialogConfig {
+        return {
+            data: {
+                loader,
+                data: config.data,
+            },
+            width: config.width ?? '500px',
+            minWidth: config.minWidth,
+            maxWidth: config.maxWidth ?? '90vw',
+            height: config.height,
+            maxHeight: '90vh',
+            disableClose: config.disableClose ?? false,
+            panelClass: (config.border ?? true) ? ['ui-modal-panel'] : ['ui-modal-panel', 'ui-modal-no-border'],
+            backdropClass: ['cdk-overlay-dark-backdrop', 'ui-modal-backdrop'],
+            autoFocus: 'first-tabbable',
+            restoreFocus: true,
+        };
     }
 }

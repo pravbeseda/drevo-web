@@ -29,4 +29,11 @@ export class PictureGalleryPage extends BasePage {
     async search(query: string): Promise<void> {
         await this.searchInput.fill(query);
     }
+
+    /** Scroll virtual scroller to the bottom */
+    async scrollToBottom(): Promise<void> {
+        await this.page.locator('cdk-virtual-scroll-viewport').evaluate(el => {
+            el.scrollTop = el.scrollHeight;
+        });
+    }
 }

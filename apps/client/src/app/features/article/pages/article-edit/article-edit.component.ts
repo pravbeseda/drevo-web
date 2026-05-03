@@ -24,9 +24,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { EditorComponent } from '@drevo-web/editor';
+import { CustomToolbarAction, EditorComponent } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
-import { ConfirmationService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
+import { ConfirmationService, ModalService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
 import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
 
 const EDITOR_TAB_INDEX = 0;
@@ -61,6 +61,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
     private readonly pictureService = inject(PictureService);
     private readonly pictureLightboxService = inject(PictureLightboxService);
+    private readonly modalService = inject(ModalService);
 
     private readonly _editorContent = signal<string>('');
     private readonly _isSaving = signal(false);
@@ -84,6 +85,13 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
     readonly editorExtensions: Extension[] = [this.picturePreviewExtension];
+    readonly customToolbarActions: CustomToolbarAction[] = [
+        {
+            icon: 'add_photo_alternate',
+            tooltip: 'Вставить иллюстрацию',
+            callback: () => this.openPicturePicker(),
+        },
+    ];
 
     ngOnInit(): void {
         const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
@@ -260,6 +268,30 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         } catch (error) {
             this.logger.error('Failed to confirm discard', error);
         }
+    }
+
+    private openPicturePicker(): void {
+        this.logger.info('Opening picture picker');
+
+        this.modalService
+            .open<undefined, string>(
+                () =>
+                    import('../../../../features/picture/pages/picture-page/picture-page.component').then(
+                        m => m.PicturePageComponent,
+                    ),
+                {
+                    width: '90vw',
+                    height: '90vh',
+                },
+            )
+            .pipe(
+                filter((result): result is string => !!result),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(code => {
+                this.logger.info('Picture selected', { code });
+                this.editorComponent?.insertText({ tagOpen: code, tagClose: '', sampleText: '' });
+            });
     }
 
     private getDraftRoute(): string {

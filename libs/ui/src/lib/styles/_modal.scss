@@ -1,0 +1,20 @@
+.ui-modal-backdrop.cdk-overlay-dark-backdrop {
+    background: var(--themed-drawer-backdrop-bg);
+}
+
+.ui-modal-panel {
+    .mat-mdc-dialog-surface {
+        border: 1px solid var(--themed-border-color);
+    }
+
+    ui-modal-container {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+}
+
+.ui-modal-no-border .mat-mdc-dialog-surface {
+    border: none;
+}

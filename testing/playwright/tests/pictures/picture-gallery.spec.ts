@@ -122,9 +122,7 @@ test.describe('Picture gallery', () => {
 
             const initialCount = await gallery.cards.count();
 
-            await page.locator('cdk-virtual-scroll-viewport').evaluate(el => {
-                el.scrollTop = el.scrollHeight;
-            });
+            await gallery.scrollToBottom();
 
             await expect(async () => {
                 const count = await gallery.cards.count();

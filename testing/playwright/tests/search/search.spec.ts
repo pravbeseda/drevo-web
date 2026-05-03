@@ -83,8 +83,7 @@ test.describe('Search modal', () => {
         const responsePromise = page.waitForResponse(r =>
             r.url().includes('/api/articles/search') && r.url().includes('q='),
         );
-        await search.searchInput.click();
-        await page.keyboard.type('дер', { delay: 50 });
+        await search.typeQuerySlowly('дер');
         await responsePromise;
 
         expect(searchCount).toBe(1);

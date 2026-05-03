@@ -1,4 +1,5 @@
 import { test, expect, mockPicturesApi, mockPictureThumbs } from '../../fixtures';
+import { getReloadPrompt } from '../../helpers/reload-prompt';
 import { LayoutPage } from '../../pages/layout.page';
 
 test.describe('Chunk reload prompt', () => {
@@ -30,15 +31,14 @@ test.describe('Chunk reload prompt', () => {
         const picturesNav = layout.navItem('Иллюстрации');
         await picturesNav.click();
 
-        const overlay = page.getByTestId('reload-prompt');
+        const { overlay, host, reloadButton } = getReloadPrompt(page);
         await expect(overlay).toBeVisible();
-        await expect(page.locator('app-reload-prompt')).toHaveAttribute('role', 'alertdialog');
+        await expect(host).toHaveAttribute('role', 'alertdialog');
         await expect(overlay).toContainText('Приложение обновилось');
         await expect(overlay).toContainText(
             'Откройте новую версию, чтобы продолжить работу. Ваши несохранённые изменения могут быть потеряны.',
         );
 
-        const reloadButton = page.getByTestId('reload-button');
         await expect(reloadButton).toBeVisible();
         await expect(reloadButton).toContainText('Обновить');
 
@@ -51,7 +51,7 @@ test.describe('Chunk reload prompt', () => {
         await Promise.all([page.waitForEvent('load'), reloadButton.click()]);
 
         // After reload the overlay must not be present on a fresh page.
-        await expect(page.getByTestId('reload-prompt')).toHaveCount(0);
+        await expect(overlay).toHaveCount(0);
     });
 
     test('does not show overlay on normal navigation', async ({ authenticatedPage: page, isMobile }) => {
@@ -70,6 +70,7 @@ test.describe('Chunk reload prompt', () => {
         await layout.navItem('Иллюстрации').click();
         await page.waitForURL('**/pictures');
 
-        await expect(page.getByTestId('reload-prompt')).toHaveCount(0);
+        const { overlay } = getReloadPrompt(page);
+        await expect(overlay).toHaveCount(0);
     });
 });
