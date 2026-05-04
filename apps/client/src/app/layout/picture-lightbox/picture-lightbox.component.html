@@ -45,14 +45,14 @@
                     [class.lightbox__footer--hidden]="lightboxService.isZoomed()"
                     data-testid="lightbox-footer"
                 >
-                    <span class="lightbox__title">{{ picture.title }}</span>
                     <a
-                        class="lightbox__detail-link"
+                        class="lightbox__title"
                         [routerLink]="['/pictures', picture.id]"
+                        uiTooltip="Открыть страницу иллюстрации"
                         (click)="onDetailLinkClick(); $event.stopPropagation()"
                         data-testid="lightbox-detail-link"
                     >
-                        Открыть страницу иллюстрации
+                        {{ picture.title }}
                     </a>
                 </div>
             }
