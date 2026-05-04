@@ -7,6 +7,7 @@ import {
     mockPictureThumbs,
     bypassSsr,
 } from '../../fixtures';
+import { getTooltip } from '../../helpers/tooltip';
 import { createPictureDto } from '../../mocks';
 import { LightboxPage } from '../../pages/lightbox.page';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
@@ -59,7 +60,7 @@ test.describe('Picture lightbox', () => {
         await lightbox.waitForReady();
 
         await lightbox.titleLink.hover();
-        const tooltip = page.locator('.mat-mdc-tooltip');
+        const tooltip = getTooltip(page);
         await expect(tooltip).toBeVisible();
         await expect(tooltip).toHaveText('Открыть страницу иллюстрации');
     });
