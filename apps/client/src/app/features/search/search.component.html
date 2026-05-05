@@ -36,7 +36,7 @@
                         data-testid="search-result-item"
                         [routerLink]="['/articles', result.id]"
                         (click)="closeModal()"
-                        [innerHTML]="result.title | highlight: searchQuery()"
+                        [innerHTML]="result.highlightedTitle ?? result.title"
                     ></a>
                 </ng-template>
             </ui-virtual-scroller>

@@ -82,8 +82,8 @@ html.dark-theme body {
 // GLOBAL UTILITY STYLES
 // ============================================================================
 
-// Highlight style for search results (used by HighlightPipe)
-.highlighted-text {
+// Highlight style for search results (backend returns <mark> tags)
+mark {
     background-color: var(--themed-search-highlighted-bg);
     color: var(--themed-search-highlighted);
 }

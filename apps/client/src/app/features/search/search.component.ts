@@ -8,7 +8,6 @@ import {
     TextInputComponent,
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
-    HighlightPipe,
     MODAL_DATA,
     ModalData,
 } from '@drevo-web/ui';
@@ -24,7 +23,6 @@ const DEBOUNCE_TIME_MS = 500;
         SpinnerComponent,
         VirtualScrollerComponent,
         VirtualScrollerItemDirective,
-        HighlightPipe,
     ],
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
