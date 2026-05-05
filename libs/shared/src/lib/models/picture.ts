@@ -6,6 +6,7 @@ export interface Picture {
     readonly id: number;
     readonly folder: string;
     readonly title: string;
+    readonly highlightedTitle?: string;
     readonly user: string;
     readonly date: Date;
     readonly width: number | undefined;

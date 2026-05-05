@@ -16,6 +16,13 @@
         loading="lazy"
     />
     <div class="picture-card__overlay">
-        <span class="picture-card__title">{{ picture().title }}</span>
+        @if (picture().highlightedTitle) {
+            <span
+                class="picture-card__title"
+                [innerHTML]="picture().highlightedTitle"
+            ></span>
+        } @else {
+            <span class="picture-card__title">{{ picture().title }}</span>
+        }
     </div>
 </a>

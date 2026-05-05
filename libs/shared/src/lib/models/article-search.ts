@@ -9,6 +9,7 @@
 export interface ArticleSearchResult {
     readonly id: number;
     readonly title: string;
+    readonly highlightedTitle?: string;
 }
 
 /**

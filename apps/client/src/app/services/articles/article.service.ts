@@ -207,6 +207,7 @@ export class ArticleService {
         return {
             id: item.id,
             title: item.title,
+            highlightedTitle: item.highlightedTitle,
         };
     }
 

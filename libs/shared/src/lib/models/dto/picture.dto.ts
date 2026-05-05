@@ -2,6 +2,7 @@ export interface PictureDto {
     readonly pic_id: number;
     readonly pic_folder: string;
     readonly pic_title: string;
+    readonly highlightedTitle?: string;
     readonly pic_user: string;
     readonly pic_date: string;
     readonly pic_width: number | null;

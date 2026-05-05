@@ -20,6 +20,7 @@ export interface ApiResponse<T> {
 export interface ArticleSearchResultDto {
     readonly id: number;
     readonly title: string;
+    readonly highlightedTitle?: string;
 }
 
 /**

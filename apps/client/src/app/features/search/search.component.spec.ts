@@ -604,6 +604,42 @@ describe('SearchComponent', () => {
         });
     });
 
+    describe('highlightedTitle rendering', () => {
+        it('should include highlightedTitle in search results when provided by API', () => {
+            const response = {
+                items: [{ id: 1, title: 'Test Article', highlightedTitle: '<mark>Test</mark> Article' }],
+                total: 1,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            };
+            mockArticleService.searchArticles.mockReturnValue(of(response));
+            spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            expect(spectator.component.searchResults()).toEqual([
+                { id: 1, title: 'Test Article', highlightedTitle: '<mark>Test</mark> Article' },
+            ]);
+        });
+
+        it('should have undefined highlightedTitle when not provided by API', () => {
+            const response = {
+                items: [{ id: 1, title: 'Plain Title' }],
+                total: 1,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            };
+            mockArticleService.searchArticles.mockReturnValue(of(response));
+            spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            const result = spectator.component.searchResults()[0];
+            expect(result.title).toBe('Plain Title');
+            expect(result.highlightedTitle).toBeUndefined();
+        });
+    });
+
     describe('closeModal', () => {
         it('should call modalData.close when modalData is provided', () => {
             const mockModalData: ModalData = {
