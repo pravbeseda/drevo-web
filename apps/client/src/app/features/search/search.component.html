@@ -36,8 +36,13 @@
                         data-testid="search-result-item"
                         [routerLink]="['/articles', result.id]"
                         (click)="closeModal()"
-                        [innerHTML]="result.highlightedTitle ?? result.title"
-                    ></a>
+                    >
+                        @if (result.highlightedTitle) {
+                            <span [innerHTML]="result.highlightedTitle"></span>
+                        } @else {
+                            {{ result.title }}
+                        }
+                    </a>
                 </ng-template>
             </ui-virtual-scroller>
         </div>
