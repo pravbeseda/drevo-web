@@ -1,5 +1,5 @@
 import { AuthService } from '../../../../services/auth/auth.service';
-import { HistoryCountsService } from '../../../../services/counts/history-counts.service';
+import { HistoryCounts, HistoryCountsService } from '../../../../services/counts/history-counts.service';
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
@@ -48,7 +48,7 @@ export class HistoryComponent {
         });
     }
 
-    private getBadge(route: string, counts: NonNullable<ReturnType<typeof this.historyCountsService.counts>>): number {
+    private getBadge(route: string, counts: HistoryCounts): number {
         switch (route) {
             case '/history/articles':
                 return counts.pendingArticles;
