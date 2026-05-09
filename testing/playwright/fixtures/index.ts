@@ -56,6 +56,7 @@ export {
     mockInworkClear,
     mockGlobalHistory,
     mockGlobalHistoryError,
+    mockHistoryCounts,
     mockVersionPairs,
     mockVersionPairsNoHistory,
     mockVersionPairsServerError,

@@ -20,6 +20,7 @@ import {
     ArticleHistoryResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    HistoryCountsDto,
     ModerationResponseDto,
     PictureDto,
     PicturePendingDto,
@@ -596,6 +597,18 @@ export async function mockGlobalHistoryError(page: Page, status = 500): Promise<
     await page.route('**/api/articles/history**', route =>
         route.fulfill({ status, json: apiError('Internal server error') }),
     );
+}
+
+// ---------------------------------------------------------------------------
+// Counts
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/counts — returns history counts for moderators */
+export async function mockHistoryCounts(
+    page: Page,
+    counts: HistoryCountsDto = { pendingArticles: 0, pendingNews: 0, pendingPictures: 0 },
+): Promise<void> {
+    await page.route('**/api/counts', route => route.fulfill({ json: apiSuccess(counts) }));
 }
 
 // ---------------------------------------------------------------------------
