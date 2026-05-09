@@ -10,6 +10,10 @@ export class HistoryPage extends BasePage {
     readonly historyEmpty: Locator = this.page.getByTestId('history-empty');
     readonly historyError: Locator = this.page.getByTestId('history-error');
 
+    badgeFor(tab: Locator): Locator {
+        return tab.locator('ui-badge');
+    }
+
     async waitForReady(): Promise<void> {
         await Promise.race([
             this.historyList.waitFor({ state: 'visible' }),

@@ -132,7 +132,7 @@ Automated security scanning to prevent secrets from being committed:
 
 - **Pre-commit hook** — scans staged files before each commit
 - **GitHub Actions** — scans all commits on push and pull requests
-- **Configuration** — see [docs/security-scanning.md](./docs/security-scanning.md)
+- **Configuration** — see [docs/security-scanning.md](docs/security-scanning.md)
 
 ### Version Management
 
