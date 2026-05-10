@@ -13,16 +13,15 @@ test.describe('Theme toggle', () => {
             await layout.waitForReady();
         });
 
-        test('applies dark theme on click', async ({ authenticatedPage: page }) => {
+        test('applies dark theme on click', async () => {
             await layout.themeToggle.click();
-            await expect(page.locator('html')).toHaveClass(/dark-theme/);
+            await layout.expectDarkTheme();
         });
 
-        test('returns to light theme on second click', async ({ authenticatedPage: page }) => {
+        test('returns to light theme on second click', async () => {
             await layout.themeToggle.click();
             await layout.themeToggle.click();
-            await expect(page.locator('html')).not.toHaveClass(/dark-theme/);
-            await expect(page.locator('html')).toHaveClass(/light-theme/);
+            await layout.expectLightTheme();
         });
     });
 
@@ -35,7 +34,7 @@ test.describe('Theme toggle', () => {
             await layout.themeToggle.click();
             // ThemeService uses an effect() that is async in zoneless mode.
             // Wait for the DOM class change (same effect) before reading localStorage.
-            await expect(page.locator('html')).toHaveClass(/dark-theme/);
+            await layout.expectDarkTheme();
 
             const value = await page.evaluate(key => localStorage.getItem(key), THEME_KEY);
             expect(value).toBe('dark');
@@ -50,7 +49,7 @@ test.describe('Theme toggle', () => {
             await page.goto('/');
             await layout.waitForReady();
 
-            await expect(page.locator('html')).toHaveClass(/dark-theme/);
+            await layout.expectDarkTheme();
         });
     });
 });

@@ -11,6 +11,7 @@
 // This generates --themed-* CSS variables that automatically switch with theme
 @use 'theme-colors';
 @use 'tokens' as *;
+@use 'modal';
 
 // ============================================================================
 // LIGHT THEME (default)
@@ -81,10 +82,19 @@ html.dark-theme body {
 // GLOBAL UTILITY STYLES
 // ============================================================================
 
-// Highlight style for search results (used by HighlightPipe)
-.highlighted-text {
+// Highlight style for search results (backend returns <mark> tags)
+mark {
     background-color: var(--themed-search-highlighted-bg);
     color: var(--themed-search-highlighted);
+}
+
+// ============================================================================
+// CDK VIRTUAL SCROLL FIX
+// ============================================================================
+
+// Without right:0 the content wrapper overflows its parent boundaries
+.cdk-virtual-scroll-content-wrapper {
+    right: 0;
 }
 
 // ============================================================================
@@ -153,15 +163,6 @@ html.dark-theme body {
 
 .font-scale-backdrop {
     background: transparent;
-}
-
-// ============================================================================
-// DIFF MODAL PANEL
-// ============================================================================
-
-.diff-modal-panel .mat-mdc-dialog-surface {
-    padding: 0;
-    border-radius: 0;
 }
 
 // ============================================================================

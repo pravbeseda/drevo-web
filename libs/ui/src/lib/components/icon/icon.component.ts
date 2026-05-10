@@ -14,6 +14,7 @@ export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
 export class IconComponent {
     readonly name = input<string>();
     readonly svgIcon = input<string>();
+    readonly fontSet = input<string>();
     readonly size = input<IconSize>('medium');
     readonly tooltip = input<string>();
     readonly tooltipPosition = input<TooltipPosition>('below');

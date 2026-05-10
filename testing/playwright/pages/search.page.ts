@@ -16,4 +16,9 @@ export class SearchPage extends BasePage {
     async typeQuery(query: string): Promise<void> {
         await this.searchInput.fill(query);
     }
+
+    async typeQuerySlowly(query: string, delayMs = 50): Promise<void> {
+        await this.searchInput.click();
+        await this.page.keyboard.type(query, { delay: delayMs });
+    }
 }

@@ -4,12 +4,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListene
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { IconButtonComponent, SpinnerComponent } from '@drevo-web/ui';
+import { IconButtonComponent, SpinnerComponent, TooltipDirective } from '@drevo-web/ui';
 import { filter, fromEvent } from 'rxjs';
 
 @Component({
     selector: 'app-picture-lightbox',
-    imports: [IconButtonComponent, RouterLink, SpinnerComponent],
+    imports: [IconButtonComponent, RouterLink, SpinnerComponent, TooltipDirective],
     templateUrl: './picture-lightbox.component.html',
     styleUrl: './picture-lightbox.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

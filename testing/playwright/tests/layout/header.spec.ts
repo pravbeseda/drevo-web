@@ -17,19 +17,18 @@ test.describe('Header — account dropdown', () => {
         await expect(layout.userName).toHaveText(mockUsers.authenticated.name);
     });
 
-    test('shows role label', async ({ authenticatedPage: page }) => {
-        // role 'user' → 'Пользователь'
-        await expect(page.getByText('Пользователь')).toBeVisible();
+    test('shows role label', async () => {
+        await expect(layout.userRole).toBeVisible();
+        await expect(layout.userRole).toHaveText('Пользователь');
     });
 
-    test('closes dropdown on Escape', async ({ authenticatedPage: page }) => {
-        // CDK Menu handles Escape uniformly across all browsers
-        await page.keyboard.press('Escape');
+    test('closes dropdown on Escape', async () => {
+        await layout.closeAccountMenu();
         await expect(layout.userName).not.toBeVisible();
     });
 
-    test('shows download-logs and logout items', async ({ authenticatedPage: page }) => {
+    test('shows download-logs and logout items', async () => {
         await expect(layout.logoutButton).toBeVisible();
-        await expect(page.getByText('Скачать логи')).toBeVisible();
+        await expect(layout.downloadLogsButton).toBeVisible();
     });
 });

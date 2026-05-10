@@ -157,6 +157,7 @@ export class PictureService {
             id: dto.pic_id,
             folder: dto.pic_folder,
             title: dto.pic_title,
+            highlightedTitle: dto.highlightedTitle,
             user: dto.pic_user,
             date: new Date(dto.pic_date),
             width: dto.pic_width ?? undefined,

@@ -21,6 +21,7 @@ import {
 import { apiSuccess } from '../../mocks';
 import { ArticleEditPage } from '../../pages/article-edit.page';
 import { ArticlePage } from '../../pages/article.page';
+import { getConfirmationDialogTitle } from '../../helpers/confirmation-dialog';
 import { getNotification } from '../../helpers/notification';
 
 const ARTICLE_ID = 42;
@@ -102,8 +103,9 @@ test.describe('Article edit', () => {
             await mockInworkClear(page);
             editPage = new ArticleEditPage(page);
             await page.goto(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
-            await expect(page.getByTestId('confirmation-dialog-title')).toBeVisible();
-            await expect(page.getByTestId('confirmation-dialog-title')).toContainText('Статья редактируется');
+            const dialogTitle = getConfirmationDialogTitle(page);
+            await expect(dialogTitle).toBeVisible();
+            await expect(dialogTitle).toContainText('Статья редактируется');
         });
     });
 

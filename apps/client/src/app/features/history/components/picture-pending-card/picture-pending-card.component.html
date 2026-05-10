@@ -1,0 +1,51 @@
+<div
+    class="pending-card"
+    data-testid="pending-card"
+    tabindex="0"
+    role="button"
+    (click)="emitPictureClick()"
+    (keydown.enter)="emitPictureClick()"
+    (keydown.space)="emitPictureClick(); $event.preventDefault()"
+    [attr.aria-label]="'Перейти к иллюстрации: ' + group().currentTitle"
+>
+    <img
+        class="pending-card__thumbnail"
+        [src]="group().currentThumbnailUrl"
+        [alt]="group().currentTitle"
+        data-testid="pending-card-thumbnail"
+    />
+    <div class="pending-card__content">
+        <span
+            class="pending-card__title"
+            data-testid="pending-card-title"
+        >
+            {{ group().currentTitle }}
+        </span>
+        @for (pending of group().items; track pending.id) {
+            <div
+                class="pending-card__item"
+                [class.pending-card__item--delete]="pending.pendingType === 'delete'"
+                data-testid="pending-item"
+            >
+                <ui-icon
+                    name="schedule"
+                    class="pending-card__icon"
+                    tooltip="Ожидает модерации"
+                />
+                <span
+                    class="pending-card__type"
+                    data-testid="pending-item-type"
+                >
+                    {{ pendingLabels[pending.pendingType] }}
+                </span>
+                <span class="pending-card__separator">·</span>
+                <span
+                    class="pending-card__author"
+                    data-testid="pending-item-author"
+                >
+                    {{ pending.user }}
+                </span>
+            </div>
+        }
+    </div>
+</div>

@@ -64,11 +64,11 @@ $theme-colors: (
     ),
     search-highlighted-bg: (
         light: $md-yellow-300,
-        dark: $md-yellow-800,
+        dark: transparent,
     ),
     search-highlighted: (
         light: black,
-        dark: black,
+        dark: $md-cyan-300,
     ),
     // Border & Shadow
     border-color: (

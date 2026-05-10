@@ -93,16 +93,11 @@
 
 .lightbox__title {
     font-size: 14px;
-}
-
-.lightbox__detail-link {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    text-decoration: underline;
-    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
 
     &:hover {
         color: white;
+        text-decoration: underline;
     }
 }

@@ -233,9 +233,7 @@ describe('PictureDetailComponent', () => {
                 spectator.detectChanges();
 
                 expect(spectator.queryAll('[data-testid="pending-banner"]')).toHaveLength(2);
-                expect(spectator.queryAll('[data-testid="pending-banner-text"]')[0]).toHaveText(
-                    'Изменение описания — ожидает модерации',
-                );
+                expect(spectator.queryAll('[data-testid="pending-banner-text"]')[0]).toHaveText('Изменение описания');
             });
 
             it('should show cancel button for own pending', () => {
@@ -301,9 +299,7 @@ describe('PictureDetailComponent', () => {
 
             it('should show info notification on cancel 404 and reload page', () => {
                 pictureService.getPicturePending.mockReturnValue(of([createPending()]));
-                pictureService.cancelPending.mockReturnValue(
-                    throwError(() => new HttpErrorResponse({ status: 404 })),
-                );
+                pictureService.cancelPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
                 const notification = spectator.inject(NotificationService);
                 const router = spectator.inject(Router);
                 jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -318,9 +314,7 @@ describe('PictureDetailComponent', () => {
 
             it('should show error notification on cancel generic error', () => {
                 pictureService.getPicturePending.mockReturnValue(of([createPending()]));
-                pictureService.cancelPending.mockReturnValue(
-                    throwError(() => new HttpErrorResponse({ status: 500 })),
-                );
+                pictureService.cancelPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
                 const notification = spectator.inject(NotificationService);
 
                 spectator.detectChanges();
@@ -977,9 +971,7 @@ describe('PictureDetailComponent', () => {
         });
 
         it('should show info notification on approve 404 and reload page', () => {
-            pictureService.approvePending.mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status: 404 })),
-            );
+            pictureService.approvePending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
             const notification = spectator.inject(NotificationService);
             const router = spectator.inject(Router);
             jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -995,9 +987,7 @@ describe('PictureDetailComponent', () => {
         });
 
         it('should show info notification on reject 404 and reload page', () => {
-            pictureService.rejectPending.mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status: 404 })),
-            );
+            pictureService.rejectPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
             const notification = spectator.inject(NotificationService);
             const router = spectator.inject(Router);
             jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -1013,9 +1003,7 @@ describe('PictureDetailComponent', () => {
         });
 
         it('should show error notification on approve generic error', () => {
-            pictureService.approvePending.mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status: 500 })),
-            );
+            pictureService.approvePending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
             const notification = spectator.inject(NotificationService);
 
             spectator.detectChanges();
@@ -1026,9 +1014,7 @@ describe('PictureDetailComponent', () => {
         });
 
         it('should show error notification on reject generic error', () => {
-            pictureService.rejectPending.mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status: 500 })),
-            );
+            pictureService.rejectPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
             const notification = spectator.inject(NotificationService);
 
             spectator.detectChanges();
@@ -1039,9 +1025,7 @@ describe('PictureDetailComponent', () => {
         });
 
         it('should reload page on reject delete pending 404 (not redirect)', () => {
-            pictureService.rejectPending.mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status: 404 })),
-            );
+            pictureService.rejectPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
             const notification = spectator.inject(NotificationService);
             const router = spectator.inject(Router);
             jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -1060,9 +1044,7 @@ describe('PictureDetailComponent', () => {
         });
 
         it('should navigate to pictures list on approve delete pending 404', () => {
-            pictureService.approvePending.mockReturnValue(
-                throwError(() => new HttpErrorResponse({ status: 404 })),
-            );
+            pictureService.approvePending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
             const notification = spectator.inject(NotificationService);
             const router = spectator.inject(Router);
             jest.spyOn(router, 'navigate').mockResolvedValue(true);

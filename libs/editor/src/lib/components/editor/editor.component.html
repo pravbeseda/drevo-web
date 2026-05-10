@@ -1,3 +1,53 @@
+@if (showToolbar()) {
+    <div
+        class="editor-toolbar"
+        role="toolbar"
+        aria-label="Панель форматирования"
+    >
+        @for (group of toolbarGroups; track $index; let last = $last) {
+            <div class="editor-toolbar__group">
+                @for (action of group.actions; track action.id) {
+                    <button
+                        type="button"
+                        class="editor-toolbar__button"
+                        [attr.aria-label]="action.tooltipWithKey"
+                        [attr.data-testid]="'toolbar-' + action.id"
+                        (click)="onToolbarAction(action)"
+                    >
+                        <ui-icon
+                            [name]="action.icon"
+                            [fontSet]="action.fontSet"
+                            [tooltip]="action.tooltipWithKey"
+                            size="medium"
+                        />
+                    </button>
+                }
+            </div>
+            @if (!last || customActions().length > 0) {
+                <div class="editor-toolbar__separator"></div>
+            }
+        }
+        @if (customActions().length > 0) {
+            <div class="editor-toolbar__group">
+                @for (action of customActions(); track $index) {
+                    <button
+                        type="button"
+                        class="editor-toolbar__button"
+                        [attr.aria-label]="action.tooltip"
+                        [attr.data-testid]="'toolbar-custom-' + action.icon"
+                        (click)="action.callback()"
+                    >
+                        <ui-icon
+                            [name]="action.icon"
+                            [tooltip]="action.tooltip"
+                            size="medium"
+                        />
+                    </button>
+                }
+            </div>
+        }
+    </div>
+}
 <div
     #editorContainer
     class="editor-container"

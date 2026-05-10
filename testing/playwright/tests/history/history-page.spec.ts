@@ -53,14 +53,9 @@ test.describe('History page', () => {
         const history = new HistoryPage(page);
         await history.waitForReady();
 
-        // On mobile, mat-tab-nav-bar's pagination arrow may partially overlay the last tab,
-        // pushing its center beyond the viewport. Click the visible left part of the tab.
-        const paginateAfter = page.locator('.mat-mdc-tab-header-pagination-after');
-        if (await paginateAfter.isVisible()) {
-            await history.tabPictures.click({ position: { x: 10, y: 10 } });
-        } else {
-            await history.tabPictures.click();
-        }
+        // On mobile, mat-tab-nav-bar's pagination arrow overlays the last tab.
+        // Use DOM click to bypass the overlay.
+        await history.tabPictures.dispatchEvent('click');
 
         await expect(page).toHaveURL(/\/history\/pictures/);
     });

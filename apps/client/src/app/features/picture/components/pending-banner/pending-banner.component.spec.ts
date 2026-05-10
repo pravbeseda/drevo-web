@@ -96,4 +96,130 @@ describe('PendingBannerComponent', () => {
 
         expect(imageClickSpy).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }));
     });
+
+    it('should show correct label for edit_title type', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, pendingType: 'edit_title' as const },
+                currentUserName: 'Editor',
+                canModerate: false,
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-banner-text"]')).toHaveText('Изменение описания');
+    });
+
+    it('should show correct label for edit_file type', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, pendingType: 'edit_file' as const },
+                currentUserName: 'Editor',
+                canModerate: false,
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-banner-text"]')).toHaveText('Замена файла');
+    });
+
+    it('should show correct label for delete type', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, pendingType: 'delete' as const },
+                currentUserName: 'Editor',
+                canModerate: false,
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-banner-text"]')).toHaveText('Удаление иллюстрации');
+    });
+
+    it('should not show title preview for edit_file type', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, pendingType: 'edit_file' as const },
+                currentUserName: 'Editor',
+                canModerate: false,
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-banner-new-title"]')).toBeNull();
+    });
+
+    it('should not show image preview when pendingImageUrl is undefined', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, pendingImageUrl: undefined },
+                currentUserName: 'Editor',
+                canModerate: false,
+            },
+        });
+
+        expect(spectator.query('[data-testid="pending-banner-new-image"]')).toBeNull();
+    });
+
+    it('should disable buttons when isBusy', () => {
+        spectator = createComponent({
+            props: {
+                pending: mockPending,
+                currentUserName: 'Editor',
+                canModerate: false,
+                isBusy: true,
+            },
+        });
+
+        const cancelButton = spectator.query('[data-testid="pending-banner-cancel"]');
+        expect(cancelButton?.getAttribute('ng-reflect-disabled') ?? cancelButton?.hasAttribute('disabled')).toBeTruthy();
+    });
+
+    it('should emit approve action on approve button click', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, user: 'Another User' },
+                currentUserName: 'Editor',
+                canModerate: true,
+            },
+        });
+
+        const actionSpy = jest.fn();
+        spectator.output('action').subscribe(actionSpy);
+
+        spectator.click('[data-testid="pending-banner-approve"]');
+
+        expect(actionSpy).toHaveBeenCalledWith(expect.objectContaining({ action: 'approve' }));
+    });
+
+    it('should emit reject action on reject button click', () => {
+        spectator = createComponent({
+            props: {
+                pending: { ...mockPending, user: 'Another User' },
+                currentUserName: 'Editor',
+                canModerate: true,
+            },
+        });
+
+        const actionSpy = jest.fn();
+        spectator.output('action').subscribe(actionSpy);
+
+        spectator.click('[data-testid="pending-banner-reject"]');
+
+        expect(actionSpy).toHaveBeenCalledWith(expect.objectContaining({ action: 'reject' }));
+    });
+
+    it('should emit imageClick on Enter keydown', () => {
+        const imageClickSpy = jest.fn();
+        spectator.output('imageClick').subscribe(imageClickSpy);
+
+        spectator.dispatchKeyboardEvent('[data-testid="pending-banner-new-image"]', 'keydown', 'Enter');
+
+        expect(imageClickSpy).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }));
+    });
+
+    it('should emit imageClick on Space keydown', () => {
+        const imageClickSpy = jest.fn();
+        spectator.output('imageClick').subscribe(imageClickSpy);
+
+        spectator.dispatchKeyboardEvent('[data-testid="pending-banner-new-image"]', 'keydown', ' ');
+
+        expect(imageClickSpy).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }));
+    });
 });

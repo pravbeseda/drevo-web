@@ -1,1 +1,98 @@
-<p>История изображений — в разработке</p>
+@if (service.isInitialLoading()) {
+    <div class="section-loading">
+        <ui-spinner />
+    </div>
+} @else if (service.hasItems()) {
+    <ui-virtual-scroller
+        data-testid="pictures-list"
+        [items]="service.displayItems()"
+        [totalItems]="service.displayTotalItems()"
+        [isLoading]="service.isRecentLoadingMore()"
+        [trackByFn]="trackByFn"
+        (loadMore)="service.onLoadMore()"
+    >
+        <ng-template
+            uiVirtualScrollerItem
+            let-item
+        >
+            @switch (item.type) {
+                @case ('pending') {
+                    <app-picture-pending-card
+                        class="pending-card"
+                        [group]="item.data"
+                        (pictureClick)="onPictureClick($event)"
+                    />
+                }
+                @case ('header') {
+                    <div class="history-date-header">{{ item.date }}</div>
+                }
+                @case ('picture') {
+                    <div
+                        class="recent-item"
+                        data-testid="recent-item"
+                        tabindex="0"
+                        role="button"
+                        (click)="onPictureClick(item.data.id)"
+                        (keydown.enter)="onPictureClick(item.data.id)"
+                        (keydown.space)="onPictureClick(item.data.id); $event.preventDefault()"
+                        [attr.aria-label]="'Перейти к иллюстрации: ' + item.data.title"
+                    >
+                        <img
+                            class="recent-item__thumbnail"
+                            [src]="item.data.thumbnailUrl"
+                            [alt]="item.data.title"
+                            data-testid="recent-item-thumbnail"
+                        />
+                        <div class="recent-item__content">
+                            <span
+                                class="recent-item__title"
+                                data-testid="recent-item-title"
+                            >
+                                {{ item.data.title }}
+                            </span>
+                            <div class="recent-item__meta">
+                                <span class="recent-item__time">
+                                    {{ item.data.date | formatTime }}
+                                </span>
+                                ·
+                                <span class="recent-item__author">
+                                    {{ item.data.user }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </ng-template>
+    </ui-virtual-scroller>
+    @if (service.hasPendingError() && !service.hasPendingItems()) {
+        <p
+            class="section-error"
+            data-testid="pending-error"
+        >
+            Не удалось загрузить ожидающие модерации
+        </p>
+    }
+    @if (service.hasRecentError()) {
+        <p
+            class="section-error"
+            data-testid="recent-error"
+        >
+            Не удалось загрузить данные
+        </p>
+    }
+} @else if (service.hasRecentError() || service.hasPendingError()) {
+    <p
+        class="section-error"
+        data-testid="recent-error"
+    >
+        Не удалось загрузить данные
+    </p>
+} @else {
+    <p
+        class="section-empty"
+        data-testid="recent-empty"
+    >
+        Нет иллюстраций
+    </p>
+}
