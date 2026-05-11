@@ -164,12 +164,13 @@ describe('InworkService', () => {
             expect(inworkApiService.clearEditing).toHaveBeenCalledWith('articles', 'Test Title');
         });
 
-        it('should not throw on error', () => {
+        it('should propagate error to caller', () => {
             inworkApiService.clearEditing.mockReturnValue(throwError(() => new Error('Network error')));
 
-            expect(() => {
-                spectator.service.clearEditing('Test').subscribe();
-            }).not.toThrow();
+            const errorSpy = jest.fn();
+            spectator.service.clearEditing('Test').subscribe({ error: errorSpy });
+
+            expect(errorSpy).toHaveBeenCalled();
         });
     });
 });

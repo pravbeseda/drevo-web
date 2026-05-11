@@ -51,12 +51,7 @@ export class InworkService {
     }
 
     clearEditing(title: string): Observable<void> {
-        return this.inworkApiService.clearEditing(INWORK_MODULE, title).pipe(
-            catchError(err => {
-                this.logger.error('Failed to clear editing mark', err);
-                return EMPTY;
-            }),
-        );
+        return this.inworkApiService.clearEditing(INWORK_MODULE, title);
     }
 
     private mapItem(dto: InworkItemDto): InworkItem {

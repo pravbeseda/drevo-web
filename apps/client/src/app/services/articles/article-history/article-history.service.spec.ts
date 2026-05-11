@@ -3,7 +3,7 @@ import { ArticleService } from '../article.service';
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -115,7 +115,7 @@ describe('ArticleHistoryService', () => {
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [ArticleService, InworkService],
+        mocks: [ArticleService, InworkService, NotificationService],
         providers: [
             mockLoggerProvider(),
             {
@@ -509,6 +509,20 @@ describe('ArticleHistoryService', () => {
             expect(inworkService.clearEditing).toHaveBeenCalledWith('Remove me');
             expect(inworkItems).toHaveLength(1);
             expect(inworkItems[0]).toMatchObject({ data: expect.objectContaining({ title: 'Keep me' }) });
+        });
+
+        it('should show error notification when cancel fails', () => {
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ title: 'Fail me', id: 1 })]));
+            inworkService.clearEditing.mockReturnValue(throwError(() => new Error('Network error')));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+
+            spectator.service.onCancelInwork('Fail me');
+
+            const notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+            expect(notificationService.error).toHaveBeenCalledWith('Не удалось снять метку редактирования');
+            const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
+            expect(inworkItems).toHaveLength(1);
         });
     });
 

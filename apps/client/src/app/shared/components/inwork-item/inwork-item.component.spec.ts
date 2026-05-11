@@ -45,13 +45,13 @@ describe('InworkItemComponent', () => {
     it('should render item data', () => {
         expect(spectator.query('[data-testid="inwork-title"]')).toHaveText('Тестовая статья');
         expect(spectator.query('[data-testid="inwork-age"]')).toHaveText('2 мин. назад');
-        expect(spectator.query('[data-testid="inwork-meta"]')).toHaveText('(ред., Test User)');
+        expect(spectator.query('[data-testid="inwork-meta"]')).toHaveText('Test User, ред.');
     });
 
     it('should render new article type when item id is zero', () => {
         spectator.setInput('item', createInworkItem({ id: 0 }));
 
-        expect(spectator.query('[data-testid="inwork-meta"]')).toHaveText('(нов., Test User)');
+        expect(spectator.query('[data-testid="inwork-meta"]')).toHaveText('Test User, нов.');
     });
 
     it('should show cancel button for own item', () => {

@@ -3,7 +3,7 @@ import { InworkService } from '../../inwork/inwork.service';
 import { ArticleService } from '../article.service';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import {
     ApprovalStatus,
     ArticleHistoryItem,
@@ -72,6 +72,7 @@ export class ArticleHistoryService {
     private readonly articleService = inject(ArticleService);
     private readonly authService = inject(AuthService);
     private readonly inworkService = inject(InworkService);
+    private readonly notificationService = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -164,9 +165,15 @@ export class ArticleHistoryService {
         this.inworkService
             .clearEditing(title)
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-                this._inworkItems.update(items => items.filter(item => item.title !== title));
-                this.logger.info('Cleared inwork editing mark', { title });
+            .subscribe({
+                next: () => {
+                    this._inworkItems.update(items => items.filter(item => item.title !== title));
+                    this.logger.info('Cleared inwork editing mark', { title });
+                },
+                error: err => {
+                    this.logger.error('Failed to clear editing mark', err);
+                    this.notificationService.error('Не удалось снять метку редактирования');
+                },
             });
     }
 
