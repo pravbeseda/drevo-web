@@ -9,9 +9,30 @@ export class HistoryPage extends BasePage {
     readonly historyList: Locator = this.page.getByTestId('history-list');
     readonly historyEmpty: Locator = this.page.getByTestId('history-empty');
     readonly historyError: Locator = this.page.getByTestId('history-error');
+    readonly inworkHeader: Locator = this.page.getByTestId('history-inwork-header');
+    readonly inworkItems: Locator = this.page.getByTestId('inwork-item');
+    readonly inworkMarker: Locator = this.page.getByTestId('inwork-marker');
+    readonly cancelInworkButton: Locator = this.page.getByTestId('cancel-inwork-button').getByRole('button');
+    readonly confirmDialogConfirmButton: Locator = this.page.getByTestId('confirmation-dialog-confirm');
+    readonly filtersButton: Locator = this.page.getByRole('button', { name: 'Фильтры' });
+    readonly uncheckedFilter: Locator = this.page.getByTestId('filter-item').filter({ hasText: 'Непроверенные' });
 
     badgeFor(tab: Locator): Locator {
         return tab.locator('ui-badge');
+    }
+
+    async gotoArticles(): Promise<void> {
+        await this.page.goto('/history/articles');
+    }
+
+    async selectUncheckedFilter(): Promise<void> {
+        await this.filtersButton.click();
+        await this.uncheckedFilter.click();
+    }
+
+    async cancelFirstOwnInworkItem(): Promise<void> {
+        await this.cancelInworkButton.click();
+        await this.confirmDialogConfirmButton.click();
     }
 
     async waitForReady(): Promise<void> {

@@ -1,0 +1,49 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+}
+
+.inwork-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 8px 8px 6px;
+    border-left: 3px solid var(--themed-link-color);
+    border-radius: 4px;
+    background: var(--themed-primary-bg);
+}
+
+.inwork-icon {
+    color: var(--themed-link-color);
+}
+
+.inwork-content {
+    min-width: 0;
+}
+
+.inwork-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+
+.inwork-title {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inwork-age,
+.inwork-meta {
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+}
+
+.inwork-age {
+    flex: none;
+    white-space: nowrap;
+}

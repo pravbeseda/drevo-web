@@ -6,7 +6,8 @@ import {
 import { ArticleHistoryListComponent } from './article-history-list.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal, WritableSignal } from '@angular/core';
-import { ArticleHistoryItem } from '@drevo-web/shared';
+import { ArticleHistoryItem, InworkItem } from '@drevo-web/shared';
+import { VirtualScrollerComponent } from '@drevo-web/ui';
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
@@ -23,6 +24,18 @@ function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): Art
     };
 }
 
+function createMockInworkItem(overrides: Partial<InworkItem> = {}): InworkItem {
+    return {
+        id: 1,
+        module: 'articles',
+        title: 'Тестовая статья',
+        author: 'Test User',
+        lastTime: '2025-01-15T12:00:00',
+        age: 120,
+        ...overrides,
+    };
+}
+
 interface MockArticleHistoryService {
     readonly isLoading: WritableSignal<boolean>;
     readonly isLoadingMore: WritableSignal<boolean>;
@@ -32,8 +45,10 @@ interface MockArticleHistoryService {
     readonly hasItems: WritableSignal<boolean>;
     readonly displayItems: WritableSignal<readonly HistoryDisplayItem[]>;
     readonly displayTotalItems: WritableSignal<number>;
+    readonly inworkVersionIds: WritableSignal<ReadonlySet<number>>;
     readonly onFilterChange: jest.Mock;
     readonly onLoadMore: jest.Mock;
+    readonly onCancelInwork: jest.Mock;
 }
 
 function createMockService(): MockArticleHistoryService {
@@ -46,8 +61,10 @@ function createMockService(): MockArticleHistoryService {
         hasItems: signal(false),
         displayItems: signal<readonly HistoryDisplayItem[]>([]),
         displayTotalItems: signal(0),
+        inworkVersionIds: signal<ReadonlySet<number>>(new Set()),
         onFilterChange: jest.fn(),
         onLoadMore: jest.fn(),
+        onCancelInwork: jest.fn(),
     };
 }
 
@@ -111,6 +128,25 @@ describe('ArticleHistoryListComponent', () => {
         mockService.displayTotalItems.set(2);
         spectator.detectChanges();
         expect(spectator.query('ui-virtual-scroller')).toBeTruthy();
+    });
+
+    it('should pass inwork display items to virtual scroller', () => {
+        const items: HistoryDisplayItem[] = [
+            { type: 'inwork-header' },
+            { type: 'inwork-item', data: createMockInworkItem(), isOwn: true },
+        ];
+        mockService.hasItems.set(true);
+        mockService.displayItems.set(items);
+        mockService.displayTotalItems.set(2);
+        spectator.detectChanges();
+
+        expect(spectator.query(VirtualScrollerComponent)?.items()).toEqual(items);
+    });
+
+    it('should delegate inwork cancel to service', () => {
+        spectator.component.onCancelInwork('Тестовая статья');
+
+        expect(mockService.onCancelInwork).toHaveBeenCalledWith('Тестовая статья');
     });
 
     it('should have selectable false by default', () => {

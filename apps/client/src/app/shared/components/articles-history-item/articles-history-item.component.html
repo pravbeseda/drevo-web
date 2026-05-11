@@ -37,6 +37,15 @@
             >
                 {{ item().title }}
             </a>
+            @if (inwork()) {
+                <ui-icon
+                    class="inwork-marker"
+                    data-testid="inwork-marker"
+                    name="edit"
+                    size="small"
+                    tooltip="Редактируется"
+                />
+            }
         </div>
         <div
             class="meta-row"

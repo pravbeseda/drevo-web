@@ -1,9 +1,10 @@
 import { ArticleHistoryService, buildDisplayItems } from './article-history.service';
 import { ArticleService } from '../article.service';
 import { AuthService } from '../../auth/auth.service';
+import { InworkService } from '../../inwork/inwork.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { LoggerService } from '@drevo-web/core';
-import { ArticleHistoryItem, ArticleHistoryResponse, User } from '@drevo-web/shared';
+import { LoggerService, NotificationService } from '@drevo-web/core';
+import { ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
@@ -28,6 +29,18 @@ function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): Art
         isNew: false,
         info: '',
         comment: '',
+        ...overrides,
+    };
+}
+
+function createMockInworkItem(overrides: Partial<InworkItem> = {}): InworkItem {
+    return {
+        id: 1,
+        module: 'articles',
+        title: 'Test Article',
+        author: 'Test User',
+        lastTime: '2025-01-15T12:00:00',
+        age: 120,
         ...overrides,
     };
 }
@@ -97,11 +110,12 @@ describe('buildDisplayItems', () => {
 describe('ArticleHistoryService', () => {
     let spectator: SpectatorService<ArticleHistoryService>;
     let articleService: jest.Mocked<ArticleService>;
+    let inworkService: jest.Mocked<InworkService>;
     let userSubject: BehaviorSubject<User | undefined>;
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [ArticleService],
+        mocks: [ArticleService, InworkService, NotificationService],
         providers: [
             mockLoggerProvider(),
             {
@@ -124,6 +138,9 @@ describe('ArticleHistoryService', () => {
     beforeEach(() => {
         spectator = createService();
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        inworkService = spectator.inject(InworkService) as jest.Mocked<InworkService>;
+        inworkService.getInworkList.mockReturnValue(of([]));
+        inworkService.clearEditing.mockReturnValue(of(undefined));
     });
 
     it('should create', () => {
@@ -284,6 +301,39 @@ describe('ArticleHistoryService', () => {
                 data: expect.objectContaining({ date: testDate }),
             });
         });
+
+        it('should prepend inwork items before history items', () => {
+            inworkService.getInworkList.mockReturnValue(
+                of([
+                    createMockInworkItem({ id: 1, title: 'Own Article', author: 'Test User' }),
+                    createMockInworkItem({ id: 2, title: 'Other Article', author: 'Other User' }),
+                ]),
+            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse([createMockHistoryItem()], 1)));
+
+            spectator.service.init();
+
+            const displayItems = spectator.service.displayItems();
+            expect(displayItems[0]).toEqual({ type: 'inwork-header' });
+            expect(displayItems[1]).toMatchObject({ type: 'inwork-item', isOwn: true });
+            expect(displayItems[2]).toMatchObject({ type: 'inwork-item', isOwn: false });
+            expect(displayItems[3].type).toBe('header');
+        });
+
+        it('should expose inwork version ids for edited articles only', () => {
+            inworkService.getInworkList.mockReturnValue(
+                of([
+                    createMockInworkItem({ id: 10 }),
+                    createMockInworkItem({ id: 0 }),
+                    createMockInworkItem({ id: 11 }),
+                ]),
+            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.init();
+
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set([10, 11]));
+        });
     });
 
     describe('isAuthenticated', () => {
@@ -345,6 +395,36 @@ describe('ArticleHistoryService', () => {
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
         });
 
+        it('should clear inwork items when selecting non-all filter', () => {
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 10 })]));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set([10]));
+
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onFilterChange('unchecked');
+
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set());
+        });
+
+        it('should reload inwork items when switching back to all filter', () => {
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 10 })]));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onFilterChange('unchecked');
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set());
+
+            inworkService.getInworkList.mockClear();
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 20 })]));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onFilterChange('all');
+
+            expect(inworkService.getInworkList).toHaveBeenCalledTimes(1);
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set([20]));
+        });
+
         it('should not load when "my" filter selected and user not available', () => {
             userSubject.next(undefined);
 
@@ -365,7 +445,7 @@ describe('ArticleHistoryService', () => {
                 expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
                     page: 1,
                 });
-            }
+            },
         );
 
         it('should log info for unsupported filter', () => {
@@ -410,6 +490,57 @@ describe('ArticleHistoryService', () => {
                 articleId: 100,
                 approved: 0,
             });
+        });
+
+        it('should not load inwork list in article-scoped mode', () => {
+            const articleId = signal<number | undefined>(100);
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.init({ articleId });
+
+            expect(inworkService.getInworkList).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('inwork actions', () => {
+        it('should load inwork list on init in global all mode', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.init();
+
+            expect(inworkService.getInworkList).toHaveBeenCalled();
+        });
+
+        it('should remove inwork item after cancel', () => {
+            inworkService.getInworkList.mockReturnValue(
+                of([
+                    createMockInworkItem({ title: 'Remove me', id: 1 }),
+                    createMockInworkItem({ title: 'Keep me', id: 2 }),
+                ]),
+            );
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+
+            spectator.service.onCancelInwork('Remove me');
+
+            const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
+            expect(inworkService.clearEditing).toHaveBeenCalledWith('Remove me');
+            expect(inworkItems).toHaveLength(1);
+            expect(inworkItems[0]).toMatchObject({ data: expect.objectContaining({ title: 'Keep me' }) });
+        });
+
+        it('should show error notification when cancel fails', () => {
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ title: 'Fail me', id: 1 })]));
+            inworkService.clearEditing.mockReturnValue(throwError(() => new Error('Network error')));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+
+            spectator.service.onCancelInwork('Fail me');
+
+            const notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+            expect(notificationService.error).toHaveBeenCalledWith('Не удалось снять метку редактирования');
+            const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
+            expect(inworkItems).toHaveLength(1);
         });
     });
 
@@ -486,6 +617,15 @@ describe('ArticleHistoryService', () => {
             expect(spectator.service.displayTotalItems()).toBe(0);
         });
 
+        it('should include inwork header and items when history is empty', () => {
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem(), createMockInworkItem({ id: 2 })]));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.init();
+
+            expect(spectator.service.displayTotalItems()).toBe(3);
+        });
+
         it('should return loaded display count when all loaded', () => {
             const items = [
                 createMockHistoryItem({
@@ -537,7 +677,7 @@ describe('ArticleHistoryService', () => {
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
-                'Cannot load history: article ID not available'
+                'Cannot load history: article ID not available',
             );
         });
     });

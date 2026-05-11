@@ -1,9 +1,16 @@
 import { AuthService } from '../../auth/auth.service';
+import { InworkService } from '../../inwork/inwork.service';
 import { ArticleService } from '../article.service';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { LoggerService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleHistoryItem, ArticleHistoryParams, formatDateHeader } from '@drevo-web/shared';
+import { LoggerService, NotificationService } from '@drevo-web/core';
+import {
+    ApprovalStatus,
+    ArticleHistoryItem,
+    ArticleHistoryParams,
+    formatDateHeader,
+    InworkItem,
+} from '@drevo-web/shared';
 
 export type HistoryFilter =
     | 'all'
@@ -16,7 +23,9 @@ export type HistoryFilter =
 
 export type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }
-    | { readonly type: 'version'; readonly data: ArticleHistoryItem };
+    | { readonly type: 'version'; readonly data: ArticleHistoryItem }
+    | { readonly type: 'inwork-header' }
+    | { readonly type: 'inwork-item'; readonly data: InworkItem; readonly isOwn: boolean };
 
 /**
  * Builds display items with date headers inserted between date groups.
@@ -27,7 +36,7 @@ export type HistoryDisplayItem =
  */
 export function buildDisplayItems(
     items: readonly ArticleHistoryItem[],
-    referenceDate: Date
+    referenceDate: Date,
 ): readonly HistoryDisplayItem[] {
     if (items.length === 0) return [];
 
@@ -48,6 +57,8 @@ export function buildDisplayItems(
 
 export const trackByFn = (_index: number, item: HistoryDisplayItem): string => {
     if (item.type === 'header') return `header-${item.date}`;
+    if (item.type === 'inwork-header') return 'inwork-header';
+    if (item.type === 'inwork-item') return `inwork-${item.data.title}-${item.data.author}`;
     return `version-${item.data.versionId}`;
 };
 
@@ -60,9 +71,12 @@ export class ArticleHistoryService {
     private readonly destroyRef = inject(DestroyRef);
     private readonly articleService = inject(ArticleService);
     private readonly authService = inject(AuthService);
+    private readonly inworkService = inject(InworkService);
+    private readonly notificationService = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
+    private readonly _inworkItems = signal<readonly InworkItem[]>([]);
     private readonly _isLoading = signal(false);
     private readonly _isLoadingMore = signal(false);
     private readonly _totalItems = signal(0);
@@ -81,23 +95,50 @@ export class ArticleHistoryService {
     private readonly currentUser = toSignal(this.authService.user$);
 
     readonly isAuthenticated = computed(() => !!this.currentUser());
-    readonly hasItems = computed(() => this._historyItems().length > 0);
+    readonly hasItems = computed(() => this._historyItems().length > 0 || this._inworkItems().length > 0);
 
-    readonly displayItems = computed<readonly HistoryDisplayItem[]>(() =>
-        buildDisplayItems(this._historyItems(), this._referenceDate())
-    );
+    readonly displayItems = computed<readonly HistoryDisplayItem[]>(() => {
+        const historyItems = buildDisplayItems(this._historyItems(), this._referenceDate());
+        const inworkItems = this._inworkItems();
+
+        if (inworkItems.length === 0) return historyItems;
+
+        const currentName = this.currentUser()?.name;
+        const inworkDisplayItems: HistoryDisplayItem[] = [
+            { type: 'inwork-header' },
+            ...inworkItems.map(item => ({
+                type: 'inwork-item' as const,
+                data: item,
+                isOwn: item.author === currentName,
+            })),
+        ];
+
+        return [...inworkDisplayItems, ...historyItems];
+    });
 
     readonly displayTotalItems = computed(() => {
+        const inworkCount = this._inworkItems().length;
+        const inworkDisplayCount = inworkCount > 0 ? inworkCount + 1 : 0;
         const total = this._totalItems();
-        if (total === 0) return 0;
+        if (total === 0) return inworkDisplayCount;
         const loadedDisplayCount = this.displayItems().length;
         const loadedItemCount = this._historyItems().length;
         if (loadedItemCount >= total) return loadedDisplayCount;
         return loadedDisplayCount + (total - loadedItemCount);
     });
 
+    readonly inworkVersionIds = computed(
+        () =>
+            new Set(
+                this._inworkItems()
+                    .filter(item => item.id > 0)
+                    .map(item => item.id),
+            ),
+    );
+
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
+        this.loadInworkIfNeeded();
         this.loadHistory();
     }
 
@@ -108,6 +149,7 @@ export class ArticleHistoryService {
         this._currentPage.set(1);
         this._totalItems.set(0);
         this.logger.info('Filter changed', { filter });
+        this.loadInworkIfNeeded();
         this.loadHistory();
     }
 
@@ -117,6 +159,34 @@ export class ArticleHistoryService {
 
         this._currentPage.update(p => p + 1);
         this.loadHistory(true);
+    }
+
+    onCancelInwork(title: string): void {
+        this.inworkService
+            .clearEditing(title)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this._inworkItems.update(items => items.filter(item => item.title !== title));
+                    this.logger.info('Cleared inwork editing mark', { title });
+                },
+                error: err => {
+                    this.logger.error('Failed to clear editing mark', err);
+                    this.notificationService.error('Не удалось снять метку редактирования');
+                },
+            });
+    }
+
+    private loadInworkIfNeeded(): void {
+        if (this.articleId || this._activeFilter() !== 'all') {
+            this._inworkItems.set([]);
+            return;
+        }
+
+        this.inworkService
+            .getInworkList()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(items => this._inworkItems.set(items));
     }
 
     private loadHistory(loadMore = false): void {

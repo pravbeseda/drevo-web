@@ -1,11 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ArticleHistoryItem } from '@drevo-web/shared';
-import { ButtonComponent, FormatTimePipe, IconButtonComponent, StatusIconComponent } from '@drevo-web/ui';
+import {
+    ButtonComponent,
+    FormatTimePipe,
+    IconButtonComponent,
+    IconComponent,
+    StatusIconComponent,
+} from '@drevo-web/ui';
 
 @Component({
     selector: 'app-articles-history-item',
-    imports: [StatusIconComponent, RouterLink, FormatTimePipe, IconButtonComponent, ButtonComponent],
+    imports: [StatusIconComponent, RouterLink, FormatTimePipe, IconButtonComponent, IconComponent, ButtonComponent],
     templateUrl: './articles-history-item.component.html',
     styleUrl: './articles-history-item.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +21,7 @@ export class ArticlesHistoryItemComponent {
     readonly selected = input(false);
     readonly selectable = input(false);
     readonly canCompare = input(false);
+    readonly inwork = input(false);
 
     readonly selectItem = output<ArticleHistoryItem>();
     readonly compare = output<void>();

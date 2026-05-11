@@ -89,6 +89,11 @@
     }
 }
 
+.inwork-marker {
+    flex: none;
+    color: var(--themed-text-secondary);
+}
+
 .meta-row {
     margin-top: 2px;
     font-size: $font-size-md;

@@ -1,6 +1,7 @@
 import {
     apiError,
     apiSuccess,
+    createInworkItemDto,
     createPicturePendingDto,
     createPicturesListResponse,
     mockPictureData,
@@ -21,6 +22,7 @@ import {
     ArticleSearchResponseDto,
     ArticleVersionDto,
     HistoryCountsDto,
+    InworkItemDto,
     ModerationResponseDto,
     PictureDto,
     PicturePendingDto,
@@ -219,10 +221,7 @@ export async function mockPicturePending(
 const PICTURES_PENDING_LIST_RE = /\/api\/pictures\/pending(\?.*)?$/;
 
 /** Mock GET /api/pictures/pending — global pending list */
-export async function mockPicturesPendingList(
-    page: Page,
-    items: readonly PicturePendingDto[] = [],
-): Promise<void> {
+export async function mockPicturesPendingList(page: Page, items: readonly PicturePendingDto[] = []): Promise<void> {
     const response: PicturePendingListResponseDto = {
         items,
         total: items.length,
@@ -580,6 +579,18 @@ export async function mockInworkClear(page: Page): Promise<void> {
     });
 }
 
+/** Mock GET /api/inwork/list — returns currently edited articles */
+export async function mockInworkList(
+    page: Page,
+    items: readonly InworkItemDto[] = [createInworkItemDto()],
+): Promise<void> {
+    await page.unroute('**/api/inwork/list').catch(() => undefined);
+    await page.route('**/api/inwork/list', route => {
+        if (route.request().method() !== 'GET') return route.fallback();
+        return route.fulfill({ json: apiSuccess(items) });
+    });
+}
+
 // ---------------------------------------------------------------------------
 // History (global)
 // ---------------------------------------------------------------------------
@@ -589,11 +600,13 @@ export async function mockGlobalHistory(
     page: Page,
     response: ArticleHistoryResponseDto = createArticleHistoryResponse([...mockArticleViewData.historyItems]),
 ): Promise<void> {
+    await mockInworkList(page, []);
     await page.route('**/api/articles/history**', route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 /** Mock GET /api/articles/history — server error */
 export async function mockGlobalHistoryError(page: Page, status = 500): Promise<void> {
+    await mockInworkList(page, []);
     await page.route('**/api/articles/history**', route =>
         route.fulfill({ status, json: apiError('Internal server error') }),
     );

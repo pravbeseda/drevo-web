@@ -26,11 +26,25 @@
             uiVirtualScrollerItem
             let-item
         >
-            @if (item.type === 'header') {
+            @if (item.type === 'inwork-header') {
+                <div
+                    class="history-inwork-header"
+                    data-testid="history-inwork-header"
+                >
+                    Сейчас в работе
+                </div>
+            } @else if (item.type === 'inwork-item') {
+                <app-inwork-item
+                    [item]="item.data"
+                    [isOwn]="item.isOwn"
+                    (cancelEditing)="onCancelInwork($event)"
+                />
+            } @else if (item.type === 'header') {
                 <div class="history-date-header">{{ item.date }}</div>
             } @else {
                 <app-articles-history-item
                     [item]="item.data"
+                    [inwork]="service.inworkVersionIds().has(item.data.versionId)"
                     [selectable]="selectable()"
                     [selected]="selectedVersionIds().has(item.data.versionId)"
                     [canCompare]="canCompare()"
