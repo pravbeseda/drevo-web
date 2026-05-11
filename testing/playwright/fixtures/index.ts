@@ -52,6 +52,7 @@ export {
     mockArticleModerate,
     mockArticleModerateError,
     mockInworkCheck,
+    mockInworkList,
     mockInworkMark,
     mockInworkClear,
     mockGlobalHistory,

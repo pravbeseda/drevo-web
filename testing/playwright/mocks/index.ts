@@ -21,3 +21,4 @@ export {
     createPicturePendingDto,
     mockPictureData,
 } from './pictures';
+export { createInworkItemDto } from './inwork';

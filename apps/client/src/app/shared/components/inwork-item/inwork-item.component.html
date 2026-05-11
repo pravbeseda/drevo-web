@@ -1,0 +1,43 @@
+<div
+    class="inwork-item"
+    data-testid="inwork-item"
+>
+    <ui-icon
+        class="inwork-icon"
+        name="edit"
+        size="small"
+    />
+
+    <div class="inwork-content">
+        <div class="inwork-title-row">
+            <span
+                class="inwork-title"
+                data-testid="inwork-title"
+            >
+                {{ item().title }}
+            </span>
+            <span
+                class="inwork-age"
+                data-testid="inwork-age"
+            >
+                {{ ageMinutes() }} мин. назад
+            </span>
+        </div>
+
+        <div
+            class="inwork-meta"
+            data-testid="inwork-meta"
+        >
+            {{ item().author }}, {{ editType() }}
+        </div>
+    </div>
+
+    @if (isOwn()) {
+        <ui-icon-button
+            data-testid="cancel-inwork-button"
+            label="Отменить редактирование"
+            icon="close"
+            (clicked)="onCancel()"
+        />
+    }
+</div>

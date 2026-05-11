@@ -36,6 +36,7 @@ describe('ArticlesHistoryItemComponent', () => {
     const getOverlay = () => spectator.query('[data-testid="selection-overlay"]');
     const getCompareButton = () => spectator.query('[data-testid="compare-button"]');
     const getSelectionHint = () => spectator.query('[data-testid="selection-hint"]');
+    const getInworkMarker = () => spectator.query('[data-testid="inwork-marker"]');
 
     it('should create', () => {
         spectator = createComponent({
@@ -98,6 +99,24 @@ describe('ArticlesHistoryItemComponent', () => {
             const iconButton = spectator.query(IconButtonComponent);
             expect(iconButton).toBeTruthy();
             expect(iconButton?.icon()).toBe('difference');
+        });
+    });
+
+    describe('inwork marker', () => {
+        it('should show inwork marker when item is being edited', () => {
+            spectator = createComponent({
+                props: { item: createMockItem(), inwork: true },
+            });
+
+            expect(getInworkMarker()).toBeTruthy();
+        });
+
+        it('should not show inwork marker by default', () => {
+            spectator = createComponent({
+                props: { item: createMockItem() },
+            });
+
+            expect(getInworkMarker()).toBeFalsy();
         });
     });
 

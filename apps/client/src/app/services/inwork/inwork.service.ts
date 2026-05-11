@@ -36,7 +36,7 @@ export class InworkService {
             map(items => items.map(dto => this.mapItem(dto))),
             catchError(err => {
                 this.logger.error('Failed to get inwork list', err);
-                return EMPTY;
+                return of([]);
             }),
         );
     }

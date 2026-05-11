@@ -120,18 +120,20 @@ describe('InworkService', () => {
                 result = r;
             });
 
-            expect(result).toEqual([{ id: 1, module: 'articles', title: 'Test', author: 'User', lastTime: '2024-01-01', age: 10 }]);
+            expect(result).toEqual([
+                { id: 1, module: 'articles', title: 'Test', author: 'User', lastTime: '2024-01-01', age: 10 },
+            ]);
         });
 
-        it('should not emit on error', () => {
+        it('should return empty list on error', () => {
             inworkApiService.getList.mockReturnValue(throwError(() => new Error('Network error')));
 
-            let emitted = false;
-            spectator.service.getInworkList().subscribe(() => {
-                emitted = true;
+            let result: unknown;
+            spectator.service.getInworkList().subscribe(items => {
+                result = items;
             });
 
-            expect(emitted).toBe(false);
+            expect(result).toEqual([]);
         });
     });
 
