@@ -31,8 +31,8 @@ export class InworkItemComponent {
                 title: 'Отменить редактирование?',
                 message: `Метка редактирования статьи «${this.item().title}» будет снята.`,
                 buttons: [
+                    { key: 'confirm', label: 'Да', accent: 'primary' },
                     { key: 'cancel', label: 'Нет' },
-                    { key: 'confirm', label: 'Отменить', accent: 'primary' },
                 ],
             })
             .pipe(
