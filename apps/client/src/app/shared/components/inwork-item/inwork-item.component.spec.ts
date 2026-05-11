@@ -48,6 +48,12 @@ describe('InworkItemComponent', () => {
         expect(spectator.query('[data-testid="inwork-meta"]')).toHaveText('Test User, ред.');
     });
 
+    it('should show at least 1 minute for age under 60 seconds', () => {
+        spectator.setInput('item', createInworkItem({ age: 30 }));
+
+        expect(spectator.query('[data-testid="inwork-age"]')).toHaveText('1 мин. назад');
+    });
+
     it('should render new article type when item id is zero', () => {
         spectator.setInput('item', createInworkItem({ id: 0 }));
 

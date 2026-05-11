@@ -407,6 +407,24 @@ describe('ArticleHistoryService', () => {
             expect(spectator.service.inworkVersionIds()).toEqual(new Set());
         });
 
+        it('should reload inwork items when switching back to all filter', () => {
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 10 })]));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onFilterChange('unchecked');
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set());
+
+            inworkService.getInworkList.mockClear();
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 20 })]));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onFilterChange('all');
+
+            expect(inworkService.getInworkList).toHaveBeenCalledTimes(1);
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set([20]));
+        });
+
         it('should not load when "my" filter selected and user not available', () => {
             userSubject.next(undefined);
 
