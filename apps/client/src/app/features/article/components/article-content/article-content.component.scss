@@ -62,7 +62,9 @@ app-article-content {
         padding: 5px;
         border: 0;
         background-color: var(--themed-wiki-image-bg);
+        width: min-content;
 
+        figcaption,
         .picdesc {
             text-align: center;
         }
