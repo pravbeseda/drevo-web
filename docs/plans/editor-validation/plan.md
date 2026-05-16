@@ -12,17 +12,17 @@
 | Вопрос | Решение |
 |--------|---------|
 | Правила на старте | Заголовки: запрет ссылок `(())`, жирного `*`, курсива `_`, сносок `[[]]` внутри `== ==` и `=== ===`. Архитектура расширяемая |
-| Где нужна валидация без редактора | На кнопках Сохранить / Модерировать (предупреждение, не блокировка) |
+| Где нужна валидация без редактора | На кнопке Сохранить (errors блокируют, warnings — confirmation) и на diff-page модерации (badge с количеством проблем) |
 | Severity | Два типа: **error** (блокирует сохранение) и **warning** (предупреждение, не блокирует). Стартовые правила — warning |
 | Расположение чистого ядра | `libs/editor` (рядом с CM6-обёрткой, но без CM6-зависимостей) |
 | Debounce линтера | 750мс (дефолт CM6), не указываем явно |
 | Панель диагностик | Полный набор: gutter + inline + панель (openLintPanel) |
-| Архитектура правил | Rule-объект с метаданными `{ id, defaultSeverity, validate() }`, severity переопределяется через конфигурацию |
+| Архитектура правил | Rule-объект с метаданными `{ id, defaultSeverity, validate() }`. Конфигурация overrides — не в v1 (YAGNI), добавить когда появится потребитель |
 | Output валидации | `@Output() validationChange` → `ValidationResult { errors, warnings }`. Angular convention `*Change`, покрывает оба severity |
-| Angular bridge | Читаем из CM6 lint state через `forEachDiagnostic` + `setDiagnosticsEffect`. Единый источник правды, без дублирования валидации |
-| Модерация: передача count | Input `validationResult` на `ModerationSidebarActionComponent`. Только одна цепочка: diff-page → moderation (прямой input). На content-tab не валидируем (content там HTML, не raw wiki) |
+| Angular bridge | Для UI: читаем из CM6 lint state через `forEachDiagnostic` + `setDiagnosticsEffect`. Для save/модерации: прямой вызов `validateWikiContent()` (authoritative) |
+| Модерация: передача count | Input `validationResult` на `ModerationSidebarActionComponent`. Только одна цепочка: diff-page → moderation (прямой input). На content-tab не валидируем (content там HTML, не raw wiki). Только badge, без confirmation при модерации — модератор видит badge и решает сам |
 | Блокировка save | Синхронный `validateWikiContent()` в save() — authoritative. Output `validationChange` — только для UI-индикации |
-| Начальный emit | После создания EditorView прочитать текущий lint state и эмитить initial `ValidationResult` |
+| Начальный emit | Не нужен — lint отработает через 750мс естественным путём, save() проверяет синхронно |
 
 ## Архитектура
 
@@ -34,7 +34,7 @@ libs/editor/src/lib/
       index.ts                    ← ALL_RULES массив, реэкспорт
     models/
       content-error.model.ts      ← интерфейс ContentError
-      validation-rule.model.ts    ← интерфейсы ValidationRule, RuleMatch, ValidationConfig
+      validation-rule.model.ts    ← интерфейсы ValidationRule, RuleMatch
       validation-result.model.ts  ← интерфейс ValidationResult (errors/warnings counts)
     validate-wiki-content.ts      ← чистая функция-агрегатор
     validate-wiki-content.spec.ts ← тесты чистого ядра
@@ -68,25 +68,20 @@ export interface ValidationRule {
   validate(text: string): readonly RuleMatch[];
 }
 
-export interface ValidationConfig {
-  readonly overrides?: Partial<Record<string, 'error' | 'warning' | 'off'>>;
-}
 ```
 
 ```typescript
 // validate-wiki-content.ts
 import { ALL_RULES } from './rules';
 
-export function validateWikiContent(text: string, config?: ValidationConfig): readonly ContentError[] {
-  return ALL_RULES.flatMap(rule => {
-    const severity = config?.overrides?.[rule.id] ?? rule.defaultSeverity;
-    if (severity === 'off') return [];
-    return rule.validate(text).map(match => ({
+export function validateWikiContent(text: string): readonly ContentError[] {
+  return ALL_RULES.flatMap(rule =>
+    rule.validate(text).map(match => ({
       ...match,
-      severity,
+      severity: rule.defaultSeverity,
       ruleId: rule.id,
-    }));
-  });
+    }))
+  );
 }
 ```
 
@@ -142,6 +137,14 @@ export interface ValidationResult {
 // Extension добавляется в EditorFactoryService.createState()
 import { setDiagnosticsEffect, forEachDiagnostic } from '@codemirror/lint';
 
+// В EditorFactoryService — аналогично setChangeHandler:
+private validationHandler?: (result: ValidationResult) => void;
+
+public setValidationHandler(handler: (result: ValidationResult) => void): void {
+    this.validationHandler = handler;
+}
+
+// В createState() — updateListener extension:
 EditorView.updateListener.of((update) => {
   const hasLintUpdate = update.transactions.some(tr =>
     tr.effects.some(e => e.is(setDiagnosticsEffect))
@@ -152,21 +155,12 @@ EditorView.updateListener.of((update) => {
       if (d.severity === 'error') errors++;
       else if (d.severity === 'warning') warnings++;
     });
-    this.validationHandler({ errors, warnings });
+    this.validationHandler?.({ errors, warnings });
   }
 });
 
-// Начальный emit: после создания EditorView прочитать текущий lint state
-// (lint может отработать синхронно при создании state)
-private emitInitialValidation(): void {
-  let errors = 0, warnings = 0;
-  forEachDiagnostic(this.editor.state, (d) => {
-    if (d.severity === 'error') errors++;
-    else if (d.severity === 'warning') warnings++;
-  });
-  this.validationChange.emit({ errors, warnings });
-}
-// Вызвать в ngAfterViewInit() после создания EditorView
+// Начальный emit не нужен: lint отработает через 750мс (дефолтный debounce),
+// updateListener эмитит результат. Save() проверяет синхронно — race невозможен.
 ```
 
 **Для использования без редактора** (diff-page, save):
@@ -301,8 +295,8 @@ CM6-специфичные `wikiLinter`, `wikiLintGutter` — использую
 
 ### Этап 3: Angular-мост в редакторе
 1. Добавить `@Output() validationChange` → `ValidationResult` в `EditorComponent`
-2. В `EditorFactoryService` добавить `setValidationHandler` + `updateListener` с `setDiagnosticsEffect` / `forEachDiagnostic`. В `EditorComponent.ngAfterViewInit()` подключить handler → `validationChange.emit()`
-3. Добавить `emitInitialValidation()` — прочитать lint state после создания EditorView и эмитить начальный результат
+2. В `EditorFactoryService` добавить `setValidationHandler` (аналог `setChangeHandler`) + `updateListener` с `setDiagnosticsEffect` / `forEachDiagnostic`. В `EditorComponent.ngAfterViewInit()`: `this.editorFactory.setValidationHandler(r => this.validationChange.emit(r))`
+3. Initial emit не нужен — lint natural debounce (750мс) + updateListener достаточно
 4. В `ArticleEditComponent.save()` — **синхронный** `validateWikiContent(this.editorContent())`. При errors — блокировать, при warnings — confirmation dialog
 5. Тесты для `EditorComponent` (mock lint state → проверить emit, включая initial)
 
