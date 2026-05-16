@@ -3,6 +3,7 @@
         [version]="pairs.current"
         [priority]="moderationPriority()"
         [disabled]="!isModerationEnabled()"
+        [validationResult]="validationResult()"
         (moderated)="onModerated($event)"
     />
 }

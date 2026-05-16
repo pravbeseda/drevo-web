@@ -160,6 +160,27 @@
         overflow: hidden;
     }
 
+    // Lint panel & diagnostics
+    .cm-lint-marker-warning {
+        content: '';
+    }
+
+    .cm-diagnostic-warning {
+        border-color: var(--themed-warning);
+    }
+
+    .cm-diagnostic-error {
+        border-color: var(--themed-error);
+    }
+
+    .cm-panels-bottom {
+        border-top-color: var(--themed-editor-panel-border);
+    }
+
+    .cm-lint-marker {
+        width: 0.8em;
+    }
+
     .cm-picture-tooltip {
         display: flex;
         flex-direction: column;

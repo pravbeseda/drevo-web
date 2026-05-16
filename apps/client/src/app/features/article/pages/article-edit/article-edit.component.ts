@@ -24,7 +24,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { CustomToolbarAction, EditorComponent } from '@drevo-web/editor';
+import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
 import { ConfirmationService, ModalService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
 import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
@@ -75,6 +75,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         onPictureClick: (id: number) => this.pictureLightboxService.open(id),
     });
 
+    private readonly _validationResult = signal<ValidationResult>({ errors: 0, warnings: 0 });
+
     private version: ArticleVersion | undefined;
     private editingCleared = false;
 
@@ -84,6 +86,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly updateLinksState = this._updateLinksState.asReadonly();
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
+    readonly validationResult = this._validationResult.asReadonly();
     readonly editorExtensions: Extension[] = [this.picturePreviewExtension];
     readonly customToolbarActions: CustomToolbarAction[] = [
         {
@@ -154,6 +157,10 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             });
     }
 
+    onValidationChange(result: ValidationResult): void {
+        this._validationResult.set(result);
+    }
+
     contentChanged(content: string): void {
         this._editorContent.set(content);
         this.logger.debug('Content changed', { length: content.length });
@@ -178,6 +185,45 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             this.notificationService.info('Нет изменений для сохранения');
             return;
         }
+
+        const problems = validateWikiContent(content);
+        const errors = problems.filter(p => p.severity === 'error');
+        const warnings = problems.filter(p => p.severity === 'warning');
+
+        if (errors.length > 0) {
+            this.notificationService.error(
+                `В тексте найдены ошибки (${errors.length}). Исправьте их перед сохранением`,
+            );
+            return;
+        }
+
+        if (warnings.length > 0) {
+            this.confirmAndSave(content, warnings.length);
+            return;
+        }
+
+        this.performSave(content);
+    }
+
+    private confirmAndSave(content: string, warningCount: number): void {
+        this.confirmationService
+            .open({
+                title: 'Предупреждения в тексте',
+                message: `В тексте найдены предупреждения (${warningCount}). Сохранить?`,
+                buttons: [
+                    { key: 'cancel', label: 'Отмена' },
+                    { key: 'confirm', label: 'Сохранить', accent: 'primary' },
+                ],
+            })
+            .pipe(
+                filter(result => result === 'confirm'),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(() => this.performSave(content));
+    }
+
+    private performSave(content: string): void {
+        if (!this.version) return;
 
         this._isSaving.set(true);
         this.logger.info('Saving article', {

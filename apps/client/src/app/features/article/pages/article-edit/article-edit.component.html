@@ -41,6 +41,7 @@
                     [linksStatus]="updateLinksState()"
                     (updateLinksEvent)="updateLinks($event)"
                     (contentChanged)="contentChanged($event)"
+                    (validationChange)="onValidationChange($event)"
                 />
             </ng-template>
         </ui-workspace-tab>

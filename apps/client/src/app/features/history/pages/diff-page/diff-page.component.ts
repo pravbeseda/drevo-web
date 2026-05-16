@@ -6,6 +6,7 @@ import { VersionLabelComponent } from '../../components/version-label/version-la
 import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LoggerService, StorageService } from '@drevo-web/core';
+import { validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import { ApprovalStatus, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
 
 type DiffViewType = 'cm' | 'jsdiff';
@@ -43,6 +44,16 @@ export class DiffPageComponent {
         return this.isModerationEnabled() && pairs?.current.approved === ApprovalStatus.Pending
             ? 'primary'
             : 'secondary';
+    });
+
+    readonly validationResult = computed<ValidationResult>(() => {
+        const content = this.data.versionPairs()?.current.content;
+        if (!content) return { errors: 0, warnings: 0 };
+        const problems = validateWikiContent(content);
+        return {
+            errors: problems.filter(p => p.severity === 'error').length,
+            warnings: problems.filter(p => p.severity === 'warning').length,
+        };
     });
 
     private readonly _diffType = signal<DiffViewType>(this.loadDiffType());
