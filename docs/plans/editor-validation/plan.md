@@ -20,7 +20,9 @@
 | Архитектура правил | Rule-объект с метаданными `{ id, defaultSeverity, validate() }`, severity переопределяется через конфигурацию |
 | Output валидации | `@Output() validationChange` → `ValidationResult { errors, warnings }`. Angular convention `*Change`, покрывает оба severity |
 | Angular bridge | Читаем из CM6 lint state через `forEachDiagnostic` + `setDiagnosticsEffect`. Единый источник правды, без дублирования валидации |
-| Модерация: передача count | Input `warningCount` сверху вниз. Две цепочки: content-tab → sidebar-actions → moderation (prop drilling), diff-page → moderation (прямой input) |
+| Модерация: передача count | Input `validationResult` на `ModerationSidebarActionComponent`. Только одна цепочка: diff-page → moderation (прямой input). На content-tab не валидируем (content там HTML, не raw wiki) |
+| Блокировка save | Синхронный `validateWikiContent()` в save() — authoritative. Output `validationChange` — только для UI-индикации |
+| Начальный emit | После создания EditorView прочитать текущий lint state и эмитить initial `ValidationResult` |
 
 ## Архитектура
 
@@ -153,13 +155,25 @@ EditorView.updateListener.of((update) => {
     this.validationHandler({ errors, warnings });
   }
 });
+
+// Начальный emit: после создания EditorView прочитать текущий lint state
+// (lint может отработать синхронно при создании state)
+private emitInitialValidation(): void {
+  let errors = 0, warnings = 0;
+  forEachDiagnostic(this.editor.state, (d) => {
+    if (d.severity === 'error') errors++;
+    else if (d.severity === 'warning') warnings++;
+  });
+  this.validationChange.emit({ errors, warnings });
+}
+// Вызвать в ngAfterViewInit() после создания EditorView
 ```
 
-**Для использования без редактора** (кнопки модерации):
+**Для использования без редактора** (diff-page, save):
 ```typescript
 import { validateWikiContent } from '@drevo-web/editor';
-// вызов напрямую, без CM6
-const problems = validateWikiContent(article.content);
+// вызов напрямую, без CM6 — только на raw wiki-контенте!
+const problems = validateWikiContent(rawWikiContent);
 const errors = problems.filter(p => p.severity === 'error');
 const warnings = problems.filter(p => p.severity === 'warning');
 ```
@@ -185,13 +199,14 @@ const warnings = problems.filter(p => p.severity === 'warning');
 
 Добавить в массив extensions:
 ```typescript
-import { wikiLinter, wikiLintGutter } from '../../validation/wiki-linter';
+import { wikiLinter, wikiLintGutter, wikiLintKeymap } from '../../validation/wiki-linter';
 
 // в createState():
 extensions: [
   ...existingExtensions,
   wikiLinter,
   wikiLintGutter,
+  wikiLintKeymap,
 ]
 ```
 
@@ -199,10 +214,15 @@ extensions: [
 
 **Файл**: `apps/client/src/app/features/article/pages/article-edit/article-edit.component.ts`
 
-- Подписаться на `validationResult` output из `<lib-editor>` (содержит `{ errors: number; warnings: number }`)
-- В методе `save()`:
-  - Если `errors > 0` — блокировать сохранение, показать сообщение: «В тексте найдены ошибки (N). Исправьте их перед сохранением»
-  - Если `warnings > 0` (и нет errors) — показать `ConfirmationService.open()`: «В тексте найдены предупреждения (N). Сохранить?»
+- `(validationChange)` output из `<lib-editor>` — для **UI-индикации** (badge, иконки предупреждений)
+- В методе `save()` — **синхронная authoritative проверка** (не полагаемся на debounced lint state):
+  ```typescript
+  const problems = validateWikiContent(this.editorContent());
+  const errors = problems.filter(p => p.severity === 'error');
+  const warnings = problems.filter(p => p.severity === 'warning');
+  ```
+  - Если `errors.length > 0` — блокировать сохранение, показать сообщение: «В тексте найдены ошибки (N). Исправьте их перед сохранением»
+  - Если `warnings.length > 0` (и нет errors) — показать `ConfirmationService.open()`: «В тексте найдены предупреждения (N). Сохранить?»
   - Если пользователь подтвердил — сохранить как обычно
 
 ```html
@@ -216,24 +236,18 @@ extensions: [
 
 **Проблема**: `ArticleModerationPanelComponent` получает `VersionForModeration`, у которого нет поля `content`. Модерация работает с версией, контент которой уже на сервере.
 
-**Решение**: валидировать на уровне страницы, которая владеет контентом. Input `warningCount` на `ModerationSidebarActionComponent`, данные текут сверху вниз.
+**Решение**: валидировать только на diff-page, где raw wiki-контент гарантирован. На article-content-tab не валидируем — `article().content` там содержит HTML (endpoint `/api/articles/show/{id}` форматирует контент).
 
-**Две цепочки:**
+**Единственная цепочка:**
 
 ```
-Цепочка 1: article-content-tab
-  article-content-tab (имеет article().content)
-    → computed: warningCount = validateWikiContent(content).length
-    → [warningCount] → article-sidebar-actions
-      → [warningCount] → moderation-sidebar-action
-        → показывает ui-badge
-
-Цепочка 2: diff-page
-  diff-page (имеет data.versionPairs()?.current.content)
-    → computed: warningCount = validateWikiContent(content).length
-    → [warningCount] → moderation-sidebar-action (напрямую)
-      → показывает ui-badge
+diff-page (имеет data.versionPairs()?.current.content — raw wiki)
+  → computed: validationResult = toValidationResult(validateWikiContent(content))
+  → [validationResult] → moderation-sidebar-action
+    → показывает ui-badge (errors + warnings)
 ```
+
+Input на `ModerationSidebarActionComponent`: `validationResult = input<ValidationResult>({ errors: 0, warnings: 0 })`.
 
 ## Стилизация
 
@@ -288,15 +302,14 @@ CM6-специфичные `wikiLinter`, `wikiLintGutter` — использую
 ### Этап 3: Angular-мост в редакторе
 1. Добавить `@Output() validationChange` → `ValidationResult` в `EditorComponent`
 2. В `EditorFactoryService` добавить `setValidationHandler` + `updateListener` с `setDiagnosticsEffect` / `forEachDiagnostic`. В `EditorComponent.ngAfterViewInit()` подключить handler → `validationChange.emit()`
-3. В `ArticleEditComponent.save()` — показать confirmation dialog при наличии ошибок
-4. Тесты для `EditorComponent` (mock lint state → проверить emit)
+3. Добавить `emitInitialValidation()` — прочитать lint state после создания EditorView и эмитить начальный результат
+4. В `ArticleEditComponent.save()` — **синхронный** `validateWikiContent(this.editorContent())`. При errors — блокировать, при warnings — confirmation dialog
+5. Тесты для `EditorComponent` (mock lint state → проверить emit, включая initial)
 
-### Этап 4: Интеграция с модерацией
-1. Добавить `warningCount = input(0)` в `ModerationSidebarActionComponent`, показать `ui-badge` при > 0
-2. Добавить `warningCount = input(0)` в `ArticleSidebarActionsComponent`, прокинуть в `moderation-sidebar-action`
-3. В `ArticleContentTabComponent` — `computed` с `validateWikiContent(article().content)`, передать `[warningCount]` в `article-sidebar-actions`
-4. В `DiffPageComponent` — `computed` с `validateWikiContent(data.versionPairs()?.current.content)`, передать `[warningCount]` напрямую в `moderation-sidebar-action`
-5. Тесты для обеих цепочек
+### Этап 4: Интеграция с модерацией (только diff-page)
+1. Добавить `validationResult = input<ValidationResult>({ errors: 0, warnings: 0 })` в `ModerationSidebarActionComponent`, показать `ui-badge` при errors + warnings > 0
+2. В `DiffPageComponent` — `computed` с `validateWikiContent(data.versionPairs()?.current.content)` → `ValidationResult`, передать `[validationResult]` в `moderation-sidebar-action`
+3. Тесты
 
 ## Оценка трудоёмкости
 
@@ -304,10 +317,10 @@ CM6-специфичные `wikiLinter`, `wikiLintGutter` — использую
 |------|----------|
 | Этап 1: Ядро + тесты | ~2 часа |
 | Этап 2: CM6 lint | ~1-2 часа |
-| Этап 3: Angular-мост | ~2 часа |
-| Этап 4: Модерация | ~2-3 часа |
-| **Итого** | **~7-9 часов** |
+| Этап 3: Angular-мост + save | ~2-3 часа |
+| Этап 4: Модерация (только diff-page) | ~1-2 часа |
+| **Итого** | **~6-9 часов** |
 
 ## Открытые вопросы
 
-Все вопросы закрыты — решения зафиксированы в таблице «Принятые решения».
+Все вопросы закрыты — решения зафиксированы в таблице «Принятые решения» (включая исправления по ревью Codex).
