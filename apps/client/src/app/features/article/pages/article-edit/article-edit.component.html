@@ -31,20 +31,22 @@
             workspaceTabBarAction
             type="button"
             class="validation-indicator"
-            [class.validation-indicator--error]="hasErrors()"
-            [class.validation-indicator--warning]="!hasErrors() && hasWarnings()"
             [class.validation-indicator--ok]="!hasProblems()"
             [uiTooltip]="validationTooltip()"
             data-testid="validation-indicator"
             (click)="toggleLintPanel()"
         >
             @if (hasErrors()) {
-                <ui-icon name="error" size="small" />
-                <span>{{ validationResult().errors }}</span>
+                <span class="validation-indicator__error">
+                    <ui-icon name="error" size="small" />
+                    <span>{{ validationResult().errors }}</span>
+                </span>
             }
             @if (hasWarnings()) {
-                <ui-icon name="warning" size="small" />
-                <span>{{ validationResult().warnings }}</span>
+                <span class="validation-indicator__warning">
+                    <ui-icon name="warning" size="small" />
+                    <span>{{ validationResult().warnings }}</span>
+                </span>
             }
             @if (!hasProblems()) {
                 <ui-icon name="check_circle" size="small" />

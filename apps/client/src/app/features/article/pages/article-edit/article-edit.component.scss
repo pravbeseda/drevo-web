@@ -28,11 +28,17 @@
         color: var(--themed-text-success);
     }
 
-    &--error {
+    &__error {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         color: var(--themed-text-error);
     }
 
-    &--warning {
+    &__warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         color: var(--themed-text-warning);
     }
 }
