@@ -25,7 +25,7 @@
     }
 
     &--ok {
-        color: var(--themed-status-approved);
+        color: var(--themed-text-success);
     }
 
     &--error {
@@ -33,6 +33,6 @@
     }
 
     &--warning {
-        color: var(--themed-status-pending);
+        color: var(--themed-text-warning);
     }
 }

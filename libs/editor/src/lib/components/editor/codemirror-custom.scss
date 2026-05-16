@@ -162,7 +162,7 @@
 
     // Lint panel & diagnostics
     .cm-gutter-lint {
-        width: 1.2em;
+        width: 1.6em;
     }
 
     .cm-tooltip-lint {
@@ -199,7 +199,36 @@
     }
 
     .cm-lint-marker {
-        width: 0.8em;
+        width: 1.2em;
+        height: 1.2em;
+        content: none;
+
+        &::before {
+            font-family: 'Material Symbols Rounded';
+            font-size: 1.2em;
+            line-height: 1;
+            font-feature-settings: 'liga';
+            font-variation-settings: 'FILL' 1;
+            -webkit-font-smoothing: antialiased;
+        }
+    }
+
+    .cm-lint-marker-error {
+        content: none;
+
+        &::before {
+            content: 'error';
+            color: var(--themed-text-error);
+        }
+    }
+
+    .cm-lint-marker-warning {
+        content: none;
+
+        &::before {
+            content: 'warning';
+            color: var(--themed-text-warning);
+        }
     }
 
     .cm-picture-tooltip {
