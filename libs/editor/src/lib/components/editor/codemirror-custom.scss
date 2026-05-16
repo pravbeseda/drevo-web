@@ -192,6 +192,12 @@
         display: none;
     }
 
+    .cm-panel.cm-panel-lint ul [aria-selected],
+    .cm-panel.cm-panel-lint ul:focus [aria-selected] {
+        background-color: var(--themed-selected-bg);
+        color: var(--themed-text-primary);
+    }
+
     .cm-lint-marker {
         width: 0.8em;
     }
