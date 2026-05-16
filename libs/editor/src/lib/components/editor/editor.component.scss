@@ -3,6 +3,8 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    border-left: 1px solid var(--themed-border-color);
+    border-right: 1px solid var(--themed-border-color);
 }
 
 .editor-toolbar {

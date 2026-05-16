@@ -161,8 +161,19 @@
     }
 
     // Lint panel & diagnostics
-    .cm-lint-marker-warning {
-        content: '';
+    .cm-gutter-lint {
+        width: 1.2em;
+    }
+
+    .cm-tooltip-lint {
+        background-color: var(--themed-editor-panel-bg);
+        border: 1px solid var(--themed-editor-panel-border);
+        border-radius: 4px;
+        box-shadow: 0 2px 8px var(--themed-shadow-color);
+    }
+
+    .cm-diagnostic {
+        color: var(--themed-text-primary);
     }
 
     .cm-diagnostic-warning {
