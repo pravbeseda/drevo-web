@@ -20,6 +20,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { openLintPanel, closeLintPanel } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { WINDOW } from '@drevo-web/core';
@@ -174,6 +175,18 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     requestMeasure(): void {
         this.editor?.requestMeasure();
+    }
+
+    toggleLintPanel(): boolean {
+        if (!this.editor) return false;
+
+        const panelOpen = !!this.editor.dom.querySelector('.cm-panel-lint');
+        if (panelOpen) {
+            closeLintPanel(this.editor);
+        } else {
+            openLintPanel(this.editor);
+        }
+        return !panelOpen;
     }
 
     onToolbarAction(action: ToolbarActionView): void {

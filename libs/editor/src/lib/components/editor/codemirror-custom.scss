@@ -188,6 +188,10 @@
         border-top-color: var(--themed-editor-panel-border);
     }
 
+    .cm-panel-lint [name='close'] {
+        display: none;
+    }
+
     .cm-lint-marker {
         width: 0.8em;
     }

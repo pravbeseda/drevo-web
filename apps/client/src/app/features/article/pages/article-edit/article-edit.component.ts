@@ -13,6 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,
     Component,
+    computed,
     DestroyRef,
     inject,
     OnDestroy,
@@ -26,7 +27,7 @@ import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
-import { ConfirmationService, ModalService, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
+import { ConfirmationService, IconComponent, ModalService, TooltipDirective, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
 import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
 
 const EDITOR_TAB_INDEX = 0;
@@ -37,8 +38,10 @@ const EDITOR_TAB_INDEX = 0;
         DiffViewComponent,
         EditorComponent,
         ErrorComponent,
+        IconComponent,
         PreviewComponent,
         SidebarActionComponent,
+        TooltipDirective,
         WorkspaceComponent,
         WorkspaceTabComponent,
     ],
@@ -87,6 +90,17 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
     readonly validationResult = this._validationResult.asReadonly();
+    readonly hasErrors = computed(() => this._validationResult().errors > 0);
+    readonly hasWarnings = computed(() => this._validationResult().warnings > 0);
+    readonly hasProblems = computed(() => this.hasErrors() || this.hasWarnings());
+    readonly validationTooltip = computed(() => {
+        const { errors, warnings } = this._validationResult();
+        if (errors === 0 && warnings === 0) return 'Проблем нет';
+        const parts: string[] = [];
+        if (errors > 0) parts.push(`Ошибок: ${errors}`);
+        if (warnings > 0) parts.push(`Предупреждений: ${warnings}`);
+        return parts.join('. ');
+    });
     readonly editorExtensions: Extension[] = [this.picturePreviewExtension];
     readonly customToolbarActions: CustomToolbarAction[] = [
         {
@@ -266,6 +280,10 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     this.notificationService.error(errorMessage);
                 },
             });
+    }
+
+    toggleLintPanel(): void {
+        this.editorComponent?.toggleLintPanel();
     }
 
     onTabChange(index: number): void {
