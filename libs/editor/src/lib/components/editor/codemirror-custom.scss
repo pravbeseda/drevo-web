@@ -173,15 +173,41 @@
     }
 
     .cm-diagnostic {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
         color: var(--themed-text-primary);
+        border-left: none;
+
+        &::before {
+            font-family: 'Material Symbols Rounded';
+            font-size: 1rem;
+            line-height: 1;
+            font-feature-settings: 'liga';
+            font-variation-settings: 'FILL' 1;
+            -webkit-font-smoothing: antialiased;
+            flex-shrink: 0;
+            position: relative;
+            top: 2px;
+        }
     }
 
     .cm-diagnostic-warning {
-        border-color: var(--themed-warning);
+        &::before {
+            content: 'warning';
+            color: var(--themed-text-warning);
+        }
     }
 
     .cm-diagnostic-error {
-        border-color: var(--themed-error);
+        &::before {
+            content: 'error';
+            color: var(--themed-text-error);
+        }
+    }
+
+    .cm-lintRange-active {
+        background-color: var(--themed-lint-active-bg);
     }
 
     .cm-panels-bottom {

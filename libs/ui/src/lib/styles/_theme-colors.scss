@@ -51,11 +51,15 @@ $theme-colors: (
     ),
     text-error: (
         light: $md-red-800,
-        dark: $md-red-300,
+        dark: $md-red-400,
     ),
     text-warning: (
         light: $md-orange-800,
         dark: $md-orange-400,
+    ),
+    lint-active-bg: (
+        light: $md-orange-200,
+        dark: $md-pink-900,
     ),
     // Menu
     menu-hover-background: (
