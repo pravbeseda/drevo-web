@@ -33,6 +33,7 @@
             class="validation-indicator"
             [class.validation-indicator--ok]="!hasProblems()"
             [uiTooltip]="validationTooltip()"
+            [attr.aria-label]="validationTooltip()"
             data-testid="validation-indicator"
             (click)="toggleLintPanel()"
         >

@@ -432,6 +432,138 @@ describe('ArticleEditComponent', () => {
 
             expect(spectator.component.isSaving()).toBe(false);
         });
+
+        describe('validation', () => {
+            it('should block save when content has validation errors', () => {
+                spectator.detectChanges();
+                spectator.component.contentChanged('текст (без закрытия');
+
+                spectator.component.save();
+
+                expect(notificationService.error).toHaveBeenCalledWith(
+                    expect.stringContaining('В тексте найдены ошибки'),
+                );
+                expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+            });
+
+            it('should show confirmation when content has only warnings', () => {
+                confirmationService.open.mockReturnValue(NEVER);
+                spectator.detectChanges();
+                spectator.component.contentChanged('== ((ссылка)) ==');
+
+                spectator.component.save();
+
+                expect(confirmationService.open).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Предупреждения в тексте',
+                    }),
+                );
+                expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+            });
+
+            it('should save after user confirms warnings', () => {
+                confirmationService.open.mockReturnValue(of('confirm'));
+                spectator.detectChanges();
+                spectator.component.contentChanged('== ((ссылка)) ==');
+
+                spectator.component.save();
+
+                expect(articleService.saveArticleVersion).toHaveBeenCalledWith({
+                    versionId: 456,
+                    content: '== ((ссылка)) ==',
+                });
+            });
+
+            it('should not save when user cancels warning dialog', () => {
+                confirmationService.open.mockReturnValue(of('cancel'));
+                spectator.detectChanges();
+                spectator.component.contentChanged('== ((ссылка)) ==');
+
+                spectator.component.save();
+
+                expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+            });
+
+            it('should prioritize errors over warnings', () => {
+                spectator.detectChanges();
+                spectator.component.contentChanged('== ((ссылка)) ==\nтекст (без закрытия');
+
+                spectator.component.save();
+
+                expect(notificationService.error).toHaveBeenCalledWith(
+                    expect.stringContaining('В тексте найдены ошибки'),
+                );
+                expect(confirmationService.open).not.toHaveBeenCalled();
+                expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('validation indicators', () => {
+        it('should default to no problems', () => {
+            spectator.detectChanges();
+
+            expect(spectator.component.validationResult()).toEqual({ errors: 0, warnings: 0 });
+            expect(spectator.component.hasProblems()).toBe(false);
+        });
+
+        it('should update on validationChange', () => {
+            spectator.detectChanges();
+
+            spectator.component.onValidationChange({ errors: 2, warnings: 1 });
+
+            expect(spectator.component.validationResult()).toEqual({ errors: 2, warnings: 1 });
+        });
+
+        it('should compute hasErrors', () => {
+            spectator.detectChanges();
+            spectator.component.onValidationChange({ errors: 1, warnings: 0 });
+
+            expect(spectator.component.hasErrors()).toBe(true);
+            expect(spectator.component.hasWarnings()).toBe(false);
+        });
+
+        it('should compute hasWarnings', () => {
+            spectator.detectChanges();
+            spectator.component.onValidationChange({ errors: 0, warnings: 3 });
+
+            expect(spectator.component.hasErrors()).toBe(false);
+            expect(spectator.component.hasWarnings()).toBe(true);
+        });
+
+        it('should compute hasProblems when both exist', () => {
+            spectator.detectChanges();
+            spectator.component.onValidationChange({ errors: 1, warnings: 2 });
+
+            expect(spectator.component.hasProblems()).toBe(true);
+        });
+
+        it('should return "Проблем нет" tooltip when no problems', () => {
+            spectator.detectChanges();
+
+            expect(spectator.component.validationTooltip()).toBe('Проблем нет');
+        });
+
+        it('should return errors-only tooltip', () => {
+            spectator.detectChanges();
+            spectator.component.onValidationChange({ errors: 3, warnings: 0 });
+
+            expect(spectator.component.validationTooltip()).toBe('Ошибок: 3');
+        });
+
+        it('should return warnings-only tooltip', () => {
+            spectator.detectChanges();
+            spectator.component.onValidationChange({ errors: 0, warnings: 2 });
+
+            expect(spectator.component.validationTooltip()).toBe('Предупреждений: 2');
+        });
+
+        it('should return combined tooltip', () => {
+            spectator.detectChanges();
+            spectator.component.onValidationChange({ errors: 1, warnings: 2 });
+
+            expect(spectator.component.validationTooltip()).toBe('Ошибок: 1. Предупреждений: 2');
+        });
     });
 
     describe('onTabChange method', () => {
