@@ -95,7 +95,7 @@ describe('ArticleVersionTabComponent', () => {
 
         const link = spectator.query('[data-testid="version-banner"] a') as HTMLAnchorElement;
         expect(link).toBeTruthy();
-        expect(link.textContent).toContain('Перейти к текущей версии');
+        expect(link.textContent).toContain('Перейти к текущей версии статьи');
         expect(link.getAttribute('href')).toBe('/articles/100');
     });
 

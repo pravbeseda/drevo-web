@@ -13,6 +13,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
     selector: 'app-article-content-tab',
     imports: [ArticleContentComponent, ArticleSidebarActionsComponent],
     templateUrl: './article-content-tab.component.html',
+    styleUrl: './article-content-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleContentTabComponent {

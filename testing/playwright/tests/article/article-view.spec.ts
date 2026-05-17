@@ -87,5 +87,17 @@ test.describe('Article view', () => {
         test('shows version banner for specific version', async () => {
             await expect(article.versionBanner).toBeVisible();
         });
+
+        test('displays author, date, and info in version banner', async () => {
+            await expect(article.versionBanner).toContainText('Иван Петров');
+            await expect(article.versionBanner).toContainText('20 марта 2025');
+            await expect(article.versionBanner).toContainText('Исправлена опечатка');
+        });
+
+        test('shows link to current article version', async () => {
+            const link = article.versionBanner.getByRole('link', { name: 'Перейти к текущей версии статьи' });
+            await expect(link).toBeVisible();
+            await expect(link).toHaveAttribute('href', `/articles/${ARTICLE_ID}`);
+        });
     });
 });

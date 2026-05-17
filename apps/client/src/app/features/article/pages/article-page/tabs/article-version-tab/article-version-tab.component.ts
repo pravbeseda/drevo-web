@@ -8,12 +8,20 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ArticleVersion, ModerationResult } from '@drevo-web/shared';
-import { FormatTimePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
+import { BannerComponent, FormatDatePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-version-tab',
-    imports: [ArticleContentComponent, ArticleSidebarActionsComponent, RouterLink, FormatTimePipe, StatusIconComponent, SpinnerComponent],
+    imports: [
+        ArticleContentComponent,
+        ArticleSidebarActionsComponent,
+        BannerComponent,
+        RouterLink,
+        StatusIconComponent,
+        SpinnerComponent,
+        FormatDatePipe,
+    ],
     templateUrl: './article-version-tab.component.html',
     styleUrl: './article-version-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,7 +68,7 @@ export class ArticleVersionTabComponent implements OnInit {
                     return idParam ? parseInt(idParam, 10) : NaN;
                 }),
                 distinctUntilChanged(),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(versionId => {
                 if (isNaN(versionId) || versionId <= 0) {

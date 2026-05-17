@@ -337,6 +337,7 @@ All accessed via `@drevo-web/ui`.
 | Component | Selector | Notes |
 |-----------|----------|-------|
 | Badge | `ui-badge` | Input: `value: number \| string` |
+| Banner | `ui-banner` | Content projection wrapper (flex column, border, background) |
 | Button | `ui-button` | |
 | IconButton | `ui-icon-button` | |
 | ActionButton | `ui-action-button` | |
@@ -351,6 +352,7 @@ All accessed via `@drevo-web/ui`.
 | VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
 | Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
 | HighlightPipe | `highlight` | Pipe for text highlighting |
+| FormatDatePipe | `formatDate` | Pipe for date+time: "15 января 2025, 14:30" |
 | FormatTimePipe | `formatTime` | Pipe for time formatting |
 
 ## Unit Testing

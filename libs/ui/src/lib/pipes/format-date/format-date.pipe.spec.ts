@@ -5,15 +5,13 @@ describe('FormatDatePipe', () => {
     let spectator: SpectatorPipe<FormatDatePipe>;
     const createPipe = createPipeFactory(FormatDatePipe);
 
-    it('should format a Date object in Russian locale', () => {
+    it('should format a Date object as "day month year, HH:MM"', () => {
         const date = new Date(2025, 0, 15, 14, 30);
         spectator = createPipe(`<span>{{ date | formatDate }}</span>`, {
             hostProps: { date },
         });
 
-        const text = spectator.element.textContent?.trim() ?? '';
-        expect(text).toContain('2025');
-        expect(text).toMatch(/14[:\u2236]30/);
+        expect(spectator.element.textContent?.trim()).toBe('15 января 2025, 14:30');
     });
 
     it('should return empty string for undefined', () => {
