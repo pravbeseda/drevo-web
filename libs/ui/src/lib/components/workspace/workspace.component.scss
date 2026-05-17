@@ -61,6 +61,12 @@
     white-space: nowrap;
 }
 
+.workspace-tab-bar__trailing {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
 @container workspace-tabs (max-width: 20em) {
     .workspace-tab-label {
         display: none;

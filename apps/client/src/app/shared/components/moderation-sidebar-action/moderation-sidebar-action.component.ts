@@ -4,6 +4,7 @@ import { ArticleModerationPanelComponent } from '../article-moderation-panel/art
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ValidationResult } from '@drevo-web/editor';
 import { APPROVAL_CLASS, APPROVAL_ICONS, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
 import { SidePanelComponent } from '@drevo-web/ui';
 
@@ -17,6 +18,12 @@ export class ModerationSidebarActionComponent {
     readonly version = input.required<VersionForModeration>();
     readonly disabled = input(false);
     readonly priority = input<SidebarActionPriority>('secondary');
+    readonly validationResult = input<ValidationResult>({ errors: 0, warnings: 0 });
+
+    readonly validationCount = computed(() => {
+        const result = this.validationResult();
+        return result.errors + result.warnings;
+    });
 
     readonly moderated = output<ModerationResult>();
 

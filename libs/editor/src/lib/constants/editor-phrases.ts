@@ -8,4 +8,5 @@ export const russianPhrases = {
     'by word': 'искать по словам',
     'match case': 'учитывать регистр',
     Close: 'Закрыть',
+    'No diagnostics': 'Проблем не найдено',
 };

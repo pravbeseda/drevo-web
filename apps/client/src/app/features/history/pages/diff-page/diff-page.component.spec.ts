@@ -278,4 +278,61 @@ describe('DiffPageComponent', () => {
             expect(errorEl?.textContent?.trim()).toBe('Ошибка загрузки данных');
         });
     });
+
+    describe('validationResult', () => {
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+            ],
+            detectChanges: false,
+        });
+
+        it('should return zero counts for clean content', () => {
+            const spectator = createComponent({
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(mockVersionPairs) }],
+            });
+            spectator.detectChanges();
+
+            expect(spectator.component.validationResult()).toEqual({ errors: 0, warnings: 0 });
+        });
+
+        it('should count warnings for heading issues', () => {
+            const pairs: VersionPairs = {
+                ...mockVersionPairs,
+                current: { ...mockVersionPairs.current, content: '== ((ссылка)) ==' },
+            };
+            const spectator = createComponent({
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(pairs) }],
+            });
+            spectator.detectChanges();
+
+            expect(spectator.component.validationResult().warnings).toBeGreaterThan(0);
+            expect(spectator.component.validationResult().errors).toBe(0);
+        });
+
+        it('should count warnings for bracket issues', () => {
+            const pairs: VersionPairs = {
+                ...mockVersionPairs,
+                current: { ...mockVersionPairs.current, content: 'текст (без закрытия' },
+            };
+            const spectator = createComponent({
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(pairs) }],
+            });
+            spectator.detectChanges();
+
+            expect(spectator.component.validationResult().warnings).toBeGreaterThan(0);
+        });
+
+        it('should return zero counts when no pairs', () => {
+            const spectator = createComponent({
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(undefined) }],
+            });
+            spectator.detectChanges();
+
+            expect(spectator.component.validationResult()).toEqual({ errors: 0, warnings: 0 });
+        });
+    });
 });

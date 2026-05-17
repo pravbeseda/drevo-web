@@ -1,7 +1,44 @@
+@use 'index' as *;
+
 :host {
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
     overflow: hidden;
+}
+
+.validation-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    font-weight: 500;
+    transition: opacity 0.2s;
+
+    &:hover {
+        opacity: 0.8;
+    }
+
+    &--ok {
+        color: var(--themed-text-success);
+    }
+
+    &__error {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--themed-text-error);
+    }
+
+    &__warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--themed-text-warning);
+    }
 }

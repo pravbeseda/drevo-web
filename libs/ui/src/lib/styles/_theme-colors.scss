@@ -45,9 +45,21 @@ $theme-colors: (
         light: $md-grey-500,
         dark: $md-grey-600,
     ),
+    text-success: (
+        light: $md-green-800,
+        dark: $md-green-400,
+    ),
     text-error: (
         light: $md-red-800,
-        dark: $md-red-500,
+        dark: $md-red-400,
+    ),
+    text-warning: (
+        light: $md-orange-800,
+        dark: $md-orange-400,
+    ),
+    lint-active-bg: (
+        light: $md-orange-200,
+        dark: rgba($md-orange-400, 0.15),
     ),
     // Menu
     menu-hover-background: (

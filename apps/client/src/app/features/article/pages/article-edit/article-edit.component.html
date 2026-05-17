@@ -27,6 +27,32 @@
         data-testid="article-edit"
         (activeTabChange)="onTabChange($event)"
     >
+        <button
+            workspaceTabBarAction
+            type="button"
+            class="validation-indicator"
+            [class.validation-indicator--ok]="!hasProblems()"
+            [uiTooltip]="validationTooltip()"
+            [attr.aria-label]="validationTooltip()"
+            data-testid="validation-indicator"
+            (click)="toggleLintPanel()"
+        >
+            @if (hasErrors()) {
+                <span class="validation-indicator__error">
+                    <ui-icon name="error" size="small" />
+                    <span>{{ validationResult().errors }}</span>
+                </span>
+            }
+            @if (hasWarnings()) {
+                <span class="validation-indicator__warning">
+                    <ui-icon name="warning" size="small" />
+                    <span>{{ validationResult().warnings }}</span>
+                </span>
+            }
+            @if (!hasProblems()) {
+                <ui-icon name="check_circle" size="small" />
+            }
+        </button>
         <ui-workspace-tab
             label="Редактор"
             icon="edit"
@@ -41,6 +67,7 @@
                     [linksStatus]="updateLinksState()"
                     (updateLinksEvent)="updateLinks($event)"
                     (contentChanged)="contentChanged($event)"
+                    (validationChange)="onValidationChange($event)"
                 />
             </ng-template>
         </ui-workspace-tab>

@@ -5,6 +5,7 @@
         label="Модерация"
         [priority]="priority()"
         [disabled]="disabled()"
+        [badge]="validationCount()"
         testId="moderation-action"
         (activated)="togglePanel()"
     />

@@ -3,6 +3,7 @@ import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { insertTagInView } from '../../helpers/insert-tag';
 import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
+import { ValidationResult } from '../../validation/models/validation-result.model';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
@@ -19,6 +20,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { openLintPanel, closeLintPanel } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { WINDOW } from '@drevo-web/core';
@@ -95,6 +97,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
     @Output()
     readonly contentChanged = new EventEmitter<string>();
 
+    @Output()
+    readonly validationChange = new EventEmitter<ValidationResult>();
+
     @Input()
     set linksStatus(links: Record<string, boolean>) {
         this.linksSubject.next(links);
@@ -158,6 +163,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         });
 
         this.editorFactory.setChangeHandler(text => this.contentChanged.emit(text));
+        this.editorFactory.setValidationHandler(result => this.validationChange.emit(result));
 
         this.editor.contentDOM.setAttribute('spellcheck', 'true');
         this.editor.contentDOM.setAttribute('autocorrect', 'on');
@@ -169,6 +175,18 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     requestMeasure(): void {
         this.editor?.requestMeasure();
+    }
+
+    toggleLintPanel(): boolean {
+        if (!this.editor) return false;
+
+        const panelOpen = !!this.editor.dom.querySelector('.cm-panel-lint');
+        if (panelOpen) {
+            closeLintPanel(this.editor);
+        } else {
+            openLintPanel(this.editor);
+        }
+        return !panelOpen;
     }
 
     onToolbarAction(action: ToolbarActionView): void {

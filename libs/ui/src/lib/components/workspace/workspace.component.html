@@ -47,4 +47,7 @@
             <span class="workspace-tab-label" data-testid="workspace-tab-label">{{ tab.label() }}</span>
         </button>
     }
+    <div class="workspace-tab-bar__trailing">
+        <ng-content select="[workspaceTabBarAction]" />
+    </div>
 </div>

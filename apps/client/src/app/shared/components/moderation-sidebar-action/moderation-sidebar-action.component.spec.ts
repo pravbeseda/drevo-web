@@ -196,6 +196,29 @@ describe('ModerationSidebarActionComponent', () => {
                 expect(spy).toHaveBeenCalledTimes(1);
             });
         });
+
+        describe('validation count', () => {
+            it('should default to zero', () => {
+                spectator.detectChanges();
+
+                expect(spectator.component.validationCount()).toBe(0);
+            });
+
+            it('should sum errors and warnings', () => {
+                spectator.setInput('validationResult', { errors: 2, warnings: 3 });
+                spectator.detectChanges();
+
+                expect(spectator.component.validationCount()).toBe(5);
+            });
+
+            it('should pass validation count as badge to sidebar action', () => {
+                spectator.setInput('validationResult', { errors: 1, warnings: 2 });
+                spectator.detectChanges();
+
+                const action = spectator.query(SidebarActionComponent);
+                expect(action?.badge()).toBe(3);
+            });
+        });
     });
 
     describe('regular user', () => {
