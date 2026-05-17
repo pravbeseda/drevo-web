@@ -14,13 +14,13 @@
         (topicsChanged)="onTopicsChanged($event)"
     />
     <ui-banner data-testid="version-banner">
-        <div class="version-banner__header">
+        <div class="banner-header">
             {{ version.author }}
             <ui-status-icon [status]="version.approved" />
             <span>Версия статьи от {{ version.date | formatDate }}</span>
         </div>
         @if (version.info) {
-            <div class="version-banner__meta">
+            <div class="banner-meta">
                 {{ version.info }}
             </div>
         }

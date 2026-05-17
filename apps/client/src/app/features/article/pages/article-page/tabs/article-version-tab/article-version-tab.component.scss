@@ -21,14 +21,14 @@ ui-banner {
     margin-bottom: 1rem;
 }
 
-.version-banner__header {
+.banner-header {
     display: flex;
     align-items: center;
     gap: 6px;
     font-weight: 500;
 }
 
-.version-banner__meta {
+.banner-meta {
     color: var(--themed-text-secondary);
 }
 

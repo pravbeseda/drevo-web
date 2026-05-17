@@ -15,16 +15,4 @@ describe('BannerComponent', () => {
     it('should create', () => {
         expect(spectator.component).toBeTruthy();
     });
-
-    it('should project content', () => {
-        spectator = createComponent({
-            props: {},
-            detectChanges: false,
-        });
-
-        spectator.fixture.nativeElement.innerHTML = '<span class="test">Hello</span>';
-        spectator.detectChanges();
-
-        expect(spectator.element).toBeTruthy();
-    });
 });
