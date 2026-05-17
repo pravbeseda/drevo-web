@@ -123,6 +123,9 @@ export const mockArticleViewData = {
         versionId: 99,
         title: 'Тестовая статья',
         approved: 0,
+        author: 'Иван Петров',
+        info: 'Исправлена опечатка',
+        date: '2025-03-20T14:30:00',
     }),
 
     /** History items for the history tab */
