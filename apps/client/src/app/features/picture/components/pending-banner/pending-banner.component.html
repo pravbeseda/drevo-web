@@ -1,7 +1,4 @@
-<div
-    class="pending-banner"
-    data-testid="pending-banner"
->
+<ui-banner data-testid="pending-banner">
     <div
         class="pending-banner__header"
         [class.pending-banner__header--delete]="pending().pendingType === 'delete'"
@@ -82,4 +79,4 @@
             </ui-button>
         }
     </div>
-</div>
+</ui-banner>

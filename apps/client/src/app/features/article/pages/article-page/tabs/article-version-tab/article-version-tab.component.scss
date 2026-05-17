@@ -1,5 +1,10 @@
 @use 'index' as *;
 
+:host {
+    display: block;
+    padding: $content-padding;
+}
+
 .loading-container {
     display: flex;
     justify-content: center;
@@ -12,35 +17,27 @@
     padding: 1rem 0;
 }
 
-.version-banner {
-    background: var(--themed-secondary-bg);
-    border: 1px solid var(--themed-border-color);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 1rem 0;
-    font-size: $font-size-md;
+ui-banner {
+    margin-bottom: 1rem;
+}
 
-    &__header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 500;
-    }
+.version-banner__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
 
-    &__meta {
-        color: var(--themed-text-secondary);
-        margin-top: 4px;
-    }
+.version-banner__meta {
+    color: var(--themed-text-secondary);
+}
 
-    a {
-        color: var(--themed-link-color);
-        text-decoration: none;
-        display: inline-block;
-        margin-top: 4px;
+ui-banner a {
+    color: var(--themed-link-color);
+    text-decoration: none;
 
-        &:hover {
-            color: var(--themed-link-hover);
-            text-decoration: underline;
-        }
+    &:hover {
+        color: var(--themed-link-hover);
+        text-decoration: underline;
     }
 }

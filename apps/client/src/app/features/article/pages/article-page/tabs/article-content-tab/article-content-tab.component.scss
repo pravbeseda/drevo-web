@@ -1,0 +1,6 @@
+@use 'tokens' as *;
+
+:host {
+    display: block;
+    padding: $content-padding;
+}

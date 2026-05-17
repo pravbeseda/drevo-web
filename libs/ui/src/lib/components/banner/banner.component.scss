@@ -1,0 +1,12 @@
+@use 'tokens' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--themed-secondary-bg);
+    border: 1px solid var(--themed-border-color);
+    font-size: $font-size-md;
+}
