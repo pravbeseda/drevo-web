@@ -115,7 +115,7 @@ describe('validateWikiContent', () => {
                 expect(errors).toHaveLength(1);
                 expect(errors[0]).toMatchObject({
                     message: 'Нет закрывающей скобки )',
-                    severity: 'error',
+                    severity: 'warning',
                 });
                 expect(text.slice(errors[0].from, errors[0].to)).toBe('(');
             });

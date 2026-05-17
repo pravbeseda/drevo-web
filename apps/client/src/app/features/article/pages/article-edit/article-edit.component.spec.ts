@@ -434,19 +434,7 @@ describe('ArticleEditComponent', () => {
         });
 
         describe('validation', () => {
-            it('should block save when content has validation errors', () => {
-                spectator.detectChanges();
-                spectator.component.contentChanged('текст (без закрытия');
-
-                spectator.component.save();
-
-                expect(notificationService.error).toHaveBeenCalledWith(
-                    expect.stringContaining('В тексте найдены ошибки'),
-                );
-                expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
-            });
-
-            it('should show confirmation when content has only warnings', () => {
+            it('should show confirmation when content has warnings', () => {
                 confirmationService.open.mockReturnValue(NEVER);
                 spectator.detectChanges();
                 spectator.component.contentChanged('== ((ссылка)) ==');
@@ -484,16 +472,18 @@ describe('ArticleEditComponent', () => {
                 expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
             });
 
-            it('should prioritize errors over warnings', () => {
+            it('should show confirmation for bracket warnings', () => {
+                confirmationService.open.mockReturnValue(NEVER);
                 spectator.detectChanges();
-                spectator.component.contentChanged('== ((ссылка)) ==\nтекст (без закрытия');
+                spectator.component.contentChanged('текст (без закрытия');
 
                 spectator.component.save();
 
-                expect(notificationService.error).toHaveBeenCalledWith(
-                    expect.stringContaining('В тексте найдены ошибки'),
+                expect(confirmationService.open).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Предупреждения в тексте',
+                    }),
                 );
-                expect(confirmationService.open).not.toHaveBeenCalled();
                 expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
             });
         });

@@ -313,7 +313,7 @@ describe('DiffPageComponent', () => {
             expect(spectator.component.validationResult().errors).toBe(0);
         });
 
-        it('should count errors for bracket issues', () => {
+        it('should count warnings for bracket issues', () => {
             const pairs: VersionPairs = {
                 ...mockVersionPairs,
                 current: { ...mockVersionPairs.current, content: 'текст (без закрытия' },
@@ -323,7 +323,7 @@ describe('DiffPageComponent', () => {
             });
             spectator.detectChanges();
 
-            expect(spectator.component.validationResult().errors).toBeGreaterThan(0);
+            expect(spectator.component.validationResult().warnings).toBeGreaterThan(0);
         });
 
         it('should return zero counts when no pairs', () => {

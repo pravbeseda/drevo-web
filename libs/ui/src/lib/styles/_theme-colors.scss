@@ -59,7 +59,7 @@ $theme-colors: (
     ),
     lint-active-bg: (
         light: $md-orange-200,
-        dark: $md-pink-900,
+        dark: rgba($md-orange-400, 0.15),
     ),
     // Menu
     menu-hover-background: (
