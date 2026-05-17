@@ -15,15 +15,15 @@
     />
     <ui-banner data-testid="version-banner">
         <div class="version-banner__header">
+            {{ version.author }}
             <ui-status-icon [status]="version.approved" />
             <span>Версия статьи от {{ version.date | formatDate }}</span>
         </div>
-        <div class="version-banner__meta">
-            Автор: {{ version.author }}
-            @if (version.info) {
-                — {{ version.info }}
-            }
-        </div>
+        @if (version.info) {
+            <div class="version-banner__meta">
+                {{ version.info }}
+            </div>
+        }
         @if (articleUrl(); as url) {
             <a [routerLink]="url">Перейти к текущей версии статьи</a>
         }
