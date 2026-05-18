@@ -33,7 +33,7 @@ export class PageTitleStrategy extends TitleStrategy {
 
             const titleSource = resolved.route.data['titleSource'] as string | undefined;
             if (titleSource === 'article') {
-                const articleData = resolved.route.data['article'] as { readonly articleId: number; readonly title: string } | undefined;
+                const articleData = resolved.route.data['article'] as TitleContext | undefined;
                 if (articleData) {
                     this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
                 } else {

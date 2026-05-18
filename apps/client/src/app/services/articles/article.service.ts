@@ -158,13 +158,6 @@ export class ArticleService {
             .pipe(map(response => this.mapHistoryResponse(response)));
     }
 
-    /**
-     * Update article topics
-     *
-     * @param articleId - Article ID
-     * @param topics - Array of topic IDs
-     * @returns Observable with updated topic IDs
-     */
     renameArticle(articleId: number, title: string): Observable<RenameArticleResponse> {
         return this.articleApiService.renameArticle(articleId, title).pipe(
             map(dto => {

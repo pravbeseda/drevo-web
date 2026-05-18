@@ -9,7 +9,7 @@ import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ModalService } from '@drevo-web/ui';
 import { ArticleService } from '../../services/articles/article.service';
 import { AuthService } from '../../services/auth/auth.service';
-import { PageTitleStrategy } from '../../services/page-title.strategy';
+import { PageTitleStrategy, TitleContext } from '../../services/page-title.strategy';
 import { HeaderComponent } from './header.component';
 
 const createMockUser = (canModerate: boolean) => ({
@@ -34,7 +34,7 @@ const mockWindowObj = {
 describe('HeaderComponent', () => {
     let spectator: Spectator<HeaderComponent>;
 
-    const titleContextSignal = signal<{ readonly articleId: number; readonly title: string } | undefined>(undefined);
+    const titleContextSignal = signal<TitleContext | undefined>(undefined);
     const pageTitleSignal = signal('Древо');
     const updateArticleTitleMock = jest.fn();
     const renameArticleMock = jest.fn();

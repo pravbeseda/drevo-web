@@ -81,6 +81,7 @@ test.describe('Article rename', () => {
 
     test.describe('Regular user', () => {
         test('can see title but click does not open input', async ({ authenticatedPage: page }) => {
+            await bypassSsr(page, `**/articles/${ARTICLE_ID}`);
             await mockArticleShow(page, ARTICLE_ID, ARTICLE);
             layout = new LayoutPage(page);
             await page.goto(`/articles/${ARTICLE_ID}`);
