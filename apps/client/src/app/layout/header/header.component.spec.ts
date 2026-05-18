@@ -174,6 +174,19 @@ describe('HeaderComponent', () => {
             expect(renameArticleMock).not.toHaveBeenCalled();
         });
 
+        it('should not call renameArticle when title changed and Escape pressed (blur after Escape)', () => {
+            renameArticleMock.mockReturnValue(of({ articleId: 42, title: 'Совершенно новое название' }));
+
+            spectator.click('[data-testid="page-title"]');
+            spectator.component.titleControl.setValue('Совершенно новое название');
+            spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Escape');
+
+            // Real browsers fire blur when a focused element is removed from DOM by @if
+            spectator.component.onTitleBlur();
+
+            expect(renameArticleMock).not.toHaveBeenCalled();
+        });
+
         it('should call renameArticle on Enter with trimmed value', () => {
             renameArticleMock.mockReturnValue(of({ articleId: 42, title: 'Новое название' }));
 

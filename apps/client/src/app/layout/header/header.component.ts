@@ -99,6 +99,7 @@ export class HeaderComponent {
     }
 
     saveTitleEdit(): void {
+        if (!this._isEditingTitle()) return;
         const value = this.titleControl.value.trim();
         const ctx = this.pageTitleStrategy.titleContext();
         if (!ctx || !value || value === ctx.title) {
