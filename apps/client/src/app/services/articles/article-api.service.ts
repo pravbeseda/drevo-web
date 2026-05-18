@@ -13,6 +13,7 @@ import {
     ArticleVersionDto,
     ModerationRequestDto,
     ModerationResponseDto,
+    RenameArticleResponseDto,
     SaveArticleVersionRequestDto,
     SaveArticleVersionResponseDto,
     VersionPairsResponseDto,
@@ -245,6 +246,21 @@ export class ArticleApiService {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data.topics;
                 })
+            );
+    }
+
+    renameArticle(articleId: number, title: string): Observable<RenameArticleResponseDto> {
+        return this.http
+            .post<ApiResponse<RenameArticleResponseDto>>(
+                `${this.apiUrl}/api/articles/${articleId}/rename`,
+                { title },
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
+            )
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
             );
     }
 

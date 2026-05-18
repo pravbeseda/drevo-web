@@ -34,6 +34,8 @@ export {
     mockPictureApprovePendingNotFound,
     mockPictureRejectPendingNotFound,
     mockPictureThumbs,
+    mockArticleRename,
+    mockArticleRenameConflict,
     mockArticlesApi,
     mockArticlesEmpty,
     mockArticlesError,

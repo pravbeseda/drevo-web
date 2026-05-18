@@ -7,12 +7,19 @@ const DEFAULT_TITLE = 'Древо';
 const TITLE_SUFFIX = ' - Древо';
 const MAX_TITLE_LENGTH = 50;
 
+export interface TitleContext {
+    readonly articleId: number;
+    readonly title: string;
+}
+
 @Injectable()
 export class PageTitleStrategy extends TitleStrategy {
     private readonly title = inject(Title);
     private readonly logger = inject(LoggerService).withContext('PageTitleStrategy');
     private readonly _pageTitle = signal(DEFAULT_TITLE);
     readonly pageTitle = this._pageTitle.asReadonly();
+    private readonly _titleContext = signal<TitleContext | undefined>(undefined);
+    readonly titleContext = this._titleContext.asReadonly();
 
     override updateTitle(snapshot: RouterStateSnapshot): void {
         const resolved = this.resolveTitle(snapshot);
@@ -23,12 +30,35 @@ export class PageTitleStrategy extends TitleStrategy {
             const titlePrefix = resolved.route.data['titlePrefix'] as string | undefined;
             const docTitle = titlePrefix ? `${titlePrefix} ${truncated}` : truncated;
             this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
+
+            const titleSource = resolved.route.data['titleSource'] as string | undefined;
+            if (titleSource === 'article') {
+                const articleData = resolved.route.data['article'] as { readonly articleId: number; readonly title: string } | undefined;
+                if (articleData) {
+                    this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
+                } else {
+                    this._titleContext.set(undefined);
+                }
+            } else {
+                this._titleContext.set(undefined);
+            }
         } else {
             this._pageTitle.set(DEFAULT_TITLE);
             this.title.setTitle(DEFAULT_TITLE);
+            this._titleContext.set(undefined);
         }
 
         this.logger.debug('Title updated', { title: resolved?.title ?? DEFAULT_TITLE });
+    }
+
+    updateArticleTitle(newTitle: string): void {
+        this._pageTitle.set(newTitle);
+        const ctx = this._titleContext();
+        if (ctx) {
+            this._titleContext.set({ ...ctx, title: newTitle });
+        }
+        const truncated = this.truncateTitle(newTitle);
+        this.title.setTitle(`${truncated}${TITLE_SUFFIX}`);
     }
 
     /**

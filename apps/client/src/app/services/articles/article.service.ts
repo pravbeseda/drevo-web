@@ -1,6 +1,7 @@
 import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { Injectable, inject } from '@angular/core';
+import { LoggerService } from '@drevo-web/core';
 import {
     ApprovalStatus,
     ArticleHistoryItem,
@@ -16,6 +17,7 @@ import {
     ArticleVersion,
     ArticleVersionDto,
     ModerationResult,
+    RenameArticleResponse,
     SaveArticleVersionRequest,
     SaveArticleVersionResponseDto,
     SaveArticleVersionResult,
@@ -38,6 +40,7 @@ import { map } from 'rxjs/operators';
 })
 export class ArticleService {
     private readonly articleApiService = inject(ArticleApiService);
+    private readonly logger = inject(LoggerService).withContext('ArticleService');
 
     /**
      * Get article by ID.
@@ -162,6 +165,15 @@ export class ArticleService {
      * @param topics - Array of topic IDs
      * @returns Observable with updated topic IDs
      */
+    renameArticle(articleId: number, title: string): Observable<RenameArticleResponse> {
+        return this.articleApiService.renameArticle(articleId, title).pipe(
+            map(dto => {
+                this.logger.info('Article renamed', { articleId: dto.articleId, oldTitle: dto.oldTitle, newTitle: dto.title });
+                return { articleId: dto.articleId, title: dto.title };
+            }),
+        );
+    }
+
     updateTopics(articleId: number, topics: readonly number[]): Observable<readonly number[]> {
         return this.articleApiService.updateTopics(articleId, topics);
     }

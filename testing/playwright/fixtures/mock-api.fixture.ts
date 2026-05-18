@@ -438,6 +438,25 @@ export async function mockArticleShowNotFound(page: Page, id: number): Promise<v
     );
 }
 
+/** Mock POST /api/articles/:id/rename — success */
+export async function mockArticleRename(
+    page: Page,
+    id: number,
+    newTitle: string,
+    oldTitle = 'Old Title',
+): Promise<void> {
+    await page.route(`**/api/articles/${id}/rename`, route =>
+        route.fulfill({ json: apiSuccess({ articleId: id, title: newTitle, oldTitle }) }),
+    );
+}
+
+/** Mock POST /api/articles/:id/rename — title already exists (409) */
+export async function mockArticleRenameConflict(page: Page, id: number): Promise<void> {
+    await page.route(`**/api/articles/${id}/rename`, route =>
+        route.fulfill({ status: 409, json: apiError('Title already exists', 'TITLE_ALREADY_EXISTS') }),
+    );
+}
+
 /** Mock GET /api/articles/show/:id — server error */
 export async function mockArticleShowError(page: Page, id: number, status = 500): Promise<void> {
     await page.route(`**/api/articles/show/${id}`, route =>

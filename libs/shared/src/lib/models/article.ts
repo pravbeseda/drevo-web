@@ -52,6 +52,11 @@ export const APPROVAL_TITLES: Record<ApprovalClass, string> = {
 /**
  * Request for saving article version
  */
+export interface RenameArticleResponse {
+    readonly articleId: number;
+    readonly title: string;
+}
+
 export interface SaveArticleVersionRequest {
     readonly versionId: number;
     readonly content: string;

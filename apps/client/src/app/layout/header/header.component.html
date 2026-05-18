@@ -5,13 +5,31 @@
         label="Меню"
         (clicked)="toggleDrawer()"
     />
-    <ui-line-clamp
-        class="page-title"
-        data-testid="page-title"
-        [tooltip]="pageTitle()"
-    >
-        {{ pageTitle() }}
-    </ui-line-clamp>
+
+    @if (isEditingTitle()) {
+        <input
+            #titleInput
+            class="page-title-input"
+            type="text"
+            maxlength="255"
+            [formControl]="titleControl"
+            [attr.disabled]="isSavingTitle() ? '' : null"
+            (keydown.enter)="onTitleEnter($event)"
+            (keydown.escape)="cancelTitleEdit()"
+            (blur)="onTitleBlur()"
+            data-testid="page-title-input"
+        />
+    } @else {
+        <ui-line-clamp
+            class="page-title"
+            [class.page-title--editable]="canRename()"
+            data-testid="page-title"
+            [tooltip]="pageTitle()"
+            (click)="onTitleClick()"
+        >
+            {{ pageTitle() }}
+        </ui-line-clamp>
+    }
 </div>
 
 <div class="header-actions">
