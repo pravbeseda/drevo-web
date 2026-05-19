@@ -286,6 +286,21 @@ describe('HeaderComponent', () => {
             expect(spectator.query('[data-testid="page-title-input"]')).toBeTruthy();
         });
 
+        it('should show server message for VALIDATION_ERROR', () => {
+            const error = new HttpErrorResponse({
+                status: 400,
+                error: { errorCode: 'VALIDATION_ERROR', error: 'Название совпадает с текущим' },
+            });
+            renameArticleMock.mockReturnValue(throwError(() => error));
+
+            spectator.click('[data-testid="page-title"]');
+            spectator.component.titleControl.setValue('Новое');
+            spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
+
+            expect(errorMock).toHaveBeenCalledWith('Название совпадает с текущим');
+            expect(spectator.query('[data-testid="page-title-input"]')).toBeTruthy();
+        });
+
         it('should show generic error for other failures', () => {
             renameArticleMock.mockReturnValue(throwError(() => new Error('Network error')));
 

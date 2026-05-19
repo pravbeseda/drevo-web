@@ -140,6 +140,8 @@ export class HeaderComponent {
                     this.titleControl.enable();
                     if (err instanceof HttpErrorResponse && err.error?.errorCode === 'TITLE_ALREADY_EXISTS') {
                         this.notificationService.error('Статья с таким названием уже существует');
+                    } else if (err instanceof HttpErrorResponse && err.error?.errorCode === 'VALIDATION_ERROR') {
+                        this.notificationService.error(err.error.error ?? 'Не удалось переименовать статью');
                     } else {
                         this.notificationService.error('Не удалось переименовать статью');
                     }
