@@ -1,6 +1,6 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { of, throwError } from 'rxjs';
@@ -200,6 +200,53 @@ describe('HeaderComponent', () => {
         it('should not call renameArticle when title unchanged', () => {
             spectator.click('[data-testid="page-title"]');
             spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
+
+            expect(renameArticleMock).not.toHaveBeenCalled();
+        });
+
+        it('should have no side effects on Enter when title unchanged', () => {
+            spectator.click('[data-testid="page-title"]');
+            spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
+
+            expect(renameArticleMock).not.toHaveBeenCalled();
+            expect(updateArticleTitleMock).not.toHaveBeenCalled();
+            expect(successMock).not.toHaveBeenCalled();
+            expect(errorMock).not.toHaveBeenCalled();
+            expect(spectator.component.titleControl.disabled).toBe(false);
+        });
+
+        it('should have no side effects on blur when title unchanged', () => {
+            spectator.click('[data-testid="page-title"]');
+            spectator.dispatchFakeEvent('[data-testid="page-title-input"]', 'blur');
+
+            expect(renameArticleMock).not.toHaveBeenCalled();
+            expect(updateArticleTitleMock).not.toHaveBeenCalled();
+            expect(successMock).not.toHaveBeenCalled();
+            expect(errorMock).not.toHaveBeenCalled();
+            expect(spectator.component.titleControl.disabled).toBe(false);
+        });
+
+        it('should not save on Enter when title has surrounding whitespace and user did not edit', () => {
+            // ctx.title comes from backend possibly with trailing/leading whitespace.
+            // Trimmed input value must be compared against trimmed ctx.title,
+            // otherwise rename fires for an effectively unchanged value.
+            titleContextSignal.set({ articleId: 42, title: 'Старое название ' });
+            pageTitleSignal.set('Старое название ');
+            spectator = createComponent();
+
+            spectator.click('[data-testid="page-title"]');
+            spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
+
+            expect(renameArticleMock).not.toHaveBeenCalled();
+        });
+
+        it('should not save on blur when title has surrounding whitespace and user did not edit', () => {
+            titleContextSignal.set({ articleId: 42, title: ' Старое название' });
+            pageTitleSignal.set(' Старое название');
+            spectator = createComponent();
+
+            spectator.click('[data-testid="page-title"]');
+            spectator.dispatchFakeEvent('[data-testid="page-title-input"]', 'blur');
 
             expect(renameArticleMock).not.toHaveBeenCalled();
         });

@@ -1,11 +1,21 @@
 import { AccountDropdownComponent } from './account-dropdown/account-dropdown.component';
 import { FontScaleControlComponent } from './font-scale-control/font-scale-control.component';
 import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
-import { ArticleService } from '../../services/articles/article.service';
+import { ARTICLE_TITLE_MAX_LENGTH, ArticleService } from '../../services/articles';
 import { AuthService } from '../../services/auth/auth.service';
 import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    ElementRef,
+    computed,
+    effect,
+    inject,
+    signal,
+    viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { DrawerService, LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
@@ -52,6 +62,7 @@ export class HeaderComponent {
     });
 
     readonly titleControl = new FormControl('', { nonNullable: true });
+    readonly titleMaxLength = ARTICLE_TITLE_MAX_LENGTH;
 
     constructor() {
         effect(() => {
@@ -102,12 +113,17 @@ export class HeaderComponent {
         if (!this._isEditingTitle()) return;
         const value = this.titleControl.value.trim();
         const ctx = this.pageTitleStrategy.titleContext();
-        if (!ctx || !value || value === ctx.title) {
+        if (!ctx || !value || value === ctx.title.trim()) {
             this.cancelTitleEdit();
+            return;
+        }
+        if (value.length > ARTICLE_TITLE_MAX_LENGTH) {
+            this.notificationService.error(`Название не может быть длиннее ${ARTICLE_TITLE_MAX_LENGTH} символов`);
             return;
         }
 
         this._isSavingTitle.set(true);
+        this.titleControl.disable();
         this.articleService
             .renameArticle(ctx.articleId, value)
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -115,12 +131,13 @@ export class HeaderComponent {
                 next: result => {
                     this._isSavingTitle.set(false);
                     this._isEditingTitle.set(false);
+                    this.titleControl.enable();
                     this.pageTitleStrategy.updateArticleTitle(result.title);
                     this.notificationService.success('Статья переименована');
-                    this.logger.info('Article renamed', { articleId: ctx.articleId, newTitle: result.title });
                 },
                 error: (err: unknown) => {
                     this._isSavingTitle.set(false);
+                    this.titleControl.enable();
                     if (err instanceof HttpErrorResponse && err.error?.errorCode === 'TITLE_ALREADY_EXISTS') {
                         this.notificationService.error('Статья с таким названием уже существует');
                     } else {

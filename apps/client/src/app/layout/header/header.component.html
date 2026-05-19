@@ -11,9 +11,8 @@
             #titleInput
             class="page-title-input"
             type="text"
-            maxlength="255"
+            [attr.maxlength]="titleMaxLength"
             [formControl]="titleControl"
-            [attr.disabled]="isSavingTitle() ? '' : null"
             (keydown.enter)="onTitleEnter($event)"
             (keydown.escape)="cancelTitleEdit()"
             (blur)="onTitleBlur()"

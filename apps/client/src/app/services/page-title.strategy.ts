@@ -33,10 +33,11 @@ export class PageTitleStrategy extends TitleStrategy {
 
             const titleSource = resolved.route.data['titleSource'] as string | undefined;
             if (titleSource === 'article') {
-                const articleData = resolved.route.data['article'] as TitleContext | undefined;
-                if (articleData) {
+                const articleData = resolved.route.data['article'];
+                if (this.isTitleContext(articleData)) {
                     this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
                 } else {
+                    this.logger.warn('Article route data does not match TitleContext shape', { articleData });
                     this._titleContext.set(undefined);
                 }
             } else {
@@ -49,6 +50,15 @@ export class PageTitleStrategy extends TitleStrategy {
         }
 
         this.logger.debug('Title updated', { title: resolved?.title ?? DEFAULT_TITLE });
+    }
+
+    private isTitleContext(value: unknown): value is TitleContext {
+        return (
+            typeof value === 'object' &&
+            value !== null &&
+            typeof (value as TitleContext).articleId === 'number' &&
+            typeof (value as TitleContext).title === 'string'
+        );
     }
 
     updateArticleTitle(newTitle: string): void {
