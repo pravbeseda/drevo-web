@@ -5,6 +5,8 @@ import {
     mockArticleShow,
     mockArticleRename,
     mockArticleRenameConflict,
+    mockArticleRenameValidationError,
+    mockArticlesApi,
     bypassSsr,
 } from '../../fixtures';
 import { getNotification } from '../../helpers/notification';
@@ -76,6 +78,63 @@ test.describe('Article rename', () => {
 
             await expect(getNotification(page, 'error')).toBeVisible();
             await expect(layout.pageTitleInput).toBeVisible();
+        });
+
+        test('shows server message for VALIDATION_ERROR', async ({ authenticatedPage: page }) => {
+            await mockArticleRenameValidationError(page, ARTICLE_ID, 'Название совпадает с текущим');
+
+            await layout.pageTitle.click();
+            await layout.pageTitleInput.fill('Новое');
+            await layout.pageTitleInput.press('Enter');
+
+            const notification = getNotification(page, 'error');
+            await expect(notification).toBeVisible();
+            await expect(notification).toContainText('Название совпадает с текущим');
+            await expect(layout.pageTitleInput).toBeVisible();
+        });
+
+        test('updates document title after rename', async ({ authenticatedPage: page }) => {
+            await mockArticleRename(page, ARTICLE_ID, 'Новое название', 'Старое название');
+            await expect(page).toHaveTitle('Старое название - Древо');
+
+            await layout.pageTitle.click();
+            await layout.pageTitleInput.fill('Новое название');
+            await layout.pageTitleInput.press('Enter');
+
+            await expect(page).toHaveTitle('Новое название - Древо');
+        });
+
+        test('focuses and selects input content on open', async () => {
+            await layout.pageTitle.click();
+
+            await expect(layout.pageTitleInput).toBeFocused();
+            // Typing replaces selection — input now holds only the new char
+            await layout.pageTitleInput.pressSequentially('X');
+            await expect(layout.pageTitleInput).toHaveValue('X');
+        });
+
+        test('browser enforces maxlength on input', async () => {
+            await layout.pageTitle.click();
+            await layout.pageTitleInput.fill('A'.repeat(300));
+
+            const value = await layout.pageTitleInput.inputValue();
+            expect(value.length).toBe(255);
+        });
+
+        test('editing disappears after navigating away from article', async ({ authenticatedPage: page }) => {
+            await mockArticlesApi(page);
+
+            await expect(layout.pageTitle).toHaveText('Старое название');
+            await layout.pageTitle.click();
+            await expect(layout.pageTitleInput).toBeVisible();
+            await layout.pageTitleInput.press('Escape');
+
+            await page.goto('/');
+            await expect(page).toHaveURL('/');
+            await expect(layout.pageTitle).toHaveText('Главная');
+
+            await layout.pageTitle.click();
+            await expect(layout.pageTitleInput).not.toBeVisible();
         });
     });
 

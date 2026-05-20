@@ -457,6 +457,13 @@ export async function mockArticleRenameConflict(page: Page, id: number): Promise
     );
 }
 
+/** Mock POST /api/articles/:id/rename — validation error (400) with server message */
+export async function mockArticleRenameValidationError(page: Page, id: number, message: string): Promise<void> {
+    await page.route(`**/api/articles/${id}/rename`, route =>
+        route.fulfill({ status: 400, json: apiError(message, 'VALIDATION_ERROR') }),
+    );
+}
+
 /** Mock GET /api/articles/show/:id — server error */
 export async function mockArticleShowError(page: Page, id: number, status = 500): Promise<void> {
     await page.route(`**/api/articles/show/${id}`, route =>

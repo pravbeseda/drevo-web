@@ -36,6 +36,7 @@ export {
     mockPictureThumbs,
     mockArticleRename,
     mockArticleRenameConflict,
+    mockArticleRenameValidationError,
     mockArticlesApi,
     mockArticlesEmpty,
     mockArticlesError,
