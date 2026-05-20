@@ -325,6 +325,18 @@ describe('HeaderComponent', () => {
         it('should add editable class', () => {
             expect(spectator.query('.page-title--editable')).toBeTruthy();
         });
+
+        it('should show error and not call renameArticle when title exceeds max length', () => {
+            const tooLong = 'A'.repeat(256);
+
+            spectator.click('[data-testid="page-title"]');
+            spectator.component.titleControl.setValue(tooLong);
+            spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
+
+            expect(errorMock).toHaveBeenCalledWith('Название не может быть длиннее 255 символов');
+            expect(renameArticleMock).not.toHaveBeenCalled();
+            expect(spectator.query('[data-testid="page-title-input"]')).toBeTruthy();
+        });
     });
 
     describe('inline editing (non-moderator)', () => {

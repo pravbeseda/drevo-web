@@ -51,7 +51,6 @@ export class HeaderComponent {
     private readonly _isEditingTitle = signal(false);
     private readonly _isSavingTitle = signal(false);
     readonly isEditingTitle = this._isEditingTitle.asReadonly();
-    readonly isSavingTitle = this._isSavingTitle.asReadonly();
 
     private readonly titleInputRef = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 

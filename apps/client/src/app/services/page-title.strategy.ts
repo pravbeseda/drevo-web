@@ -55,7 +55,7 @@ export class PageTitleStrategy extends TitleStrategy {
     private isTitleContext(value: unknown): value is TitleContext {
         return (
             typeof value === 'object' &&
-            value !== null &&
+            !!value &&
             typeof (value as TitleContext).articleId === 'number' &&
             typeof (value as TitleContext).title === 'string'
         );
