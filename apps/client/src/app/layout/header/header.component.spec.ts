@@ -3,7 +3,7 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { DrawerService, LogExportService, NotificationService, WINDOW } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ModalService } from '@drevo-web/ui';
@@ -336,6 +336,34 @@ describe('HeaderComponent', () => {
             expect(errorMock).toHaveBeenCalledWith('Название не может быть длиннее 255 символов');
             expect(renameArticleMock).not.toHaveBeenCalled();
             expect(spectator.query('[data-testid="page-title-input"]')).toBeTruthy();
+        });
+
+        it('should cancel editing when user navigates to a different article', () => {
+            spectator.click('[data-testid="page-title"]');
+            spectator.component.titleControl.setValue('Не сохранённое');
+            expect(spectator.query('[data-testid="page-title-input"]')).toBeTruthy();
+
+            titleContextSignal.set({ articleId: 99, title: 'Другая статья' });
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="page-title-input"]')).toBeNull();
+            expect(spectator.component.isEditingTitle()).toBe(false);
+        });
+
+        it('should not cancel editing while saving when articleId changes', () => {
+            const pending = new Subject<{ articleId: number; title: string }>();
+            renameArticleMock.mockReturnValue(pending.asObservable());
+
+            spectator.click('[data-testid="page-title"]');
+            spectator.component.titleControl.setValue('Новое');
+            spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
+
+            // Request in flight — navigation must NOT abort it.
+            titleContextSignal.set({ articleId: 99, title: 'Другая статья' });
+            spectator.detectChanges();
+
+            expect(renameArticleMock).toHaveBeenCalledWith(42, 'Новое');
+            expect(spectator.component.isEditingTitle()).toBe(true);
         });
     });
 

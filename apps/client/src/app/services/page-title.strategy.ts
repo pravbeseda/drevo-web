@@ -37,7 +37,11 @@ export class PageTitleStrategy extends TitleStrategy {
                 if (this.isTitleContext(articleData)) {
                     this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
                 } else {
-                    this.logger.warn('Article route data does not match TitleContext shape', { articleData });
+                    // articleData === undefined is a normal failure path from articleResolver
+                    // (bad id, 404, network error) — don't warn on it.
+                    if (articleData !== undefined) {
+                        this.logger.warn('Article route data does not match TitleContext shape', { articleData });
+                    }
                     this._titleContext.set(undefined);
                 }
             } else {

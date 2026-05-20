@@ -14,6 +14,7 @@ import {
     effect,
     inject,
     signal,
+    untracked,
     viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -50,6 +51,7 @@ export class HeaderComponent {
 
     private readonly _isEditingTitle = signal(false);
     private readonly _isSavingTitle = signal(false);
+    private readonly _editingArticleId = signal<number | undefined>(undefined);
     readonly isEditingTitle = this._isEditingTitle.asReadonly();
 
     private readonly titleInputRef = viewChild<ElementRef<HTMLInputElement>>('titleInput');
@@ -71,6 +73,18 @@ export class HeaderComponent {
                 el.select();
             }
         });
+
+        // Cancel in-progress edit when the user navigates to a different article.
+        effect(() => {
+            const currentArticleId = this.pageTitleStrategy.titleContext()?.articleId;
+            untracked(() => {
+                const editingId = this._editingArticleId();
+                if (editingId !== undefined && editingId !== currentArticleId && !this._isSavingTitle()) {
+                    this._isEditingTitle.set(false);
+                    this._editingArticleId.set(undefined);
+                }
+            });
+        });
     }
 
     toggleDrawer(): void {
@@ -88,14 +102,19 @@ export class HeaderComponent {
         const selection = this.window?.getSelection();
         if (selection && !selection.isCollapsed) return;
 
+        const ctx = this.pageTitleStrategy.titleContext();
+        if (!ctx) return;
+
         this.titleControl.setValue(this.pageTitle());
+        this._editingArticleId.set(ctx.articleId);
         this._isEditingTitle.set(true);
-        this.logger.info('Title edit started', { articleId: this.pageTitleStrategy.titleContext()?.articleId });
+        this.logger.info('Title edit started', { articleId: ctx.articleId });
     }
 
     cancelTitleEdit(): void {
         if (this._isSavingTitle()) return;
         this._isEditingTitle.set(false);
+        this._editingArticleId.set(undefined);
     }
 
     onTitleEnter(event: Event): void {
@@ -109,7 +128,7 @@ export class HeaderComponent {
     }
 
     saveTitleEdit(): void {
-        if (!this._isEditingTitle()) return;
+        if (!this._isEditingTitle() || this._isSavingTitle()) return;
         const value = this.titleControl.value.trim();
         const ctx = this.pageTitleStrategy.titleContext();
         if (!ctx || !value || value === ctx.title.trim()) {
@@ -130,6 +149,7 @@ export class HeaderComponent {
                 next: result => {
                     this._isSavingTitle.set(false);
                     this._isEditingTitle.set(false);
+                    this._editingArticleId.set(undefined);
                     this.titleControl.enable();
                     this.pageTitleStrategy.updateArticleTitle(result.title);
                     this.notificationService.success('Статья переименована');

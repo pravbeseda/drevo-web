@@ -11,6 +11,7 @@
             #titleInput
             class="page-title-input"
             type="text"
+            aria-label="Название статьи"
             [attr.maxlength]="titleMaxLength"
             [formControl]="titleControl"
             (keydown.enter)="onTitleEnter($event)"
