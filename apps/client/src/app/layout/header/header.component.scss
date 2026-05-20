@@ -9,6 +9,7 @@
 
 .header-brand {
     display: flex;
+    flex: 1;
     align-items: center;
     gap: $brand-gap;
     min-width: 0;
@@ -18,8 +19,29 @@
     font-size: $brand-font-size;
     font-weight: 500;
     color: var(--themed-text-primary);
-    user-select: none;
+    user-select: text;
     min-width: 0;
+
+    &--editable {
+        cursor: text;
+    }
+}
+
+.page-title-input {
+    flex: 1;
+    font-size: $brand-font-size;
+    font-weight: 500;
+    color: var(--themed-text-primary);
+    background: transparent;
+    border: 1px solid var(--themed-border-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+    outline: none;
+    min-width: 0;
+
+    &:focus {
+        border-color: var(--themed-link-color);
+    }
 }
 
 .header-actions {

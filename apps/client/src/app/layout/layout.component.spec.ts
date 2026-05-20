@@ -78,6 +78,7 @@ describe('LayoutComponent', () => {
             MockProvider(DrawerService, createDrawerMock(true)),
             MockProvider(PageTitleStrategy, {
                 pageTitle: signal('Древо'),
+                titleContext: signal(undefined),
             }),
         ],
     });
@@ -272,6 +273,7 @@ describe('LayoutComponent', () => {
                     MockProvider(DrawerService, createDrawerMock(true)),
                     MockProvider(PageTitleStrategy, {
                         pageTitle: signal('Древо'),
+                        titleContext: signal(undefined),
                     }),
                 ],
             });
