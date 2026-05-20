@@ -5,6 +5,7 @@ export class LayoutPage extends BasePage {
     // Header
     readonly header = this.page.getByTestId('header');
     readonly pageTitle = this.page.getByTestId('page-title');
+    readonly pageTitleInput = this.page.getByTestId('page-title-input');
     readonly hamburgerButton = this.page.getByTestId('hamburger-button');
 
     // Search

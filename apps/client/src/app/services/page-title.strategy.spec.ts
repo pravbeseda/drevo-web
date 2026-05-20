@@ -196,6 +196,45 @@ describe('PageTitleStrategy', () => {
             expect(titleService.setTitle).toHaveBeenCalledWith('Берёза - Древо');
         });
 
+        it('should set titleContext when titleSource is article with articleId', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({
+                titleSource: 'article',
+                article: { articleId: 42, title: 'Фотосинтез' },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            expect(spectator.service.titleContext()).toEqual({ articleId: 42, title: 'Фотосинтез' });
+        });
+
+        it('should reset titleContext when navigating to non-article page', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const articleRoute = makeRoute({
+                titleSource: 'article',
+                article: { articleId: 42, title: 'Фотосинтез' },
+            });
+            spectator.service.updateTitle(makeSnapshot(articleRoute));
+            expect(spectator.service.titleContext()).toBeTruthy();
+
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue('Главная');
+            spectator.service.updateTitle(makeSnapshot(makeRoute()));
+            expect(spectator.service.titleContext()).toBeUndefined();
+        });
+
+        it('should reset titleContext when titleSource is not article', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({
+                titleSource: 'version',
+                version: { title: 'Берёза' },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            expect(spectator.service.titleContext()).toBeUndefined();
+        });
+
         it('should not inherit titlePrefix from parent route', () => {
             const titleService = spectator.inject(Title);
             jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
@@ -213,6 +252,55 @@ describe('PageTitleStrategy', () => {
 
             expect(spectator.service.pageTitle()).toBe('История версий');
             expect(titleService.setTitle).toHaveBeenCalledWith('История версий - Древо');
+        });
+    });
+
+    describe('updateArticleTitle', () => {
+        it('should update pageTitle and document title', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({
+                titleSource: 'article',
+                article: { articleId: 1, title: 'Старое' },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            spectator.service.updateArticleTitle('Новое');
+
+            expect(spectator.service.pageTitle()).toBe('Новое');
+            expect(titleService.setTitle).toHaveBeenCalledWith('Новое - Древо');
+        });
+
+        it('should update titleContext with new title', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({
+                titleSource: 'article',
+                article: { articleId: 1, title: 'Старое' },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            spectator.service.updateArticleTitle('Новое');
+
+            expect(spectator.service.titleContext()).toEqual({ articleId: 1, title: 'Новое' });
+        });
+
+        it('should truncate long title in document title', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({
+                titleSource: 'article',
+                article: { articleId: 1, title: 'Short' },
+            });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            const longTitle = 'Б'.repeat(60);
+            spectator.service.updateArticleTitle(longTitle);
+
+            expect(spectator.service.pageTitle()).toBe(longTitle);
+            expect(titleService.setTitle).toHaveBeenCalledWith('Б'.repeat(50) + '… - Древо');
         });
     });
 });

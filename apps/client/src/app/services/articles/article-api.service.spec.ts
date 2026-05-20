@@ -657,6 +657,69 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('renameArticle', () => {
+        const mockRenameResponse = {
+            success: true,
+            data: {
+                articleId: 42,
+                title: 'New Title',
+                oldTitle: 'Old Title',
+            },
+        };
+
+        it('should call HTTP POST with correct URL and body', () => {
+            spectator.service.renameArticle(42, 'New Title').subscribe(result => {
+                expect(result).toEqual(mockRenameResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/42/rename');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual({ title: 'New Title' });
+            req.flush(mockRenameResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service.renameArticle(42, 'New Title').subscribe(result => {
+                expect(result.articleId).toBe(42);
+                expect(result.title).toBe('New Title');
+                expect(result.oldTitle).toBe('Old Title');
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/42/rename');
+            req.flush(mockRenameResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.renameArticle(42, 'New Title').subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/42/rename');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 409 errors (duplicate title)', done => {
+            spectator.service.renameArticle(42, 'Duplicate').subscribe({
+                error: err => {
+                    expect(err.status).toBe(409);
+                    expect(err.error?.errorCode).toBe('TITLE_ALREADY_EXISTS');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/42/rename');
+            req.flush(
+                { success: false, error: 'Title already exists', errorCode: 'TITLE_ALREADY_EXISTS' },
+                { status: 409, statusText: 'Conflict' },
+            );
+        });
+    });
+
     describe('error handling', () => {
         it('should throw when response.data is undefined', done => {
             spectator.service.searchArticles('test').subscribe({

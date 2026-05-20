@@ -79,3 +79,9 @@ export interface SaveArticleVersionResponseDto {
     readonly date: string;
     readonly approved: ApprovalStatusDto;
 }
+
+export interface RenameArticleResponseDto {
+    readonly articleId: number;
+    readonly title: string;
+    readonly oldTitle: string;
+}

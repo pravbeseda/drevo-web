@@ -7,6 +7,7 @@ import {
     ArticleSearchResponseDto,
     ArticleVersionDto,
     ModerationResponseDto,
+    RenameArticleResponseDto,
     SaveArticleVersionResponseDto,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
@@ -624,6 +625,31 @@ describe('ArticleService', () => {
             spectator.service.getVersionPairs(10).subscribe(result => {
                 expect(result.current.comment).toBe('Moderation note');
                 expect(result.previous.comment).toBe('');
+                done();
+            });
+        });
+    });
+
+    describe('renameArticle', () => {
+        const mockRenameResponse: RenameArticleResponseDto = {
+            articleId: 123,
+            title: 'New Title',
+            oldTitle: 'Old Title',
+        };
+
+        it('should call articleApiService.renameArticle with correct params', () => {
+            articleApiService.renameArticle.mockReturnValue(of(mockRenameResponse));
+
+            spectator.service.renameArticle(123, 'New Title').subscribe();
+
+            expect(articleApiService.renameArticle).toHaveBeenCalledWith(123, 'New Title');
+        });
+
+        it('should map DTO to RenameArticleResponse (without oldTitle)', done => {
+            articleApiService.renameArticle.mockReturnValue(of(mockRenameResponse));
+
+            spectator.service.renameArticle(123, 'New Title').subscribe(result => {
+                expect(result).toEqual({ articleId: 123, title: 'New Title' });
                 done();
             });
         });

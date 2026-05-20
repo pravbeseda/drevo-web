@@ -19,6 +19,7 @@ describe('AppComponent', () => {
             provideRouter([]),
             MockProvider(PageTitleStrategy, {
                 pageTitle: signal('Древо'),
+                titleContext: signal(undefined),
             }),
             MockProvider(AppUpdateService, {
                 chunkLoadFailed: signal(false).asReadonly(),
