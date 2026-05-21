@@ -1,0 +1,73 @@
+<div
+    class="linkedhere-container"
+    data-testid="linkedhere-container"
+>
+    <ui-text-input
+        data-testid="linkedhere-search"
+        label="Поиск по названию"
+        placeholder="Фильтр..."
+        (valueChanged)="onSearchChange($event)"
+    />
+
+    @if (isLoading() && items().length === 0) {
+        <ui-spinner data-testid="linkedhere-loading" />
+    } @else if (hasResults()) {
+        <div
+            class="linkedhere-results"
+            data-testid="linkedhere-results"
+        >
+            <div
+                class="linkedhere-header"
+                data-testid="linkedhere-count"
+            >
+                <span>Найдено статей: {{ total() }}</span>
+                @if (isLoading()) {
+                    <ui-spinner
+                        data-testid="linkedhere-refreshing"
+                        [diameter]="16"
+                        [strokeWidth]="2"
+                    />
+                }
+            </div>
+            <ui-virtual-scroller
+                class="linkedhere-scroller"
+                [items]="items()"
+                [totalItems]="total()"
+                [isLoading]="isLoadingMore()"
+                [trackByFn]="trackByFn"
+                (loadMore)="onLoadMore()"
+            >
+                <ng-template
+                    uiVirtualScrollerItem
+                    let-item
+                >
+                    <a
+                        class="linkedhere-item"
+                        data-testid="linkedhere-item"
+                        [routerLink]="['/articles', item.id]"
+                    >
+                        @if (item.highlightedTitle) {
+                            <span [innerHTML]="item.highlightedTitle"></span>
+                        } @else {
+                            {{ item.title }}
+                        }
+                    </a>
+                </ng-template>
+            </ui-virtual-scroller>
+        </div>
+    } @else if (isEmpty()) {
+        <div
+            class="linkedhere-empty"
+            data-testid="linkedhere-empty"
+        >
+            На эту статью никто не ссылается
+        </div>
+    } @else if (isFilterEmpty()) {
+        <div
+            class="linkedhere-empty"
+            data-testid="linkedhere-no-results"
+        >
+            По фильтру ничего не найдено
+        </div>
+    }
+</div>

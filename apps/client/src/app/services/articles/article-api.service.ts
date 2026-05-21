@@ -7,6 +7,7 @@ import {
     ApiResponse,
     ApprovalStatusDto,
     ArticleHistoryResponseDto,
+    ArticleLinkedHereResponseDto,
     ArticlePreviewRequestDto,
     ArticlePreviewResponseDto,
     ArticleSearchResponseDto,
@@ -51,7 +52,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -70,7 +71,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -89,7 +90,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -104,7 +105,7 @@ export class ArticleApiService {
     searchArticles(
         query = '',
         page = 1,
-        pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE
+        pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
     ): Observable<ArticleSearchResponseDto> {
         let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
 
@@ -121,7 +122,40 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
+            );
+    }
+
+    /**
+     * Get articles that link to the given article (by title).
+     *
+     * @param title - Title of the target article
+     * @param query - Filter substring (empty string for no filter)
+     * @param page - Page number (1-based)
+     * @param pageSize - Number of items per page
+     * @returns Observable with raw API response
+     */
+    getLinkedHere(
+        title: string,
+        query: string,
+        page: number,
+        pageSize: number,
+    ): Observable<ArticleLinkedHereResponseDto> {
+        const params = new HttpParams()
+            .set('title', title)
+            .set('q', query)
+            .set('page', page.toString())
+            .set('size', pageSize.toString());
+
+        return this.http
+            .get<
+                ApiResponse<ArticleLinkedHereResponseDto>
+            >(`${this.apiUrl}/api/articles/linkedhere`, { params, withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
             );
     }
 
@@ -142,7 +176,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -160,7 +194,7 @@ export class ArticleApiService {
         pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
         approved?: ApprovalStatusDto,
         author?: string,
-        articleId?: number
+        articleId?: number,
     ): Observable<ArticleHistoryResponseDto> {
         let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
 
@@ -184,7 +218,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -203,7 +237,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -223,7 +257,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -236,26 +270,22 @@ export class ArticleApiService {
      */
     updateTopics(articleId: number, topics: readonly number[]): Observable<readonly number[]> {
         return this.http
-            .post<ApiResponse<{ readonly topics: readonly number[] }>>(
-                `${this.apiUrl}/api/articles/${articleId}/topics`,
-                { topics },
-                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) }
-            )
+            .post<
+                ApiResponse<{ readonly topics: readonly number[] }>
+            >(`${this.apiUrl}/api/articles/${articleId}/topics`, { topics }, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data.topics;
-                })
+                }),
             );
     }
 
     renameArticle(articleId: number, title: string): Observable<RenameArticleResponseDto> {
         return this.http
-            .post<ApiResponse<RenameArticleResponseDto>>(
-                `${this.apiUrl}/api/articles/${articleId}/rename`,
-                { title },
-                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
-            )
+            .post<
+                ApiResponse<RenameArticleResponseDto>
+            >(`${this.apiUrl}/api/articles/${articleId}/rename`, { title }, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -288,8 +318,7 @@ export class ArticleApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
-
 }

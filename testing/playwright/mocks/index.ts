@@ -22,3 +22,4 @@ export {
     mockPictureData,
 } from './pictures';
 export { createInworkItemDto } from './inwork';
+export { createLinkedHereItemDto, createLinkedHereItemDtoList, createLinkedHereResponse } from './linked-here';

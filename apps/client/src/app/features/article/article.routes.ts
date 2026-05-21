@@ -92,10 +92,9 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: 'linkedhere',
                 title: createArticleTabTitleResolver('Кто ссылается'),
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent,
+                    import('./pages/article-page/tabs/article-linkedhere-tab/article-linkedhere-tab.component').then(
+                        m => m.ArticleLinkedHereTabComponent,
                     ),
-                data: { stubTitle: 'Кто ссылается' },
             },
         ],
     },
