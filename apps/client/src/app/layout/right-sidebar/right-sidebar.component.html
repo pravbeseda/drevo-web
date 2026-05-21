@@ -13,6 +13,16 @@
             (clicked)="action.link ? undefined : action.action?.()"
         />
     }
+    @if (showReserveSpacer()) {
+        <ui-action-button
+            class="reserve-spacer"
+            data-testid="sidebar-reserve-spacer"
+            aria-hidden="true"
+            icon="square"
+            label=""
+            [showTooltip]="false"
+        />
+    }
 </div>
 
 <!-- Mobile: Floating Sidebar -->

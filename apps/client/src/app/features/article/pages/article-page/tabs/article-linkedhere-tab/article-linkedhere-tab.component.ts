@@ -1,5 +1,6 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from '../../../../../../services/articles/article.constants';
+import { SidebarActionReserveComponent } from '../../../../../../shared/components/sidebar-action-reserve/sidebar-action-reserve.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -28,7 +29,14 @@ const EMPTY_RESPONSE: ArticleLinkedHereResponse = {
 
 @Component({
     selector: 'app-article-linkedhere-tab',
-    imports: [RouterLink, SpinnerComponent, TextInputComponent, VirtualScrollerComponent, VirtualScrollerItemDirective],
+    imports: [
+        RouterLink,
+        SidebarActionReserveComponent,
+        SpinnerComponent,
+        TextInputComponent,
+        VirtualScrollerComponent,
+        VirtualScrollerItemDirective,
+    ],
     templateUrl: './article-linkedhere-tab.component.html',
     styleUrl: './article-linkedhere-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

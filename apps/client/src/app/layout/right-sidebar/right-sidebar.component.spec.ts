@@ -7,6 +7,7 @@ import { RightSidebarComponent } from './right-sidebar.component';
 describe('RightSidebarComponent', () => {
     let spectator: Spectator<RightSidebarComponent>;
     let actionsSignal: WritableSignal<SidebarAction[]>;
+    let hasReservationSignal: WritableSignal<boolean>;
 
     const mockActions: SidebarAction[] = [
         {
@@ -38,6 +39,7 @@ describe('RightSidebarComponent', () => {
         providers: [
             mockProvider(SidebarService, {
                 actions: (actionsSignal = signal(mockActions)),
+                hasReservation: (hasReservationSignal = signal(false)),
             }),
         ],
     });
@@ -45,6 +47,7 @@ describe('RightSidebarComponent', () => {
     beforeEach(() => {
         mockActions.forEach(a => (a.action as jest.Mock).mockClear());
         actionsSignal.set(mockActions);
+        hasReservationSignal.set(false);
         spectator = createComponent();
         spectator.detectChanges();
     });
@@ -58,6 +61,31 @@ describe('RightSidebarComponent', () => {
             const buttons = spectator.queryAll('.floating-sidebar ui-action-button');
 
             expect(buttons.length).toBe(3);
+        });
+    });
+
+    describe('reserve spacer', () => {
+        it('should not render spacer when actions exist', () => {
+            hasReservationSignal.set(true);
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="sidebar-reserve-spacer"]')).toBeFalsy();
+        });
+
+        it('should not render spacer when no actions and no reservation', () => {
+            actionsSignal.set([]);
+            hasReservationSignal.set(false);
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="sidebar-reserve-spacer"]')).toBeFalsy();
+        });
+
+        it('should render spacer when no actions and reservation is active', () => {
+            actionsSignal.set([]);
+            hasReservationSignal.set(true);
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="sidebar-reserve-spacer"]')).toBeTruthy();
         });
     });
 

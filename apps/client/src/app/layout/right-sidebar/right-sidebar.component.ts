@@ -16,6 +16,12 @@ export class RightSidebarComponent {
     readonly actions = this.sidebarService.actions;
     readonly menuOpen = signal(false);
 
+    // Show a hidden spacer when there are no actions but the slot is reserved,
+    // so the right column keeps the same width as when actions are present.
+    readonly showReserveSpacer = computed(
+        () => this.actions().length === 0 && this.sidebarService.hasReservation(),
+    );
+
     constructor() {
         effect(() => {
             this.actions();

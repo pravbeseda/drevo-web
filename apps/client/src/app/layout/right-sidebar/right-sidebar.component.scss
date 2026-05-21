@@ -18,6 +18,13 @@
     }
 }
 
+// Invisible action-button placeholder — keeps the column the same width as one with real actions
+// when only a reservation is active. Uses a real ui-action-button so the footprint matches exactly.
+.reserve-spacer {
+    visibility: hidden;
+    pointer-events: none;
+}
+
 // Mobile: FAB Container
 .fab-container {
     display: none;

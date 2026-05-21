@@ -113,6 +113,37 @@ describe('SidebarService', () => {
         });
     });
 
+    describe('reservations', () => {
+        it('should start with no reservations', () => {
+            expect(spectator.service.hasReservation()).toBe(false);
+        });
+
+        it('should set hasReservation when a reservation is added', () => {
+            spectator.service.addReservation('linkedhere');
+
+            expect(spectator.service.hasReservation()).toBe(true);
+        });
+
+        it('should clear hasReservation only when all reservations are removed', () => {
+            spectator.service.addReservation('a');
+            spectator.service.addReservation('b');
+
+            spectator.service.removeReservation('a');
+            expect(spectator.service.hasReservation()).toBe(true);
+
+            spectator.service.removeReservation('b');
+            expect(spectator.service.hasReservation()).toBe(false);
+        });
+
+        it('should be idempotent for duplicate add/remove', () => {
+            spectator.service.addReservation('same');
+            spectator.service.addReservation('same');
+            spectator.service.removeReservation('same');
+
+            expect(spectator.service.hasReservation()).toBe(false);
+        });
+    });
+
     describe('computed signals reactivity', () => {
         it('should update computed signals when actions change', () => {
             expect(spectator.service.actions()).toHaveLength(0);
