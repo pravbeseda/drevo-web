@@ -26,9 +26,10 @@ describe('ArticleLinkedHereTabComponent', () => {
         getLinkedHere: jest.fn().mockReturnValue(of(emptyResponse)),
     };
 
+    const fakeRobotsTag = {} as HTMLMetaElement;
     const mockMeta = {
-        addTag: jest.fn(),
-        removeTag: jest.fn(),
+        addTag: jest.fn().mockReturnValue(fakeRobotsTag),
+        removeTagElement: jest.fn(),
     };
 
     const createComponent = createComponentFactory({
@@ -63,12 +64,12 @@ describe('ArticleLinkedHereTabComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should add noindex robots meta tag on init and remove on destroy', () => {
+    it('should add noindex robots meta tag on init and remove the exact element on destroy', () => {
         spectator = createComponent();
         expect(mockMeta.addTag).toHaveBeenCalledWith({ name: 'robots', content: 'noindex, nofollow' });
 
         spectator.fixture.destroy();
-        expect(mockMeta.removeTag).toHaveBeenCalledWith('name="robots"');
+        expect(mockMeta.removeTagElement).toHaveBeenCalledWith(fakeRobotsTag);
     });
 
     it('should perform initial load with article title and empty query after debounce', () => {

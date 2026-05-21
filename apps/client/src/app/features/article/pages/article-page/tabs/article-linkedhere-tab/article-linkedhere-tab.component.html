@@ -9,7 +9,7 @@
         (valueChanged)="onSearchChange($event)"
     />
 
-    @if (isLoading()) {
+    @if (isLoading() && items().length === 0) {
         <ui-spinner data-testid="linkedhere-loading" />
     } @else if (hasResults()) {
         <div

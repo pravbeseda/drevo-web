@@ -1,16 +1,7 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from '../../../../../../services/articles/article.constants';
 import { ArticlePageService } from '../../../../services/article-page.service';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    DestroyRef,
-    OnDestroy,
-    OnInit,
-    computed,
-    inject,
-    signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Meta } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
@@ -22,11 +13,10 @@ import {
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
 } from '@drevo-web/ui';
-import { EMPTY, Observable, Subject, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, startWith, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, merge, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 const DEBOUNCE_TIME_MS = 500;
-const ROBOTS_META_SELECTOR = 'name="robots"';
 
 @Component({
     selector: 'app-article-linkedhere-tab',
@@ -35,63 +25,89 @@ const ROBOTS_META_SELECTOR = 'name="robots"';
     styleUrl: './article-linkedhere-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleLinkedHereTabComponent implements OnInit, OnDestroy {
+export class ArticleLinkedHereTabComponent implements OnInit {
     private readonly articleService = inject(ArticleService);
     private readonly pageService = inject(ArticlePageService);
     private readonly meta = inject(Meta);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ArticleLinkedHereTab');
     private readonly searchSubject = new Subject<string>();
+    private readonly loadMoreSubject = new Subject<void>();
 
-    readonly searchQuery = signal('');
-    readonly items = signal<ArticleLinkedHereItem[]>([]);
-    readonly total = signal(0);
-    readonly currentPage = signal(1);
-    readonly isLoading = signal(false);
-    readonly isLoadingMore = signal(false);
+    private readonly _searchQuery = signal('');
+    private readonly _items = signal<ArticleLinkedHereItem[]>([]);
+    private readonly _total = signal(0);
+    private readonly _currentPage = signal(1);
+    private readonly _isLoading = signal(false);
+    private readonly _isLoadingMore = signal(false);
 
-    readonly hasResults = computed(() => this.items().length > 0 && !this.isLoading());
+    readonly searchQuery = this._searchQuery.asReadonly();
+    readonly items = this._items.asReadonly();
+    readonly total = this._total.asReadonly();
+    readonly currentPage = this._currentPage.asReadonly();
+    readonly isLoading = this._isLoading.asReadonly();
+    readonly isLoadingMore = this._isLoadingMore.asReadonly();
+
+    readonly hasResults = computed(() => this.items().length > 0);
     readonly isEmpty = computed(() => !this.isLoading() && this.total() === 0 && this.searchQuery().length === 0);
     readonly isFilterEmpty = computed(() => !this.isLoading() && this.total() === 0 && this.searchQuery().length > 0);
 
     readonly trackByFn = (_index: number, item: ArticleLinkedHereItem): number => item.id;
 
     ngOnInit(): void {
-        this.meta.addTag({ name: 'robots', content: 'noindex, nofollow' });
+        const robotsTag = this.meta.addTag({ name: 'robots', content: 'noindex, nofollow' });
+        if (robotsTag) {
+            this.destroyRef.onDestroy(() => this.meta.removeTagElement(robotsTag));
+        }
 
-        this.searchSubject
+        const search$ = this.searchSubject.pipe(
+            startWith(''),
+            distinctUntilChanged(),
+            tap(() => {
+                this._isLoading.set(true);
+                this._isLoadingMore.set(false);
+                this._currentPage.set(1);
+            }),
+            debounceTime(DEBOUNCE_TIME_MS),
+            map(query => ({ query, page: 1, append: false })),
+        );
+
+        const loadMore$ = this.loadMoreSubject.pipe(
+            tap(() => this._isLoadingMore.set(true)),
+            map(() => ({ query: this.searchQuery(), page: this.currentPage() + 1, append: true })),
+        );
+
+        merge(search$, loadMore$)
             .pipe(
-                startWith(''),
-                distinctUntilChanged(),
-                tap(() => {
-                    this.isLoading.set(true);
-                    this.currentPage.set(1);
-                }),
-                debounceTime(DEBOUNCE_TIME_MS),
-                switchMap(query =>
-                    this.fetchPage(query, 1).pipe(
+                switchMap(action =>
+                    this.fetchPage(action.query, action.page).pipe(
+                        map(response => ({ response, action })),
                         catchError(error => {
-                            this.logger.error('Failed to load linked-here list', error);
-                            return of(this.emptyResponse());
+                            this.logger.error('Failed to load linked-here', error);
+                            return of({ response: this.emptyResponse, action });
                         }),
                     ),
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe(response => {
-                this.items.set([...response.items]);
-                this.total.set(response.total);
-                this.isLoading.set(false);
+            .subscribe(({ response, action }) => {
+                if (action.append) {
+                    if (response.items.length > 0) {
+                        this._items.set([...this.items(), ...response.items]);
+                        this._currentPage.set(action.page);
+                    }
+                    this._isLoadingMore.set(false);
+                } else {
+                    this._items.set([...response.items]);
+                    this._total.set(response.total);
+                    this._isLoading.set(false);
+                }
             });
-    }
-
-    ngOnDestroy(): void {
-        this.meta.removeTag(ROBOTS_META_SELECTOR);
     }
 
     onSearchChange(value: string): void {
         const trimmed = value.trim();
-        this.searchQuery.set(trimmed);
+        this._searchQuery.set(trimmed);
         this.searchSubject.next(trimmed);
     }
 
@@ -99,42 +115,23 @@ export class ArticleLinkedHereTabComponent implements OnInit, OnDestroy {
         if (this.items().length >= this.total()) {
             return;
         }
-
-        const nextPage = this.currentPage() + 1;
-        this.isLoadingMore.set(true);
-
-        this.fetchPage(this.searchQuery(), nextPage)
-            .pipe(
-                catchError(error => {
-                    this.logger.error('Failed to load linked-here page', error);
-                    return of(this.emptyResponse());
-                }),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe(response => {
-                if (response.items.length > 0) {
-                    this.items.set([...this.items(), ...response.items]);
-                    this.currentPage.set(nextPage);
-                }
-                this.isLoadingMore.set(false);
-            });
+        this.loadMoreSubject.next();
     }
+
+    private readonly emptyResponse: ArticleLinkedHereResponse = {
+        items: [],
+        total: 0,
+        page: 1,
+        pageSize: DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
+        totalPages: 0,
+    };
 
     private fetchPage(query: string, page: number): Observable<ArticleLinkedHereResponse> {
         const title = this.pageService.title();
         if (!title) {
-            return EMPTY;
+            this.logger.warn('linkedhere fetched without article title');
+            return of(this.emptyResponse);
         }
         return this.articleService.getLinkedHere({ title, query, page });
-    }
-
-    private emptyResponse(): ArticleLinkedHereResponse {
-        return {
-            items: [],
-            total: 0,
-            page: 1,
-            pageSize: DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
-            totalPages: 0,
-        };
     }
 }
