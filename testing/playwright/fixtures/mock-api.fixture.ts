@@ -17,8 +17,10 @@ import {
     mockArticleViewData,
     mockDiffData,
 } from '../mocks/articles';
+import { createLinkedHereResponse } from '../mocks/linked-here';
 import {
     ArticleHistoryResponseDto,
+    ArticleLinkedHereResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
     HistoryCountsDto,
@@ -504,6 +506,34 @@ export async function mockArticleHistoryError(page: Page, articleId: number, sta
         }
         return route.fallback();
     });
+}
+
+/**
+ * Mock GET /api/articles/linkedhere — paginated linked-here list.
+ *
+ * Pass either a static response, or a function receiving (query, page) and returning the response —
+ * lets tests serve different pages/filters from a single mock setup.
+ */
+export async function mockLinkedHereApi(
+    page: Page,
+    response:
+        | ArticleLinkedHereResponseDto
+        | ((query: string, pageNumber: number) => ArticleLinkedHereResponseDto) = createLinkedHereResponse([]),
+): Promise<void> {
+    await page.route('**/api/articles/linkedhere**', route => {
+        const url = new URL(route.request().url());
+        const query = url.searchParams.get('q') ?? '';
+        const pageNumber = Number(url.searchParams.get('page') ?? '1');
+        const body = typeof response === 'function' ? response(query, pageNumber) : response;
+        return route.fulfill({ json: apiSuccess(body) });
+    });
+}
+
+/** Mock GET /api/articles/linkedhere — server error */
+export async function mockLinkedHereError(page: Page, status = 500): Promise<void> {
+    await page.route('**/api/articles/linkedhere**', route =>
+        route.fulfill({ status, json: apiError('Internal server error') }),
+    );
 }
 
 // ---------------------------------------------------------------------------

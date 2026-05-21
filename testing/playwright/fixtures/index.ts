@@ -46,6 +46,8 @@ export {
     mockArticleVersionShow,
     mockArticleHistory,
     mockArticleHistoryError,
+    mockLinkedHereApi,
+    mockLinkedHereError,
     mockArticleVersion,
     mockArticleVersionError,
     mockArticleSave,

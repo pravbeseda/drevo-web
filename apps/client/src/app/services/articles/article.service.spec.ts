@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import {
     ApprovalStatus,
     ArticleHistoryResponseDto,
+    ArticleLinkedHereResponseDto,
     ArticlePreviewResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
@@ -106,7 +107,7 @@ describe('ArticleService', () => {
 
             spectator.service.getArticle(123).subscribe(result => {
                 expect(result.content).toBe(
-                    '<p><a href="/articles/1">First</a> and <a href="/articles/999">Second</a></p>'
+                    '<p><a href="/articles/1">First</a> and <a href="/articles/999">Second</a></p>',
                 );
                 done();
             });
@@ -121,7 +122,7 @@ describe('ArticleService', () => {
 
             spectator.service.getArticle(123).subscribe(result => {
                 expect(result.content).toBe(
-                    '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>'
+                    '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
                 );
                 done();
             });
@@ -404,6 +405,51 @@ describe('ArticleService', () => {
             spectator.service.searchArticles({ query: 'nonexistent' }).subscribe(result => {
                 expect(result.items).toHaveLength(0);
                 expect(result.total).toBe(0);
+                done();
+            });
+        });
+    });
+
+    describe('getLinkedHere', () => {
+        it('should call articleApiService.getLinkedHere with defaults when only title is provided', () => {
+            const mockApiResponse: ArticleLinkedHereResponseDto = {
+                items: [],
+                total: 0,
+                page: 1,
+                pageSize: 25,
+                totalPages: 0,
+            };
+            articleApiService.getLinkedHere.mockReturnValue(of(mockApiResponse));
+
+            spectator.service.getLinkedHere({ title: 'Target' }).subscribe();
+
+            expect(articleApiService.getLinkedHere).toHaveBeenCalledWith('Target', '', 1, 25);
+        });
+
+        it('should map DTO to domain model preserving highlightedTitle', done => {
+            const mockApiResponse: ArticleLinkedHereResponseDto = {
+                items: [
+                    { id: 1, title: 'Article A', highlightedTitle: '<mark>Art</mark>icle A' },
+                    { id: 2, title: 'Article B' },
+                ],
+                total: 2,
+                page: 1,
+                pageSize: 25,
+                totalPages: 1,
+            };
+            articleApiService.getLinkedHere.mockReturnValue(of(mockApiResponse));
+
+            spectator.service.getLinkedHere({ title: 'Target', query: 'Art' }).subscribe(result => {
+                expect(result).toEqual({
+                    items: [
+                        { id: 1, title: 'Article A', highlightedTitle: '<mark>Art</mark>icle A' },
+                        { id: 2, title: 'Article B', highlightedTitle: undefined },
+                    ],
+                    total: 2,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 1,
+                });
                 done();
             });
         });

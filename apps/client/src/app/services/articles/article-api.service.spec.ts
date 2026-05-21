@@ -309,6 +309,49 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('getLinkedHere', () => {
+        const mockResponse = {
+            success: true,
+            data: {
+                items: [{ id: 1, title: 'Linker' }],
+                total: 1,
+                page: 1,
+                pageSize: 50,
+                totalPages: 1,
+            },
+        };
+
+        it('should call HTTP GET with title, q, page, size params and withCredentials', () => {
+            spectator.service.getLinkedHere('Target', 'lin', 2, 25).subscribe(result => {
+                expect(result).toEqual(mockResponse.data);
+            });
+
+            const req = httpController.expectOne(
+                request =>
+                    request.url === '/api/articles/linkedhere' &&
+                    request.params.get('title') === 'Target' &&
+                    request.params.get('q') === 'lin' &&
+                    request.params.get('page') === '2' &&
+                    request.params.get('size') === '25',
+            );
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush(mockResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.getLinkedHere('Target', '', 1, 50).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne(request => request.url === '/api/articles/linkedhere');
+            req.flush({ success: true, data: undefined });
+        });
+    });
+
     describe('saveArticleVersion', () => {
         const mockSaveResponse = {
             success: true,

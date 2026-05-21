@@ -6,10 +6,7 @@ import {
     mockArticleHistory,
     mockArticleHistoryError,
 } from '../../fixtures';
-import {
-    createArticleHistoryResponse,
-    mockArticleViewData,
-} from '../../mocks/articles';
+import { createArticleHistoryResponse, mockArticleViewData } from '../../mocks/articles';
 import { ArticlePage } from '../../pages/article.page';
 
 const ARTICLE_ID = 42;
@@ -37,11 +34,6 @@ test.describe('Article tabs', () => {
             await article.tabForum.click();
             await expect(article.stub).toBeVisible();
         });
-
-        test('linkedhere tab shows stub content', async () => {
-            await article.tabLinkedhere.click();
-            await expect(article.stub).toBeVisible();
-        });
     });
 
     test.describe('History tab', () => {
@@ -59,9 +51,7 @@ test.describe('Article tabs', () => {
     });
 
     test.describe('Version tab navigation', () => {
-        test('clicking article tab from version route returns to content', async ({
-            authenticatedPage: page,
-        }) => {
+        test('clicking article tab from version route returns to content', async ({ authenticatedPage: page }) => {
             await mockArticleVersionShow(page, VERSION_ID, VERSION);
             await page.goto(`/articles/${ARTICLE_ID}/version/${VERSION_ID}`);
             await article.versionBanner.waitFor({ state: 'visible' });
@@ -73,9 +63,7 @@ test.describe('Article tabs', () => {
     });
 
     test.describe('Direct URL navigation', () => {
-        test('navigating directly to stub tab URL shows stub content', async ({
-            authenticatedPage: page,
-        }) => {
+        test('navigating directly to stub tab URL shows stub content', async ({ authenticatedPage: page }) => {
             await page.goto(`/articles/${ARTICLE_ID}/news`);
             await article.waitForReady();
             await expect(article.stub).toBeVisible();

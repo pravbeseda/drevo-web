@@ -9,6 +9,9 @@ import {
     ArticleHistoryParams,
     ArticleHistoryResponse,
     ArticleHistoryResponseDto,
+    ArticleLinkedHereParams,
+    ArticleLinkedHereResponse,
+    ArticleLinkedHereResponseDto,
     ArticleSearchParams,
     ArticleSearchResponse,
     ArticleSearchResult,
@@ -103,6 +106,20 @@ export class ArticleService {
     }
 
     /**
+     * Get articles that link to the given article (by title).
+     *
+     * @param params - Linked-here parameters (title required; query/page/pageSize optional)
+     * @returns Observable with mapped linked-here response
+     */
+    getLinkedHere(params: ArticleLinkedHereParams): Observable<ArticleLinkedHereResponse> {
+        const { title, query = '', page = 1, pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } = params;
+
+        return this.articleApiService
+            .getLinkedHere(title, query, page, pageSize)
+            .pipe(map(response => this.mapLinkedHereResponse(response)));
+    }
+
+    /**
      * Save article version
      *
      * @param request - Save request with versionId, content, and optional info
@@ -161,7 +178,11 @@ export class ArticleService {
     renameArticle(articleId: number, title: string): Observable<RenameArticleResponse> {
         return this.articleApiService.renameArticle(articleId, title).pipe(
             map(dto => {
-                this.logger.info('Article renamed', { articleId: dto.articleId, oldTitle: dto.oldTitle, newTitle: dto.title });
+                this.logger.info('Article renamed', {
+                    articleId: dto.articleId,
+                    oldTitle: dto.oldTitle,
+                    newTitle: dto.title,
+                });
                 return { articleId: dto.articleId, title: dto.title };
             }),
         );
@@ -224,6 +245,20 @@ export class ArticleService {
             author: response.author,
             date: new Date(response.date),
             approved: response.approved,
+        };
+    }
+
+    private mapLinkedHereResponse(response: ArticleLinkedHereResponseDto): ArticleLinkedHereResponse {
+        return {
+            items: response.items.map(item => ({
+                id: item.id,
+                title: item.title,
+                highlightedTitle: item.highlightedTitle,
+            })),
+            total: response.total,
+            page: response.page,
+            pageSize: response.pageSize,
+            totalPages: response.totalPages,
         };
     }
 

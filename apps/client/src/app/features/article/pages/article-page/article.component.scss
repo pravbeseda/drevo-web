@@ -4,7 +4,8 @@
 // so the virtual scroller can fill the remaining space via flex.
 // Other tabs keep normal flow — `.main` scrolls their content as before.
 :host:has(app-article-versions),
-:host:has(app-article-edit) {
+:host:has(app-article-edit),
+:host:has(app-article-linkedhere-tab) {
     height: 100%;
     overflow: hidden;
 
