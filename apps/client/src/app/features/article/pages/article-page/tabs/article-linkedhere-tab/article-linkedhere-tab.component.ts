@@ -14,9 +14,17 @@ import {
     VirtualScrollerItemDirective,
 } from '@drevo-web/ui';
 import { Observable, Subject, merge, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 const DEBOUNCE_TIME_MS = 500;
+
+const EMPTY_RESPONSE: ArticleLinkedHereResponse = {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
+    totalPages: 0,
+};
 
 @Component({
     selector: 'app-article-linkedhere-tab',
@@ -60,19 +68,22 @@ export class ArticleLinkedHereTabComponent implements OnInit {
             this.destroyRef.onDestroy(() => this.meta.removeTagElement(robotsTag));
         }
 
-        const search$ = this.searchSubject.pipe(
-            startWith(''),
-            distinctUntilChanged(),
-            tap(() => {
-                this._isLoading.set(true);
-                this._isLoadingMore.set(false);
-                this._currentPage.set(1);
-            }),
-            debounceTime(DEBOUNCE_TIME_MS),
-            map(query => ({ query, page: 1, append: false })),
-        );
+        const markSearchStart = (): void => {
+            this._isLoading.set(true);
+            this._isLoadingMore.set(false);
+            this._currentPage.set(1);
+        };
+
+        // Initial load fires immediately; user input is debounced.
+        markSearchStart();
+
+        const search$ = merge(
+            of(''),
+            this.searchSubject.pipe(distinctUntilChanged(), tap(markSearchStart), debounceTime(DEBOUNCE_TIME_MS)),
+        ).pipe(map(query => ({ query, page: 1, append: false })));
 
         const loadMore$ = this.loadMoreSubject.pipe(
+            filter(() => this.items().length < this.total()),
             tap(() => this._isLoadingMore.set(true)),
             map(() => ({ query: this.searchQuery(), page: this.currentPage() + 1, append: true })),
         );
@@ -84,7 +95,7 @@ export class ArticleLinkedHereTabComponent implements OnInit {
                         map(response => ({ response, action })),
                         catchError(error => {
                             this.logger.error('Failed to load linked-here', error);
-                            return of({ response: this.emptyResponse, action });
+                            return of({ response: EMPTY_RESPONSE, action });
                         }),
                     ),
                 ),
@@ -112,25 +123,14 @@ export class ArticleLinkedHereTabComponent implements OnInit {
     }
 
     onLoadMore(): void {
-        if (this.items().length >= this.total()) {
-            return;
-        }
         this.loadMoreSubject.next();
     }
-
-    private readonly emptyResponse: ArticleLinkedHereResponse = {
-        items: [],
-        total: 0,
-        page: 1,
-        pageSize: DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
-        totalPages: 0,
-    };
 
     private fetchPage(query: string, page: number): Observable<ArticleLinkedHereResponse> {
         const title = this.pageService.title();
         if (!title) {
             this.logger.warn('linkedhere fetched without article title');
-            return of(this.emptyResponse);
+            return of(EMPTY_RESPONSE);
         }
         return this.articleService.getLinkedHere({ title, query, page });
     }

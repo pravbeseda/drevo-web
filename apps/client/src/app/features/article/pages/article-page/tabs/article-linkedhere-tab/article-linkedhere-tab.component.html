@@ -20,7 +20,14 @@
                 class="linkedhere-header"
                 data-testid="linkedhere-count"
             >
-                Найдено статей: {{ total() }}
+                <span>Найдено статей: {{ total() }}</span>
+                @if (isLoading()) {
+                    <ui-spinner
+                        data-testid="linkedhere-refreshing"
+                        [diameter]="16"
+                        [strokeWidth]="2"
+                    />
+                }
             </div>
             <ui-virtual-scroller
                 class="linkedhere-scroller"

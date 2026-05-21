@@ -23,12 +23,16 @@
 }
 
 .linkedhere-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin-bottom: 0.75rem;
     color: var(--themed-text-secondary);
     font-weight: 500;
     font-size: $font-size-sm;
     flex-shrink: 0;
 }
+
 
 .linkedhere-scroller {
     flex: 1;

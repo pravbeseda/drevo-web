@@ -72,11 +72,8 @@ describe('ArticleLinkedHereTabComponent', () => {
         expect(mockMeta.removeTagElement).toHaveBeenCalledWith(fakeRobotsTag);
     });
 
-    it('should perform initial load with article title and empty query after debounce', () => {
+    it('should perform initial load immediately with article title and empty query', () => {
         spectator = createComponent();
-        expect(mockArticleService.getLinkedHere).not.toHaveBeenCalled();
-
-        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
         expect(mockArticleService.getLinkedHere).toHaveBeenCalledWith({
             title: 'Target',
