@@ -44,7 +44,9 @@ export class LayoutComponent implements OnInit {
     private readonly window = inject(WINDOW);
     private readonly contentEl = viewChild<ElementRef<HTMLElement>>('contentEl');
 
-    readonly hasActions = computed(() => this.sidebarService.actions().length > 0);
+    readonly hasActions = computed(
+        () => this.sidebarService.actions().length > 0 || this.sidebarService.hasReservation(),
+    );
 
     readonly isNavigating = toSignal(
         this.router.events.pipe(

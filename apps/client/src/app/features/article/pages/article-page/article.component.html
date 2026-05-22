@@ -4,7 +4,9 @@
         title="Ошибка"
         [message]="error()"
     />
-} @else if (article(); as article) {
+} @else if (article()) {
+    <app-sidebar-reserve />
+
     <article
         class="article"
         data-testid="article-page"

@@ -11,6 +11,9 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    // Keeps the column at action-button width when only a reservation is active
+    // (no actions rendered) so navigating between tabs doesn't shift the main column.
+    min-width: $action-button-size;
     z-index: 100;
 
     @media (max-width: $breakpoint-desktop - 1) {
