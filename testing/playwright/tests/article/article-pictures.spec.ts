@@ -72,6 +72,7 @@ test.describe('Article pictures', () => {
 
         await expect(lightbox.backdrop).not.toBeVisible();
         await expect(article.content).toBeVisible();
+        await expect(page).not.toHaveURL(/#picture=/);
     });
 
     test('opens the picture page in a new tab on middle click', async ({ isMobile, browserName }) => {

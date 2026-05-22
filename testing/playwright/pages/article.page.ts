@@ -6,6 +6,10 @@ export class ArticlePage extends BasePage {
     readonly error = this.page.getByTestId('article-error');
     readonly content = this.page.getByTestId('article-content');
 
+    // Article content is legacy HTML injected via innerHTML — it cannot carry
+    // `data-testid`. The `.pic` class is the structural marker the app itself
+    // keys off (`closest('.pic')` in ArticleContentComponent), so it is a stable
+    // selector here despite the usual data-testid convention.
     /** Image rendered inside legacy `.pic` markup in the article content */
     readonly pictureImage = this.content.locator('.pic img');
     /** Link wrapping the picture inside `.pic` markup */

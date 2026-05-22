@@ -37,9 +37,9 @@ import {
 import { BrowserContext, Page } from '@playwright/test';
 
 /**
- * A Playwright routing target. Both Page and BrowserContext expose identical
- * `route()`/`unroute()` APIs — use a BrowserContext when the mock must also
- * apply to pages opened later (e.g. tabs opened via middle-click).
+ * A Playwright routing target. Both Page and BrowserContext expose an identical
+ * `route()` API — use a BrowserContext when the mock must also apply to pages
+ * opened later (e.g. tabs opened via middle-click).
  */
 type RouteTarget = Page | BrowserContext;
 
