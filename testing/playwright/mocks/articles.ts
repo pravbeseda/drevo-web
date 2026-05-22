@@ -72,6 +72,22 @@ export function createArticleVersionDto(
     };
 }
 
+/**
+ * Build a legacy `.pic` table fragment linking to `/pictures/NN.html`.
+ * The `.html` suffix mirrors legacy Yii markup — ArticleContentComponent
+ * strips it during preprocessing, so e2e exercises that normalization.
+ */
+export function createPictureContentHtml(pictureId: number): string {
+    const folder = String(Math.floor(pictureId / 1000)).padStart(3, '0');
+    const file = String(pictureId).padStart(6, '0');
+    return (
+        `<table class="pic"><tr><td class="picimage">` +
+        `<a href="/pictures/${pictureId}.html">` +
+        `<img class="noborder" src="/pictures/thumbs/${folder}/${file}.jpg" alt="Тестовая иллюстрация" />` +
+        `</a></td></tr></table>`
+    );
+}
+
 /** Create a single ArticleHistoryItemDto */
 export function createArticleHistoryItemDto(
     overrides: Partial<ArticleHistoryItemDto> = {},

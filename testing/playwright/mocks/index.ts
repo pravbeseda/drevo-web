@@ -6,6 +6,7 @@ export {
     createArticlesSearchResponse,
     mockArticleData,
     createArticleVersionDto,
+    createPictureContentHtml,
     createArticleHistoryItemDto,
     createArticleHistoryResponse,
     mockArticleViewData,

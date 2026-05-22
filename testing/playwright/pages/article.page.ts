@@ -1,9 +1,15 @@
 import { BasePage } from './base.page';
+import { Page } from '@playwright/test';
 
 export class ArticlePage extends BasePage {
     readonly root = this.page.getByTestId('article-page');
     readonly error = this.page.getByTestId('article-error');
     readonly content = this.page.getByTestId('article-content');
+
+    /** Image rendered inside legacy `.pic` markup in the article content */
+    readonly pictureImage = this.content.locator('.pic img');
+    /** Link wrapping the picture inside `.pic` markup */
+    readonly pictureLink = this.content.locator('.pic a');
     readonly stub = this.page.getByTestId('article-stub');
     readonly versionBanner = this.page.getByTestId('version-banner');
     readonly historyEmpty = this.page.getByTestId('history-empty');
@@ -30,5 +36,19 @@ export class ArticlePage extends BasePage {
 
     async waitForError(): Promise<void> {
         await this.error.waitFor({ state: 'visible' });
+    }
+
+    /** Left-click the article picture — expected to open the lightbox */
+    async clickPicture(): Promise<void> {
+        await this.pictureImage.click();
+    }
+
+    /** Middle-click the article picture link — returns the page opened in the new tab */
+    async openPictureInNewTab(): Promise<Page> {
+        const newPagePromise = this.page.context().waitForEvent('page');
+        await this.pictureLink.click({ button: 'middle' });
+        const newPage = await newPagePromise;
+        await newPage.waitForLoadState();
+        return newPage;
     }
 }
