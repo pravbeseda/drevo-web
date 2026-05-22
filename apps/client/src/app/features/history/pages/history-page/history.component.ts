@@ -1,5 +1,6 @@
 import { AuthService } from '../../../../services/auth/auth.service';
 import { HistoryCounts, HistoryCountsService } from '../../../../services/counts/history-counts.service';
+import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
@@ -14,7 +15,7 @@ const BASE_TABS: readonly TabItem[] = [
 
 @Component({
     selector: 'app-history',
-    imports: [TabsComponent, RouterOutlet],
+    imports: [TabsComponent, RouterOutlet, SidebarReserveComponent],
     templateUrl: './history.component.html',
     styleUrl: './history.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
