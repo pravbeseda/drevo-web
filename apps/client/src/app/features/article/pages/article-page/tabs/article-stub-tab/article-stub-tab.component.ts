@@ -1,4 +1,3 @@
-import { SidebarActionReserveComponent } from '../../../../../../shared/components/sidebar-action-reserve/sidebar-action-reserve.component';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
@@ -7,7 +6,7 @@ import { map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-stub-tab',
-    imports: [IconComponent, SidebarActionReserveComponent],
+    imports: [IconComponent],
     templateUrl: './article-stub-tab.component.html',
     styleUrl: './article-stub-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

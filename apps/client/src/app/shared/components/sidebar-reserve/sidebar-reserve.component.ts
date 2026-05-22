@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 
 let nextId = 0;
@@ -9,22 +9,19 @@ let nextId = 0;
  * Drop the component into a page template the same way `<app-sidebar-action>` is used.
  */
 @Component({
-    selector: 'app-sidebar-action-reserve',
+    selector: 'app-sidebar-reserve',
     template: '',
     host: {
         '[style.display]': '"none"',
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SidebarActionReserveComponent implements OnInit, OnDestroy {
+export class SidebarReserveComponent {
     private readonly sidebarService = inject(SidebarService);
     private readonly reservationId = `sidebar-reserve-${nextId++}`;
 
-    ngOnInit(): void {
+    constructor() {
         this.sidebarService.addReservation(this.reservationId);
-    }
-
-    ngOnDestroy(): void {
-        this.sidebarService.removeReservation(this.reservationId);
+        inject(DestroyRef).onDestroy(() => this.sidebarService.removeReservation(this.reservationId));
     }
 }

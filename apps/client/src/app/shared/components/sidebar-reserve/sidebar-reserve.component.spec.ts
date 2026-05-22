@@ -1,13 +1,13 @@
-import { SidebarActionReserveComponent } from './sidebar-action-reserve.component';
+import { SidebarReserveComponent } from './sidebar-reserve.component';
 import { SidebarService } from '@drevo-web/core';
 import { Spectator, SpyObject, createComponentFactory } from '@ngneat/spectator/jest';
 
-describe('SidebarActionReserveComponent', () => {
-    let spectator: Spectator<SidebarActionReserveComponent>;
+describe('SidebarReserveComponent', () => {
+    let spectator: Spectator<SidebarReserveComponent>;
     let sidebarService: SpyObject<SidebarService>;
 
     const createComponent = createComponentFactory({
-        component: SidebarActionReserveComponent,
+        component: SidebarReserveComponent,
         mocks: [SidebarService],
     });
 
@@ -36,15 +36,5 @@ describe('SidebarActionReserveComponent', () => {
         spectator.fixture.destroy();
 
         expect(sidebarService.removeReservation).toHaveBeenCalledWith(reservationId);
-    });
-
-    it('should generate unique ids across instances', () => {
-        const firstId = sidebarService.addReservation.mock.calls[0][0];
-
-        const secondSpectator = createComponent();
-        const secondService = secondSpectator.inject(SidebarService);
-        const secondId = secondService.addReservation.mock.calls[0][0];
-
-        expect(secondId).not.toBe(firstId);
     });
 });

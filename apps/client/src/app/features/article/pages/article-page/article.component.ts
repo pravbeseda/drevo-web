@@ -1,4 +1,5 @@
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
+import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -9,7 +10,7 @@ import { filter, map } from 'rxjs';
 
 @Component({
     selector: 'app-article',
-    imports: [ErrorComponent, TabsGroupComponent, RouterOutlet],
+    imports: [ErrorComponent, SidebarReserveComponent, TabsGroupComponent, RouterOutlet],
     templateUrl: './article.component.html',
     styleUrl: './article.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
