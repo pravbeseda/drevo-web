@@ -34,14 +34,21 @@ import {
     User,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
-import { Page } from '@playwright/test';
+import { BrowserContext, Page } from '@playwright/test';
+
+/**
+ * A Playwright routing target. Both Page and BrowserContext expose an identical
+ * `route()` API — use a BrowserContext when the mock must also apply to pages
+ * opened later (e.g. tabs opened via middle-click).
+ */
+type RouteTarget = Page | BrowserContext;
 
 /**
  * Bypass SSR for a specific route pattern by serving a client-only HTML shell.
  * Use this when testing error states on SSR-enabled routes, since page.route()
  * only intercepts browser-level requests (not server-side HTTP calls from SSR).
  */
-export async function bypassSsr(page: Page, urlPattern: string): Promise<void> {
+export async function bypassSsr(page: RouteTarget, urlPattern: string): Promise<void> {
     await page.route(urlPattern, async (route, request) => {
         if (request.resourceType() === 'document') {
             const baseUrl = new URL(request.url()).origin;
@@ -54,7 +61,7 @@ export async function bypassSsr(page: Page, urlPattern: string): Promise<void> {
 }
 
 /** Mock auth endpoints for an authenticated user */
-export async function mockAuthApi(page: Page, user: User = mockUsers.authenticated): Promise<void> {
+export async function mockAuthApi(page: RouteTarget, user: User = mockUsers.authenticated): Promise<void> {
     await page.route('**/api/auth/me', route =>
         route.fulfill({
             json: apiSuccess({ isAuthenticated: true, user }),
@@ -167,7 +174,7 @@ export async function mockPicturesSearch(page: Page, response: PicturesListRespo
 
 /** Mock GET /api/pictures/:id — single picture detail */
 export async function mockPictureDetail(
-    page: Page,
+    page: RouteTarget,
     id: number,
     picture: PictureDto = mockPictureData.single,
 ): Promise<void> {
@@ -198,7 +205,7 @@ export async function mockPictureDetailError(page: Page, id: number, status = 50
 
 /** Mock GET /api/pictures/:id/articles */
 export async function mockPictureArticles(
-    page: Page,
+    page: RouteTarget,
     pictureId: number,
     articles = mockPictureData.articles,
 ): Promise<void> {
@@ -209,7 +216,7 @@ export async function mockPictureArticles(
 
 /** Mock GET /api/pictures/:id/pending */
 export async function mockPicturePending(
-    page: Page,
+    page: RouteTarget,
     pictureId: number,
     pending: readonly PicturePendingDto[] = [],
 ): Promise<void> {
@@ -390,7 +397,7 @@ export async function mockPictureRejectPendingNotFound(page: Page, pendingId: nu
 }
 
 /** Mock /pictures/thumbs/** — return a 1x1 transparent PNG placeholder */
-export async function mockPictureThumbs(page: Page): Promise<void> {
+export async function mockPictureThumbs(page: RouteTarget): Promise<void> {
     // 1x1 transparent PNG
     const pixel = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==',
