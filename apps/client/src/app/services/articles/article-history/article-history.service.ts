@@ -1,6 +1,7 @@
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { ArticleService } from '../article.service';
+import { isCancelVersionConflict } from '../cancel-version.errors';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
@@ -8,9 +9,12 @@ import {
     ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryParams,
+    CancelVersionResult,
     formatDateHeader,
     InworkItem,
 } from '@drevo-web/shared';
+import { ConfirmationService } from '@drevo-web/ui';
+import { EMPTY, catchError, filter, switchMap } from 'rxjs';
 
 export type HistoryFilter =
     | 'all'
@@ -73,6 +77,7 @@ export class ArticleHistoryService {
     private readonly authService = inject(AuthService);
     private readonly inworkService = inject(InworkService);
     private readonly notificationService = inject(NotificationService);
+    private readonly confirmationService = inject(ConfirmationService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -93,6 +98,8 @@ export class ArticleHistoryService {
     readonly hasError = this._hasError.asReadonly();
 
     private readonly currentUser = toSignal(this.authService.user$);
+
+    readonly currentUserName = computed(() => this.currentUser()?.name);
 
     readonly isAuthenticated = computed(() => !!this.currentUser());
     readonly hasItems = computed(() => this._historyItems().length > 0 || this._inworkItems().length > 0);
@@ -159,6 +166,57 @@ export class ArticleHistoryService {
 
         this._currentPage.update(p => p + 1);
         this.loadHistory(true);
+    }
+
+    cancelVersion(item: ArticleHistoryItem): void {
+        this.confirmationService
+            .open({
+                title: 'Отмена версии',
+                message:
+                    'Отменить эту версию? Она перейдёт в статус «Отменена автором» и больше не будет ждать модератора.',
+                buttons: [
+                    { key: 'confirm', label: 'Отменить версию', accent: 'warning' },
+                    { key: 'cancel', label: 'Закрыть' },
+                ],
+            })
+            .pipe(
+                filter(result => result === 'confirm'),
+                switchMap(() =>
+                    this.articleService.cancelVersion(item.versionId).pipe(
+                        catchError(err => {
+                            if (isCancelVersionConflict(err)) {
+                                const payload = err.error.data;
+                                this.logger.info('Cancel race detected', {
+                                    versionId: item.versionId,
+                                    actual: payload.approved,
+                                });
+                                this.notificationService.info('Версия уже не в статусе «На проверке»');
+                                this.patchItem({
+                                    versionId: payload.versionId,
+                                    articleId: payload.articleId,
+                                    approved: payload.approved,
+                                });
+                                return EMPTY;
+                            }
+                            this.logger.error('Cancel version failed', err);
+                            this.notificationService.error('Не удалось отменить версию');
+                            return EMPTY;
+                        }),
+                    ),
+                ),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(result => {
+                this.logger.info('Version cancelled', { versionId: result.versionId, articleId: result.articleId });
+                this.notificationService.success('Версия отменена');
+                this.patchItem(result);
+            });
+    }
+
+    private patchItem(result: CancelVersionResult): void {
+        this._historyItems.update(items =>
+            items.map(item => (item.versionId === result.versionId ? { ...item, approved: result.approved } : item)),
+        );
     }
 
     onCancelInwork(title: string): void {

@@ -11,6 +11,7 @@
         [articleId]="version.articleId"
         [topics]="version.topics"
         (moderated)="onModerated($event)"
+        (cancelled)="onCancelled($event)"
         (topicsChanged)="onTopicsChanged($event)"
     />
     <ui-banner data-testid="version-banner">
@@ -23,6 +24,9 @@
             <div class="banner-meta">
                 {{ version.info }}
             </div>
+        }
+        @if (version.approved === ApprovalStatus.Cancelled) {
+            <div class="banner-meta">Версия отменена автором</div>
         }
         @if (articleUrl(); as url) {
             <a [routerLink]="url">Перейти к текущей версии статьи</a>

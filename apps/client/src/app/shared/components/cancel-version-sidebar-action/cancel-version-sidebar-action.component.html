@@ -1,0 +1,11 @@
+@if (canCancel()) {
+    <app-sidebar-action
+        [order]="60"
+        icon="block"
+        label="Отменить версию"
+        [priority]="priority()"
+        [disabled]="disabled()"
+        testId="cancel-version-action"
+        (activated)="onActivated()"
+    />
+}

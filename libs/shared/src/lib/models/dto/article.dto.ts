@@ -39,9 +39,9 @@ export interface ArticleVersionDto extends ArticlePageDto {
 }
 
 /**
- * Article approval status: -1 (rejected), 0 (pending), 1 (approved)
+ * Article approval status: -2 (cancelled by author), -1 (rejected), 0 (pending), 1 (approved)
  */
-export type ApprovalStatusDto = -1 | 0 | 1;
+export type ApprovalStatusDto = -2 | -1 | 0 | 1;
 
 /**
  * Request body for saving article version

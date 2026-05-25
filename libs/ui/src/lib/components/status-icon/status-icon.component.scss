@@ -14,4 +14,8 @@
     &.rejected {
         color: var(--themed-status-rejected);
     }
+
+    &.cancelled {
+        color: var(--themed-status-cancelled);
+    }
 }

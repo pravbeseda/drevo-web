@@ -3,8 +3,10 @@ import { ArticleService } from '../article.service';
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
+import { ConfirmationService } from '@drevo-web/ui';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
@@ -115,7 +117,7 @@ describe('ArticleHistoryService', () => {
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [ArticleService, InworkService, NotificationService],
+        mocks: [ArticleService, InworkService, NotificationService, ConfirmationService],
         providers: [
             mockLoggerProvider(),
             {
@@ -678,6 +680,99 @@ describe('ArticleHistoryService', () => {
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                 'Cannot load history: article ID not available',
+            );
+        });
+    });
+
+    describe('currentUserName', () => {
+        it('returns the display name of the current user', () => {
+            expect(spectator.service.currentUserName()).toBe('Test User');
+        });
+
+        it('returns undefined when no user', () => {
+            userSubject.next(undefined);
+            expect(spectator.service.currentUserName()).toBeUndefined();
+        });
+    });
+
+    describe('cancelVersion', () => {
+        const targetItem = createMockHistoryItem({
+            versionId: 42,
+            articleId: 100,
+            approved: ApprovalStatus.Pending,
+        });
+
+        beforeEach(() => {
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse([targetItem], 1)));
+            spectator.service.init();
+        });
+
+        it('does nothing when confirmation is dismissed', () => {
+            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            confirmation.open.mockReturnValue(of('cancel'));
+
+            spectator.service.cancelVersion(targetItem);
+
+            expect(articleService.cancelVersion).not.toHaveBeenCalled();
+        });
+
+        it('patches the item and shows success notification on success', () => {
+            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+            confirmation.open.mockReturnValue(of('confirm'));
+            articleService.cancelVersion.mockReturnValue(
+                of({ versionId: 42, articleId: 100, approved: ApprovalStatus.Cancelled }),
+            );
+
+            spectator.service.cancelVersion(targetItem);
+
+            expect(notification.success).toHaveBeenCalledWith('Версия отменена');
+            const versionItem = spectator.service
+                .displayItems()
+                .find(d => d.type === 'version' && d.data.versionId === 42);
+            expect(versionItem && versionItem.type === 'version' && versionItem.data.approved).toBe(
+                ApprovalStatus.Cancelled,
+            );
+        });
+
+        it('on 409 conflict: patches with payload approved and shows info', () => {
+            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+            confirmation.open.mockReturnValue(of('confirm'));
+            const conflictError = new HttpErrorResponse({
+                status: 409,
+                error: {
+                    errorCode: 'INVALID_STATE',
+                    data: { versionId: 42, articleId: 100, approved: ApprovalStatus.Approved },
+                },
+            });
+            articleService.cancelVersion.mockReturnValue(throwError(() => conflictError));
+
+            spectator.service.cancelVersion(targetItem);
+
+            expect(notification.info).toHaveBeenCalledWith('Версия уже не в статусе «На проверке»');
+            const versionItem = spectator.service
+                .displayItems()
+                .find(d => d.type === 'version' && d.data.versionId === 42);
+            expect(versionItem && versionItem.type === 'version' && versionItem.data.approved).toBe(
+                ApprovalStatus.Approved,
+            );
+        });
+
+        it('on other error: shows error notification, no patch', () => {
+            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+            confirmation.open.mockReturnValue(of('confirm'));
+            articleService.cancelVersion.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+            spectator.service.cancelVersion(targetItem);
+
+            expect(notification.error).toHaveBeenCalledWith('Не удалось отменить версию');
+            const versionItem = spectator.service
+                .displayItems()
+                .find(d => d.type === 'version' && d.data.versionId === 42);
+            expect(versionItem && versionItem.type === 'version' && versionItem.data.approved).toBe(
+                ApprovalStatus.Pending,
             );
         });
     });

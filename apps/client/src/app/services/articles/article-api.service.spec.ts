@@ -643,6 +643,73 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('cancelVersion', () => {
+        const mockCancelResponse = {
+            success: true,
+            data: {
+                versionId: 789,
+                articleId: 123,
+                approved: -2 as ApprovalStatusDto,
+            },
+        };
+
+        it('should call HTTP POST with correct URL and body', () => {
+            spectator.service.cancelVersion(789).subscribe(result => {
+                expect(result).toEqual(mockCancelResponse.data);
+            });
+
+            const req = httpController.expectOne('/api/articles/cancel-version');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual({ versionId: 789 });
+            req.flush(mockCancelResponse);
+        });
+
+        it('should extract data from response wrapper', done => {
+            spectator.service.cancelVersion(789).subscribe(result => {
+                expect(result.versionId).toBe(789);
+                expect(result.articleId).toBe(123);
+                expect(result.approved).toBe(-2);
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/cancel-version');
+            req.flush(mockCancelResponse);
+        });
+
+        it('should throw when response.data is undefined', done => {
+            spectator.service.cancelVersion(789).subscribe({
+                error: (err: Error) => {
+                    expect(err.message).toContain('Response data is undefined');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/cancel-version');
+            req.flush({ success: true, data: undefined });
+        });
+
+        it('should propagate HTTP 409 errors', done => {
+            spectator.service.cancelVersion(789).subscribe({
+                error: err => {
+                    expect(err.status).toBe(409);
+                    expect(err.error?.errorCode).toBe('INVALID_STATE');
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/cancel-version');
+            req.flush(
+                {
+                    success: false,
+                    errorCode: 'INVALID_STATE',
+                    data: { versionId: 789, articleId: 123, approved: 1 },
+                },
+                { status: 409, statusText: 'Conflict' },
+            );
+        });
+    });
+
     describe('previewArticle', () => {
         const mockPreviewResponse = {
             success: true,
