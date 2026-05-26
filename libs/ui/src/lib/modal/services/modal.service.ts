@@ -10,11 +10,11 @@ export class ModalService {
 
     open<TData = unknown, TResult = unknown>(
         loader: LazyComponentLoader<unknown>,
-        config: ModalConfig<TData> = {}
+        config: ModalConfig<TData> = {},
     ): Observable<TResult | undefined> {
         const dialogRef = this.dialog.open<ModalContainerComponent<TData, TResult>, unknown, TResult>(
             ModalContainerComponent,
-            this.buildDialogConfig(loader, config)
+            this.buildDialogConfig(loader, config),
         );
 
         return dialogRef.afterClosed();
@@ -22,11 +22,11 @@ export class ModalService {
 
     openWithRef<TData = unknown, TResult = unknown>(
         loader: LazyComponentLoader<unknown>,
-        config: ModalConfig<TData> = {}
+        config: ModalConfig<TData> = {},
     ): { closed: Observable<TResult | undefined>; ref: ModalRef<TResult> } {
         const dialogRef = this.dialog.open<ModalContainerComponent<TData, TResult>, unknown, TResult>(
             ModalContainerComponent,
-            this.buildDialogConfig(loader, config)
+            this.buildDialogConfig(loader, config),
         );
 
         return {
@@ -39,7 +39,7 @@ export class ModalService {
 
     private buildDialogConfig<TData>(
         loader: LazyComponentLoader<unknown>,
-        config: ModalConfig<TData>
+        config: ModalConfig<TData>,
     ): MatDialogConfig {
         return {
             data: {

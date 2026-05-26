@@ -42,12 +42,10 @@ export class AppUpdateService {
                 }
             });
 
-        this.versionCheck.newVersionAvailable$
-            .pipe(takeUntilDestroyed())
-            .subscribe(info => {
-                this._newVersionAvailable.set(info);
-                this.showUpdateSnackbar(info);
-            });
+        this.versionCheck.newVersionAvailable$.pipe(takeUntilDestroyed()).subscribe(info => {
+            this._newVersionAvailable.set(info);
+            this.showUpdateSnackbar(info);
+        });
     }
 
     startVersionCheck(): void {

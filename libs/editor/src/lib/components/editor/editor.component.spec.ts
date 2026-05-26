@@ -16,9 +16,7 @@ describe('EditorComponent', () => {
     beforeEach(() => {
         spectator = createComponent({ props: { content: '' } });
         const editorFactory = spectator.debugElement.injector.get(EditorFactoryService);
-        createStateSpy = jest.spyOn(editorFactory, 'createState').mockReturnValue(
-            EditorView.defaultState,
-        );
+        createStateSpy = jest.spyOn(editorFactory, 'createState').mockReturnValue(EditorView.defaultState);
     });
 
     it('should create', () => {
@@ -63,9 +61,7 @@ describe('EditorComponent', () => {
 
         it('should render custom actions', () => {
             const callback = jest.fn();
-            spectator.setInput('customActions', [
-                { icon: 'test_icon', tooltip: 'Test', callback },
-            ]);
+            spectator.setInput('customActions', [{ icon: 'test_icon', tooltip: 'Test', callback }]);
             spectator.detectChanges();
 
             const customButton = spectator.query('[data-testid="toolbar-custom-test_icon"]');
@@ -74,9 +70,7 @@ describe('EditorComponent', () => {
 
         it('should call custom action callback on click', () => {
             const callback = jest.fn();
-            spectator.setInput('customActions', [
-                { icon: 'test_icon', tooltip: 'Test', callback },
-            ]);
+            spectator.setInput('customActions', [{ icon: 'test_icon', tooltip: 'Test', callback }]);
             spectator.detectChanges();
 
             spectator.click('[data-testid="toolbar-custom-test_icon"]');

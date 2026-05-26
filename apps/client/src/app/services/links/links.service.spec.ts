@@ -71,9 +71,7 @@ describe('LinksService', () => {
             const batch1Result = Object.fromEntries(links.slice(0, MAX_LINKS).map(l => [l, true]));
             const batch2Result = { 'extra-link': false };
 
-            linksApiService.checkLinks
-                .mockReturnValueOnce(of(batch1Result))
-                .mockReturnValueOnce(of(batch2Result));
+            linksApiService.checkLinks.mockReturnValueOnce(of(batch1Result)).mockReturnValueOnce(of(batch2Result));
 
             let result: Record<string, boolean> | undefined;
             spectator.service.getLinkStatuses(links).subscribe(r => {

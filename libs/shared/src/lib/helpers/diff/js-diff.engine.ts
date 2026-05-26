@@ -17,7 +17,7 @@ export class JsDiffEngine implements DiffEngine {
         const changes = this.computeChanges(
             stripOrphanedCombiningMarks(oldText),
             stripOrphanedCombiningMarks(newText),
-            options
+            options,
         );
 
         return changes.map(change => ({

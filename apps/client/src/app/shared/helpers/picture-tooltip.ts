@@ -142,7 +142,6 @@ export function extractPictureIds(text: string): number[] {
 
 // --- Internal helpers ---
 
-
 async function fetchBatch(
     ids: number[],
     options: PictureTooltipOptions,
@@ -202,11 +201,7 @@ const pendingDecoration = Decoration.mark({ class: 'cm-picture-pending' });
 const resolvedDecoration = Decoration.mark({ class: 'cm-picture-resolved' });
 const errorDecoration = Decoration.mark({ class: 'cm-picture-error' });
 
-function buildDecorations(
-    text: string,
-    cache: Map<number, Picture>,
-    errorIds: Set<number>,
-): DecorationSet {
+function buildDecorations(text: string, cache: Map<number, Picture>, errorIds: Set<number>): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
     const regex = new RegExp(PICTURE_CODE_RE.source, PICTURE_CODE_RE.flags);
     let match: RegExpExecArray | null;

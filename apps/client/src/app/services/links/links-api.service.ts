@@ -40,7 +40,7 @@ export class LinksApiService {
                         result[key] = value.isExist;
                     });
                     return result;
-                })
+                }),
             );
     }
 }

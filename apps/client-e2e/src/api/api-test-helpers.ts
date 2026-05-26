@@ -75,7 +75,7 @@ export async function apiGet<T>(
     options?: {
         headers?: Record<string, string>;
         origin?: string;
-    }
+    },
 ): Promise<{
     response: Awaited<ReturnType<APIRequestContext['get']>>;
     body: ApiResponse<T>;
@@ -108,7 +108,7 @@ export async function apiPost<T>(
         headers?: Record<string, string>;
         origin?: string;
         csrfToken?: string;
-    }
+    },
 ): Promise<{
     response: Awaited<ReturnType<APIRequestContext['post']>>;
     body: ApiResponse<T>;

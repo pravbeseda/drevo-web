@@ -1,10 +1,4 @@
-import {
-    test,
-    expect,
-    mockArticlesApi,
-    mockArticlesEmpty,
-    mockArticleShow,
-} from '../../fixtures';
+import { test, expect, mockArticlesApi, mockArticlesEmpty, mockArticleShow } from '../../fixtures';
 import { mockArticleData, mockArticleViewData } from '../../mocks/articles';
 import { LayoutPage } from '../../pages/layout.page';
 import { SearchPage } from '../../pages/search.page';
@@ -30,8 +24,8 @@ test.describe('Search modal', () => {
         await layout.openSearch();
         const search = new SearchPage(page);
 
-        const responsePromise = page.waitForResponse(r =>
-            r.url().includes('/api/articles/search') && r.url().includes('q='),
+        const responsePromise = page.waitForResponse(
+            r => r.url().includes('/api/articles/search') && r.url().includes('q='),
         );
         await search.typeQuery('дерево');
         await responsePromise;
@@ -50,8 +44,8 @@ test.describe('Search modal', () => {
         await mockArticlesEmpty(page);
 
         const search = new SearchPage(page);
-        const responsePromise = page.waitForResponse(r =>
-            r.url().includes('/api/articles/search') && r.url().includes('q='),
+        const responsePromise = page.waitForResponse(
+            r => r.url().includes('/api/articles/search') && r.url().includes('q='),
         );
         await search.typeQuery('несуществующий');
         await responsePromise;
@@ -80,8 +74,8 @@ test.describe('Search modal', () => {
         });
 
         // Type multiple characters rapidly (within the 500ms debounce window)
-        const responsePromise = page.waitForResponse(r =>
-            r.url().includes('/api/articles/search') && r.url().includes('q='),
+        const responsePromise = page.waitForResponse(
+            r => r.url().includes('/api/articles/search') && r.url().includes('q='),
         );
         await search.typeQuerySlowly('дер');
         await responsePromise;

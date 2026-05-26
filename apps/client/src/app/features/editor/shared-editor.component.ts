@@ -29,7 +29,7 @@ export class SharedEditorComponent implements AfterViewInit {
     readonly editorConfig$: Observable<EditorConfig> = this.iframeService.content$.pipe(
         map(content => ({
             content,
-        }))
+        })),
     );
     readonly insertTagCommand$: Observable<InsertTagCommand> = this.iframeService.insertTag$;
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();

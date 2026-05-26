@@ -6,9 +6,6 @@ export class EditorPage extends BasePage {
 
     async waitForReady(): Promise<void> {
         // Editor either shows skeleton (waiting for postMessage) or loaded container
-        await this.skeleton
-            .or(this.container)
-            .first()
-            .waitFor({ state: 'visible' });
+        await this.skeleton.or(this.container).first().waitFor({ state: 'visible' });
     }
 }

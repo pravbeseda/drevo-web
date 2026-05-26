@@ -85,7 +85,10 @@ describe('PicturePendingCardComponent', () => {
         spectator = createComponent({
             props: {
                 group: createGroup({
-                    items: [createPending({ id: 1 }), createPending({ id: 2, pendingType: 'edit_file', user: 'user2' })],
+                    items: [
+                        createPending({ id: 1 }),
+                        createPending({ id: 2, pendingType: 'edit_file', user: 'user2' }),
+                    ],
                 }),
             },
         });

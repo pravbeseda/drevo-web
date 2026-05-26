@@ -104,9 +104,7 @@ describe('RightSidebarComponent', () => {
         });
 
         it('should not render menu toggle when only one action', () => {
-            actionsSignal.set([
-                { id: 'only', icon: 'star', label: 'Only', priority: 'primary', action: jest.fn() },
-            ]);
+            actionsSignal.set([{ id: 'only', icon: 'star', label: 'Only', priority: 'primary', action: jest.fn() }]);
             spectator.detectChanges();
 
             expect(spectator.query('[data-testid="fab-main"]')).toBeTruthy();

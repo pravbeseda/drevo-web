@@ -50,7 +50,7 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
                     this.notification.error('Произошла неожиданная ошибка.');
                 }
                 return throwError(() => error);
-            })
+            }),
         );
     }
 

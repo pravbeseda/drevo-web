@@ -82,10 +82,10 @@ export class PictureLightboxService {
                             this._isLoading.set(false);
                             this.close();
                             return EMPTY;
-                        })
-                    )
+                        }),
+                    ),
                 ),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(picture => {
                 if (!this._isOpen()) {

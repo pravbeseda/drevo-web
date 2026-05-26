@@ -50,10 +50,12 @@ describe('InworkApiService', () => {
                 result = r;
             });
 
-            httpController.expectOne(r => r.url === '/api/inwork/check').flush({
-                success: true,
-                data: { editor: 'User1' },
-            });
+            httpController
+                .expectOne(r => r.url === '/api/inwork/check')
+                .flush({
+                    success: true,
+                    data: { editor: 'User1' },
+                });
 
             expect(result).toEqual({ editor: 'User1' });
         });
@@ -64,10 +66,12 @@ describe('InworkApiService', () => {
                 result = r;
             });
 
-            httpController.expectOne(r => r.url === '/api/inwork/check').flush({
-                success: true,
-                data: undefined,
-            });
+            httpController
+                .expectOne(r => r.url === '/api/inwork/check')
+                .flush({
+                    success: true,
+                    data: undefined,
+                });
 
             expect(result).toEqual({ editor: undefined });
         });
@@ -84,7 +88,9 @@ describe('InworkApiService', () => {
         });
 
         it('should return items from response data', () => {
-            const items = [{ id: 1, module: 'articles', title: 'Test', author: 'User', lasttime: '2024-01-01', age: 10 }];
+            const items = [
+                { id: 1, module: 'articles', title: 'Test', author: 'User', lasttime: '2024-01-01', age: 10 },
+            ];
             let result: unknown;
             spectator.service.getList().subscribe(r => {
                 result = r;

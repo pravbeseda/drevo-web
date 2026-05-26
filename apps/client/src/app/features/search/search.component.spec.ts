@@ -18,7 +18,7 @@ describe('SearchComponent', () => {
                 page: 1,
                 pageSize: 25,
                 totalPages: 0,
-            })
+            }),
         ),
     };
 
@@ -228,7 +228,7 @@ describe('SearchComponent', () => {
                     page: 1,
                     pageSize: 25,
                     totalPages: 0,
-                })
+                }),
             ) // initial load
             .mockReturnValueOnce(throwError(() => new Error('Search failed'))); // search error
         spectator = createComponent();
@@ -380,7 +380,7 @@ describe('SearchComponent', () => {
                     page: 1,
                     pageSize: 25,
                     totalPages: 0,
-                })
+                }),
             ) // initial load
             .mockReturnValueOnce(of(staleResponse).pipe(delay(1000)))
             .mockReturnValueOnce(of(freshResponse).pipe(delay(100)));

@@ -50,7 +50,7 @@ export class AccountDropdownComponent {
             .logout()
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
-                finalize(() => this._isLoggingOut.set(false))
+                finalize(() => this._isLoggingOut.set(false)),
             )
             .subscribe();
     }

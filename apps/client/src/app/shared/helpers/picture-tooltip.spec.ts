@@ -1,8 +1,4 @@
-import {
-    createPicturePreviewExtension,
-    extractPictureIds,
-    findPictureCodeAtPosition,
-} from './picture-tooltip';
+import { createPicturePreviewExtension, extractPictureIds, findPictureCodeAtPosition } from './picture-tooltip';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { PictureBatchResponse, Picture } from '@drevo-web/shared';

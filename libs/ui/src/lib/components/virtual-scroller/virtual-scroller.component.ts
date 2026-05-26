@@ -100,9 +100,9 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     private setupScrollListener(): void {
         const viewport = this.viewport();
 
-        const scroll$ = viewport.elementScrolled().pipe(
-            throttleTime(100, undefined, { leading: true, trailing: true }),
-        );
+        const scroll$ = viewport
+            .elementScrolled()
+            .pipe(throttleTime(100, undefined, { leading: true, trailing: true }));
 
         // Also check when CDK updates the rendered range — covers the case where
         // all items fit in the viewport without scrolling (e.g. wide screen).
@@ -113,7 +113,7 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
             .pipe(
                 filter(() => !this.isLoading() && !this.allItemsLoaded()),
                 filter(() => this.shouldLoadMore()),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(() => {
                 this.loadMore.emit();

@@ -37,7 +37,7 @@ export class AuthService {
             isAuthenticated: !!user,
             user,
             isLoading,
-        }))
+        })),
     );
 
     private readonly http = inject(HttpClient);
@@ -139,7 +139,7 @@ export class AuthService {
                         isLoading: false,
                     });
                 }),
-                finalize(() => this.isLoadingSubject.next(false))
+                finalize(() => this.isLoadingSubject.next(false)),
             );
     }
 
@@ -162,7 +162,7 @@ export class AuthService {
                         'X-CSRF-Token': csrfToken,
                     },
                     context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [401]),
-                })
+                }),
             ),
             map(response => {
                 if (response.success && response.data?.user) {
@@ -186,7 +186,7 @@ export class AuthService {
                     code: errorCode,
                 }));
             }),
-            finalize(() => this.authOperationInProgressSubject.next(false))
+            finalize(() => this.authOperationInProgressSubject.next(false)),
         );
     }
 
@@ -211,8 +211,8 @@ export class AuthService {
                         headers: {
                             'X-CSRF-Token': csrfToken,
                         },
-                    }
-                )
+                    },
+                ),
             ),
             tap(() => {
                 this.userSubject.next(undefined);
@@ -231,7 +231,7 @@ export class AuthService {
                 this.router.navigate(['/login']);
                 return of(void 0);
             }),
-            finalize(() => this.authOperationInProgressSubject.next(false))
+            finalize(() => this.authOperationInProgressSubject.next(false)),
         );
     }
 

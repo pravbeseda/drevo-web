@@ -11,7 +11,7 @@ import { catchError } from 'rxjs/operators';
  */
 export function resolveArticle(
     articleService: ArticleService,
-    route: ActivatedRouteSnapshot
+    route: ActivatedRouteSnapshot,
 ): Observable<ArticleVersion | undefined> {
     const idParam = route.paramMap.get('id');
     if (!idParam) {

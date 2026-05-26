@@ -52,9 +52,7 @@ test.describe('Article edit', () => {
 
         test('shows info notification when saving unchanged content', async ({ authenticatedPage: page }) => {
             await editPage.clickSave();
-            await expect(getNotification(page, 'info')).toContainText(
-                'Нет изменений для сохранения',
-            );
+            await expect(getNotification(page, 'info')).toContainText('Нет изменений для сохранения');
         });
 
         test('navigates to article page after successful save', async ({ authenticatedPage: page }) => {
@@ -75,9 +73,7 @@ test.describe('Article edit', () => {
             await mockArticleSaveError(page, 403, 'Нет прав для сохранения');
             await editPage.typeInEditor('Новый текст');
             await editPage.clickSave();
-            await expect(getNotification(page, 'error')).toContainText(
-                'Нет прав для сохранения',
-            );
+            await expect(getNotification(page, 'error')).toContainText('Нет прав для сохранения');
         });
 
         test('shows preview content on preview tab', async ({ authenticatedPage: page }) => {

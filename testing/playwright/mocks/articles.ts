@@ -51,10 +51,7 @@ export const mockArticleData = {
 };
 
 /** Create a single ArticleVersionDto (for show/version-show endpoints) */
-export function createArticleVersionDto(
-    overrides: Partial<ArticleVersionDto> = {},
-    index = 1,
-): ArticleVersionDto {
+export function createArticleVersionDto(overrides: Partial<ArticleVersionDto> = {}, index = 1): ArticleVersionDto {
     return {
         articleId: index,
         title: `Статья ${index}`,
@@ -168,9 +165,7 @@ export function createSaveArticleVersionResponseDto(
 }
 
 /** Create a ModerationResponseDto (response from POST /api/articles/moderate) */
-export function createModerationResponseDto(
-    overrides: Partial<ModerationResponseDto> = {},
-): ModerationResponseDto {
+export function createModerationResponseDto(overrides: Partial<ModerationResponseDto> = {}): ModerationResponseDto {
     return {
         versionId: 420,
         articleId: 42,
@@ -192,10 +187,7 @@ export const mockArticleEditData = {
 };
 
 /** Create a single VersionForDiffDto with overrides */
-export function createVersionForDiffDto(
-    overrides: Partial<VersionForDiffDto> = {},
-    index = 1,
-): VersionForDiffDto {
+export function createVersionForDiffDto(overrides: Partial<VersionForDiffDto> = {}, index = 1): VersionForDiffDto {
     return {
         articleId: 42,
         versionId: index * 100,

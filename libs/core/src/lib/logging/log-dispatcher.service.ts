@@ -122,7 +122,8 @@ export class LogDispatcher {
     async flush(): Promise<void> {
         const flushPromises = this.providers
             .filter(
-                (p): p is LogProvider & { flush: () => Promise<void> } => p.isAvailable && typeof p.flush === 'function'
+                (p): p is LogProvider & { flush: () => Promise<void> } =>
+                    p.isAvailable && typeof p.flush === 'function',
             )
             .map(p => p.flush());
 

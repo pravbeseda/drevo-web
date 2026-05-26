@@ -17,7 +17,7 @@ function createMockPageService(
         articleId: number | undefined;
         title: string | undefined;
         editUrl: string | undefined;
-    }> = {}
+    }> = {},
 ) {
     return {
         article: signal('article' in overrides ? overrides.article : mockArticle),

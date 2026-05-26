@@ -44,7 +44,7 @@ export class TextInputComponent implements ControlValueAccessor {
     valueChanged = output<string>();
 
     protected matAppearance = computed<MatFormFieldAppearance>(() =>
-        this.appearance() === 'outline' ? 'outline' : 'fill'
+        this.appearance() === 'outline' ? 'outline' : 'fill',
     );
     protected displayValue = signal<string>('');
 

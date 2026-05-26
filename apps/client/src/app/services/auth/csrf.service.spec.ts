@@ -99,7 +99,7 @@ describe('CsrfService', () => {
                 error: () => {
                     expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                         'Failed to fetch CSRF token',
-                        expect.any(Error)
+                        expect.any(Error),
                     );
 
                     // Second call - should make new request

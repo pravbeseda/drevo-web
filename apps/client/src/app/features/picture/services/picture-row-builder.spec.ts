@@ -150,9 +150,7 @@ describe('buildRows', () => {
     });
 
     it('should ensure all row items have positive dimensions', () => {
-        const pictures = Array.from({ length: 15 }, (_, i) =>
-            makePicture(i + 1, 300 + i * 100, 200 + i * 50)
-        );
+        const pictures = Array.from({ length: 15 }, (_, i) => makePicture(i + 1, 300 + i * 100, 200 + i * 50));
         const rows = buildRows(pictures, 800, 180);
 
         for (const row of rows) {

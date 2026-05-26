@@ -12,10 +12,7 @@ describe('HistoryCountsService', () => {
 
     const createService = createServiceFactory({
         service: HistoryCountsService,
-        providers: [
-            { provide: CountsApiService, useValue: mockCountsApiService },
-            mockLoggerProvider(),
-        ],
+        providers: [{ provide: CountsApiService, useValue: mockCountsApiService }, mockLoggerProvider()],
     });
 
     beforeEach(() => {

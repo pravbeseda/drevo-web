@@ -5,7 +5,13 @@ import { SidebarActionComponent } from '../sidebar-action/sidebar-action.compone
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ValidationResult } from '@drevo-web/editor';
-import { APPROVAL_CLASS, APPROVAL_ICONS, ApprovalStatus, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
+import {
+    APPROVAL_CLASS,
+    APPROVAL_ICONS,
+    ApprovalStatus,
+    ModerationResult,
+    SidebarActionPriority,
+} from '@drevo-web/shared';
 import { SidePanelComponent } from '@drevo-web/ui';
 
 @Component({
@@ -30,9 +36,7 @@ export class ModerationSidebarActionComponent {
     private readonly authService = inject(AuthService);
     private readonly user = toSignal(this.authService.user$);
     readonly canModerate = computed(
-        () =>
-            (this.user()?.permissions.canModerate ?? false) &&
-            this.version().approved !== ApprovalStatus.Cancelled,
+        () => (this.user()?.permissions.canModerate ?? false) && this.version().approved !== ApprovalStatus.Cancelled,
     );
 
     private readonly approvalClass = computed(() => APPROVAL_CLASS[this.version().approved]);

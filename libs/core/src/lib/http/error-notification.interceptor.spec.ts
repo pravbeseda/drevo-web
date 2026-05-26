@@ -74,7 +74,7 @@ describe('ErrorNotificationInterceptor', () => {
             spectator.expectOne('/api/test', HttpMethod.GET).error(new ProgressEvent('error'));
 
             expect(notificationService.error).toHaveBeenCalledWith(
-                'Сетевая ошибка. Проверьте подключение к интернету.'
+                'Сетевая ошибка. Проверьте подключение к интернету.',
             );
         });
 

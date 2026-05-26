@@ -11,7 +11,7 @@ export class SidebarService {
     private readonly reservationsSet = signal<ReadonlySet<string>>(new Set());
 
     readonly actions = computed(() =>
-        Array.from(this.actionsMap().values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        Array.from(this.actionsMap().values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     );
 
     readonly hasReservation = computed(() => this.reservationsSet().size > 0);

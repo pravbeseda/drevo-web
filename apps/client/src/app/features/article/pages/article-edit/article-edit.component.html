@@ -39,18 +39,27 @@
         >
             @if (hasErrors()) {
                 <span class="validation-indicator__error">
-                    <ui-icon name="error" size="small" />
+                    <ui-icon
+                        name="error"
+                        size="small"
+                    />
                     <span>{{ validationResult().errors }}</span>
                 </span>
             }
             @if (hasWarnings()) {
                 <span class="validation-indicator__warning">
-                    <ui-icon name="warning" size="small" />
+                    <ui-icon
+                        name="warning"
+                        size="small"
+                    />
                     <span>{{ validationResult().warnings }}</span>
                 </span>
             }
             @if (!hasProblems()) {
-                <ui-icon name="check_circle" size="small" />
+                <ui-icon
+                    name="check_circle"
+                    size="small"
+                />
             }
         </button>
         <ui-workspace-tab

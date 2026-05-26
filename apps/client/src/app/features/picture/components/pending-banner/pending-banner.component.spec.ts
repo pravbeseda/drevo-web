@@ -168,7 +168,9 @@ describe('PendingBannerComponent', () => {
         });
 
         const cancelButton = spectator.query('[data-testid="pending-banner-cancel"]');
-        expect(cancelButton?.getAttribute('ng-reflect-disabled') ?? cancelButton?.hasAttribute('disabled')).toBeTruthy();
+        expect(
+            cancelButton?.getAttribute('ng-reflect-disabled') ?? cancelButton?.hasAttribute('disabled'),
+        ).toBeTruthy();
     });
 
     it('should emit approve action on approve button click', () => {

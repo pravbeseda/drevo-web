@@ -68,7 +68,7 @@ describe('SentryLogProvider', () => {
                     level: 'error',
                     tags: { 'log.context': 'TestService' },
                     extra: { data: { userId: 123 } },
-                })
+                }),
             );
         });
 
@@ -87,7 +87,7 @@ describe('SentryLogProvider', () => {
                 expect.objectContaining({
                     tags: { 'log.context': 'TestService' },
                     extra: { message: 'Error occurred', url: '/test-page' },
-                })
+                }),
             );
             expect(mockSentry.captureMessage).not.toHaveBeenCalled();
         });
@@ -101,7 +101,7 @@ describe('SentryLogProvider', () => {
                 'Warning message',
                 expect.objectContaining({
                     level: 'warning',
-                })
+                }),
             );
         });
 
@@ -133,7 +133,7 @@ describe('SentryLogProvider', () => {
                     category: 'app',
                     message: 'Debug message',
                     level: 'debug',
-                })
+                }),
             );
             expect(mockSentry.captureMessage).not.toHaveBeenCalled();
         });
@@ -159,7 +159,7 @@ describe('SentryLogProvider', () => {
 
             expect(mockSentry.captureMessage).toHaveBeenCalledWith(
                 'Info message',
-                expect.objectContaining({ level: 'info' })
+                expect.objectContaining({ level: 'info' }),
             );
         });
 
@@ -217,7 +217,7 @@ describe('SentryLogProvider', () => {
                 'Error',
                 expect.objectContaining({
                     extra: { pageUrl: '/some/page' },
-                })
+                }),
             );
         });
 
@@ -229,7 +229,7 @@ describe('SentryLogProvider', () => {
             expect(mockSentry.addBreadcrumb).toHaveBeenCalledWith(
                 expect.objectContaining({
                     category: 'app',
-                })
+                }),
             );
         });
 
@@ -242,7 +242,7 @@ describe('SentryLogProvider', () => {
                 'Error',
                 expect.objectContaining({
                     tags: {},
-                })
+                }),
             );
         });
     });

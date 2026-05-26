@@ -56,7 +56,7 @@ describe('ModalService', () => {
                     panelClass: ['ui-modal-panel'],
                     autoFocus: 'first-tabbable',
                     restoreFocus: true,
-                })
+                }),
             );
         });
 
@@ -72,7 +72,7 @@ describe('ModalService', () => {
                         loader: mockLoader,
                         data: customData,
                     },
-                })
+                }),
             );
         });
 
@@ -91,7 +91,7 @@ describe('ModalService', () => {
                     width: '800px',
                     minWidth: '400px',
                     maxWidth: '1200px',
-                })
+                }),
             );
         });
 
@@ -102,7 +102,7 @@ describe('ModalService', () => {
                 ModalContainerComponent,
                 expect.objectContaining({
                     panelClass: ['ui-modal-panel', 'ui-modal-no-border'],
-                })
+                }),
             );
         });
 
@@ -113,7 +113,7 @@ describe('ModalService', () => {
                 ModalContainerComponent,
                 expect.objectContaining({
                     disableClose: true,
-                })
+                }),
             );
         });
 
@@ -153,7 +153,7 @@ describe('ModalService', () => {
                         loader: mockLoader,
                         data: undefined,
                     },
-                })
+                }),
             );
             expect(closed).toBeDefined();
             expect(ref).toBeDefined();
@@ -179,7 +179,7 @@ describe('ModalService', () => {
                     },
                     width: '600px',
                     disableClose: true,
-                })
+                }),
             );
         });
 
@@ -232,7 +232,7 @@ describe('ModalService', () => {
                     data: expect.objectContaining({
                         data,
                     }),
-                })
+                }),
             );
         });
     });

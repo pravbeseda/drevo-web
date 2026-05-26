@@ -1,4 +1,10 @@
-import { PictureArticleDto, PictureDto, PicturePendingDto, PicturePendingListResponseDto, PicturesListResponseDto } from '@drevo-web/shared';
+import {
+    PictureArticleDto,
+    PictureDto,
+    PicturePendingDto,
+    PicturePendingListResponseDto,
+    PicturesListResponseDto,
+} from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 import { PictureApiService } from './picture-api.service';
@@ -260,7 +266,12 @@ describe('PictureService', () => {
         });
 
         it('should return pending when regular user', done => {
-            const filePending: PicturePendingDto = { ...mockPendingDto, pp_type: 'edit_both', pp_width: 1024, pp_height: 768 };
+            const filePending: PicturePendingDto = {
+                ...mockPendingDto,
+                pp_type: 'edit_both',
+                pp_width: 1024,
+                pp_height: 768,
+            };
             pictureApiService.editPicture.mockReturnValue(of(filePending));
 
             spectator.service.editPicture(123, new FormData()).subscribe(result => {
