@@ -83,6 +83,16 @@
             </div>
         }
     </div>
+    @if (canCancel()) {
+        <div class="right-col">
+            <ui-icon-button
+                data-testid="cancel-version-button"
+                label="Отменить версию"
+                icon="block"
+                (click)="onCancelClick($event)"
+            />
+        </div>
+    }
     @if (selected()) {
         <div
             class="selection-overlay"

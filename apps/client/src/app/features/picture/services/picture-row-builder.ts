@@ -111,9 +111,7 @@ function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHe
         return buildRowResult(items, fixedHeight);
     }
 
-    const sortedIndices = items
-        .map((_, i) => i)
-        .sort((a, b) => items[a].maxDisplayHeight - items[b].maxDisplayHeight);
+    const sortedIndices = items.map((_, i) => i).sort((a, b) => items[a].maxDisplayHeight - items[b].maxDisplayHeight);
 
     let cappedWidthSum = 0;
     let uncappedAspectSum = items.reduce((sum, item) => sum + item.aspectRatio, 0);
@@ -121,9 +119,7 @@ function finalizeRow(items: readonly RowEntry[], containerWidth: number, fixedHe
 
     for (const idx of sortedIndices) {
         const item = items[idx];
-        const rowHeight = uncappedAspectSum > 0
-            ? (availableWidth - cappedWidthSum) / uncappedAspectSum
-            : 0;
+        const rowHeight = uncappedAspectSum > 0 ? (availableWidth - cappedWidthSum) / uncappedAspectSum : 0;
 
         if (rowHeight <= item.maxDisplayHeight) {
             allCapped = false;

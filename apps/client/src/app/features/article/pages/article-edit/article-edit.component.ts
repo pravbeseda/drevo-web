@@ -27,7 +27,14 @@ import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
-import { ConfirmationService, IconComponent, ModalService, TooltipDirective, WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui';
+import {
+    ConfirmationService,
+    IconComponent,
+    ModalService,
+    TooltipDirective,
+    WorkspaceComponent,
+    WorkspaceTabComponent,
+} from '@drevo-web/ui';
 import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
 
 const EDITOR_TAB_INDEX = 0;

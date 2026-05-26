@@ -22,7 +22,8 @@
         "test:playwright:mobile": "playwright test --config=testing/playwright/playwright.config.ts --project=mobile-chrome --project=mobile-safari",
         "test:playwright:all": "playwright test --config=testing/playwright/playwright.config.ts",
         "test:playwright:ui": "playwright test --config=testing/playwright/playwright.config.ts --ui",
-        "test:playwright:headed": "playwright test --config=testing/playwright/playwright.config.ts --headed"
+        "test:playwright:headed": "playwright test --config=testing/playwright/playwright.config.ts --headed",
+        "prepare": "husky"
     },
     "private": true,
     "dependencies": {
@@ -91,12 +92,14 @@
         "eslint-plugin-import": "^2.32.0",
         "eslint-plugin-no-null": "^1.0.2",
         "eslint-plugin-playwright": "^1.6.2",
+        "husky": "^9.1.7",
         "jest": "^30.0.0",
         "jest-environment-jsdom": "^30.0.0",
         "jest-environment-node": "^30.0.0",
         "jest-preset-angular": "^16.0.0",
         "jest-util": "^30.0.0",
         "jsonc-eslint-parser": "^2.1.0",
+        "lint-staged": "16",
         "monocart-coverage-reports": "^2.12.9",
         "monocart-reporter": "^2.10.0",
         "ng-mocks": "^14.15.0",

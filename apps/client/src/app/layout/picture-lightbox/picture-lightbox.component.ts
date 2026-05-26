@@ -1,6 +1,14 @@
 import { PictureLightboxService } from '../../services/pictures/picture-lightbox.service';
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, inject, viewChild } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    ElementRef,
+    HostListener,
+    inject,
+    viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
@@ -83,7 +91,7 @@ export class PictureLightboxComponent {
         fromEvent(this.document, 'fullscreenchange')
             .pipe(
                 filter(() => !this.document.fullscreenElement && this.lightboxService.isZoomed()),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(() => {
                 this.lightboxService.toggleZoom();

@@ -384,7 +384,7 @@ describe('AuthInterceptor', () => {
                     expect(error).toBe(requestError);
                     expect(loggerService.mockLogger.error).not.toHaveBeenCalledWith(
                         'Failed to get CSRF token',
-                        expect.anything()
+                        expect.anything(),
                     );
                     done();
                 },
@@ -409,7 +409,7 @@ describe('AuthInterceptor', () => {
                                     error: {
                                         errorCode: 'CSRF_VALIDATION_FAILED',
                                     },
-                                })
+                                }),
                         );
                     }
                     // Second call - success
@@ -434,9 +434,14 @@ describe('AuthInterceptor', () => {
         });
 
         it('should NOT retry if request is already marked as retried in context (prevent infinite loops)', done => {
-            const request = new HttpRequest('POST', 'http://test-api/api/resource', {}, {
-                context: new HttpContext().set(CSRF_ALREADY_RETRIED, true),
-            });
+            const request = new HttpRequest(
+                'POST',
+                'http://test-api/api/resource',
+                {},
+                {
+                    context: new HttpContext().set(CSRF_ALREADY_RETRIED, true),
+                },
+            );
 
             const handler = createErrorHandler(403, {
                 errorCode: 'CSRF_VALIDATION_FAILED',
@@ -526,7 +531,7 @@ describe('AuthInterceptor', () => {
                                     error: {
                                         errorCode: 'CSRF_VALIDATION_FAILED',
                                     },
-                                })
+                                }),
                         );
                     }
                     return of(new HttpResponse({ body: { id: 1 } }));
@@ -544,7 +549,7 @@ describe('AuthInterceptor', () => {
                                     error: {
                                         errorCode: 'CSRF_VALIDATION_FAILED',
                                     },
-                                })
+                                }),
                         );
                     }
                     return of(new HttpResponse({ body: { id: 2 } }));

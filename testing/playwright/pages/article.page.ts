@@ -34,6 +34,21 @@ export class ArticlePage extends BasePage {
     /** Reject button inside the moderation panel */
     readonly moderationRejectButton = this.page.getByTestId('moderation-reject-button');
 
+    /** Cancel-version sidebar action (visible for author of a pending version) */
+    readonly cancelVersionAction = this.sidebarAction('cancel-version-action');
+    /** Title of the cancel-version confirmation dialog — used as a readiness anchor */
+    readonly cancelVersionDialogTitle = this.page
+        .getByTestId('confirmation-dialog-title')
+        .filter({ hasText: 'Отмена версии' });
+    /** Confirm button inside the cancel-version confirmation dialog */
+    readonly cancelVersionConfirmButton = this.page.getByTestId('confirmation-dialog-confirm');
+    /** Dismiss button inside the cancel-version confirmation dialog */
+    readonly cancelVersionDismissButton = this.page.getByTestId('confirmation-dialog-cancel');
+    /** «Версия отменена автором» banner on the version tab */
+    readonly cancelledBanner = this.versionBanner.getByText('Версия отменена автором');
+    /** Cancel button in a row of the article history list */
+    readonly historyCancelButton = this.page.getByTestId('cancel-version-button');
+
     async waitForReady(): Promise<void> {
         await this.root.waitFor({ state: 'visible' });
     }

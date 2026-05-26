@@ -242,7 +242,7 @@ describe('ArticleContentComponent', () => {
         it('should open lightbox for legacy picture link with .html suffix in source', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -256,7 +256,7 @@ describe('ArticleContentComponent', () => {
         it('should open lightbox when clicking image inside .pic without .html suffix', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/pictures/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>'
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/pictures/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -270,7 +270,7 @@ describe('ArticleContentComponent', () => {
         it('should open lightbox when clicking anywhere inside .pic', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/456"><img src="/pictures/thumbs/001/000456.jpg" /></a></td></tr><tr><td class="picdesc">Подпись</td></tr></table>'
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/456"><img src="/pictures/thumbs/001/000456.jpg" /></a></td></tr><tr><td class="picdesc">Подпись</td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -284,7 +284,7 @@ describe('ArticleContentComponent', () => {
         it('should prevent default for picture clicks', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td><a href="/pictures/789"><img src="/test.jpg" /></a></td></tr></table>'
+                '<table class="pic"><tr><td><a href="/pictures/789"><img src="/test.jpg" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -301,7 +301,7 @@ describe('ArticleContentComponent', () => {
         it('should strip .html suffix from picture hrefs in rendered DOM', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>'
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -312,7 +312,7 @@ describe('ArticleContentComponent', () => {
         it('should leave non-picture .html links untouched', () => {
             spectator.setInput(
                 'content',
-                '<a href="/articles/42.html">Article</a><a href="https://example.com/x.html">External</a>'
+                '<a href="/articles/42.html">Article</a><a href="https://example.com/x.html">External</a>',
             );
             spectator.detectChanges();
 
@@ -341,7 +341,7 @@ describe('ArticleContentComponent', () => {
                     <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
                     <div class="cmnt">Comment 1</div>
                     <div class="cmnt">Comment 2</div>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -374,7 +374,7 @@ describe('ArticleContentComponent', () => {
                     <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
                     <div class="cmnt">Comment</div>
                     <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -395,7 +395,7 @@ describe('ArticleContentComponent', () => {
                     <p><a href="javascript:toggleRus()" class="toggleRus">Скрыть русский перевод</a></p>
                     <div class="BibleRus">Russian text</div>
                     <div class="BibleCsl">Church Slavonic text</div>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -424,7 +424,7 @@ describe('ArticleContentComponent', () => {
                     <p><a href="javascript:toggleRus()" class="toggleRus">Скрыть русский перевод</a></p>
                     <div class="BibleRus">Russian</div>
                     <div class="BibleCsl" style="display: none;">Church Slavonic</div>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -445,7 +445,7 @@ describe('ArticleContentComponent', () => {
                     <p><a href="javascript:toggleCsl()" class="toggleCsl">Скрыть церковнославянский перевод</a></p>
                     <div class="BibleRus">Russian text</div>
                     <div class="BibleCsl">Church Slavonic text</div>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -474,7 +474,7 @@ describe('ArticleContentComponent', () => {
                     <p><a href="javascript:toggleCsl()" class="toggleCsl">Скрыть церковнославянский перевод</a></p>
                     <div class="BibleRus" style="display: none;">Russian</div>
                     <div class="BibleCsl">Church Slavonic</div>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -585,7 +585,7 @@ describe('ArticleContentComponent', () => {
                     expect.objectContaining({
                         action: 'alert',
                         value: expect.any(String),
-                    })
+                    }),
                 );
             });
 
@@ -606,7 +606,7 @@ describe('ArticleContentComponent', () => {
                     expect.objectContaining({
                         action: 'unknownAction',
                         value: expect.any(String),
-                    })
+                    }),
                 );
             });
 
@@ -653,7 +653,7 @@ describe('ArticleContentComponent', () => {
 
                 expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                     'Invalid javascript action format',
-                    expect.objectContaining({ value: expect.any(String) })
+                    expect.objectContaining({ value: expect.any(String) }),
                 );
             });
         });
@@ -666,7 +666,7 @@ describe('ArticleContentComponent', () => {
                     <a href="javascript:toggleGroup('group1')">Toggle Group</a>
                     <div class="group1">Item 1</div>
                     <div class="group1">Item 2</div>
-                `
+                `,
                 );
                 spectator.detectChanges();
 
@@ -699,7 +699,7 @@ describe('ArticleContentComponent', () => {
 
                 expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                     'toggleGroup requires a class name parameter',
-                    expect.objectContaining({ value: expect.any(String) })
+                    expect.objectContaining({ value: expect.any(String) }),
                 );
             });
         });
@@ -709,7 +709,7 @@ describe('ArticleContentComponent', () => {
                 spectator.setInput(
                     'content',
                     `<table onclick="javascript:toggleGroup('cmnt3')"><tr><td>Click me</td></tr></table>
-                    <div class="cmnt3">Content</div>`
+                    <div class="cmnt3">Content</div>`,
                 );
                 spectator.detectChanges();
 
@@ -735,7 +735,7 @@ describe('ArticleContentComponent', () => {
                 spectator.setInput(
                     'content',
                     `<div onclick='javascript:toggleAll()' id="clickable">Click</div>
-                    <div class="cmnt">Comment</div>`
+                    <div class="cmnt">Comment</div>`,
                 );
                 spectator.detectChanges();
 
@@ -751,7 +751,7 @@ describe('ArticleContentComponent', () => {
                     `<table onclick="javascript:toggleGroup('test')">
                         <tr><td><span>Deep nested</span></td></tr>
                     </table>
-                    <div class="test">Content</div>`
+                    <div class="test">Content</div>`,
                 );
                 spectator.detectChanges();
 

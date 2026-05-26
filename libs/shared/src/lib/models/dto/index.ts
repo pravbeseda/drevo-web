@@ -3,6 +3,7 @@ export * from './article-linked-here.dto';
 export * from './article-search.dto';
 export * from './article-version-pairs.dto';
 export * from './article.dto';
+export * from './cancel-version.dto';
 export * from './history-counts.dto';
 export * from './inwork.dto';
 export * from './moderation.dto';

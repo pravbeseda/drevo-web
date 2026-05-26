@@ -48,7 +48,7 @@ export class SentryLogProvider implements LogProvider {
     constructor(
         private readonly isProduction: boolean,
         private readonly isBrowser: boolean,
-        options?: SentryLogProviderOptions
+        options?: SentryLogProviderOptions,
     ) {
         this.minLevel = options?.minLevel ?? 'warn';
         this.addBreadcrumbs = options?.addBreadcrumbs ?? true;
@@ -188,7 +188,7 @@ export class SentryLogProvider implements LogProvider {
 export function createSentryLogProvider(
     isProduction: boolean,
     isBrowser: boolean,
-    options?: SentryLogProviderOptions
+    options?: SentryLogProviderOptions,
 ): SentryLogProvider {
     return new SentryLogProvider(isProduction, isBrowser, options);
 }

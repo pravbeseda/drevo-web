@@ -335,7 +335,7 @@ describe('AuthService', () => {
             const req = httpController.expectOne('http://test-api/api/auth/login');
             req.flush(
                 { error: 'Server error', errorCode: 'SERVER_ERROR' },
-                { status: 500, statusText: 'Internal Server Error' }
+                { status: 500, statusText: 'Internal Server Error' },
             );
         });
 
@@ -353,7 +353,7 @@ describe('AuthService', () => {
                     error: 'Invalid credentials',
                     errorCode: 'INVALID_CREDENTIALS',
                 },
-                { status: 401, statusText: 'Unauthorized' }
+                { status: 401, statusText: 'Unauthorized' },
             );
         });
 
@@ -595,7 +595,7 @@ describe('AuthService', () => {
                 new StorageEvent('storage', {
                     key: 'auth_sync',
                     newValue: Date.now().toString(),
-                })
+                }),
             );
 
             expect(checkAuthSpy).toHaveBeenCalled();
@@ -612,7 +612,7 @@ describe('AuthService', () => {
                 new StorageEvent('storage', {
                     key: 'other_key',
                     newValue: 'value',
-                })
+                }),
             );
 
             expect(checkAuthSpy).not.toHaveBeenCalled();
@@ -629,7 +629,7 @@ describe('AuthService', () => {
                     new StorageEvent('storage', {
                         key: 'auth_sync',
                         newValue: Date.now().toString(),
-                    })
+                    }),
                 );
 
                 // Handle the checkAuth request triggered by storage event
@@ -654,7 +654,7 @@ describe('AuthService', () => {
                 new StorageEvent('storage', {
                     key: 'auth_sync',
                     newValue: Date.now().toString(),
-                })
+                }),
             );
 
             // Handle the checkAuth request triggered by storage event

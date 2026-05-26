@@ -1,6 +1,7 @@
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { ArticleService } from '../article.service';
+import { CancelVersionService } from '../cancel-version.service';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
@@ -8,6 +9,7 @@ import {
     ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryParams,
+    CancelVersionResult,
     formatDateHeader,
     InworkItem,
 } from '@drevo-web/shared';
@@ -73,6 +75,7 @@ export class ArticleHistoryService {
     private readonly authService = inject(AuthService);
     private readonly inworkService = inject(InworkService);
     private readonly notificationService = inject(NotificationService);
+    private readonly cancelVersionService = inject(CancelVersionService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -93,6 +96,8 @@ export class ArticleHistoryService {
     readonly hasError = this._hasError.asReadonly();
 
     private readonly currentUser = toSignal(this.authService.user$);
+
+    readonly currentUserName = computed(() => this.currentUser()?.name);
 
     readonly isAuthenticated = computed(() => !!this.currentUser());
     readonly hasItems = computed(() => this._historyItems().length > 0 || this._inworkItems().length > 0);
@@ -159,6 +164,19 @@ export class ArticleHistoryService {
 
         this._currentPage.update(p => p + 1);
         this.loadHistory(true);
+    }
+
+    cancelVersion(item: ArticleHistoryItem): void {
+        this.cancelVersionService
+            .cancelVersion(item.versionId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(result => this.patchItem(result));
+    }
+
+    private patchItem(result: CancelVersionResult): void {
+        this._historyItems.update(items =>
+            items.map(item => (item.versionId === result.versionId ? { ...item, approved: result.approved } : item)),
+        );
     }
 
     onCancelInwork(title: string): void {

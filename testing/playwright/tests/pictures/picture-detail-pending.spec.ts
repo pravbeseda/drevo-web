@@ -311,9 +311,7 @@ test.describe('Pending banner labels and previews', () => {
         await mockPictureThumbs(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
-        await mockPicturePending(page, PICTURE_ID, [
-            createPendingByType('delete', 34, mockUsers.authenticated.name),
-        ]);
+        await mockPicturePending(page, PICTURE_ID, [createPendingByType('delete', 34, mockUsers.authenticated.name)]);
 
         const detail = new PictureDetailPage(page);
         await page.goto(`/pictures/${PICTURE_ID}`);

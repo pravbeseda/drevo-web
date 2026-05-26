@@ -104,7 +104,7 @@ describe('JsDiffEngine', () => {
             const result = engine.computeDiff(
                 'line1\nline2\nline3\n',
                 'line1\nchanged\nline3\n',
-                opts({ granularity: 'lines' })
+                opts({ granularity: 'lines' }),
             );
             const deleted = result
                 .filter(c => c.type === 'delete')
@@ -122,7 +122,7 @@ describe('JsDiffEngine', () => {
             const result = engine.computeDiff(
                 'First sentence. Second sentence.',
                 'First sentence. Changed sentence.',
-                opts({ granularity: 'sentences' })
+                opts({ granularity: 'sentences' }),
             );
             const deleted = result
                 .filter(c => c.type === 'delete')
@@ -159,7 +159,7 @@ describe('JsDiffEngine', () => {
             const withoutCase = engine.computeDiff(
                 'Hello World',
                 'hello world',
-                opts({ granularity: 'words', ignoreCase: true })
+                opts({ granularity: 'words', ignoreCase: true }),
             );
 
             const withCaseHasChanges = withCase.some(c => c.type !== 'equal');
@@ -174,7 +174,7 @@ describe('JsDiffEngine', () => {
             const withoutWs = engine.computeDiff(
                 'line1\n  line2\n',
                 'line1\nline2\n',
-                opts({ granularity: 'lines', ignoreWhitespace: true })
+                opts({ granularity: 'lines', ignoreWhitespace: true }),
             );
 
             const withWsHasChanges = withWs.some(c => c.type !== 'equal');
@@ -214,7 +214,7 @@ describe('JsDiffEngine', () => {
             const withoutCr = engine.computeDiff(
                 'line1\r\nline2\r\n',
                 'line1\nline2\n',
-                opts({ granularity: 'lines', stripTrailingCr: true })
+                opts({ granularity: 'lines', stripTrailingCr: true }),
             );
 
             const withCrHasChanges = withCr.some(c => c.type !== 'equal');

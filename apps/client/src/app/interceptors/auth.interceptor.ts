@@ -71,7 +71,7 @@ export class AuthInterceptor implements HttpInterceptor {
         return this.authService.isAuthOperationInProgress$.pipe(
             filter(inProgress => !inProgress),
             take(1),
-            switchMap(() => this.addCsrfAndSend(request, next))
+            switchMap(() => this.addCsrfAndSend(request, next)),
         );
     }
 
@@ -88,14 +88,14 @@ export class AuthInterceptor implements HttpInterceptor {
                     },
                 });
                 return next.handle(csrfRequest).pipe(catchError(error => this.handleError(error, request, next)));
-            })
+            }),
         );
     }
 
     private handleError(
         error: HttpErrorResponse,
         request: HttpRequest<unknown>,
-        next: HttpHandler
+        next: HttpHandler,
     ): Observable<HttpEvent<unknown>> {
         // Handle 401 Unauthorized - redirect to login
         if (error.status === 401 && !this.isAuthCheckOrLoginEndpoint(request.url)) {
@@ -118,7 +118,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     shareReplay(1),
                     finalize(() => {
                         this.refreshingToken$ = undefined;
-                    })
+                    }),
                 );
             }
 
@@ -139,7 +139,7 @@ export class AuthInterceptor implements HttpInterceptor {
                         retryError,
                     });
                     return throwError(() => error); // keep returning original error
-                })
+                }),
             );
         }
 

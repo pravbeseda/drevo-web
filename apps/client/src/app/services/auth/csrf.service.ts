@@ -83,7 +83,7 @@ export class CsrfService {
                     this.fetchInProgress$ = undefined;
                     return throwError(() => error);
                 }),
-                shareReplay(1)
+                shareReplay(1),
             );
 
         return this.fetchInProgress$;

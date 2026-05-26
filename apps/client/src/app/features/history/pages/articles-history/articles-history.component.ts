@@ -2,6 +2,7 @@ import {
     ArticleHistoryService,
     HistoryFilter,
 } from '../../../../services/articles/article-history/article-history.service';
+import { CancelVersionService } from '../../../../services/articles/cancel-version.service';
 import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
 import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
 import { FilterEntry } from '../../../../shared/models/filter.model';
@@ -27,7 +28,7 @@ const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
     templateUrl: './articles-history.component.html',
     styleUrl: './articles-history.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [ArticleHistoryService],
+    providers: [ArticleHistoryService, CancelVersionService],
 })
 export class ArticlesHistoryComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);

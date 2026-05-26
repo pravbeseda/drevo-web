@@ -14,7 +14,7 @@
 .history-item {
     position: relative;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
     gap: 0 10px;
     padding: 6px 8px 8px 4px;
     border-radius: 4px;
@@ -66,6 +66,11 @@
 
 .content-col {
     min-width: 0;
+}
+
+.right-col {
+    display: flex;
+    align-items: flex-start;
 }
 
 .title-row {

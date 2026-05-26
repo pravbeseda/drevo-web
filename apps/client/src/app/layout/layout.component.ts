@@ -55,12 +55,12 @@ export class LayoutComponent implements OnInit {
                     e instanceof NavigationStart ||
                     e instanceof NavigationEnd ||
                     e instanceof NavigationCancel ||
-                    e instanceof NavigationError
+                    e instanceof NavigationError,
             ),
             map(e => e instanceof NavigationStart),
-            switchMap(navigating => (navigating ? timer(NAVIGATION_DEBOUNCE_MS).pipe(map(() => true)) : of(false)))
+            switchMap(navigating => (navigating ? timer(NAVIGATION_DEBOUNCE_MS).pipe(map(() => true)) : of(false))),
         ),
-        { initialValue: false }
+        { initialValue: false },
     );
 
     readonly isDrawerOpen = this.drawerService.isOpen;
@@ -116,7 +116,7 @@ export class LayoutComponent implements OnInit {
         this.router.events
             .pipe(
                 filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(event => {
                 if (this.isMobile()) {

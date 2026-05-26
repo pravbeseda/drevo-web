@@ -31,9 +31,7 @@ test.describe('Picture detail — deletion', () => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
             await mockPictureThumbs(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
-            await mockPictureArticles(page, PICTURE_ID, [
-                createPictureArticleDto({ id: 10, title: 'Статья 1' }),
-            ]);
+            await mockPictureArticles(page, PICTURE_ID, [createPictureArticleDto({ id: 10, title: 'Статья 1' })]);
             await mockPicturePending(page, PICTURE_ID);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);

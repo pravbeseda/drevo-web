@@ -128,7 +128,7 @@ describe('IndexedDBLogProvider (SSR)', () => {
                 level: 'info',
                 message: 'Test',
                 timestamp: new Date(),
-            })
+            }),
         ).not.toThrow();
 
         global.window = originalWindow;

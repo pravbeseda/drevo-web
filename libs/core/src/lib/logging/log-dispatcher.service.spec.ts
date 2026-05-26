@@ -75,7 +75,7 @@ describe('LogDispatcher', () => {
                     level: 'info',
                     message: 'Test message',
                     context: 'TestContext',
-                })
+                }),
             );
         });
 
@@ -99,7 +99,7 @@ describe('LogDispatcher', () => {
             expect(mockProvider.log).toHaveBeenCalledWith(
                 expect.objectContaining({
                     data: { password: '[REDACTED]' },
-                })
+                }),
             );
         });
 
@@ -125,7 +125,7 @@ describe('LogDispatcher', () => {
             expect(mockProvider.log).toHaveBeenCalledWith(
                 expect.objectContaining({
                     url: expect.any(String),
-                })
+                }),
             );
         });
 
@@ -152,7 +152,7 @@ describe('LogDispatcher', () => {
 
             expect(console.error).toHaveBeenCalledWith(
                 expect.stringContaining('LogDispatcher: Error in provider'),
-                expect.any(Error)
+                expect.any(Error),
             );
 
             jest.restoreAllMocks();

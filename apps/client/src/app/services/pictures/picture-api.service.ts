@@ -53,7 +53,7 @@ export class PictureApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -69,7 +69,7 @@ export class PictureApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -82,7 +82,10 @@ export class PictureApiService {
             return of({ items: [], notFound: [] });
         }
 
-        assert(ids.length <= MAX_PICTURES_BATCH_SIZE, `getPicturesBatch: ids count ${ids.length} exceeds max ${MAX_PICTURES_BATCH_SIZE}`);
+        assert(
+            ids.length <= MAX_PICTURES_BATCH_SIZE,
+            `getPicturesBatch: ids count ${ids.length} exceeds max ${MAX_PICTURES_BATCH_SIZE}`,
+        );
 
         const params = new HttpParams().set('ids', ids.join(','));
 
@@ -105,16 +108,14 @@ export class PictureApiService {
      */
     updateTitle(id: number, title: string): Observable<PictureDto | PicturePendingDto> {
         return this.http
-            .patch<ApiResponse<PictureDto | PicturePendingDto>>(
-                `${this.apiUrl}/api/pictures/${id}`,
-                { pic_title: title },
-                { withCredentials: true }
-            )
+            .patch<
+                ApiResponse<PictureDto | PicturePendingDto>
+            >(`${this.apiUrl}/api/pictures/${id}`, { pic_title: title }, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -124,11 +125,9 @@ export class PictureApiService {
      */
     editPicture(id: number, formData: FormData): Observable<PictureDto | PicturePendingDto> {
         return this.http
-            .post<ApiResponse<PictureDto | PicturePendingDto>>(
-                `${this.apiUrl}/api/pictures/${id}/file`,
-                formData,
-                { withCredentials: true },
-            )
+            .post<
+                ApiResponse<PictureDto | PicturePendingDto>
+            >(`${this.apiUrl}/api/pictures/${id}/file`, formData, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -144,15 +143,14 @@ export class PictureApiService {
      */
     deletePicture(id: number): Observable<PictureDto | PicturePendingDto> {
         return this.http
-            .delete<ApiResponse<PictureDto | PicturePendingDto>>(
-                `${this.apiUrl}/api/pictures/${id}`,
-                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [409]) },
-            )
+            .delete<
+                ApiResponse<PictureDto | PicturePendingDto>
+            >(`${this.apiUrl}/api/pictures/${id}`, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [409]) })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -160,20 +158,17 @@ export class PictureApiService {
      * Get paginated list of pending picture changes
      */
     getPending(page = 1, pageSize = DEFAULT_PICTURES_PAGE_SIZE): Observable<PicturePendingListResponseDto> {
-        const params = new HttpParams()
-            .set('page', page.toString())
-            .set('size', pageSize.toString());
+        const params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
 
         return this.http
-            .get<ApiResponse<PicturePendingListResponseDto>>(
-                `${this.apiUrl}/api/pictures/pending`,
-                { params, withCredentials: true }
-            )
+            .get<
+                ApiResponse<PicturePendingListResponseDto>
+            >(`${this.apiUrl}/api/pictures/pending`, { params, withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 
@@ -182,10 +177,9 @@ export class PictureApiService {
      */
     getPicturePending(pictureId: number): Observable<readonly PicturePendingDto[]> {
         return this.http
-            .get<ApiResponse<{ readonly items: readonly PicturePendingDto[] }>>(
-                `${this.apiUrl}/api/pictures/${pictureId}/pending`,
-                { withCredentials: true },
-            )
+            .get<
+                ApiResponse<{ readonly items: readonly PicturePendingDto[] }>
+            >(`${this.apiUrl}/api/pictures/${pictureId}/pending`, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -199,11 +193,9 @@ export class PictureApiService {
      */
     approvePending(pendingId: number): Observable<void> {
         return this.http
-            .post<ApiResponse<null>>(
-                `${this.apiUrl}/api/pictures/pending/${pendingId}/approve`,
-                {},
-                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) },
-            )
+            .post<
+                ApiResponse<null>
+            >(`${this.apiUrl}/api/pictures/pending/${pendingId}/approve`, {}, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) })
             .pipe(map(() => undefined));
     }
 
@@ -212,11 +204,9 @@ export class PictureApiService {
      */
     rejectPending(pendingId: number): Observable<void> {
         return this.http
-            .post<ApiResponse<null>>(
-                `${this.apiUrl}/api/pictures/pending/${pendingId}/reject`,
-                {},
-                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) },
-            )
+            .post<
+                ApiResponse<null>
+            >(`${this.apiUrl}/api/pictures/pending/${pendingId}/reject`, {}, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) })
             .pipe(map(() => undefined));
     }
 
@@ -225,11 +215,9 @@ export class PictureApiService {
      */
     cancelPending(pendingId: number): Observable<void> {
         return this.http
-            .post<ApiResponse<null>>(
-                `${this.apiUrl}/api/pictures/pending/${pendingId}/cancel`,
-                {},
-                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) },
-            )
+            .post<
+                ApiResponse<null>
+            >(`${this.apiUrl}/api/pictures/pending/${pendingId}/cancel`, {}, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]) })
             .pipe(map(() => undefined));
     }
 
@@ -238,15 +226,14 @@ export class PictureApiService {
      */
     getPictureArticles(pictureId: number): Observable<readonly PictureArticleDto[]> {
         return this.http
-            .get<ApiResponse<{ readonly items: readonly PictureArticleDto[] }>>(
-                `${this.apiUrl}/api/pictures/${pictureId}/articles`,
-                { withCredentials: true }
-            )
+            .get<
+                ApiResponse<{ readonly items: readonly PictureArticleDto[] }>
+            >(`${this.apiUrl}/api/pictures/${pictureId}/articles`, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data.items;
-                })
+                }),
             );
     }
 }

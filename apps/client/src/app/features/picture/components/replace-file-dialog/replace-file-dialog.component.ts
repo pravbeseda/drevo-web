@@ -26,7 +26,11 @@ export class ReplaceFileDialogComponent {
 
     readonly titleControl = new FormControl(this.modalData.data.currentTitle, {
         nonNullable: true,
-        validators: [Validators.required, Validators.minLength(TITLE_MIN_LENGTH), Validators.maxLength(TITLE_MAX_LENGTH)],
+        validators: [
+            Validators.required,
+            Validators.minLength(TITLE_MIN_LENGTH),
+            Validators.maxLength(TITLE_MAX_LENGTH),
+        ],
     });
 
     confirm(): void {

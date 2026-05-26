@@ -17,11 +17,9 @@ export class HistoryCountsService {
     readonly counts = this._counts.asReadonly();
 
     loadCounts(): void {
-        this.countsApiService
-            .getHistoryCounts()
-            .subscribe({
-                next: counts => this._counts.set(counts),
-                error: error => this.logger.error('Failed to load history counts', error),
-            });
+        this.countsApiService.getHistoryCounts().subscribe({
+            next: counts => this._counts.set(counts),
+            error: error => this.logger.error('Failed to load history counts', error),
+        });
     }
 }

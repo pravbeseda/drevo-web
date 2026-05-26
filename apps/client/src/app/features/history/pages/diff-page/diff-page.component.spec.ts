@@ -34,7 +34,7 @@ const mockVersionPairs: VersionPairs = {
 
 function createMockDataService(
     pairs: VersionPairs | undefined = undefined,
-    error?: string
+    error?: string,
 ): Partial<DiffPageDataService> {
     return {
         isLoading: signal(false).asReadonly(),
@@ -188,11 +188,7 @@ describe('DiffPageComponent', () => {
 
         const createComponent = createComponentFactory({
             component: DiffPageComponent,
-            providers: [
-                mockLoggerProvider(),
-                mockProvider(StorageService),
-                provideRouter([]),
-            ],
+            providers: [mockLoggerProvider(), mockProvider(StorageService), provideRouter([])],
             detectChanges: false,
         });
 
@@ -231,11 +227,7 @@ describe('DiffPageComponent', () => {
 
         const createComponent = createComponentFactory({
             component: DiffPageComponent,
-            providers: [
-                mockLoggerProvider(),
-                mockProvider(StorageService),
-                provideRouter([]),
-            ],
+            providers: [mockLoggerProvider(), mockProvider(StorageService), provideRouter([])],
             detectChanges: false,
         });
 
@@ -282,11 +274,7 @@ describe('DiffPageComponent', () => {
     describe('validationResult', () => {
         const createComponent = createComponentFactory({
             component: DiffPageComponent,
-            providers: [
-                mockLoggerProvider(),
-                mockProvider(StorageService),
-                provideRouter([]),
-            ],
+            providers: [mockLoggerProvider(), mockProvider(StorageService), provideRouter([])],
             detectChanges: false,
         });
 

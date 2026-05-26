@@ -46,7 +46,7 @@ describe('IframeService - Browser Platform', () => {
             new MessageEvent('message', {
                 data: { action: 'loadContent', content: testContent },
                 origin: allowedOrigin,
-            })
+            }),
         );
     });
 
@@ -58,7 +58,7 @@ describe('IframeService - Browser Platform', () => {
             new MessageEvent('message', {
                 data: { article: { content: 'Should not emit' } },
                 origin: 'http://notallowed.com',
-            })
+            }),
         );
 
         setTimeout(() => {
@@ -75,7 +75,7 @@ describe('IframeService - Browser Platform', () => {
             new MessageEvent('message', {
                 data: {},
                 origin: allowedOrigin,
-            })
+            }),
         );
 
         setTimeout(() => {

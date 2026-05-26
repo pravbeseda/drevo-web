@@ -1,5 +1,9 @@
 import { expect, test } from '../../fixtures';
-import { getVersionNotification, getVersionNotificationPattern, getVersionUpdateButton } from '../../helpers/version-notification';
+import {
+    getVersionNotification,
+    getVersionNotificationPattern,
+    getVersionUpdateButton,
+} from '../../helpers/version-notification';
 import { LayoutPage } from '../../pages/layout.page';
 import { Page } from '@playwright/test';
 

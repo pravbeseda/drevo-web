@@ -17,13 +17,7 @@ const DEBOUNCE_TIME_MS = 500;
 
 @Component({
     selector: 'app-search',
-    imports: [
-        RouterLink,
-        TextInputComponent,
-        SpinnerComponent,
-        VirtualScrollerComponent,
-        VirtualScrollerItemDirective,
-    ],
+    imports: [RouterLink, TextInputComponent, SpinnerComponent, VirtualScrollerComponent, VirtualScrollerItemDirective],
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,7 +43,7 @@ export class SearchComponent implements OnInit {
             this.searchQuery().length > 0 &&
             !this.isLoading() &&
             this.totalResults() === 0 &&
-            this.searchResults().length === 0
+            this.searchResults().length === 0,
     );
 
     readonly trackByFn = (_index: number, item: ArticleSearchResult): number => item.id;
@@ -78,10 +72,10 @@ export class SearchComponent implements OnInit {
                         .pipe(
                             catchError(() => {
                                 return of({ items: [], total: 0 });
-                            })
+                            }),
                         );
                 }),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
                 this.searchResults.set([...response.items]);
@@ -113,7 +107,7 @@ export class SearchComponent implements OnInit {
                 catchError(() => {
                     return of({ items: [], total: 0 });
                 }),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
                 if (response.items.length > 0) {

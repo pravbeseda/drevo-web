@@ -84,7 +84,9 @@ describe('PicturesHistoryComponent', () => {
     it('should show items with inline error when recent fails but pending loaded', () => {
         mockService.hasItems.set(true);
         mockService.hasRecentError.set(true);
-        mockService.displayItems.set([{ type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } }]);
+        mockService.displayItems.set([
+            { type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } },
+        ]);
         mockService.displayTotalItems.set(1);
         spectator.detectChanges();
 
@@ -108,7 +110,9 @@ describe('PicturesHistoryComponent', () => {
         mockService.hasItems.set(true);
         mockService.hasPendingError.set(true);
         mockService.hasPendingItems.set(true);
-        mockService.displayItems.set([{ type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } }]);
+        mockService.displayItems.set([
+            { type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } },
+        ]);
         mockService.displayTotalItems.set(1);
         spectator.detectChanges();
 

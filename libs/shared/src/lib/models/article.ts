@@ -19,9 +19,10 @@ export interface ArticleVersion extends Article {
 }
 
 /**
- * Article approval status: -1 (rejected), 0 (pending), 1 (approved)
+ * Article approval status: -2 (cancelled by author), -1 (rejected), 0 (pending), 1 (approved)
  */
 export const ApprovalStatus = {
+    Cancelled: -2,
     Rejected: -1,
     Pending: 0,
     Approved: 1,
@@ -29,24 +30,27 @@ export const ApprovalStatus = {
 
 export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus];
 
-export type ApprovalClass = 'approved' | 'rejected' | 'pending';
+export type ApprovalClass = 'cancelled' | 'rejected' | 'pending' | 'approved';
 
 export const APPROVAL_CLASS: Record<ApprovalStatus, ApprovalClass> = {
-    [ApprovalStatus.Approved]: 'approved',
-    [ApprovalStatus.Pending]: 'pending',
+    [ApprovalStatus.Cancelled]: 'cancelled',
     [ApprovalStatus.Rejected]: 'rejected',
+    [ApprovalStatus.Pending]: 'pending',
+    [ApprovalStatus.Approved]: 'approved',
 };
 
 export const APPROVAL_ICONS: Record<ApprovalClass, string> = {
-    approved: 'check_circle',
-    pending: 'schedule',
+    cancelled: 'block',
     rejected: 'cancel',
+    pending: 'schedule',
+    approved: 'check_circle',
 };
 
 export const APPROVAL_TITLES: Record<ApprovalClass, string> = {
-    approved: 'Одобрено',
-    pending: 'На проверке',
+    cancelled: 'Отменена автором',
     rejected: 'Отклонено',
+    pending: 'На проверке',
+    approved: 'Одобрено',
 };
 
 export interface RenameArticleResponse {

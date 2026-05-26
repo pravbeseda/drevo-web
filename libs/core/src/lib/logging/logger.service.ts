@@ -19,7 +19,7 @@ export interface Logger {
 class ContextLogger implements Logger {
     constructor(
         private readonly loggerService: LoggerService,
-        private readonly context: string
+        private readonly context: string,
     ) {}
 
     debug(message: string, data?: unknown): void {

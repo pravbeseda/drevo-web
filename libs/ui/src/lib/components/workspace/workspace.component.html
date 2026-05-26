@@ -29,7 +29,10 @@
     }
 </div>
 
-<div class="workspace-tab-bar" role="tablist">
+<div
+    class="workspace-tab-bar"
+    role="tablist"
+>
     @for (tab of tabs(); track $index) {
         <button
             class="workspace-tab"
@@ -43,8 +46,16 @@
             [attr.aria-controls]="'workspace-panel-' + $index"
             (click)="selectTab($index)"
         >
-            <ui-icon [name]="tab.icon()" size="small" />
-            <span class="workspace-tab-label" data-testid="workspace-tab-label">{{ tab.label() }}</span>
+            <ui-icon
+                [name]="tab.icon()"
+                size="small"
+            />
+            <span
+                class="workspace-tab-label"
+                data-testid="workspace-tab-label"
+            >
+                {{ tab.label() }}
+            </span>
         </button>
     }
     <div class="workspace-tab-bar__trailing">

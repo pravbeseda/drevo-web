@@ -204,7 +204,7 @@ describe('StorageService (quota exceeded handling)', () => {
             expect(result).toBe(false);
             expect(mockLoggerContext.error).toHaveBeenCalledWith(
                 'localStorage quota exceeded for key "key"',
-                quotaError
+                quotaError,
             );
         });
 
@@ -219,7 +219,7 @@ describe('StorageService (quota exceeded handling)', () => {
             expect(result).toBe(false);
             expect(mockLoggerContext.error).toHaveBeenCalledWith(
                 'Failed to set localStorage value for key "key"',
-                genericError
+                genericError,
             );
         });
     });
@@ -236,7 +236,7 @@ describe('StorageService (quota exceeded handling)', () => {
             expect(result).toBe(false);
             expect(mockLoggerContext.error).toHaveBeenCalledWith(
                 'localStorage quota exceeded for key "key"',
-                quotaError
+                quotaError,
             );
         });
 
@@ -251,7 +251,7 @@ describe('StorageService (quota exceeded handling)', () => {
             expect(result).toBe(false);
             expect(mockLoggerContext.error).toHaveBeenCalledWith(
                 'Failed to set localStorage value for key "key"',
-                genericError
+                genericError,
             );
         });
     });

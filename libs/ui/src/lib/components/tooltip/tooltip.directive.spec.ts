@@ -6,7 +6,14 @@ import { TooltipDirective } from './tooltip.directive';
 
 @Component({
     imports: [TooltipDirective],
-    template: `<span uiTooltip="Подсказка" data-testid="host">Текст</span>`,
+    template: `
+        <span
+            uiTooltip="Подсказка"
+            data-testid="host"
+        >
+            Текст
+        </span>
+    `,
 })
 class HostComponent {}
 

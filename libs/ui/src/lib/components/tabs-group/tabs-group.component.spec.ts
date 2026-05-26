@@ -110,9 +110,7 @@ describe('TabsGroupComponent', () => {
     it('should render data-testid when testId is provided', () => {
         spectator.setInput('groups', [
             {
-                items: [
-                    { label: 'Tab', route: '/test', icon: 'article', testId: 'my-tab' },
-                ],
+                items: [{ label: 'Tab', route: '/test', icon: 'article', testId: 'my-tab' }],
             },
         ]);
         const link = spectator.query('.tab-link');

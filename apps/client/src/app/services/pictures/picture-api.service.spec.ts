@@ -282,7 +282,11 @@ describe('PictureApiService', () => {
 
             const req = httpController.expectOne('/api/pictures/123');
             req.flush(
-                { success: false, error: 'Иллюстрация используется в статьях', data: { articles: [{ id: 1, title: 'Статья' }] } },
+                {
+                    success: false,
+                    error: 'Иллюстрация используется в статьях',
+                    data: { articles: [{ id: 1, title: 'Статья' }] },
+                },
                 { status: 409, statusText: 'Conflict' },
             );
         });

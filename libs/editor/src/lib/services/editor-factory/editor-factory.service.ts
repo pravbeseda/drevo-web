@@ -54,9 +54,7 @@ export class EditorFactoryService {
                     if (v.docChanged) {
                         this.onContentChanged(v.state.doc.toString());
                     }
-                    const hasLintUpdate = v.transactions.some(tr =>
-                        tr.effects.some(e => e.is(setDiagnosticsEffect)),
-                    );
+                    const hasLintUpdate = v.transactions.some(tr => tr.effects.some(e => e.is(setDiagnosticsEffect)));
                     if (hasLintUpdate) {
                         let errors = 0;
                         let warnings = 0;

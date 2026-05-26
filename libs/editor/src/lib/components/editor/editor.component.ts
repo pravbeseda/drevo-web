@@ -46,9 +46,7 @@ function buildTooltip(action: ToolbarAction, isMac: boolean): string {
     if (!action.keyBinding) {
         return action.tooltip;
     }
-    const key = action.keyBinding
-        .replace('Mod', isMac ? '⌘' : 'Ctrl')
-        .replace(/-/g, isMac ? '' : '+');
+    const key = action.keyBinding.replace('Mod', isMac ? '⌘' : 'Ctrl').replace(/-/g, isMac ? '' : '+');
     return `${action.tooltip} (${key})`;
 }
 

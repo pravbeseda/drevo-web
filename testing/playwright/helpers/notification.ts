@@ -14,10 +14,7 @@ export function getNotification(page: Page, type?: NotificationType): Locator {
  * Call BEFORE the action that might trigger the notification.
  * Returns a function that resolves to `true` if the notification appeared at any point.
  */
-export async function watchForNotification(
-    page: Page,
-    type: NotificationType,
-): Promise<() => Promise<boolean>> {
+export async function watchForNotification(page: Page, type: NotificationType): Promise<() => Promise<boolean>> {
     const selector = `.mat-mdc-snack-bar-container.toast-${type}`;
     const key = `__notificationWatch_${type}_${Date.now()}`;
 
@@ -39,7 +36,7 @@ export async function watchForNotification(
     );
 
     return async () => {
-        return page.evaluate((k) => {
+        return page.evaluate(k => {
             const w = window as Record<string, unknown>;
             const cleanup = w[`${k}_cleanup`] as (() => void) | undefined;
             if (cleanup) cleanup();

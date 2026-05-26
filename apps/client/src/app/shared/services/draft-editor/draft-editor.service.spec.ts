@@ -1,6 +1,11 @@
 import { DraftEditorService } from './draft-editor.service';
 import { DraftStorageService, LoggerService } from '@drevo-web/core';
-import { MockDraftStorageService, mockDraftStorageProvider, mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import {
+    MockDraftStorageService,
+    mockDraftStorageProvider,
+    mockLoggerProvider,
+    MockLoggerService,
+} from '@drevo-web/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('DraftEditorService', () => {
@@ -29,7 +34,13 @@ describe('DraftEditorService', () => {
         });
 
         it('should return draft when it exists', async () => {
-            const draft = { userId: 'u1', route: '/articles/123/version/456/edit', title: 'Test', text: 'Draft text', time: 1000 };
+            const draft = {
+                userId: 'u1',
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'Draft text',
+                time: 1000,
+            };
             draftStorage.getByRoute.mockResolvedValue(draft);
 
             const result = await spectator.service.getDraft('/articles/123/version/456/edit');
@@ -66,17 +77,29 @@ describe('DraftEditorService', () => {
             jest.advanceTimersByTime(3000);
 
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
-            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/123/version/456/edit', title: 'Test', text: 'v3' });
+            expect(draftStorage.save).toHaveBeenCalledWith({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'v3',
+            });
         });
 
         it('should not save if text is same as last saved', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'same' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'same',
+            });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'same' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'same',
+            });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
         });
@@ -84,7 +107,11 @@ describe('DraftEditorService', () => {
         it('should not save after discardDraft is called', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'pending',
+            });
             spectator.service.discardDraft('/articles/123/version/456/edit');
             jest.advanceTimersByTime(3000);
 
@@ -94,25 +121,45 @@ describe('DraftEditorService', () => {
         it('should resume saving after onContentChanged following discardDraft', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'before' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'before',
+            });
             spectator.service.discardDraft('/articles/123/version/456/edit');
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).not.toHaveBeenCalled();
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'after' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'after',
+            });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
-            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/123/version/456/edit', title: 'Test', text: 'after' });
+            expect(draftStorage.save).toHaveBeenCalledWith({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'after',
+            });
         });
 
         it('should save again if text changes after previous save', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'first' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'first',
+            });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(1);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'second' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'second',
+            });
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).toHaveBeenCalledTimes(2);
         });
@@ -146,10 +193,18 @@ describe('DraftEditorService', () => {
         it('should save pending input immediately', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'pending',
+            });
             spectator.service.flush();
 
-            expect(draftStorage.save).toHaveBeenCalledWith({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            expect(draftStorage.save).toHaveBeenCalledWith({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'pending',
+            });
         });
 
         it('should not save when no pending input', () => {
@@ -161,7 +216,11 @@ describe('DraftEditorService', () => {
         it('should not save when discarded', () => {
             draftStorage.save.mockResolvedValue(undefined);
 
-            spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'pending' });
+            spectator.service.onContentChanged({
+                route: '/articles/123/version/456/edit',
+                title: 'Test',
+                text: 'pending',
+            });
             spectator.service.discardDraft('/articles/123/version/456/edit');
             spectator.service.flush();
 

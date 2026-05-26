@@ -166,7 +166,7 @@ describe('authGuard on server (SSR)', () => {
 
     it('should always allow access on server', () => {
         const result = runInInjectionContext(spectator.inject(EnvironmentInjector), () =>
-            authGuard({} as ActivatedRouteSnapshot, { url: '/some-page' } as RouterStateSnapshot)
+            authGuard({} as ActivatedRouteSnapshot, { url: '/some-page' } as RouterStateSnapshot),
         );
 
         expect(result).toBe(true);

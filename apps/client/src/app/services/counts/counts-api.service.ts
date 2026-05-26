@@ -17,7 +17,7 @@ export class CountsApiService {
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
                     return response.data;
-                })
+                }),
             );
     }
 }

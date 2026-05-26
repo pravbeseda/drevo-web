@@ -12,7 +12,7 @@ export class ConsoleLogProvider implements LogProvider {
 
     constructor(
         private readonly isProduction: boolean,
-        private readonly isBrowser: boolean
+        private readonly isBrowser: boolean,
     ) {}
 
     get isAvailable(): boolean {

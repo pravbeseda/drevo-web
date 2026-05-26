@@ -27,10 +27,7 @@ describe('PictureLightboxService', () => {
     const createService = createServiceFactory({
         service: PictureLightboxService,
         mocks: [PictureService, Location],
-        providers: [
-            mockLoggerProvider(),
-            { provide: WINDOW, useValue: window },
-        ],
+        providers: [mockLoggerProvider(), { provide: WINDOW, useValue: window }],
     });
 
     beforeEach(() => {

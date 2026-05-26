@@ -49,22 +49,8 @@ export const pairedBrackets: ValidationRule = {
 
         for (const line of lines) {
             matches.push(
-                ...findUnpairedInLine(
-                    line,
-                    offset,
-                    '(',
-                    ')',
-                    'Нет закрывающей скобки )',
-                    'Нет открывающей скобки (',
-                ),
-                ...findUnpairedInLine(
-                    line,
-                    offset,
-                    '{',
-                    '}',
-                    'Нет закрывающей скобки }',
-                    'Нет открывающей скобки {',
-                ),
+                ...findUnpairedInLine(line, offset, '(', ')', 'Нет закрывающей скобки )', 'Нет открывающей скобки ('),
+                ...findUnpairedInLine(line, offset, '{', '}', 'Нет закрывающей скобки }', 'Нет открывающей скобки {'),
             );
             offset += line.length + 1;
         }
