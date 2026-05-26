@@ -33,10 +33,18 @@ describe('isCancelVersionConflict', () => {
         expect(isCancelVersionConflict(err)).toBe(false);
     });
 
-    it('returns false when payload.approved is not a number', () => {
+    it('returns false when payload.approved is missing', () => {
         const err = new HttpErrorResponse({
             status: 409,
             error: { errorCode: 'INVALID_STATE', data: { versionId: 1, articleId: 2 } },
+        });
+        expect(isCancelVersionConflict(err)).toBe(false);
+    });
+
+    it('returns false when payload.approved is a number outside ApprovalStatus', () => {
+        const err = new HttpErrorResponse({
+            status: 409,
+            error: { errorCode: 'INVALID_STATE', data: { versionId: 1, articleId: 2, approved: 42 } },
         });
         expect(isCancelVersionConflict(err)).toBe(false);
     });

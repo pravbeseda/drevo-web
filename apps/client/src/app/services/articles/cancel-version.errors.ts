@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ApprovalStatus } from '@drevo-web/shared';
+import { ApprovalStatus, isApprovalStatus } from '@drevo-web/shared';
 
 export interface CancelVersionConflictPayload {
     readonly versionId: number;
@@ -14,5 +14,5 @@ export function isCancelVersionConflict(err: unknown): err is HttpErrorResponse 
         return false;
     }
     const body = err.error as { errorCode?: string; data?: { approved?: unknown } } | null;
-    return body?.errorCode === 'INVALID_STATE' && typeof body?.data?.approved === 'number';
+    return body?.errorCode === 'INVALID_STATE' && isApprovalStatus(body?.data?.approved);
 }
