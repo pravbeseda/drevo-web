@@ -1,15 +1,14 @@
 import { ArticleHistoryService, buildDisplayItems } from './article-history.service';
 import { ArticleService } from '../article.service';
+import { CancelVersionService } from '../cancel-version.service';
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { HttpErrorResponse } from '@angular/common/http';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { ApprovalStatus, ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
-import { ConfirmationService } from '@drevo-web/ui';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, NEVER, of, throwError } from 'rxjs';
 
 const mockUser: User = {
     id: 1,
@@ -117,7 +116,7 @@ describe('ArticleHistoryService', () => {
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [ArticleService, InworkService, NotificationService, ConfirmationService],
+        mocks: [ArticleService, InworkService, NotificationService, CancelVersionService],
         providers: [
             mockLoggerProvider(),
             {
@@ -707,73 +706,37 @@ describe('ArticleHistoryService', () => {
             spectator.service.init();
         });
 
-        it('does nothing when confirmation is dismissed', () => {
-            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
-            confirmation.open.mockReturnValue(of('cancel'));
-
-            spectator.service.cancelVersion(targetItem);
-
-            expect(articleService.cancelVersion).not.toHaveBeenCalled();
-        });
-
-        it('patches the item and shows success notification on success', () => {
-            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
-            const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
-            confirmation.open.mockReturnValue(of('confirm'));
-            articleService.cancelVersion.mockReturnValue(
+        it('delegates to CancelVersionService and patches the item with the emitted result', () => {
+            const cancelService = spectator.inject(CancelVersionService) as jest.Mocked<CancelVersionService>;
+            cancelService.cancelVersion.mockReturnValue(
                 of({ versionId: 42, articleId: 100, approved: ApprovalStatus.Cancelled }),
             );
 
             spectator.service.cancelVersion(targetItem);
 
-            expect(notification.success).toHaveBeenCalledWith('Версия отменена');
+            expect(cancelService.cancelVersion).toHaveBeenCalledWith(42);
             const versionItem = spectator.service
                 .displayItems()
                 .find(d => d.type === 'version' && d.data.versionId === 42);
-            expect(versionItem && versionItem.type === 'version' && versionItem.data.approved).toBe(
-                ApprovalStatus.Cancelled,
-            );
+            expect(versionItem?.type).toBe('version');
+            if (versionItem?.type === 'version') {
+                expect(versionItem.data.approved).toBe(ApprovalStatus.Cancelled);
+            }
         });
 
-        it('on 409 conflict: patches with payload approved and shows info', () => {
-            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
-            const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
-            confirmation.open.mockReturnValue(of('confirm'));
-            const conflictError = new HttpErrorResponse({
-                status: 409,
-                error: {
-                    errorCode: 'INVALID_STATE',
-                    data: { versionId: 42, articleId: 100, approved: ApprovalStatus.Approved },
-                },
-            });
-            articleService.cancelVersion.mockReturnValue(throwError(() => conflictError));
+        it('does not patch when the service stream completes empty', () => {
+            const cancelService = spectator.inject(CancelVersionService) as jest.Mocked<CancelVersionService>;
+            cancelService.cancelVersion.mockReturnValue(EMPTY);
 
             spectator.service.cancelVersion(targetItem);
 
-            expect(notification.info).toHaveBeenCalledWith('Версия уже не в статусе «На проверке»');
             const versionItem = spectator.service
                 .displayItems()
                 .find(d => d.type === 'version' && d.data.versionId === 42);
-            expect(versionItem && versionItem.type === 'version' && versionItem.data.approved).toBe(
-                ApprovalStatus.Approved,
-            );
-        });
-
-        it('on other error: shows error notification, no patch', () => {
-            const confirmation = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
-            const notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
-            confirmation.open.mockReturnValue(of('confirm'));
-            articleService.cancelVersion.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
-
-            spectator.service.cancelVersion(targetItem);
-
-            expect(notification.error).toHaveBeenCalledWith('Не удалось отменить версию');
-            const versionItem = spectator.service
-                .displayItems()
-                .find(d => d.type === 'version' && d.data.versionId === 42);
-            expect(versionItem && versionItem.type === 'version' && versionItem.data.approved).toBe(
-                ApprovalStatus.Pending,
-            );
+            expect(versionItem?.type).toBe('version');
+            if (versionItem?.type === 'version') {
+                expect(versionItem.data.approved).toBe(ApprovalStatus.Pending);
+            }
         });
     });
 });

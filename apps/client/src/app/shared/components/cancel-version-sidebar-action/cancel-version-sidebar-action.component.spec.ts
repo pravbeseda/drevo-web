@@ -1,14 +1,11 @@
-import { ArticleService } from '../../../services/articles/article.service';
+import { CancelVersionService } from '../../../services/articles/cancel-version.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
-import { HttpErrorResponse } from '@angular/common/http';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { NotificationService, SidebarService } from '@drevo-web/core';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { SidebarService } from '@drevo-web/core';
 import { ApprovalStatus, CancelVersionResult } from '@drevo-web/shared';
-import { ConfirmationService } from '@drevo-web/ui';
-import { of, throwError } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { CancelVersionSidebarActionComponent } from './cancel-version-sidebar-action.component';
 
 const mockVersion: VersionForModeration = {
@@ -37,120 +34,65 @@ const mockOtherUser = {
     permissions: { canEdit: true, canModerate: false, canAdmin: false },
 };
 
+function makeFactory(user: typeof mockAuthorUser | undefined) {
+    return createComponentFactory({
+        component: CancelVersionSidebarActionComponent,
+        providers: [mockProvider(SidebarService), { provide: AuthService, useValue: { user$: of(user) } }],
+        componentProviders: [mockProvider(CancelVersionService)],
+        detectChanges: false,
+    });
+}
+
 describe('CancelVersionSidebarActionComponent', () => {
     describe('author of pending version', () => {
+        const createComponent = makeFactory(mockAuthorUser);
         let spectator: Spectator<CancelVersionSidebarActionComponent>;
-
-        const createComponent = createComponentFactory({
-            component: CancelVersionSidebarActionComponent,
-            providers: [
-                mockProvider(SidebarService),
-                mockProvider(ArticleService),
-                mockProvider(ConfirmationService),
-                mockProvider(NotificationService),
-                mockLoggerProvider(),
-                { provide: AuthService, useValue: { user$: of(mockAuthorUser) } },
-            ],
-            detectChanges: false,
-        });
 
         beforeEach(() => {
             spectator = createComponent({ props: { version: mockVersion } });
         });
 
-        it('should be visible (canCancel=true)', () => {
+        it('is visible (canCancel=true)', () => {
             spectator.detectChanges();
             expect(spectator.component.canCancel()).toBe(true);
             expect(spectator.query(SidebarActionComponent)).toBeTruthy();
         });
 
-        it('does nothing when confirmation is cancelled', () => {
+        it('delegates to CancelVersionService and emits the result', () => {
             spectator.detectChanges();
-            const confirmation = spectator.inject(ConfirmationService);
-            const articleService = spectator.inject(ArticleService);
-            (confirmation.open as jest.Mock).mockReturnValue(of('cancel'));
-
-            spectator.component.onActivated();
-
-            expect(articleService.cancelVersion).not.toHaveBeenCalled();
-        });
-
-        it('emits result and shows success notification on success', () => {
-            spectator.detectChanges();
+            const cancelService = spectator.inject(CancelVersionService, true) as jest.Mocked<CancelVersionService>;
             const result: CancelVersionResult = {
                 versionId: 789,
                 articleId: 100,
                 approved: ApprovalStatus.Cancelled,
             };
-            (spectator.inject(ConfirmationService).open as jest.Mock).mockReturnValue(of('confirm'));
-            (spectator.inject(ArticleService).cancelVersion as jest.Mock).mockReturnValue(of(result));
+            cancelService.cancelVersion.mockReturnValue(of(result));
 
             const emitSpy = jest.fn();
             spectator.component.cancelled.subscribe(emitSpy);
 
             spectator.component.onActivated();
 
-            expect(spectator.inject(ArticleService).cancelVersion).toHaveBeenCalledWith(789);
-            expect(spectator.inject(NotificationService).success).toHaveBeenCalledWith('Версия отменена');
+            expect(cancelService.cancelVersion).toHaveBeenCalledWith(789);
             expect(emitSpy).toHaveBeenCalledWith(result);
         });
 
-        it('handles 409 conflict: emits payload, shows info notification', () => {
+        it('does not emit when service stream completes empty', () => {
             spectator.detectChanges();
-            const conflictError = new HttpErrorResponse({
-                status: 409,
-                error: {
-                    errorCode: 'INVALID_STATE',
-                    data: { versionId: 789, articleId: 100, approved: ApprovalStatus.Approved },
-                },
-            });
-            (spectator.inject(ConfirmationService).open as jest.Mock).mockReturnValue(of('confirm'));
-            (spectator.inject(ArticleService).cancelVersion as jest.Mock).mockReturnValue(throwError(() => conflictError));
+            const cancelService = spectator.inject(CancelVersionService, true) as jest.Mocked<CancelVersionService>;
+            cancelService.cancelVersion.mockReturnValue(EMPTY);
 
             const emitSpy = jest.fn();
             spectator.component.cancelled.subscribe(emitSpy);
 
             spectator.component.onActivated();
 
-            expect(spectator.inject(NotificationService).info).toHaveBeenCalledWith(
-                'Версия уже не в статусе «На проверке»',
-            );
-            expect(emitSpy).toHaveBeenCalledWith({
-                versionId: 789,
-                articleId: 100,
-                approved: ApprovalStatus.Approved,
-            });
-        });
-
-        it('handles other errors: shows error notification, no emit', () => {
-            spectator.detectChanges();
-            const error = new HttpErrorResponse({ status: 500 });
-            (spectator.inject(ConfirmationService).open as jest.Mock).mockReturnValue(of('confirm'));
-            (spectator.inject(ArticleService).cancelVersion as jest.Mock).mockReturnValue(throwError(() => error));
-
-            const emitSpy = jest.fn();
-            spectator.component.cancelled.subscribe(emitSpy);
-
-            spectator.component.onActivated();
-
-            expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('Не удалось отменить версию');
             expect(emitSpy).not.toHaveBeenCalled();
         });
     });
 
     describe('different author', () => {
-        const createComponent = createComponentFactory({
-            component: CancelVersionSidebarActionComponent,
-            providers: [
-                mockProvider(SidebarService),
-                mockProvider(ArticleService),
-                mockProvider(ConfirmationService),
-                mockProvider(NotificationService),
-                mockLoggerProvider(),
-                { provide: AuthService, useValue: { user$: of(mockOtherUser) } },
-            ],
-            detectChanges: false,
-        });
+        const createComponent = makeFactory(mockOtherUser);
 
         it('is hidden (canCancel=false)', () => {
             const spectator = createComponent({ props: { version: mockVersion } });
@@ -161,18 +103,7 @@ describe('CancelVersionSidebarActionComponent', () => {
     });
 
     describe('approved version', () => {
-        const createComponent = createComponentFactory({
-            component: CancelVersionSidebarActionComponent,
-            providers: [
-                mockProvider(SidebarService),
-                mockProvider(ArticleService),
-                mockProvider(ConfirmationService),
-                mockProvider(NotificationService),
-                mockLoggerProvider(),
-                { provide: AuthService, useValue: { user$: of(mockAuthorUser) } },
-            ],
-            detectChanges: false,
-        });
+        const createComponent = makeFactory(mockAuthorUser);
 
         it('is hidden when approved !== Pending', () => {
             const spectator = createComponent({
@@ -185,18 +116,7 @@ describe('CancelVersionSidebarActionComponent', () => {
     });
 
     describe('no user', () => {
-        const createComponent = createComponentFactory({
-            component: CancelVersionSidebarActionComponent,
-            providers: [
-                mockProvider(SidebarService),
-                mockProvider(ArticleService),
-                mockProvider(ConfirmationService),
-                mockProvider(NotificationService),
-                mockLoggerProvider(),
-                { provide: AuthService, useValue: { user$: of(undefined) } },
-            ],
-            detectChanges: false,
-        });
+        const createComponent = makeFactory(undefined);
 
         it('is hidden when no user', () => {
             const spectator = createComponent({ props: { version: mockVersion } });
