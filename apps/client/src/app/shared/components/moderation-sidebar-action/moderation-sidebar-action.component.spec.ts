@@ -253,6 +253,29 @@ describe('ModerationSidebarActionComponent', () => {
         });
     });
 
+    describe('cancelled version', () => {
+        const createComponent = createComponentFactory({
+            component: ModerationSidebarActionComponent,
+            providers: [
+                mockProvider(SidebarService),
+                {
+                    provide: AuthService,
+                    useValue: { user$: of(mockModeratorUser) },
+                },
+            ],
+            detectChanges: false,
+        });
+
+        it('hides moderation for cancelled version even for moderator', () => {
+            const spectator = createComponent({
+                props: { version: { ...mockVersion, approved: ApprovalStatus.Cancelled } },
+            });
+            spectator.detectChanges();
+            expect(spectator.component.canModerate()).toBe(false);
+            expect(spectator.query(SidebarActionComponent)).toBeFalsy();
+        });
+    });
+
     describe('no user', () => {
         const createComponent = createComponentFactory({
             component: ModerationSidebarActionComponent,
