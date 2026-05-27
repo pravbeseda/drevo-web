@@ -27,13 +27,17 @@ export class ArticleSidebarActionsComponent {
     readonly cancelled = output<CancelVersionResult>();
     readonly topicsChanged = output<ReadonlyArray<number>>();
 
-    readonly moderationPriority = computed<SidebarActionPriority>(() => {
+    private readonly hasTopics = computed(() => {
         const topics = this.topics();
-        const version = this.version();
-        const hasTopics = !!topics && topics.length > 0;
-        const isPending = version?.approved === ApprovalStatus.Pending;
-        return hasTopics && isPending ? 'primary' : 'secondary';
+        return !!topics && topics.length > 0;
     });
+
+    readonly moderationPriority = computed<SidebarActionPriority>(() => {
+        const isPending = this.version()?.approved === ApprovalStatus.Pending;
+        return this.hasTopics() && isPending ? 'primary' : 'secondary';
+    });
+
+    readonly moderationDisabled = computed(() => !this.hasTopics());
 
     private readonly notification = inject(NotificationService);
 

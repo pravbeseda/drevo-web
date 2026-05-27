@@ -30,6 +30,7 @@
     <app-moderation-sidebar-action
         [version]="v"
         [priority]="moderationPriority()"
+        [disabled]="moderationDisabled()"
         (moderated)="moderated.emit($event)"
     />
     <app-cancel-version-sidebar-action

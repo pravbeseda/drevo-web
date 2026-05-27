@@ -162,6 +162,35 @@ describe('ArticleSidebarActionsComponent', () => {
         });
     });
 
+    describe('moderationDisabled', () => {
+        it('should be true when topics are not provided', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.detectChanges();
+            expect(spectator.component.moderationDisabled()).toBe(true);
+        });
+
+        it('should be true when topics are empty', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.setInput('topics', []);
+            spectator.detectChanges();
+            expect(spectator.component.moderationDisabled()).toBe(true);
+        });
+
+        it('should be false when topics are present', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.setInput('topics', [1]);
+            spectator.detectChanges();
+            expect(spectator.component.moderationDisabled()).toBe(false);
+        });
+
+        it('should pass disabled state to moderation component', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.detectChanges();
+            const moderation = spectator.query(ModerationSidebarActionComponent);
+            expect(moderation?.disabled()).toBe(true);
+        });
+    });
+
     describe('openTableOfContents', () => {
         it('should show notification', () => {
             spectator.detectChanges();
