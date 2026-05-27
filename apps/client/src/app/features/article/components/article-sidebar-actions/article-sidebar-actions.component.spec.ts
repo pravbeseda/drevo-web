@@ -183,11 +183,19 @@ describe('ArticleSidebarActionsComponent', () => {
             expect(spectator.component.moderationDisabled()).toBe(false);
         });
 
-        it('should pass disabled state to moderation component', () => {
+        it('should pass disabled=true to moderation component when topics are empty', () => {
             spectator.setInput('version', mockVersion);
             spectator.detectChanges();
             const moderation = spectator.query(ModerationSidebarActionComponent);
             expect(moderation?.disabled()).toBe(true);
+        });
+
+        it('should pass disabled=false to moderation component when topics are present', () => {
+            spectator.setInput('version', mockVersion);
+            spectator.setInput('topics', [1]);
+            spectator.detectChanges();
+            const moderation = spectator.query(ModerationSidebarActionComponent);
+            expect(moderation?.disabled()).toBe(false);
         });
     });
 
