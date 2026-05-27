@@ -12,6 +12,7 @@ const PENDING_ARTICLE = createArticleVersionDto({
     title: 'Тестовая статья',
     content: '<p>Содержимое тестовой статьи</p>',
     approved: 0,
+    topics: [1],
 });
 
 const APPROVED_ARTICLE = createArticleVersionDto({
@@ -20,6 +21,16 @@ const APPROVED_ARTICLE = createArticleVersionDto({
     title: 'Тестовая статья',
     content: '<p>Содержимое тестовой статьи</p>',
     approved: 1,
+    topics: [1],
+});
+
+const PENDING_ARTICLE_NO_TOPICS = createArticleVersionDto({
+    articleId: ARTICLE_ID,
+    versionId: 420,
+    title: 'Тестовая статья',
+    content: '<p>Содержимое тестовой статьи</p>',
+    approved: 0,
+    topics: [],
 });
 
 test.describe('Article moderation', () => {
@@ -74,6 +85,21 @@ test.describe('Article moderation', () => {
             await article.moderationAction.click();
             await article.moderationRejectButton.click();
             await expect(getNotification(page, 'success')).toBeVisible();
+        });
+    });
+
+    test.describe('Disabled when no topics', () => {
+        test('moderation action is disabled when article has no topics', async ({ authenticatedPage: page }) => {
+            await bypassSsr(page, `**/articles/${ARTICLE_ID}`);
+            await mockAuthApi(page, mockUsers.moderator);
+            await mockArticleShow(page, ARTICLE_ID, PENDING_ARTICLE_NO_TOPICS);
+            article = new ArticlePage(page);
+            await page.goto(`/articles/${ARTICLE_ID}`);
+            await article.waitForReady();
+            await article.openMobileMenu();
+
+            await expect(article.moderationAction).toBeVisible();
+            await expect(article.moderationAction).toBeDisabled();
         });
     });
 
