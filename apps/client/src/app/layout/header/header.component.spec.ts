@@ -35,8 +35,8 @@ describe('HeaderComponent', () => {
     let spectator: Spectator<HeaderComponent>;
 
     const titleContextSignal = signal<TitleContext | undefined>(undefined);
+    const tabTitleSignal = signal<string | undefined>(undefined);
     const pageTitleSignal = signal('Древо');
-    const updateArticleTitleMock = jest.fn();
     const renameArticleMock = jest.fn();
     const successMock = jest.fn();
     const errorMock = jest.fn();
@@ -51,7 +51,7 @@ describe('HeaderComponent', () => {
             MockProvider(PageTitleStrategy, {
                 pageTitle: pageTitleSignal,
                 titleContext: titleContextSignal,
-                updateArticleTitle: updateArticleTitleMock,
+                tabTitle: tabTitleSignal,
             }),
             MockProvider(DrawerService, {
                 isOpen: signal(true),
@@ -77,9 +77,9 @@ describe('HeaderComponent', () => {
 
     beforeEach(() => {
         titleContextSignal.set(undefined);
+        tabTitleSignal.set(undefined);
         pageTitleSignal.set('Древо');
         mockWindowObj.getSelection.mockReturnValue({ isCollapsed: true });
-        updateArticleTitleMock.mockClear();
         renameArticleMock.mockClear();
         successMock.mockClear();
         errorMock.mockClear();
@@ -132,6 +132,14 @@ describe('HeaderComponent', () => {
             spectator = createComponent();
 
             expect(spectator.component.canRename()).toBe(true);
+        });
+
+        it('should be false when on an article tab (tabTitle is set)', () => {
+            titleContextSignal.set({ articleId: 1, title: 'Test' });
+            tabTitleSignal.set('История версий');
+            spectator = createComponent();
+
+            expect(spectator.component.canRename()).toBe(false);
         });
     });
 
@@ -209,7 +217,6 @@ describe('HeaderComponent', () => {
             spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
 
             expect(renameArticleMock).not.toHaveBeenCalled();
-            expect(updateArticleTitleMock).not.toHaveBeenCalled();
             expect(successMock).not.toHaveBeenCalled();
             expect(errorMock).not.toHaveBeenCalled();
             expect(spectator.component.titleControl.disabled).toBe(false);
@@ -220,7 +227,6 @@ describe('HeaderComponent', () => {
             spectator.dispatchFakeEvent('[data-testid="page-title-input"]', 'blur');
 
             expect(renameArticleMock).not.toHaveBeenCalled();
-            expect(updateArticleTitleMock).not.toHaveBeenCalled();
             expect(successMock).not.toHaveBeenCalled();
             expect(errorMock).not.toHaveBeenCalled();
             expect(spectator.component.titleControl.disabled).toBe(false);
@@ -259,14 +265,14 @@ describe('HeaderComponent', () => {
             expect(renameArticleMock).not.toHaveBeenCalled();
         });
 
-        it('should update title and show success notification on successful rename', () => {
+        it('should call renameArticle and show success notification on successful rename', () => {
             renameArticleMock.mockReturnValue(of({ articleId: 42, title: 'Новое' }));
 
             spectator.click('[data-testid="page-title"]');
             spectator.component.titleControl.setValue('Новое');
             spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
 
-            expect(updateArticleTitleMock).toHaveBeenCalledWith('Новое');
+            expect(renameArticleMock).toHaveBeenCalledWith(42, 'Новое');
             expect(successMock).toHaveBeenCalledWith('Статья переименована');
             expect(spectator.query('[data-testid="page-title-input"]')).toBeNull();
         });

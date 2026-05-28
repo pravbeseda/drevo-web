@@ -20,6 +20,7 @@ describe('AppComponent', () => {
             MockProvider(PageTitleStrategy, {
                 pageTitle: signal('Древо'),
                 titleContext: signal(undefined),
+                tabTitle: signal(undefined),
             }),
             MockProvider(AppUpdateService, {
                 chunkLoadFailed: signal(false).asReadonly(),

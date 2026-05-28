@@ -1,4 +1,3 @@
-import { createArticleTabTitleResolver } from './resolvers/article-tab-title.resolver';
 import { articleVersionResolver } from './resolvers/article-version.resolver';
 import { articleResolver } from './resolvers/article.resolver';
 import { ArticlePageService } from './services/article-page.service';
@@ -64,7 +63,7 @@ export const ARTICLE_ROUTES: Route[] = [
             },
             {
                 path: 'news',
-                title: createArticleTabTitleResolver('Новости'),
+                title: 'Новости',
                 loadComponent: () =>
                     import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
                         m => m.ArticleStubTabComponent,
@@ -73,7 +72,7 @@ export const ARTICLE_ROUTES: Route[] = [
             },
             {
                 path: 'forum',
-                title: createArticleTabTitleResolver('Обсуждение'),
+                title: 'Обсуждение',
                 loadComponent: () =>
                     import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
                         m => m.ArticleStubTabComponent,
@@ -82,7 +81,7 @@ export const ARTICLE_ROUTES: Route[] = [
             },
             {
                 path: 'history',
-                title: createArticleTabTitleResolver('История версий'),
+                title: 'История версий',
                 loadComponent: () =>
                     import('./components/article-versions/article-versions.component').then(
                         m => m.ArticleVersionsComponent,
@@ -90,7 +89,7 @@ export const ARTICLE_ROUTES: Route[] = [
             },
             {
                 path: 'linkedhere',
-                title: createArticleTabTitleResolver('Кто ссылается'),
+                title: 'Кто ссылается',
                 loadComponent: () =>
                     import('./pages/article-page/tabs/article-linkedhere-tab/article-linkedhere-tab.component').then(
                         m => m.ArticleLinkedHereTabComponent,
