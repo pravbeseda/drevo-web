@@ -1,5 +1,5 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import {
     ApprovalStatus,
     ArticleHistoryResponseDto,
@@ -725,6 +725,27 @@ describe('ArticleService', () => {
                 expect(result).toEqual({ articleId: 123, title: 'New Title' });
                 done();
             });
+        });
+
+        it('should emit on renamed$ when rename succeeds', done => {
+            articleApiService.renameArticle.mockReturnValue(of(mockRenameResponse));
+
+            spectator.service.renamed$.subscribe(event => {
+                expect(event).toEqual({ articleId: 123, title: 'New Title' });
+                done();
+            });
+
+            spectator.service.renameArticle(123, 'New Title').subscribe();
+        });
+
+        it('should not emit on renamed$ when rename fails', () => {
+            articleApiService.renameArticle.mockReturnValue(throwError(() => new Error('boom')));
+            const events: unknown[] = [];
+            spectator.service.renamed$.subscribe(e => events.push(e));
+
+            spectator.service.renameArticle(123, 'New Title').subscribe({ error: () => undefined });
+
+            expect(events).toEqual([]);
         });
     });
 

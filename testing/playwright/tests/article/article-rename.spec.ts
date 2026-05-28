@@ -3,6 +3,7 @@ import {
     expect,
     mockAuthApi,
     mockArticleShow,
+    mockArticleHistory,
     mockArticleRename,
     mockArticleRenameConflict,
     mockArticleRenameValidationError,
@@ -10,8 +11,9 @@ import {
     bypassSsr,
 } from '../../fixtures';
 import { getNotification } from '../../helpers/notification';
-import { createArticleVersionDto } from '../../mocks/articles';
+import { createArticleHistoryResponse, createArticleVersionDto } from '../../mocks/articles';
 import { mockUsers } from '../../mocks/users';
+import { ArticlePage } from '../../pages/article.page';
 import { LayoutPage } from '../../pages/layout.page';
 
 const ARTICLE_ID = 42;
@@ -104,6 +106,22 @@ test.describe('Article rename', () => {
             await expect(page).toHaveTitle('Новое название - Древо');
         });
 
+        test('preserves renamed title when switching to a tab', async ({ authenticatedPage: page }) => {
+            await mockArticleRename(page, ARTICLE_ID, 'Новое название', 'Старое название');
+            await mockArticleHistory(page, ARTICLE_ID, createArticleHistoryResponse([]));
+
+            await layout.pageTitle.click();
+            await layout.pageTitleInput.fill('Новое название');
+            await layout.pageTitleInput.press('Enter');
+            await expect(page).toHaveTitle('Новое название - Древо');
+
+            const article = new ArticlePage(page);
+            await article.tabHistory.click();
+
+            await expect(layout.pageTitle).toHaveText('История версий: Новое название');
+            await expect(page).toHaveTitle('История версий: Новое название - Древо');
+        });
+
         test('focuses and selects input content on open', async () => {
             await layout.pageTitle.click();
 
@@ -119,6 +137,18 @@ test.describe('Article rename', () => {
 
             const value = await layout.pageTitleInput.inputValue();
             expect(value.length).toBe(255);
+        });
+
+        test('title is not editable on an article tab', async ({ authenticatedPage: page }) => {
+            await mockArticleHistory(page, ARTICLE_ID, createArticleHistoryResponse([]));
+
+            const article = new ArticlePage(page);
+            await article.tabHistory.click();
+            await expect(layout.pageTitle).toHaveText('История версий: Старое название');
+            await expect(layout.pageTitle).not.toHaveClass(/page-title--editable/);
+
+            await layout.pageTitle.click();
+            await expect(layout.pageTitleInput).not.toBeVisible();
         });
 
         test('editing disappears after navigating away from article', async ({ authenticatedPage: page }) => {
