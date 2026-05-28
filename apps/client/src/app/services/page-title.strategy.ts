@@ -1,4 +1,5 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { ArticleService } from './articles';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
@@ -6,6 +7,7 @@ import { LoggerService } from '@drevo-web/core';
 const DEFAULT_TITLE = 'Древо';
 const TITLE_SUFFIX = ' - Древо';
 const MAX_TITLE_LENGTH = 50;
+const ARTICLE_TITLE_SOURCE = 'article';
 
 export interface TitleContext {
     readonly articleId: number;
@@ -16,44 +18,94 @@ export interface TitleContext {
 export class PageTitleStrategy extends TitleStrategy {
     private readonly title = inject(Title);
     private readonly logger = inject(LoggerService).withContext('PageTitleStrategy');
-    private readonly _pageTitle = signal(DEFAULT_TITLE);
-    readonly pageTitle = this._pageTitle.asReadonly();
+    private readonly articleService = inject(ArticleService);
+
+    private readonly _tabTitle = signal<string | undefined>(undefined);
     private readonly _titleContext = signal<TitleContext | undefined>(undefined);
+    private readonly _titlePrefix = signal<string | undefined>(undefined);
+
     readonly titleContext = this._titleContext.asReadonly();
+    readonly tabTitle = this._tabTitle.asReadonly();
+
+    readonly pageTitle = computed(() => {
+        const tab = this._tabTitle();
+        const ctx = this._titleContext();
+        if (tab && ctx) return `${tab}: ${ctx.title}`;
+        if (tab) return tab;
+        if (ctx) return ctx.title;
+        return DEFAULT_TITLE;
+    });
+
+    constructor() {
+        super();
+        this.articleService.renamed$.subscribe(({ articleId, title }) => {
+            const ctx = this._titleContext();
+            if (ctx?.articleId === articleId) {
+                this._titleContext.set({ articleId, title });
+                this.applyDocumentTitle();
+            }
+        });
+    }
 
     override updateTitle(snapshot: RouterStateSnapshot): void {
-        const resolved = this.resolveTitle(snapshot);
+        const chain = this.getRouteChain(snapshot);
+        const source = this.findTitleSource(chain);
 
-        if (resolved) {
-            this._pageTitle.set(resolved.title);
-            const truncated = this.truncateTitle(resolved.title);
-            const titlePrefix = resolved.route.data['titlePrefix'] as string | undefined;
-            const docTitle = titlePrefix ? `${titlePrefix} ${truncated}` : truncated;
-            this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
-
-            const titleSource = resolved.route.data['titleSource'] as string | undefined;
-            if (titleSource === 'article') {
-                const articleData = resolved.route.data['article'];
-                if (this.isTitleContext(articleData)) {
+        if (source?.key === ARTICLE_TITLE_SOURCE) {
+            const articleData = source.route.data[source.key];
+            if (this.isTitleContext(articleData)) {
+                const current = this._titleContext();
+                // Preserve current context if articleId matches — it may hold a
+                // freshly renamed title that route snapshot data doesn't yet reflect.
+                if (!current || current.articleId !== articleData.articleId) {
                     this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
-                } else {
-                    // articleData === undefined is a normal failure path from articleResolver
-                    // (bad id, 404, network error) — don't warn on it.
-                    if (articleData !== undefined) {
-                        this.logger.warn('Article route data does not match TitleContext shape', { articleData });
-                    }
-                    this._titleContext.set(undefined);
                 }
             } else {
+                // articleData === undefined is a normal failure path from articleResolver
+                // (bad id, 404, network error) — don't warn on it.
+                if (articleData !== undefined) {
+                    this.logger.warn('Article route data does not match TitleContext shape', { articleData });
+                }
                 this._titleContext.set(undefined);
             }
-        } else {
-            this._pageTitle.set(DEFAULT_TITLE);
-            this.title.setTitle(DEFAULT_TITLE);
+            this._tabTitle.set(this.buildTitle(snapshot));
+        } else if (source) {
+            const data = source.route.data[source.key] as { readonly title?: string } | undefined;
             this._titleContext.set(undefined);
+            this._tabTitle.set(data?.title);
+        } else {
+            this._titleContext.set(undefined);
+            this._tabTitle.set(this.buildTitle(snapshot));
         }
 
-        this.logger.debug('Title updated', { title: resolved?.title ?? DEFAULT_TITLE });
+        const leaf = chain[chain.length - 1];
+        this._titlePrefix.set(leaf?.data['titlePrefix'] as string | undefined);
+
+        this.applyDocumentTitle();
+        this.logger.debug('Title updated', { title: this.pageTitle() });
+    }
+
+    private applyDocumentTitle(): void {
+        const tab = this._tabTitle();
+        const ctx = this._titleContext();
+        const prefix = this._titlePrefix();
+
+        let docTitle: string;
+        if (tab && ctx) {
+            docTitle = `${tab}: ${this.truncateTitle(ctx.title)}`;
+        } else if (tab) {
+            docTitle = tab;
+        } else if (ctx) {
+            docTitle = this.truncateTitle(ctx.title);
+        } else {
+            this.title.setTitle(DEFAULT_TITLE);
+            return;
+        }
+
+        if (prefix) {
+            docTitle = `${prefix} ${docTitle}`;
+        }
+        this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
     }
 
     private isTitleContext(value: unknown): value is TitleContext {
@@ -65,36 +117,13 @@ export class PageTitleStrategy extends TitleStrategy {
         );
     }
 
-    updateArticleTitle(newTitle: string): void {
-        this._pageTitle.set(newTitle);
-        const ctx = this._titleContext();
-        if (ctx) {
-            this._titleContext.set({ ...ctx, title: newTitle });
-        }
-        const truncated = this.truncateTitle(newTitle);
-        this.title.setTitle(`${truncated}${TITLE_SUFFIX}`);
-    }
-
-    /**
-     * Resolve page title and the route it came from.
-     * First tries standard `buildTitle()` (explicit `title` on the route).
-     * If no explicit title, searches route chain for `titleSource` data key
-     * and reads title from the resolved data object (e.g. `data['article'].title`).
-     */
-    private resolveTitle(
-        snapshot: RouterStateSnapshot,
-    ): { readonly title: string; readonly route: ActivatedRouteSnapshot } | undefined {
-        const builtTitle = this.buildTitle(snapshot);
-        if (builtTitle) {
-            const chain = this.getRouteChain(snapshot);
-            return { title: builtTitle, route: chain[chain.length - 1] };
-        }
-
-        const result = this.findRouteData(snapshot, 'titleSource');
-        if (result) {
-            const resolved = result.route.data[result.value as string] as { readonly title: string } | undefined;
-            if (resolved?.title) {
-                return { title: resolved.title, route: result.route };
+    private findTitleSource(
+        chain: ActivatedRouteSnapshot[],
+    ): { readonly key: string; readonly route: ActivatedRouteSnapshot } | undefined {
+        for (let i = chain.length - 1; i >= 0; i--) {
+            const key = chain[i].data['titleSource'] as string | undefined;
+            if (key !== undefined) {
+                return { key, route: chain[i] };
             }
         }
         return undefined;
@@ -105,24 +134,6 @@ export class PageTitleStrategy extends TitleStrategy {
             return title;
         }
         return title.slice(0, MAX_TITLE_LENGTH) + '…';
-    }
-
-    /**
-     * Search for a data key from leaf route up to root.
-     * Returns the value and the route where it was found.
-     */
-    private findRouteData(
-        snapshot: RouterStateSnapshot,
-        key: string,
-    ): { readonly value: unknown; readonly route: ActivatedRouteSnapshot } | undefined {
-        const chain = this.getRouteChain(snapshot);
-        for (let i = chain.length - 1; i >= 0; i--) {
-            const value = chain[i].data[key];
-            if (value !== undefined) {
-                return { value, route: chain[i] };
-            }
-        }
-        return undefined;
     }
 
     private getRouteChain(snapshot: RouterStateSnapshot): ActivatedRouteSnapshot[] {

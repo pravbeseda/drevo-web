@@ -29,8 +29,8 @@ import {
     VersionForDiffDto,
     VersionPairs,
 } from '@drevo-web/shared';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 /**
  * Main service for article-related operations.
@@ -45,6 +45,9 @@ import { map } from 'rxjs/operators';
 export class ArticleService {
     private readonly articleApiService = inject(ArticleApiService);
     private readonly logger = inject(LoggerService).withContext('ArticleService');
+
+    private readonly _renamedSubject = new Subject<RenameArticleResponse>();
+    readonly renamed$ = this._renamedSubject.asObservable();
 
     /**
      * Get article by ID.
@@ -202,6 +205,7 @@ export class ArticleService {
                 });
                 return { articleId: dto.articleId, title: dto.title };
             }),
+            tap(result => this._renamedSubject.next(result)),
         );
     }
 

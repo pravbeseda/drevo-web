@@ -1,13 +1,26 @@
+import { ArticleService } from '../../../services/articles';
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { ApprovalStatus, ArticleVersion } from '@drevo-web/shared';
 
 @Injectable()
 export class ArticlePageService {
     private readonly logger = inject(LoggerService).withContext('ArticlePageService');
+    private readonly articleService = inject(ArticleService);
 
     private readonly _article = signal<ArticleVersion | undefined>(undefined);
     private readonly _error = signal<string | undefined>(undefined);
+
+    constructor() {
+        this.articleService.renamed$.pipe(takeUntilDestroyed()).subscribe(({ articleId, title }) => {
+            const current = this._article();
+            if (current?.articleId === articleId && current.title !== title) {
+                this._article.set({ ...current, title });
+                this.logger.info('Article title synced from rename event', { articleId, title });
+            }
+        });
+    }
 
     readonly article = this._article.asReadonly();
     readonly error = this._error.asReadonly();

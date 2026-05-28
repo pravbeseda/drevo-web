@@ -59,7 +59,8 @@ export class HeaderComponent {
     private readonly user = toSignal(this.authService.user$);
     readonly canRename = computed(() => {
         const ctx = this.pageTitleStrategy.titleContext();
-        return !!ctx && (this.user()?.permissions.canModerate ?? false);
+        const tab = this.pageTitleStrategy.tabTitle();
+        return !!ctx && !tab && (this.user()?.permissions.canModerate ?? false);
     });
 
     readonly titleControl = new FormControl('', { nonNullable: true });
@@ -146,12 +147,11 @@ export class HeaderComponent {
             .renameArticle(ctx.articleId, value)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: result => {
+                next: () => {
                     this._isSavingTitle.set(false);
                     this._isEditingTitle.set(false);
                     this._editingArticleId.set(undefined);
                     this.titleControl.enable();
-                    this.pageTitleStrategy.updateArticleTitle(result.title);
                     this.notificationService.success('Статья переименована');
                 },
                 error: (err: unknown) => {
