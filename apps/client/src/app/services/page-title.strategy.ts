@@ -1,5 +1,6 @@
 import { ArticleService } from './articles';
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
@@ -38,7 +39,7 @@ export class PageTitleStrategy extends TitleStrategy {
 
     constructor() {
         super();
-        this.articleService.renamed$.subscribe(({ articleId, title }) => {
+        this.articleService.renamed$.pipe(takeUntilDestroyed()).subscribe(({ articleId, title }) => {
             const ctx = this._titleContext();
             if (ctx?.articleId === articleId) {
                 this._titleContext.set({ articleId, title });

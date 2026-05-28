@@ -106,7 +106,7 @@ export class HeaderComponent {
         const ctx = this.pageTitleStrategy.titleContext();
         if (!ctx) return;
 
-        this.titleControl.setValue(this.pageTitle());
+        this.titleControl.setValue(ctx.title);
         this._editingArticleId.set(ctx.articleId);
         this._isEditingTitle.set(true);
         this.logger.info('Title edit started', { articleId: ctx.articleId });
