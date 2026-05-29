@@ -4,7 +4,7 @@ import {
     mockPictureDetail,
     mockPictureArticles,
     mockPicturePending,
-    mockPictureThumbs,
+    mockPictureImages,
     bypassSsr,
 } from '../../fixtures';
 import { getTooltip } from '../../helpers/tooltip';
@@ -27,7 +27,7 @@ test.describe('Picture lightbox', () => {
 
     test.beforeEach(async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID);

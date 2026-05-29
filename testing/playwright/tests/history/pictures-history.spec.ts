@@ -7,7 +7,7 @@ import {
     mockPicturesPendingList,
     mockPicturesPendingEmpty,
     mockPicturesPendingError,
-    mockPictureThumbs,
+    mockPictureImages,
     mockPictureDetail,
     mockPictureArticles,
     mockPicturePending,
@@ -24,7 +24,7 @@ test.describe('Pictures history page', () => {
         ];
         await mockPicturesPendingEmpty(page);
         await mockPicturesApi(page, createPicturesListResponse(pictures));
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -69,7 +69,7 @@ test.describe('Pictures history page', () => {
             }),
         ]);
         await mockPicturesEmpty(page);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -91,7 +91,7 @@ test.describe('Pictures history page', () => {
             }),
         ]);
         await mockPicturesEmpty(page);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -119,7 +119,7 @@ test.describe('Pictures history page', () => {
             }),
         ]);
         await mockPicturesEmpty(page);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -143,7 +143,7 @@ test.describe('Pictures history page', () => {
             page,
             createPicturesListResponse([createPictureDto({ pic_id: 20, pic_title: 'Недавняя' })]),
         );
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -170,7 +170,7 @@ test.describe('Pictures history page', () => {
             }),
         ]);
         await mockPicturesEmpty(page);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -192,7 +192,7 @@ test.describe('Pictures history page', () => {
             }),
         ]);
         await mockPicturesEmpty(page);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, createPictureDto({ pic_id: PICTURE_ID }));
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, []);
@@ -211,7 +211,7 @@ test.describe('Pictures history page', () => {
             page,
             createPicturesListResponse([createPictureDto({ pic_id: 1, pic_title: 'Недавняя' })]),
         );
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
 
         await page.goto('/history/pictures');
         const history = new PicturesHistoryPage(page);
@@ -230,7 +230,7 @@ test.describe('Pictures history page', () => {
             page,
             createPicturesListResponse([createPictureDto({ pic_id: PICTURE_ID, pic_title: 'Click me' })]),
         );
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, createPictureDto({ pic_id: PICTURE_ID }));
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, []);

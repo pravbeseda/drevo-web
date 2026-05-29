@@ -8,7 +8,7 @@ import {
     mockPicturePending,
     mockPictureUpdateTitle,
     mockPictureUpdateTitlePending,
-    mockPictureThumbs,
+    mockPictureImages,
     bypassSsr,
 } from '../../fixtures';
 import { createPictureDto, createPictureArticleDto } from '../../mocks/pictures';
@@ -29,7 +29,7 @@ test.describe('Picture detail', () => {
     test.describe('Display', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
             await mockPicturePending(page, PICTURE_ID);
@@ -58,7 +58,7 @@ test.describe('Picture detail', () => {
     test.describe('Articles section', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPicturePending(page, PICTURE_ID);
         });
@@ -104,7 +104,7 @@ test.describe('Picture detail', () => {
     test.describe('Title editing', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
             await mockPicturePending(page, PICTURE_ID);
@@ -139,7 +139,7 @@ test.describe('Picture detail', () => {
     test.describe('Error states', () => {
         test('shows not-found error for non-existent picture', async ({ authenticatedPage: page }) => {
             await bypassSsr(page, '**/pictures/999');
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureNotFound(page, 999);
             detail = new PictureDetailPage(page);
             await page.goto('/pictures/999');
@@ -149,7 +149,7 @@ test.describe('Picture detail', () => {
 
         test('shows load error for server failure', async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetailError(page, PICTURE_ID);
             detail = new PictureDetailPage(page);
             await page.goto(`/pictures/${PICTURE_ID}`);
@@ -159,7 +159,7 @@ test.describe('Picture detail', () => {
 
         test('shows not-found for invalid ID', async ({ authenticatedPage: page }) => {
             await bypassSsr(page, '**/pictures/abc');
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             detail = new PictureDetailPage(page);
             await page.goto('/pictures/abc');
 
@@ -176,7 +176,7 @@ test.describe('Picture detail', () => {
                 pic_height: null,
             });
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, noDimPicture);
             await mockPictureArticles(page, PICTURE_ID, []);
             detail = new PictureDetailPage(page);

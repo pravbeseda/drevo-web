@@ -7,7 +7,7 @@ import {
     mockPictureReplaceFile,
     mockPictureReplaceFilePending,
     mockPictureReplaceFileError,
-    mockPictureThumbs,
+    mockPictureImages,
     bypassSsr,
 } from '../../fixtures';
 import { createPictureDto } from '../../mocks/pictures';
@@ -39,7 +39,7 @@ test.describe('Picture detail — file replacement', () => {
 
     test.beforeEach(async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID);

@@ -1,4 +1,4 @@
-import { test, expect, mockPicturesApi, mockPictureThumbs } from '../../fixtures';
+import { test, expect, mockPicturesApi, mockPictureImages } from '../../fixtures';
 import { getReloadPrompt } from '../../helpers/reload-prompt';
 import { LayoutPage } from '../../pages/layout.page';
 
@@ -44,7 +44,7 @@ test.describe('Chunk reload prompt', () => {
 
         // Restore network and the mocks needed for the reloaded page.
         await page.unroute('**/chunk-*.js');
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPicturesApi(page);
 
         // Click "Обновить" → full page reload.
@@ -55,7 +55,7 @@ test.describe('Chunk reload prompt', () => {
     });
 
     test('does not show overlay on normal navigation', async ({ authenticatedPage: page, isMobile }) => {
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPicturesApi(page);
 
         const layout = new LayoutPage(page);

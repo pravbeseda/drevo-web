@@ -7,7 +7,7 @@ import {
     mockPictureArticles,
     mockPictureDetail,
     mockPicturePending,
-    mockPictureThumbs,
+    mockPictureImages,
 } from '../../fixtures';
 import { createArticleVersionDto, createPictureContentHtml, createPictureDto } from '../../mocks';
 import { ArticlePage } from '../../pages/article.page';
@@ -39,7 +39,7 @@ test.describe('Article pictures', () => {
         const context = page.context();
         await bypassSsr(context, `**/pictures/${PICTURE_ID}`);
         await mockAuthApi(context);
-        await mockPictureThumbs(context);
+        await mockPictureImages(context);
         await mockPictureDetail(context, PICTURE_ID, PICTURE);
         await mockPictureArticles(context, PICTURE_ID, []);
         await mockPicturePending(context, PICTURE_ID);

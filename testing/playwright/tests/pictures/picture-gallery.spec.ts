@@ -5,7 +5,7 @@ import {
     mockPicturesEmpty,
     mockPicturesError,
     mockPicturesSearch,
-    mockPictureThumbs,
+    mockPictureImages,
 } from '../../fixtures';
 import { apiSuccess, createPictureDtoList, createPicturesListResponse } from '../../mocks';
 import { PictureGalleryPage } from '../../pages/picture-gallery.page';
@@ -16,7 +16,7 @@ test.describe('Picture gallery', () => {
 
     test.describe('Gallery display', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPicturesApi(page);
             gallery = new PictureGalleryPage(page);
             await page.goto('/pictures');
@@ -43,7 +43,7 @@ test.describe('Picture gallery', () => {
 
     test.describe('Search', () => {
         test('shows empty state when search has no results', async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPicturesApi(page);
             gallery = new PictureGalleryPage(page);
             await page.goto('/pictures');
@@ -61,7 +61,7 @@ test.describe('Picture gallery', () => {
         });
 
         test('shows results when search matches', async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPicturesApi(page);
             gallery = new PictureGalleryPage(page);
             await page.goto('/pictures');
@@ -84,7 +84,7 @@ test.describe('Picture gallery', () => {
         test('shows empty state when no pictures and search is active', async ({ authenticatedPage: page }) => {
             // The showNoResults computed requires searchQuery.length > 0
             // On initial load with empty query, neither gallery nor empty is shown
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPicturesEmpty(page);
             gallery = new PictureGalleryPage(page);
             await page.goto('/pictures');
@@ -100,7 +100,7 @@ test.describe('Picture gallery', () => {
 
     test.describe('Error handling', () => {
         test('does not crash on server error — shows no results', async ({ authenticatedPage: page }) => {
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPicturesError(page);
             gallery = new PictureGalleryPage(page);
             await page.goto('/pictures');
@@ -162,7 +162,7 @@ async function setupPaginatedGallery(
     const page2Items = createPictureDtoList(page2Count, firstPageSize + 1);
     const page2Response = createPicturesListResponse(page2Items, { total, page: 2, totalPages: 2 });
 
-    await mockPictureThumbs(page);
+    await mockPictureImages(page);
 
     await page.route(/\/api\/pictures(\?.*)?$/, route => {
         const url = new URL(route.request().url());
