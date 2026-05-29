@@ -242,7 +242,7 @@ describe('ArticleContentComponent', () => {
         it('should open lightbox for legacy picture link with .html suffix in source', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img class="noborder" src="/images/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -256,7 +256,7 @@ describe('ArticleContentComponent', () => {
         it('should open lightbox when clicking image inside .pic without .html suffix', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/pictures/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/images/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -270,7 +270,7 @@ describe('ArticleContentComponent', () => {
         it('should open lightbox when clicking anywhere inside .pic', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/456"><img src="/pictures/thumbs/001/000456.jpg" /></a></td></tr><tr><td class="picdesc">Подпись</td></tr></table>',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/456"><img src="/images/thumbs/001/000456.jpg" /></a></td></tr><tr><td class="picdesc">Подпись</td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -301,7 +301,7 @@ describe('ArticleContentComponent', () => {
         it('should strip .html suffix from picture hrefs in rendered DOM', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img src="/pictures/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>',
+                '<table class="pic"><tr><td class="picimage"><a href="/pictures/5319.html"><img src="/images/thumbs/002/005319.jpg" alt="Test" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 

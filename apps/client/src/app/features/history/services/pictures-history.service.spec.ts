@@ -16,7 +16,7 @@ const createPending = (overrides: Partial<PicturePending> = {}): PicturePending 
     date: new Date('2026-04-25'),
     currentTitle: 'Old Title',
     currentImageUrl: '/images/folder/000010.jpg',
-    currentThumbnailUrl: '/pictures/thumbs/folder/000010.jpg',
+    currentThumbnailUrl: '/images/thumbs/folder/000010.jpg',
     currentWidth: 800,
     currentHeight: 600,
     pendingImageUrl: undefined,
@@ -32,7 +32,7 @@ const createPicture = (overrides: Partial<Picture> = {}): Picture => ({
     width: 800,
     height: 600,
     imageUrl: '/images/folder/000010.jpg',
-    thumbnailUrl: '/pictures/thumbs/folder/000010.jpg',
+    thumbnailUrl: '/images/thumbs/folder/000010.jpg',
     ...overrides,
 });
 

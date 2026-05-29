@@ -16,7 +16,7 @@ describe('PendingBannerComponent', () => {
         date: new Date('2025-03-11T10:00:00Z'),
         currentTitle: 'Старое описание',
         currentImageUrl: '/images/0000/000042.jpg',
-        currentThumbnailUrl: '/pictures/thumbs/0000/000042.jpg',
+        currentThumbnailUrl: '/images/thumbs/0000/000042.jpg',
         currentWidth: 800,
         currentHeight: 600,
         pendingImageUrl: '/images/pending/42_pp10.jpg',

@@ -10,7 +10,7 @@ const makePicture = (id: number, width?: number, height?: number): Picture => ({
     width,
     height,
     imageUrl: `/images/001/${String(id).padStart(6, '0')}.jpg`,
-    thumbnailUrl: `/pictures/thumbs/001/${String(id).padStart(6, '0')}.jpg`,
+    thumbnailUrl: `/images/thumbs/001/${String(id).padStart(6, '0')}.jpg`,
 });
 
 describe('buildRows', () => {

@@ -20,7 +20,7 @@ describe('PicturesStateService', () => {
         width: 800,
         height: 600,
         imageUrl: `/images/001/${String(id).padStart(6, '0')}.jpg`,
-        thumbnailUrl: `/pictures/thumbs/001/${String(id).padStart(6, '0')}.jpg`,
+        thumbnailUrl: `/images/thumbs/001/${String(id).padStart(6, '0')}.jpg`,
     });
 
     const mockResponse: PictureListResponse = {

@@ -113,7 +113,7 @@ describe('PictureService', () => {
                 const picture = result.items[0];
                 const expectedTimestamp = new Date('2025-03-10T14:30:00+00:00').getTime();
                 expect(picture.imageUrl).toBe(`/images/004/000123.jpg?v=${expectedTimestamp}`);
-                expect(picture.thumbnailUrl).toBe(`/pictures/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
+                expect(picture.thumbnailUrl).toBe(`/images/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
                 done();
             });
         });
@@ -174,7 +174,7 @@ describe('PictureService', () => {
             spectator.service.getPicture(123).subscribe(result => {
                 const expectedTimestamp = new Date('2025-03-10T14:30:00+00:00').getTime();
                 expect(result.imageUrl).toBe(`/images/004/000123.jpg?v=${expectedTimestamp}`);
-                expect(result.thumbnailUrl).toBe(`/pictures/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
+                expect(result.thumbnailUrl).toBe(`/images/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
                 done();
             });
         });
@@ -205,7 +205,7 @@ describe('PictureService', () => {
             spectator.service.getPicture(5).subscribe(result => {
                 const expectedTimestamp = new Date(mockPictureDto.pic_date).getTime();
                 expect(result.imageUrl).toBe(`/images/001/000005.jpg?v=${expectedTimestamp}`);
-                expect(result.thumbnailUrl).toBe(`/pictures/thumbs/001/000005.jpg?v=${expectedTimestamp}`);
+                expect(result.thumbnailUrl).toBe(`/images/thumbs/001/000005.jpg?v=${expectedTimestamp}`);
                 done();
             });
         });
@@ -341,7 +341,7 @@ describe('PictureService', () => {
                 expect(pending.date).toBeInstanceOf(Date);
                 expect(pending.currentTitle).toBe('Храм Христа Спасителя');
                 expect(pending.currentImageUrl).toBe('/images/004/000123.jpg');
-                expect(pending.currentThumbnailUrl).toBe('/pictures/thumbs/004/000123.jpg');
+                expect(pending.currentThumbnailUrl).toBe('/images/thumbs/004/000123.jpg');
                 expect(pending.pendingImageUrl).toBeUndefined();
                 done();
             });

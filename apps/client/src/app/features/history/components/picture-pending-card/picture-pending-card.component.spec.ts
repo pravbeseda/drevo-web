@@ -14,7 +14,7 @@ const createPending = (overrides: Partial<PicturePending> = {}): PicturePending 
     date: new Date('2026-04-25'),
     currentTitle: 'Old Title',
     currentImageUrl: '/images/folder/000010.jpg',
-    currentThumbnailUrl: '/pictures/thumbs/folder/000010.jpg',
+    currentThumbnailUrl: '/images/thumbs/folder/000010.jpg',
     currentWidth: 800,
     currentHeight: 600,
     pendingImageUrl: undefined,
@@ -24,7 +24,7 @@ const createPending = (overrides: Partial<PicturePending> = {}): PicturePending 
 const createGroup = (overrides: Partial<PendingGroup> = {}): PendingGroup => ({
     pictureId: 10,
     currentTitle: 'Old Title',
-    currentThumbnailUrl: '/pictures/thumbs/folder/000010.jpg',
+    currentThumbnailUrl: '/images/thumbs/folder/000010.jpg',
     items: [createPending()],
     ...overrides,
 });
@@ -54,7 +54,7 @@ describe('PicturePendingCardComponent', () => {
 
     it('should display thumbnail', () => {
         const img = spectator.query<HTMLImageElement>('[data-testid="pending-card-thumbnail"]');
-        expect(img?.src).toContain('/pictures/thumbs/folder/000010.jpg');
+        expect(img?.src).toContain('/images/thumbs/folder/000010.jpg');
     });
 
     it('should display pending type label', () => {

@@ -80,7 +80,7 @@ export function createPictureContentHtml(pictureId: number): string {
     return (
         `<table class="pic"><tr><td class="picimage">` +
         `<a href="/pictures/${pictureId}.html">` +
-        `<img class="noborder" src="/pictures/thumbs/test.jpg" alt="Тестовая иллюстрация" />` +
+        `<img class="noborder" src="/images/thumbs/test.jpg" alt="Тестовая иллюстрация" />` +
         `</a></td></tr></table>`
     );
 }

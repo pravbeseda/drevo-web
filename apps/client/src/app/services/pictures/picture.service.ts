@@ -163,7 +163,7 @@ export class PictureService {
             width: dto.pic_width ?? undefined,
             height: dto.pic_height ?? undefined,
             imageUrl: `/images/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
-            thumbnailUrl: `/pictures/thumbs/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
+            thumbnailUrl: `/images/thumbs/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
         };
     }
 
@@ -188,7 +188,7 @@ export class PictureService {
             date: new Date(dto.pp_date),
             currentTitle: dto.pic_title,
             currentImageUrl: `/images/${dto.pic_folder}/${paddedPicId}.jpg`,
-            currentThumbnailUrl: `/pictures/thumbs/${dto.pic_folder}/${paddedPicId}.jpg`,
+            currentThumbnailUrl: `/images/thumbs/${dto.pic_folder}/${paddedPicId}.jpg`,
             currentWidth: dto.pic_width ?? undefined,
             currentHeight: dto.pic_height ?? undefined,
             pendingImageUrl: hasPendingFile ? `/images/pending/${dto.pp_pic_id}_pp${dto.pp_id}.jpg` : undefined,
