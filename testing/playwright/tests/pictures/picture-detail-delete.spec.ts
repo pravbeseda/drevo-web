@@ -7,7 +7,7 @@ import {
     mockPictureDelete,
     mockPictureDeletePending,
     mockPictureDeleteConflict,
-    mockPictureThumbs,
+    mockPictureImages,
     bypassSsr,
 } from '../../fixtures';
 import { createPictureArticleDto, createPictureDto } from '../../mocks/pictures';
@@ -29,7 +29,7 @@ test.describe('Picture detail — deletion', () => {
     test.describe('with articles', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, [createPictureArticleDto({ id: 10, title: 'Статья 1' })]);
             await mockPicturePending(page, PICTURE_ID);
@@ -47,7 +47,7 @@ test.describe('Picture detail — deletion', () => {
     test.describe('without articles', () => {
         test.beforeEach(async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
             await mockPicturePending(page, PICTURE_ID);

@@ -14,7 +14,7 @@ describe('PictureCardComponent', () => {
         width: 800,
         height: 600,
         imageUrl: '/images/004/000123.jpg',
-        thumbnailUrl: '/pictures/thumbs/004/000123.jpg',
+        thumbnailUrl: '/images/thumbs/004/000123.jpg',
     };
 
     const createComponent = createComponentFactory({
@@ -39,7 +39,7 @@ describe('PictureCardComponent', () => {
     it('should render image with correct src and alt', () => {
         const img = spectator.query('img');
         expect(img).toBeTruthy();
-        expect(img?.getAttribute('src')).toBe('/pictures/thumbs/004/000123.jpg');
+        expect(img?.getAttribute('src')).toBe('/images/thumbs/004/000123.jpg');
         expect(img?.getAttribute('alt')).toBe('Храм Христа Спасителя');
     });
 

@@ -18,7 +18,7 @@ describe('PictureLightboxComponent', () => {
         width: 800,
         height: 600,
         imageUrl: '/images/004/000123.jpg',
-        thumbnailUrl: '/pictures/thumbs/004/000123.jpg',
+        thumbnailUrl: '/images/thumbs/004/000123.jpg',
     };
 
     const isOpen = signal(false);

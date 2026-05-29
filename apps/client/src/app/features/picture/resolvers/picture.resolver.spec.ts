@@ -14,7 +14,7 @@ const mockPicture: Picture = {
     width: 800,
     height: 600,
     imageUrl: '/images/0000/0042.jpg',
-    thumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+    thumbnailUrl: '/images/thumbs/0000/0042.jpg',
 };
 
 function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {

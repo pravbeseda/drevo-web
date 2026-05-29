@@ -13,7 +13,7 @@ const MOCK_PICTURE: Picture = {
     width: 800,
     height: 600,
     imageUrl: '/images/folder1/000123.jpg',
-    thumbnailUrl: '/pictures/thumbs/folder1/000123.jpg',
+    thumbnailUrl: '/images/thumbs/folder1/000123.jpg',
 };
 
 describe('findPictureCodeAtPosition', () => {

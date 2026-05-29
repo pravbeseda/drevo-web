@@ -12,7 +12,7 @@ import {
     mockPicturePending,
     mockPictureRejectPending,
     mockPictureRejectPendingNotFound,
-    mockPictureThumbs,
+    mockPictureImages,
     mockPicturesEmpty,
 } from '../../fixtures';
 import { getNotification, watchForNotification } from '../../helpers/notification';
@@ -39,7 +39,7 @@ const PENDING_TYPES: readonly { type: PicturePendingType; label: string }[] = [
 test.describe('Picture detail pending banners', () => {
     test('shows cancel button for own pending', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -62,7 +62,7 @@ test.describe('Picture detail pending banners', () => {
 
     test('shows author name for foreign pending to regular user', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -86,7 +86,7 @@ test.describe('Picture detail pending banners', () => {
     test('shows moderator actions for foreign pending', async ({ page }) => {
         await mockAuthApi(page, mockUsers.moderator);
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -111,7 +111,7 @@ test.describe('Picture detail pending banners', () => {
 
     test('renders multiple pending banners from backend', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -155,7 +155,7 @@ test.describe('Picture detail pending banners', () => {
         });
 
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await page.route(`**/api/pictures/${PICTURE_ID}/pending`, route => {
@@ -199,7 +199,7 @@ test.describe('Picture detail pending banners', () => {
 
         await mockAuthApi(page, mockUsers.moderator);
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await page.route(`**/api/pictures/${PICTURE_ID}/pending`, route => {
@@ -234,7 +234,7 @@ test.describe('Pending banner labels and previews', () => {
     for (const { type, label } of PENDING_TYPES) {
         test(`shows correct label for ${type} pending`, async ({ authenticatedPage: page }) => {
             await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-            await mockPictureThumbs(page);
+            await mockPictureImages(page);
             await mockPictureDetail(page, PICTURE_ID, PICTURE);
             await mockPictureArticles(page, PICTURE_ID, []);
             await mockPicturePending(page, PICTURE_ID, [createPendingByType(type, 30, 'Автор')]);
@@ -249,7 +249,7 @@ test.describe('Pending banner labels and previews', () => {
 
     test('shows image preview for edit_file pending', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -266,7 +266,7 @@ test.describe('Pending banner labels and previews', () => {
 
     test('shows title and image preview for edit_both pending', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -291,7 +291,7 @@ test.describe('Pending banner labels and previews', () => {
 
     test('does not show image preview for edit_title pending', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [
@@ -308,7 +308,7 @@ test.describe('Pending banner labels and previews', () => {
 
     test('does not show title or image preview for delete pending', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-        await mockPictureThumbs(page);
+        await mockPictureImages(page);
         await mockPictureDetail(page, PICTURE_ID, PICTURE);
         await mockPictureArticles(page, PICTURE_ID, []);
         await mockPicturePending(page, PICTURE_ID, [createPendingByType('delete', 34, mockUsers.authenticated.name)]);
@@ -424,7 +424,7 @@ async function setupPageWithDynamicPending(
         await mockAuthApi(page, mockUsers.moderator);
     }
     await bypassSsr(page, `**/pictures/${PICTURE_ID}`);
-    await mockPictureThumbs(page);
+    await mockPictureImages(page);
     await mockPictureDetail(page, PICTURE_ID, PICTURE);
     await mockPictureArticles(page, PICTURE_ID, []);
 

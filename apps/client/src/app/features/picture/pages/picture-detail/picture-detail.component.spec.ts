@@ -21,7 +21,7 @@ const mockPicture: Picture = {
     width: 1920,
     height: 1280,
     imageUrl: '/images/0000/0042.jpg',
-    thumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+    thumbnailUrl: '/images/thumbs/0000/0042.jpg',
 };
 
 const mockArticles: readonly PictureArticle[] = [
@@ -64,7 +64,7 @@ function createPending(overrides: Partial<PicturePending> = {}): PicturePending 
         date: new Date('2025-03-11T10:00:00Z'),
         currentTitle: 'Вид на Кремль',
         currentImageUrl: '/images/0000/0042.jpg',
-        currentThumbnailUrl: '/pictures/thumbs/0000/0042.jpg',
+        currentThumbnailUrl: '/images/thumbs/0000/0042.jpg',
         currentWidth: 1920,
         currentHeight: 1280,
         pendingImageUrl: undefined,
