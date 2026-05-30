@@ -397,14 +397,14 @@ export async function mockPictureRejectPendingNotFound(page: Page, pendingId: nu
     });
 }
 
-/** Mock /images/** — return a 1x1 transparent PNG placeholder (covers thumbs, full, pending) */
+/** Mock /images/**\/*.jpg — return a 1x1 transparent PNG placeholder (covers thumbs, full, pending) */
 export async function mockPictureImages(page: RouteTarget): Promise<void> {
     // 1x1 transparent PNG
     const pixel = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==',
         'base64',
     );
-    await page.route('**/images/**', route => route.fulfill({ body: pixel, contentType: 'image/png' }));
+    await page.route('**/images/**/*.jpg', route => route.fulfill({ body: pixel, contentType: 'image/png' }));
 }
 
 // ---------------------------------------------------------------------------
