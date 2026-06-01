@@ -4,7 +4,7 @@ import { CancelVersionService } from '../cancel-version.service';
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import { ApprovalStatus, ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -112,11 +112,12 @@ describe('ArticleHistoryService', () => {
     let spectator: SpectatorService<ArticleHistoryService>;
     let articleService: jest.Mocked<ArticleService>;
     let inworkService: jest.Mocked<InworkService>;
+    let storageService: jest.Mocked<StorageService>;
     let userSubject: BehaviorSubject<User | undefined>;
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [ArticleService, InworkService, NotificationService, CancelVersionService],
+        mocks: [ArticleService, InworkService, NotificationService, CancelVersionService, StorageService],
         providers: [
             mockLoggerProvider(),
             {
@@ -140,6 +141,7 @@ describe('ArticleHistoryService', () => {
         spectator = createService();
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         inworkService = spectator.inject(InworkService) as jest.Mocked<InworkService>;
+        storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
         inworkService.getInworkList.mockReturnValue(of([]));
         inworkService.clearEditing.mockReturnValue(of(undefined));
     });
@@ -737,6 +739,92 @@ describe('ArticleHistoryService', () => {
             if (versionItem?.type === 'version') {
                 expect(versionItem.data.approved).toBe(ApprovalStatus.Pending);
             }
+        });
+    });
+
+    describe('hideCancelled', () => {
+        beforeEach(() => {
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+        });
+
+        it('should default to false', () => {
+            spectator.service.init();
+            expect(spectator.service.hideCancelled()).toBe(false);
+        });
+
+        it('should restore hideCancelled from storage on init', () => {
+            storageService.get.mockReturnValue(true);
+            spectator.service.init();
+
+            expect(storageService.get).toHaveBeenCalledWith('history.hideCancelled');
+            expect(spectator.service.hideCancelled()).toBe(true);
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 1,
+                excludeCancelled: true,
+            });
+        });
+
+        it('should reload with excludeCancelled when toggled on', () => {
+            spectator.service.init();
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.onHideCancelledChange(true);
+
+            expect(spectator.service.hideCancelled()).toBe(true);
+            expect(storageService.set).toHaveBeenCalledWith('history.hideCancelled', true);
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 1,
+                excludeCancelled: true,
+            });
+        });
+
+        it('should reload without excludeCancelled when toggled off', () => {
+            storageService.get.mockReturnValue(true);
+            spectator.service.init();
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.onHideCancelledChange(false);
+
+            expect(spectator.service.hideCancelled()).toBe(false);
+            expect(storageService.set).toHaveBeenCalledWith('history.hideCancelled', false);
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 1,
+            });
+        });
+
+        it('should reset items and page when toggling', () => {
+            const items = [createMockHistoryItem({ versionId: 1 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 50)));
+            spectator.service.init();
+            spectator.service.onLoadMore();
+
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onHideCancelledChange(true);
+
+            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith({
+                page: 1,
+                excludeCancelled: true,
+            });
+        });
+
+        it('should combine excludeCancelled with active filter', () => {
+            spectator.service.init();
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.onHideCancelledChange(true);
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+
+            spectator.service.onFilterChange('unchecked');
+
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
+                page: 1,
+                approved: 0,
+                excludeCancelled: true,
+            });
         });
     });
 });
