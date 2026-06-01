@@ -50,4 +50,17 @@ describe('FiltersSidePanelComponent', () => {
     it('should render side panel', () => {
         expect(spectator.query('ui-side-panel')).toBeTruthy();
     });
+
+    it('should render hide cancelled toggle', () => {
+        expect(spectator.query('ui-toggle')).toBeTruthy();
+    });
+
+    it('should emit hideCancelledChange', () => {
+        const spy = jest.fn();
+        spectator.output('hideCancelledChange').subscribe(spy);
+
+        spectator.component.onHideCancelledChange(true);
+
+        expect(spy).toHaveBeenCalledWith(true);
+    });
 });

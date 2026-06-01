@@ -4,7 +4,7 @@ import { ArticleService } from '../article.service';
 import { CancelVersionService } from '../cancel-version.service';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
     ApprovalStatus,
     ArticleHistoryItem,
@@ -64,6 +64,8 @@ export const trackByFn = (_index: number, item: HistoryDisplayItem): string => {
     return `version-${item.data.versionId}`;
 };
 
+const HIDE_CANCELLED_STORAGE_KEY = 'history.hideCancelled';
+
 export interface ArticleHistoryConfig {
     readonly articleId?: Signal<number | undefined>;
 }
@@ -76,6 +78,7 @@ export class ArticleHistoryService {
     private readonly inworkService = inject(InworkService);
     private readonly notificationService = inject(NotificationService);
     private readonly cancelVersionService = inject(CancelVersionService);
+    private readonly storageService = inject(StorageService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -85,6 +88,7 @@ export class ArticleHistoryService {
     private readonly _totalItems = signal(0);
     private readonly _currentPage = signal(1);
     private readonly _activeFilter = signal<HistoryFilter>('all');
+    private readonly _hideCancelled = signal(false);
     private readonly _hasError = signal(false);
     private readonly _referenceDate = signal(new Date());
 
@@ -93,6 +97,7 @@ export class ArticleHistoryService {
     readonly isLoading = this._isLoading.asReadonly();
     readonly isLoadingMore = this._isLoadingMore.asReadonly();
     readonly activeFilter = this._activeFilter.asReadonly();
+    readonly hideCancelled = this._hideCancelled.asReadonly();
     readonly hasError = this._hasError.asReadonly();
 
     private readonly currentUser = toSignal(this.authService.user$);
@@ -143,6 +148,7 @@ export class ArticleHistoryService {
 
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
+        this._hideCancelled.set(this.storageService.get<boolean>(HIDE_CANCELLED_STORAGE_KEY) ?? false);
         this.loadInworkIfNeeded();
         this.loadHistory();
     }
@@ -155,6 +161,16 @@ export class ArticleHistoryService {
         this._totalItems.set(0);
         this.logger.info('Filter changed', { filter });
         this.loadInworkIfNeeded();
+        this.loadHistory();
+    }
+
+    onHideCancelledChange(value: boolean): void {
+        this._hideCancelled.set(value);
+        this.storageService.set(HIDE_CANCELLED_STORAGE_KEY, value);
+        this._historyItems.set([]);
+        this._currentPage.set(1);
+        this._totalItems.set(0);
+        this.logger.info('Hide cancelled changed', { hideCancelled: value });
         this.loadHistory();
     }
 
@@ -254,6 +270,7 @@ export class ArticleHistoryService {
     private buildParams(): ArticleHistoryParams | undefined {
         let base: ArticleHistoryParams = {
             page: this._currentPage(),
+            excludeCancelled: this._hideCancelled() || undefined,
         };
 
         if (this.articleId) {

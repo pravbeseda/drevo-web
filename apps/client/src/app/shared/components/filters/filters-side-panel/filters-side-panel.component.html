@@ -15,4 +15,13 @@
         [activeFilter]="activeFilter()"
         (filterChange)="onFilterChange($event)"
     />
+
+    <div class="hide-cancelled-toggle">
+        <ui-toggle
+            label="Скрыть отменённые"
+            data-testid="hide-cancelled-toggle"
+            [ngModel]="hideCancelled()"
+            (valueChanged)="onHideCancelledChange($event)"
+        />
+    </div>
 </ui-side-panel>

@@ -830,22 +830,21 @@ describe('ArticleService', () => {
 
             spectator.service.getArticlesHistory({ page: 1 }).subscribe();
 
-            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(1, 25, undefined, undefined, undefined);
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith({ page: 1 });
         });
 
         it('should pass custom params to API service', () => {
             articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
 
-            spectator.service
-                .getArticlesHistory({
-                    page: 2,
-                    pageSize: 50,
-                    approved: 0,
-                    author: 'testuser',
-                })
-                .subscribe();
+            const params = {
+                page: 2,
+                pageSize: 50,
+                approved: 0 as const,
+                author: 'testuser',
+            };
+            spectator.service.getArticlesHistory(params).subscribe();
 
-            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(2, 50, 0, 'testuser', undefined);
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(params);
         });
 
         it('should map API response to frontend model', done => {

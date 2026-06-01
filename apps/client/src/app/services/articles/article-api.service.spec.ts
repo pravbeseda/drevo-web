@@ -484,7 +484,7 @@ describe('ArticleApiService', () => {
         };
 
         it('should call HTTP GET with correct URL and params', () => {
-            spectator.service.getArticlesHistory(1, 25).subscribe(result => {
+            spectator.service.getArticlesHistory({ page: 1, pageSize: 25 }).subscribe(result => {
                 expect(result).toEqual(mockHistoryResponse.data);
             });
 
@@ -500,7 +500,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should include approved param when provided', () => {
-            spectator.service.getArticlesHistory(1, 25, 0).subscribe();
+            spectator.service.getArticlesHistory({ approved: 0 }).subscribe();
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history' && request.params.get('approved') === '0',
@@ -509,7 +509,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should include author param when provided', () => {
-            spectator.service.getArticlesHistory(1, 25, undefined, 'testuser').subscribe();
+            spectator.service.getArticlesHistory({ author: 'testuser' }).subscribe();
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history' && request.params.get('author') === 'testuser',
@@ -518,7 +518,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should not include approved param when undefined', () => {
-            spectator.service.getArticlesHistory(1, 25).subscribe();
+            spectator.service.getArticlesHistory({}).subscribe();
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history' && !request.params.has('approved'),
@@ -527,7 +527,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should include articleId param when provided', () => {
-            spectator.service.getArticlesHistory(1, 25, undefined, undefined, 42).subscribe();
+            spectator.service.getArticlesHistory({ articleId: 42 }).subscribe();
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history' && request.params.get('articleId') === '42',
@@ -536,7 +536,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should not include articleId param when undefined', () => {
-            spectator.service.getArticlesHistory(1, 25).subscribe();
+            spectator.service.getArticlesHistory({}).subscribe();
 
             const req = httpController.expectOne(
                 request => request.url === '/api/articles/history' && !request.params.has('articleId'),
@@ -544,8 +544,26 @@ describe('ArticleApiService', () => {
             req.flush(mockHistoryResponse);
         });
 
+        it('should include excludeCancelled param when true', () => {
+            spectator.service.getArticlesHistory({ excludeCancelled: true }).subscribe();
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/history' && request.params.get('excludeCancelled') === '1',
+            );
+            req.flush(mockHistoryResponse);
+        });
+
+        it('should not include excludeCancelled param when false', () => {
+            spectator.service.getArticlesHistory({ excludeCancelled: false }).subscribe();
+
+            const req = httpController.expectOne(
+                request => request.url === '/api/articles/history' && !request.params.has('excludeCancelled'),
+            );
+            req.flush(mockHistoryResponse);
+        });
+
         it('should extract data from response wrapper', done => {
-            spectator.service.getArticlesHistory(1, 25).subscribe(result => {
+            spectator.service.getArticlesHistory({}).subscribe(result => {
                 expect(result.items).toHaveLength(1);
                 expect(result.total).toBe(1);
                 done();
@@ -556,7 +574,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should throw when response.data is undefined', done => {
-            spectator.service.getArticlesHistory(1, 25).subscribe({
+            spectator.service.getArticlesHistory({}).subscribe({
                 error: (err: Error) => {
                     expect(err.message).toContain('Response data is undefined');
                     done();
