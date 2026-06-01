@@ -181,12 +181,6 @@ export class ArticleService {
             .pipe(map(response => this.transformArticleLinks(response.content)));
     }
 
-    /**
-     * Get article version history
-     *
-     * @param params - History parameters (page, pageSize, approved, author)
-     * @returns Observable with mapped history response
-     */
     getArticlesHistory(params: ArticleHistoryParams = {}): Observable<ArticleHistoryResponse> {
         return this.articleApiService
             .getArticlesHistory(params)
