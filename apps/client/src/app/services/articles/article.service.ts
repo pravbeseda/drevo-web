@@ -188,10 +188,8 @@ export class ArticleService {
      * @returns Observable with mapped history response
      */
     getArticlesHistory(params: ArticleHistoryParams = {}): Observable<ArticleHistoryResponse> {
-        const { page = 1, pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE, approved, author, articleId } = params;
-
         return this.articleApiService
-            .getArticlesHistory(page, pageSize, approved, author, articleId)
+            .getArticlesHistory(params)
             .pipe(map(response => this.mapHistoryResponse(response)));
     }
 

@@ -34,6 +34,7 @@ export class ArticlesHistoryComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
 
     readonly activeFilter = this.service.activeFilter;
+    readonly hideCancelled = this.service.hideCancelled;
 
     readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
         if (this.service.isAuthenticated()) {
@@ -48,5 +49,9 @@ export class ArticlesHistoryComponent implements OnInit {
 
     onFilterChange(filter: HistoryFilter): void {
         this.service.onFilterChange(filter);
+    }
+
+    onHideCancelledChange(value: boolean): void {
+        this.service.onHideCancelledChange(value);
     }
 }

@@ -2,18 +2,22 @@ import { FilterEntry } from '../../../models/filter.model';
 import { SidebarActionComponent } from '../../sidebar-action/sidebar-action.component';
 import { FiltersComponent } from '../filters.component';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { SidePanelComponent } from '@drevo-web/ui';
+import { FormsModule } from '@angular/forms';
+import { SidePanelComponent, ToggleComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-filters-side-panel',
-    imports: [FiltersComponent, SidebarActionComponent, SidePanelComponent],
+    imports: [FiltersComponent, FormsModule, SidebarActionComponent, SidePanelComponent, ToggleComponent],
     templateUrl: './filters-side-panel.component.html',
+    styleUrl: './filters-side-panel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FiltersSidePanelComponent<T extends string = string> {
     readonly filters = input.required<readonly FilterEntry<T>[]>();
     readonly activeFilter = input.required<T>();
+    readonly hideCancelled = input(false);
     readonly filterChange = output<T>();
+    readonly hideCancelledChange = output<boolean>();
 
     readonly isSidePanelOpen = signal(false);
 
@@ -23,5 +27,9 @@ export class FiltersSidePanelComponent<T extends string = string> {
 
     onFilterChange(filter: T): void {
         this.filterChange.emit(filter);
+    }
+
+    onHideCancelledChange(value: boolean): void {
+        this.hideCancelledChange.emit(value);
     }
 }

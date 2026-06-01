@@ -1,7 +1,9 @@
 <app-filters-side-panel
     [filters]="filters()"
     [activeFilter]="activeFilter()"
+    [hideCancelled]="hideCancelled()"
     (filterChange)="onFilterChange($event)"
+    (hideCancelledChange)="onHideCancelledChange($event)"
 />
 
 <app-article-history-list />

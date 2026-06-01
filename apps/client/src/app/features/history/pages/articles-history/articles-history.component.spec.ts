@@ -17,6 +17,8 @@ describe('ArticlesHistoryComponent', () => {
         displayItems: signal([]),
         displayTotalItems: signal(0),
         onFilterChange: jest.fn(),
+        onHideCancelledChange: jest.fn(),
+        hideCancelled: signal(false),
         onLoadMore: jest.fn(),
     };
 

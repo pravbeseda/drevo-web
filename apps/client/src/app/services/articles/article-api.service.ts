@@ -5,7 +5,7 @@ import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
-    ApprovalStatusDto,
+    ArticleHistoryRequestDto,
     ArticleHistoryResponseDto,
     ArticleLinkedHereResponseDto,
     ArticlePreviewRequestDto,
@@ -182,22 +182,16 @@ export class ArticleApiService {
             );
     }
 
-    /**
-     * Get article version history
-     *
-     * @param page - Page number (1-based)
-     * @param pageSize - Number of items per page
-     * @param approved - Optional approval status filter (-1, 0, 1)
-     * @param author - Optional author login filter
-     * @returns Observable with raw API response
-     */
-    getArticlesHistory(
-        page = 1,
-        pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
-        approved?: ApprovalStatusDto,
-        author?: string,
-        articleId?: number,
-    ): Observable<ArticleHistoryResponseDto> {
+    getArticlesHistory(request: ArticleHistoryRequestDto = {}): Observable<ArticleHistoryResponseDto> {
+        const {
+            page = 1,
+            pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
+            approved,
+            author,
+            articleId,
+            excludeCancelled,
+        } = request;
+
         let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
 
         if (approved !== undefined) {
@@ -210,6 +204,10 @@ export class ArticleApiService {
 
         if (articleId !== undefined) {
             params = params.set('articleId', articleId.toString());
+        }
+
+        if (excludeCancelled) {
+            params = params.set('excludeCancelled', '1');
         }
 
         return this.http

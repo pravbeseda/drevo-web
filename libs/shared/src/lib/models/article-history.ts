@@ -39,4 +39,5 @@ export interface ArticleHistoryParams {
     readonly approved?: ApprovalStatus;
     readonly author?: string;
     readonly articleId?: number;
+    readonly excludeCancelled?: boolean;
 }

@@ -30,6 +30,7 @@ export class ArticleVersionsComponent implements OnInit {
     readonly canCompare = computed(() => this.selectedCount() === 2);
 
     readonly activeFilter = this.service.activeFilter;
+    readonly hideCancelled = this.service.hideCancelled;
 
     readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
         const entries: FilterEntry<HistoryFilter>[] = [
@@ -48,6 +49,10 @@ export class ArticleVersionsComponent implements OnInit {
 
     onFilterChange(filter: HistoryFilter): void {
         this.service.onFilterChange(filter);
+    }
+
+    onHideCancelledChange(value: boolean): void {
+        this.service.onHideCancelledChange(value);
     }
 
     onSelectItem(item: ArticleHistoryItem): void {
