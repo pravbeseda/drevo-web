@@ -28,5 +28,3 @@ export * from './lib/components/tabs-group/tabs-group.component';
 export * from './lib/components/tooltip/tooltip.directive';
 export * from './lib/constants/breakpoints';
 export * from './lib/providers/svg-icons';
-export * from './lib/components/wiki-content/wiki-content.component';
-export * from './lib/components/wiki-content/wiki-content.tokens';

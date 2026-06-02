@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../../../../services/articles';
+import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
 import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -7,13 +8,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ApprovalStatus, ArticleVersion, CancelVersionResult, ModerationResult } from '@drevo-web/shared';
-import {
-    BannerComponent,
-    FormatDatePipe,
-    SpinnerComponent,
-    StatusIconComponent,
-    WikiContentComponent,
-} from '@drevo-web/ui';
+import { BannerComponent, FormatDatePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({

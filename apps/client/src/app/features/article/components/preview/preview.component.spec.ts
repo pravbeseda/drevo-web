@@ -54,7 +54,7 @@ describe('PreviewComponent', () => {
         expect(spectator.component.isLoading()).toBe(false);
         expect(spectator.component.previewHtml()).toBe(html);
         expect(spectator.query('ui-spinner')).toBeFalsy();
-        expect(spectator.query('ui-wiki-content')).toBeTruthy();
+        expect(spectator.query('app-wiki-content')).toBeTruthy();
     });
 
     it('should show error on API failure', () => {
@@ -64,7 +64,7 @@ describe('PreviewComponent', () => {
         expect(spectator.component.isLoading()).toBe(false);
         expect(spectator.component.error()).toBe('Не удалось загрузить предпросмотр');
         expect(spectator.query('app-error')).toBeTruthy();
-        expect(spectator.query('ui-wiki-content')).toBeFalsy();
+        expect(spectator.query('app-wiki-content')).toBeFalsy();
     });
 
     it('should not show error or content while loading', () => {

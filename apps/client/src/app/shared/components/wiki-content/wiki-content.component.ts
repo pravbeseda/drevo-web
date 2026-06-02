@@ -1,4 +1,4 @@
-import { WIKI_PICTURE_HANDLER, WikiPictureHandler } from './wiki-content.tokens';
+import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
 import { DOCUMENT } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -22,7 +22,7 @@ interface ContentInteractionState {
 }
 
 @Component({
-    selector: 'ui-wiki-content',
+    selector: 'app-wiki-content',
     templateUrl: './wiki-content.component.html',
     styleUrl: './wiki-content.component.scss',
     encapsulation: ViewEncapsulation.None,
@@ -31,12 +31,12 @@ interface ContentInteractionState {
 export class WikiContentComponent implements OnInit, OnDestroy {
     readonly content = input<string>('');
 
-    protected readonly sanitizedContent: () => SafeHtml = computed(() => {
+    protected readonly sanitizedContent = computed(() => {
         const processed = this.preprocessContent(this.content());
         return this.sanitizer.bypassSecurityTrustHtml(processed);
     });
 
-    private interactionState: ContentInteractionState = {
+    private readonly interactionState: ContentInteractionState = {
         commentsExpanded: true,
         rusVisible: true,
         cslVisible: true,
@@ -49,7 +49,7 @@ export class WikiContentComponent implements OnInit, OnDestroy {
     private readonly sanitizer = inject(DomSanitizer);
     private readonly logger = inject(LoggerService).withContext('WikiContent');
     private readonly notification = inject(NotificationService);
-    private readonly pictureHandler = inject<WikiPictureHandler>(WIKI_PICTURE_HANDLER, { optional: true });
+    private readonly pictureLightboxService = inject(PictureLightboxService);
 
     private readonly clickHandler = (event: MouseEvent): void => {
         const target = event.target as HTMLElement;
@@ -67,9 +67,9 @@ export class WikiContentComponent implements OnInit, OnDestroy {
 
         if (target.closest('.pic')) {
             const pictureId = this.extractPictureId(target);
-            if (pictureId !== undefined && this.pictureHandler) {
+            if (pictureId !== undefined) {
                 event.preventDefault();
-                this.pictureHandler.open(pictureId);
+                this.pictureLightboxService.open(pictureId);
                 return;
             }
         }

@@ -1,7 +1,7 @@
-import { WIKI_PICTURE_HANDLER, WikiPictureHandler } from './wiki-content.tokens';
+import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
 import { WikiContentComponent } from './wiki-content.component';
 import { Router } from '@angular/router';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 
@@ -9,18 +9,12 @@ describe('WikiContentComponent', () => {
     let spectator: Spectator<WikiContentComponent>;
     let router: jest.Mocked<Router>;
     let logger: MockLoggerService;
-    let pictureHandler: jest.Mocked<WikiPictureHandler>;
+    let lightboxService: jest.Mocked<PictureLightboxService>;
 
     const createComponent = createComponentFactory({
         component: WikiContentComponent,
         mocks: [Router],
-        providers: [
-            mockLoggerProvider(),
-            {
-                provide: WIKI_PICTURE_HANDLER,
-                useValue: { open: jest.fn() } as WikiPictureHandler,
-            },
-        ],
+        providers: [mockLoggerProvider(), mockProvider(PictureLightboxService)],
     });
 
     beforeEach(() => {
@@ -28,7 +22,7 @@ describe('WikiContentComponent', () => {
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
         logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
-        pictureHandler = spectator.inject(WIKI_PICTURE_HANDLER) as jest.Mocked<WikiPictureHandler>;
+        lightboxService = spectator.inject(PictureLightboxService) as jest.Mocked<PictureLightboxService>;
     });
 
     afterEach(() => {
@@ -246,7 +240,7 @@ describe('WikiContentComponent', () => {
             const img = spectator.query('.pic img') as HTMLImageElement;
             img.click();
 
-            expect(pictureHandler.open).toHaveBeenCalledWith(5319);
+            expect(lightboxService.open).toHaveBeenCalledWith(5319);
             expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
@@ -260,7 +254,7 @@ describe('WikiContentComponent', () => {
             const img = spectator.query('.pic img') as HTMLImageElement;
             img.click();
 
-            expect(pictureHandler.open).toHaveBeenCalledWith(123);
+            expect(lightboxService.open).toHaveBeenCalledWith(123);
             expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
@@ -274,7 +268,7 @@ describe('WikiContentComponent', () => {
             const desc = spectator.query('.picdesc') as HTMLElement;
             desc.click();
 
-            expect(pictureHandler.open).not.toHaveBeenCalled();
+            expect(lightboxService.open).not.toHaveBeenCalled();
         });
 
         it('should prevent default for picture clicks', () => {
@@ -291,7 +285,7 @@ describe('WikiContentComponent', () => {
             img.dispatchEvent(event);
 
             expect(spy).toHaveBeenCalled();
-            expect(pictureHandler.open).toHaveBeenCalledWith(789);
+            expect(lightboxService.open).toHaveBeenCalledWith(789);
         });
 
         it('should strip .html suffix from picture hrefs in rendered DOM', () => {
@@ -744,31 +738,5 @@ describe('WikiContentComponent', () => {
                 expect(content.style.display).toBe('none');
             });
         });
-    });
-});
-
-describe('WikiContentComponent without picture handler', () => {
-    let spectator: Spectator<WikiContentComponent>;
-
-    const createComponent = createComponentFactory({
-        component: WikiContentComponent,
-        mocks: [Router],
-        providers: [mockLoggerProvider()],
-    });
-
-    it('should fall through to router navigation when no picture handler is provided', () => {
-        spectator = createComponent();
-        const router = spectator.inject(Router) as jest.Mocked<Router>;
-
-        spectator.setInput(
-            'content',
-            '<table class="pic"><tr><td><a href="/pictures/123"><img src="/test.jpg" /></a></td></tr></table>',
-        );
-        spectator.detectChanges();
-
-        const img = spectator.query('.pic img') as HTMLImageElement;
-        img.click();
-
-        expect(router.navigateByUrl).toHaveBeenCalledWith('/pictures/123');
     });
 });

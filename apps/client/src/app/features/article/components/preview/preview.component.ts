@@ -1,9 +1,10 @@
 import { ArticleService } from '../../../../services/articles';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
+import { WikiContentComponent } from '../../../../shared/components/wiki-content/wiki-content.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
-import { SpinnerComponent, WikiContentComponent } from '@drevo-web/ui';
+import { SpinnerComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-preview',
