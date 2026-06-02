@@ -11,7 +11,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
     { key: 'all', label: 'Все' },
     { key: 'unchecked', label: 'Непроверенные' },
-    // Todo Uncomment later if we want to
+    // Todo Uncomment if I implement it
     // {
     //     label: 'В работе',
     //     items: [
