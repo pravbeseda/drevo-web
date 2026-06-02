@@ -43,6 +43,15 @@ describe('FiltersSidePanelComponent', () => {
         expect(spy).toHaveBeenCalledWith('unchecked');
     });
 
+    it('should close side panel on filter change', () => {
+        spectator.component.openFilters();
+        expect(spectator.component.isSidePanelOpen()).toBe(true);
+
+        spectator.component.onFilterChange('unchecked');
+
+        expect(spectator.component.isSidePanelOpen()).toBe(false);
+    });
+
     it('should render sidebar action button', () => {
         expect(spectator.query('app-sidebar-action')).toBeTruthy();
     });
