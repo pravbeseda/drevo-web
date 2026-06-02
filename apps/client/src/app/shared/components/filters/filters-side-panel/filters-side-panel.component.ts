@@ -27,6 +27,7 @@ export class FiltersSidePanelComponent<T extends string = string> {
 
     onFilterChange(filter: T): void {
         this.filterChange.emit(filter);
+        this.isSidePanelOpen.set(false);
     }
 
     onHideCancelledChange(value: boolean): void {
