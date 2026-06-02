@@ -37,7 +37,7 @@ describe('ArticleContentTabComponent', () => {
 
     it('should render article-content component', () => {
         spectator = createComponent();
-        expect(spectator.query('app-article-content')).toBeTruthy();
+        expect(spectator.query('ui-wiki-content')).toBeTruthy();
     });
 
     it('should not render content when article is undefined', () => {
@@ -57,7 +57,7 @@ describe('ArticleContentTabComponent', () => {
                 },
             ],
         });
-        expect(spectator.query('app-article-content')).toBeFalsy();
+        expect(spectator.query('ui-wiki-content')).toBeFalsy();
     });
 });
 

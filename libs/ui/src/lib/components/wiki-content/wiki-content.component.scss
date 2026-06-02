@@ -1,18 +1,9 @@
-/**
- * Styles for article content component.
- *
- * Note: This component uses ViewEncapsulation.None, so styles are not scoped.
- * Using direct element selector to ensure styles are applied correctly.
- * The selector is scoped to app-article-content to avoid affecting other elements.
- */
-
 @use 'tokens' as *;
 
-app-article-content {
+ui-wiki-content {
     display: block;
     line-height: 1.6;
 
-    // Enable smooth scrolling for anchor navigation
     scroll-behavior: smooth;
 
     .link-note,
@@ -24,7 +15,6 @@ app-article-content {
         color: var(--themed-wiki-external-link);
     }
 
-    // Wiki link styles
     .existlink {
         color: var(--themed-wiki-existlink);
     }
@@ -44,7 +34,6 @@ app-article-content {
         color: var(--themed-wiki-verse);
     }
 
-    // Additional content styling can be added here
     a {
         color: var(--themed-link-color);
         text-decoration: none;

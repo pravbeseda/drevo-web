@@ -1,17 +1,16 @@
 import { ArticleService } from '../../../../services/articles';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
-import { ArticleContentComponent } from '../article-content/article-content.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
-import { SpinnerComponent } from '@drevo-web/ui';
+import { SpinnerComponent, WikiContentComponent } from '@drevo-web/ui';
 
 @Component({
     selector: 'app-preview',
     templateUrl: './preview.component.html',
     styleUrl: './preview.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ArticleContentComponent, ErrorComponent, SpinnerComponent],
+    imports: [WikiContentComponent, ErrorComponent, SpinnerComponent],
 })
 export class PreviewComponent implements OnInit {
     readonly content = input.required<string>();

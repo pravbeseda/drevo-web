@@ -1,36 +1,34 @@
-import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
-import { ArticlePageService } from '../../services/article-page.service';
+import { WIKI_PICTURE_HANDLER, WikiPictureHandler } from './wiki-content.tokens';
+import { WikiContentComponent } from './wiki-content.component';
 import { Router } from '@angular/router';
-import { signal } from '@angular/core';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { ArticleContentComponent } from './article-content.component';
 
-describe('ArticleContentComponent', () => {
-    let spectator: Spectator<ArticleContentComponent>;
+describe('WikiContentComponent', () => {
+    let spectator: Spectator<WikiContentComponent>;
     let router: jest.Mocked<Router>;
     let logger: MockLoggerService;
-    let lightboxService: jest.Mocked<PictureLightboxService>;
+    let pictureHandler: jest.Mocked<WikiPictureHandler>;
 
     const createComponent = createComponentFactory({
-        component: ArticleContentComponent,
+        component: WikiContentComponent,
         mocks: [Router],
         providers: [
             mockLoggerProvider(),
-            mockProvider(PictureLightboxService),
             {
-                provide: ArticlePageService,
-                useValue: { editUrl: signal(undefined) },
+                provide: WIKI_PICTURE_HANDLER,
+                useValue: { open: jest.fn() } as WikiPictureHandler,
             },
         ],
     });
 
     beforeEach(() => {
+        jest.clearAllMocks();
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
         logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
-        lightboxService = spectator.inject(PictureLightboxService) as jest.Mocked<PictureLightboxService>;
+        pictureHandler = spectator.inject(WIKI_PICTURE_HANDLER) as jest.Mocked<WikiPictureHandler>;
     });
 
     afterEach(() => {
@@ -207,7 +205,6 @@ describe('ArticleContentComponent', () => {
         });
 
         it('should handle anchor IDs with special characters safely', () => {
-            // Test that CSS.escape() prevents selector injection
             const safeId = 'section-with-special';
             const mockElement = document.createElement('div');
             mockElement.setAttribute('name', safeId);
@@ -249,7 +246,7 @@ describe('ArticleContentComponent', () => {
             const img = spectator.query('.pic img') as HTMLImageElement;
             img.click();
 
-            expect(lightboxService.open).toHaveBeenCalledWith(5319);
+            expect(pictureHandler.open).toHaveBeenCalledWith(5319);
             expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
@@ -263,7 +260,7 @@ describe('ArticleContentComponent', () => {
             const img = spectator.query('.pic img') as HTMLImageElement;
             img.click();
 
-            expect(lightboxService.open).toHaveBeenCalledWith(123);
+            expect(pictureHandler.open).toHaveBeenCalledWith(123);
             expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
@@ -277,8 +274,7 @@ describe('ArticleContentComponent', () => {
             const desc = spectator.query('.picdesc') as HTMLElement;
             desc.click();
 
-            // picdesc is not inside an anchor, so no pictureId extracted
-            expect(lightboxService.open).not.toHaveBeenCalled();
+            expect(pictureHandler.open).not.toHaveBeenCalled();
         });
 
         it('should prevent default for picture clicks', () => {
@@ -295,7 +291,7 @@ describe('ArticleContentComponent', () => {
             img.dispatchEvent(event);
 
             expect(spy).toHaveBeenCalled();
-            expect(lightboxService.open).toHaveBeenCalledWith(789);
+            expect(pictureHandler.open).toHaveBeenCalledWith(789);
         });
 
         it('should strip .html suffix from picture hrefs in rendered DOM', () => {
@@ -348,18 +344,15 @@ describe('ArticleContentComponent', () => {
                 const link = spectator.query('.LinkComment') as HTMLElement;
                 const comments = spectator.queryAll<HTMLElement>('.cmnt');
 
-                // Initial state
                 expect(link.textContent?.trim()).toBe('Свернуть');
                 expect(comments[0].style.display).toBe('');
 
-                // Click to collapse
                 link.click();
 
                 expect(link.textContent?.trim()).toBe('Развернуть');
                 expect(comments[0].style.display).toBe('none');
                 expect(comments[1].style.display).toBe('none');
 
-                // Click to expand
                 link.click();
 
                 expect(link.textContent?.trim()).toBe('Свернуть');
@@ -403,14 +396,12 @@ describe('ArticleContentComponent', () => {
                 const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
                 const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
 
-                // Click to hide Russian
                 link.click();
 
                 expect(rusElement.style.display).toBe('none');
                 expect(cslElement.style.display).toBe('');
                 expect(link.textContent?.trim()).toBe('Показать русский перевод');
 
-                // Click to show Russian
                 link.click();
 
                 expect(rusElement.style.display).toBe('');
@@ -453,14 +444,12 @@ describe('ArticleContentComponent', () => {
                 const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
                 const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
 
-                // Click to hide Church Slavonic
                 link.click();
 
                 expect(cslElement.style.display).toBe('none');
                 expect(rusElement.style.display).toBe('');
                 expect(link.textContent?.trim()).toBe('Показать церковнославянский перевод');
 
-                // Click to show Church Slavonic
                 link.click();
 
                 expect(cslElement.style.display).toBe('');
@@ -579,7 +568,6 @@ describe('ArticleContentComponent', () => {
                 link.dispatchEvent(event);
 
                 expect(preventDefaultSpy).toHaveBeenCalled();
-                // Should log warning but not execute any action
                 expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                     'Unknown javascript action',
                     expect.objectContaining({
@@ -673,17 +661,14 @@ describe('ArticleContentComponent', () => {
                 const link = spectator.query('a') as HTMLAnchorElement;
                 const items = spectator.queryAll<HTMLElement>('.group1');
 
-                // Initial state - visible
                 expect(items[0].style.display).toBe('');
                 expect(items[1].style.display).toBe('');
 
-                // Click to hide
                 link.click();
 
                 expect(items[0].style.display).toBe('none');
                 expect(items[1].style.display).toBe('none');
 
-                // Click to show
                 link.click();
 
                 expect(items[0].style.display).toBe('');
@@ -717,17 +702,13 @@ describe('ArticleContentComponent', () => {
                 const td = spectator.query('td') as HTMLTableCellElement;
                 const content = spectator.query<HTMLElement>('.cmnt3')!;
 
-                // onclick should be converted to data-onclick
                 expect(table.getAttribute('onclick')).toBeNull();
                 expect(table.getAttribute('data-onclick')).toContain('javascript:toggleGroup');
 
-                // Initial state
                 expect(content.style.display).toBe('');
 
-                // Click on child element (td)
                 td.click();
 
-                // Should toggle visibility
                 expect(content.style.display).toBe('none');
             });
 
@@ -763,5 +744,31 @@ describe('ArticleContentComponent', () => {
                 expect(content.style.display).toBe('none');
             });
         });
+    });
+});
+
+describe('WikiContentComponent without picture handler', () => {
+    let spectator: Spectator<WikiContentComponent>;
+
+    const createComponent = createComponentFactory({
+        component: WikiContentComponent,
+        mocks: [Router],
+        providers: [mockLoggerProvider()],
+    });
+
+    it('should fall through to router navigation when no picture handler is provided', () => {
+        spectator = createComponent();
+        const router = spectator.inject(Router) as jest.Mocked<Router>;
+
+        spectator.setInput(
+            'content',
+            '<table class="pic"><tr><td><a href="/pictures/123"><img src="/test.jpg" /></a></td></tr></table>',
+        );
+        spectator.detectChanges();
+
+        const img = spectator.query('.pic img') as HTMLImageElement;
+        img.click();
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/pictures/123');
     });
 });
