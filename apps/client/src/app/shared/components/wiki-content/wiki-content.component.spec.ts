@@ -2,7 +2,7 @@ import { PictureLightboxService } from '../../../services/pictures/picture-light
 import { WikiContentComponent } from './wiki-content.component';
 import { Router } from '@angular/router';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 
 describe('WikiContentComponent', () => {
@@ -14,7 +14,7 @@ describe('WikiContentComponent', () => {
     const createComponent = createComponentFactory({
         component: WikiContentComponent,
         mocks: [Router],
-        providers: [mockLoggerProvider(), mockProvider(PictureLightboxService)],
+        providers: [mockLoggerProvider(), mockProvider(PictureLightboxService), mockProvider(NotificationService)],
     });
 
     beforeEach(() => {
