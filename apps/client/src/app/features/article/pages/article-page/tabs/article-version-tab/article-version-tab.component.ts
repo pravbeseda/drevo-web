@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../../../../services/articles';
-import { ArticleContentComponent } from '../../../../components/article-content/article-content.component';
+import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
 import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -14,7 +14,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 @Component({
     selector: 'app-article-version-tab',
     imports: [
-        ArticleContentComponent,
+        WikiContentComponent,
         ArticleSidebarActionsComponent,
         BannerComponent,
         RouterLink,
