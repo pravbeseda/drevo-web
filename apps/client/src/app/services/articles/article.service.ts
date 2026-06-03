@@ -60,14 +60,14 @@ export class ArticleService {
             map(response =>
                 this.mapArticleVersion({
                     ...response,
-                    content: this.transformArticleLinks(response.content),
+                    content: response.content,
                 }),
             ),
         );
     }
 
     /**
-     * Get article version for viewing (with formatted HTML and transformed links)
+     * Get article version for viewing
      *
      * @param versionId - Version ID
      * @returns Observable with mapped article version
@@ -77,7 +77,7 @@ export class ArticleService {
             map(response =>
                 this.mapArticleVersion({
                     ...response,
-                    content: this.transformArticleLinks(response.content),
+                    content: response.content,
                 }),
             ),
         );
@@ -173,12 +173,10 @@ export class ArticleService {
      *
      * @param content - Raw wiki content to format
      * @param articleId - Article ID for internal links resolution
-     * @returns Observable with formatted HTML string (with transformed links)
+     * @returns Observable with formatted HTML string
      */
     previewArticle(content: string, articleId: number): Observable<string> {
-        return this.articleApiService
-            .previewArticle({ content, articleId })
-            .pipe(map(response => this.transformArticleLinks(response.content)));
+        return this.articleApiService.previewArticle({ content, articleId }).pipe(map(response => response.content));
     }
 
     getArticlesHistory(params: ArticleHistoryParams = {}): Observable<ArticleHistoryResponse> {
@@ -220,16 +218,6 @@ export class ArticleService {
             comment: response.comment,
             topics: response.topics ?? [],
         };
-    }
-
-    /**
-     * Transform legacy article links to Angular-friendly format.
-     * Converts href="/articles/8.html" to href="/articles/8"
-     * Converts href="/articles/8.html#S22" to href="/articles/8#S22"
-     */
-    private transformArticleLinks(content: string): string {
-        // Match href attributes pointing to /articles/*.html with optional anchor
-        return content.replace(/href="\/articles\/(\d+)\.html(#[^"]+)?"/g, 'href="/articles/$1$2"');
     }
 
     private mapSearchResponse(response: ArticleSearchResponseDto): ArticleSearchResponse {

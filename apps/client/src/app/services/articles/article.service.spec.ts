@@ -84,62 +84,6 @@ describe('ArticleService', () => {
                 done();
             });
         });
-
-        it('should transform article links removing .html extension', done => {
-            const articleWithLinks: ArticleVersionDto = {
-                ...mockApiResponse,
-                content: '<a class="existlink" href="/articles/8.html">Link</a>',
-            };
-            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
-
-            spectator.service.getArticle(123).subscribe(result => {
-                expect(result.content).toBe('<a class="existlink" href="/articles/8">Link</a>');
-                done();
-            });
-        });
-
-        it('should transform multiple article links', done => {
-            const articleWithLinks: ArticleVersionDto = {
-                ...mockApiResponse,
-                content: '<p><a href="/articles/1.html">First</a> and <a href="/articles/999.html">Second</a></p>',
-            };
-            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
-
-            spectator.service.getArticle(123).subscribe(result => {
-                expect(result.content).toBe(
-                    '<p><a href="/articles/1">First</a> and <a href="/articles/999">Second</a></p>',
-                );
-                done();
-            });
-        });
-
-        it('should not transform non-article links', done => {
-            const articleWithLinks: ArticleVersionDto = {
-                ...mockApiResponse,
-                content: '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
-            };
-            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
-
-            spectator.service.getArticle(123).subscribe(result => {
-                expect(result.content).toBe(
-                    '<a href="https://example.com">External</a> <a href="/other/page.html">Other</a>',
-                );
-                done();
-            });
-        });
-
-        it('should transform article links with anchor fragments', done => {
-            const articleWithLinks: ArticleVersionDto = {
-                ...mockApiResponse,
-                content: '<a href="/articles/8.html#S22">Link with anchor</a>',
-            };
-            articleApiService.getArticle.mockReturnValue(of(articleWithLinks));
-
-            spectator.service.getArticle(123).subscribe(result => {
-                expect(result.content).toBe('<a href="/articles/8#S22">Link with anchor</a>');
-                done();
-            });
-        });
     });
 
     describe('getVersionShow', () => {
@@ -178,15 +122,6 @@ describe('ArticleService', () => {
                 expect(result.approved).toBe(1);
                 expect(result.info).toBe('Version info text');
                 expect(result.comment).toBe('Editor comment');
-                done();
-            });
-        });
-
-        it('should transform article links (like getArticle)', done => {
-            articleApiService.getVersionShow.mockReturnValue(of(mockApiResponse));
-
-            spectator.service.getVersionShow(789).subscribe(result => {
-                expect(result.content).toBe('<p>Content with <a href="/articles/8">link</a></p>');
                 done();
             });
         });
@@ -234,15 +169,6 @@ describe('ArticleService', () => {
                 expect(result.title).toBe('Test Article Version');
                 expect(result.author).toBe('Version Author');
                 expect(result.redirect).toBe(false);
-                done();
-            });
-        });
-
-        it('should NOT transform article links (unlike getArticle)', done => {
-            articleApiService.getArticleVersion.mockReturnValue(of(mockApiResponse));
-
-            spectator.service.getArticleVersion(789).subscribe(result => {
-                expect(result.content).toBe('<p>Raw content with <a href="/articles/8.html">link</a></p>');
                 done();
             });
         });
@@ -767,27 +693,6 @@ describe('ArticleService', () => {
 
             spectator.service.previewArticle('wiki content', 42).subscribe(result => {
                 expect(typeof result).toBe('string');
-                done();
-            });
-        });
-
-        it('should transform article links in preview content', done => {
-            articleApiService.previewArticle.mockReturnValue(of(mockPreviewResponse));
-
-            spectator.service.previewArticle('wiki content', 42).subscribe(result => {
-                expect(result).toBe('<p>Formatted with <a href="/articles/8">link</a></p>');
-                done();
-            });
-        });
-
-        it('should not transform non-article links', done => {
-            const responseWithExternalLinks: ArticlePreviewResponseDto = {
-                content: '<a href="https://example.com">External</a>',
-            };
-            articleApiService.previewArticle.mockReturnValue(of(responseWithExternalLinks));
-
-            spectator.service.previewArticle('content', 1).subscribe(result => {
-                expect(result).toBe('<a href="https://example.com">External</a>');
                 done();
             });
         });
