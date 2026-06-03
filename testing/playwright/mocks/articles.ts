@@ -70,16 +70,14 @@ export function createArticleVersionDto(overrides: Partial<ArticleVersionDto> = 
 }
 
 /**
- * Build a legacy `.pic` table fragment linking to `/pictures/NN.html`.
- * The `.html` suffix mirrors legacy Yii markup — ArticleContentComponent
- * strips it during preprocessing, so e2e exercises that normalization.
+ * Build a `.pic` table fragment linking to `/pictures/NN`.
  * The thumbnail `src` is a placeholder — tests mock the thumbs route and
  * never assert the path, so it need not match the real folder scheme.
  */
 export function createPictureContentHtml(pictureId: number): string {
     return (
         `<table class="pic"><tr><td class="picimage">` +
-        `<a href="/pictures/${pictureId}.html">` +
+        `<a href="/pictures/${pictureId}">` +
         `<img class="noborder" src="/images/thumbs/test.jpg" alt="Тестовая иллюстрация" />` +
         `</a></td></tr></table>`
     );

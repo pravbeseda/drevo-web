@@ -52,6 +52,12 @@ app-wiki-content {
         background-color: var(--themed-wiki-image-bg);
         width: min-content;
 
+        img {
+            display: block;
+            margin-inline: auto;
+            max-width: 250px;
+        }
+
         figcaption,
         .picdesc {
             text-align: center;

@@ -114,7 +114,6 @@ export class WikiContentComponent implements OnInit, OnDestroy {
     private preprocessContent(html: string): string {
         let processed = this.removeMapElements(html);
         processed = processed.replace(/\s+onclick=(["'])(javascript:[\s\S]*?)\1/gi, ' data-onclick=$1$2$1');
-        processed = processed.replace(/(\shref=(["']))(\/pictures\/\d+)\.html\2/gi, '$1$3$2');
         return processed;
     }
 
