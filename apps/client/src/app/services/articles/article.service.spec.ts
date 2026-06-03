@@ -91,7 +91,7 @@ describe('ArticleService', () => {
             articleId: 123,
             versionId: 789,
             title: 'Test Version',
-            content: '<p>Content with <a href="/articles/8.html">link</a></p>',
+            content: '<p>Content with <a href="/articles/8">link</a></p>',
             author: 'Version Author',
             date: '2024-02-20T15:30:00+00:00',
             redirect: 0,
@@ -142,7 +142,7 @@ describe('ArticleService', () => {
             articleId: 123,
             versionId: 789,
             title: 'Test Article Version',
-            content: '<p>Raw content with <a href="/articles/8.html">link</a></p>',
+            content: '<p>Raw content with <a href="/articles/8">link</a></p>',
             author: 'Version Author',
             date: '2024-02-20T15:30:00+00:00',
             redirect: 0,
@@ -677,7 +677,7 @@ describe('ArticleService', () => {
 
     describe('previewArticle', () => {
         const mockPreviewResponse: ArticlePreviewResponseDto = {
-            content: '<p>Formatted with <a href="/articles/8.html">link</a></p>',
+            content: '<p>Formatted with <a href="/articles/8">link</a></p>',
         };
 
         it('should call articleApiService.previewArticle with correct params', () => {

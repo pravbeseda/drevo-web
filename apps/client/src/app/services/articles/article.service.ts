@@ -56,14 +56,7 @@ export class ArticleService {
      * @returns Observable with mapped article
      */
     getArticle(id: number): Observable<ArticleVersion> {
-        return this.articleApiService.getArticle(id).pipe(
-            map(response =>
-                this.mapArticleVersion({
-                    ...response,
-                    content: response.content,
-                }),
-            ),
-        );
+        return this.articleApiService.getArticle(id).pipe(map(response => this.mapArticleVersion(response)));
     }
 
     /**
@@ -73,14 +66,7 @@ export class ArticleService {
      * @returns Observable with mapped article version
      */
     getVersionShow(versionId: number): Observable<ArticleVersion> {
-        return this.articleApiService.getVersionShow(versionId).pipe(
-            map(response =>
-                this.mapArticleVersion({
-                    ...response,
-                    content: response.content,
-                }),
-            ),
-        );
+        return this.articleApiService.getVersionShow(versionId).pipe(map(response => this.mapArticleVersion(response)));
     }
 
     /**
