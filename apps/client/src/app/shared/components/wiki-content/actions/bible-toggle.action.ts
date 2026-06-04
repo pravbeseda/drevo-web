@@ -1,19 +1,9 @@
 import { WikiAction } from './wiki-action';
 import { Injectable } from '@angular/core';
 
-interface BibleToggleState {
-    rusVisible: boolean;
-    cslVisible: boolean;
-}
-
 @Injectable()
 export class BibleToggleAction implements WikiAction {
     readonly name = 'BibleToggle';
-
-    private readonly state: BibleToggleState = {
-        rusVisible: true,
-        cslVisible: true,
-    };
 
     canExecute(actionName: string): boolean {
         return actionName === 'toggleRus' || actionName === 'toggleCsl';
@@ -40,10 +30,8 @@ export class BibleToggleAction implements WikiAction {
             cslElements.forEach(el => {
                 el.style.display = '';
             });
-            this.state.cslVisible = true;
         }
 
-        this.state.rusVisible = !willBeHidden;
         this.updateBibleLinks(host);
     }
 
@@ -60,10 +48,8 @@ export class BibleToggleAction implements WikiAction {
             rusElements.forEach(el => {
                 el.style.display = '';
             });
-            this.state.rusVisible = true;
         }
 
-        this.state.cslVisible = !willBeHidden;
         this.updateBibleLinks(host);
     }
 
@@ -71,10 +57,11 @@ export class BibleToggleAction implements WikiAction {
         const rusLinks = Array.from(host.querySelectorAll('.toggleRus')) as HTMLElement[];
         const cslLinks = Array.from(host.querySelectorAll('.toggleCsl')) as HTMLElement[];
 
-        const rusText = this.state.rusVisible ? 'Скрыть русский перевод' : 'Показать русский перевод';
-        const cslText = this.state.cslVisible
-            ? 'Скрыть церковнославянский перевод'
-            : 'Показать церковнославянский перевод';
+        const rusVisible = (host.querySelector('.BibleRus') as HTMLElement)?.style.display !== 'none';
+        const cslVisible = (host.querySelector('.BibleCsl') as HTMLElement)?.style.display !== 'none';
+
+        const rusText = rusVisible ? 'Скрыть русский перевод' : 'Показать русский перевод';
+        const cslText = cslVisible ? 'Скрыть церковнославянский перевод' : 'Показать церковнославянский перевод';
 
         rusLinks.forEach(link => {
             link.textContent = rusText;
