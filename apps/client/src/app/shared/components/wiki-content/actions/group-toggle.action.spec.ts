@@ -48,7 +48,7 @@ describe('GroupToggleAction', () => {
             action.execute('toggleGroup', host, 'group1');
             action.execute('toggleGroup', host, 'group1');
 
-            const item = host.querySelector<HTMLElement>('.group1')!;
+            const item = host.querySelector('.group1') as HTMLElement;
             expect(item.style.display).toBe('');
         });
 
