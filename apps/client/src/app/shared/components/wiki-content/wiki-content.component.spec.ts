@@ -2,13 +2,12 @@ import { PictureLightboxService } from '../../../services/pictures/picture-light
 import { WikiContentComponent } from './wiki-content.component';
 import { Router } from '@angular/router';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { LoggerService, NotificationService } from '@drevo-web/core';
-import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { NotificationService } from '@drevo-web/core';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 
 describe('WikiContentComponent', () => {
     let spectator: Spectator<WikiContentComponent>;
     let router: jest.Mocked<Router>;
-    let logger: MockLoggerService;
     let lightboxService: jest.Mocked<PictureLightboxService>;
 
     const createComponent = createComponentFactory({
@@ -21,7 +20,6 @@ describe('WikiContentComponent', () => {
         jest.clearAllMocks();
         spectator = createComponent();
         router = spectator.inject(Router) as jest.Mocked<Router>;
-        logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
         lightboxService = spectator.inject(PictureLightboxService) as jest.Mocked<PictureLightboxService>;
     });
 
@@ -83,9 +81,29 @@ describe('WikiContentComponent', () => {
         });
     });
 
-    describe('internal link navigation', () => {
-        it('should navigate using router for internal links', () => {
-            spectator.setInput('content', '<a href="/articles/123">Article Link</a>');
+    describe('preprocessing', () => {
+        it('should strip map elements from content', () => {
+            spectator.setInput('content', '<p>Before</p><div class="map">Map content</div><p>After</p>');
+            spectator.detectChanges();
+
+            expect(spectator.query('.map')).toBeNull();
+            expect(spectator.element.textContent).toContain('Before');
+            expect(spectator.element.textContent).toContain('After');
+        });
+
+        it('should convert onclick to data-onclick', () => {
+            spectator.setInput('content', '<div onclick="javascript:toggleAll()" id="clickable">Click</div>');
+            spectator.detectChanges();
+
+            const div = spectator.query('#clickable') as HTMLDivElement;
+            expect(div.getAttribute('onclick')).toBeNull();
+            expect(div.getAttribute('data-onclick')).toContain('javascript:toggleAll');
+        });
+    });
+
+    describe('click handler chain (integration)', () => {
+        it('should navigate for internal links via handler chain', () => {
+            spectator.setInput('content', '<a href="/articles/123">Article</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
@@ -94,146 +112,10 @@ describe('WikiContentComponent', () => {
             expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/123');
         });
 
-        it('should prevent default browser navigation for internal links', () => {
-            spectator.setInput('content', '<a href="/articles/456">Article Link</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            const event = new MouseEvent('click', {
-                bubbles: true,
-                cancelable: true,
-            });
-            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-            link.dispatchEvent(event);
-
-            expect(preventDefaultSpy).toHaveBeenCalled();
-        });
-
-        it('should handle nested elements inside links', () => {
-            spectator.setInput('content', '<a href="/articles/789"><span>Nested Text</span></a>');
-            spectator.detectChanges();
-
-            const span = spectator.query('span') as HTMLSpanElement;
-            span.click();
-
-            expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/789');
-        });
-    });
-
-    describe('external link handling', () => {
-        it('should not intercept external http links', () => {
-            spectator.setInput('content', '<a href="https://example.com">External</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            link.click();
-
-            expect(router.navigateByUrl).not.toHaveBeenCalled();
-        });
-
-        it('should not intercept mailto links', () => {
-            spectator.setInput('content', '<a href="mailto:test@example.com">Email</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            link.click();
-
-            expect(router.navigateByUrl).not.toHaveBeenCalled();
-        });
-
-        it('should not intercept hash-only links', () => {
-            spectator.setInput('content', '<a href="/#section">Hash Link</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            link.click();
-
-            expect(router.navigateByUrl).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('non-link clicks', () => {
-        it('should not intercept clicks on non-link elements', () => {
-            spectator.setInput('content', '<p>Plain text</p>');
-            spectator.detectChanges();
-
-            const paragraph = spectator.query('p') as HTMLParagraphElement;
-            paragraph.click();
-
-            expect(router.navigateByUrl).not.toHaveBeenCalled();
-        });
-
-        it('should not intercept clicks on elements without href', () => {
-            spectator.setInput('content', '<a>No href</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            link.click();
-
-            expect(router.navigateByUrl).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('anchor navigation', () => {
-        it('should handle anchor links with hash', () => {
-            const mockElement = document.createElement('div');
-            mockElement.setAttribute('name', 'section1');
-            mockElement.scrollIntoView = jest.fn();
-            spectator.element.appendChild(mockElement);
-
-            const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
-            const pushStateSpy = jest.spyOn(history, 'pushState');
-
-            spectator.setInput('content', '<a href="#section1">Go to section</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            link.click();
-
-            expect(scrollIntoViewSpy).toHaveBeenCalledWith({
-                behavior: 'smooth',
-                block: 'start',
-            });
-            expect(pushStateSpy).toHaveBeenCalledWith(undefined, '', expect.stringContaining('#section1'));
-        });
-
-        it('should handle anchor IDs with special characters safely', () => {
-            const safeId = 'section-with-special';
-            const mockElement = document.createElement('div');
-            mockElement.setAttribute('name', safeId);
-            mockElement.scrollIntoView = jest.fn();
-            spectator.element.appendChild(mockElement);
-
-            const scrollIntoViewSpy = jest.spyOn(mockElement, 'scrollIntoView');
-
-            spectator.setInput('content', `<a href="#${safeId}">Go to section</a>`);
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-            link.click();
-
-            expect(scrollIntoViewSpy).toHaveBeenCalled();
-        });
-
-        it('should not throw error when anchor target does not exist', () => {
-            const pushStateSpy = jest.spyOn(history, 'pushState');
-
-            spectator.setInput('content', '<a href="#nonexistent">Go nowhere</a>');
-            spectator.detectChanges();
-
-            const link = spectator.query('a') as HTMLAnchorElement;
-
-            expect(() => link.click()).not.toThrow();
-            expect(pushStateSpy).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('picture lightbox', () => {
-        it('should open lightbox when clicking image inside .pic', () => {
+        it('should open lightbox for picture clicks via handler chain', () => {
             spectator.setInput(
                 'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/123"><img src="/images/thumbs/004/000123.jpg" alt="Test" /></a></td></tr></table>',
+                '<table class="pic"><tr><td><a href="/pictures/123"><img src="/test.jpg" /></a></td></tr></table>',
             );
             spectator.detectChanges();
 
@@ -244,34 +126,24 @@ describe('WikiContentComponent', () => {
             expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
-        it('should open lightbox when clicking anywhere inside .pic', () => {
-            spectator.setInput(
-                'content',
-                '<table class="pic"><tr><td class="picimage"><a href="/pictures/456"><img src="/images/thumbs/001/000456.jpg" /></a></td></tr><tr><td class="picdesc">Подпись</td></tr></table>',
-            );
+        it('should not intercept external links', () => {
+            spectator.setInput('content', '<a href="https://example.com">External</a>');
             spectator.detectChanges();
 
-            const desc = spectator.query('.picdesc') as HTMLElement;
-            desc.click();
+            const link = spectator.query('a') as HTMLAnchorElement;
+            link.click();
 
-            expect(lightboxService.open).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
-        it('should prevent default for picture clicks', () => {
-            spectator.setInput(
-                'content',
-                '<table class="pic"><tr><td><a href="/pictures/789"><img src="/test.jpg" /></a></td></tr></table>',
-            );
+        it('should not intercept clicks on non-link elements', () => {
+            spectator.setInput('content', '<p>Plain text</p>');
             spectator.detectChanges();
 
-            const img = spectator.query('.pic img') as HTMLImageElement;
-            const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-            const spy = jest.spyOn(event, 'preventDefault');
+            const paragraph = spectator.query('p') as HTMLParagraphElement;
+            paragraph.click();
 
-            img.dispatchEvent(event);
-
-            expect(spy).toHaveBeenCalled();
-            expect(lightboxService.open).toHaveBeenCalledWith(789);
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
     });
 
@@ -282,424 +154,6 @@ describe('WikiContentComponent', () => {
             spectator.component.ngOnDestroy();
 
             expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
-        });
-    });
-
-    describe('legacy interactive features', () => {
-        describe('toggleAll', () => {
-            it('should toggle comment visibility and link text', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
-                    <div class="cmnt">Comment 1</div>
-                    <div class="cmnt">Comment 2</div>
-                `,
-                );
-                spectator.detectChanges();
-
-                const link = spectator.query('.LinkComment') as HTMLElement;
-                const comments = spectator.queryAll<HTMLElement>('.cmnt');
-
-                expect(link.textContent?.trim()).toBe('Свернуть');
-                expect(comments[0].style.display).toBe('');
-
-                link.click();
-
-                expect(link.textContent?.trim()).toBe('Развернуть');
-                expect(comments[0].style.display).toBe('none');
-                expect(comments[1].style.display).toBe('none');
-
-                link.click();
-
-                expect(link.textContent?.trim()).toBe('Свернуть');
-                expect(comments[0].style.display).toBe('');
-                expect(comments[1].style.display).toBe('');
-            });
-
-            it('should handle multiple toggle links', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
-                    <div class="cmnt">Comment</div>
-                    <p><a href="javascript:toggleAll()" class="LinkComment">Свернуть</a></p>
-                `,
-                );
-                spectator.detectChanges();
-
-                const links = spectator.queryAll<HTMLElement>('.LinkComment');
-
-                links[0].click();
-
-                expect(links[0].textContent?.trim()).toBe('Развернуть');
-                expect(links[1].textContent?.trim()).toBe('Развернуть');
-            });
-        });
-
-        describe('toggleRus', () => {
-            it('should toggle Russian translation visibility', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <p><a href="javascript:toggleRus()" class="toggleRus">Скрыть русский перевод</a></p>
-                    <div class="BibleRus">Russian text</div>
-                    <div class="BibleCsl">Church Slavonic text</div>
-                `,
-                );
-                spectator.detectChanges();
-
-                const link = spectator.query('.toggleRus') as HTMLElement;
-                const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
-                const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
-
-                link.click();
-
-                expect(rusElement.style.display).toBe('none');
-                expect(cslElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe('Показать русский перевод');
-
-                link.click();
-
-                expect(rusElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe('Скрыть русский перевод');
-            });
-
-            it('should ensure Church Slavonic is visible when hiding Russian', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <p><a href="javascript:toggleRus()" class="toggleRus">Скрыть русский перевод</a></p>
-                    <div class="BibleRus">Russian</div>
-                    <div class="BibleCsl" style="display: none;">Church Slavonic</div>
-                `,
-                );
-                spectator.detectChanges();
-
-                const link = spectator.query('.toggleRus') as HTMLElement;
-                const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
-
-                link.click();
-
-                expect(cslElement.style.display).toBe('');
-            });
-        });
-
-        describe('toggleCsl', () => {
-            it('should toggle Church Slavonic translation visibility', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <p><a href="javascript:toggleCsl()" class="toggleCsl">Скрыть церковнославянский перевод</a></p>
-                    <div class="BibleRus">Russian text</div>
-                    <div class="BibleCsl">Church Slavonic text</div>
-                `,
-                );
-                spectator.detectChanges();
-
-                const link = spectator.query('.toggleCsl') as HTMLElement;
-                const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
-                const cslElement = spectator.query<HTMLElement>('.BibleCsl')!;
-
-                link.click();
-
-                expect(cslElement.style.display).toBe('none');
-                expect(rusElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe('Показать церковнославянский перевод');
-
-                link.click();
-
-                expect(cslElement.style.display).toBe('');
-                expect(link.textContent?.trim()).toBe('Скрыть церковнославянский перевод');
-            });
-
-            it('should ensure Russian is visible when hiding Church Slavonic', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <p><a href="javascript:toggleCsl()" class="toggleCsl">Скрыть церковнославянский перевод</a></p>
-                    <div class="BibleRus" style="display: none;">Russian</div>
-                    <div class="BibleCsl">Church Slavonic</div>
-                `,
-                );
-                spectator.detectChanges();
-
-                const link = spectator.query('.toggleCsl') as HTMLElement;
-                const rusElement = spectator.query<HTMLElement>('.BibleRus')!;
-
-                link.click();
-
-                expect(rusElement.style.display).toBe('');
-            });
-        });
-
-        describe('javascript: link handling', () => {
-            it('should prevent default for javascript: links', () => {
-                spectator.setInput('content', '<a href="javascript:toggleAll()">Toggle</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-            });
-
-            it('should not call router.navigateByUrl for javascript: links', () => {
-                spectator.setInput('content', '<a href="javascript:toggleAll()">Toggle</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                link.click();
-
-                expect(router.navigateByUrl).not.toHaveBeenCalled();
-            });
-
-            it('should handle javascript: links with uppercase (JavaScript:)', () => {
-                spectator.setInput('content', '<a href="JavaScript:toggleAll()">Toggle</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-                expect(router.navigateByUrl).not.toHaveBeenCalled();
-            });
-
-            it('should handle javascript: links with mixed case', () => {
-                spectator.setInput('content', '<a href="JaVaScRiPt:toggleRus()">Toggle</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-                expect(router.navigateByUrl).not.toHaveBeenCalled();
-            });
-
-            it('should handle javascript: links with whitespace', () => {
-                spectator.setInput('content', '<a href="  javascript:toggleCsl()  ">Toggle</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-                expect(router.navigateByUrl).not.toHaveBeenCalled();
-            });
-
-            it('should reject invalid javascript: patterns with special characters', () => {
-                spectator.setInput('content', '<a href="javascript:alert(\'xss\')">Invalid</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
-                    'Unknown javascript action',
-                    expect.objectContaining({
-                        action: 'alert',
-                        value: expect.any(String),
-                    }),
-                );
-            });
-
-            it('should reject unknown javascript: actions', () => {
-                spectator.setInput('content', '<a href="javascript:unknownAction()">Unknown</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-
-                link.dispatchEvent(event);
-
-                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
-                    'Unknown javascript action',
-                    expect.objectContaining({
-                        action: 'unknownAction',
-                        value: expect.any(String),
-                    }),
-                );
-            });
-
-            it('should reject data: protocol links', () => {
-                spectator.setInput('content', '<a href="data:text/html,<script>alert(1)</script>">XSS</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-                expect(router.navigateByUrl).not.toHaveBeenCalled();
-            });
-
-            it('should reject vbscript: protocol links', () => {
-                spectator.setInput('content', '<a href="vbscript:msgbox(1)">XSS</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-                link.dispatchEvent(event);
-
-                expect(preventDefaultSpy).toHaveBeenCalled();
-                expect(router.navigateByUrl).not.toHaveBeenCalled();
-            });
-
-            it('should warn on invalid javascript action format', () => {
-                spectator.setInput('content', '<a href="javascript:console.log(\'test\')">Invalid</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                link.click();
-
-                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
-                    'Invalid javascript action format',
-                    expect.objectContaining({ value: expect.any(String) }),
-                );
-            });
-        });
-
-        describe('toggleGroup', () => {
-            it('should toggle elements with specified class name', () => {
-                spectator.setInput(
-                    'content',
-                    `
-                    <a href="javascript:toggleGroup('group1')">Toggle Group</a>
-                    <div class="group1">Item 1</div>
-                    <div class="group1">Item 2</div>
-                `,
-                );
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                const items = spectator.queryAll<HTMLElement>('.group1');
-
-                expect(items[0].style.display).toBe('');
-                expect(items[1].style.display).toBe('');
-
-                link.click();
-
-                expect(items[0].style.display).toBe('none');
-                expect(items[1].style.display).toBe('none');
-
-                link.click();
-
-                expect(items[0].style.display).toBe('');
-                expect(items[1].style.display).toBe('');
-            });
-
-            it('should warn when toggleGroup called without parameter', () => {
-                spectator.setInput('content', '<a href="javascript:toggleGroup()">Invalid</a>');
-                spectator.detectChanges();
-
-                const link = spectator.query('a') as HTMLAnchorElement;
-                link.click();
-
-                expect(logger.mockLogger.warn).toHaveBeenCalledWith(
-                    'toggleGroup requires a class name parameter',
-                    expect.objectContaining({ value: expect.any(String) }),
-                );
-            });
-        });
-
-        describe('onclick attribute handling', () => {
-            it('should convert onclick to data-onclick and handle clicks', () => {
-                spectator.setInput(
-                    'content',
-                    `<table onclick="javascript:toggleGroup('cmnt3')"><tr><td>Click me</td></tr></table>
-                    <div class="cmnt3">Content</div>`,
-                );
-                spectator.detectChanges();
-
-                const table = spectator.query('table') as HTMLTableElement;
-                const td = spectator.query('td') as HTMLTableCellElement;
-                const content = spectator.query<HTMLElement>('.cmnt3')!;
-
-                expect(table.getAttribute('onclick')).toBeNull();
-                expect(table.getAttribute('data-onclick')).toContain('javascript:toggleGroup');
-
-                expect(content.style.display).toBe('');
-
-                td.click();
-
-                expect(content.style.display).toBe('none');
-            });
-
-            it('should handle onclick with single quotes', () => {
-                spectator.setInput(
-                    'content',
-                    `<div onclick='javascript:toggleAll()' id="clickable">Click</div>
-                    <div class="cmnt">Comment</div>`,
-                );
-                spectator.detectChanges();
-
-                const div = spectator.query('#clickable') as HTMLDivElement;
-
-                expect(div.getAttribute('onclick')).toBeNull();
-                expect(div.getAttribute('data-onclick')).toContain('javascript:toggleAll');
-            });
-
-            it('should handle onclick on nested elements', () => {
-                spectator.setInput(
-                    'content',
-                    `<table onclick="javascript:toggleGroup('test')">
-                        <tr><td><span>Deep nested</span></td></tr>
-                    </table>
-                    <div class="test">Content</div>`,
-                );
-                spectator.detectChanges();
-
-                const span = spectator.query('span') as HTMLSpanElement;
-                const content = spectator.query<HTMLElement>('.test')!;
-
-                span.click();
-
-                expect(content.style.display).toBe('none');
-            });
         });
     });
 });

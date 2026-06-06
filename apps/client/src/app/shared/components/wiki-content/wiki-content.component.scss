@@ -23,11 +23,31 @@ app-wiki-content {
         color: var(--themed-wiki-newlink);
     }
 
+    .bible-chapters {
+        margin: 16px 0;
+    }
+
+    .bible-text {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+
+        > a[id] {
+            flex-basis: 100%;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .bible-column {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+    }
+
     .BibleRus,
     .BibleCsl {
         background-color: var(--themed-wiki-bible-bg);
         padding: 5px;
-        vertical-align: top;
     }
 
     .verse {
