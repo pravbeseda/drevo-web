@@ -11,41 +11,23 @@ export class BibleToggleAction implements WikiAction {
 
     execute(actionName: string, host: HTMLElement): void {
         if (actionName === 'toggleRus') {
-            this.toggleRus(host);
+            this.toggleTranslation(host, 'BibleRus', 'BibleCsl');
         } else {
-            this.toggleCsl(host);
+            this.toggleTranslation(host, 'BibleCsl', 'BibleRus');
         }
     }
 
-    private toggleRus(host: HTMLElement): void {
-        const rusElements = Array.from(host.querySelectorAll('.BibleRus')) as HTMLElement[];
-        const cslElements = Array.from(host.querySelectorAll('.BibleCsl')) as HTMLElement[];
+    private toggleTranslation(host: HTMLElement, primaryClass: string, otherClass: string): void {
+        const primaryElements = Array.from(host.querySelectorAll(`.${primaryClass}`)) as HTMLElement[];
+        const otherElements = Array.from(host.querySelectorAll(`.${otherClass}`)) as HTMLElement[];
 
-        const willBeHidden = rusElements[0]?.style.display !== 'none';
-        rusElements.forEach(el => {
+        const willBeHidden = primaryElements[0]?.style.display !== 'none';
+        primaryElements.forEach(el => {
             el.style.display = willBeHidden ? 'none' : '';
         });
 
         if (willBeHidden) {
-            cslElements.forEach(el => {
-                el.style.display = '';
-            });
-        }
-
-        this.updateBibleLinks(host);
-    }
-
-    private toggleCsl(host: HTMLElement): void {
-        const cslElements = Array.from(host.querySelectorAll('.BibleCsl')) as HTMLElement[];
-        const rusElements = Array.from(host.querySelectorAll('.BibleRus')) as HTMLElement[];
-
-        const willBeHidden = cslElements[0]?.style.display !== 'none';
-        cslElements.forEach(el => {
-            el.style.display = willBeHidden ? 'none' : '';
-        });
-
-        if (willBeHidden) {
-            rusElements.forEach(el => {
+            otherElements.forEach(el => {
                 el.style.display = '';
             });
         }

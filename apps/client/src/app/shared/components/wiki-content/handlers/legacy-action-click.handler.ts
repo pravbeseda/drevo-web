@@ -28,7 +28,7 @@ export class LegacyActionClickHandler implements WikiClickHandler {
 
         const anchor = target.closest('a');
         const href = anchor?.getAttribute('href');
-        if (href && this.isJavaScriptProtocol(href)) {
+        if (href && this.isDangerousProtocol(href)) {
             event.preventDefault();
             this.dispatchAction(href, host);
             return true;
@@ -41,7 +41,7 @@ export class LegacyActionClickHandler implements WikiClickHandler {
         let element: HTMLElement | undefined = target;
         while (element && element !== host) {
             const dataOnclick = element.getAttribute('data-onclick');
-            if (dataOnclick && this.isJavaScriptProtocol(dataOnclick)) {
+            if (dataOnclick && this.isDangerousProtocol(dataOnclick)) {
                 return dataOnclick;
             }
             const action = element.getAttribute('data-action');
@@ -87,7 +87,7 @@ export class LegacyActionClickHandler implements WikiClickHandler {
         return undefined;
     }
 
-    private isJavaScriptProtocol(value: string): boolean {
+    private isDangerousProtocol(value: string): boolean {
         const normalized = value.trim().toLowerCase().replace(/\s+/g, '');
         return (
             normalized.startsWith('javascript:') || normalized.startsWith('data:') || normalized.startsWith('vbscript:')
