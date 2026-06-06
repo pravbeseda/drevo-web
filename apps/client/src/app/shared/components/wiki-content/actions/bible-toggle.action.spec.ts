@@ -1,32 +1,35 @@
 import { BibleToggleAction } from './bible-toggle.action';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('BibleToggleAction', () => {
-    let action: BibleToggleAction;
+    let spectator: SpectatorService<BibleToggleAction>;
     let host: HTMLElement;
 
+    const createService = createServiceFactory({
+        service: BibleToggleAction,
+    });
+
     beforeEach(() => {
-        TestBed.configureTestingModule({ providers: [BibleToggleAction] });
-        action = TestBed.inject(BibleToggleAction);
+        spectator = createService();
         host = document.createElement('div');
     });
 
     it('should have name', () => {
-        expect(action.name).toBe('BibleToggle');
+        expect(spectator.service.name).toBe('BibleToggle');
     });
 
     describe('canExecute', () => {
         it('should match toggleRus', () => {
-            expect(action.canExecute('toggleRus')).toBe(true);
+            expect(spectator.service.canExecute('toggleRus')).toBe(true);
         });
 
         it('should match toggleCsl', () => {
-            expect(action.canExecute('toggleCsl')).toBe(true);
+            expect(spectator.service.canExecute('toggleCsl')).toBe(true);
         });
 
         it('should not match other actions', () => {
-            expect(action.canExecute('toggleAll')).toBe(false);
-            expect(action.canExecute('toggleGroup')).toBe(false);
+            expect(spectator.service.canExecute('toggleAll')).toBe(false);
+            expect(spectator.service.canExecute('toggleGroup')).toBe(false);
         });
     });
 
@@ -41,22 +44,22 @@ describe('BibleToggleAction', () => {
         });
 
         it('should hide Russian translation', () => {
-            action.execute('toggleRus', host);
+            spectator.service.execute('toggleRus', host);
 
             const rusEl = host.querySelector('.BibleRus') as HTMLElement;
             expect(rusEl.style.display).toBe('none');
         });
 
         it('should update link text when hiding', () => {
-            action.execute('toggleRus', host);
+            spectator.service.execute('toggleRus', host);
 
             const link = host.querySelector('.toggleRus') as HTMLElement;
             expect(link.textContent?.trim()).toBe('Показать русский перевод');
         });
 
         it('should show Russian translation when toggled back', () => {
-            action.execute('toggleRus', host);
-            action.execute('toggleRus', host);
+            spectator.service.execute('toggleRus', host);
+            spectator.service.execute('toggleRus', host);
 
             const rusEl = host.querySelector('.BibleRus') as HTMLElement;
             expect(rusEl.style.display).toBe('');
@@ -69,7 +72,7 @@ describe('BibleToggleAction', () => {
             const cslEl = host.querySelector('.BibleCsl') as HTMLElement;
             cslEl.style.display = 'none';
 
-            action.execute('toggleRus', host);
+            spectator.service.execute('toggleRus', host);
 
             expect(cslEl.style.display).toBe('');
         });
@@ -86,22 +89,22 @@ describe('BibleToggleAction', () => {
         });
 
         it('should hide Church Slavonic translation', () => {
-            action.execute('toggleCsl', host);
+            spectator.service.execute('toggleCsl', host);
 
             const cslEl = host.querySelector('.BibleCsl') as HTMLElement;
             expect(cslEl.style.display).toBe('none');
         });
 
         it('should update link text when hiding', () => {
-            action.execute('toggleCsl', host);
+            spectator.service.execute('toggleCsl', host);
 
             const link = host.querySelector('.toggleCsl') as HTMLElement;
             expect(link.textContent?.trim()).toBe('Показать церковнославянский перевод');
         });
 
         it('should show Church Slavonic when toggled back', () => {
-            action.execute('toggleCsl', host);
-            action.execute('toggleCsl', host);
+            spectator.service.execute('toggleCsl', host);
+            spectator.service.execute('toggleCsl', host);
 
             const cslEl = host.querySelector('.BibleCsl') as HTMLElement;
             expect(cslEl.style.display).toBe('');
@@ -114,7 +117,7 @@ describe('BibleToggleAction', () => {
             const rusEl = host.querySelector('.BibleRus') as HTMLElement;
             rusEl.style.display = 'none';
 
-            action.execute('toggleCsl', host);
+            spectator.service.execute('toggleCsl', host);
 
             expect(rusEl.style.display).toBe('');
         });

@@ -1,40 +1,42 @@
 import { MapStubAction } from './map-stub.action';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { NotificationService } from '@drevo-web/core';
 
 describe('MapStubAction', () => {
-    let action: MapStubAction;
-    let notification: jest.Mocked<NotificationService>;
+    let spectator: SpectatorService<MapStubAction>;
+
+    const createService = createServiceFactory({
+        service: MapStubAction,
+        mocks: [NotificationService],
+    });
 
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [MapStubAction, { provide: NotificationService, useValue: { info: jest.fn() } }],
-        });
-        action = TestBed.inject(MapStubAction);
-        notification = TestBed.inject(NotificationService) as jest.Mocked<NotificationService>;
+        spectator = createService();
     });
 
     it('should have name', () => {
-        expect(action.name).toBe('MapStub');
+        expect(spectator.service.name).toBe('MapStub');
     });
 
     describe('canExecute', () => {
         it('should match toggleYandexMap', () => {
-            expect(action.canExecute('toggleYandexMap')).toBe(true);
+            expect(spectator.service.canExecute('toggleYandexMap')).toBe(true);
         });
 
         it('should match googleMap', () => {
-            expect(action.canExecute('googleMap')).toBe(true);
+            expect(spectator.service.canExecute('googleMap')).toBe(true);
         });
 
         it('should not match other actions', () => {
-            expect(action.canExecute('toggleAll')).toBe(false);
+            expect(spectator.service.canExecute('toggleAll')).toBe(false);
         });
     });
 
     describe('execute', () => {
         it('should show not-implemented notification', () => {
-            action.execute('toggleYandexMap', document.createElement('div'));
+            const notification = spectator.inject(NotificationService);
+
+            spectator.service.execute('toggleYandexMap', document.createElement('div'));
 
             expect(notification.info).toHaveBeenCalledWith('Функция еще не реализована');
         });

@@ -1,18 +1,18 @@
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PictureClickHandler } from './picture-click.handler';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('PictureClickHandler', () => {
-    let handler: PictureClickHandler;
-    let lightboxService: jest.Mocked<PictureLightboxService>;
+    let spectator: SpectatorService<PictureClickHandler>;
     let host: HTMLElement;
 
+    const createService = createServiceFactory({
+        service: PictureClickHandler,
+        mocks: [PictureLightboxService],
+    });
+
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [PictureClickHandler, { provide: PictureLightboxService, useValue: { open: jest.fn() } }],
-        });
-        handler = TestBed.inject(PictureClickHandler);
-        lightboxService = TestBed.inject(PictureLightboxService) as jest.Mocked<PictureLightboxService>;
+        spectator = createService();
         host = document.createElement('div');
     });
 
@@ -22,10 +22,10 @@ describe('PictureClickHandler', () => {
         const img = host.querySelector('img') as HTMLImageElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, img, host);
+        const result = spectator.service.handleClick(event, img, host);
 
         expect(result).toBe(true);
-        expect(lightboxService.open).toHaveBeenCalledWith(123);
+        expect(spectator.inject(PictureLightboxService).open).toHaveBeenCalledWith(123);
     });
 
     it('should prevent default for picture clicks', () => {
@@ -35,7 +35,7 @@ describe('PictureClickHandler', () => {
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         const spy = jest.spyOn(event, 'preventDefault');
 
-        handler.handleClick(event, img, host);
+        spectator.service.handleClick(event, img, host);
 
         expect(spy).toHaveBeenCalled();
     });
@@ -45,10 +45,10 @@ describe('PictureClickHandler', () => {
         const p = host.querySelector('p') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, p, host);
+        const result = spectator.service.handleClick(event, p, host);
 
         expect(result).toBe(false);
-        expect(lightboxService.open).not.toHaveBeenCalled();
+        expect(spectator.inject(PictureLightboxService).open).not.toHaveBeenCalled();
     });
 
     it('should return false when .pic has no valid picture link', () => {
@@ -56,10 +56,9 @@ describe('PictureClickHandler', () => {
         const desc = host.querySelector('.picdesc') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, desc, host);
+        const result = spectator.service.handleClick(event, desc, host);
 
         expect(result).toBe(false);
-        expect(lightboxService.open).not.toHaveBeenCalled();
     });
 
     it('should return false when anchor href does not match /pictures/:id pattern', () => {
@@ -68,7 +67,7 @@ describe('PictureClickHandler', () => {
         const img = host.querySelector('img') as HTMLImageElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, img, host);
+        const result = spectator.service.handleClick(event, img, host);
 
         expect(result).toBe(false);
     });

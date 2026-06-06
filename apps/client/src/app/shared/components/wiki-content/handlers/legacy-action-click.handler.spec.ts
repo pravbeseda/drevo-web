@@ -3,29 +3,28 @@ import { CommentToggleAction } from '../actions/comment-toggle.action';
 import { GroupToggleAction } from '../actions/group-toggle.action';
 import { MapStubAction } from '../actions/map-stub.action';
 import { LegacyActionClickHandler } from './legacy-action-click.handler';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 
 describe('LegacyActionClickHandler', () => {
-    let handler: LegacyActionClickHandler;
-    let logger: MockLoggerService;
+    let spectator: SpectatorService<LegacyActionClickHandler>;
     let host: HTMLElement;
 
+    const createService = createServiceFactory({
+        service: LegacyActionClickHandler,
+        providers: [
+            BibleToggleAction,
+            CommentToggleAction,
+            GroupToggleAction,
+            MapStubAction,
+            mockLoggerProvider(),
+            { provide: NotificationService, useValue: { info: jest.fn() } },
+        ],
+    });
+
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                LegacyActionClickHandler,
-                BibleToggleAction,
-                CommentToggleAction,
-                GroupToggleAction,
-                MapStubAction,
-                mockLoggerProvider(),
-                { provide: NotificationService, useValue: { info: jest.fn() } },
-            ],
-        });
-        handler = TestBed.inject(LegacyActionClickHandler);
-        logger = TestBed.inject(LoggerService) as unknown as MockLoggerService;
+        spectator = createService();
         host = document.createElement('div');
     });
 
@@ -36,7 +35,7 @@ describe('LegacyActionClickHandler', () => {
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
             const spy = jest.spyOn(event, 'preventDefault');
 
-            handler.handleClick(event, anchor, host);
+            spectator.service.handleClick(event, anchor, host);
 
             expect(spy).toHaveBeenCalled();
         });
@@ -46,7 +45,7 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            expect(handler.handleClick(event, anchor, host)).toBe(true);
+            expect(spectator.service.handleClick(event, anchor, host)).toBe(true);
         });
 
         it('should handle case-insensitive JavaScript: protocol', () => {
@@ -54,7 +53,7 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            expect(handler.handleClick(event, anchor, host)).toBe(true);
+            expect(spectator.service.handleClick(event, anchor, host)).toBe(true);
         });
 
         it('should handle mixed case JaVaScRiPt: protocol', () => {
@@ -62,7 +61,7 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            expect(handler.handleClick(event, anchor, host)).toBe(true);
+            expect(spectator.service.handleClick(event, anchor, host)).toBe(true);
         });
 
         it('should handle javascript: links with whitespace', () => {
@@ -70,7 +69,7 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            expect(handler.handleClick(event, anchor, host)).toBe(true);
+            expect(spectator.service.handleClick(event, anchor, host)).toBe(true);
         });
 
         it('should reject data: protocol links', () => {
@@ -79,7 +78,7 @@ describe('LegacyActionClickHandler', () => {
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
             const spy = jest.spyOn(event, 'preventDefault');
 
-            const result = handler.handleClick(event, anchor, host);
+            const result = spectator.service.handleClick(event, anchor, host);
 
             expect(result).toBe(true);
             expect(spy).toHaveBeenCalled();
@@ -91,7 +90,7 @@ describe('LegacyActionClickHandler', () => {
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
             const spy = jest.spyOn(event, 'preventDefault');
 
-            const result = handler.handleClick(event, anchor, host);
+            const result = spectator.service.handleClick(event, anchor, host);
 
             expect(result).toBe(true);
             expect(spy).toHaveBeenCalled();
@@ -102,8 +101,9 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            handler.handleClick(event, anchor, host);
+            spectator.service.handleClick(event, anchor, host);
 
+            const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                 'Invalid javascript action format',
                 expect.objectContaining({ value: expect.any(String) }),
@@ -115,8 +115,9 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            handler.handleClick(event, anchor, host);
+            spectator.service.handleClick(event, anchor, host);
 
+            const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                 'Unknown javascript action',
                 expect.objectContaining({ action: 'unknownAction', value: expect.any(String) }),
@@ -128,8 +129,9 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            handler.handleClick(event, anchor, host);
+            spectator.service.handleClick(event, anchor, host);
 
+            const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                 'Unknown javascript action',
                 expect.objectContaining({ action: 'alert', value: expect.any(String) }),
@@ -146,7 +148,7 @@ describe('LegacyActionClickHandler', () => {
             const td = host.querySelector('td') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            const result = handler.handleClick(event, td, host);
+            const result = spectator.service.handleClick(event, td, host);
 
             expect(result).toBe(true);
             expect((host.querySelector('.cmnt3') as HTMLElement).style.display).toBe('none');
@@ -162,7 +164,7 @@ describe('LegacyActionClickHandler', () => {
             const span = host.querySelector('span') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            const result = handler.handleClick(event, span, host);
+            const result = spectator.service.handleClick(event, span, host);
 
             expect(result).toBe(true);
             expect((host.querySelector('.test') as HTMLElement).style.display).toBe('none');
@@ -174,7 +176,7 @@ describe('LegacyActionClickHandler', () => {
             const p = host.querySelector('p') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            const result = handler.handleClick(event, p, host);
+            const result = spectator.service.handleClick(event, p, host);
 
             expect(result).toBe(false);
         });
@@ -189,7 +191,7 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            handler.handleClick(event, anchor, host);
+            spectator.service.handleClick(event, anchor, host);
 
             expect((host.querySelector('.cmnt') as HTMLElement).style.display).toBe('none');
         });
@@ -202,9 +204,49 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            handler.handleClick(event, anchor, host);
+            spectator.service.handleClick(event, anchor, host);
 
             expect((host.querySelector('.group1') as HTMLElement).style.display).toBe('none');
+        });
+    });
+
+    describe('data-action/data-target handling', () => {
+        it('should dispatch toggle-group from data-action and data-target', () => {
+            host.innerHTML = `
+                <section data-action="toggle-group" data-target="cmnt1"><div>Verse</div></section>
+                <div class="cmnt1">Comment</div>
+            `;
+            const div = host.querySelector('section div') as HTMLElement;
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+            const result = spectator.service.handleClick(event, div, host);
+
+            expect(result).toBe(true);
+            expect((host.querySelector('.cmnt1') as HTMLElement).style.display).toBe('none');
+        });
+
+        it('should walk up DOM to find data-action', () => {
+            host.innerHTML = `
+                <section data-action="toggle-group" data-target="cmnt2">
+                    <div><span>Deep nested</span></div>
+                </section>
+                <div class="cmnt2">Comment</div>
+            `;
+            const span = host.querySelector('span') as HTMLElement;
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+            const result = spectator.service.handleClick(event, span, host);
+
+            expect(result).toBe(true);
+            expect((host.querySelector('.cmnt2') as HTMLElement).style.display).toBe('none');
+        });
+
+        it('should not match data-action without data-target', () => {
+            host.innerHTML = '<section data-action="toggle-group"><div>No target</div></section>';
+            const div = host.querySelector('div') as HTMLElement;
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+            expect(spectator.service.handleClick(event, div, host)).toBe(false);
         });
     });
 
@@ -214,7 +256,7 @@ describe('LegacyActionClickHandler', () => {
             const anchor = host.querySelector('a') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            expect(handler.handleClick(event, anchor, host)).toBe(false);
+            expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
         });
 
         it('should return false for non-link clicks', () => {
@@ -222,7 +264,7 @@ describe('LegacyActionClickHandler', () => {
             const p = host.querySelector('p') as HTMLElement;
             const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-            expect(handler.handleClick(event, p, host)).toBe(false);
+            expect(spectator.service.handleClick(event, p, host)).toBe(false);
         });
     });
 });

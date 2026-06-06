@@ -1,28 +1,31 @@
 import { CommentToggleAction } from './comment-toggle.action';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('CommentToggleAction', () => {
-    let action: CommentToggleAction;
+    let spectator: SpectatorService<CommentToggleAction>;
     let host: HTMLElement;
 
+    const createService = createServiceFactory({
+        service: CommentToggleAction,
+    });
+
     beforeEach(() => {
-        TestBed.configureTestingModule({ providers: [CommentToggleAction] });
-        action = TestBed.inject(CommentToggleAction);
+        spectator = createService();
         host = document.createElement('div');
     });
 
     it('should have name', () => {
-        expect(action.name).toBe('CommentToggle');
+        expect(spectator.service.name).toBe('CommentToggle');
     });
 
     describe('canExecute', () => {
         it('should match toggleAll', () => {
-            expect(action.canExecute('toggleAll')).toBe(true);
+            expect(spectator.service.canExecute('toggleAll')).toBe(true);
         });
 
         it('should not match other actions', () => {
-            expect(action.canExecute('toggleRus')).toBe(false);
-            expect(action.canExecute('toggleGroup')).toBe(false);
+            expect(spectator.service.canExecute('toggleRus')).toBe(false);
+            expect(spectator.service.canExecute('toggleGroup')).toBe(false);
         });
     });
 
@@ -36,7 +39,7 @@ describe('CommentToggleAction', () => {
         });
 
         it('should collapse comments when expanded', () => {
-            action.execute('toggleAll', host);
+            spectator.service.execute('toggleAll', host);
 
             const comments = host.querySelectorAll<HTMLElement>('.cmnt');
             expect(comments[0].style.display).toBe('none');
@@ -44,15 +47,15 @@ describe('CommentToggleAction', () => {
         });
 
         it('should update link text when collapsing', () => {
-            action.execute('toggleAll', host);
+            spectator.service.execute('toggleAll', host);
 
             const link = host.querySelector('.LinkComment') as HTMLElement;
             expect(link.textContent?.trim()).toBe('Развернуть');
         });
 
         it('should expand comments when collapsed', () => {
-            action.execute('toggleAll', host);
-            action.execute('toggleAll', host);
+            spectator.service.execute('toggleAll', host);
+            spectator.service.execute('toggleAll', host);
 
             const comments = host.querySelectorAll<HTMLElement>('.cmnt');
             expect(comments[0].style.display).toBe('');
@@ -69,11 +72,37 @@ describe('CommentToggleAction', () => {
                 <a class="LinkComment">Свернуть</a>
             `;
 
-            action.execute('toggleAll', host);
+            spectator.service.execute('toggleAll', host);
 
             const links = host.querySelectorAll<HTMLElement>('.LinkComment');
             expect(links[0].textContent?.trim()).toBe('Развернуть');
             expect(links[1].textContent?.trim()).toBe('Развернуть');
+        });
+
+        it('should collapse bible-chapters navigation', () => {
+            host.innerHTML = `
+                <a class="LinkComment">Свернуть</a>
+                <nav class="bible-chapters">Главы: 1 2 3</nav>
+                <div class="cmnt">Comment</div>
+            `;
+
+            spectator.service.execute('toggleAll', host);
+
+            const nav = host.querySelector('.bible-chapters') as HTMLElement;
+            expect(nav.style.display).toBe('none');
+        });
+
+        it('should expand bible-chapters when toggled back', () => {
+            host.innerHTML = `
+                <a class="LinkComment">Свернуть</a>
+                <nav class="bible-chapters">Главы: 1 2 3</nav>
+            `;
+
+            spectator.service.execute('toggleAll', host);
+            spectator.service.execute('toggleAll', host);
+
+            const nav = host.querySelector('.bible-chapters') as HTMLElement;
+            expect(nav.style.display).toBe('');
         });
     });
 });

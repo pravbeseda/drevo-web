@@ -1,22 +1,28 @@
 import { AnchorClickHandler } from './anchor-click.handler';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { WINDOW } from '@drevo-web/core';
 
 describe('AnchorClickHandler', () => {
-    let handler: AnchorClickHandler;
+    let spectator: SpectatorService<AnchorClickHandler>;
     let host: HTMLElement;
     let mockWindow: { location: { pathname: string; search: string }; history: { pushState: jest.Mock } };
 
-    beforeEach(() => {
-        mockWindow = {
-            location: { pathname: '/articles/1', search: '' },
-            history: { pushState: jest.fn() },
-        };
+    const createService = createServiceFactory({
+        service: AnchorClickHandler,
+        providers: [
+            {
+                provide: WINDOW,
+                useFactory: () => ({
+                    location: { pathname: '/articles/1', search: '' },
+                    history: { pushState: jest.fn() },
+                }),
+            },
+        ],
+    });
 
-        TestBed.configureTestingModule({
-            providers: [AnchorClickHandler, { provide: WINDOW, useValue: mockWindow }],
-        });
-        handler = TestBed.inject(AnchorClickHandler);
+    beforeEach(() => {
+        spectator = createService();
+        mockWindow = spectator.inject(WINDOW) as typeof mockWindow;
         host = document.createElement('div');
     });
 
@@ -25,7 +31,7 @@ describe('AnchorClickHandler', () => {
         const p = host.querySelector('p') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, p, host)).toBe(false);
+        expect(spectator.service.handleClick(event, p, host)).toBe(false);
     });
 
     it('should return false for anchors without href', () => {
@@ -33,7 +39,7 @@ describe('AnchorClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
     it('should return false for non-hash hrefs', () => {
@@ -41,7 +47,7 @@ describe('AnchorClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
     it('should return false for bare # href', () => {
@@ -49,7 +55,7 @@ describe('AnchorClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
     it('should scroll to anchor and push state for #hash links', () => {
@@ -63,7 +69,7 @@ describe('AnchorClickHandler', () => {
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         const preventSpy = jest.spyOn(event, 'preventDefault');
 
-        const result = handler.handleClick(event, anchor, host);
+        const result = spectator.service.handleClick(event, anchor, host);
 
         expect(result).toBe(true);
         expect(preventSpy).toHaveBeenCalled();
@@ -78,7 +84,7 @@ describe('AnchorClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, anchor, host);
+        const result = spectator.service.handleClick(event, anchor, host);
 
         expect(result).toBe(true);
         expect(mockWindow.history.pushState).not.toHaveBeenCalled();

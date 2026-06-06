@@ -1,18 +1,18 @@
 import { InternalLinkClickHandler } from './internal-link-click.handler';
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { Router } from '@angular/router';
 
 describe('InternalLinkClickHandler', () => {
-    let handler: InternalLinkClickHandler;
-    let router: jest.Mocked<Router>;
+    let spectator: SpectatorService<InternalLinkClickHandler>;
     let host: HTMLElement;
 
+    const createService = createServiceFactory({
+        service: InternalLinkClickHandler,
+        mocks: [Router],
+    });
+
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [InternalLinkClickHandler, { provide: Router, useValue: { navigateByUrl: jest.fn() } }],
-        });
-        handler = TestBed.inject(InternalLinkClickHandler);
-        router = TestBed.inject(Router) as jest.Mocked<Router>;
+        spectator = createService();
         host = document.createElement('div');
     });
 
@@ -21,10 +21,10 @@ describe('InternalLinkClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, anchor, host);
+        const result = spectator.service.handleClick(event, anchor, host);
 
         expect(result).toBe(true);
-        expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/123');
+        expect(spectator.inject(Router).navigateByUrl).toHaveBeenCalledWith('/articles/123');
     });
 
     it('should prevent default for internal links', () => {
@@ -33,7 +33,7 @@ describe('InternalLinkClickHandler', () => {
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         const spy = jest.spyOn(event, 'preventDefault');
 
-        handler.handleClick(event, anchor, host);
+        spectator.service.handleClick(event, anchor, host);
 
         expect(spy).toHaveBeenCalled();
     });
@@ -43,10 +43,10 @@ describe('InternalLinkClickHandler', () => {
         const span = host.querySelector('span') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = handler.handleClick(event, span, host);
+        const result = spectator.service.handleClick(event, span, host);
 
         expect(result).toBe(true);
-        expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/789');
+        expect(spectator.inject(Router).navigateByUrl).toHaveBeenCalledWith('/articles/789');
     });
 
     it('should return false for external http links', () => {
@@ -54,8 +54,8 @@ describe('InternalLinkClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
-        expect(router.navigateByUrl).not.toHaveBeenCalled();
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.inject(Router).navigateByUrl).not.toHaveBeenCalled();
     });
 
     it('should return false for mailto links', () => {
@@ -63,7 +63,7 @@ describe('InternalLinkClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
     it('should return false for hash-only links (/#section)', () => {
@@ -71,7 +71,7 @@ describe('InternalLinkClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
     it('should return false for non-anchor clicks', () => {
@@ -79,7 +79,7 @@ describe('InternalLinkClickHandler', () => {
         const p = host.querySelector('p') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, p, host)).toBe(false);
+        expect(spectator.service.handleClick(event, p, host)).toBe(false);
     });
 
     it('should return false for anchors without href', () => {
@@ -87,6 +87,6 @@ describe('InternalLinkClickHandler', () => {
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        expect(handler.handleClick(event, anchor, host)).toBe(false);
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 });

@@ -44,6 +44,11 @@ export class LegacyActionClickHandler implements WikiClickHandler {
             if (dataOnclick && this.isJavaScriptProtocol(dataOnclick)) {
                 return dataOnclick;
             }
+            const action = element.getAttribute('data-action');
+            const actionTarget = element.getAttribute('data-target');
+            if (action === 'toggle-group' && actionTarget) {
+                return `javascript:toggleGroup('${actionTarget}')`;
+            }
             element = element.parentElement ?? undefined;
         }
         return undefined;
