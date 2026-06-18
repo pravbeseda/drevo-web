@@ -381,6 +381,53 @@ $theme-colors: (
         dark: $md-grey-400,
     ),
 
+    // Review badge (people's review pill) — tinted bg + text + dot per verdict.
+    // Palette mirrors the legacy review_history_indicator pill.
+    review-approve-bg: (
+        light: $md-green-50,
+        dark: rgba($md-green-400, 0.15),
+    ),
+    review-approve-text: (
+        light: $md-green-800,
+        dark: $md-green-300,
+    ),
+    review-approve-dot: (
+        light: $md-green-600,
+        dark: $md-green-400,
+    ),
+    review-suggest-bg: (
+        light: $md-orange-50,
+        dark: rgba($md-orange-400, 0.15),
+    ),
+    review-suggest-text: (
+        light: $md-orange-800,
+        dark: $md-orange-300,
+    ),
+    review-suggest-dot: (
+        light: $md-orange-600,
+        dark: $md-orange-400,
+    ),
+    review-disagree-bg: (
+        light: $md-red-50,
+        dark: rgba($md-red-400, 0.15),
+    ),
+    review-disagree-text: (
+        light: $md-red-800,
+        dark: $md-red-300,
+    ),
+    review-disagree-dot: (
+        light: $md-red-600,
+        dark: $md-red-400,
+    ),
+    review-vote-bg: (
+        light: $md-blue-50,
+        dark: rgba($md-blue-400, 0.15),
+    ),
+    review-vote-text: (
+        light: $md-blue-700,
+        dark: $md-blue-300,
+    ),
+
     // Moderator comment
     moderator-comment-bg: (
         light: $md-amber-50,
@@ -440,19 +487,15 @@ $theme-colors: (
 // GENERATE CSS CUSTOM PROPERTIES
 // ============================================================================
 
-// Mixin to generate themed variables for a specific theme
+// Mixin to generate themed variables for a specific theme.
+//
+// IMPORTANT: this partial only DEFINES the mixin and map — it intentionally
+// does NOT emit any CSS at the top level. The `:root`/`html.dark-theme`
+// declarations are emitted once globally from `apps/client/src/styles.scss`.
+// Emitting here would duplicate the full themed-vars block into every component
+// that `@use`s the design-system index (via `@forward 'theme-colors'`).
 @mixin generate-theme-vars($theme: light) {
     @each $name, $values in $theme-colors {
         --themed-#{$name}: #{map.get($values, $theme)};
     }
-}
-
-// Light theme (default)
-:root {
-    @include generate-theme-vars(light);
-}
-
-// Dark theme
-html.dark-theme {
-    @include generate-theme-vars(dark);
 }

@@ -1,8 +1,9 @@
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
+import { ReviewService } from '../../reviews/review.service';
 import { ArticleService } from '../article.service';
 import { CancelVersionService } from '../cancel-version.service';
-import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
+import { computed, DestroyRef, effect, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
@@ -12,7 +13,9 @@ import {
     CancelVersionResult,
     formatDateHeader,
     InworkItem,
+    ReviewSummary,
 } from '@drevo-web/shared';
+import { catchError, of } from 'rxjs';
 
 export type HistoryFilter =
     | 'all'
@@ -79,6 +82,7 @@ export class ArticleHistoryService {
     private readonly notificationService = inject(NotificationService);
     private readonly cancelVersionService = inject(CancelVersionService);
     private readonly storageService = inject(StorageService);
+    private readonly reviewService = inject(ReviewService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -91,6 +95,12 @@ export class ArticleHistoryService {
     private readonly _hideCancelled = signal(false);
     private readonly _hasError = signal(false);
     private readonly _referenceDate = signal(new Date());
+    private readonly _reviewSummaries = signal<ReadonlyMap<number, ReviewSummary>>(new Map());
+
+    // Version ids already requested from the summary endpoint (success OR empty),
+    // so the effect never re-requests them. Cleared together with the map when
+    // the list is reset (filter / hideCancelled change).
+    private readonly requestedSummaryIds = new Set<number>();
 
     private articleId?: Signal<number | undefined>;
 
@@ -99,6 +109,7 @@ export class ArticleHistoryService {
     readonly activeFilter = this._activeFilter.asReadonly();
     readonly hideCancelled = this._hideCancelled.asReadonly();
     readonly hasError = this._hasError.asReadonly();
+    readonly reviewSummaries = this._reviewSummaries.asReadonly();
 
     private readonly currentUser = toSignal(this.authService.user$);
 
@@ -146,6 +157,25 @@ export class ArticleHistoryService {
             ),
     );
 
+    constructor() {
+        // Reactively fetch review summaries for any newly loaded versions.
+        // Page-by-page loading appends items → only the new ids are requested.
+        effect(() => {
+            const items = this._historyItems();
+            if (items.length === 0) return;
+
+            const newIds = [...new Set(items.map(item => item.versionId))].filter(
+                id => !this.requestedSummaryIds.has(id),
+            );
+            if (newIds.length === 0) return;
+
+            for (const id of newIds) {
+                this.requestedSummaryIds.add(id);
+            }
+            this.loadReviewSummaries(newIds);
+        });
+    }
+
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
         this._hideCancelled.set(this.storageService.get<boolean>(HIDE_CANCELLED_STORAGE_KEY) ?? false);
@@ -159,6 +189,7 @@ export class ArticleHistoryService {
         this._historyItems.set([]);
         this._currentPage.set(1);
         this._totalItems.set(0);
+        this.resetReviewSummaries();
         this.logger.info('Filter changed', { filter });
         this.loadInworkIfNeeded();
         this.loadHistory();
@@ -170,6 +201,7 @@ export class ArticleHistoryService {
         this._historyItems.set([]);
         this._currentPage.set(1);
         this._totalItems.set(0);
+        this.resetReviewSummaries();
         this.logger.info('Hide cancelled changed', { hideCancelled: value });
         this.loadHistory();
     }
@@ -208,6 +240,35 @@ export class ArticleHistoryService {
                     this.logger.error('Failed to clear editing mark', err);
                     this.notificationService.error('Не удалось снять метку редактирования');
                 },
+            });
+    }
+
+    private resetReviewSummaries(): void {
+        this._reviewSummaries.set(new Map());
+        this.requestedSummaryIds.clear();
+    }
+
+    /**
+     * Fetch review summaries for the given version ids and merge them into the
+     * map. One request; errors (e.g. feature flag off → 404) degrade to "no
+     * badges" without surfacing a notification.
+     */
+    private loadReviewSummaries(versionIds: readonly number[]): void {
+        this.reviewService
+            .getSummary('article', versionIds)
+            .pipe(
+                catchError(() => of([] as readonly ReviewSummary[])),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(summaries => {
+                if (summaries.length === 0) return;
+                this._reviewSummaries.update(current => {
+                    const next = new Map(current);
+                    for (const summary of summaries) {
+                        next.set(summary.versionId, summary);
+                    }
+                    return next;
+                });
             });
     }
 

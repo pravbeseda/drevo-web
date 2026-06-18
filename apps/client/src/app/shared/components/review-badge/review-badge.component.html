@@ -1,0 +1,34 @@
+@if (needsMyVote()) {
+    <span
+        class="review-pill review-pill--vote"
+        data-testid="review-badge-vote"
+    >
+        Нужен ваш голос
+    </span>
+} @else if (label(); as text) {
+    <span
+        class="review-pill review-pill--{{ badgeClass() }}"
+        data-testid="review-badge"
+    >
+        <span
+            class="review-pill__label"
+            data-testid="review-badge-label"
+        >
+            {{ text }}
+        </span>
+        @if (total() > 0) {
+            <span class="review-pill__sep"></span>
+            <span
+                class="review-pill__count"
+                data-testid="review-badge-count"
+                [attr.aria-label]="'Всего проголосовало: ' + total()"
+            >
+                <ui-icon
+                    name="group"
+                    size="small"
+                />
+                {{ total() }}
+            </span>
+        }
+    </span>
+}

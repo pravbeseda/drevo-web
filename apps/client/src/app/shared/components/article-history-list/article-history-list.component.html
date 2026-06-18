@@ -44,6 +44,7 @@
             } @else {
                 <app-articles-history-item
                     [item]="item.data"
+                    [reviewSummary]="service.reviewSummaries().get(item.data.versionId)"
                     [inwork]="service.inworkVersionIds().has(item.data.versionId)"
                     [selectable]="selectable()"
                     [selected]="selectedVersionIds().has(item.data.versionId)"

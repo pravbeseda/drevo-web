@@ -8,3 +8,4 @@ export * from './history-counts.dto';
 export * from './inwork.dto';
 export * from './moderation.dto';
 export * from './picture.dto';
+export * from './review.dto';
