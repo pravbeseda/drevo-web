@@ -5,13 +5,26 @@ import {
     Review,
     ReviewDto,
     ReviewStatus,
+    ReviewStatusDto,
     ReviewSummary,
     ReviewSummaryDto,
     ReviewTarget,
     SetReviewRequestDto,
+    parseDate,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
+/**
+ * Raw backend status → domain status. Explicit table (not a cast) so a future
+ * divergence in the DTO union surfaces as a compile error here.
+ */
+const DTO_TO_REVIEW_STATUS: Record<ReviewStatusDto, ReviewStatus> = {
+    0: ReviewStatus.Undecided,
+    1: ReviewStatus.Approve,
+    2: ReviewStatus.Suggest,
+    3: ReviewStatus.Disagree,
+};
 
 /**
  * Domain service for people's review (premoderation).
@@ -74,10 +87,10 @@ export class ReviewService {
     }
 
     private mapSummary(dto: ReviewSummaryDto): ReviewSummary {
+        const status = dto.status ?? undefined;
         return {
             versionId: dto.versionId,
-            // null (no verdict) → undefined; 0 never appears in summary payload.
-            status: dto.status ?? undefined,
+            status: status === undefined ? undefined : DTO_TO_REVIEW_STATUS[status],
             total: dto.total,
             needsMyVote: dto.needsMyVote,
         };
@@ -86,9 +99,9 @@ export class ReviewService {
     private mapReview(dto: ReviewDto): Review {
         return {
             reviewer: dto.reviewer,
-            status: dto.status as ReviewStatus,
+            status: DTO_TO_REVIEW_STATUS[dto.status],
             comment: dto.comment,
-            updatedAt: new Date(dto.updatedAt),
+            updatedAt: parseDate(dto.updatedAt),
         };
     }
 }

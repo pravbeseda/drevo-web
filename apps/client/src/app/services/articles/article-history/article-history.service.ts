@@ -3,7 +3,7 @@ import { InworkService } from '../../inwork/inwork.service';
 import { ReviewService } from '../../reviews/review.service';
 import { ArticleService } from '../article.service';
 import { CancelVersionService } from '../cancel-version.service';
-import { computed, DestroyRef, effect, inject, Injectable, Signal, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
@@ -97,11 +97,6 @@ export class ArticleHistoryService {
     private readonly _referenceDate = signal(new Date());
     private readonly _reviewSummaries = signal<ReadonlyMap<number, ReviewSummary>>(new Map());
 
-    // Version ids already requested from the summary endpoint (success OR empty),
-    // so the effect never re-requests them. Cleared together with the map when
-    // the list is reset (filter / hideCancelled change).
-    private readonly requestedSummaryIds = new Set<number>();
-
     private articleId?: Signal<number | undefined>;
 
     readonly isLoading = this._isLoading.asReadonly();
@@ -156,25 +151,6 @@ export class ArticleHistoryService {
                     .map(item => item.id),
             ),
     );
-
-    constructor() {
-        // Reactively fetch review summaries for any newly loaded versions.
-        // Page-by-page loading appends items → only the new ids are requested.
-        effect(() => {
-            const items = this._historyItems();
-            if (items.length === 0) return;
-
-            const newIds = [...new Set(items.map(item => item.versionId))].filter(
-                id => !this.requestedSummaryIds.has(id),
-            );
-            if (newIds.length === 0) return;
-
-            for (const id of newIds) {
-                this.requestedSummaryIds.add(id);
-            }
-            this.loadReviewSummaries(newIds);
-        });
-    }
 
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
@@ -245,7 +221,6 @@ export class ArticleHistoryService {
 
     private resetReviewSummaries(): void {
         this._reviewSummaries.set(new Map());
-        this.requestedSummaryIds.clear();
     }
 
     /**
@@ -254,10 +229,15 @@ export class ArticleHistoryService {
      * badges" without surfacing a notification.
      */
     private loadReviewSummaries(versionIds: readonly number[]): void {
+        if (versionIds.length === 0) return;
+
         this.reviewService
             .getSummary('article', versionIds)
             .pipe(
-                catchError(() => of([] as readonly ReviewSummary[])),
+                catchError(error => {
+                    this.logger.info('Review summaries unavailable, skipping badges', { error });
+                    return of([] as readonly ReviewSummary[]);
+                }),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(summaries => {
@@ -314,6 +294,7 @@ export class ArticleHistoryService {
                     this._totalItems.set(response.total);
                     this._isLoading.set(false);
                     this._isLoadingMore.set(false);
+                    this.loadReviewSummaries(response.items.map(item => item.versionId));
                 },
                 error: error => {
                     this.logger.error('Failed to load article history', error);

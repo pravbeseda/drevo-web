@@ -17,7 +17,6 @@ import {
 } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
 import { BehaviorSubject, EMPTY, NEVER, of, throwError } from 'rxjs';
 
 const mockUser: User = {
@@ -866,7 +865,6 @@ describe('ArticleHistoryService', () => {
             reviewService.getSummary.mockReturnValue(of([summary]));
 
             spectator.service.init();
-            TestBed.flushEffects();
 
             expect(reviewService.getSummary).toHaveBeenCalledWith('article', [1, 2]);
             expect(spectator.service.reviewSummaries().get(1)).toEqual(summary);
@@ -877,7 +875,6 @@ describe('ArticleHistoryService', () => {
             const firstPage = [createMockHistoryItem({ versionId: 1 })];
             articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(firstPage, 50)));
             spectator.service.init();
-            TestBed.flushEffects();
             expect(reviewService.getSummary).toHaveBeenCalledWith('article', [1]);
 
             reviewService.getSummary.mockClear();
@@ -886,7 +883,6 @@ describe('ArticleHistoryService', () => {
             articleService.getArticlesHistory.mockReturnValue(of({ ...createMockResponse(secondPage, 50), page: 2 }));
 
             spectator.service.onLoadMore();
-            TestBed.flushEffects();
 
             expect(reviewService.getSummary).toHaveBeenCalledWith('article', [2]);
         });
@@ -896,7 +892,6 @@ describe('ArticleHistoryService', () => {
             articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
             reviewService.getSummary.mockReturnValue(of([createSummary({ versionId: 1 })]));
             spectator.service.init();
-            TestBed.flushEffects();
             expect(spectator.service.reviewSummaries().size).toBe(1);
 
             articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
@@ -911,7 +906,6 @@ describe('ArticleHistoryService', () => {
             reviewService.getSummary.mockReturnValue(throwError(() => new Error('feature off')));
 
             spectator.service.init();
-            TestBed.flushEffects();
 
             expect(spectator.service.reviewSummaries().size).toBe(0);
             expect(spectator.service.hasItems()).toBe(true);
