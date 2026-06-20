@@ -13,6 +13,7 @@ import {
     PicturePendingDto,
     PicturePendingListResponse,
     PicturesListResponseDto,
+    parseDate,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -151,7 +152,7 @@ export class PictureService {
 
     private mapPicture(dto: PictureDto): Picture {
         const paddedId = String(dto.pic_id).padStart(6, '0');
-        const cacheBuster = new Date(dto.pic_date).getTime();
+        const cacheBuster = parseDate(dto.pic_date).getTime();
 
         return {
             id: dto.pic_id,
@@ -159,7 +160,7 @@ export class PictureService {
             title: dto.pic_title,
             highlightedTitle: dto.highlightedTitle,
             user: dto.pic_user,
-            date: new Date(dto.pic_date),
+            date: parseDate(dto.pic_date),
             width: dto.pic_width ?? undefined,
             height: dto.pic_height ?? undefined,
             imageUrl: `/images/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
@@ -185,7 +186,7 @@ export class PictureService {
             width: dto.pp_width ?? undefined,
             height: dto.pp_height ?? undefined,
             user: dto.pp_user,
-            date: new Date(dto.pp_date),
+            date: parseDate(dto.pp_date),
             currentTitle: dto.pic_title,
             currentImageUrl: `/images/${dto.pic_folder}/${paddedPicId}.jpg`,
             currentThumbnailUrl: `/images/thumbs/${dto.pic_folder}/${paddedPicId}.jpg`,
