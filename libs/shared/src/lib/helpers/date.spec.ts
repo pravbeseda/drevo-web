@@ -1,4 +1,24 @@
-import { isSameDay, formatTime, formatDateHeader } from './date';
+import { isSameDay, formatTime, formatDateHeader, parseDate } from './date';
+
+describe('parseDate', () => {
+    it('parses a backend "YYYY-MM-DD HH:mm:ss" string into a valid local Date', () => {
+        const date = parseDate('2025-01-15 10:30:45');
+
+        expect(Number.isNaN(date.getTime())).toBe(false);
+        expect(date.getFullYear()).toBe(2025);
+        expect(date.getMonth()).toBe(0);
+        expect(date.getDate()).toBe(15);
+        expect(date.getHours()).toBe(10);
+        expect(date.getMinutes()).toBe(30);
+        expect(date.getSeconds()).toBe(45);
+    });
+
+    it('parses a date-only string', () => {
+        const date = parseDate('2025-06-18');
+
+        expect(Number.isNaN(date.getTime())).toBe(false);
+    });
+});
 
 describe('isSameDay', () => {
     it('should return true for the same date', () => {

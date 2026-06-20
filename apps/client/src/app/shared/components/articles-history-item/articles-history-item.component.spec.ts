@@ -1,6 +1,6 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticlesHistoryItemComponent } from './articles-history-item.component';
-import { ApprovalStatus, ArticleHistoryItem } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ReviewStatus } from '@drevo-web/shared';
 import { IconButtonComponent, StatusIconComponent } from '@drevo-web/ui';
 import { provideRouter } from '@angular/router';
 
@@ -274,6 +274,25 @@ describe('ArticlesHistoryItemComponent', () => {
             });
             expect(getTitle()?.textContent?.trim()).toBe('My Article');
             expect(getTitle()?.getAttribute('href')).toBe('/articles/100/version/42');
+        });
+    });
+
+    describe('review badge', () => {
+        const getBadge = () => spectator.query('[data-testid="review-badge"]');
+
+        it('shows the review badge when a summary is provided', () => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem(),
+                    reviewSummary: { versionId: 1, status: ReviewStatus.Approve, total: 2, needsMyVote: false },
+                },
+            });
+            expect(getBadge()).toBeTruthy();
+        });
+
+        it('hides the review badge when no summary is provided', () => {
+            spectator = createComponent({ props: { item: createMockItem() } });
+            expect(getBadge()).toBeFalsy();
         });
     });
 

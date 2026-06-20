@@ -3,12 +3,21 @@ import { ArticleService } from '../article.service';
 import { CancelVersionService } from '../cancel-version.service';
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
+import { ReviewService } from '../../reviews/review.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleHistoryItem, ArticleHistoryResponse, InworkItem, User } from '@drevo-web/shared';
+import {
+    ApprovalStatus,
+    ArticleHistoryItem,
+    ArticleHistoryResponse,
+    InworkItem,
+    ReviewStatus,
+    ReviewSummary,
+    User,
+} from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { BehaviorSubject, EMPTY, NEVER, of, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, NEVER, of, Subject, throwError } from 'rxjs';
 
 const mockUser: User = {
     id: 1,
@@ -113,11 +122,19 @@ describe('ArticleHistoryService', () => {
     let articleService: jest.Mocked<ArticleService>;
     let inworkService: jest.Mocked<InworkService>;
     let storageService: jest.Mocked<StorageService>;
+    let reviewService: jest.Mocked<ReviewService>;
     let userSubject: BehaviorSubject<User | undefined>;
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [ArticleService, InworkService, NotificationService, CancelVersionService, StorageService],
+        mocks: [
+            ArticleService,
+            InworkService,
+            NotificationService,
+            CancelVersionService,
+            StorageService,
+            ReviewService,
+        ],
         providers: [
             mockLoggerProvider(),
             {
@@ -142,8 +159,10 @@ describe('ArticleHistoryService', () => {
         articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
         inworkService = spectator.inject(InworkService) as jest.Mocked<InworkService>;
         storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+        reviewService = spectator.inject(ReviewService) as jest.Mocked<ReviewService>;
         inworkService.getInworkList.mockReturnValue(of([]));
         inworkService.clearEditing.mockReturnValue(of(undefined));
+        reviewService.getSummary.mockReturnValue(of([]));
     });
 
     it('should create', () => {
@@ -825,6 +844,95 @@ describe('ArticleHistoryService', () => {
                 approved: 0,
                 excludeCancelled: true,
             });
+        });
+    });
+
+    describe('review summaries', () => {
+        function createSummary(overrides: Partial<ReviewSummary> = {}): ReviewSummary {
+            return {
+                versionId: 1,
+                status: ReviewStatus.Approve,
+                total: 1,
+                needsMyVote: false,
+                ...overrides,
+            };
+        }
+
+        it('fetches summaries for loaded version ids and exposes them by id', () => {
+            const items = [createMockHistoryItem({ versionId: 1 }), createMockHistoryItem({ versionId: 2 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 2)));
+            const summary = createSummary({ versionId: 1, status: ReviewStatus.Disagree, total: 3 });
+            reviewService.getSummary.mockReturnValue(of([summary]));
+
+            spectator.service.init();
+
+            expect(reviewService.getSummary).toHaveBeenCalledWith('article', [1, 2]);
+            expect(spectator.service.reviewSummaries().get(1)).toEqual(summary);
+            expect(spectator.service.reviewSummaries().get(2)).toBeUndefined();
+        });
+
+        it('requests only newly loaded ids on load more', () => {
+            const firstPage = [createMockHistoryItem({ versionId: 1 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(firstPage, 50)));
+            spectator.service.init();
+            expect(reviewService.getSummary).toHaveBeenCalledWith('article', [1]);
+
+            reviewService.getSummary.mockClear();
+            reviewService.getSummary.mockReturnValue(of([]));
+            const secondPage = [createMockHistoryItem({ versionId: 2 })];
+            articleService.getArticlesHistory.mockReturnValue(of({ ...createMockResponse(secondPage, 50), page: 2 }));
+
+            spectator.service.onLoadMore();
+
+            expect(reviewService.getSummary).toHaveBeenCalledWith('article', [2]);
+        });
+
+        it('clears summaries when the filter changes', () => {
+            const items = [createMockHistoryItem({ versionId: 1 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
+            reviewService.getSummary.mockReturnValue(of([createSummary({ versionId: 1 })]));
+            spectator.service.init();
+            expect(spectator.service.reviewSummaries().size).toBe(1);
+
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.onFilterChange('unchecked');
+
+            expect(spectator.service.reviewSummaries().size).toBe(0);
+        });
+
+        it('drops in-flight summaries from the previous filter without overwriting fresh ones', () => {
+            const items = [createMockHistoryItem({ versionId: 1 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
+
+            // First filter: summary request stays in flight.
+            const staleSummary = new Subject<readonly ReviewSummary[]>();
+            reviewService.getSummary.mockReturnValueOnce(staleSummary);
+            spectator.service.init();
+
+            // Switching the filter resets and issues a fresh request that resolves now.
+            reviewService.getSummary.mockReturnValueOnce(
+                of([createSummary({ versionId: 1, status: ReviewStatus.Approve, total: 5 })]),
+            );
+            spectator.service.onFilterChange('unchecked');
+
+            // The stale request from the previous filter resolves late.
+            staleSummary.next([createSummary({ versionId: 1, status: ReviewStatus.Disagree, total: 99 })]);
+            staleSummary.complete();
+
+            const summary = spectator.service.reviewSummaries().get(1);
+            expect(summary?.status).toBe(ReviewStatus.Approve);
+            expect(summary?.total).toBe(5);
+        });
+
+        it('degrades to no badges when the summary request fails', () => {
+            const items = [createMockHistoryItem({ versionId: 1 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
+            reviewService.getSummary.mockReturnValue(throwError(() => new Error('feature off')));
+
+            spectator.service.init();
+
+            expect(spectator.service.reviewSummaries().size).toBe(0);
+            expect(spectator.service.hasItems()).toBe(true);
         });
     });
 });

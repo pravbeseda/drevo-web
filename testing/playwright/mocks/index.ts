@@ -24,3 +24,4 @@ export {
 } from './pictures';
 export { createInworkItemDto } from './inwork';
 export { createLinkedHereItemDto, createLinkedHereItemDtoList, createLinkedHereResponse } from './linked-here';
+export { createReviewSummaryDto } from './reviews';

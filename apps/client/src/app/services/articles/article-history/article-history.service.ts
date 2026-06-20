@@ -1,5 +1,6 @@
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
+import { ReviewService } from '../../reviews/review.service';
 import { ArticleService } from '../article.service';
 import { CancelVersionService } from '../cancel-version.service';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
@@ -12,7 +13,9 @@ import {
     CancelVersionResult,
     formatDateHeader,
     InworkItem,
+    ReviewSummary,
 } from '@drevo-web/shared';
+import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
 
 export type HistoryFilter =
     | 'all'
@@ -79,6 +82,7 @@ export class ArticleHistoryService {
     private readonly notificationService = inject(NotificationService);
     private readonly cancelVersionService = inject(CancelVersionService);
     private readonly storageService = inject(StorageService);
+    private readonly reviewService = inject(ReviewService);
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryService');
 
     private readonly _historyItems = signal<readonly ArticleHistoryItem[]>([]);
@@ -91,6 +95,9 @@ export class ArticleHistoryService {
     private readonly _hideCancelled = signal(false);
     private readonly _hasError = signal(false);
     private readonly _referenceDate = signal(new Date());
+    private readonly _reviewSummaries = signal<ReadonlyMap<number, ReviewSummary>>(new Map());
+    private readonly _loadSummariesSubject = new Subject<readonly number[]>();
+    private readonly _resetSummariesSubject = new Subject<void>();
 
     private articleId?: Signal<number | undefined>;
 
@@ -99,6 +106,7 @@ export class ArticleHistoryService {
     readonly activeFilter = this._activeFilter.asReadonly();
     readonly hideCancelled = this._hideCancelled.asReadonly();
     readonly hasError = this._hasError.asReadonly();
+    readonly reviewSummaries = this._reviewSummaries.asReadonly();
 
     private readonly currentUser = toSignal(this.authService.user$);
 
@@ -146,6 +154,29 @@ export class ArticleHistoryService {
             ),
     );
 
+    constructor() {
+        // switchMap cancels in-flight requests on reset; mergeMap keeps page
+        // loads accumulating, so a stale response can't overwrite fresh summaries.
+        this._resetSummariesSubject
+            .pipe(
+                startWith(undefined),
+                switchMap(() =>
+                    this._loadSummariesSubject.pipe(
+                        mergeMap(versionIds =>
+                            this.reviewService.getSummary('article', versionIds).pipe(
+                                catchError(error => {
+                                    this.logger.info('Review summaries unavailable, skipping badges', { error });
+                                    return of([] as readonly ReviewSummary[]);
+                                }),
+                            ),
+                        ),
+                    ),
+                ),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(summaries => this.mergeReviewSummaries(summaries));
+    }
+
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
         this._hideCancelled.set(this.storageService.get<boolean>(HIDE_CANCELLED_STORAGE_KEY) ?? false);
@@ -159,6 +190,7 @@ export class ArticleHistoryService {
         this._historyItems.set([]);
         this._currentPage.set(1);
         this._totalItems.set(0);
+        this.resetReviewSummaries();
         this.logger.info('Filter changed', { filter });
         this.loadInworkIfNeeded();
         this.loadHistory();
@@ -170,6 +202,7 @@ export class ArticleHistoryService {
         this._historyItems.set([]);
         this._currentPage.set(1);
         this._totalItems.set(0);
+        this.resetReviewSummaries();
         this.logger.info('Hide cancelled changed', { hideCancelled: value });
         this.loadHistory();
     }
@@ -209,6 +242,27 @@ export class ArticleHistoryService {
                     this.notificationService.error('Не удалось снять метку редактирования');
                 },
             });
+    }
+
+    private resetReviewSummaries(): void {
+        this._reviewSummaries.set(new Map());
+        this._resetSummariesSubject.next();
+    }
+
+    private loadReviewSummaries(versionIds: readonly number[]): void {
+        if (versionIds.length === 0) return;
+        this._loadSummariesSubject.next(versionIds);
+    }
+
+    private mergeReviewSummaries(summaries: readonly ReviewSummary[]): void {
+        if (summaries.length === 0) return;
+        this._reviewSummaries.update(current => {
+            const next = new Map(current);
+            for (const summary of summaries) {
+                next.set(summary.versionId, summary);
+            }
+            return next;
+        });
     }
 
     private loadInworkIfNeeded(): void {
@@ -253,6 +307,7 @@ export class ArticleHistoryService {
                     this._totalItems.set(response.total);
                     this._isLoading.set(false);
                     this._isLoadingMore.set(false);
+                    this.loadReviewSummaries(response.items.map(item => item.versionId));
                 },
                 error: error => {
                     this.logger.error('Failed to load article history', error);

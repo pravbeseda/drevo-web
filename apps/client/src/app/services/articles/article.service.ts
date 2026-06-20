@@ -28,6 +28,7 @@ import {
     VersionForDiff,
     VersionForDiffDto,
     VersionPairs,
+    parseDate,
 } from '@drevo-web/shared';
 import { Observable, Subject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
@@ -196,7 +197,7 @@ export class ArticleService {
             title: response.title,
             content: response.content,
             author: response.author,
-            date: new Date(response.date),
+            date: parseDate(response.date),
             redirect: response.redirect === 1,
             new: response.new,
             approved: response.approved,
@@ -230,7 +231,7 @@ export class ArticleService {
             versionId: response.versionId,
             title: response.title,
             author: response.author,
-            date: new Date(response.date),
+            date: parseDate(response.date),
             approved: response.approved,
         };
     }
@@ -281,7 +282,7 @@ export class ArticleService {
             articleId: item.articleId,
             title: item.title,
             author: item.author,
-            date: new Date(item.date),
+            date: parseDate(item.date),
             approved: item.approved,
             isNew: item.new,
             info: item.info,
@@ -295,7 +296,7 @@ export class ArticleService {
             versionId: dto.versionId,
             content: dto.content,
             author: dto.author,
-            date: new Date(dto.date),
+            date: parseDate(dto.date),
             title: dto.title,
             info: dto.info,
             approved: dto.approved,

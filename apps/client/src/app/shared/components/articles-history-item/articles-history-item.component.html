@@ -37,6 +37,9 @@
             >
                 {{ item().title }}
             </a>
+            @if (reviewSummary(); as summary) {
+                <app-review-badge [summary]="summary" />
+            }
             @if (inwork()) {
                 <ui-icon
                     class="inwork-marker"

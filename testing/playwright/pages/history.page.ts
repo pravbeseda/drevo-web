@@ -21,6 +21,33 @@ export class HistoryPage extends BasePage {
         return tab.locator('ui-badge');
     }
 
+    /** History row (`app-articles-history-item`) identified by its title text. */
+    historyItemByTitle(title: string): Locator {
+        return this.page
+            .locator('app-articles-history-item')
+            .filter({ has: this.page.getByTestId('title').filter({ hasText: title }) });
+    }
+
+    /** Verdict pill (Одобрено / Нужны правки / Возражения) within a history row. */
+    reviewBadge(row: Locator): Locator {
+        return row.getByTestId('review-badge');
+    }
+
+    /** Verdict pill label text within a history row. */
+    reviewBadgeLabel(row: Locator): Locator {
+        return row.getByTestId('review-badge-label');
+    }
+
+    /** Verdict pill total-votes counter within a history row. */
+    reviewBadgeCount(row: Locator): Locator {
+        return row.getByTestId('review-badge-count');
+    }
+
+    /** Blue "Нужен ваш голос" pill within a history row. */
+    reviewBadgeVote(row: Locator): Locator {
+        return row.getByTestId('review-badge-vote');
+    }
+
     async gotoArticles(): Promise<void> {
         await this.page.goto('/history/articles');
     }

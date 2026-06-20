@@ -1,6 +1,7 @@
+import { ReviewBadgeComponent } from '../review-badge/review-badge.component';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ApprovalStatus, ArticleHistoryItem } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
 import {
     ButtonComponent,
     FormatTimePipe,
@@ -11,7 +12,15 @@ import {
 
 @Component({
     selector: 'app-articles-history-item',
-    imports: [StatusIconComponent, RouterLink, FormatTimePipe, IconButtonComponent, IconComponent, ButtonComponent],
+    imports: [
+        StatusIconComponent,
+        RouterLink,
+        FormatTimePipe,
+        IconButtonComponent,
+        IconComponent,
+        ButtonComponent,
+        ReviewBadgeComponent,
+    ],
     templateUrl: './articles-history-item.component.html',
     styleUrl: './articles-history-item.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +32,7 @@ export class ArticlesHistoryItemComponent {
     readonly canCompare = input(false);
     readonly inwork = input(false);
     readonly currentUserName = input<string>();
+    readonly reviewSummary = input<ReviewSummary>();
 
     readonly selectItem = output<ArticleHistoryItem>();
     readonly compare = output<void>();

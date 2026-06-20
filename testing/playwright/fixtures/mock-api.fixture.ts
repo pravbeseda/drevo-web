@@ -31,6 +31,7 @@ import {
     PicturePendingDto,
     PicturePendingListResponseDto,
     PicturesListResponseDto,
+    ReviewSummaryDto,
     SaveArticleVersionResponseDto,
     User,
     VersionPairsResponseDto,
@@ -699,6 +700,22 @@ export async function mockGlobalHistoryError(page: Page, status = 500): Promise<
     await mockInworkList(page, []);
     await page.route('**/api/articles/history**', route =>
         route.fulfill({ status, json: apiError('Internal server error') }),
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Reviews (people's review summary — history badges)
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/reviews/summary/:type — batch review summaries for history badges */
+export async function mockReviewsSummary(page: Page, summaries: readonly ReviewSummaryDto[] = []): Promise<void> {
+    await page.route('**/api/reviews/summary/**', route => route.fulfill({ json: apiSuccess(summaries) }));
+}
+
+/** Mock GET /api/reviews/summary/:type — feature flag off (404), client treats it as "no reviews" */
+export async function mockReviewsSummaryFeatureOff(page: Page): Promise<void> {
+    await page.route('**/api/reviews/summary/**', route =>
+        route.fulfill({ status: 404, json: apiError('Feature disabled', 'FEATURE_DISABLED') }),
     );
 }
 

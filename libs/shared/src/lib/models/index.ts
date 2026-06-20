@@ -10,6 +10,7 @@ export * from './editor';
 export * from './inwork';
 export * from './moderation';
 export * from './picture';
+export * from './review';
 export * from './sidebar';
 export * from './topic';
 export * from './user';

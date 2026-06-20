@@ -174,6 +174,13 @@ import { ... } from '@drevo-web/ui';
 import { ... } from '@drevo-web/editor';
 ```
 
+### Barrel files (`index.ts`)
+
+- **Barrels are allowed ONLY at library boundaries** — `libs/*/src/index.ts` (the public API of `@drevo-web/*`, enforced by `@nx/enforce-module-boundaries`)
+- **No folder-level barrels inside `apps/client/`** — do NOT add `index.ts` re-export files to app folders (`services/X/`, `features/X/`, `shared/`, etc.). Import directly from the concrete module path instead
+- **Reason** — intra-app barrels grow the module graph (slower Jest/esbuild), invite circular dependencies, and can pull side-effect modules into lazy chunks; they buy nothing over a direct import
+- **Existing app barrels are removed opportunistically** — when you touch a folder that still has an `index.ts` barrel, delete it and switch its consumers to direct imports
+
 ### Selector Prefixes
 
 - `app-` — application components (`apps/client/`)

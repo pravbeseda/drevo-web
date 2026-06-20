@@ -7,11 +7,23 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
-// Import themed color tokens from UI library
-// This generates --themed-* CSS variables that automatically switch with theme
+// Import themed color tokens from UI library.
+// theme-colors only defines the map + mixin; the --themed-* CSS variables are
+// emitted once here (below) so they are NOT duplicated into every component.
 @use 'theme-colors';
 @use 'tokens' as *;
 @use 'modal';
+
+// ============================================================================
+// THEMED CSS CUSTOM PROPERTIES (emitted once, globally)
+// ============================================================================
+:root {
+    @include theme-colors.generate-theme-vars(light);
+}
+
+html.dark-theme {
+    @include theme-colors.generate-theme-vars(dark);
+}
 
 // ============================================================================
 // LIGHT THEME (default)

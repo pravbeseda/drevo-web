@@ -6,7 +6,7 @@ import {
 import { ArticleHistoryListComponent } from './article-history-list.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal, WritableSignal } from '@angular/core';
-import { ArticleHistoryItem, InworkItem } from '@drevo-web/shared';
+import { ArticleHistoryItem, InworkItem, ReviewSummary } from '@drevo-web/shared';
 import { VirtualScrollerComponent } from '@drevo-web/ui';
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
@@ -46,6 +46,7 @@ interface MockArticleHistoryService {
     readonly displayItems: WritableSignal<readonly HistoryDisplayItem[]>;
     readonly displayTotalItems: WritableSignal<number>;
     readonly inworkVersionIds: WritableSignal<ReadonlySet<number>>;
+    readonly reviewSummaries: WritableSignal<ReadonlyMap<number, ReviewSummary>>;
     readonly onFilterChange: jest.Mock;
     readonly onLoadMore: jest.Mock;
     readonly onCancelInwork: jest.Mock;
@@ -62,6 +63,7 @@ function createMockService(): MockArticleHistoryService {
         displayItems: signal<readonly HistoryDisplayItem[]>([]),
         displayTotalItems: signal(0),
         inworkVersionIds: signal<ReadonlySet<number>>(new Set()),
+        reviewSummaries: signal<ReadonlyMap<number, ReviewSummary>>(new Map()),
         onFilterChange: jest.fn(),
         onLoadMore: jest.fn(),
         onCancelInwork: jest.fn(),
