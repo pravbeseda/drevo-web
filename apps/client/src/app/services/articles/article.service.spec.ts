@@ -523,33 +523,6 @@ describe('ArticleService', () => {
         });
     });
 
-    describe('cancelVersion', () => {
-        const mockCancelResponse = {
-            versionId: 789,
-            articleId: 123,
-            approved: ApprovalStatus.Cancelled,
-        };
-
-        it('should call articleApiService.cancelVersion with versionId', () => {
-            articleApiService.cancelVersion.mockReturnValue(of(mockCancelResponse));
-
-            spectator.service.cancelVersion(789).subscribe();
-
-            expect(articleApiService.cancelVersion).toHaveBeenCalledWith(789);
-        });
-
-        it('should map DTO to CancelVersionResult', done => {
-            articleApiService.cancelVersion.mockReturnValue(of(mockCancelResponse));
-
-            spectator.service.cancelVersion(789).subscribe(result => {
-                expect(result.versionId).toBe(789);
-                expect(result.articleId).toBe(123);
-                expect(result.approved).toBe(ApprovalStatus.Cancelled);
-                done();
-            });
-        });
-    });
-
     describe('getVersionPairs', () => {
         const mockVersionPairsResponse: VersionPairsResponseDto = {
             current: {

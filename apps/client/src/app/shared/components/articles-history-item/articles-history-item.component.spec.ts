@@ -1,6 +1,6 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticlesHistoryItemComponent } from './articles-history-item.component';
-import { ApprovalStatus, ArticleHistoryItem, ReviewStatus } from '@drevo-web/shared';
+import { ArticleHistoryItem, ReviewStatus } from '@drevo-web/shared';
 import { IconButtonComponent, StatusIconComponent } from '@drevo-web/ui';
 import { provideRouter } from '@angular/router';
 
@@ -302,65 +302,6 @@ describe('ArticlesHistoryItemComponent', () => {
                 props: { item: createMockItem({ author: 'Иванов А.' }) },
             });
             expect(getAuthor()?.textContent?.trim()).toBe('Иванов А.');
-        });
-    });
-
-    describe('cancel version button', () => {
-        const getCancelButton = () => spectator.query('[data-testid="cancel-version-button"]');
-
-        it('shows button when item is pending and authored by current user', () => {
-            spectator = createComponent({
-                props: {
-                    item: createMockItem({ author: 'me', approved: ApprovalStatus.Pending }),
-                    currentUserName: 'me',
-                },
-            });
-            expect(getCancelButton()).toBeTruthy();
-        });
-
-        it('hides button when author differs', () => {
-            spectator = createComponent({
-                props: {
-                    item: createMockItem({ author: 'other', approved: ApprovalStatus.Pending }),
-                    currentUserName: 'me',
-                },
-            });
-            expect(getCancelButton()).toBeFalsy();
-        });
-
-        it('hides button when item is not pending', () => {
-            spectator = createComponent({
-                props: {
-                    item: createMockItem({ author: 'me', approved: ApprovalStatus.Approved }),
-                    currentUserName: 'me',
-                },
-            });
-            expect(getCancelButton()).toBeFalsy();
-        });
-
-        it('hides button when no current user', () => {
-            spectator = createComponent({
-                props: {
-                    item: createMockItem({ author: 'me', approved: ApprovalStatus.Pending }),
-                },
-            });
-            expect(getCancelButton()).toBeFalsy();
-        });
-
-        it('emits cancel event without triggering selectItem', () => {
-            const item = createMockItem({ author: 'me', approved: ApprovalStatus.Pending });
-            spectator = createComponent({
-                props: { item, currentUserName: 'me', selectable: true },
-            });
-            const cancelSpy = jest.fn();
-            const selectSpy = jest.fn();
-            spectator.component.cancelVersion.subscribe(cancelSpy);
-            spectator.component.selectItem.subscribe(selectSpy);
-
-            spectator.click('[data-testid="cancel-version-button"]');
-
-            expect(cancelSpy).toHaveBeenCalledWith(item);
-            expect(selectSpy).not.toHaveBeenCalled();
         });
     });
 });

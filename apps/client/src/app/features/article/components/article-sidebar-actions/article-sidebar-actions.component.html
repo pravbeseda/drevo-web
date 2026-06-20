@@ -33,8 +33,4 @@
         [disabled]="moderationDisabled()"
         (moderated)="moderated.emit($event)"
     />
-    <app-cancel-version-sidebar-action
-        [version]="v"
-        (cancelled)="cancelled.emit($event)"
-    />
 }

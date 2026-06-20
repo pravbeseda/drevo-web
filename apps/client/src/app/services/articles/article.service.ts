@@ -19,7 +19,6 @@ import {
     ArticleSearchResultDto,
     ArticleVersion,
     ArticleVersionDto,
-    CancelVersionResult,
     ModerationResult,
     RenameArticleResponse,
     SaveArticleVersionRequest,
@@ -135,22 +134,6 @@ export class ArticleService {
                 articleId: dto.articleId,
                 approved: dto.approved,
                 comment: dto.comment ?? '',
-            })),
-        );
-    }
-
-    /**
-     * Cancel a pending article version (author-only).
-     *
-     * @param versionId - Version ID to cancel
-     * @returns Observable with cancellation result
-     */
-    cancelVersion(versionId: number): Observable<CancelVersionResult> {
-        return this.articleApiService.cancelVersion(versionId).pipe(
-            map(dto => ({
-                versionId: dto.versionId,
-                articleId: dto.articleId,
-                approved: dto.approved,
             })),
         );
     }

@@ -1,13 +1,11 @@
 import { ArticleHistoryService, buildDisplayItems } from './article-history.service';
 import { ArticleService } from '../article.service';
-import { CancelVersionService } from '../cancel-version.service';
 import { AuthService } from '../../auth/auth.service';
 import { InworkService } from '../../inwork/inwork.service';
 import { ReviewService } from '../../reviews/review.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
-    ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryResponse,
     InworkItem,
@@ -17,7 +15,7 @@ import {
 } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { BehaviorSubject, EMPTY, NEVER, of, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
 
 const mockUser: User = {
     id: 1,
@@ -127,14 +125,7 @@ describe('ArticleHistoryService', () => {
 
     const createService = createServiceFactory({
         service: ArticleHistoryService,
-        mocks: [
-            ArticleService,
-            InworkService,
-            NotificationService,
-            CancelVersionService,
-            StorageService,
-            ReviewService,
-        ],
+        mocks: [ArticleService, InworkService, NotificationService, StorageService, ReviewService],
         providers: [
             mockLoggerProvider(),
             {
@@ -701,63 +692,6 @@ describe('ArticleHistoryService', () => {
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
                 'Cannot load history: article ID not available',
             );
-        });
-    });
-
-    describe('currentUserName', () => {
-        it('returns the display name of the current user', () => {
-            expect(spectator.service.currentUserName()).toBe('Test User');
-        });
-
-        it('returns undefined when no user', () => {
-            userSubject.next(undefined);
-            expect(spectator.service.currentUserName()).toBeUndefined();
-        });
-    });
-
-    describe('cancelVersion', () => {
-        const targetItem = createMockHistoryItem({
-            versionId: 42,
-            articleId: 100,
-            approved: ApprovalStatus.Pending,
-        });
-
-        beforeEach(() => {
-            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse([targetItem], 1)));
-            spectator.service.init();
-        });
-
-        it('delegates to CancelVersionService and patches the item with the emitted result', () => {
-            const cancelService = spectator.inject(CancelVersionService) as jest.Mocked<CancelVersionService>;
-            cancelService.cancelVersion.mockReturnValue(
-                of({ versionId: 42, articleId: 100, approved: ApprovalStatus.Cancelled }),
-            );
-
-            spectator.service.cancelVersion(targetItem);
-
-            expect(cancelService.cancelVersion).toHaveBeenCalledWith(42);
-            const versionItem = spectator.service
-                .displayItems()
-                .find(d => d.type === 'version' && d.data.versionId === 42);
-            expect(versionItem?.type).toBe('version');
-            if (versionItem?.type === 'version') {
-                expect(versionItem.data.approved).toBe(ApprovalStatus.Cancelled);
-            }
-        });
-
-        it('does not patch when the service stream completes empty', () => {
-            const cancelService = spectator.inject(CancelVersionService) as jest.Mocked<CancelVersionService>;
-            cancelService.cancelVersion.mockReturnValue(EMPTY);
-
-            spectator.service.cancelVersion(targetItem);
-
-            const versionItem = spectator.service
-                .displayItems()
-                .find(d => d.type === 'version' && d.data.versionId === 42);
-            expect(versionItem?.type).toBe('version');
-            if (versionItem?.type === 'version') {
-                expect(versionItem.data.approved).toBe(ApprovalStatus.Pending);
-            }
         });
     });
 
