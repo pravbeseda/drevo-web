@@ -23,7 +23,6 @@ import {
     ArticleLinkedHereResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
-    CancelVersionResponseDto,
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
@@ -613,33 +612,6 @@ export async function mockArticleModerate(
 /** Mock POST /api/articles/moderate — error */
 export async function mockArticleModerateError(page: Page, status = 500): Promise<void> {
     await page.route('**/api/articles/moderate', route => {
-        if (route.request().method() !== 'POST') return route.fallback();
-        return route.fulfill({ status, json: apiError('Internal server error') });
-    });
-}
-
-/** Mock POST /api/articles/cancel-version — success */
-export async function mockArticleCancelVersion(page: Page, response: CancelVersionResponseDto): Promise<void> {
-    await page.route('**/api/articles/cancel-version', route => {
-        if (route.request().method() !== 'POST') return route.fallback();
-        return route.fulfill({ json: apiSuccess(response) });
-    });
-}
-
-/** Mock POST /api/articles/cancel-version — 409 INVALID_STATE (race with moderation) */
-export async function mockArticleCancelVersionConflict(page: Page, payload: CancelVersionResponseDto): Promise<void> {
-    await page.route('**/api/articles/cancel-version', route => {
-        if (route.request().method() !== 'POST') return route.fallback();
-        return route.fulfill({
-            status: 409,
-            json: { success: false, errorCode: 'INVALID_STATE', data: payload },
-        });
-    });
-}
-
-/** Mock POST /api/articles/cancel-version — generic error */
-export async function mockArticleCancelVersionError(page: Page, status = 500): Promise<void> {
-    await page.route('**/api/articles/cancel-version', route => {
         if (route.request().method() !== 'POST') return route.fallback();
         return route.fulfill({ status, json: apiError('Internal server error') });
     });
