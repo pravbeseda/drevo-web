@@ -1,7 +1,7 @@
 import { ReviewBadgeComponent } from '../review-badge/review-badge.component';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ApprovalStatus, ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
+import { ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
 import {
     ButtonComponent,
     FormatTimePipe,
@@ -31,20 +31,12 @@ export class ArticlesHistoryItemComponent {
     readonly selectable = input(false);
     readonly canCompare = input(false);
     readonly inwork = input(false);
-    readonly currentUserName = input<string>();
     readonly reviewSummary = input<ReviewSummary>();
 
     readonly selectItem = output<ArticleHistoryItem>();
     readonly compare = output<void>();
-    readonly cancelVersion = output<ArticleHistoryItem>();
 
     readonly diffLink = computed(() => ['/history/articles/diff', this.item().versionId]);
-
-    readonly canCancel = computed(() => {
-        const item = this.item();
-        const name = this.currentUserName();
-        return !!name && item.author === name && item.approved === ApprovalStatus.Pending;
-    });
 
     onItemClick(): void {
         if (this.selectable()) {
@@ -55,10 +47,5 @@ export class ArticlesHistoryItemComponent {
     onCompareClick(event: Event): void {
         event.stopPropagation();
         this.compare.emit();
-    }
-
-    onCancelClick(event: Event): void {
-        event.stopPropagation();
-        this.cancelVersion.emit(this.item());
     }
 }

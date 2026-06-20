@@ -12,8 +12,6 @@ import {
     ArticlePreviewResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
-    CancelVersionRequestDto,
-    CancelVersionResponseDto,
     ModerationRequestDto,
     ModerationResponseDto,
     RenameArticleResponseDto,
@@ -233,33 +231,6 @@ export class ArticleApiService {
             .post<ApiResponse<ModerationResponseDto>>(`${this.apiUrl}/api/articles/moderate`, request, {
                 withCredentials: true,
             })
-            .pipe(
-                map(response => {
-                    assertIsDefined(response.data, 'Response data is undefined');
-                    return response.data;
-                }),
-            );
-    }
-
-    /**
-     * Cancel a pending article version (author-only action).
-     *
-     * SKIP_ERROR_NOTIFICATION is set because callers handle 409 INVALID_STATE
-     * with a custom warning notification.
-     *
-     * @param versionId - Version ID to cancel
-     * @returns Observable with cancellation response
-     */
-    cancelVersion(versionId: number): Observable<CancelVersionResponseDto> {
-        return this.http
-            .post<ApiResponse<CancelVersionResponseDto>>(
-                `${this.apiUrl}/api/articles/cancel-version`,
-                { versionId } satisfies CancelVersionRequestDto,
-                {
-                    withCredentials: true,
-                    context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
-                },
-            )
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

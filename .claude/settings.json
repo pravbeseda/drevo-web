@@ -1,0 +1,5 @@
+{
+    "permissions": {
+        "allow": ["Bash(yarn nx lint *)", "Bash(yarn nx test *)", "Bash(vendor/bin/phpunit *)"]
+    }
+}

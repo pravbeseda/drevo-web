@@ -49,10 +49,8 @@
                     [selectable]="selectable()"
                     [selected]="selectedVersionIds().has(item.data.versionId)"
                     [canCompare]="canCompare()"
-                    [currentUserName]="service.currentUserName()"
                     (selectItem)="selectItem.emit($event)"
                     (compare)="compareItems.emit()"
-                    (cancelVersion)="onCancelVersion($event)"
                 />
             }
         </ng-template>

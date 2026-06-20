@@ -32,8 +32,4 @@ export class ArticleHistoryListComponent {
     onCancelInwork(title: string): void {
         this.service.onCancelInwork(title);
     }
-
-    onCancelVersion(item: ArticleHistoryItem): void {
-        this.service.cancelVersion(item);
-    }
 }

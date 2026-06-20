@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnIni
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion, CancelVersionResult, ModerationResult } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
 import { BannerComponent, FormatDatePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
@@ -56,10 +56,6 @@ export class ArticleVersionTabComponent implements OnInit {
 
     onModerated(result: ModerationResult): void {
         this._version.update(v => (v ? { ...v, approved: result.approved, comment: result.comment } : v));
-    }
-
-    onCancelled(result: CancelVersionResult): void {
-        this._version.update(v => (v ? { ...v, approved: result.approved } : v));
     }
 
     onTopicsChanged(topics: ReadonlyArray<number>): void {
