@@ -17,7 +17,7 @@ import {
 } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { BehaviorSubject, EMPTY, NEVER, of, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, NEVER, of, Subject, throwError } from 'rxjs';
 
 const mockUser: User = {
     id: 1,
@@ -898,6 +898,30 @@ describe('ArticleHistoryService', () => {
             spectator.service.onFilterChange('unchecked');
 
             expect(spectator.service.reviewSummaries().size).toBe(0);
+        });
+
+        it('drops in-flight summaries from the previous filter without overwriting fresh ones', () => {
+            const items = [createMockHistoryItem({ versionId: 1 })];
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 1)));
+
+            // First filter: summary request stays in flight.
+            const staleSummary = new Subject<readonly ReviewSummary[]>();
+            reviewService.getSummary.mockReturnValueOnce(staleSummary);
+            spectator.service.init();
+
+            // Switching the filter resets and issues a fresh request that resolves now.
+            reviewService.getSummary.mockReturnValueOnce(
+                of([createSummary({ versionId: 1, status: ReviewStatus.Approve, total: 5 })]),
+            );
+            spectator.service.onFilterChange('unchecked');
+
+            // The stale request from the previous filter resolves late.
+            staleSummary.next([createSummary({ versionId: 1, status: ReviewStatus.Disagree, total: 99 })]);
+            staleSummary.complete();
+
+            const summary = spectator.service.reviewSummaries().get(1);
+            expect(summary?.status).toBe(ReviewStatus.Approve);
+            expect(summary?.total).toBe(5);
         });
 
         it('degrades to no badges when the summary request fails', () => {

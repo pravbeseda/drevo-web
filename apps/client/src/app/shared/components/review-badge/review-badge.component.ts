@@ -44,14 +44,19 @@ export class ReviewBadgeComponent {
 
     private readonly status = computed(() => this.summary().status);
 
-    readonly badgeClass = computed<ReviewBadgeClass | undefined>(() => {
+    private readonly verdict = computed<Exclude<ReviewStatus, typeof ReviewStatus.Undecided> | undefined>(() => {
         const status = this.status();
-        return status === undefined || status === ReviewStatus.Undecided ? undefined : REVIEW_STATUS_CLASS[status];
+        return status === undefined || status === ReviewStatus.Undecided ? undefined : status;
+    });
+
+    readonly badgeClass = computed<ReviewBadgeClass | undefined>(() => {
+        const verdict = this.verdict();
+        return verdict === undefined ? undefined : REVIEW_STATUS_CLASS[verdict];
     });
 
     readonly label = computed(() => {
-        const status = this.status();
-        return status === undefined || status === ReviewStatus.Undecided ? undefined : REVIEW_STATUS_LABEL[status];
+        const verdict = this.verdict();
+        return verdict === undefined ? undefined : REVIEW_STATUS_LABEL[verdict];
     });
 
     readonly total = computed(() => this.summary().total);

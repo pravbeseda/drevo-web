@@ -10,6 +10,11 @@
 export type ReviewStatusDto = 0 | 1 | 2 | 3;
 
 /**
+ * Review target as sent to/received from the backend (selects the model).
+ */
+export type ReviewTargetDto = 'article' | 'news';
+
+/**
  * Single reviewer vote, as returned by list/set/delete endpoints.
  */
 export interface ReviewDto {
@@ -35,7 +40,7 @@ export interface ReviewSummaryDto {
  * Request body for setting/updating a vote.
  */
 export interface SetReviewRequestDto {
-    readonly type: 'article' | 'news';
+    readonly type: ReviewTargetDto;
     readonly versionId: number;
     readonly status: ReviewStatusDto;
     readonly comment: string;
@@ -45,7 +50,7 @@ export interface SetReviewRequestDto {
  * Request body for deleting a review. `reviewer` omitted → self-delete.
  */
 export interface DeleteReviewRequestDto {
-    readonly type: 'article' | 'news';
+    readonly type: ReviewTargetDto;
     readonly versionId: number;
     readonly reviewer?: string;
 }

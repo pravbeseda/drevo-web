@@ -15,7 +15,7 @@ import {
     InworkItem,
     ReviewSummary,
 } from '@drevo-web/shared';
-import { catchError, of } from 'rxjs';
+import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
 
 export type HistoryFilter =
     | 'all'
@@ -96,6 +96,8 @@ export class ArticleHistoryService {
     private readonly _hasError = signal(false);
     private readonly _referenceDate = signal(new Date());
     private readonly _reviewSummaries = signal<ReadonlyMap<number, ReviewSummary>>(new Map());
+    private readonly _loadSummariesSubject = new Subject<readonly number[]>();
+    private readonly _resetSummariesSubject = new Subject<void>();
 
     private articleId?: Signal<number | undefined>;
 
@@ -151,6 +153,29 @@ export class ArticleHistoryService {
                     .map(item => item.id),
             ),
     );
+
+    constructor() {
+        // switchMap cancels in-flight requests on reset; mergeMap keeps page
+        // loads accumulating, so a stale response can't overwrite fresh summaries.
+        this._resetSummariesSubject
+            .pipe(
+                startWith(undefined),
+                switchMap(() =>
+                    this._loadSummariesSubject.pipe(
+                        mergeMap(versionIds =>
+                            this.reviewService.getSummary('article', versionIds).pipe(
+                                catchError(error => {
+                                    this.logger.info('Review summaries unavailable, skipping badges', { error });
+                                    return of([] as readonly ReviewSummary[]);
+                                }),
+                            ),
+                        ),
+                    ),
+                ),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(summaries => this.mergeReviewSummaries(summaries));
+    }
 
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
@@ -221,35 +246,23 @@ export class ArticleHistoryService {
 
     private resetReviewSummaries(): void {
         this._reviewSummaries.set(new Map());
+        this._resetSummariesSubject.next();
     }
 
-    /**
-     * Fetch review summaries for the given version ids and merge them into the
-     * map. One request; errors (e.g. feature flag off → 404) degrade to "no
-     * badges" without surfacing a notification.
-     */
     private loadReviewSummaries(versionIds: readonly number[]): void {
         if (versionIds.length === 0) return;
+        this._loadSummariesSubject.next(versionIds);
+    }
 
-        this.reviewService
-            .getSummary('article', versionIds)
-            .pipe(
-                catchError(error => {
-                    this.logger.info('Review summaries unavailable, skipping badges', { error });
-                    return of([] as readonly ReviewSummary[]);
-                }),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe(summaries => {
-                if (summaries.length === 0) return;
-                this._reviewSummaries.update(current => {
-                    const next = new Map(current);
-                    for (const summary of summaries) {
-                        next.set(summary.versionId, summary);
-                    }
-                    return next;
-                });
-            });
+    private mergeReviewSummaries(summaries: readonly ReviewSummary[]): void {
+        if (summaries.length === 0) return;
+        this._reviewSummaries.update(current => {
+            const next = new Map(current);
+            for (const summary of summaries) {
+                next.set(summary.versionId, summary);
+            }
+            return next;
+        });
     }
 
     private loadInworkIfNeeded(): void {

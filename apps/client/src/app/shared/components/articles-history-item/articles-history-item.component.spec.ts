@@ -278,7 +278,7 @@ describe('ArticlesHistoryItemComponent', () => {
     });
 
     describe('review badge', () => {
-        const getBadge = () => spectator.query('app-review-badge');
+        const getBadge = () => spectator.query('[data-testid="review-badge"]');
 
         it('shows the review badge when a summary is provided', () => {
             spectator = createComponent({
