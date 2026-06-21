@@ -13,6 +13,17 @@
     padding: $content-padding;
 }
 
+// Auto-height mode: size to content and defer scrolling to an outer container.
+:host.auto-height {
+    flex: none;
+    overflow: visible;
+
+    .diff-view-body {
+        flex: none;
+        overflow: visible;
+    }
+}
+
 .diff-content {
     margin: 0;
     font-family: monospace;
@@ -23,25 +34,7 @@
     color: var(--themed-text-primary);
 }
 
-:host ::ng-deep {
-    .diff-insert {
-        background-color: var(--themed-diff-insert-bg);
-        color: var(--themed-diff-insert-text);
-    }
-
-    .diff-delete {
-        background-color: var(--themed-diff-delete-bg);
-        color: var(--themed-diff-delete-text);
-        text-decoration: line-through;
-    }
-
-    .diff-collapsed-lines {
-        color: var(--themed-text-muted);
-        background-color: var(--themed-diff-collapsed-bg);
-        font-style: italic;
-        padding: 4px;
-        border-top: 1px dashed var(--themed-border-color);
-        border-bottom: 1px dashed var(--themed-border-color);
-        margin: 16px 0;
-    }
-}
+// The diff markup (.diff-insert, .diff-delete, .diff-collapsed-lines) is
+// injected via innerHTML, so it carries no encapsulation attribute and is
+// styled globally, scoped by the element selector, in
+// styles/_diff-view-overrides.scss.

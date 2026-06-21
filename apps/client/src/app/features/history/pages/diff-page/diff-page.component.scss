@@ -43,3 +43,8 @@
     font-style: italic;
     vertical-align: middle;
 }
+
+.diff-page-body {
+    flex: 1;
+    overflow-y: auto;
+}

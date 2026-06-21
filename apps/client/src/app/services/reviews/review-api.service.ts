@@ -60,15 +60,20 @@ export class ReviewApiService {
     /**
      * All votes for a single version.
      *
+     * SKIP_ERROR_NOTIFICATION: when the feature flag is off the backend returns
+     * 404 FEATURE_DISABLED; the review block treats this as "no reviews" rather
+     * than an error to surface (callers fall back to an empty list).
+     *
      * @param type - Review target (article/news)
      * @param versionId - Version ID
      * @returns Observable with raw review list
      */
     getReviews(type: ReviewTarget, versionId: number): Observable<readonly ReviewDto[]> {
         return this.http
-            .get<
-                ApiResponse<readonly ReviewDto[]>
-            >(`${this.apiUrl}/api/reviews/list/${type}/${versionId}`, { withCredentials: true })
+            .get<ApiResponse<readonly ReviewDto[]>>(`${this.apiUrl}/api/reviews/list/${type}/${versionId}`, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

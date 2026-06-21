@@ -6,7 +6,8 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { AuthResponse, User } from '@drevo-web/shared';
+import { AuthResponse } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { AuthService } from './auth.service';
 import { CsrfService } from './csrf.service';
 
@@ -20,7 +21,7 @@ describe('AuthService', () => {
     let csrfService: jest.Mocked<CsrfService>;
     let router: { navigate: jest.Mock; url: string };
 
-    const mockUser: User = {
+    const mockUser = createMockUser({
         id: 1,
         login: 'testuser',
         name: 'Test User',
@@ -31,7 +32,7 @@ describe('AuthService', () => {
             canModerate: false,
             canAdmin: false,
         },
-    };
+    });
 
     const mockAuthResponse: AuthResponse = {
         success: true,

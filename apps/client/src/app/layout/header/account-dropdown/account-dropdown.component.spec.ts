@@ -5,6 +5,7 @@ import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { LogExportService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { User } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { AuthService } from '../../../services/auth/auth.service';
 import { AccountDropdownComponent } from './account-dropdown.component';
 
@@ -14,7 +15,7 @@ describe('AccountDropdownComponent', () => {
     let isLoadingSubject: BehaviorSubject<boolean>;
     let authServiceMock: Partial<AuthService>;
 
-    const mockUser: User = {
+    const mockUser = createMockUser({
         id: 1,
         login: 'testuser',
         name: 'Test User',
@@ -25,7 +26,7 @@ describe('AccountDropdownComponent', () => {
             canModerate: false,
             canAdmin: false,
         },
-    };
+    });
 
     const createComponent = createComponentFactory({
         component: AccountDropdownComponent,

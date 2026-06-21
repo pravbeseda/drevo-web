@@ -31,6 +31,13 @@
             <a [routerLink]="url">Перейти к текущей версии статьи</a>
         }
     </ui-banner>
+
+    <app-review-block
+        [versionId]="version.versionId"
+        [author]="version.author"
+        [approved]="version.approved"
+    />
+
     <app-wiki-content
         class="article-content"
         [content]="version.content"

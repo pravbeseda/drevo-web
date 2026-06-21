@@ -20,4 +20,5 @@ export interface User {
     readonly email: string;
     readonly role: UserRole;
     readonly permissions: UserPermissions;
+    readonly isReviewer: boolean;
 }

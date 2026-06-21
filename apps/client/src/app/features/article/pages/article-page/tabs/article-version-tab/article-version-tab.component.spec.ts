@@ -1,4 +1,6 @@
 import { ArticleService } from '../../../../../../services/articles';
+import { AuthService } from '../../../../../../services/auth/auth.service';
+import { ReviewService } from '../../../../../../services/reviews/review.service';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -6,7 +8,9 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { ArticleVersion } from '@drevo-web/shared';
+import { ArticleVersion, Review, ReviewStatus, User } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
+import { ConfirmationService } from '@drevo-web/ui';
 import { BehaviorSubject, of, throwError, NEVER } from 'rxjs';
 
 const mockVersion: ArticleVersion = {
@@ -28,6 +32,9 @@ describe('ArticleVersionTabComponent', () => {
     let articleService: jest.Mocked<ArticleService>;
     let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
+    const reviewUser$ = new BehaviorSubject<User | undefined>(undefined);
+    const getReviews = jest.fn();
+
     const createComponent = createComponentFactory({
         component: ArticleVersionTabComponent,
         providers: [
@@ -44,11 +51,17 @@ describe('ArticleVersionTabComponent', () => {
                     editUrl: signal(undefined),
                 },
             },
+            { provide: AuthService, useValue: { user$: reviewUser$ } },
+            { provide: ReviewService, useValue: { getReviews, setReview: jest.fn(), deleteReview: jest.fn() } },
+            { provide: ConfirmationService, useValue: { open: jest.fn() } },
         ],
         detectChanges: false,
     });
 
     beforeEach(() => {
+        jest.clearAllMocks();
+        reviewUser$.next(undefined);
+        getReviews.mockReturnValue(of<readonly Review[]>([]));
         paramMapSubject = new BehaviorSubject(convertToParamMap({ versionId: '789' }));
         spectator = createComponent({
             providers: [
@@ -80,6 +93,19 @@ describe('ArticleVersionTabComponent', () => {
         spectator.detectChanges();
 
         expect(spectator.query('[data-testid="version-banner"]')).toBeTruthy();
+    });
+
+    it('should render the review block when reviews exist', () => {
+        getReviews.mockReturnValue(
+            of<readonly Review[]>([
+                { reviewer: 'Some Reviewer', status: ReviewStatus.Suggest, comment: 'Fix', updatedAt: new Date() },
+            ]),
+        );
+        reviewUser$.next(createMockUser({ isReviewer: false }));
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="review-block"]')).toBeTruthy();
+        expect(getReviews).toHaveBeenCalledWith('article', 789);
     });
 
     it('should display author and info in banner', () => {

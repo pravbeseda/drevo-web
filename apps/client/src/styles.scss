@@ -14,6 +14,10 @@
 @use 'tokens' as *;
 @use 'modal';
 
+// Global overrides for third-party / innerHTML DOM inside diff views,
+// scoped by the component element selector (app-cm-diff-view / app-diff-view).
+@use './styles/diff-view-overrides';
+
 // ============================================================================
 // THEMED CSS CUSTOM PROPERTIES (emitted once, globally)
 // ============================================================================
@@ -98,6 +102,10 @@ html.dark-theme body {
 mark {
     background-color: var(--themed-search-highlighted-bg);
     color: var(--themed-search-highlighted);
+}
+
+.px-md {
+    padding: 0 $content-padding;
 }
 
 // ============================================================================

@@ -13,18 +13,19 @@ import {
     ReviewSummary,
     User,
 } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
 
-const mockUser: User = {
+const mockUser = createMockUser({
     id: 1,
     login: 'testuser',
     name: 'Test User',
     email: 'test@example.com',
     role: 'user',
     permissions: { canEdit: true, canModerate: false, canAdmin: false },
-};
+});
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {

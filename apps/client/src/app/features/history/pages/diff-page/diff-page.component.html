@@ -39,18 +39,29 @@
         }
     </div>
 
-    @switch (diffType()) {
-        @case ('cm') {
-            <app-cm-diff-view
-                [oldText]="pairs.previous.content"
-                [newText]="pairs.current.content"
-            />
+    <div class="diff-page-body">
+        <app-review-block
+            class="px-md"
+            [versionId]="pairs.current.versionId"
+            [author]="pairs.current.author"
+            [approved]="pairs.current.approved"
+        />
+
+        @switch (diffType()) {
+            @case ('cm') {
+                <app-cm-diff-view
+                    [oldText]="pairs.previous.content"
+                    [newText]="pairs.current.content"
+                    [autoHeight]="true"
+                />
+            }
+            @case ('jsdiff') {
+                <app-diff-view
+                    [oldText]="pairs.previous.content"
+                    [newText]="pairs.current.content"
+                    [autoHeight]="true"
+                />
+            }
         }
-        @case ('jsdiff') {
-            <app-diff-view
-                [oldText]="pairs.previous.content"
-                [newText]="pairs.current.content"
-            />
-        }
-    }
+    </div>
 }

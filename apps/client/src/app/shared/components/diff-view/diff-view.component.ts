@@ -9,10 +9,19 @@ import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-we
     templateUrl: './diff-view.component.html',
     styleUrl: './diff-view.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class.auto-height]': 'autoHeight()',
+    },
 })
 export class DiffViewComponent {
     readonly oldText = input.required<string>();
     readonly newText = input.required<string>();
+    /**
+     * Grow to content height instead of filling a fixed box and scrolling
+     * internally — for use inside an outer scroll container (e.g. the diff page,
+     * where the review block and the diff share one scrollbar).
+     */
+    readonly autoHeight = input(false);
 
     private readonly logger = inject(LoggerService).withContext('DiffViewComponent');
 

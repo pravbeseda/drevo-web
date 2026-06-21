@@ -1,0 +1,209 @@
+:host {
+    display: block;
+}
+
+.review-block {
+    border: 1px solid var(--themed-border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--themed-secondary-bg);
+    margin: 15px 0;
+}
+
+.review-hd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--themed-border-color);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--themed-text-primary);
+}
+
+.review-hd-title {
+    flex: none;
+}
+
+.review-tally {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.review-tally-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.review-tally-count {
+    font-size: 13px;
+    color: var(--themed-text-secondary);
+}
+
+.review-bd {
+    padding: 14px 18px;
+}
+
+.review-comments {
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 0;
+}
+
+.review-cmt {
+    border: 1px solid var(--themed-border-color);
+    border-left-width: 4px;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    background: var(--themed-primary-bg);
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    &.success {
+        border-left-color: var(--themed-text-success);
+    }
+    &.warning {
+        border-left-color: var(--themed-text-warning);
+    }
+    &.error {
+        border-left-color: var(--themed-text-error);
+    }
+    &.neutral {
+        border-left-color: var(--themed-text-muted);
+    }
+}
+
+.review-cmt-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.review-cmt-author {
+    font-weight: 700;
+    color: var(--themed-text-primary);
+}
+
+.review-cmt-date {
+    font-size: 12px;
+    color: var(--themed-text-muted);
+}
+
+.review-cmt-del {
+    margin-left: auto;
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--themed-text-muted);
+
+    &:hover {
+        color: var(--themed-text-error);
+        text-decoration: underline;
+    }
+}
+
+.review-cmt-text {
+    margin: 0;
+    white-space: pre-line;
+    line-height: 1.5;
+    color: var(--themed-text-secondary);
+}
+
+// Status icon disc — colors per verdict class.
+.review-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+
+    &.success {
+        color: var(--themed-text-success);
+    }
+    &.warning {
+        color: var(--themed-text-warning);
+    }
+    &.error {
+        color: var(--themed-text-error);
+    }
+    &.neutral {
+        color: var(--themed-text-muted);
+    }
+}
+
+.review-statuses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.review-opt {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+.review-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1.5px solid var(--themed-border-color);
+    border-radius: 20px;
+    padding: 5px 12px;
+    background: var(--themed-primary-bg);
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+}
+
+.review-opt input:checked + .review-pill {
+    border-color: var(--themed-text-primary);
+}
+
+.review-opt input:focus-visible + .review-pill {
+    outline: 2px solid var(--themed-text-primary);
+    outline-offset: 1px;
+}
+
+.review-opt-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--themed-text-secondary);
+    white-space: nowrap;
+}
+
+.review-comment {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--themed-border-color);
+    border-radius: 6px;
+    background: var(--themed-primary-bg);
+    color: var(--themed-text-primary);
+    font-family: inherit;
+}
+
+.review-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
