@@ -9,7 +9,30 @@ export interface CommentSegment {
 }
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
-const TRAILING_PUNCTUATION = /[.,;:!?)]+$/;
+const TRAILING_SENTENCE_PUNCTUATION = '.,;:!?';
+
+/**
+ * Trim trailing sentence punctuation from a matched URL. A closing `)` is only
+ * treated as punctuation when it has no matching `(` inside the URL, so balanced
+ * links (e.g. `.../Москва_(значения)`) keep their bracket.
+ */
+function trimTrailingPunctuation(raw: string): string {
+    let url = raw;
+    while (url.length > 0) {
+        const last = url[url.length - 1];
+        if (last === ')') {
+            const opens = (url.match(/\(/g) ?? []).length;
+            const closes = (url.match(/\)/g) ?? []).length;
+            if (closes <= opens) {
+                break;
+            }
+        } else if (!TRAILING_SENTENCE_PUNCTUATION.includes(last)) {
+            break;
+        }
+        url = url.slice(0, -1);
+    }
+    return url;
+}
 
 /**
  * Split a comment into text/link segments. Only http(s) URLs become links;
@@ -23,7 +46,7 @@ export function linkifyComment(text: string): readonly CommentSegment[] {
     for (const match of text.matchAll(URL_REGEX)) {
         const start = match.index ?? 0;
         const raw = match[0];
-        const url = raw.replace(TRAILING_PUNCTUATION, '');
+        const url = trimTrailingPunctuation(raw);
         const tail = raw.slice(url.length);
 
         if (start > lastIndex) {

@@ -112,13 +112,14 @@
                         }
                     </div>
 
-                    <textarea
+                    <ui-text-input
                         class="review-comment"
+                        [multiline]="true"
+                        label="Комментарий"
                         formControlName="comment"
-                        rows="2"
-                        placeholder="Комментарий"
+                        [rows]="2"
                         data-testid="review-comment-input"
-                    ></textarea>
+                    />
 
                     <div class="review-actions">
                         <ui-button

@@ -188,17 +188,11 @@
     white-space: nowrap;
 }
 
+// ui-text-input stretches to full width on its own; only the spacing below the
+// pills is needed here.
 .review-comment {
-    width: 100%;
-    box-sizing: border-box;
-    resize: vertical;
-    min-height: 38px;
-    padding: 8px 10px;
-    border: 1px solid var(--themed-border-color);
-    border-radius: 6px;
-    background: var(--themed-primary-bg);
-    color: var(--themed-text-primary);
-    font-family: inherit;
+    display: block;
+    margin-bottom: 4px;
 }
 
 .review-actions {

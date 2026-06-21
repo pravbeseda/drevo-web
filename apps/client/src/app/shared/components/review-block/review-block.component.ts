@@ -17,8 +17,8 @@ import {
     ReviewStatusClass,
     ReviewTarget,
 } from '@drevo-web/shared';
-import { ButtonComponent, ConfirmationService, FormatDatePipe, IconComponent } from '@drevo-web/ui';
-import { filter, of, switchMap } from 'rxjs';
+import { ButtonComponent, ConfirmationService, FormatDatePipe, IconComponent, TextInputComponent } from '@drevo-web/ui';
+import { filter, of, switchMap, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 /** A status pill descriptor for the vote form / tally header. */
@@ -45,11 +45,6 @@ interface TallyItem {
     readonly icon: string;
     readonly cssClass: ReviewStatusClass;
     readonly voters: readonly string[];
-}
-
-interface ReviewFormValue {
-    readonly status: ReviewStatus;
-    readonly comment: string;
 }
 
 const ALL_STATUSES: readonly ReviewStatus[] = [
@@ -86,7 +81,7 @@ function commentRequiredValidator(control: AbstractControl): ValidationErrors | 
  */
 @Component({
     selector: 'app-review-block',
-    imports: [ReactiveFormsModule, IconComponent, ButtonComponent, FormatDatePipe],
+    imports: [ReactiveFormsModule, IconComponent, ButtonComponent, FormatDatePipe, TextInputComponent],
     templateUrl: './review-block.component.html',
     styleUrl: './review-block.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -183,6 +178,10 @@ export class ReviewBlockComponent {
         // (tost is suppressed at the HTTP layer via SKIP_ERROR_NOTIFICATION).
         toObservable(this.versionId)
             .pipe(
+                // Discard any unsaved draft when switching versions so it cannot
+                // leak into the next version (the component is reused, not
+                // recreated, across version param changes).
+                tap(() => this.form.markAsPristine()),
                 switchMap(versionId =>
                     this.reviewService
                         .getReviews(this.type(), versionId)
@@ -213,15 +212,18 @@ export class ReviewBlockComponent {
         if (!this.canSave()) {
             return;
         }
-        const { status, comment } = this.form.getRawValue() as ReviewFormValue;
+        const { status, comment } = this.form.getRawValue();
         const versionId = this.versionId();
         this.reviewService
             .setReview({ type: this.type(), versionId, status, comment: comment.trim() })
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(reviews => {
-                this.form.markAsPristine();
-                this._reviews.set(reviews);
-                this.logger.info('Review submitted', { versionId, status });
+            .subscribe({
+                next: reviews => {
+                    this.form.markAsPristine();
+                    this._reviews.set(reviews);
+                    this.logger.info('Review submitted', { versionId, status });
+                },
+                error: error => this.logger.error('Failed to submit review', error),
             });
     }
 
@@ -248,9 +250,12 @@ export class ReviewBlockComponent {
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe(reviews => {
-                this._reviews.set(reviews);
-                this.logger.info('Review deleted', { versionId, reviewer: review.reviewer });
+            .subscribe({
+                next: reviews => {
+                    this._reviews.set(reviews);
+                    this.logger.info('Review deleted', { versionId, reviewer: review.reviewer });
+                },
+                error: error => this.logger.error('Failed to delete review', error),
             });
     }
 }
