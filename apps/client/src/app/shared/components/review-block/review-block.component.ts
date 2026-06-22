@@ -17,7 +17,17 @@ import {
     ReviewStatusClass,
     ReviewTarget,
 } from '@drevo-web/shared';
-import { ButtonComponent, ConfirmationService, FormatDatePipe, IconComponent, TextInputComponent } from '@drevo-web/ui';
+import {
+    ButtonComponent,
+    ButtonToggleGroupComponent,
+    ButtonToggleOption,
+    ConfirmationService,
+    FormatDatePipe,
+    IconButtonComponent,
+    IconComponent,
+    IconTone,
+    TextInputComponent,
+} from '@drevo-web/ui';
 import { filter, of, switchMap, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -81,7 +91,15 @@ function commentRequiredValidator(control: AbstractControl): ValidationErrors | 
  */
 @Component({
     selector: 'app-review-block',
-    imports: [ReactiveFormsModule, IconComponent, ButtonComponent, FormatDatePipe, TextInputComponent],
+    imports: [
+        ReactiveFormsModule,
+        IconComponent,
+        IconButtonComponent,
+        ButtonComponent,
+        ButtonToggleGroupComponent,
+        FormatDatePipe,
+        TextInputComponent,
+    ],
     templateUrl: './review-block.component.html',
     styleUrl: './review-block.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -138,6 +156,18 @@ export class ReviewBlockComponent {
             : this.statusOptions,
     );
 
+    /** Form pills mapped to the generic `ui-button-toggle-group` option shape. */
+    readonly toggleOptions = computed<readonly ButtonToggleOption[]>(() => {
+        const selected = this.selectedStatus();
+        return this.formOptions().map(option => ({
+            value: option.status,
+            label: option.label,
+            icon: option.icon,
+            tone: this.pillTone(option, selected),
+            iconFilled: true,
+        }));
+    });
+
     readonly tally = computed<readonly TallyItem[]>(() => {
         const reviews = this._reviews();
         return REVIEW_TALLY_STATUSES.map(status => ({
@@ -165,6 +195,12 @@ export class ReviewBlockComponent {
 
     /** Form-state tick: recompute save/clear enablement on any form event. */
     private readonly formEvents = toSignal(this.form.events);
+
+    /** Currently picked status (drives pill icon colouring). */
+    private readonly selectedStatus = computed(() => {
+        this.formEvents();
+        return this.form.controls.status.value;
+    });
 
     readonly canSave = computed(() => {
         this.formEvents();
@@ -208,6 +244,13 @@ export class ReviewBlockComponent {
 
     canDelete(review: Review): boolean {
         return this.isModerator() || (review.reviewer === this.userName() && this.versionPending());
+    }
+
+    private pillTone(option: StatusOption, selected: ReviewStatus): IconTone {
+        if (option.status !== selected) {
+            return 'neutral';
+        }
+        return option.status === ReviewStatus.Undecided ? 'accent' : option.cssClass;
     }
 
     submit(): void {

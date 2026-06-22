@@ -59,6 +59,36 @@ describe('IconComponent', () => {
         expect(tooltipDirective?.message).toBeFalsy();
     });
 
+    describe('tone', () => {
+        it('should not apply any tone class when tone is not provided', () => {
+            spectator = createComponent({ props: { name: 'home' } });
+            const host = spectator.element;
+            expect(host.className).not.toContain('tone-');
+        });
+
+        it('should apply the matching tone class', () => {
+            spectator = createComponent({ props: { name: 'home', tone: 'success' } });
+            expect(spectator.element).toHaveClass('tone-success');
+        });
+
+        it('should switch tone class when tone changes', () => {
+            spectator = createComponent({ props: { name: 'home', tone: 'success' } });
+            spectator.setInput('tone', 'error');
+            expect(spectator.element).not.toHaveClass('tone-success');
+            expect(spectator.element).toHaveClass('tone-error');
+        });
+
+        it('should not apply the filled class by default', () => {
+            spectator = createComponent({ props: { name: 'home', tone: 'success' } });
+            expect(spectator.element).not.toHaveClass('filled');
+        });
+
+        it('should apply the filled class when filled is set', () => {
+            spectator = createComponent({ props: { name: 'home', tone: 'success', filled: true } });
+            expect(spectator.element).toHaveClass('filled');
+        });
+    });
+
     describe('svgIcon', () => {
         const SVG_ICON_NAME = 'topic_person';
 

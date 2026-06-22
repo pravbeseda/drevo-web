@@ -14,7 +14,7 @@
     .cm-editor .cm-content {
         color: var(--themed-text-primary);
         caret-color: var(--themed-text-primary);
-        padding: $content-padding;
+        padding: $gap-md;
     }
 
     .cm-editor .cm-line {

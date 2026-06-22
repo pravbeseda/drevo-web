@@ -1,3 +1,4 @@
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TextInputComponent } from './text-input.component';
@@ -189,6 +190,41 @@ describe('TextInputComponent', () => {
             spectator.dispatchFakeEvent(textarea, 'blur');
 
             expect(onTouchedSpy).toHaveBeenCalled();
+        });
+    });
+
+    describe('autoHeight mode', () => {
+        it('should not enable cdk autosize by default', () => {
+            spectator.setInput('multiline', true);
+
+            const autosize = spectator.query(CdkTextareaAutosize)!;
+            expect(autosize.enabled).toBe(false);
+        });
+
+        it('should enable cdk autosize when autoHeight is true', () => {
+            spectator.setInput('multiline', true);
+            spectator.setInput('autoHeight', true);
+
+            const autosize = spectator.query(CdkTextareaAutosize)!;
+            expect(autosize.enabled).toBe(true);
+        });
+
+        it('should use rows as the minimum number of rows', () => {
+            spectator.setInput('multiline', true);
+            spectator.setInput('autoHeight', true);
+            spectator.setInput('rows', 2);
+
+            const autosize = spectator.query(CdkTextareaAutosize)!;
+            expect(autosize.minRows).toBe(2);
+        });
+
+        it('should cap growth at maxRows', () => {
+            spectator.setInput('multiline', true);
+            spectator.setInput('autoHeight', true);
+            spectator.setInput('maxRows', 12);
+
+            const autosize = spectator.query(CdkTextareaAutosize)!;
+            expect(autosize.maxRows).toBe(12);
         });
     });
 });

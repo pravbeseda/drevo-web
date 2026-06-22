@@ -41,7 +41,7 @@ export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
  * reusing APPROVAL_ICONS (the approval scale is a different domain).
  */
 export const REVIEW_STATUS_ICONS: Record<ReviewStatus, string> = {
-    [ReviewStatus.Undecided]: 'help',
+    [ReviewStatus.Undecided]: 'question_mark',
     [ReviewStatus.Approve]: 'check',
     [ReviewStatus.Suggest]: 'edit',
     [ReviewStatus.Disagree]: 'close',

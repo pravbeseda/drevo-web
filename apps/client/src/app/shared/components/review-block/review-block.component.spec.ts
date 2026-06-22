@@ -90,9 +90,39 @@ describe('ReviewBlockComponent', () => {
         user$.next(createMockUser({ name: AUTHOR, isReviewer: true }));
         render({ approved: ApprovalStatus.Pending, author: AUTHOR });
 
-        const labels = spectator.queryAll('.review-opt-label').map(el => el.textContent?.trim());
+        const labels = spectator
+            .queryAll('[data-testid="review-status"] .toggle-label')
+            .map(el => el.textContent?.trim());
+        expect(labels.length).toBeGreaterThan(0);
         expect(labels).not.toContain('Одобряю');
         expect(spectator.component.isOwnVersion()).toBe(true);
+    });
+
+    describe('pill tones', () => {
+        function toneClassOf(status: ReviewStatus): string | undefined {
+            const icon = spectator.query(`[data-testid="toggle-${status}"] ui-icon`);
+            return Array.from(icon?.classList ?? []).find(cssClass => cssClass.startsWith('tone-'));
+        }
+
+        it('paints the selected "Нет решения" pill with the accent tone and the rest neutral', () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            render({ approved: ApprovalStatus.Pending });
+
+            expect(toneClassOf(ReviewStatus.Undecided)).toBe('tone-accent');
+            expect(toneClassOf(ReviewStatus.Approve)).toBe('tone-neutral');
+            expect(toneClassOf(ReviewStatus.Suggest)).toBe('tone-neutral');
+        });
+
+        it('moves the verdict tone onto the newly selected pill', () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            render({ approved: ApprovalStatus.Pending });
+
+            spectator.component.form.controls.status.setValue(ReviewStatus.Approve);
+            spectator.detectChanges();
+
+            expect(toneClassOf(ReviewStatus.Approve)).toBe('tone-success');
+            expect(toneClassOf(ReviewStatus.Undecided)).toBe('tone-neutral');
+        });
     });
 
     it('requires a comment for Suggest/Disagree but not for Approve', () => {

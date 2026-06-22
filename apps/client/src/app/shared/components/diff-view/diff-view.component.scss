@@ -10,7 +10,7 @@
 .diff-view-body {
     flex: 1;
     overflow: auto;
-    padding: $content-padding;
+    padding: $gap-md;
 }
 
 // Auto-height mode: size to content and defer scrolling to an outer container.

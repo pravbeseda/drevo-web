@@ -1,0 +1,68 @@
+// The shape var rounds Material's internal surface; border-radius rounds our own
+// border. They must stay equal, so keep a single source of truth.
+$pill-radius: 20px;
+
+:host {
+    display: block;
+}
+
+// Material renders a *connected* segmented group (single outer border + 1px
+// dividers between items). We want separate rounded pills with a gap, so we
+// flatten the group and border each toggle individually.
+
+:host .mat-button-toggle-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
+    background: transparent;
+
+    // `--mat-button-toggle-height` feeds the label line-height (≈ pill height).
+    --mat-button-toggle-height: 42px;
+    --mat-button-toggle-shape: #{$pill-radius};
+    --mat-button-toggle-background-color: transparent;
+    --mat-button-toggle-text-color: var(--themed-text-secondary);
+    --mat-button-toggle-selected-state-background-color: transparent;
+    --mat-button-toggle-selected-state-text-color: var(--themed-text-primary);
+}
+
+:host .mat-button-toggle {
+    border: 1.5px solid var(--themed-border-color);
+    border-radius: $pill-radius;
+    background: var(--themed-primary-bg);
+    // Clip the ripple / pressed-state overlay to the rounded pill, otherwise its
+    // square corners poke out past the border. The group stays `overflow: visible`
+    // so it never clips the icon discs.
+    overflow: hidden;
+}
+
+// Material sets a 1px `border-left` divider on every non-first toggle (specificity
+// 0,3,0), hiding our left border. Re-assert ours with higher specificity (0,5,0).
+:host .mat-button-toggle + .mat-button-toggle {
+    border-left: 1.5px solid var(--themed-border-color);
+}
+
+:host .mat-button-toggle-checked {
+    border-color: var(--themed-text-primary);
+    background: var(--themed-secondary-bg);
+}
+
+// Keep the highlighted left border when a checked pill follows another.
+:host .mat-button-toggle + .mat-button-toggle-checked {
+    border-left-color: var(--themed-text-primary);
+}
+
+.toggle-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}

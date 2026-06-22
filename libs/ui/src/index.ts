@@ -2,6 +2,7 @@ export * from './lib/components/action-button/action-button.component';
 export * from './lib/components/badge/badge.component';
 export * from './lib/components/banner/banner.component';
 export * from './lib/components/button/button.component';
+export * from './lib/components/button-toggle-group/button-toggle-group.component';
 export * from './lib/components/checkbox/checkbox.component';
 export * from './lib/confirmation';
 export * from './lib/components/side-panel/side-panel.component';

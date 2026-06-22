@@ -1,3 +1,4 @@
+import { TextFieldModule } from '@angular/cdk/text-field';
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, forwardRef, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldAppearance, MatFormFieldModule } from '@angular/material/form-field';
@@ -8,7 +9,7 @@ type TextInputAppearance = 'outline' | 'fill' | 'underline';
 
 @Component({
     selector: 'ui-text-input',
-    imports: [MatFormFieldModule, MatIcon, MatInputModule, ReactiveFormsModule],
+    imports: [MatFormFieldModule, MatIcon, MatInputModule, ReactiveFormsModule, TextFieldModule],
     templateUrl: './text-input.component.html',
     styleUrl: './text-input.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,8 @@ export class TextInputComponent implements ControlValueAccessor {
     minLength = input<number | undefined>(undefined);
     multiline = input<boolean>(false);
     rows = input<number>(3);
+    autoHeight = input<boolean>(false);
+    maxRows = input<number | undefined>(undefined);
     value = input<string>('');
 
     valueChanged = output<string>();

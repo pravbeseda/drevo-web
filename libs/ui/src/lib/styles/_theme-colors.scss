@@ -55,7 +55,17 @@ $theme-colors: (
     ),
     text-warning: (
         light: $md-orange-800,
-        dark: $md-orange-400,
+        dark: rgba($md-orange-400, 0.8),
+    ),
+    text-accent: (
+        light: $md-blue-900,
+        dark: $md-blue-400,
+    ),
+    // Glyph color for a filled (tone-disc) icon — white in both themes for a
+    // fixed high contrast against the saturated status background.
+    icon-on-tone: (
+        light: white,
+        dark: white,
     ),
     lint-active-bg: (
         light: $md-orange-200,

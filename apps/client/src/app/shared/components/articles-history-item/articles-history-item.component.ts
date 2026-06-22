@@ -38,6 +38,14 @@ export class ArticlesHistoryItemComponent {
 
     readonly diffLink = computed(() => ['/history/articles/diff', this.item().versionId]);
 
+    readonly versionLink = computed(() => ['/articles', this.item().articleId, 'version', this.item().versionId]);
+
+    /**
+     * Where the review pill navigates: the version's diff, or — for new versions
+     * (nothing to compare against) — the version page itself. Mirrors legacy.
+     */
+    readonly reviewLink = computed(() => (this.item().isNew ? this.versionLink() : this.diffLink()));
+
     onItemClick(): void {
         if (this.selectable()) {
             this.selectItem.emit(this.item());

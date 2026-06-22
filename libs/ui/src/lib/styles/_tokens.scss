@@ -5,6 +5,7 @@ $breakpoint-tablet: 768px;
 $breakpoint-desktop: 1024px;
 
 // Layout dimensions
+$panel-border-radius: 10px;
 $header-height: 50px;
 $sidebar-width: 220px;
 $sidebar-collapsed-width: 60px;
@@ -58,7 +59,8 @@ $sidebar-nav-label-font-size: 14px;
 // Spacing
 $brand-gap: 4px;
 $header-actions-gap: 2px;
-$content-padding: 1rem;
+$gap-md: 1rem;
+$gap-lg: 1.5rem;
 
 // Font scale popup
 $font-scale-popup-padding: 16px;

@@ -9,16 +9,13 @@
                 <span class="review-tally">
                     @for (item of tally(); track item.status) {
                         <span class="review-tally-item">
-                            <span
-                                class="review-ic"
-                                [class]="item.cssClass"
-                            >
-                                <ui-icon
-                                    [name]="item.icon"
-                                    size="small"
-                                    [tooltip]="item.label + ': ' + item.voters.join(', ')"
-                                />
-                            </span>
+                            <ui-icon
+                                [name]="item.icon"
+                                size="small"
+                                filled
+                                [tone]="item.cssClass"
+                                [tooltip]="item.label + ': ' + item.voters.join(', ')"
+                            />
                             <span class="review-tally-count">{{ item.voters.length }}</span>
                         </span>
                     }
@@ -36,26 +33,22 @@
                             data-testid="review-comment"
                         >
                             <div class="review-cmt-head">
-                                <span
-                                    class="review-ic"
-                                    [class]="item.cssClass"
-                                >
-                                    <ui-icon
-                                        [name]="item.icon"
-                                        size="small"
-                                    />
-                                </span>
+                                <ui-icon
+                                    [name]="item.icon"
+                                    size="small"
+                                    filled
+                                    [tone]="item.cssClass"
+                                />
                                 <span class="review-cmt-author">{{ item.review.reviewer }}</span>
                                 <span class="review-cmt-date">{{ item.review.updatedAt | formatDate }}</span>
                                 @if (item.canDelete) {
-                                    <button
-                                        type="button"
+                                    <ui-icon-button
                                         class="review-cmt-del"
+                                        icon="delete"
+                                        label="Удалить отзыв"
                                         data-testid="review-delete"
-                                        (click)="deleteReview(item.review)"
-                                    >
-                                        Удалить
-                                    </button>
+                                        (clicked)="deleteReview(item.review)"
+                                    />
                                 }
                             </div>
                             <p class="review-cmt-text">
@@ -85,39 +78,22 @@
                     (ngSubmit)="submit()"
                     data-testid="review-form"
                 >
-                    <div class="review-statuses">
-                        @for (option of formOptions(); track option.status) {
-                            <label class="review-opt">
-                                <input
-                                    type="radio"
-                                    formControlName="status"
-                                    [value]="option.status"
-                                />
-                                <span
-                                    class="review-pill"
-                                    [class]="option.cssClass"
-                                >
-                                    <span
-                                        class="review-ic"
-                                        [class]="option.cssClass"
-                                    >
-                                        <ui-icon
-                                            [name]="option.icon"
-                                            size="small"
-                                        />
-                                    </span>
-                                    <span class="review-opt-label">{{ option.label }}</span>
-                                </span>
-                            </label>
-                        }
-                    </div>
+                    <ui-button-toggle-group
+                        class="mt-lg"
+                        formControlName="status"
+                        [options]="toggleOptions()"
+                        ariaLabel="Ваш отзыв"
+                        data-testid="review-status"
+                    />
 
                     <ui-text-input
-                        class="review-comment"
+                        class="mt-lg"
                         [multiline]="true"
+                        [autoHeight]="true"
                         label="Комментарий"
                         formControlName="comment"
                         [rows]="2"
+                        [maxRows]="12"
                         data-testid="review-comment-input"
                     />
 

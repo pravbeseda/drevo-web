@@ -1,7 +1,36 @@
+$tones: (
+    'success': var(--themed-text-success),
+    'warning': var(--themed-text-warning),
+    'error': var(--themed-text-error),
+    'neutral': var(--themed-text-muted),
+    'primary': var(--themed-text-primary),
+    'secondary': var(--themed-text-secondary),
+    'accent': var(--themed-text-accent),
+);
+
 :host {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    @each $name, $color in $tones {
+        // Default: mat-icon paints with `currentColor`, so `color` tints the glyph.
+        &.tone-#{$name}:not(.filled) {
+            color: #{$color};
+        }
+        // Filled: the tone becomes a circular background behind a white glyph.
+        &.filled.tone-#{$name} {
+            background: #{$color};
+        }
+    }
+
+    // Fixed high-contrast glyph on a saturated status background (white in both
+    // themes — see --themed-icon-on-tone).
+    &.filled {
+        padding: 4px;
+        border-radius: 50%;
+        color: var(--themed-icon-on-tone);
+    }
 }
 
 mat-icon.material-symbols-rounded {
