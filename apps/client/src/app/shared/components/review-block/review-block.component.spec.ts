@@ -170,4 +170,29 @@ describe('ReviewBlockComponent', () => {
             expect(spectator.component.canDelete(review({ reviewer: 'Other' }))).toBe(false);
         });
     });
+
+    it('clears the comment and reflects clearability via canClear', () => {
+        user$.next(createMockUser({ isReviewer: true }));
+        render({ approved: ApprovalStatus.Pending });
+
+        spectator.component.form.controls.comment.setValue('something');
+        expect(spectator.component.canClear()).toBe(true);
+
+        spectator.component.clearComment();
+
+        expect(spectator.component.form.controls.comment.value).toBe('');
+        expect(spectator.component.canClear()).toBe(false);
+    });
+
+    it('renders a comment URL as a safe external link', () => {
+        getReviews.mockReturnValue(of([review({ comment: 'см. https://example.com' })]));
+        user$.next(createMockUser({ isReviewer: false }));
+        render({ approved: ApprovalStatus.Approved });
+
+        const link = spectator.query('[data-testid="review-comment"] a');
+        expect(link).not.toBeNull();
+        expect(link?.getAttribute('href')).toBe('https://example.com');
+        expect(link?.getAttribute('target')).toBe('_blank');
+        expect(link?.getAttribute('rel')).toBe('noopener noreferrer nofollow');
+    });
 });

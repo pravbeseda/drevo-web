@@ -123,6 +123,9 @@ export class ReviewBlockComponent {
     readonly versionPending = computed(() => this.approved() === ApprovalStatus.Pending);
     readonly canReview = computed(() => (this.currentUser()?.isReviewer ?? false) && this.versionPending());
 
+    // Reviewer identity is keyed on display name (not id): the DTO only carries
+    // `reviewer` as a name, mirroring the legacy backend. The backend stays the
+    // authoritative validator on set/delete, so this is a display heuristic only.
     private readonly myReview = computed(() => {
         const name = this.userName();
         return name === undefined ? undefined : this._reviews().find(review => review.reviewer === name);

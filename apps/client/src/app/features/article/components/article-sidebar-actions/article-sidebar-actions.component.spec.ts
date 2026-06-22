@@ -6,6 +6,7 @@ import { ArticleSidebarActionsComponent } from './article-sidebar-actions.compon
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { NotificationService, SidebarService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { of } from 'rxjs';
 
 const mockVersion: VersionForModeration = {
@@ -16,14 +17,13 @@ const mockVersion: VersionForModeration = {
     comment: '',
 };
 
-const mockModeratorUser = {
-    id: 1,
+const mockModeratorUser = createMockUser({
     login: 'moderator',
     name: 'Moderator',
     email: 'mod@test.com',
-    role: 'moderator' as const,
-    permissions: { canEdit: true, canModerate: true, canAdmin: false },
-};
+    role: 'moder',
+    permissions: { canModerate: true },
+});
 
 describe('ArticleSidebarActionsComponent', () => {
     let spectator: Spectator<ArticleSidebarActionsComponent>;
