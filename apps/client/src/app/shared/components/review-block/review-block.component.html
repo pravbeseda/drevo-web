@@ -89,9 +89,11 @@
                     <ui-text-input
                         class="mt-lg"
                         [multiline]="true"
+                        [autoHeight]="true"
                         label="Комментарий"
                         formControlName="comment"
                         [rows]="2"
+                        [maxRows]="12"
                         data-testid="review-comment-input"
                     />
 

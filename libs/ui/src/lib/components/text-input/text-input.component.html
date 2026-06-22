@@ -10,6 +10,9 @@
     @if (multiline()) {
         <textarea
             matInput
+            [cdkTextareaAutosize]="autoHeight()"
+            [cdkAutosizeMinRows]="rows()"
+            [cdkAutosizeMaxRows]="maxRows()"
             [value]="displayValue()"
             [rows]="rows()"
             [placeholder]="placeholder()"
