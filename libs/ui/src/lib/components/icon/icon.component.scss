@@ -24,11 +24,12 @@ $tones: (
         }
     }
 
-    // White glyph on a saturated status color — intentional fixed contrast.
+    // Fixed high-contrast glyph on a saturated status background (white in both
+    // themes — see --themed-icon-on-tone).
     &.filled {
         padding: 4px;
         border-radius: 50%;
-        color: white;
+        color: var(--themed-icon-on-tone);
     }
 }
 
