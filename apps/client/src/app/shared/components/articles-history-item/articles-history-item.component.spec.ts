@@ -278,14 +278,13 @@ describe('ArticlesHistoryItemComponent', () => {
     });
 
     describe('review badge', () => {
+        const summary = { versionId: 1, status: ReviewStatus.Approve, total: 2, needsMyVote: false };
         const getBadge = () => spectator.query('[data-testid="review-badge"]');
+        const getBadgeLink = () => spectator.query('[data-testid="review-badge-link"]');
 
         it('shows the review badge when a summary is provided', () => {
             spectator = createComponent({
-                props: {
-                    item: createMockItem(),
-                    reviewSummary: { versionId: 1, status: ReviewStatus.Approve, total: 2, needsMyVote: false },
-                },
+                props: { item: createMockItem(), reviewSummary: summary },
             });
             expect(getBadge()).toBeTruthy();
         });
@@ -293,6 +292,23 @@ describe('ArticlesHistoryItemComponent', () => {
         it('hides the review badge when no summary is provided', () => {
             spectator = createComponent({ props: { item: createMockItem() } });
             expect(getBadge()).toBeFalsy();
+        });
+
+        it('links the badge to the version diff for edited versions', () => {
+            spectator = createComponent({
+                props: { item: createMockItem({ isNew: false, versionId: 42 }), reviewSummary: summary },
+            });
+            expect(getBadgeLink()?.getAttribute('href')).toBe('/history/articles/diff/42');
+        });
+
+        it('links the badge to the version page for new versions', () => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem({ isNew: true, articleId: 100, versionId: 42 }),
+                    reviewSummary: summary,
+                },
+            });
+            expect(getBadgeLink()?.getAttribute('href')).toBe('/articles/100/version/42');
         });
     });
 

@@ -89,6 +89,16 @@
     }
 }
 
+.review-badge-link {
+    display: inline-flex;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+        filter: brightness(0.95);
+    }
+}
+
 .inwork-marker {
     flex: none;
     color: var(--themed-text-secondary);
