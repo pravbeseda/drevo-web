@@ -1,0 +1,45 @@
+:host {
+    display: block;
+}
+
+// Render the toggles as separate rounded pills with a gap, rather than the
+// connected M3 segmented look. Material internals are styled via `--mat-*`
+// custom properties (they inherit through view encapsulation); the host
+// elements (`mat-button-toggle-group` / `mat-button-toggle`) live in this
+// template and are stylable directly.
+mat-button-toggle-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border: none;
+    border-radius: 0;
+    --mat-standard-button-toggle-height: 32px;
+    --mat-standard-button-toggle-shape: 20px;
+    --mat-standard-button-toggle-background-color: var(--themed-primary-bg);
+    --mat-standard-button-toggle-text-color: var(--themed-text-secondary);
+    --mat-standard-button-toggle-selected-state-background-color: var(--themed-primary-bg);
+    --mat-standard-button-toggle-selected-state-text-color: var(--themed-text-primary);
+    --mat-standard-button-toggle-divider-color: transparent;
+}
+
+mat-button-toggle {
+    border: 1.5px solid var(--themed-border-color);
+    border-radius: 20px;
+    overflow: hidden;
+
+    &.mat-button-toggle-checked {
+        border-color: var(--themed-text-primary);
+    }
+}
+
+.toggle-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}

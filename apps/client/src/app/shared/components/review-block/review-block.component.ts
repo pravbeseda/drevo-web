@@ -17,7 +17,16 @@ import {
     ReviewStatusClass,
     ReviewTarget,
 } from '@drevo-web/shared';
-import { ButtonComponent, ConfirmationService, FormatDatePipe, IconComponent, TextInputComponent } from '@drevo-web/ui';
+import {
+    ButtonComponent,
+    ButtonToggleGroupComponent,
+    ButtonToggleOption,
+    ConfirmationService,
+    FormatDatePipe,
+    IconButtonComponent,
+    IconComponent,
+    TextInputComponent,
+} from '@drevo-web/ui';
 import { filter, of, switchMap, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -81,7 +90,15 @@ function commentRequiredValidator(control: AbstractControl): ValidationErrors | 
  */
 @Component({
     selector: 'app-review-block',
-    imports: [ReactiveFormsModule, IconComponent, ButtonComponent, FormatDatePipe, TextInputComponent],
+    imports: [
+        ReactiveFormsModule,
+        IconComponent,
+        IconButtonComponent,
+        ButtonComponent,
+        ButtonToggleGroupComponent,
+        FormatDatePipe,
+        TextInputComponent,
+    ],
     templateUrl: './review-block.component.html',
     styleUrl: './review-block.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -136,6 +153,16 @@ export class ReviewBlockComponent {
         this.isOwnVersion()
             ? this.statusOptions.filter(option => option.status !== ReviewStatus.Approve)
             : this.statusOptions,
+    );
+
+    /** Form pills mapped to the generic `ui-button-toggle-group` option shape. */
+    readonly toggleOptions = computed<readonly ButtonToggleOption[]>(() =>
+        this.formOptions().map(option => ({
+            value: option.status,
+            label: option.label,
+            icon: option.icon,
+            tone: option.cssClass,
+        })),
     );
 
     readonly tally = computed<readonly TallyItem[]>(() => {

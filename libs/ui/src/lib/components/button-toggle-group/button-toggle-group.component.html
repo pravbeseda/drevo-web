@@ -1,0 +1,26 @@
+<mat-button-toggle-group
+    [value]="value()"
+    [disabled]="isDisabled()"
+    [hideSingleSelectionIndicator]="true"
+    [attr.aria-label]="ariaLabel()"
+    (change)="onSelectionChange($event.value)"
+    (focusout)="onBlur()"
+>
+    @for (option of options(); track option.value) {
+        <mat-button-toggle
+            [value]="option.value"
+            [attr.data-testid]="'toggle-' + option.value"
+        >
+            <span class="toggle-content">
+                @if (option.icon; as icon) {
+                    <ui-icon
+                        [name]="icon"
+                        size="small"
+                        [tone]="option.tone"
+                    />
+                }
+                <span class="toggle-label">{{ option.label }}</span>
+            </span>
+        </mat-button-toggle>
+    }
+</mat-button-toggle-group>

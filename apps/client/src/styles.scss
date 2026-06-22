@@ -105,7 +105,15 @@ mark {
 }
 
 .px-md {
-    padding: 0 $content-padding;
+    padding: 0 $gap-md;
+}
+
+.mt-md {
+    margin-top: $gap-md;
+}
+
+.mt-lg {
+    margin-top: $gap-lg;
 }
 
 // ============================================================================

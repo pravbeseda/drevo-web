@@ -2,6 +2,26 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    // mat-icon paints with `currentColor`, so setting `color` here tints it.
+    &.tone-success {
+        color: var(--themed-text-success);
+    }
+    &.tone-warning {
+        color: var(--themed-text-warning);
+    }
+    &.tone-error {
+        color: var(--themed-text-error);
+    }
+    &.tone-neutral {
+        color: var(--themed-text-muted);
+    }
+    &.tone-primary {
+        color: var(--themed-text-primary);
+    }
+    &.tone-secondary {
+        color: var(--themed-text-secondary);
+    }
 }
 
 mat-icon.material-symbols-rounded {

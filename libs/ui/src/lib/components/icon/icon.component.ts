@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { TooltipPosition, MatTooltip } from '@angular/material/tooltip';
 
 export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
+
+export type IconTone = 'success' | 'warning' | 'error' | 'neutral' | 'primary' | 'secondary';
 
 @Component({
     selector: 'ui-icon',
@@ -10,6 +12,9 @@ export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
     templateUrl: './icon.component.html',
     styleUrl: './icon.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class]': 'toneClass()',
+    },
 })
 export class IconComponent {
     readonly name = input<string>();
@@ -18,4 +23,11 @@ export class IconComponent {
     readonly size = input<IconSize>('medium');
     readonly tooltip = input<string>();
     readonly tooltipPosition = input<TooltipPosition>('below');
+    // Optional color tone; undefined keeps the ambient `color` (inherited).
+    readonly tone = input<IconTone>();
+
+    protected readonly toneClass = computed(() => {
+        const tone = this.tone();
+        return tone ? `tone-${tone}` : '';
+    });
 }

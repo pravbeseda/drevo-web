@@ -90,7 +90,10 @@ describe('ReviewBlockComponent', () => {
         user$.next(createMockUser({ name: AUTHOR, isReviewer: true }));
         render({ approved: ApprovalStatus.Pending, author: AUTHOR });
 
-        const labels = spectator.queryAll('.review-opt-label').map(el => el.textContent?.trim());
+        const labels = spectator
+            .queryAll('[data-testid="review-status"] .toggle-label')
+            .map(el => el.textContent?.trim());
+        expect(labels.length).toBeGreaterThan(0);
         expect(labels).not.toContain('Одобряю');
         expect(spectator.component.isOwnVersion()).toBe(true);
     });

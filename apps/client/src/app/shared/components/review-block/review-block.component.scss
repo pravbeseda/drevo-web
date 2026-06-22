@@ -1,10 +1,12 @@
+@use 'tokens' as *;
+
 :host {
     display: block;
 }
 
 .review-block {
     border: 1px solid var(--themed-border-color);
-    border-radius: 10px;
+    border-radius: $panel-border-radius;
     overflow: hidden;
     background: var(--themed-secondary-bg);
     margin: 15px 0;
@@ -98,17 +100,6 @@
 
 .review-cmt-del {
     margin-left: auto;
-    border: none;
-    background: none;
-    padding: 0;
-    font-size: 12px;
-    cursor: pointer;
-    color: var(--themed-text-muted);
-
-    &:hover {
-        color: var(--themed-text-error);
-        text-decoration: underline;
-    }
 }
 
 .review-cmt-text {
@@ -118,86 +109,8 @@
     color: var(--themed-text-secondary);
 }
 
-// Status icon disc — colors per verdict class.
-.review-ic {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-
-    &.success {
-        color: var(--themed-text-success);
-    }
-    &.warning {
-        color: var(--themed-text-warning);
-    }
-    &.error {
-        color: var(--themed-text-error);
-    }
-    &.neutral {
-        color: var(--themed-text-muted);
-    }
-}
-
-.review-statuses {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 10px;
-}
-
-.review-opt {
-    margin: 0;
-    font-weight: normal;
-    cursor: pointer;
-
-    input {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-}
-
-.review-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 1.5px solid var(--themed-border-color);
-    border-radius: 20px;
-    padding: 5px 12px;
-    background: var(--themed-primary-bg);
-    transition:
-        border-color 0.15s,
-        background 0.15s;
-}
-
-.review-opt input:checked + .review-pill {
-    border-color: var(--themed-text-primary);
-}
-
-.review-opt input:focus-visible + .review-pill {
-    outline: 2px solid var(--themed-text-primary);
-    outline-offset: 1px;
-}
-
-.review-opt-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--themed-text-secondary);
-    white-space: nowrap;
-}
-
-// ui-text-input stretches to full width on its own; only the spacing below the
-// pills is needed here.
-.review-comment {
-    display: block;
-    margin-bottom: 4px;
-}
-
 .review-actions {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 8px;
 }
