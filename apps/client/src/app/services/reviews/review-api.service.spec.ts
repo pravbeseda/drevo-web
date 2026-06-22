@@ -68,6 +68,8 @@ describe('ReviewApiService', () => {
 
             const req = httpController.expectOne('http://test-api/api/reviews/list/article/42');
             expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
             req.flush({ success: true, data: reviews } satisfies ApiResponse<ReviewDto[]>);
         });
     });

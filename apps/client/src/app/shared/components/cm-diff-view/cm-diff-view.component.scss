@@ -10,21 +10,17 @@
     overflow: auto;
 }
 
-// CodeMirror overrides
-:host ::ng-deep {
-    .cm-editor {
-        height: 100%;
-    }
+// CodeMirror-generated DOM (.cm-editor, .cm-mergeView, .cm-scroller, …) lives
+// outside this component's template, so its sizing overrides are defined
+// globally, scoped by the element selector, in styles/_diff-view-overrides.scss.
 
-    .cm-mergeView {
-        height: 100%;
-    }
+// Auto-height mode: size to content and defer scrolling to an outer container.
+:host.auto-height {
+    flex: none;
+    overflow: visible;
 
-    .cm-scroller {
-        overflow: auto;
-    }
-
-    .cm-merge-revert {
-        display: none;
+    .cm-diff-view-editor {
+        flex: none;
+        overflow: visible;
     }
 }

@@ -7,7 +7,8 @@ import { PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
-import { Picture, PictureArticle, PicturePending, User } from '@drevo-web/shared';
+import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { ConfirmationService, ModalService } from '@drevo-web/ui';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
@@ -29,23 +30,23 @@ const mockArticles: readonly PictureArticle[] = [
     { id: 20, title: 'Достопримечательности' },
 ];
 
-const mockEditableUser: User = {
+const mockEditableUser = createMockUser({
     id: 1,
     login: 'editor',
     name: 'Editor',
     email: 'editor@test.com',
     role: 'user',
     permissions: { canEdit: true, canModerate: false, canAdmin: false },
-};
+});
 
-const mockReadonlyUser: User = {
+const mockReadonlyUser = createMockUser({
     id: 2,
     login: 'guest',
     name: 'Guest',
     email: 'guest@test.com',
     role: 'guest',
     permissions: { canEdit: false, canModerate: false, canAdmin: false },
-};
+});
 
 const mockWriteText = jest.fn().mockResolvedValue(undefined);
 const mockWindow = {
@@ -893,14 +894,14 @@ describe('PictureDetailComponent', () => {
     });
 
     describe('with moderator user', () => {
-        const moderatorUser: User = {
+        const moderatorUser = createMockUser({
             id: 3,
             login: 'moderator',
             name: 'Moderator',
             email: 'moderator@test.com',
             role: 'moder',
             permissions: { canEdit: true, canModerate: true, canAdmin: false },
-        };
+        });
 
         const createComponent = createComponentFactory({
             component: PictureDetailComponent,

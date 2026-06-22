@@ -4,6 +4,7 @@ import { SidebarActionComponent } from '../sidebar-action/sidebar-action.compone
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { SidePanelComponent } from '@drevo-web/ui';
 import { of } from 'rxjs';
 import { ModerationSidebarActionComponent } from './moderation-sidebar-action.component';
@@ -16,23 +17,21 @@ const mockVersion: VersionForModeration = {
     comment: '',
 };
 
-const mockModeratorUser = {
-    id: 1,
+const mockModeratorUser = createMockUser({
     login: 'moderator',
     name: 'Moderator',
     email: 'mod@test.com',
-    role: 'moderator' as const,
-    permissions: { canEdit: true, canModerate: true, canAdmin: false },
-};
+    role: 'moder',
+    permissions: { canModerate: true },
+});
 
-const mockRegularUser = {
+const mockRegularUser = createMockUser({
     id: 2,
     login: 'user',
     name: 'User',
     email: 'user@test.com',
-    role: 'user' as const,
-    permissions: { canEdit: true, canModerate: false, canAdmin: false },
-};
+    role: 'user',
+});
 
 describe('ModerationSidebarActionComponent', () => {
     describe('moderator user', () => {

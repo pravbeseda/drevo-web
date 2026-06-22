@@ -19,6 +19,61 @@ export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
 export type ReviewTarget = 'article' | 'news';
 
 /**
+ * Presentation class for a review status (drives --themed-* color). Distinct
+ * from ApprovalStatus styling — the review scale has 4 values, including a
+ * neutral "undecided".
+ */
+export type ReviewStatusClass = 'success' | 'warning' | 'error' | 'neutral';
+
+/**
+ * Status → first-person vote label (mirrors legacy ReviewService::STATUS_LABELS).
+ * Used by the vote form pills, comment list and the header tally.
+ */
+export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
+    [ReviewStatus.Undecided]: 'Нет решения',
+    [ReviewStatus.Approve]: 'Одобряю',
+    [ReviewStatus.Suggest]: 'Нужны правки',
+    [ReviewStatus.Disagree]: 'Возражаю',
+};
+
+/**
+ * Status → Material icon name. Picked for the vote semantics — deliberately NOT
+ * reusing APPROVAL_ICONS (the approval scale is a different domain).
+ */
+export const REVIEW_STATUS_ICONS: Record<ReviewStatus, string> = {
+    [ReviewStatus.Undecided]: 'help',
+    [ReviewStatus.Approve]: 'check',
+    [ReviewStatus.Suggest]: 'edit',
+    [ReviewStatus.Disagree]: 'close',
+};
+
+/**
+ * Status → presentation class (maps to --themed-* color in the component SCSS).
+ */
+export const REVIEW_STATUS_CLASS: Record<ReviewStatus, ReviewStatusClass> = {
+    [ReviewStatus.Undecided]: 'neutral',
+    [ReviewStatus.Approve]: 'success',
+    [ReviewStatus.Suggest]: 'warning',
+    [ReviewStatus.Disagree]: 'error',
+};
+
+/**
+ * Statuses that require a non-empty comment (mirrors legacy
+ * ReviewService::COMMENT_REQUIRED_STATUSES).
+ */
+export const REVIEW_COMMENT_REQUIRED_STATUSES: readonly ReviewStatus[] = [ReviewStatus.Suggest, ReviewStatus.Disagree];
+
+/**
+ * Verdict statuses shown in the block header tally, in display order
+ * (Undecided is intentionally excluded — it is not a verdict).
+ */
+export const REVIEW_TALLY_STATUSES: readonly ReviewStatus[] = [
+    ReviewStatus.Approve,
+    ReviewStatus.Suggest,
+    ReviewStatus.Disagree,
+];
+
+/**
  * A single reviewer's vote on a version.
  */
 export interface Review {

@@ -12,6 +12,7 @@ export const mockUsers = {
             canModerate: false,
             canAdmin: false,
         },
+        isReviewer: false,
     } satisfies User,
 
     moderator: {
@@ -25,6 +26,7 @@ export const mockUsers = {
             canModerate: true,
             canAdmin: false,
         },
+        isReviewer: false,
     } satisfies User,
 
     admin: {
@@ -38,5 +40,6 @@ export const mockUsers = {
             canModerate: true,
             canAdmin: true,
         },
+        isReviewer: false,
     } satisfies User,
 };

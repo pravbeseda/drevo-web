@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../../../../services/articles';
+import { ReviewBlockComponent } from '../../../../../../shared/components/review-block/review-block.component';
 import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
 import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
@@ -16,6 +17,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
     imports: [
         WikiContentComponent,
         ArticleSidebarActionsComponent,
+        ReviewBlockComponent,
         BannerComponent,
         RouterLink,
         StatusIconComponent,

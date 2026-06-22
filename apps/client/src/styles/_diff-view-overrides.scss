@@ -1,0 +1,62 @@
+// Global overrides for diff views.
+//
+// These rules target DOM that is NOT part of an Angular template, so component
+// style encapsulation cannot reach it without ::ng-deep:
+//   - app-cm-diff-view — CodeMirror-generated DOM (.cm-editor, .cm-mergeView, …)
+//   - app-diff-view    — markup injected via innerHTML (.diff-insert, …)
+// Scoped by each component's element selector, so they stay confined to that
+// component's subtree instead of leaking globally.
+
+// --- app-cm-diff-view: CodeMirror merge/editor sizing ----------------------
+app-cm-diff-view {
+    .cm-editor,
+    .cm-mergeView {
+        height: 100%;
+    }
+
+    .cm-scroller {
+        overflow: auto;
+    }
+
+    // Revert arrows between panes are not actionable in a read-only diff.
+    .cm-merge-revert {
+        display: none;
+    }
+
+    // Auto-height mode: size to content and defer scrolling to an outer
+    // container (mirrors the :host.auto-height rules in the component styles).
+    &.auto-height {
+        .cm-editor,
+        .cm-mergeView {
+            height: auto;
+        }
+
+        .cm-scroller {
+            overflow: visible;
+        }
+    }
+}
+
+// --- app-diff-view: innerHTML diff markup ----------------------------------
+app-diff-view {
+    .diff-insert {
+        background-color: var(--themed-diff-insert-bg);
+        color: var(--themed-diff-insert-text);
+    }
+
+    .diff-delete {
+        background-color: var(--themed-diff-delete-bg);
+        color: var(--themed-diff-delete-text);
+        text-decoration: line-through;
+    }
+
+    .diff-collapsed-lines {
+        color: var(--themed-text-muted);
+        background-color: var(--themed-diff-collapsed-bg);
+        font-style: italic;
+        padding: 4px;
+        border-top: 1px dashed var(--themed-border-color);
+        border-bottom: 1px dashed var(--themed-border-color);
+        margin: 16px 0;
+    }
+}

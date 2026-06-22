@@ -4,7 +4,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { User } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { BehaviorSubject } from 'rxjs';
 import { HistoryComponent } from './history.component';
 
@@ -15,23 +15,23 @@ const EXPECTED_TABS = [
     { label: 'Иллюстрации', route: '/history/pictures', testId: 'history-tab-pictures' },
 ];
 
-const moderatorUser: User = {
+const moderatorUser = createMockUser({
     id: 1,
     login: 'moderator',
     name: 'Moderator',
     email: 'moderator@example.com',
     role: 'moder',
     permissions: { canEdit: true, canModerate: true, canAdmin: false },
-};
+});
 
-const regularUser: User = {
+const regularUser = createMockUser({
     id: 2,
     login: 'user',
     name: 'User',
     email: 'user@example.com',
     role: 'user',
     permissions: { canEdit: true, canModerate: false, canAdmin: false },
-};
+});
 
 describe('HistoryComponent', () => {
     let spectator: Spectator<HistoryComponent>;

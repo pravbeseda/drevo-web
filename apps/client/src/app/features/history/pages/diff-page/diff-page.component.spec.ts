@@ -1,10 +1,13 @@
 import { DiffPageDataService } from '../../services/diff-page-data.service';
+import { createReviewBlockStubs } from '../../../../shared/components/review-block/review-block.testing';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, Review, ReviewStatus, VersionPairs } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { DiffPageComponent } from './diff-page.component';
 
 const mockVersionPairs: VersionPairs = {
@@ -44,6 +47,9 @@ function createMockDataService(
     };
 }
 
+// Stubs for the embedded app-review-block (it injects these at construction).
+const reviewBlockStubs = createReviewBlockStubs();
+
 describe('DiffPageComponent', () => {
     describe('diff type preferences', () => {
         let spectator: Spectator<DiffPageComponent>;
@@ -54,6 +60,7 @@ describe('DiffPageComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(StorageService),
+                ...reviewBlockStubs.providers,
                 {
                     provide: DiffPageDataService,
                     useValue: createMockDataService(),
@@ -127,6 +134,7 @@ describe('DiffPageComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(StorageService),
+                ...reviewBlockStubs.providers,
                 provideRouter([]),
                 {
                     provide: DiffPageDataService,
@@ -169,6 +177,7 @@ describe('DiffPageComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(StorageService),
+                ...reviewBlockStubs.providers,
                 provideRouter([]),
                 {
                     provide: DiffPageDataService,
@@ -188,7 +197,12 @@ describe('DiffPageComponent', () => {
 
         const createComponent = createComponentFactory({
             component: DiffPageComponent,
-            providers: [mockLoggerProvider(), mockProvider(StorageService), provideRouter([])],
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                ...reviewBlockStubs.providers,
+            ],
             detectChanges: false,
         });
 
@@ -227,7 +241,12 @@ describe('DiffPageComponent', () => {
 
         const createComponent = createComponentFactory({
             component: DiffPageComponent,
-            providers: [mockLoggerProvider(), mockProvider(StorageService), provideRouter([])],
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                ...reviewBlockStubs.providers,
+            ],
             detectChanges: false,
         });
 
@@ -255,6 +274,7 @@ describe('DiffPageComponent', () => {
             providers: [
                 mockLoggerProvider(),
                 mockProvider(StorageService),
+                ...reviewBlockStubs.providers,
                 {
                     provide: DiffPageDataService,
                     useValue: createMockDataService(undefined, 'Ошибка загрузки данных'),
@@ -274,7 +294,12 @@ describe('DiffPageComponent', () => {
     describe('validationResult', () => {
         const createComponent = createComponentFactory({
             component: DiffPageComponent,
-            providers: [mockLoggerProvider(), mockProvider(StorageService), provideRouter([])],
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                ...reviewBlockStubs.providers,
+            ],
             detectChanges: false,
         });
 
@@ -321,6 +346,36 @@ describe('DiffPageComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.validationResult()).toEqual({ errors: 0, warnings: 0 });
+        });
+    });
+
+    describe('review block', () => {
+        const reviewStubs = createReviewBlockStubs();
+
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                { provide: DiffPageDataService, useValue: createMockDataService(mockVersionPairs) },
+                ...reviewStubs.providers,
+            ],
+            detectChanges: false,
+        });
+
+        it('renders the review block bound to the current version', () => {
+            reviewStubs.user$.next(createMockUser({ name: 'Author A', isReviewer: false }));
+            reviewStubs.getReviews.mockReturnValue(
+                of<readonly Review[]>([
+                    { reviewer: 'R', status: ReviewStatus.Suggest, comment: 'Fix', updatedAt: new Date() },
+                ]),
+            );
+            const spectator = createComponent();
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="review-block"]')).toBeTruthy();
+            expect(reviewStubs.getReviews).toHaveBeenCalledWith('article', 200);
         });
     });
 });

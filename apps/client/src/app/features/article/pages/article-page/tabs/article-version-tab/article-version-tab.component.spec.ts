@@ -1,12 +1,14 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { ArticlePageService } from '../../../../services/article-page.service';
+import { createReviewBlockStubs } from '../../../../../../shared/components/review-block/review-block.testing';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { ArticleVersion } from '@drevo-web/shared';
+import { ArticleVersion, Review, ReviewStatus } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { BehaviorSubject, of, throwError, NEVER } from 'rxjs';
 
 const mockVersion: ArticleVersion = {
@@ -28,6 +30,8 @@ describe('ArticleVersionTabComponent', () => {
     let articleService: jest.Mocked<ArticleService>;
     let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
+    const reviewBlockStubs = createReviewBlockStubs();
+
     const createComponent = createComponentFactory({
         component: ArticleVersionTabComponent,
         providers: [
@@ -44,11 +48,15 @@ describe('ArticleVersionTabComponent', () => {
                     editUrl: signal(undefined),
                 },
             },
+            ...reviewBlockStubs.providers,
         ],
         detectChanges: false,
     });
 
     beforeEach(() => {
+        jest.clearAllMocks();
+        reviewBlockStubs.user$.next(undefined);
+        reviewBlockStubs.getReviews.mockReturnValue(of<readonly Review[]>([]));
         paramMapSubject = new BehaviorSubject(convertToParamMap({ versionId: '789' }));
         spectator = createComponent({
             providers: [
@@ -80,6 +88,19 @@ describe('ArticleVersionTabComponent', () => {
         spectator.detectChanges();
 
         expect(spectator.query('[data-testid="version-banner"]')).toBeTruthy();
+    });
+
+    it('should render the review block when reviews exist', () => {
+        reviewBlockStubs.getReviews.mockReturnValue(
+            of<readonly Review[]>([
+                { reviewer: 'Some Reviewer', status: ReviewStatus.Suggest, comment: 'Fix', updatedAt: new Date() },
+            ]),
+        );
+        reviewBlockStubs.user$.next(createMockUser({ isReviewer: false }));
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="review-block"]')).toBeTruthy();
+        expect(reviewBlockStubs.getReviews).toHaveBeenCalledWith('article', 789);
     });
 
     it('should display author and info in banner', () => {

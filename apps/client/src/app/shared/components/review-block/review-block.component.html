@@ -1,0 +1,147 @@
+@if (showBlock()) {
+    <section
+        class="review-block"
+        data-testid="review-block"
+    >
+        <header class="review-hd">
+            <span class="review-hd-title">Отзывы</span>
+            @if (tally().length > 0) {
+                <span class="review-tally">
+                    @for (item of tally(); track item.status) {
+                        <span class="review-tally-item">
+                            <span
+                                class="review-ic"
+                                [class]="item.cssClass"
+                            >
+                                <ui-icon
+                                    [name]="item.icon"
+                                    size="small"
+                                    [tooltip]="item.label + ': ' + item.voters.join(', ')"
+                                />
+                            </span>
+                            <span class="review-tally-count">{{ item.voters.length }}</span>
+                        </span>
+                    }
+                </span>
+            }
+        </header>
+
+        <div class="review-bd">
+            @if (commentItems().length > 0) {
+                <ul class="review-comments">
+                    @for (item of commentItems(); track item.review.reviewer) {
+                        <li
+                            class="review-cmt"
+                            [class]="item.cssClass"
+                            data-testid="review-comment"
+                        >
+                            <div class="review-cmt-head">
+                                <span
+                                    class="review-ic"
+                                    [class]="item.cssClass"
+                                >
+                                    <ui-icon
+                                        [name]="item.icon"
+                                        size="small"
+                                    />
+                                </span>
+                                <span class="review-cmt-author">{{ item.review.reviewer }}</span>
+                                <span class="review-cmt-date">{{ item.review.updatedAt | formatDate }}</span>
+                                @if (item.canDelete) {
+                                    <button
+                                        type="button"
+                                        class="review-cmt-del"
+                                        data-testid="review-delete"
+                                        (click)="deleteReview(item.review)"
+                                    >
+                                        Удалить
+                                    </button>
+                                }
+                            </div>
+                            <p class="review-cmt-text">
+                                @for (segment of item.segments; track $index) {
+                                    @if (segment.href) {
+                                        <a
+                                            [href]="segment.href"
+                                            target="_blank"
+                                            rel="noopener noreferrer nofollow"
+                                        >
+                                            {{ segment.text }}
+                                        </a>
+                                    } @else {
+                                        {{ segment.text }}
+                                    }
+                                }
+                            </p>
+                        </li>
+                    }
+                </ul>
+            }
+
+            @if (canReview()) {
+                <form
+                    class="review-form"
+                    [formGroup]="form"
+                    (ngSubmit)="submit()"
+                    data-testid="review-form"
+                >
+                    <div class="review-statuses">
+                        @for (option of formOptions(); track option.status) {
+                            <label class="review-opt">
+                                <input
+                                    type="radio"
+                                    formControlName="status"
+                                    [value]="option.status"
+                                />
+                                <span
+                                    class="review-pill"
+                                    [class]="option.cssClass"
+                                >
+                                    <span
+                                        class="review-ic"
+                                        [class]="option.cssClass"
+                                    >
+                                        <ui-icon
+                                            [name]="option.icon"
+                                            size="small"
+                                        />
+                                    </span>
+                                    <span class="review-opt-label">{{ option.label }}</span>
+                                </span>
+                            </label>
+                        }
+                    </div>
+
+                    <ui-text-input
+                        class="review-comment"
+                        [multiline]="true"
+                        label="Комментарий"
+                        formControlName="comment"
+                        [rows]="2"
+                        data-testid="review-comment-input"
+                    />
+
+                    <div class="review-actions">
+                        <ui-button
+                            type="submit"
+                            accent="primary"
+                            [disabled]="!canSave()"
+                            testId="review-save"
+                        >
+                            Сохранить
+                        </ui-button>
+                        <ui-button
+                            type="button"
+                            variant="text"
+                            [disabled]="!canClear()"
+                            (click)="clearComment()"
+                            testId="review-clear"
+                        >
+                            Очистить
+                        </ui-button>
+                    </div>
+                </form>
+            }
+        </div>
+    </section>
+}
