@@ -102,9 +102,8 @@ export class ReviewBlockComponent {
 
     /** Loaded votes: reseeded on version change, replaced after set/delete. */
     private readonly _reviews = signal<readonly Review[]>([]);
-    readonly reviews = this._reviews.asReadonly();
 
-    readonly statusOptions = STATUS_OPTIONS;
+    private readonly statusOptions = STATUS_OPTIONS;
 
     readonly form = new FormGroup(
         {
@@ -126,7 +125,7 @@ export class ReviewBlockComponent {
 
     private readonly myReview = computed(() => {
         const name = this.userName();
-        return name === undefined ? undefined : this.reviews().find(review => review.reviewer === name);
+        return name === undefined ? undefined : this._reviews().find(review => review.reviewer === name);
     });
 
     /** Pills shown in the form: hide "Одобряю" on the author's own version. */
@@ -137,7 +136,7 @@ export class ReviewBlockComponent {
     );
 
     readonly tally = computed<readonly TallyItem[]>(() => {
-        const reviews = this.reviews();
+        const reviews = this._reviews();
         return REVIEW_TALLY_STATUSES.map(status => ({
             status,
             label: REVIEW_STATUS_LABELS[status],
@@ -148,7 +147,7 @@ export class ReviewBlockComponent {
     });
 
     readonly commentItems = computed<readonly CommentItem[]>(() =>
-        this.reviews()
+        this._reviews()
             .filter(review => review.comment.length > 0)
             .map(review => ({
                 review,
@@ -159,7 +158,7 @@ export class ReviewBlockComponent {
             })),
     );
 
-    readonly showBlock = computed(() => this.reviews().length > 0 || this.canReview());
+    readonly showBlock = computed(() => this._reviews().length > 0 || this.canReview());
 
     /** Form-state tick: recompute save/clear enablement on any form event. */
     private readonly formEvents = toSignal(this.form.events);
@@ -175,7 +174,7 @@ export class ReviewBlockComponent {
 
     constructor() {
         // Load votes on every version change; feature-off/forbidden → empty list
-        // (tost is suppressed at the HTTP layer via SKIP_ERROR_NOTIFICATION).
+        // (toast is suppressed at the HTTP layer via SKIP_ERROR_NOTIFICATION).
         toObservable(this.versionId)
             .pipe(
                 // Discard any unsaved draft when switching versions so it cannot
