@@ -1,35 +1,55 @@
+// The shape var rounds Material's internal surface; border-radius rounds our own
+// border. They must stay equal, so keep a single source of truth.
+$pill-radius: 20px;
+
 :host {
     display: block;
 }
 
-// Render the toggles as separate rounded pills with a gap, rather than the
-// connected M3 segmented look. Material internals are styled via `--mat-*`
-// custom properties (they inherit through view encapsulation); the host
-// elements (`mat-button-toggle-group` / `mat-button-toggle`) live in this
-// template and are stylable directly.
-mat-button-toggle-group {
+// Material renders a *connected* segmented group (single outer border + 1px
+// dividers between items). We want separate rounded pills with a gap, so we
+// flatten the group and border each toggle individually.
+
+:host .mat-button-toggle-group {
     display: inline-flex;
     flex-wrap: wrap;
     gap: 6px;
     border: none;
     border-radius: 0;
-    --mat-standard-button-toggle-height: 32px;
-    --mat-standard-button-toggle-shape: 20px;
-    --mat-standard-button-toggle-background-color: var(--themed-primary-bg);
-    --mat-standard-button-toggle-text-color: var(--themed-text-secondary);
-    --mat-standard-button-toggle-selected-state-background-color: var(--themed-primary-bg);
-    --mat-standard-button-toggle-selected-state-text-color: var(--themed-text-primary);
-    --mat-standard-button-toggle-divider-color: transparent;
+    overflow: visible;
+    box-shadow: none;
+    background: transparent;
+
+    // `--mat-button-toggle-height` feeds the label line-height (≈ pill height).
+    --mat-button-toggle-height: 42px;
+    --mat-button-toggle-shape: #{$pill-radius};
+    --mat-button-toggle-background-color: transparent;
+    --mat-button-toggle-text-color: var(--themed-text-secondary);
+    --mat-button-toggle-selected-state-background-color: transparent;
+    --mat-button-toggle-selected-state-text-color: var(--themed-text-primary);
 }
 
-mat-button-toggle {
+:host .mat-button-toggle {
     border: 1.5px solid var(--themed-border-color);
-    border-radius: 20px;
-    overflow: hidden;
+    border-radius: $pill-radius;
+    background: var(--themed-primary-bg);
+    overflow: visible;
+}
 
-    &.mat-button-toggle-checked {
-        border-color: var(--themed-text-primary);
-    }
+// Material sets a 1px `border-left` divider on every non-first toggle (specificity
+// 0,3,0), hiding our left border. Re-assert ours with higher specificity (0,5,0).
+:host .mat-button-toggle + .mat-button-toggle {
+    border-left: 1.5px solid var(--themed-border-color);
+}
+
+:host .mat-button-toggle-checked {
+    border-color: var(--themed-text-primary);
+    background: var(--themed-secondary-bg);
+}
+
+// Keep the highlighted left border when a checked pill follows another.
+:host .mat-button-toggle + .mat-button-toggle-checked {
+    border-left-color: var(--themed-text-primary);
 }
 
 .toggle-content {

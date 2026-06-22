@@ -12,6 +12,7 @@
                             <ui-icon
                                 [name]="item.icon"
                                 size="small"
+                                filled
                                 [tone]="item.cssClass"
                                 [tooltip]="item.label + ': ' + item.voters.join(', ')"
                             />
@@ -35,6 +36,7 @@
                                 <ui-icon
                                     [name]="item.icon"
                                     size="small"
+                                    filled
                                     [tone]="item.cssClass"
                                 />
                                 <span class="review-cmt-author">{{ item.review.reviewer }}</span>

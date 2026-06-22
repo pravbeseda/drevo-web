@@ -55,7 +55,7 @@ $theme-colors: (
     ),
     text-warning: (
         light: $md-orange-800,
-        dark: $md-orange-400,
+        dark: rgba($md-orange-400, 0.8),
     ),
     lint-active-bg: (
         light: $md-orange-200,

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { TooltipPosition, MatTooltip } from '@angular/material/tooltip';
 
@@ -14,6 +14,7 @@ export type IconTone = 'success' | 'warning' | 'error' | 'neutral' | 'primary' |
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         '[class]': 'toneClass()',
+        '[class.filled]': 'filled()',
     },
 })
 export class IconComponent {
@@ -25,6 +26,8 @@ export class IconComponent {
     readonly tooltipPosition = input<TooltipPosition>('below');
     // Optional color tone; undefined keeps the ambient `color` (inherited).
     readonly tone = input<IconTone>();
+    // When true, `tone` fills a circular background and the glyph turns white.
+    readonly filled = input(false, { transform: booleanAttribute });
 
     protected readonly toneClass = computed(() => {
         const tone = this.tone();

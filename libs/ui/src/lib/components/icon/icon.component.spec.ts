@@ -77,6 +77,16 @@ describe('IconComponent', () => {
             expect(spectator.element).not.toHaveClass('tone-success');
             expect(spectator.element).toHaveClass('tone-error');
         });
+
+        it('should not apply the filled class by default', () => {
+            spectator = createComponent({ props: { name: 'home', tone: 'success' } });
+            expect(spectator.element).not.toHaveClass('filled');
+        });
+
+        it('should apply the filled class when filled is set', () => {
+            spectator = createComponent({ props: { name: 'home', tone: 'success', filled: true } });
+            expect(spectator.element).toHaveClass('filled');
+        });
     });
 
     describe('svgIcon', () => {

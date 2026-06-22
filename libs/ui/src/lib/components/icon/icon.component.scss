@@ -1,26 +1,33 @@
+$tones: (
+    'success': var(--themed-text-success),
+    'warning': var(--themed-text-warning),
+    'error': var(--themed-text-error),
+    'neutral': var(--themed-text-muted),
+    'primary': var(--themed-text-primary),
+    'secondary': var(--themed-text-secondary),
+);
+
 :host {
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    // mat-icon paints with `currentColor`, so setting `color` here tints it.
-    &.tone-success {
-        color: var(--themed-text-success);
+    @each $name, $color in $tones {
+        // Default: mat-icon paints with `currentColor`, so `color` tints the glyph.
+        &.tone-#{$name}:not(.filled) {
+            color: #{$color};
+        }
+        // Filled: the tone becomes a circular background behind a white glyph.
+        &.filled.tone-#{$name} {
+            background: #{$color};
+        }
     }
-    &.tone-warning {
-        color: var(--themed-text-warning);
-    }
-    &.tone-error {
-        color: var(--themed-text-error);
-    }
-    &.tone-neutral {
-        color: var(--themed-text-muted);
-    }
-    &.tone-primary {
-        color: var(--themed-text-primary);
-    }
-    &.tone-secondary {
-        color: var(--themed-text-secondary);
+
+    // White glyph on a saturated status color — intentional fixed contrast.
+    &.filled {
+        padding: 4px;
+        border-radius: 50%;
+        color: white;
     }
 }
 

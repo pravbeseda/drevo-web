@@ -162,6 +162,7 @@ export class ReviewBlockComponent {
             label: option.label,
             icon: option.icon,
             tone: option.cssClass,
+            iconFilled: true,
         })),
     );
 

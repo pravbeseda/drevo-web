@@ -8,6 +8,7 @@ export interface ButtonToggleOption {
     readonly label: string;
     readonly icon?: string;
     readonly tone?: IconTone;
+    readonly iconFilled?: boolean;
 }
 
 @Component({
