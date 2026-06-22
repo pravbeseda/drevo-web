@@ -5,6 +5,7 @@ $tones: (
     'neutral': var(--themed-text-muted),
     'primary': var(--themed-text-primary),
     'secondary': var(--themed-text-secondary),
+    'accent': var(--themed-text-accent),
 );
 
 :host {

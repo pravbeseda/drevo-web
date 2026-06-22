@@ -57,6 +57,10 @@ $theme-colors: (
         light: $md-orange-800,
         dark: rgba($md-orange-400, 0.8),
     ),
+    text-accent: (
+        light: $md-blue-900,
+        dark: $md-blue-400,
+    ),
     lint-active-bg: (
         light: $md-orange-200,
         dark: rgba($md-orange-400, 0.15),

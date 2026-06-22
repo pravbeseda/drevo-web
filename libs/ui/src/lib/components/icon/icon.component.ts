@@ -4,7 +4,7 @@ import { TooltipPosition, MatTooltip } from '@angular/material/tooltip';
 
 export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
 
-export type IconTone = 'success' | 'warning' | 'error' | 'neutral' | 'primary' | 'secondary';
+export type IconTone = 'success' | 'warning' | 'error' | 'neutral' | 'primary' | 'secondary' | 'accent';
 
 @Component({
     selector: 'ui-icon',

@@ -33,7 +33,10 @@ $pill-radius: 20px;
     border: 1.5px solid var(--themed-border-color);
     border-radius: $pill-radius;
     background: var(--themed-primary-bg);
-    overflow: visible;
+    // Clip the ripple / pressed-state overlay to the rounded pill, otherwise its
+    // square corners poke out past the border. The group stays `overflow: visible`
+    // so it never clips the icon discs.
+    overflow: hidden;
 }
 
 // Material sets a 1px `border-left` divider on every non-first toggle (specificity

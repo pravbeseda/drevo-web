@@ -25,6 +25,7 @@ import {
     FormatDatePipe,
     IconButtonComponent,
     IconComponent,
+    IconTone,
     TextInputComponent,
 } from '@drevo-web/ui';
 import { filter, of, switchMap, tap } from 'rxjs';
@@ -156,15 +157,16 @@ export class ReviewBlockComponent {
     );
 
     /** Form pills mapped to the generic `ui-button-toggle-group` option shape. */
-    readonly toggleOptions = computed<readonly ButtonToggleOption[]>(() =>
-        this.formOptions().map(option => ({
+    readonly toggleOptions = computed<readonly ButtonToggleOption[]>(() => {
+        const selected = this.selectedStatus();
+        return this.formOptions().map(option => ({
             value: option.status,
             label: option.label,
             icon: option.icon,
-            tone: option.cssClass,
+            tone: this.pillTone(option, selected),
             iconFilled: true,
-        })),
-    );
+        }));
+    });
 
     readonly tally = computed<readonly TallyItem[]>(() => {
         const reviews = this._reviews();
@@ -193,6 +195,12 @@ export class ReviewBlockComponent {
 
     /** Form-state tick: recompute save/clear enablement on any form event. */
     private readonly formEvents = toSignal(this.form.events);
+
+    /** Currently picked status (drives pill icon colouring). */
+    private readonly selectedStatus = computed(() => {
+        this.formEvents();
+        return this.form.controls.status.value;
+    });
 
     readonly canSave = computed(() => {
         this.formEvents();
@@ -236,6 +244,13 @@ export class ReviewBlockComponent {
 
     canDelete(review: Review): boolean {
         return this.isModerator() || (review.reviewer === this.userName() && this.versionPending());
+    }
+
+    private pillTone(option: StatusOption, selected: ReviewStatus): IconTone {
+        if (option.status !== selected) {
+            return 'neutral';
+        }
+        return option.status === ReviewStatus.Undecided ? 'accent' : option.cssClass;
     }
 
     submit(): void {
