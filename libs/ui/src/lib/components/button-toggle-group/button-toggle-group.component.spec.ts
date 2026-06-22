@@ -54,4 +54,13 @@ describe('ButtonToggleGroupComponent', () => {
 
         expect(control.touched).toBe(true);
     });
+
+    it('disables every toggle when the control is disabled', () => {
+        control.disable();
+        spectator.detectChanges();
+
+        const buttons = spectator.queryAll<HTMLButtonElement>('mat-button-toggle button');
+        expect(buttons.length).toBe(options.length);
+        expect(buttons.every(button => button.disabled)).toBe(true);
+    });
 });
