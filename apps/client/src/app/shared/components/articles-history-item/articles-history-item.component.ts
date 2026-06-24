@@ -1,7 +1,7 @@
 import { ReviewBadgeComponent } from '../review-badge/review-badge.component';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
 import {
     ButtonComponent,
     FormatTimePipe,
@@ -35,6 +35,15 @@ export class ArticlesHistoryItemComponent {
 
     readonly selectItem = output<ArticleHistoryItem>();
     readonly compare = output<void>();
+
+    /**
+     * Review pill is only meaningful while a version awaits moderation. Once a
+     * version is approved/rejected/cancelled, the verdict is final, so the
+     * people's-review pill is hidden even if a summary is still around.
+     */
+    readonly showReviewBadge = computed(
+        () => this.reviewSummary() !== undefined && this.item().approved === ApprovalStatus.Pending,
+    );
 
     readonly diffLink = computed(() => ['/history/articles/diff', this.item().versionId]);
 

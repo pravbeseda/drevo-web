@@ -282,21 +282,32 @@ describe('ArticlesHistoryItemComponent', () => {
         const getBadge = () => spectator.query('[data-testid="review-badge"]');
         const getBadgeLink = () => spectator.query('[data-testid="review-badge-link"]');
 
-        it('shows the review badge when a summary is provided', () => {
+        it('shows the review badge for a pending version when a summary is provided', () => {
             spectator = createComponent({
-                props: { item: createMockItem(), reviewSummary: summary },
+                props: { item: createMockItem({ approved: 0 }), reviewSummary: summary },
             });
             expect(getBadge()).toBeTruthy();
         });
 
         it('hides the review badge when no summary is provided', () => {
-            spectator = createComponent({ props: { item: createMockItem() } });
+            spectator = createComponent({ props: { item: createMockItem({ approved: 0 }) } });
+            expect(getBadge()).toBeFalsy();
+        });
+
+        it.each([
+            { label: 'approved', approved: 1 },
+            { label: 'rejected', approved: -1 },
+            { label: 'cancelled', approved: -2 },
+        ])('hides the review badge for a $label version even when a summary is provided', ({ approved }) => {
+            spectator = createComponent({
+                props: { item: createMockItem({ approved }), reviewSummary: summary },
+            });
             expect(getBadge()).toBeFalsy();
         });
 
         it('links the badge to the version diff for edited versions', () => {
             spectator = createComponent({
-                props: { item: createMockItem({ isNew: false, versionId: 42 }), reviewSummary: summary },
+                props: { item: createMockItem({ approved: 0, isNew: false, versionId: 42 }), reviewSummary: summary },
             });
             expect(getBadgeLink()?.getAttribute('href')).toBe('/history/articles/diff/42');
         });
@@ -304,7 +315,7 @@ describe('ArticlesHistoryItemComponent', () => {
         it('links the badge to the version page for new versions', () => {
             spectator = createComponent({
                 props: {
-                    item: createMockItem({ isNew: true, articleId: 100, versionId: 42 }),
+                    item: createMockItem({ approved: 0, isNew: true, articleId: 100, versionId: 42 }),
                     reviewSummary: summary,
                 },
             });

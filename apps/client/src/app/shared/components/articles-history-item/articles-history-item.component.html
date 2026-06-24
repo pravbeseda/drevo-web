@@ -37,7 +37,7 @@
             >
                 {{ item().title }}
             </a>
-            @if (reviewSummary(); as summary) {
+            @if (showReviewBadge() && reviewSummary(); as summary) {
                 <a
                     class="review-badge-link"
                     data-testid="review-badge-link"

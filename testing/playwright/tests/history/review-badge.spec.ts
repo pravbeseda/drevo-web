@@ -14,9 +14,9 @@ const PLAIN_TITLE = 'Статья без ревью';
 const VOTE_TITLE = 'Статья ждёт голос';
 
 const historyItems = [
-    createArticleHistoryItemDto({ versionId: 101, articleId: 42, title: APPROVED_TITLE }),
+    createArticleHistoryItemDto({ versionId: 101, articleId: 42, title: APPROVED_TITLE, approved: 0 }),
     createArticleHistoryItemDto({ versionId: 102, articleId: 42, title: PLAIN_TITLE }),
-    createArticleHistoryItemDto({ versionId: 103, articleId: 42, title: VOTE_TITLE }),
+    createArticleHistoryItemDto({ versionId: 103, articleId: 42, title: VOTE_TITLE, approved: 0 }),
 ];
 
 test.describe('History review badge', () => {
