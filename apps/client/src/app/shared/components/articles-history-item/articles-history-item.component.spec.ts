@@ -294,16 +294,13 @@ describe('ArticlesHistoryItemComponent', () => {
             expect(getBadge()).toBeFalsy();
         });
 
-        it('hides the review badge for an approved version even when a summary is provided', () => {
+        it.each([
+            { label: 'approved', approved: 1 },
+            { label: 'rejected', approved: -1 },
+            { label: 'cancelled', approved: -2 },
+        ])('hides the review badge for a $label version even when a summary is provided', ({ approved }) => {
             spectator = createComponent({
-                props: { item: createMockItem({ approved: 1 }), reviewSummary: summary },
-            });
-            expect(getBadge()).toBeFalsy();
-        });
-
-        it('hides the review badge for a rejected version even when a summary is provided', () => {
-            spectator = createComponent({
-                props: { item: createMockItem({ approved: -1 }), reviewSummary: summary },
+                props: { item: createMockItem({ approved }), reviewSummary: summary },
             });
             expect(getBadge()).toBeFalsy();
         });
