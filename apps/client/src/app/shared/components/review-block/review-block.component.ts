@@ -125,7 +125,8 @@ export class ReviewBlockComponent {
     /**
      * Whether the comment field and its action buttons are shown. Hidden on
      * open (legacy parity): the reviewer picks a status first, which reveals the
-     * field. Re-clicking the active status with nothing to save collapses it.
+     * field. Re-clicking the active status collapses it again, but only while
+     * the form still matches the saved vote (no unsaved changes).
      */
     private readonly _commentExpanded = signal(false);
     readonly commentExpanded = this._commentExpanded.asReadonly();
@@ -279,10 +280,11 @@ export class ReviewBlockComponent {
     /**
      * Status pill clicked. Selecting a (different) status reveals the comment
      * field; re-clicking the active status collapses it again, but only while
-     * there is nothing to save — matching the legacy toggle behaviour.
+     * the form still matches the saved vote. A changed-but-unsaved status (e.g.
+     * Suggest awaiting its required comment) stays open — matching legacy.
      */
     onStatusClick({ changed }: ButtonToggleClick): void {
-        if (!changed && this._commentExpanded() && !this.canSave()) {
+        if (!changed && this._commentExpanded() && !this.isChanged()) {
             this._commentExpanded.set(false);
             return;
         }
@@ -313,6 +315,9 @@ export class ReviewBlockComponent {
                 next: reviews => {
                     this.form.markAsPristine();
                     this._reviews.set(reviews);
+                    // Fold the comment field back to its hidden default after a
+                    // successful save, mirroring the fresh-open state.
+                    this._commentExpanded.set(false);
                     this.logger.info('Review submitted', { versionId, status });
                 },
                 error: error => this.logger.error('Failed to submit review', error),

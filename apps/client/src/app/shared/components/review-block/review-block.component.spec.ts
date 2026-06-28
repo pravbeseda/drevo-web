@@ -168,6 +168,18 @@ describe('ReviewBlockComponent', () => {
             clickStatus(ReviewStatus.Approve);
             expect(spectator.component.commentExpanded()).toBe(true);
         });
+
+        it('keeps the field open on re-click of a changed status awaiting its required comment', () => {
+            // Suggest differs from the saved baseline but its comment is empty,
+            // so the form is invalid and cannot be saved yet. The change must not
+            // be collapsed away — only an unchanged status may fold back.
+            clickStatus(ReviewStatus.Suggest);
+            expect(spectator.component.canSave()).toBe(false);
+
+            clickStatus(ReviewStatus.Suggest);
+            expect(spectator.component.commentExpanded()).toBe(true);
+            expect(spectator.query('[data-testid="review-comment-input"]')).not.toBeNull();
+        });
     });
 
     it('requires a comment for Suggest/Disagree but not for Approve', () => {
@@ -207,8 +219,11 @@ describe('ReviewBlockComponent', () => {
         user$.next(createMockUser({ isReviewer: true }));
         render({ approved: ApprovalStatus.Pending });
 
+        spectator.component.onStatusClick({ value: ReviewStatus.Approve, changed: true });
         spectator.component.form.setValue({ status: ReviewStatus.Approve, comment: ' ok ' });
         spectator.component.form.markAsDirty();
+        expect(spectator.component.commentExpanded()).toBe(true);
+
         spectator.component.submit();
 
         expect(setReview).toHaveBeenCalledWith({
@@ -217,6 +232,8 @@ describe('ReviewBlockComponent', () => {
             status: ReviewStatus.Approve,
             comment: 'ok',
         });
+        // The comment field folds back to its hidden default after saving.
+        expect(spectator.component.commentExpanded()).toBe(false);
     });
 
     it('deletes a review through confirmation and ReviewService.deleteReview', () => {
