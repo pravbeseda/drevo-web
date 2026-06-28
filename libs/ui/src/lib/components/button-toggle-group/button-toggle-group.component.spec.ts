@@ -1,7 +1,7 @@
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createHostFactory, SpectatorHost } from '@ngneat/spectator/jest';
-import { ButtonToggleGroupComponent, ButtonToggleOption } from './button-toggle-group.component';
+import { ButtonToggleClick, ButtonToggleGroupComponent, ButtonToggleOption } from './button-toggle-group.component';
 
 describe('ButtonToggleGroupComponent', () => {
     const options: readonly ButtonToggleOption[] = [
@@ -53,6 +53,24 @@ describe('ButtonToggleGroupComponent', () => {
         spectator.dispatchFakeEvent('mat-button-toggle-group', 'focusout');
 
         expect(control.touched).toBe(true);
+    });
+
+    it('emits optionClick with changed=true when the selection moves', () => {
+        const clicks: ButtonToggleClick[] = [];
+        spectator.component.optionClick.subscribe(click => clicks.push(click));
+
+        spectator.click('[data-testid="toggle-2"] button');
+
+        expect(clicks).toEqual([{ value: 2, changed: true }]);
+    });
+
+    it('emits optionClick with changed=false when re-clicking the active option', () => {
+        const clicks: ButtonToggleClick[] = [];
+        spectator.component.optionClick.subscribe(click => clicks.push(click));
+
+        spectator.click('[data-testid="toggle-0"] button');
+
+        expect(clicks).toEqual([{ value: 0, changed: false }]);
     });
 
     it('disables every toggle when the control is disabled', () => {
