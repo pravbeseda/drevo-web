@@ -83,39 +83,42 @@
                         formControlName="status"
                         [options]="toggleOptions()"
                         ariaLabel="Ваш отзыв"
+                        (optionClick)="onStatusClick($event)"
                         data-testid="review-status"
                     />
 
-                    <ui-text-input
-                        class="mt-lg"
-                        [multiline]="true"
-                        [autoHeight]="true"
-                        label="Комментарий"
-                        formControlName="comment"
-                        [rows]="2"
-                        [maxRows]="12"
-                        data-testid="review-comment-input"
-                    />
+                    @if (commentExpanded()) {
+                        <ui-text-input
+                            class="mt-lg"
+                            [multiline]="true"
+                            [autoHeight]="true"
+                            label="Комментарий"
+                            formControlName="comment"
+                            [rows]="2"
+                            [maxRows]="12"
+                            data-testid="review-comment-input"
+                        />
 
-                    <div class="review-actions">
-                        <ui-button
-                            type="submit"
-                            accent="primary"
-                            [disabled]="!canSave()"
-                            testId="review-save"
-                        >
-                            Сохранить
-                        </ui-button>
-                        <ui-button
-                            type="button"
-                            variant="text"
-                            [disabled]="!canClear()"
-                            (click)="clearComment()"
-                            testId="review-clear"
-                        >
-                            Очистить
-                        </ui-button>
-                    </div>
+                        <div class="review-actions">
+                            <ui-button
+                                type="submit"
+                                accent="primary"
+                                [disabled]="!canSave()"
+                                testId="review-save"
+                            >
+                                Сохранить
+                            </ui-button>
+                            <ui-button
+                                type="button"
+                                variant="text"
+                                [disabled]="!canClear()"
+                                (click)="clearComment()"
+                                testId="review-clear"
+                            >
+                                Очистить
+                            </ui-button>
+                        </div>
+                    }
                 </form>
             }
         </div>

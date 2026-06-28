@@ -125,6 +125,51 @@ describe('ReviewBlockComponent', () => {
         });
     });
 
+    describe('comment field visibility', () => {
+        function clickStatus(status: ReviewStatus): void {
+            spectator.click(`[data-testid="toggle-${status}"] button`);
+            spectator.detectChanges();
+        }
+
+        beforeEach(() => {
+            user$.next(createMockUser({ isReviewer: true }));
+            render({ approved: ApprovalStatus.Pending });
+        });
+
+        it('hides the comment field and its actions by default', () => {
+            expect(spectator.component.commentExpanded()).toBe(false);
+            expect(spectator.query('[data-testid="review-comment-input"]')).toBeNull();
+            expect(spectator.query('[data-testid="review-save"]')).toBeNull();
+        });
+
+        it('reveals the comment field when a status is selected', () => {
+            clickStatus(ReviewStatus.Suggest);
+
+            expect(spectator.component.commentExpanded()).toBe(true);
+            expect(spectator.query('[data-testid="review-comment-input"]')).not.toBeNull();
+            expect(spectator.query('[data-testid="review-save"]')).not.toBeNull();
+        });
+
+        it('collapses on re-click of the active status when there is nothing to save', () => {
+            // First click on the already-selected status opens the field.
+            clickStatus(ReviewStatus.Undecided);
+            expect(spectator.component.commentExpanded()).toBe(true);
+
+            // Re-click with no pending changes toggles it back closed.
+            clickStatus(ReviewStatus.Undecided);
+            expect(spectator.component.commentExpanded()).toBe(false);
+            expect(spectator.query('[data-testid="review-comment-input"]')).toBeNull();
+        });
+
+        it('keeps the field open on re-click while changes are pending', () => {
+            clickStatus(ReviewStatus.Approve);
+            expect(spectator.component.canSave()).toBe(true);
+
+            clickStatus(ReviewStatus.Approve);
+            expect(spectator.component.commentExpanded()).toBe(true);
+        });
+    });
+
     it('requires a comment for Suggest/Disagree but not for Approve', () => {
         user$.next(createMockUser({ isReviewer: true }));
         render({ approved: ApprovalStatus.Pending });
@@ -138,6 +183,24 @@ describe('ReviewBlockComponent', () => {
 
         spectator.component.form.setValue({ status: ReviewStatus.Approve, comment: '' });
         expect(spectator.component.canSave()).toBe(true);
+    });
+
+    it('disables save when the status is changed away and back to the saved value', () => {
+        getReviews.mockReturnValue(
+            of([review({ reviewer: 'Test User', status: ReviewStatus.Approve, comment: 'looks good' })]),
+        );
+        user$.next(createMockUser({ name: 'Test User', isReviewer: true }));
+        render({ approved: ApprovalStatus.Pending });
+
+        // Seeded to the saved vote — nothing to save yet.
+        expect(spectator.component.canSave()).toBe(false);
+
+        spectator.component.form.controls.status.setValue(ReviewStatus.Suggest);
+        expect(spectator.component.canSave()).toBe(true);
+
+        // Return to the saved status: values match the baseline again.
+        spectator.component.form.controls.status.setValue(ReviewStatus.Approve);
+        expect(spectator.component.canSave()).toBe(false);
     });
 
     it('submits the vote via ReviewService.setReview', () => {

@@ -10,6 +10,7 @@
         <mat-button-toggle
             [value]="option.value"
             [attr.data-testid]="'toggle-' + option.value"
+            (click)="onToggleClick(option.value)"
         >
             <span class="toggle-content">
                 @if (option.icon; as icon) {

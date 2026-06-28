@@ -19,6 +19,7 @@ import {
 } from '@drevo-web/shared';
 import {
     ButtonComponent,
+    ButtonToggleClick,
     ButtonToggleGroupComponent,
     ButtonToggleOption,
     ConfirmationService,
@@ -121,6 +122,14 @@ export class ReviewBlockComponent {
     /** Loaded votes: reseeded on version change, replaced after set/delete. */
     private readonly _reviews = signal<readonly Review[]>([]);
 
+    /**
+     * Whether the comment field and its action buttons are shown. Hidden on
+     * open (legacy parity): the reviewer picks a status first, which reveals the
+     * field. Re-clicking the active status with nothing to save collapses it.
+     */
+    private readonly _commentExpanded = signal(false);
+    readonly commentExpanded = this._commentExpanded.asReadonly();
+
     private readonly statusOptions = STATUS_OPTIONS;
 
     readonly form = new FormGroup(
@@ -202,9 +211,30 @@ export class ReviewBlockComponent {
         return this.form.controls.status.value;
     });
 
+    /** Saved vote to diff against: my current review, or the empty default. */
+    private readonly baseline = computed(() => {
+        const mine = this.myReview();
+        return {
+            status: mine?.status ?? ReviewStatus.Undecided,
+            comment: (mine?.comment ?? '').trim(),
+        };
+    });
+
+    /**
+     * Whether the form differs from the saved vote by value (not Angular's
+     * `dirty` flag, which latches on any edit and never clears when the user
+     * returns to the original status/comment — legacy parity).
+     */
+    private readonly isChanged = computed(() => {
+        this.formEvents();
+        const base = this.baseline();
+        const { status, comment } = this.form.getRawValue();
+        return status !== base.status || comment.trim() !== base.comment;
+    });
+
     readonly canSave = computed(() => {
         this.formEvents();
-        return this.form.dirty && this.form.valid;
+        return this.isChanged() && this.form.valid;
     });
     readonly canClear = computed(() => {
         this.formEvents();
@@ -218,8 +248,12 @@ export class ReviewBlockComponent {
             .pipe(
                 // Discard any unsaved draft when switching versions so it cannot
                 // leak into the next version (the component is reused, not
-                // recreated, across version param changes).
-                tap(() => this.form.markAsPristine()),
+                // recreated, across version param changes), and collapse the
+                // comment field back to its hidden default.
+                tap(() => {
+                    this.form.markAsPristine();
+                    this._commentExpanded.set(false);
+                }),
                 switchMap(versionId =>
                     this.reviewService
                         .getReviews(this.type(), versionId)
@@ -240,6 +274,19 @@ export class ReviewBlockComponent {
                 });
             }
         });
+    }
+
+    /**
+     * Status pill clicked. Selecting a (different) status reveals the comment
+     * field; re-clicking the active status collapses it again, but only while
+     * there is nothing to save — matching the legacy toggle behaviour.
+     */
+    onStatusClick({ changed }: ButtonToggleClick): void {
+        if (!changed && this._commentExpanded() && !this.canSave()) {
+            this._commentExpanded.set(false);
+            return;
+        }
+        this._commentExpanded.set(true);
     }
 
     canDelete(review: Review): boolean {
