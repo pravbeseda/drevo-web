@@ -15,6 +15,20 @@ export const mockUsers = {
         isReviewer: false,
     } satisfies User,
 
+    reviewer: {
+        id: 4,
+        login: 'reviewer',
+        name: 'Reviewer User',
+        email: 'reviewer@example.com',
+        role: 'user',
+        permissions: {
+            canEdit: true,
+            canModerate: false,
+            canAdmin: false,
+        },
+        isReviewer: true,
+    } satisfies User,
+
     moderator: {
         id: 2,
         login: 'moderator',

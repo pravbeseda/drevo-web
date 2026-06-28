@@ -30,6 +30,7 @@ import {
     PicturePendingDto,
     PicturePendingListResponseDto,
     PicturesListResponseDto,
+    ReviewDto,
     ReviewSummaryDto,
     SaveArticleVersionResponseDto,
     User,
@@ -682,6 +683,11 @@ export async function mockGlobalHistoryError(page: Page, status = 500): Promise<
 /** Mock GET /api/reviews/summary/:type — batch review summaries for history badges */
 export async function mockReviewsSummary(page: Page, summaries: readonly ReviewSummaryDto[] = []): Promise<void> {
     await page.route('**/api/reviews/summary/**', route => route.fulfill({ json: apiSuccess(summaries) }));
+}
+
+/** Mock GET /api/reviews/list/:type/:versionId — votes for the review block */
+export async function mockReviewsList(page: Page, reviews: readonly ReviewDto[] = []): Promise<void> {
+    await page.route('**/api/reviews/list/**', route => route.fulfill({ json: apiSuccess(reviews) }));
 }
 
 /** Mock GET /api/reviews/summary/:type — feature flag off (404), client treats it as "no reviews" */
