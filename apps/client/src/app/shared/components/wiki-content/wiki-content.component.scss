@@ -23,6 +23,11 @@ app-wiki-content {
         color: var(--themed-wiki-newlink);
     }
 
+    ul,
+    ol {
+        padding-inline-start: $gap-lg;
+    }
+
     .bible-chapters {
         margin: 16px 0;
     }
@@ -60,6 +65,19 @@ app-wiki-content {
 
         &:hover {
             text-decoration: underline;
+        }
+    }
+
+    .footnotes {
+        margin-top: $gap-lg;
+        font-size: $font-size-sm;
+
+        &::before {
+            content: '';
+            display: block;
+            width: 66.7%;
+            margin-bottom: $gap-md;
+            border-top: 1px solid var(--themed-border-color);
         }
     }
 
