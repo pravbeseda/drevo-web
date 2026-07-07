@@ -15,7 +15,7 @@ export class FootnoteClickHandler implements WikiClickHandler {
     private readonly modalService = inject(ModalService);
     private readonly logger = inject(LoggerService).withContext('FootnoteClickHandler');
 
-    handleClick(event: MouseEvent, target: HTMLElement): boolean {
+    handleClick(event: MouseEvent, target: HTMLElement, host: HTMLElement): boolean {
         if (isModifiedClick(event)) {
             return false;
         }
@@ -27,7 +27,10 @@ export class FootnoteClickHandler implements WikiClickHandler {
 
         const href = anchor.getAttribute('href');
         const footnoteId = href ? inPageAnchorId(href, this.document.location) : undefined;
-        const footnote = footnoteId ? this.document.getElementById(footnoteId) : undefined;
+        // Scope the lookup to this wiki-content instance: two instances on the
+        // same page can share footnote ids (e.g. the article body and the
+        // footnote modal), and a global lookup would open the wrong one.
+        const footnote = footnoteId ? host.querySelector<HTMLElement>(`#${CSS.escape(footnoteId)}`) : undefined;
         if (!footnote) {
             return false;
         }

@@ -21,17 +21,7 @@ describe('FootnoteClickHandler', () => {
         host = document.createElement('div');
     });
 
-    const addFootnote = (id: string, innerHTML: string): HTMLElement => {
-        const footnote = document.createElement('div');
-        footnote.className = 'footnote';
-        footnote.id = id;
-        footnote.innerHTML = innerHTML;
-        document.body.appendChild(footnote);
-        return footnote;
-    };
-
     afterEach(() => {
-        document.querySelectorAll('.footnote').forEach(el => el.remove());
         window.history.replaceState({}, '', '/');
     });
 
@@ -65,8 +55,9 @@ describe('FootnoteClickHandler', () => {
     });
 
     it('should not intercept a marker pointing to another article even if the id exists locally', () => {
-        addFootnote('fn1', '<p>Footnote text</p>');
-        host.innerHTML = '<a class="link-note" href="/articles/2#fn1">[1]</a>';
+        host.innerHTML =
+            '<a class="link-note" href="/articles/2#fn1">[1]</a>' +
+            '<div class="footnote" id="fn1"><p>Footnote text</p></div>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         const preventSpy = jest.spyOn(event, 'preventDefault');
@@ -77,8 +68,9 @@ describe('FootnoteClickHandler', () => {
     });
 
     it('should open a bottom-sheet modal with the footnote content on marker click', () => {
-        addFootnote('fn1', '<p><a class="link-source" href="/articles/1#fnref1">[1]</a> Footnote text</p>');
-        host.innerHTML = '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>';
+        host.innerHTML =
+            '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>' +
+            '<div class="footnote" id="fn1"><p><a class="link-source" href="/articles/1#fnref1">[1]</a> Footnote text</p></div>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         const preventSpy = jest.spyOn(event, 'preventDefault');
@@ -97,8 +89,9 @@ describe('FootnoteClickHandler', () => {
     });
 
     it('should not open the modal on ctrl/cmd-click so the browser can open a new tab', () => {
-        addFootnote('fn1', '<p>Footnote text</p>');
-        host.innerHTML = '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>';
+        host.innerHTML =
+            '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>' +
+            '<div class="footnote" id="fn1"><p>Footnote text</p></div>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
         const preventSpy = jest.spyOn(event, 'preventDefault');
@@ -108,9 +101,30 @@ describe('FootnoteClickHandler', () => {
         expect(modalService.open).not.toHaveBeenCalled();
     });
 
+    it('should open its own footnote when two instances share the same id', () => {
+        const marker = '<a class="link-note" href="/articles/1#fn1">[1]</a>';
+        const hostA = document.createElement('div');
+        hostA.innerHTML = `${marker}<div class="footnote" id="fn1"><p>Content A</p></div>`;
+        const hostB = document.createElement('div');
+        hostB.innerHTML = `${marker}<div class="footnote" id="fn1"><p>Content B</p></div>`;
+        document.body.append(hostA, hostB);
+
+        const anchorB = hostB.querySelector('a') as HTMLElement;
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        spectator.service.handleClick(event, anchorB, hostB);
+
+        const html = (modalService.open.mock.calls[0][1]?.data as { html: string }).html;
+        expect(html).toContain('Content B');
+        expect(html).not.toContain('Content A');
+
+        hostA.remove();
+        hostB.remove();
+    });
+
     it('should strip the back-reference link from the footnote content', () => {
-        addFootnote('fn1', '<p><a class="link-source" href="/articles/1#fnref1">[1]</a> Footnote text</p>');
-        host.innerHTML = '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>';
+        host.innerHTML =
+            '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>' +
+            '<div class="footnote" id="fn1"><p><a class="link-source" href="/articles/1#fnref1">[1]</a> Footnote text</p></div>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 

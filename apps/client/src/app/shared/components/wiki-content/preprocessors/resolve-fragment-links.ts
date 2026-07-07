@@ -7,9 +7,11 @@
  * page path. That breaks "open in new tab", middle-click and the hover preview.
  * Prepending the current path keeps the anchor on the current page.
  *
- * `basePath` must be the current path + query (no hash), e.g. `location.pathname
- * + location.search`, so its encoding matches what the browser reports. An empty
- * `basePath` (e.g. SSR) leaves the content untouched.
+ * `basePath` must be the current path only — `location.pathname`, no query and no
+ * hash — matching how `inPageAnchorId` compares links (path-only, so a query
+ * change never desyncs the rewritten href). Pass the raw `location.pathname` so
+ * its encoding matches what the browser reports. An empty `basePath` (e.g. SSR)
+ * leaves the content untouched.
  */
 export function resolveFragmentLinks(html: string, basePath: string): string {
     if (!basePath) {
