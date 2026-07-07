@@ -59,8 +59,7 @@ export class WikiContentComponent implements OnInit, OnDestroy {
     private readonly window = inject(WINDOW);
 
     private currentPath(): string {
-        const location = this.window?.location;
-        return location ? `${location.pathname}${location.search}` : '';
+        return this.window?.location.pathname ?? '';
     }
 
     private readonly clickHandlers: readonly WikiClickHandler[] = [

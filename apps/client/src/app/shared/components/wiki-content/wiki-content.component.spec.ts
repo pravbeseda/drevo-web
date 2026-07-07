@@ -107,7 +107,7 @@ describe('WikiContentComponent', () => {
             const link = spectator.query('a') as HTMLAnchorElement;
             const href = link.getAttribute('href') as string;
             expect(href.startsWith('#')).toBe(false);
-            expect(href.endsWith(`${window.location.pathname}${window.location.search}#fn5`)).toBe(true);
+            expect(href).toBe(`${window.location.pathname}#fn5`);
         });
     });
 

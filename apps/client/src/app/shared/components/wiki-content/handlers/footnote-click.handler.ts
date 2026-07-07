@@ -1,3 +1,5 @@
+import { inPageAnchorId } from './in-page-anchor';
+import { isModifiedClick } from './modified-click';
 import { WikiClickHandler } from './wiki-click-handler';
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
@@ -14,12 +16,17 @@ export class FootnoteClickHandler implements WikiClickHandler {
     private readonly logger = inject(LoggerService).withContext('FootnoteClickHandler');
 
     handleClick(event: MouseEvent, target: HTMLElement): boolean {
+        if (isModifiedClick(event)) {
+            return false;
+        }
+
         const anchor = target.closest('a');
         if (!anchor || !anchor.classList.contains(FOOTNOTE_MARKER_CLASS)) {
             return false;
         }
 
-        const footnoteId = this.extractFragment(anchor.getAttribute('href') ?? undefined);
+        const href = anchor.getAttribute('href');
+        const footnoteId = href ? inPageAnchorId(href, this.document.location) : undefined;
         const footnote = footnoteId ? this.document.getElementById(footnoteId) : undefined;
         if (!footnote) {
             return false;
@@ -40,14 +47,6 @@ export class FootnoteClickHandler implements WikiClickHandler {
         );
 
         return true;
-    }
-
-    private extractFragment(href: string | undefined): string | undefined {
-        if (!href) {
-            return undefined;
-        }
-        const hashIndex = href.indexOf('#');
-        return hashIndex >= 0 && hashIndex < href.length - 1 ? href.substring(hashIndex + 1) : undefined;
     }
 
     /**

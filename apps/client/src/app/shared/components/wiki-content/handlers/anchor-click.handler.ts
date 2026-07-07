@@ -1,3 +1,5 @@
+import { inPageAnchorId } from './in-page-anchor';
+import { isModifiedClick } from './modified-click';
 import { WikiClickHandler } from './wiki-click-handler';
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
@@ -9,13 +11,17 @@ export class AnchorClickHandler implements WikiClickHandler {
     private readonly window = inject(WINDOW);
 
     handleClick(event: MouseEvent, target: HTMLElement): boolean {
+        if (isModifiedClick(event)) {
+            return false;
+        }
+
         const anchor = target.closest('a');
         if (!anchor) {
             return false;
         }
 
         const href = anchor.getAttribute('href');
-        const anchorId = href ? this.getInPageAnchorId(href) : undefined;
+        const anchorId = href ? inPageAnchorId(href, this.window?.location) : undefined;
         if (!anchorId) {
             return false;
         }
@@ -23,26 +29,6 @@ export class AnchorClickHandler implements WikiClickHandler {
         event.preventDefault();
         this.scrollToAnchor(anchorId);
         return true;
-    }
-
-    /**
-     * Returns the target id for an in-page anchor, or `undefined` if the link is
-     * not a same-page fragment link. Handles both bare fragments (`#fn5`) and
-     * fragments made absolute to the current page (`/articles/1#fn5`), which is
-     * how {@link resolveFragmentLinks} rewrites them for correct new-tab opening.
-     */
-    private getInPageAnchorId(href: string): string | undefined {
-        if (href.startsWith('#')) {
-            return href.length > 1 ? href.substring(1) : undefined;
-        }
-
-        const location = this.window?.location;
-        if (!location) {
-            return undefined;
-        }
-
-        const prefix = `${location.pathname}${location.search}#`;
-        return href.startsWith(prefix) && href.length > prefix.length ? href.substring(prefix.length) : undefined;
     }
 
     private scrollToAnchor(anchorId: string): void {

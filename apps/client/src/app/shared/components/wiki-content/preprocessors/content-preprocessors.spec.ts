@@ -104,10 +104,4 @@ describe('resolveFragmentLinks', () => {
         const html = '<a href="/articles/456">link</a><a href="https://example.com#x">ext</a>';
         expect(resolveFragmentLinks(html, basePath)).toBe(html);
     });
-
-    it('should include query string when present in basePath', () => {
-        expect(resolveFragmentLinks('<a href="#fn5">5</a>', '/articles/123?tab=text')).toBe(
-            '<a href="/articles/123?tab=text#fn5">5</a>',
-        );
-    });
 });

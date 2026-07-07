@@ -14,18 +14,6 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
-
-        // Propagate the modal's bounded height down to the loaded content
-        // component so it can host a scrollable body (flex child with
-        // overflow) while keeping a header/footer fixed. Without overflow of
-        // its own the dialog surface still scrolls as a fallback, so simple
-        // modals with no inner scroll region are never clipped.
-        > *:not(.modal-loading) {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-        }
     }
 }
 
@@ -37,6 +25,17 @@
     .mat-mdc-dialog-surface {
         border-radius: $panel-border-radius $panel-border-radius 0 0;
         border-bottom: none;
+    }
+
+    // Propagate the modal's bounded height down to the loaded content component
+    // so it can host a scrollable body (a flex child with overflow) while
+    // keeping a fixed header. Scoped to the bottom sheet so centered modals keep
+    // their natural block flow.
+    ui-modal-container > *:not(.modal-loading) {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
     }
 
     @media (prefers-reduced-motion: no-preference) {

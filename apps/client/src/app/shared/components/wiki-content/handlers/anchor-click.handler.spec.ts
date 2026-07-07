@@ -107,6 +107,24 @@ describe('AnchorClickHandler', () => {
         expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
+    it('should not intercept modified clicks so the browser can open a new tab', () => {
+        const targetEl = document.createElement('div');
+        targetEl.setAttribute('name', 'section1');
+        targetEl.scrollIntoView = jest.fn();
+        document.body.appendChild(targetEl);
+
+        host.innerHTML = '<a href="#section1">Go to section</a>';
+        const anchor = host.querySelector('a') as HTMLElement;
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true });
+        const preventSpy = jest.spyOn(event, 'preventDefault');
+
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
+        expect(preventSpy).not.toHaveBeenCalled();
+        expect(targetEl.scrollIntoView).not.toHaveBeenCalled();
+
+        document.body.removeChild(targetEl);
+    });
+
     it('should not push state when target element is not found', () => {
         host.innerHTML = '<a href="#nonexistent">Go</a>';
         const anchor = host.querySelector('a') as HTMLElement;
