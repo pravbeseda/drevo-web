@@ -99,10 +99,12 @@ describe('AnchorClickHandler', () => {
         host.innerHTML = '<a href="#section1">Go</a>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        const preventSpy = jest.spyOn(event, 'preventDefault');
 
         const result = spectator.service.handleClick(event, anchor, host);
 
-        expect(result).toBe(true);
+        expect(result).toBe(false);
+        expect(preventSpy).not.toHaveBeenCalled();
         expect(otherTarget.scrollIntoView).not.toHaveBeenCalled();
         expect(mockWindow.history.pushState).not.toHaveBeenCalled();
 
@@ -117,14 +119,16 @@ describe('AnchorClickHandler', () => {
         expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
-    it('should not push state when target element is not found', () => {
+    it('should not claim the click when the target element is not found in this host', () => {
         host.innerHTML = '<a href="#nonexistent">Go</a>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        const preventSpy = jest.spyOn(event, 'preventDefault');
 
         const result = spectator.service.handleClick(event, anchor, host);
 
-        expect(result).toBe(true);
+        expect(result).toBe(false);
+        expect(preventSpy).not.toHaveBeenCalled();
         expect(mockWindow.history.pushState).not.toHaveBeenCalled();
     });
 });

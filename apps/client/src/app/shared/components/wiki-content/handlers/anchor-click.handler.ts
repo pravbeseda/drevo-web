@@ -19,22 +19,30 @@ export class AnchorClickHandler implements WikiClickHandler {
             return false;
         }
 
+        // Only claim the click if the target actually lives in this instance;
+        // otherwise let the chain (or native navigation) take over instead of
+        // swallowing it into a dead click.
+        const element = this.findAnchorTarget(anchorId, host);
+        if (!element) {
+            return false;
+        }
+
         event.preventDefault();
-        this.scrollToAnchor(anchorId, host);
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const url = `${this.window?.location.pathname}${this.window?.location.search}#${anchorId}`;
+        this.window?.history.pushState(undefined, '', url);
         return true;
     }
 
-    private scrollToAnchor(anchorId: string, host: HTMLElement): void {
+    private findAnchorTarget(anchorId: string, host: HTMLElement): HTMLElement | undefined {
         // Scope the lookup to this wiki-content instance so an in-page anchor
         // inside the footnote modal scrolls its own content, not the article
         // behind the backdrop (another instance may share the same id).
         const escapedId = CSS.escape(anchorId);
-        const element = host.querySelector(`#${escapedId}`) || host.querySelector(`[name="${escapedId}"]`);
-
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            const url = `${this.window?.location.pathname}${this.window?.location.search}#${anchorId}`;
-            this.window?.history.pushState(undefined, '', url);
-        }
+        return (
+            host.querySelector<HTMLElement>(`#${escapedId}`) ??
+            host.querySelector<HTMLElement>(`[name="${escapedId}"]`) ??
+            undefined
+        );
     }
 }
