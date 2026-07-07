@@ -26,7 +26,6 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
-import { WINDOW } from '@drevo-web/core';
 import { filter, map } from 'rxjs';
 
 @Component({
@@ -52,7 +51,6 @@ export class WikiContentComponent implements OnInit, OnDestroy {
 
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly sanitizer = inject(DomSanitizer);
-    private readonly window = inject(WINDOW);
     private readonly router = inject(Router);
 
     // Reactive current path so rewritten hrefs stay in sync when the component
@@ -74,7 +72,13 @@ export class WikiContentComponent implements OnInit, OnDestroy {
     });
 
     private pathname(): string {
-        return this.window?.location.pathname ?? '';
+        // Derive from the router URL (populated during SSR too) rather than
+        // `window.location`, so the server and client rewrite hrefs identically
+        // and the `[innerHTML]` output matches — otherwise hydration would
+        // re-create the content of every article that has fragment links.
+        const url = this.router.url;
+        const end = url.search(/[?#]/);
+        return end === -1 ? url : url.slice(0, end);
     }
 
     private readonly clickHandlers: readonly WikiClickHandler[] = [

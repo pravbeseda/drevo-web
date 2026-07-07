@@ -18,7 +18,7 @@ describe('WikiContentComponent', () => {
             mockLoggerProvider(),
             mockProvider(PictureLightboxService),
             mockProvider(NotificationService),
-            mockProvider(Router, { events: routerEvents }),
+            mockProvider(Router, { events: routerEvents, url: '/articles/1' }),
         ],
     });
 
@@ -106,29 +106,33 @@ describe('WikiContentComponent', () => {
             expect(div.getAttribute('data-onclick')).toContain('javascript:toggleAll');
         });
 
-        it('should rewrite fragment-only links to the current page path', () => {
+        it('should rewrite fragment-only links to the current router path', () => {
             spectator.setInput('content', '<a href="#fn5">5</a>');
             spectator.detectChanges();
 
             const link = spectator.query('a') as HTMLAnchorElement;
-            const href = link.getAttribute('href') as string;
-            expect(href.startsWith('#')).toBe(false);
-            expect(href).toBe(`${window.location.pathname}#fn5`);
+            expect(link.getAttribute('href')).toBe('/articles/1#fn5');
+        });
+
+        it('should strip query and hash from the router url when rewriting', () => {
+            (router as { url: string }).url = '/articles/1?tab=text#frag';
+            routerEvents.next(new NavigationEnd(1, '/articles/1?tab=text', '/articles/1?tab=text'));
+            spectator.setInput('content', '<a href="#fn5">5</a>');
+            spectator.detectChanges();
+
+            expect((spectator.query('a') as HTMLAnchorElement).getAttribute('href')).toBe('/articles/1#fn5');
         });
 
         it('should re-sync rewritten hrefs when the route changes without content change', () => {
-            window.history.replaceState({}, '', '/articles/1');
-            spectator = createComponent();
             spectator.setInput('content', '<a href="#fn5">5</a>');
             spectator.detectChanges();
             expect((spectator.query('a') as HTMLAnchorElement).getAttribute('href')).toBe('/articles/1#fn5');
 
-            window.history.replaceState({}, '', '/articles/2');
+            (router as { url: string }).url = '/articles/2';
             routerEvents.next(new NavigationEnd(1, '/articles/2', '/articles/2'));
             spectator.detectChanges();
 
             expect((spectator.query('a') as HTMLAnchorElement).getAttribute('href')).toBe('/articles/2#fn5');
-            window.history.replaceState({}, '', '/');
         });
     });
 

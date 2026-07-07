@@ -22,7 +22,7 @@ describe('FootnoteModalComponent', () => {
             mockLoggerProvider(),
             mockProvider(PictureLightboxService),
             mockProvider(NotificationService),
-            mockProvider(Router, { events: EMPTY }),
+            mockProvider(Router, { events: EMPTY, url: '/articles/1' }),
             { provide: MODAL_DATA, useValue: modalData },
         ],
     });
