@@ -89,7 +89,7 @@ describe('AnchorClickHandler', () => {
         expect(targetEl.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     });
 
-    it('should not scroll a matching target that lives in another instance', () => {
+    it('should claim the click but not scroll a matching target in another instance', () => {
         const otherHost = document.createElement('div');
         otherHost.innerHTML = '<div id="section1"></div>';
         const otherTarget = otherHost.querySelector('#section1') as HTMLElement;
@@ -103,8 +103,8 @@ describe('AnchorClickHandler', () => {
 
         const result = spectator.service.handleClick(event, anchor, host);
 
-        expect(result).toBe(false);
-        expect(preventSpy).not.toHaveBeenCalled();
+        expect(result).toBe(true);
+        expect(preventSpy).toHaveBeenCalled();
         expect(otherTarget.scrollIntoView).not.toHaveBeenCalled();
         expect(mockWindow.history.pushState).not.toHaveBeenCalled();
 
@@ -119,7 +119,7 @@ describe('AnchorClickHandler', () => {
         expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
     });
 
-    it('should not claim the click when the target element is not found in this host', () => {
+    it('should claim the click without navigating when the target is not found in this host', () => {
         host.innerHTML = '<a href="#nonexistent">Go</a>';
         const anchor = host.querySelector('a') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
@@ -127,8 +127,8 @@ describe('AnchorClickHandler', () => {
 
         const result = spectator.service.handleClick(event, anchor, host);
 
-        expect(result).toBe(false);
-        expect(preventSpy).not.toHaveBeenCalled();
+        expect(result).toBe(true);
+        expect(preventSpy).toHaveBeenCalled();
         expect(mockWindow.history.pushState).not.toHaveBeenCalled();
     });
 });

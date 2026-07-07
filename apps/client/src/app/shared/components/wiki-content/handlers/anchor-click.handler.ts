@@ -19,18 +19,19 @@ export class AnchorClickHandler implements WikiClickHandler {
             return false;
         }
 
-        // Only claim the click if the target actually lives in this instance;
-        // otherwise let the chain (or native navigation) take over instead of
-        // swallowing it into a dead click.
-        const element = this.findAnchorTarget(anchorId, host);
-        if (!element) {
-            return false;
-        }
-
+        // This is an in-page anchor for the current page, so this handler owns
+        // the click regardless of whether the target exists in this instance:
+        // falling through would let InternalLinkClickHandler fire a spurious
+        // same-URL navigation. Scroll only when the target is in this host —
+        // another instance (e.g. the article behind the footnote modal) must
+        // not be scrolled.
         event.preventDefault();
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        const url = `${this.window?.location.pathname}${this.window?.location.search}#${anchorId}`;
-        this.window?.history.pushState(undefined, '', url);
+        const element = this.findAnchorTarget(anchorId, host);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const url = `${this.window?.location.pathname}${this.window?.location.search}#${anchorId}`;
+            this.window?.history.pushState(undefined, '', url);
+        }
         return true;
     }
 
