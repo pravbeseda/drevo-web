@@ -25,16 +25,21 @@
     .mat-mdc-dialog-surface {
         border-radius: $panel-border-radius $panel-border-radius 0 0;
         border-bottom: none;
+        // Slide via keyframes only. `transition: none` disables the dialog's own
+        // transform transition so the two don't overlap (the container's opacity
+        // fade lives on a separate element and is untouched). `forwards` holds
+        // the end state, so the resting position does not depend on Material's
+        // internal `--open` class.
+        transition: none;
         transform: translateY(100%);
-        animation: ui-modal-bottom-sheet-in 0.28s ease-out;
+        animation: ui-modal-bottom-sheet-in 0.28s ease-out forwards;
     }
 
-    .mdc-dialog--open .mat-mdc-dialog-surface {
-        transform: translateY(0);
-    }
-
+    // Exit is keyed off Material's `--closing` state. If that private class is
+    // ever renamed the sheet just closes instantly instead of sliding down — a
+    // graceful degradation, not a broken layout.
     .mdc-dialog--closing .mat-mdc-dialog-surface {
-        transform: translateY(100%);
+        animation: ui-modal-bottom-sheet-out 0.22s ease-in forwards;
     }
 
     // Propagate the modal's bounded height down to the loaded content component
@@ -59,9 +64,18 @@
     }
 }
 
+@keyframes ui-modal-bottom-sheet-out {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(100%);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .ui-modal-bottom-sheet .mat-mdc-dialog-surface {
         animation: none;
-        transition: none;
     }
 }
