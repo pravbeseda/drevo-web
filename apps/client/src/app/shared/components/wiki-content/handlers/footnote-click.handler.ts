@@ -1,5 +1,4 @@
 import { inPageAnchorId } from './in-page-anchor';
-import { isModifiedClick } from './modified-click';
 import { WikiClickHandler } from './wiki-click-handler';
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
@@ -16,10 +15,6 @@ export class FootnoteClickHandler implements WikiClickHandler {
     private readonly logger = inject(LoggerService).withContext('FootnoteClickHandler');
 
     handleClick(event: MouseEvent, target: HTMLElement, host: HTMLElement): boolean {
-        if (isModifiedClick(event)) {
-            return false;
-        }
-
         const anchor = target.closest('a');
         if (!anchor || !anchor.classList.contains(FOOTNOTE_MARKER_CLASS)) {
             return false;

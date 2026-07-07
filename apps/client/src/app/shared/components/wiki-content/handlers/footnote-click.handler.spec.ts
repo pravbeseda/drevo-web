@@ -88,19 +88,6 @@ describe('FootnoteClickHandler', () => {
         );
     });
 
-    it('should not open the modal on ctrl/cmd-click so the browser can open a new tab', () => {
-        host.innerHTML =
-            '<a class="link-note" id="fnref1" href="/articles/1#fn1">[1]</a>' +
-            '<div class="footnote" id="fn1"><p>Footnote text</p></div>';
-        const anchor = host.querySelector('a') as HTMLElement;
-        const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
-        const preventSpy = jest.spyOn(event, 'preventDefault');
-
-        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
-        expect(preventSpy).not.toHaveBeenCalled();
-        expect(modalService.open).not.toHaveBeenCalled();
-    });
-
     it('should open its own footnote when two instances share the same id', () => {
         const marker = '<a class="link-note" href="/articles/1#fn1">[1]</a>';
         const hostA = document.createElement('div');

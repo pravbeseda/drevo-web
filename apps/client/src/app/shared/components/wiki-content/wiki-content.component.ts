@@ -6,6 +6,7 @@ import { AnchorClickHandler } from './handlers/anchor-click.handler';
 import { FootnoteClickHandler } from './handlers/footnote-click.handler';
 import { InternalLinkClickHandler } from './handlers/internal-link-click.handler';
 import { LegacyActionClickHandler } from './handlers/legacy-action-click.handler';
+import { isModifiedClick } from './handlers/modified-click';
 import { PictureClickHandler } from './handlers/picture-click.handler';
 import { WikiClickHandler } from './handlers/wiki-click-handler';
 import { resolveFragmentLinks } from './preprocessors/resolve-fragment-links';
@@ -22,8 +23,11 @@ import {
     OnInit,
     ViewEncapsulation,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer } from '@angular/platform-browser';
+import { NavigationEnd, Router } from '@angular/router';
 import { WINDOW } from '@drevo-web/core';
+import { filter, map } from 'rxjs';
 
 @Component({
     selector: 'app-wiki-content',
@@ -46,6 +50,21 @@ import { WINDOW } from '@drevo-web/core';
 export class WikiContentComponent implements OnInit, OnDestroy {
     readonly content = input<string>('');
 
+    private readonly elementRef = inject(ElementRef<HTMLElement>);
+    private readonly sanitizer = inject(DomSanitizer);
+    private readonly window = inject(WINDOW);
+    private readonly router = inject(Router);
+
+    // Reactive current path so rewritten hrefs stay in sync when the component
+    // is reused across route changes (same content reference, different URL).
+    private readonly currentPath = toSignal(
+        this.router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+            map(() => this.pathname()),
+        ),
+        { initialValue: this.pathname() },
+    );
+
     protected readonly sanitizedContent = computed(() => {
         let html = this.content();
         html = stripMapElements(html);
@@ -54,11 +73,7 @@ export class WikiContentComponent implements OnInit, OnDestroy {
         return this.sanitizer.bypassSecurityTrustHtml(html);
     });
 
-    private readonly elementRef = inject(ElementRef<HTMLElement>);
-    private readonly sanitizer = inject(DomSanitizer);
-    private readonly window = inject(WINDOW);
-
-    private currentPath(): string {
+    private pathname(): string {
         return this.window?.location.pathname ?? '';
     }
 
@@ -71,6 +86,12 @@ export class WikiContentComponent implements OnInit, OnDestroy {
     ];
 
     private readonly clickHandler = (event: MouseEvent): void => {
+        // Let the browser handle modified clicks (open in new tab/window,
+        // download) natively — no handler should preventDefault them.
+        if (isModifiedClick(event)) {
+            return;
+        }
+
         const target = event.target as HTMLElement;
         const host = this.elementRef.nativeElement;
         for (const handler of this.clickHandlers) {

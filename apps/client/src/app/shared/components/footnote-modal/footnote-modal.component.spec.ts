@@ -5,6 +5,7 @@ import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectat
 import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { MODAL_DATA, ModalData } from '@drevo-web/ui';
+import { EMPTY } from 'rxjs';
 
 describe('FootnoteModalComponent', () => {
     let spectator: Spectator<FootnoteModalComponent>;
@@ -17,11 +18,11 @@ describe('FootnoteModalComponent', () => {
 
     const createComponent = createComponentFactory({
         component: FootnoteModalComponent,
-        mocks: [Router],
         providers: [
             mockLoggerProvider(),
             mockProvider(PictureLightboxService),
             mockProvider(NotificationService),
+            mockProvider(Router, { events: EMPTY }),
             { provide: MODAL_DATA, useValue: modalData },
         ],
     });

@@ -1,20 +1,13 @@
 import { inPageAnchorId } from './in-page-anchor';
-import { isModifiedClick } from './modified-click';
 import { WikiClickHandler } from './wiki-click-handler';
-import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 import { WINDOW } from '@drevo-web/core';
 
 @Injectable()
 export class AnchorClickHandler implements WikiClickHandler {
-    private readonly document = inject(DOCUMENT);
     private readonly window = inject(WINDOW);
 
-    handleClick(event: MouseEvent, target: HTMLElement): boolean {
-        if (isModifiedClick(event)) {
-            return false;
-        }
-
+    handleClick(event: MouseEvent, target: HTMLElement, host: HTMLElement): boolean {
         const anchor = target.closest('a');
         if (!anchor) {
             return false;
@@ -27,13 +20,16 @@ export class AnchorClickHandler implements WikiClickHandler {
         }
 
         event.preventDefault();
-        this.scrollToAnchor(anchorId);
+        this.scrollToAnchor(anchorId, host);
         return true;
     }
 
-    private scrollToAnchor(anchorId: string): void {
-        const element =
-            this.document.getElementById(anchorId) || this.document.querySelector(`[name="${CSS.escape(anchorId)}"]`);
+    private scrollToAnchor(anchorId: string, host: HTMLElement): void {
+        // Scope the lookup to this wiki-content instance so an in-page anchor
+        // inside the footnote modal scrolls its own content, not the article
+        // behind the backdrop (another instance may share the same id).
+        const escapedId = CSS.escape(anchorId);
+        const element = host.querySelector(`#${escapedId}`) || host.querySelector(`[name="${escapedId}"]`);
 
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
