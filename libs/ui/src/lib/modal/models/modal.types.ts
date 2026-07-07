@@ -2,6 +2,8 @@ import { Type } from '@angular/core';
 
 export type LazyComponentLoader<T> = () => Promise<Type<T>>;
 
+export type ModalPosition = 'center' | 'bottom';
+
 export interface ModalConfig<TData = unknown> {
     data?: TData;
     width?: string;
@@ -10,6 +12,12 @@ export interface ModalConfig<TData = unknown> {
     height?: string;
     disableClose?: boolean;
     border?: boolean;
+    /**
+     * Where the modal is anchored. `center` (default) is a centered dialog;
+     * `bottom` is a full-width sheet pinned to the bottom of the viewport,
+     * growing with its content up to two thirds of the screen height.
+     */
+    position?: ModalPosition;
 }
 
 export interface ModalRef<TResult = unknown> {

@@ -1,0 +1,16 @@
+<div class="footnote-modal__header">
+    <span
+        class="footnote-modal__label"
+        data-testid="footnote-modal-label"
+    >
+        Сноска {{ label }}
+    </span>
+    <ui-icon-button
+        icon="close"
+        label="Закрыть"
+        (clicked)="close()"
+    />
+</div>
+<div class="footnote-modal__content">
+    <app-wiki-content [content]="html" />
+</div>

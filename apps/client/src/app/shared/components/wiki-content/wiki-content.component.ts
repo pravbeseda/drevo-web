@@ -3,6 +3,7 @@ import { CommentToggleAction } from './actions/comment-toggle.action';
 import { GroupToggleAction } from './actions/group-toggle.action';
 import { MapStubAction } from './actions/map-stub.action';
 import { AnchorClickHandler } from './handlers/anchor-click.handler';
+import { FootnoteClickHandler } from './handlers/footnote-click.handler';
 import { InternalLinkClickHandler } from './handlers/internal-link-click.handler';
 import { LegacyActionClickHandler } from './handlers/legacy-action-click.handler';
 import { PictureClickHandler } from './handlers/picture-click.handler';
@@ -33,6 +34,7 @@ import { WINDOW } from '@drevo-web/core';
     providers: [
         LegacyActionClickHandler,
         PictureClickHandler,
+        FootnoteClickHandler,
         AnchorClickHandler,
         InternalLinkClickHandler,
         BibleToggleAction,
@@ -64,6 +66,7 @@ export class WikiContentComponent implements OnInit, OnDestroy {
     private readonly clickHandlers: readonly WikiClickHandler[] = [
         inject(LegacyActionClickHandler),
         inject(PictureClickHandler),
+        inject(FootnoteClickHandler),
         inject(AnchorClickHandler),
         inject(InternalLinkClickHandler),
     ];

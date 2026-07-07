@@ -106,6 +106,45 @@ describe('ModalService', () => {
             );
         });
 
+        it('should anchor to the bottom as a full-width sheet when position is bottom', () => {
+            spectator.service.open(mockLoader, { position: 'bottom' });
+
+            expect(dialogMock.open).toHaveBeenCalledWith(
+                ModalContainerComponent,
+                expect.objectContaining({
+                    width: '100vw',
+                    maxWidth: '100vw',
+                    maxHeight: '66.67vh',
+                    position: { bottom: '0' },
+                    panelClass: ['ui-modal-panel', 'ui-modal-bottom-sheet'],
+                }),
+            );
+        });
+
+        it('should keep centered defaults when position is not set', () => {
+            spectator.service.open(mockLoader);
+
+            expect(dialogMock.open).toHaveBeenCalledWith(
+                ModalContainerComponent,
+                expect.objectContaining({
+                    maxHeight: '90vh',
+                    position: undefined,
+                    panelClass: ['ui-modal-panel'],
+                }),
+            );
+        });
+
+        it('should combine no-border and bottom-sheet classes', () => {
+            spectator.service.open(mockLoader, { position: 'bottom', border: false });
+
+            expect(dialogMock.open).toHaveBeenCalledWith(
+                ModalContainerComponent,
+                expect.objectContaining({
+                    panelClass: ['ui-modal-panel', 'ui-modal-no-border', 'ui-modal-bottom-sheet'],
+                }),
+            );
+        });
+
         it('should apply disableClose option', () => {
             spectator.service.open(mockLoader, { disableClose: true });
 

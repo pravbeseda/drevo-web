@@ -4,6 +4,12 @@ import { Injectable, inject } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 
+const CENTER_MAX_HEIGHT = '90vh';
+const CENTER_DEFAULT_WIDTH = '500px';
+const CENTER_MAX_WIDTH = '90vw';
+const BOTTOM_SHEET_MAX_HEIGHT = '66.67vh';
+const BOTTOM_SHEET_WIDTH = '100vw';
+
 @Injectable({ providedIn: 'root' })
 export class ModalService {
     private readonly dialog = inject(MatDialog);
@@ -41,18 +47,29 @@ export class ModalService {
         loader: LazyComponentLoader<unknown>,
         config: ModalConfig<TData>,
     ): MatDialogConfig {
+        const isBottom = config.position === 'bottom';
+
+        const panelClass = ['ui-modal-panel'];
+        if (!(config.border ?? true)) {
+            panelClass.push('ui-modal-no-border');
+        }
+        if (isBottom) {
+            panelClass.push('ui-modal-bottom-sheet');
+        }
+
         return {
             data: {
                 loader,
                 data: config.data,
             },
-            width: config.width ?? '500px',
+            width: config.width ?? (isBottom ? BOTTOM_SHEET_WIDTH : CENTER_DEFAULT_WIDTH),
             minWidth: config.minWidth,
-            maxWidth: config.maxWidth ?? '90vw',
+            maxWidth: config.maxWidth ?? (isBottom ? BOTTOM_SHEET_WIDTH : CENTER_MAX_WIDTH),
             height: config.height,
-            maxHeight: '90vh',
+            maxHeight: isBottom ? BOTTOM_SHEET_MAX_HEIGHT : CENTER_MAX_HEIGHT,
+            position: isBottom ? { bottom: '0' } : undefined,
             disableClose: config.disableClose ?? false,
-            panelClass: (config.border ?? true) ? ['ui-modal-panel'] : ['ui-modal-panel', 'ui-modal-no-border'],
+            panelClass,
             backdropClass: ['cdk-overlay-dark-backdrop', 'ui-modal-backdrop'],
             autoFocus: 'first-tabbable',
             restoreFocus: true,

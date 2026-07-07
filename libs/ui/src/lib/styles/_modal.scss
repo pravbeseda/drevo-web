@@ -1,3 +1,5 @@
+@use 'tokens' as *;
+
 .ui-modal-backdrop.cdk-overlay-dark-backdrop {
     background: var(--themed-drawer-backdrop-bg);
 }
@@ -12,9 +14,42 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
+
+        // Propagate the modal's bounded height down to the loaded content
+        // component so it can host a scrollable body (flex child with
+        // overflow) while keeping a header/footer fixed. Without overflow of
+        // its own the dialog surface still scrolls as a fallback, so simple
+        // modals with no inner scroll region are never clipped.
+        > *:not(.modal-loading) {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
     }
 }
 
 .ui-modal-no-border .mat-mdc-dialog-surface {
     border: none;
+}
+
+.ui-modal-bottom-sheet {
+    .mat-mdc-dialog-surface {
+        border-radius: $panel-border-radius $panel-border-radius 0 0;
+        border-bottom: none;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: ui-modal-bottom-sheet-in 0.2s ease-out;
+    }
+}
+
+@keyframes ui-modal-bottom-sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }
