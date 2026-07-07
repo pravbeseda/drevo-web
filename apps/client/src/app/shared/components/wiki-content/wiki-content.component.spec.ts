@@ -99,6 +99,16 @@ describe('WikiContentComponent', () => {
             expect(div.getAttribute('onclick')).toBeNull();
             expect(div.getAttribute('data-onclick')).toContain('javascript:toggleAll');
         });
+
+        it('should rewrite fragment-only links to the current page path', () => {
+            spectator.setInput('content', '<a href="#fn5">5</a>');
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            const href = link.getAttribute('href') as string;
+            expect(href.startsWith('#')).toBe(false);
+            expect(href.endsWith(`${window.location.pathname}${window.location.search}#fn5`)).toBe(true);
+        });
     });
 
     describe('click handler chain (integration)', () => {

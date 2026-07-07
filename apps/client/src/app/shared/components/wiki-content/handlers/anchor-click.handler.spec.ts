@@ -79,6 +79,34 @@ describe('AnchorClickHandler', () => {
         document.body.removeChild(targetEl);
     });
 
+    it('should scroll to anchor for same-page path-prefixed links', () => {
+        const targetEl = document.createElement('div');
+        targetEl.setAttribute('name', 'fn5');
+        targetEl.scrollIntoView = jest.fn();
+        document.body.appendChild(targetEl);
+
+        host.innerHTML = '<a href="/articles/1#fn5">5</a>';
+        const anchor = host.querySelector('a') as HTMLElement;
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        const preventSpy = jest.spyOn(event, 'preventDefault');
+
+        const result = spectator.service.handleClick(event, anchor, host);
+
+        expect(result).toBe(true);
+        expect(preventSpy).toHaveBeenCalled();
+        expect(targetEl.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+
+        document.body.removeChild(targetEl);
+    });
+
+    it('should not intercept path-prefixed links pointing to another page', () => {
+        host.innerHTML = '<a href="/articles/2#fn5">5</a>';
+        const anchor = host.querySelector('a') as HTMLElement;
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+        expect(spectator.service.handleClick(event, anchor, host)).toBe(false);
+    });
+
     it('should not push state when target element is not found', () => {
         host.innerHTML = '<a href="#nonexistent">Go</a>';
         const anchor = host.querySelector('a') as HTMLElement;

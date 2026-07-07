@@ -15,17 +15,34 @@ export class AnchorClickHandler implements WikiClickHandler {
         }
 
         const href = anchor.getAttribute('href');
-        if (!href || !this.isAnchorLink(href)) {
+        const anchorId = href ? this.getInPageAnchorId(href) : undefined;
+        if (!anchorId) {
             return false;
         }
 
         event.preventDefault();
-        this.scrollToAnchor(href.substring(1));
+        this.scrollToAnchor(anchorId);
         return true;
     }
 
-    private isAnchorLink(href: string): boolean {
-        return href.startsWith('#') && href.length > 1;
+    /**
+     * Returns the target id for an in-page anchor, or `undefined` if the link is
+     * not a same-page fragment link. Handles both bare fragments (`#fn5`) and
+     * fragments made absolute to the current page (`/articles/1#fn5`), which is
+     * how {@link resolveFragmentLinks} rewrites them for correct new-tab opening.
+     */
+    private getInPageAnchorId(href: string): string | undefined {
+        if (href.startsWith('#')) {
+            return href.length > 1 ? href.substring(1) : undefined;
+        }
+
+        const location = this.window?.location;
+        if (!location) {
+            return undefined;
+        }
+
+        const prefix = `${location.pathname}${location.search}#`;
+        return href.startsWith(prefix) && href.length > prefix.length ? href.substring(prefix.length) : undefined;
     }
 
     private scrollToAnchor(anchorId: string): void {

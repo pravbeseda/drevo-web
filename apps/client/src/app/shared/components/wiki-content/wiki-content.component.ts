@@ -7,6 +7,7 @@ import { InternalLinkClickHandler } from './handlers/internal-link-click.handler
 import { LegacyActionClickHandler } from './handlers/legacy-action-click.handler';
 import { PictureClickHandler } from './handlers/picture-click.handler';
 import { WikiClickHandler } from './handlers/wiki-click-handler';
+import { resolveFragmentLinks } from './preprocessors/resolve-fragment-links';
 import { sanitizeOnclickAttributes } from './preprocessors/sanitize-onclick-attributes';
 import { stripMapElements } from './preprocessors/strip-map-elements';
 import {
@@ -21,6 +22,7 @@ import {
     ViewEncapsulation,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { WINDOW } from '@drevo-web/core';
 
 @Component({
     selector: 'app-wiki-content',
@@ -46,11 +48,18 @@ export class WikiContentComponent implements OnInit, OnDestroy {
         let html = this.content();
         html = stripMapElements(html);
         html = sanitizeOnclickAttributes(html);
+        html = resolveFragmentLinks(html, this.currentPath());
         return this.sanitizer.bypassSecurityTrustHtml(html);
     });
 
     private readonly elementRef = inject(ElementRef<HTMLElement>);
     private readonly sanitizer = inject(DomSanitizer);
+    private readonly window = inject(WINDOW);
+
+    private currentPath(): string {
+        const location = this.window?.location;
+        return location ? `${location.pathname}${location.search}` : '';
+    }
 
     private readonly clickHandlers: readonly WikiClickHandler[] = [
         inject(LegacyActionClickHandler),
