@@ -9,6 +9,11 @@ const CENTER_DEFAULT_WIDTH = '500px';
 const CENTER_MAX_WIDTH = '90vw';
 const BOTTOM_SHEET_MAX_HEIGHT = '66.67vh';
 const BOTTOM_SHEET_WIDTH = '100vw';
+// Enter is driven by CSS keyframes (see `_modal.scss`); this only needs to keep
+// the dialog element alive long enough. Exit is the dialog's own transform
+// transition — the default 75ms reads as an abrupt snap, so slow it down.
+const BOTTOM_SHEET_ENTER_DURATION = '280ms';
+const BOTTOM_SHEET_EXIT_DURATION = '220ms';
 
 @Injectable({ providedIn: 'root' })
 export class ModalService {
@@ -68,6 +73,8 @@ export class ModalService {
             height: config.height,
             maxHeight: isBottom ? BOTTOM_SHEET_MAX_HEIGHT : CENTER_MAX_HEIGHT,
             position: isBottom ? { bottom: '0' } : undefined,
+            enterAnimationDuration: isBottom ? BOTTOM_SHEET_ENTER_DURATION : undefined,
+            exitAnimationDuration: isBottom ? BOTTOM_SHEET_EXIT_DURATION : undefined,
             disableClose: config.disableClose ?? false,
             panelClass,
             backdropClass: ['cdk-overlay-dark-backdrop', 'ui-modal-backdrop'],

@@ -116,6 +116,8 @@ describe('ModalService', () => {
                     maxWidth: '100vw',
                     maxHeight: '66.67vh',
                     position: { bottom: '0' },
+                    enterAnimationDuration: '280ms',
+                    exitAnimationDuration: '220ms',
                     panelClass: ['ui-modal-panel', 'ui-modal-bottom-sheet'],
                 }),
             );

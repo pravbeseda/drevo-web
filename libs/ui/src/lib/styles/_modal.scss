@@ -25,6 +25,16 @@
     .mat-mdc-dialog-surface {
         border-radius: $panel-border-radius $panel-border-radius 0 0;
         border-bottom: none;
+        transform: translateY(100%);
+        animation: ui-modal-bottom-sheet-in 0.28s ease-out;
+    }
+
+    .mdc-dialog--open .mat-mdc-dialog-surface {
+        transform: translateY(0);
+    }
+
+    .mdc-dialog--closing .mat-mdc-dialog-surface {
+        transform: translateY(100%);
     }
 
     // Propagate the modal's bounded height down to the loaded content component
@@ -37,10 +47,6 @@
         flex: 1;
         min-height: 0;
     }
-
-    @media (prefers-reduced-motion: no-preference) {
-        animation: ui-modal-bottom-sheet-in 0.2s ease-out;
-    }
 }
 
 @keyframes ui-modal-bottom-sheet-in {
@@ -50,5 +56,12 @@
 
     to {
         transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-modal-bottom-sheet .mat-mdc-dialog-surface {
+        animation: none;
+        transition: none;
     }
 }
