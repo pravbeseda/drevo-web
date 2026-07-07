@@ -3,10 +3,13 @@ import { CommentToggleAction } from './actions/comment-toggle.action';
 import { GroupToggleAction } from './actions/group-toggle.action';
 import { MapStubAction } from './actions/map-stub.action';
 import { AnchorClickHandler } from './handlers/anchor-click.handler';
+import { FootnoteClickHandler } from './handlers/footnote-click.handler';
 import { InternalLinkClickHandler } from './handlers/internal-link-click.handler';
 import { LegacyActionClickHandler } from './handlers/legacy-action-click.handler';
+import { isModifiedClick } from './handlers/modified-click';
 import { PictureClickHandler } from './handlers/picture-click.handler';
 import { WikiClickHandler } from './handlers/wiki-click-handler';
+import { resolveFragmentLinks } from './preprocessors/resolve-fragment-links';
 import { sanitizeOnclickAttributes } from './preprocessors/sanitize-onclick-attributes';
 import { stripMapElements } from './preprocessors/strip-map-elements';
 import {
@@ -20,7 +23,10 @@ import {
     OnInit,
     ViewEncapsulation,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer } from '@angular/platform-browser';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, map } from 'rxjs';
 
 @Component({
     selector: 'app-wiki-content',
@@ -31,6 +37,7 @@ import { DomSanitizer } from '@angular/platform-browser';
     providers: [
         LegacyActionClickHandler,
         PictureClickHandler,
+        FootnoteClickHandler,
         AnchorClickHandler,
         InternalLinkClickHandler,
         BibleToggleAction,
@@ -42,24 +49,53 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class WikiContentComponent implements OnInit, OnDestroy {
     readonly content = input<string>('');
 
+    private readonly elementRef = inject(ElementRef<HTMLElement>);
+    private readonly sanitizer = inject(DomSanitizer);
+    private readonly router = inject(Router);
+
+    // Reactive current path so rewritten hrefs stay in sync when the component
+    // is reused across route changes (same content reference, different URL).
+    private readonly currentPath = toSignal(
+        this.router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+            map(() => this.pathname()),
+        ),
+        { initialValue: this.pathname() },
+    );
+
     protected readonly sanitizedContent = computed(() => {
         let html = this.content();
         html = stripMapElements(html);
         html = sanitizeOnclickAttributes(html);
+        html = resolveFragmentLinks(html, this.currentPath());
         return this.sanitizer.bypassSecurityTrustHtml(html);
     });
 
-    private readonly elementRef = inject(ElementRef<HTMLElement>);
-    private readonly sanitizer = inject(DomSanitizer);
+    private pathname(): string {
+        // Derive from the router URL (populated during SSR too) rather than
+        // `window.location`, so the server and client rewrite hrefs identically
+        // and the `[innerHTML]` output matches — otherwise hydration would
+        // re-create the content of every article that has fragment links.
+        const url = this.router.url;
+        const end = url.search(/[?#]/);
+        return end === -1 ? url : url.slice(0, end);
+    }
 
     private readonly clickHandlers: readonly WikiClickHandler[] = [
         inject(LegacyActionClickHandler),
         inject(PictureClickHandler),
+        inject(FootnoteClickHandler),
         inject(AnchorClickHandler),
         inject(InternalLinkClickHandler),
     ];
 
     private readonly clickHandler = (event: MouseEvent): void => {
+        // Let the browser handle modified clicks (open in new tab/window,
+        // download) natively — no handler should preventDefault them.
+        if (isModifiedClick(event)) {
+            return;
+        }
+
         const target = event.target as HTMLElement;
         const host = this.elementRef.nativeElement;
         for (const handler of this.clickHandlers) {

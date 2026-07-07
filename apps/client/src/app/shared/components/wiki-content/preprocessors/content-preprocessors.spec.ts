@@ -1,3 +1,4 @@
+import { resolveFragmentLinks } from './resolve-fragment-links';
 import { sanitizeOnclickAttributes } from './sanitize-onclick-attributes';
 import { stripMapElements } from './strip-map-elements';
 
@@ -64,5 +65,43 @@ describe('sanitizeOnclickAttributes', () => {
         expect(sanitizeOnclickAttributes(html)).toBe(
             '<div data-onclick="javascript:toggleAll()"></div><span data-onclick="javascript:toggleRus()"></span>',
         );
+    });
+});
+
+describe('resolveFragmentLinks', () => {
+    const basePath = '/articles/123';
+
+    it('should return empty string for empty input', () => {
+        expect(resolveFragmentLinks('', basePath)).toBe('');
+    });
+
+    it('should return content unchanged when basePath is empty', () => {
+        const html = '<a href="#fn5">5</a>';
+        expect(resolveFragmentLinks(html, '')).toBe(html);
+    });
+
+    it('should prepend basePath to a fragment-only link', () => {
+        expect(resolveFragmentLinks('<a href="#fn5">5</a>', basePath)).toBe('<a href="/articles/123#fn5">5</a>');
+    });
+
+    it('should preserve single quotes', () => {
+        expect(resolveFragmentLinks("<a href='#fn5'>5</a>", basePath)).toBe("<a href='/articles/123#fn5'>5</a>");
+    });
+
+    it('should rewrite multiple fragment links', () => {
+        const html = '<a href="#fn5">5</a> text <a href="#ref5">back</a>';
+        expect(resolveFragmentLinks(html, basePath)).toBe(
+            '<a href="/articles/123#fn5">5</a> text <a href="/articles/123#ref5">back</a>',
+        );
+    });
+
+    it('should not touch bare hash links', () => {
+        const html = '<a href="#">toggle</a>';
+        expect(resolveFragmentLinks(html, basePath)).toBe(html);
+    });
+
+    it('should not touch absolute or external links', () => {
+        const html = '<a href="/articles/456">link</a><a href="https://example.com#x">ext</a>';
+        expect(resolveFragmentLinks(html, basePath)).toBe(html);
     });
 });

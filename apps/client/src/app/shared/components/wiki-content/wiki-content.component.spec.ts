@@ -1,19 +1,25 @@
 import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
 import { WikiContentComponent } from './wiki-content.component';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { Subject } from 'rxjs';
 
 describe('WikiContentComponent', () => {
     let spectator: Spectator<WikiContentComponent>;
     let router: jest.Mocked<Router>;
     let lightboxService: jest.Mocked<PictureLightboxService>;
+    const routerEvents = new Subject<NavigationEnd>();
 
     const createComponent = createComponentFactory({
         component: WikiContentComponent,
-        mocks: [Router],
-        providers: [mockLoggerProvider(), mockProvider(PictureLightboxService), mockProvider(NotificationService)],
+        providers: [
+            mockLoggerProvider(),
+            mockProvider(PictureLightboxService),
+            mockProvider(NotificationService),
+            mockProvider(Router, { events: routerEvents, url: '/articles/1' }),
+        ],
     });
 
     beforeEach(() => {
@@ -99,6 +105,35 @@ describe('WikiContentComponent', () => {
             expect(div.getAttribute('onclick')).toBeNull();
             expect(div.getAttribute('data-onclick')).toContain('javascript:toggleAll');
         });
+
+        it('should rewrite fragment-only links to the current router path', () => {
+            spectator.setInput('content', '<a href="#fn5">5</a>');
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            expect(link.getAttribute('href')).toBe('/articles/1#fn5');
+        });
+
+        it('should strip query and hash from the router url when rewriting', () => {
+            (router as { url: string }).url = '/articles/1?tab=text#frag';
+            routerEvents.next(new NavigationEnd(1, '/articles/1?tab=text', '/articles/1?tab=text'));
+            spectator.setInput('content', '<a href="#fn5">5</a>');
+            spectator.detectChanges();
+
+            expect((spectator.query('a') as HTMLAnchorElement).getAttribute('href')).toBe('/articles/1#fn5');
+        });
+
+        it('should re-sync rewritten hrefs when the route changes without content change', () => {
+            spectator.setInput('content', '<a href="#fn5">5</a>');
+            spectator.detectChanges();
+            expect((spectator.query('a') as HTMLAnchorElement).getAttribute('href')).toBe('/articles/1#fn5');
+
+            (router as { url: string }).url = '/articles/2';
+            routerEvents.next(new NavigationEnd(1, '/articles/2', '/articles/2'));
+            spectator.detectChanges();
+
+            expect((spectator.query('a') as HTMLAnchorElement).getAttribute('href')).toBe('/articles/2#fn5');
+        });
     });
 
     describe('click handler chain (integration)', () => {
@@ -124,6 +159,19 @@ describe('WikiContentComponent', () => {
 
             expect(lightboxService.open).toHaveBeenCalledWith(123);
             expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+
+        it('should not intercept modified clicks so the browser opens a new tab', () => {
+            spectator.setInput('content', '<a href="/articles/123">Article</a>');
+            spectator.detectChanges();
+
+            const link = spectator.query('a') as HTMLAnchorElement;
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
+            const preventSpy = jest.spyOn(event, 'preventDefault');
+            link.dispatchEvent(event);
+
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
+            expect(preventSpy).not.toHaveBeenCalled();
         });
 
         it('should not intercept external links', () => {
