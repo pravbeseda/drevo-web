@@ -107,6 +107,62 @@ describe('ArticlePageService', () => {
         });
     });
 
+    describe('setMissing', () => {
+        const missing = { articleId: 0, title: 'НОВАЯ СТАТЬЯ', canCreate: true } as const;
+
+        it('should mark the page as missing', () => {
+            spectator.service.setMissing(missing);
+
+            expect(spectator.service.isMissing()).toBe(true);
+            expect(spectator.service.missing()).toEqual(missing);
+            expect(spectator.service.article()).toBeUndefined();
+        });
+
+        it('should expose the title of a missing article', () => {
+            spectator.service.setMissing(missing);
+
+            expect(spectator.service.title()).toBe('НОВАЯ СТАТЬЯ');
+        });
+
+        it('should compute basePath from the encoded title', () => {
+            spectator.service.setMissing(missing);
+
+            expect(spectator.service.basePath()).toBe('/articles/find/НОВАЯ+СТАТЬЯ');
+        });
+
+        it('should compute createUrl when creation is allowed', () => {
+            spectator.service.setMissing(missing);
+
+            expect(spectator.service.canCreate()).toBe(true);
+            expect(spectator.service.createUrl()).toBe('/articles/find/НОВАЯ+СТАТЬЯ/edit');
+        });
+
+        it('should leave createUrl empty when creation is denied', () => {
+            spectator.service.setMissing({ ...missing, canCreate: false, reason: 'Недостаточно прав' });
+
+            expect(spectator.service.canCreate()).toBe(false);
+            expect(spectator.service.createUrl()).toBeUndefined();
+        });
+
+        it('should be reset by setArticle', () => {
+            spectator.service.setMissing(missing);
+
+            spectator.service.setArticle(mockArticle);
+
+            expect(spectator.service.isMissing()).toBe(false);
+            expect(spectator.service.basePath()).toBe('/articles/123');
+        });
+
+        it('should be reset by setError', () => {
+            spectator.service.setMissing(missing);
+
+            spectator.service.setError('Error');
+
+            expect(spectator.service.isMissing()).toBe(false);
+            expect(spectator.service.basePath()).toBeUndefined();
+        });
+    });
+
     describe('updateApproval', () => {
         it('should update approved and comment on current article', () => {
             spectator.service.setArticle(mockArticle);

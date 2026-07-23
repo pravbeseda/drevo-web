@@ -768,4 +768,73 @@ describe('ArticleService', () => {
             });
         });
     });
+    describe('findArticleByTitle', () => {
+        it('should map a found response', done => {
+            articleApiService.findArticleByTitle.mockReturnValue(of({ found: true, articleId: 42 }));
+
+            spectator.service.findArticleByTitle('ВИФСАИДА').subscribe(result => {
+                expect(articleApiService.findArticleByTitle).toHaveBeenCalledWith('ВИФСАИДА');
+                expect(result).toEqual({ found: true, articleId: 42 });
+                done();
+            });
+        });
+
+        it('should map a not-found response with permissions', done => {
+            articleApiService.findArticleByTitle.mockReturnValue(
+                of({ found: false, canCreate: false, reason: 'Недостаточно прав' }),
+            );
+
+            spectator.service.findArticleByTitle('НОВАЯ').subscribe(result => {
+                expect(result).toEqual({ found: false, canCreate: false, reason: 'Недостаточно прав' });
+                done();
+            });
+        });
+
+        it('should default canCreate to false when omitted', done => {
+            articleApiService.findArticleByTitle.mockReturnValue(of({ found: false }));
+
+            spectator.service.findArticleByTitle('НОВАЯ').subscribe(result => {
+                expect(result).toEqual({ found: false, canCreate: false, reason: undefined });
+                done();
+            });
+        });
+    });
+
+    describe('createArticle', () => {
+        const mockCreateResponse = {
+            articleId: 555,
+            versionId: 777,
+            title: 'НОВАЯ СТАТЬЯ',
+            author: 'Author',
+            date: '2024-03-15T12:00:00+00:00',
+            approved: 0 as const,
+        };
+
+        it('should pass the request through to the API service', () => {
+            articleApiService.createArticle.mockReturnValue(of(mockCreateResponse));
+
+            spectator.service.createArticle({ title: 'НОВАЯ СТАТЬЯ', content: 'Текст' }).subscribe();
+
+            expect(articleApiService.createArticle).toHaveBeenCalledWith({
+                title: 'НОВАЯ СТАТЬЯ',
+                content: 'Текст',
+            });
+        });
+
+        it('should map the create response without content', done => {
+            articleApiService.createArticle.mockReturnValue(of(mockCreateResponse));
+
+            spectator.service.createArticle({ title: 'НОВАЯ СТАТЬЯ', content: 'Текст' }).subscribe(result => {
+                expect(result).toEqual({
+                    articleId: 555,
+                    versionId: 777,
+                    title: 'НОВАЯ СТАТЬЯ',
+                    author: 'Author',
+                    date: new Date('2024-03-15T12:00:00+00:00'),
+                    approved: 0,
+                });
+                done();
+            });
+        });
+    });
 });

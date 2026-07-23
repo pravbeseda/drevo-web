@@ -58,6 +58,20 @@ export interface RenameArticleResponse {
     readonly title: string;
 }
 
+/**
+ * Result of resolving an article by title.
+ * When not found, carries whether the current user may create it and why not.
+ */
+export type ArticleFindResult =
+    | { readonly found: true; readonly articleId: number }
+    | { readonly found: false; readonly canCreate: boolean; readonly reason?: string };
+
+export interface CreateArticleRequest {
+    readonly title: string;
+    readonly content: string;
+    readonly info?: string;
+}
+
 export interface SaveArticleVersionRequest {
     readonly versionId: number;
     readonly content: string;

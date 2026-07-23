@@ -1,5 +1,7 @@
 import { articleVersionResolver } from './resolvers/article-version.resolver';
 import { articleResolver } from './resolvers/article.resolver';
+import { missingArticleResolver } from './resolvers/missing-article.resolver';
+import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
@@ -29,6 +31,59 @@ export const ARTICLE_ROUTES: Route[] = [
         title: 'Перенаправление',
         loadComponent: () =>
             import('./pages/version-redirect/version-redirect.component').then(m => m.VersionRedirectComponent),
+    },
+    {
+        // Must stay ahead of `:id`, otherwise `find` is swallowed by it.
+        path: 'find/:title',
+        loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
+        providers: [ArticlePageService, DraftEditorService],
+        // The key must be `article` — PageTitleStrategy reads data[titleSource].
+        resolve: { article: missingArticleResolver },
+        data: { titleSource: 'article' },
+        children: [
+            {
+                path: '',
+                pathMatch: 'full',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-missing-tab/article-missing-tab.component').then(
+                        m => m.ArticleMissingTabComponent,
+                    ),
+            },
+            {
+                path: 'edit',
+                loadComponent: () =>
+                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+                resolve: { session: newArticleResolver },
+                providers: [LinksService],
+                data: { titleSource: 'session', titlePrefix: '*' },
+            },
+            {
+                path: 'news',
+                title: 'Новости',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
+                data: { stubTitle: 'Новости' },
+            },
+            {
+                path: 'forum',
+                title: 'Обсуждение',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
+                data: { stubTitle: 'Обсуждение' },
+            },
+            {
+                path: 'linkedhere',
+                title: 'Кто ссылается',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-linkedhere-tab/article-linkedhere-tab.component').then(
+                        m => m.ArticleLinkedHereTabComponent,
+                    ),
+            },
+        ],
     },
     {
         path: ':id',

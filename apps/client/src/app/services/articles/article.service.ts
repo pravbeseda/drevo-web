@@ -4,6 +4,8 @@ import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import {
     ApprovalStatus,
+    ArticleFindResponseDto,
+    ArticleFindResult,
     ArticleHistoryItem,
     ArticleHistoryItemDto,
     ArticleHistoryParams,
@@ -19,6 +21,7 @@ import {
     ArticleSearchResultDto,
     ArticleVersion,
     ArticleVersionDto,
+    CreateArticleRequest,
     ModerationResult,
     RenameArticleResponse,
     SaveArticleVersionRequest,
@@ -107,6 +110,26 @@ export class ArticleService {
         return this.articleApiService
             .getLinkedHere(title, query, page, pageSize)
             .pipe(map(response => this.mapLinkedHereResponse(response)));
+    }
+
+    /**
+     * Resolve an article by its title.
+     *
+     * @param title - Article title (decoded, with spaces)
+     * @returns Observable with the find result (id, or create permission)
+     */
+    findArticleByTitle(title: string): Observable<ArticleFindResult> {
+        return this.articleApiService.findArticleByTitle(title).pipe(map(response => this.mapFindResponse(response)));
+    }
+
+    /**
+     * Create a new article
+     *
+     * @param request - Create request with title, content, and optional info
+     * @returns Observable with mapped save result
+     */
+    createArticle(request: CreateArticleRequest): Observable<SaveArticleVersionResult> {
+        return this.articleApiService.createArticle(request).pipe(map(response => this.mapSaveResponse(response)));
     }
 
     /**
@@ -208,7 +231,16 @@ export class ArticleService {
         };
     }
 
-    private mapSaveResponse(response: SaveArticleVersionResponseDto): SaveArticleVersionResult {
+    private mapFindResponse(response: ArticleFindResponseDto): ArticleFindResult {
+        if (response.found && response.articleId !== undefined) {
+            return { found: true, articleId: response.articleId };
+        }
+
+        return { found: false, canCreate: response.canCreate ?? false, reason: response.reason };
+    }
+
+    // Accepts the create response too — it carries the same fields minus `content`.
+    private mapSaveResponse(response: Omit<SaveArticleVersionResponseDto, 'content'>): SaveArticleVersionResult {
         return {
             articleId: response.articleId,
             versionId: response.versionId,

@@ -1,5 +1,6 @@
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
+import { MissingArticle, isMissingArticle } from '../../models/missing-article';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -23,14 +24,16 @@ export class ArticleComponent {
     constructor() {
         this.route.data
             .pipe(
-                map(data => data['article'] as ArticleVersion | undefined),
+                map(data => data['article'] as ArticleVersion | MissingArticle | undefined),
                 takeUntilDestroyed(),
             )
             .subscribe(article => {
-                if (article) {
-                    this.pageService.setArticle(article);
-                } else {
+                if (!article) {
                     this.pageService.setError('Ошибка загрузки статьи');
+                } else if (isMissingArticle(article)) {
+                    this.pageService.setMissing(article);
+                } else {
+                    this.pageService.setArticle(article);
                 }
             });
     }
@@ -48,21 +51,34 @@ export class ArticleComponent {
             .parseUrl(this.url())
             .root.children['primary']?.segments.map(s => s.path)
             .join('/');
-        const id = this.pageService.articleId();
-        if (!id) return false;
-        const base = `articles/${id}`;
-        return path === base || path?.startsWith(`${base}/version/`);
+        const basePath = this.pageService.basePath();
+        if (!path || !basePath) return false;
+        const base = basePath.slice(1);
+        if (this.pageService.isMissing()) {
+            return path === base || path === `${base}/edit`;
+        }
+        return path === base || path.startsWith(`${base}/version/`);
     });
 
     readonly article = this.pageService.article;
+    readonly isMissing = this.pageService.isMissing;
     readonly error = this.pageService.error;
 
     readonly tabGroups = computed<TabGroup[]>(() => {
-        const id = this.pageService.articleId();
-        if (!id) {
+        const base = this.pageService.basePath();
+        if (!base) {
             return [];
         }
-        const base = `/articles/${id}`;
+        const historyTab = this.pageService.isMissing()
+            ? []
+            : [
+                  {
+                      label: 'Версии',
+                      route: `${base}/history`,
+                      icon: 'history',
+                      testId: 'tab-history',
+                  },
+              ];
         return [
             {
                 items: [
@@ -89,12 +105,7 @@ export class ArticleComponent {
             },
             {
                 items: [
-                    {
-                        label: 'Версии',
-                        route: `${base}/history`,
-                        icon: 'history',
-                        testId: 'tab-history',
-                    },
+                    ...historyTab,
                     {
                         label: 'Кто ссылается',
                         route: `${base}/linkedhere`,

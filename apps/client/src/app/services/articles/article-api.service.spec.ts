@@ -836,4 +836,81 @@ describe('ArticleApiService', () => {
             });
         });
     });
+    describe('findArticleByTitle', () => {
+        it('should call HTTP GET with the title param', done => {
+            spectator.service.findArticleByTitle('ВИФСАИДА ГАЛИЛЕЙСКАЯ').subscribe(result => {
+                expect(result).toEqual({ found: true, articleId: 42 });
+                done();
+            });
+
+            const req = httpController.expectOne(request => request.url === '/api/articles/find');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.params.get('title')).toBe('ВИФСАИДА ГАЛИЛЕЙСКАЯ');
+            req.flush({ success: true, data: { found: true, articleId: 42 } });
+        });
+
+        it('should return the not-found payload as is', done => {
+            spectator.service.findArticleByTitle('НОВАЯ').subscribe(result => {
+                expect(result).toEqual({ found: false, canCreate: false, reason: 'Недостаточно прав' });
+                done();
+            });
+
+            const req = httpController.expectOne(request => request.url === '/api/articles/find');
+            req.flush({
+                success: true,
+                data: { found: false, canCreate: false, reason: 'Недостаточно прав' },
+            });
+        });
+    });
+
+    describe('createArticle', () => {
+        const mockCreateResponse = {
+            success: true,
+            data: {
+                articleId: 555,
+                versionId: 777,
+                title: 'НОВАЯ СТАТЬЯ',
+                author: 'Author',
+                date: '2024-01-20T12:00:00+00:00',
+                approved: 0,
+            },
+        };
+
+        it('should call HTTP POST with the create body', done => {
+            const request = { title: 'НОВАЯ СТАТЬЯ', content: 'Текст', info: 'Новая статья' };
+
+            spectator.service.createArticle(request).subscribe(result => {
+                expect(result).toEqual(mockCreateResponse.data);
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/create');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual(request);
+            req.flush(mockCreateResponse);
+        });
+
+        it('should propagate the 409 duplicate payload', done => {
+            spectator.service.createArticle({ title: 'НОВАЯ', content: 'Текст' }).subscribe({
+                error: err => {
+                    expect(err.status).toBe(409);
+                    expect(err.error.data.articleId).toBe(321);
+                    done();
+                },
+            });
+
+            const req = httpController.expectOne('/api/articles/create');
+            req.flush(
+                {
+                    success: false,
+                    error: 'Статья с таким названием уже существует',
+                    errorCode: 'DUPLICATE_TITLE',
+                    data: { articleId: 321 },
+                },
+                { status: 409, statusText: 'Conflict' },
+            );
+        });
+    });
 });

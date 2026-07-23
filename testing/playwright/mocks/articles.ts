@@ -4,6 +4,7 @@ import {
     ArticleSearchResponseDto,
     ArticleSearchResultDto,
     ArticleVersionDto,
+    CreateArticleResponseDto,
     ModerationResponseDto,
     SaveArticleVersionResponseDto,
     VersionForDiffDto,
@@ -155,6 +156,21 @@ export function createSaveArticleVersionResponseDto(
         versionId: 421,
         title: 'Тестовая статья',
         content: '<p>Содержимое тестовой статьи</p>',
+        author: 'testuser',
+        date: '2025-01-15T13:00:00',
+        approved: 0,
+        ...overrides,
+    };
+}
+
+/** Create a CreateArticleResponseDto (response from POST /api/articles/create) */
+export function createCreateArticleResponseDto(
+    overrides: Partial<CreateArticleResponseDto> = {},
+): CreateArticleResponseDto {
+    return {
+        articleId: 77,
+        versionId: 771,
+        title: 'НОВАЯ СТАТЬЯ',
         author: 'testuser',
         date: '2025-01-15T13:00:00',
         approved: 0,

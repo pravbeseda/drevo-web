@@ -11,6 +11,7 @@ import {
     createArticleHistoryResponse,
     createArticlesSearchResponse,
     createModerationResponseDto,
+    createCreateArticleResponseDto,
     createSaveArticleVersionResponseDto,
     mockArticleData,
     mockArticleEditData,
@@ -23,6 +24,7 @@ import {
     ArticleLinkedHereResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    CreateArticleResponseDto,
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
@@ -562,6 +564,56 @@ export async function mockArticleVersionError(page: Page, versionId: number, sta
     await page.route(`**/api/articles/version/${versionId}`, route =>
         route.fulfill({ status, json: apiError('Internal server error') }),
     );
+}
+
+/** Mock GET /api/articles/find — article resolved by title */
+export async function mockArticleFindFound(page: Page, title: string, articleId: number): Promise<void> {
+    await page.route('**/api/articles/find**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('title') !== title) return route.fallback();
+        return route.fulfill({ json: apiSuccess({ found: true, articleId }) });
+    });
+}
+
+/** Mock GET /api/articles/find — article does not exist yet */
+export async function mockArticleFindMissing(
+    page: Page,
+    title: string,
+    options: { canCreate?: boolean; reason?: string } = {},
+): Promise<void> {
+    const { canCreate = true, reason } = options;
+    await page.route('**/api/articles/find**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('title') !== title) return route.fallback();
+        return route.fulfill({ json: apiSuccess({ found: false, canCreate, ...(reason ? { reason } : {}) }) });
+    });
+}
+
+/** Mock POST /api/articles/create — success */
+export async function mockArticleCreate(
+    page: Page,
+    response: CreateArticleResponseDto = createCreateArticleResponseDto(),
+): Promise<void> {
+    await page.route('**/api/articles/create', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+}
+
+/** Mock POST /api/articles/create — 409 duplicate title */
+export async function mockArticleCreateDuplicate(page: Page, articleId: number): Promise<void> {
+    await page.route('**/api/articles/create', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({
+            status: 409,
+            json: {
+                success: false,
+                error: 'Статья с таким названием уже существует',
+                errorCode: 'DUPLICATE_TITLE',
+                data: { articleId },
+            },
+        });
+    });
 }
 
 /** Mock POST /api/articles/save — success */
