@@ -9,7 +9,7 @@ function createMockPageService(overrides: { canCreate?: boolean; reason?: string
     return {
         title: signal('НОВАЯ СТАТЬЯ'),
         canCreate: signal(canCreate),
-        createUrl: signal(canCreate ? '/articles/find/НОВАЯ+СТАТЬЯ/edit' : undefined),
+        createUrl: signal(canCreate ? '/articles/find/НОВАЯ СТАТЬЯ/edit' : undefined),
         missing: signal({ articleId: 0, title: 'НОВАЯ СТАТЬЯ', canCreate, reason: overrides.reason }),
     };
 }
@@ -39,7 +39,7 @@ describe('ArticleMissingTabComponent', () => {
 
         const href = spectator.query('[data-testid="create-article-action"]')?.getAttribute('href');
         expect(href).toBeTruthy();
-        expect(decodeURIComponent(href ?? '')).toBe('/articles/find/НОВАЯ+СТАТЬЯ/edit');
+        expect(decodeURIComponent(href ?? '')).toBe('/articles/find/НОВАЯ СТАТЬЯ/edit');
     });
 
     it('should show the reason instead of the button when creation is denied', () => {

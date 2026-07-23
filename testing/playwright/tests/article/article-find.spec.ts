@@ -19,15 +19,25 @@ import { ArticlePage } from '../../pages/article.page';
 import { LinkedHereTabPage } from '../../pages/linkedhere-tab.page';
 
 const NEW_TITLE = 'НОВАЯ СТАТЬЯ';
-const FIND_URL = '/articles/find/НОВАЯ+СТАТЬЯ';
+const FIND_URL = '/articles/find/НОВАЯ СТАТЬЯ';
 const EXISTING_TITLE = 'ВИФСАИДА ГАЛИЛЕЙСКАЯ';
-const EXISTING_URL = '/articles/find/ВИФСАИДА+ГАЛИЛЕЙСКАЯ';
+const EXISTING_URL = '/articles/find/ВИФСАИДА ГАЛИЛЕЙСКАЯ';
 const EXISTING_ID = 42;
 const CREATED_ID = 77;
 
 /** Router percent-encodes cyrillic segments — compare against the readable form. */
 function pathnameOf(url: string): string {
     return decodeURIComponent(new URL(url).pathname);
+}
+
+/**
+ * Encode a title into a `/articles/find/:title` segment the way the backend
+ * (rawurlencode) and Angular's own serializer do: space -> %20, '+' -> %2B, and
+ * crucially '(' -> %28 / ')' -> %29, since '(' starts an auxiliary-outlet group
+ * in Angular's URL syntax and would otherwise truncate the segment.
+ */
+function toFindSegment(title: string): string {
+    return encodeURIComponent(title).replace(/\(/g, '%28').replace(/\)/g, '%29');
 }
 
 test.describe('Article find by title', () => {
@@ -90,6 +100,20 @@ test.describe('Article find by title', () => {
         await expect(linkedHere.empty).toHaveCount(0);
     });
 
+    test('preserves a literal plus in the title', async ({ authenticatedPage: page }) => {
+        // Backend emits rawurlencode (space -> %20, '+' -> %2B), so the death
+        // marker in "… (+ 1919)" survives the round-trip through the router.
+        const titleWithPlus = 'РОЖДЕСТВЕНСКИЙ НИКОЛАЙ ИВАНОВИЧ (+ 1919)';
+        await bypassSsr(page, '**/articles/find/**');
+        await mockArticleFindMissing(page, titleWithPlus);
+
+        const findPage = new ArticleFindPage(page);
+        await page.goto(`/articles/find/${toFindSegment(titleWithPlus)}`);
+        await findPage.waitForReady();
+
+        await expect(findPage.root).toContainText(`Статьи «${titleWithPlus}» пока не существует`);
+    });
+
     test('hides the create action when creation is denied', async ({ authenticatedPage: page }) => {
         await bypassSsr(page, '**/articles/find/**');
         await mockArticleFindMissing(page, NEW_TITLE, {
@@ -106,17 +130,21 @@ test.describe('Article find by title', () => {
     });
 
     test('creates the article from an empty editor', async ({ authenticatedPage: page }) => {
+        // A title with parens and a literal '+' exercises the frontend's own
+        // routerLink encoding on the "create" button: Angular must emit %28/%29
+        // for the parens (auxiliary-outlet syntax) and %2B for the plus.
+        const title = 'СВЯТОЙ НИКОЛАЙ (+ 1919)';
         await bypassSsr(page, '**/articles/find/**');
-        await mockArticleFindMissing(page, NEW_TITLE);
+        await mockArticleFindMissing(page, title);
         await mockInworkCheck(page);
         await mockInworkMark(page);
         await mockInworkClear(page);
-        await mockArticleCreate(page, createCreateArticleResponseDto({ articleId: CREATED_ID, title: NEW_TITLE }));
+        await mockArticleCreate(page, createCreateArticleResponseDto({ articleId: CREATED_ID, title }));
         await mockArticleShow(page, CREATED_ID);
 
         const findPage = new ArticleFindPage(page);
         const editPage = new ArticleEditPage(page);
-        await page.goto(FIND_URL);
+        await page.goto(`/articles/find/${toFindSegment(title)}`);
         await findPage.waitForReady();
 
         await findPage.clickCreate();

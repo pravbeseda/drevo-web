@@ -1,36 +1,26 @@
 import { decodeArticleTitle, encodeArticleTitle } from './article-title-url';
 
 describe('article title url helpers', () => {
+    // The backend emits /articles/find/<rawurlencode(title)> (space -> %20,
+    // '+' -> %2B) and the Angular router percent-encodes/decodes the segment
+    // losslessly, so these helpers must be verbatim pass-throughs. A lossy
+    // space<->'+' mapping would corrupt titles carrying a literal '+', e.g. the
+    // death marker in "… (+ 1919)".
+    const titles = ['ВИФСАИДА ГАЛИЛЕЙСКАЯ', 'C++', 'РОЖДЕСТВЕНСКИЙ НИКОЛАЙ ИВАНОВИЧ (+ 1919)', '100% воды', ''];
+
     describe('encodeArticleTitle', () => {
-        it('should replace spaces with plus', () => {
-            expect(encodeArticleTitle('ВИФСАИДА ГАЛИЛЕЙСКАЯ')).toBe('ВИФСАИДА+ГАЛИЛЕЙСКАЯ');
-        });
-
-        it('should not percent-encode cyrillic', () => {
-            expect(encodeArticleTitle('ВИФСАИДА')).toBe('ВИФСАИДА');
-        });
-
-        it('should leave percent sign untouched', () => {
-            expect(encodeArticleTitle('100% воды')).toBe('100%+воды');
-        });
-
-        it('should return empty string as is', () => {
-            expect(encodeArticleTitle('')).toBe('');
+        it.each(titles)('should leave %p untouched', title => {
+            expect(encodeArticleTitle(title)).toBe(title);
         });
     });
 
     describe('decodeArticleTitle', () => {
-        it('should replace plus with spaces', () => {
-            expect(decodeArticleTitle('ВИФСАИДА+ГАЛИЛЕЙСКАЯ')).toBe('ВИФСАИДА ГАЛИЛЕЙСКАЯ');
-        });
-
-        it('should replace every plus', () => {
-            expect(decodeArticleTitle('a+b+c')).toBe('a b c');
+        it.each(titles)('should leave %p untouched', param => {
+            expect(decodeArticleTitle(param)).toBe(param);
         });
     });
 
-    it('should round-trip a title', () => {
-        const title = 'ВИФСАИДА ГАЛИЛЕЙСКАЯ (город)';
+    it.each(titles)('should round-trip %p', title => {
         expect(decodeArticleTitle(encodeArticleTitle(title))).toBe(title);
     });
 });

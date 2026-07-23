@@ -737,7 +737,7 @@ describe('ArticleEditComponent', () => {
 });
 
 describe('ArticleEditComponent in create mode', () => {
-    const CREATE_DRAFT_ROUTE = '/articles/find/НОВАЯ+СТАТЬЯ/edit';
+    const CREATE_DRAFT_ROUTE = '/articles/find/НОВАЯ СТАТЬЯ/edit';
     const createSession = {
         mode: 'create' as const,
         articleId: 0,
@@ -876,7 +876,7 @@ describe('ArticleEditComponent in create mode', () => {
 
         await spectator.component.cancel();
 
-        expect(router.navigate).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ+СТАТЬЯ']);
+        expect(router.navigate).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
     });
 });
 

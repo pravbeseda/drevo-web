@@ -127,14 +127,14 @@ describe('ArticlePageService', () => {
         it('should compute basePath from the encoded title', () => {
             spectator.service.setMissing(missing);
 
-            expect(spectator.service.basePath()).toBe('/articles/find/НОВАЯ+СТАТЬЯ');
+            expect(spectator.service.basePath()).toBe('/articles/find/НОВАЯ СТАТЬЯ');
         });
 
         it('should compute createUrl when creation is allowed', () => {
             spectator.service.setMissing(missing);
 
             expect(spectator.service.canCreate()).toBe(true);
-            expect(spectator.service.createUrl()).toBe('/articles/find/НОВАЯ+СТАТЬЯ/edit');
+            expect(spectator.service.createUrl()).toBe('/articles/find/НОВАЯ СТАТЬЯ/edit');
         });
 
         it('should leave createUrl empty when creation is denied', () => {

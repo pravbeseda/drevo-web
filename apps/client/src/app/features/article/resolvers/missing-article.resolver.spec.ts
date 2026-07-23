@@ -31,7 +31,7 @@ describe('resolveMissingArticle', () => {
     it('should decode the title before looking it up', done => {
         articleService.findArticleByTitle.mockReturnValue(of({ found: false, canCreate: true }));
 
-        resolve({ title: 'ВИФСАИДА+ГАЛИЛЕЙСКАЯ' }).subscribe(() => {
+        resolve({ title: 'ВИФСАИДА ГАЛИЛЕЙСКАЯ' }).subscribe(() => {
             expect(articleService.findArticleByTitle).toHaveBeenCalledWith('ВИФСАИДА ГАЛИЛЕЙСКАЯ');
             done();
         });
@@ -50,7 +50,7 @@ describe('resolveMissingArticle', () => {
     it('should return a missing article placeholder when not found', done => {
         articleService.findArticleByTitle.mockReturnValue(of({ found: false, canCreate: true }));
 
-        resolve({ title: 'НОВАЯ+СТАТЬЯ' }).subscribe(result => {
+        resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toEqual({
                 articleId: 0,
                 title: 'НОВАЯ СТАТЬЯ',

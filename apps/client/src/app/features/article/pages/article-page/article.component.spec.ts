@@ -161,7 +161,7 @@ describe('ArticleComponent missing article', () => {
         articleId: undefined,
         title: 'НОВАЯ СТАТЬЯ',
         isMissing: true,
-        basePath: '/articles/find/НОВАЯ+СТАТЬЯ',
+        basePath: '/articles/find/НОВАЯ СТАТЬЯ',
     });
 
     const createComponent = createComponentFactory({
@@ -205,17 +205,17 @@ describe('ArticleComponent missing article', () => {
 
         const groups = spectator.component.tabGroups();
         expect(groups[0].items.map(item => item.route)).toEqual([
-            '/articles/find/НОВАЯ+СТАТЬЯ',
-            '/articles/find/НОВАЯ+СТАТЬЯ/news',
-            '/articles/find/НОВАЯ+СТАТЬЯ/forum',
+            '/articles/find/НОВАЯ СТАТЬЯ',
+            '/articles/find/НОВАЯ СТАТЬЯ/news',
+            '/articles/find/НОВАЯ СТАТЬЯ/forum',
         ]);
-        expect(groups[1].items[0].route).toBe('/articles/find/НОВАЯ+СТАТЬЯ/linkedhere');
+        expect(groups[1].items[0].route).toBe('/articles/find/НОВАЯ СТАТЬЯ/linkedhere');
     });
 
     it('should mark the article tab active on the find URL', async () => {
         const spectator = createComponent();
         const router = spectator.inject(Router);
-        await router.navigateByUrl('/articles/find/НОВАЯ+СТАТЬЯ');
+        await router.navigateByUrl('/articles/find/НОВАЯ СТАТЬЯ');
         spectator.detectChanges();
 
         const isActive = spectator.component.tabGroups()[0].items[0].isActive;

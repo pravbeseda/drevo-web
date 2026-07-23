@@ -862,6 +862,19 @@ describe('ArticleApiService', () => {
                 data: { found: false, canCreate: false, reason: 'Недостаточно прав' },
             });
         });
+
+        it('should percent-encode a literal plus in the title query', done => {
+            // Angular's default codec leaves '+' literal, which a query string
+            // (and PHP $_GET) reads as a space — corrupting a title like
+            // "… (+ 1919)". The value must be sent as %2B.
+            spectator.service.findArticleByTitle('СВЯТОЙ (+ 1919)').subscribe(() => done());
+
+            const req = httpController.expectOne(request => request.url === '/api/articles/find');
+            expect(req.request.urlWithParams).toContain('%2B');
+            expect(req.request.urlWithParams).not.toMatch(/title=[^&]*\(\+/);
+            expect(req.request.params.get('title')).toBe('СВЯТОЙ (+ 1919)');
+            req.flush({ success: true, data: { found: false, canCreate: true } });
+        });
     });
 
     describe('createArticle', () => {
