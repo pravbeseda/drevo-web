@@ -851,7 +851,7 @@ describe('ArticleEditComponent in create mode', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/articles', 555]);
     });
 
-    it('should navigate to the existing article on duplicate title', () => {
+    it('should keep the draft and stay in the editor on a duplicate title', () => {
         spectator.detectChanges();
         spectator.component.contentChanged('Текст новой статьи');
         const error = new HttpErrorResponse({
@@ -868,30 +868,13 @@ describe('ArticleEditComponent in create mode', () => {
 
         spectator.component.save();
 
-        expect(notificationService.info).toHaveBeenCalledWith('Статья с таким названием уже создана');
-        expect(router.navigate).toHaveBeenCalledWith(['/articles', 321]);
-    });
-
-    it('should surface a 409 without a usable articleId as an error and stay put', () => {
-        spectator.detectChanges();
-        spectator.component.contentChanged('Текст новой статьи');
-        const error = new HttpErrorResponse({
-            status: 409,
-            statusText: 'Conflict',
-            error: {
-                success: false,
-                error: 'Статья с таким названием уже существует',
-                errorCode: 'DUPLICATE_TITLE',
-                data: {},
-            },
-        });
-        articleService.createArticle.mockReturnValue(throwError(() => error));
-
-        spectator.component.save();
-
-        expect(notificationService.error).toHaveBeenCalledWith('Статья с таким названием уже существует');
-        expect(notificationService.info).not.toHaveBeenCalledWith('Статья с таким названием уже создана');
+        // Concurrent creation — warn the text is unsaved, but don't discard the
+        // draft or bounce the user away, so they can copy their content out.
+        expect(notificationService.error).toHaveBeenCalledWith(
+            'Статья с таким названием уже создана. Ваш текст не сохранён — скопируйте его при необходимости.',
+        );
         expect(router.navigate).not.toHaveBeenCalled();
+        expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
     });
 
     it('should stay in the editor on other create errors', () => {

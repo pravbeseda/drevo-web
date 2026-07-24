@@ -319,12 +319,12 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * 409 from /create means the article already exists — the id comes back in
-     * the `data` envelope of sendErrorWithData, so navigate there instead.
-     *
-     * Only meaningful in create mode: a version save has no title to duplicate,
-     * so a 409 there must fall through to the normal error branch rather than
-     * bounce the editor to another article and drop the draft.
+     * A 409 from /create means the title was created concurrently while the user
+     * was typing. Keep them in the editor with their content and the draft intact
+     * so they can copy it out — navigating away (and discarding the draft) would
+     * silently destroy potentially substantial input for an article they didn't
+     * write. Only meaningful in create mode: a version save has no title to
+     * duplicate, so its 409 falls through to the normal error branch.
      */
     private handleDuplicateTitle(err: HttpErrorResponse): boolean {
         if (this.session?.mode !== 'create') {
@@ -334,17 +334,9 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             return false;
         }
 
-        const articleId = err.error?.data?.articleId;
-        if (typeof articleId !== 'number') {
-            // Malformed 409 (no usable id) — fall through to the normal error
-            // branch so the user learns the save failed instead of getting stuck.
-            return false;
-        }
-
-        this.notificationService.info('Статья с таким названием уже создана');
-        this.draftEditorService.discardDraft(this.getDraftRoute());
-        this.clearEditingMark();
-        this.router.navigate(['/articles', articleId]);
+        this.notificationService.error(
+            'Статья с таким названием уже создана. Ваш текст не сохранён — скопируйте его при необходимости.',
+        );
         return true;
     }
 

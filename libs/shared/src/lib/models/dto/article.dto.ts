@@ -117,17 +117,6 @@ export interface CreateArticleResponseDto {
     readonly approved: ApprovalStatusDto;
 }
 
-/**
- * Error envelope of 409 DUPLICATE_TITLE from /api/articles/create.
- * The existing article id lives in `data`, not at the top level.
- */
-export interface DuplicateTitleErrorDto {
-    readonly success: false;
-    readonly error: string;
-    readonly errorCode: 'DUPLICATE_TITLE';
-    readonly data: { readonly articleId: number };
-}
-
 export interface RenameArticleResponseDto {
     readonly articleId: number;
     readonly title: string;
