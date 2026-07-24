@@ -30,6 +30,7 @@ import {
     VersionForDiff,
     VersionForDiffDto,
     VersionPairs,
+    assertIsDefined,
     parseDate,
 } from '@drevo-web/shared';
 import { Observable, Subject } from 'rxjs';
@@ -232,7 +233,10 @@ export class ArticleService {
     }
 
     private mapFindResponse(response: ArticleFindResponseDto): ArticleFindResult {
-        if (response.found && response.articleId !== undefined) {
+        if (response.found) {
+            // A found response without an id is a contract violation — surface it
+            // rather than silently misclassifying an existing article as missing.
+            assertIsDefined(response.articleId, 'Find response marked found but has no articleId');
             return { found: true, articleId: response.articleId };
         }
 

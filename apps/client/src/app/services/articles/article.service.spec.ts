@@ -798,6 +798,16 @@ describe('ArticleService', () => {
                 done();
             });
         });
+
+        it('should error on a found response without an articleId', done => {
+            // Contract violation — must not be silently treated as "missing".
+            articleApiService.findArticleByTitle.mockReturnValue(of({ found: true }));
+
+            spectator.service.findArticleByTitle('ВИФСАИДА').subscribe({
+                next: () => done.fail('expected an error'),
+                error: () => done(),
+            });
+        });
     });
 
     describe('createArticle', () => {
