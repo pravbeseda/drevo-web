@@ -1,5 +1,6 @@
 import { ArticleService } from '../../../services/articles';
 import { ArticleEditSession } from '../models/article-edit-session';
+import { ArticlePageService } from '../services/article-page.service';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
@@ -17,12 +18,15 @@ import { catchError, map } from 'rxjs/operators';
  * This repeats the parent route's `missingArticleResolver` lookup, and that is
  * intentional: resolvers run before components activate, so this child cannot
  * read the parent's resolved data, and both the shell (parent) and the editor
- * (child) legitimately need the title-derived state. On the forward flow
- * (placeholder → "create" button → `/edit`) the parent stays active and does
- * not re-run (see `shouldRerunMissingArticleResolver`), so the forward duplicate
- * is bounded to direct/refresh hits on `/edit`. When this child redirects back
- * to the placeholder (creation denied), the parent DOES re-run — refreshing a
- * possibly stale `canCreate` so the "create" button reflects the new state.
+ * (child) legitimately need the title-derived state.
+ *
+ * When creation is denied, the redirect back to the placeholder is a same-URL
+ * navigation (the `/edit` child never committed), so it neither re-runs the
+ * parent resolver nor re-emits its data — the placeholder would keep a stale
+ * `canCreate: true` and the "create" button would loop. So on denial we push the
+ * fresh state straight into the shared `ArticlePageService` (the same instance
+ * the placeholder uses, provided by the parent route), which reactively hides
+ * the button; the redirect then just keeps the user on the placeholder.
  *
  * The two resolvers never issue conflicting redirects: when `found`, both
  * redirect to the same `/articles/:id`; when not found, the parent returns data
@@ -32,6 +36,7 @@ export function resolveNewArticle(
     articleService: ArticleService,
     router: Router,
     logger: Logger,
+    pageService: ArticlePageService,
     route: ActivatedRouteSnapshot,
 ): Observable<ArticleEditSession | RedirectCommand> {
     // `:title` lives on the parent route — child routes do not inherit params
@@ -54,6 +59,9 @@ export function resolveNewArticle(
                 });
             }
             if (!result.canCreate) {
+                // Refresh the placeholder's state — the same-URL redirect below
+                // won't re-run the parent resolver, so update it directly.
+                pageService.setMissing({ articleId: 0, title, canCreate: false, reason: result.reason });
                 return placeholderRedirect();
             }
             return { mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
@@ -75,5 +83,6 @@ export const newArticleResolver: ResolveFn<ArticleEditSession | RedirectCommand>
         inject(ArticleService),
         inject(Router),
         inject(LoggerService).withContext('NewArticleResolver'),
+        inject(ArticlePageService),
         route,
     );

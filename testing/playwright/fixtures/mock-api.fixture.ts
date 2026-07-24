@@ -589,6 +589,24 @@ export async function mockArticleFindMissing(
     });
 }
 
+/**
+ * Mock GET /api/articles/find — first call reports the title as creatable, later
+ * calls deny it (simulates canCreate flipping to false between the placeholder
+ * load and the editor re-check).
+ */
+export async function mockArticleFindCreatableThenDenied(page: Page, title: string, reason: string): Promise<void> {
+    let calls = 0;
+    await page.route('**/api/articles/find**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('title') !== title) return route.fallback();
+        calls += 1;
+        const canCreate = calls === 1;
+        return route.fulfill({
+            json: apiSuccess({ found: false, canCreate, ...(canCreate ? {} : { reason }) }),
+        });
+    });
+}
+
 /** Mock POST /api/articles/create — success */
 export async function mockArticleCreate(
     page: Page,

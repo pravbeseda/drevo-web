@@ -1,4 +1,5 @@
 import { resolveNewArticle } from './new-article.resolver';
+import { ArticlePageService } from '../services/article-page.service';
 import { ArticleService } from '../../../services/articles';
 import { ActivatedRouteSnapshot, RedirectCommand, Router, convertToParamMap } from '@angular/router';
 import { Logger } from '@drevo-web/core';
@@ -20,12 +21,14 @@ describe('resolveNewArticle', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'findArticleByTitle'>>;
     let router: jest.Mocked<Pick<Router, 'createUrlTree'>>;
     let logger: jest.Mocked<Pick<Logger, 'error'>>;
+    let pageService: jest.Mocked<Pick<ArticlePageService, 'setMissing'>>;
 
     function resolve(params: Record<string, string>) {
         return resolveNewArticle(
             articleService as unknown as ArticleService,
             router as unknown as Router,
             logger as unknown as Logger,
+            pageService as unknown as ArticlePageService,
             createRouteSnapshot(params),
         );
     }
@@ -36,6 +39,7 @@ describe('resolveNewArticle', () => {
         // segment rather than interpolated into a parsed URL string.
         router = { createUrlTree: jest.fn().mockImplementation((commands: unknown[]) => ({ commands })) };
         logger = { error: jest.fn() };
+        pageService = { setMissing: jest.fn() };
     });
 
     it('should return a create session when creation is allowed', done => {
@@ -71,6 +75,14 @@ describe('resolveNewArticle', () => {
         resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
             expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
+            // Refresh the shared placeholder state, since the same-URL redirect
+            // won't re-run the parent resolver — otherwise the button would loop.
+            expect(pageService.setMissing).toHaveBeenCalledWith({
+                articleId: 0,
+                title: 'НОВАЯ СТАТЬЯ',
+                canCreate: false,
+                reason: 'Недостаточно прав',
+            });
             done();
         });
     });
@@ -82,6 +94,7 @@ describe('resolveNewArticle', () => {
             articleService as unknown as ArticleService,
             router as unknown as Router,
             logger as unknown as Logger,
+            pageService as unknown as ArticlePageService,
             createChildRouteSnapshot({ title: 'НОВАЯ СТАТЬЯ' }),
         ).subscribe(result => {
             expect(articleService.findArticleByTitle).toHaveBeenCalledWith('НОВАЯ СТАТЬЯ');

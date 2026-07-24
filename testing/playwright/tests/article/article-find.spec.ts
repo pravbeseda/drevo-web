@@ -3,6 +3,7 @@ import {
     expect,
     bypassSsr,
     mockArticleCreate,
+    mockArticleFindCreatableThenDenied,
     mockArticleFindFound,
     mockArticleFindMissing,
     mockArticleShow,
@@ -127,6 +128,26 @@ test.describe('Article find by title', () => {
 
         await expect(findPage.createButton).toHaveCount(0);
         await expect(findPage.deniedReason).toContainText('Недостаточно прав для создания статей');
+    });
+
+    test('hides the create button when the re-check denies creation', async ({ authenticatedPage: page }) => {
+        // canCreate flips to false between the placeholder load and the edit
+        // re-check (e.g. edit limit reached). The denied redirect is a same-URL
+        // navigation, so the placeholder state must still refresh — the button
+        // must not keep looping the redirect.
+        await bypassSsr(page, '**/articles/find/**');
+        await mockArticleFindCreatableThenDenied(page, NEW_TITLE, 'Лимит правок исчерпан');
+
+        const findPage = new ArticleFindPage(page);
+        await page.goto(FIND_URL);
+        await findPage.waitForReady();
+        await expect(findPage.createButton).toBeVisible();
+
+        await findPage.clickCreate();
+
+        await expect(findPage.createButton).toHaveCount(0);
+        await expect(findPage.deniedReason).toContainText('Лимит правок исчерпан');
+        expect(pathnameOf(page.url())).toBe(FIND_URL);
     });
 
     test('creates the article from an empty editor', async ({ authenticatedPage: page }) => {

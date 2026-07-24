@@ -30,10 +30,12 @@ export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: Act
  *
  * Re-runs `missingArticleResolver` when:
  * - the `:title` changes, or
- * - the user returns to the empty-child placeholder from any other child (e.g.
- *   `edit`). Without this, a redirect back from `/edit` (creation denied) leaves
- *   `ArticlePageService` holding a stale `canCreate: true`, so the "create"
- *   button stays visible and clicking it just loops the redirect.
+ * - the user returns to the empty-child placeholder from a committed child
+ *   (e.g. leaving the editor after `/edit` actually activated), so `canCreate`
+ *   and the "create" button reflect current state.
+ *
+ * The creation-denied redirect is handled separately in `newArticleResolver`:
+ * it never commits `/edit`, so that same-URL redirect isn't observable here.
  */
 export function shouldRerunMissingArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
     if (from.paramMap.get('title') !== to.paramMap.get('title')) return true;
