@@ -1,6 +1,7 @@
 import { resolveNewArticle } from './new-article.resolver';
 import { ArticleService } from '../../../services/articles';
 import { ActivatedRouteSnapshot, RedirectCommand, Router, convertToParamMap } from '@angular/router';
+import { Logger } from '@drevo-web/core';
 import { of, throwError } from 'rxjs';
 
 function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
@@ -18,11 +19,13 @@ function createChildRouteSnapshot(parentParams: Record<string, string>): Activat
 describe('resolveNewArticle', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'findArticleByTitle'>>;
     let router: jest.Mocked<Pick<Router, 'createUrlTree'>>;
+    let logger: jest.Mocked<Pick<Logger, 'error'>>;
 
     function resolve(params: Record<string, string>) {
         return resolveNewArticle(
             articleService as unknown as ArticleService,
             router as unknown as Router,
+            logger as unknown as Logger,
             createRouteSnapshot(params),
         );
     }
@@ -32,6 +35,7 @@ describe('resolveNewArticle', () => {
         // createUrlTree encodes segments itself, so the title is passed as a raw
         // segment rather than interpolated into a parsed URL string.
         router = { createUrlTree: jest.fn().mockImplementation((commands: unknown[]) => ({ commands })) };
+        logger = { error: jest.fn() };
     });
 
     it('should return a create session when creation is allowed', done => {
@@ -77,6 +81,7 @@ describe('resolveNewArticle', () => {
         resolveNewArticle(
             articleService as unknown as ArticleService,
             router as unknown as Router,
+            logger as unknown as Logger,
             createChildRouteSnapshot({ title: 'НОВАЯ СТАТЬЯ' }),
         ).subscribe(result => {
             expect(articleService.findArticleByTitle).toHaveBeenCalledWith('НОВАЯ СТАТЬЯ');
@@ -91,6 +96,7 @@ describe('resolveNewArticle', () => {
         resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
             expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
+            expect(logger.error).toHaveBeenCalled();
             done();
         });
     });

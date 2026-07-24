@@ -2,6 +2,7 @@ import { ArticleService } from '../../../services/articles';
 import { ArticleEditSession } from '../models/article-edit-session';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
+import { Logger, LoggerService } from '@drevo-web/core';
 import { decodeArticleTitle } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -30,6 +31,7 @@ import { catchError, map } from 'rxjs/operators';
 export function resolveNewArticle(
     articleService: ArticleService,
     router: Router,
+    logger: Logger,
     route: ActivatedRouteSnapshot,
 ): Observable<ArticleEditSession | RedirectCommand> {
     // `:title` lives on the parent route — child routes do not inherit params
@@ -56,9 +58,22 @@ export function resolveNewArticle(
             }
             return { mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
         }),
-        catchError(() => of(placeholderRedirect())),
+        catchError(error => {
+            // Re-check failed (network/contract) — log it (repo convention: no
+            // silent failures) so an operational error is distinguishable from an
+            // expected access-control redirect. Sending the user back to the
+            // placeholder is still correct: its resolver re-runs on return and
+            // surfaces the current state (or its own error).
+            logger.error('Failed to re-check title before create', error);
+            return of(placeholderRedirect());
+        }),
     );
 }
 
 export const newArticleResolver: ResolveFn<ArticleEditSession | RedirectCommand> = route =>
-    resolveNewArticle(inject(ArticleService), inject(Router), route);
+    resolveNewArticle(
+        inject(ArticleService),
+        inject(Router),
+        inject(LoggerService).withContext('NewArticleResolver'),
+        route,
+    );
