@@ -461,6 +461,12 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     private checkInworkAndMark(session: ArticleEditSession): void {
+        // In create mode versionId is 0, and that is intentional: the inwork mark
+        // is keyed by title (not versionId), the backend defaults versionId to 0,
+        // and locking the title during creation is what warns a second author of a
+        // concurrent create. It cannot go stale or collide — clearEditingMark()
+        // removes it by title on success and on destroy, a backend TTL expires it,
+        // and editing the real version later REPLACEs the row by title.
         this.inworkService
             .getActiveEditor(session.title)
             .pipe(
