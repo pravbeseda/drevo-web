@@ -21,7 +21,7 @@ export function resolveMissingArticle(
     router: Router,
     logger: Logger,
     route: ActivatedRouteSnapshot,
-): Observable<MissingArticle | RedirectCommand> {
+): Observable<MissingArticle | RedirectCommand | undefined> {
     const title = decodeArticleTitle(route.paramMap.get('title') ?? '');
 
     return articleService.findArticleByTitle(title).pipe(
@@ -32,18 +32,16 @@ export function resolveMissingArticle(
             return { articleId: 0, title, canCreate: result.canCreate, reason: result.reason } as const;
         }),
         catchError(error => {
+            // Existence was never established, so we must not render the "does not
+            // exist" placeholder. Resolve to undefined — ArticleComponent then
+            // shows its generic load-error state instead of a false result.
             logger.error('Failed to resolve article by title', error);
-            return of({
-                articleId: 0,
-                title,
-                canCreate: false,
-                reason: 'Не удалось проверить права на создание статьи',
-            } as const);
+            return of(undefined);
         }),
     );
 }
 
-export const missingArticleResolver: ResolveFn<MissingArticle | RedirectCommand> = route =>
+export const missingArticleResolver: ResolveFn<MissingArticle | RedirectCommand | undefined> = route =>
     resolveMissingArticle(
         inject(ArticleService),
         inject(Router),

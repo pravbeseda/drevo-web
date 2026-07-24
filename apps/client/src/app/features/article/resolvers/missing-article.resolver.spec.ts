@@ -77,16 +77,12 @@ describe('resolveMissingArticle', () => {
         });
     });
 
-    it('should deny creation when the lookup fails', done => {
+    it('should resolve to undefined (error state) when the lookup fails', done => {
+        // Existence was never established — must not claim the article is missing.
         articleService.findArticleByTitle.mockReturnValue(throwError(() => new Error('Network error')));
 
         resolve({ title: 'НОВАЯ' }).subscribe(result => {
-            expect(result).toEqual({
-                articleId: 0,
-                title: 'НОВАЯ',
-                canCreate: false,
-                reason: 'Не удалось проверить права на создание статьи',
-            });
+            expect(result).toBeUndefined();
             expect(logger.error).toHaveBeenCalled();
             done();
         });
