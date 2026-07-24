@@ -25,6 +25,24 @@ export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: Act
     return toPath === '' && fromPath !== '';
 }
 
+/**
+ * Predicate for the `find/:title` route's `runGuardsAndResolvers`.
+ *
+ * Re-runs `missingArticleResolver` when:
+ * - the `:title` changes, or
+ * - the user returns to the empty-child placeholder from any other child (e.g.
+ *   `edit`). Without this, a redirect back from `/edit` (creation denied) leaves
+ *   `ArticlePageService` holding a stale `canCreate: true`, so the "create"
+ *   button stays visible and clicking it just loops the redirect.
+ */
+export function shouldRerunMissingArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
+    if (from.paramMap.get('title') !== to.paramMap.get('title')) return true;
+
+    const fromPath = from.firstChild?.routeConfig?.path;
+    const toPath = to.firstChild?.routeConfig?.path;
+    return toPath === '' && fromPath !== '';
+}
+
 export const ARTICLE_ROUTES: Route[] = [
     {
         path: 'version/:versionId',
@@ -39,6 +57,9 @@ export const ARTICLE_ROUTES: Route[] = [
         providers: [ArticlePageService, DraftEditorService],
         // The key must be `article` — PageTitleStrategy reads data[titleSource].
         resolve: { article: missingArticleResolver },
+        // Refresh canCreate when returning to the placeholder from `/edit`
+        // (creation may have been denied since the button was rendered).
+        runGuardsAndResolvers: shouldRerunMissingArticleResolver,
         data: { titleSource: 'article' },
         children: [
             {

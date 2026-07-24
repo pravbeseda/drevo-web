@@ -16,10 +16,12 @@ import { catchError, map } from 'rxjs/operators';
  * This repeats the parent route's `missingArticleResolver` lookup, and that is
  * intentional: resolvers run before components activate, so this child cannot
  * read the parent's resolved data, and both the shell (parent) and the editor
- * (child) legitimately need the title-derived state. The duplicate `find` is
- * bounded to direct/refresh hits on `/edit` — on the normal flow (placeholder →
- * "create" button) the parent's `:title` param is unchanged, so under the
- * default `paramsChange` strategy the parent resolver does not re-run.
+ * (child) legitimately need the title-derived state. On the forward flow
+ * (placeholder → "create" button → `/edit`) the parent stays active and does
+ * not re-run (see `shouldRerunMissingArticleResolver`), so the forward duplicate
+ * is bounded to direct/refresh hits on `/edit`. When this child redirects back
+ * to the placeholder (creation denied), the parent DOES re-run — refreshing a
+ * possibly stale `canCreate` so the "create" button reflects the new state.
  *
  * The two resolvers never issue conflicting redirects: when `found`, both
  * redirect to the same `/articles/:id`; when not found, the parent returns data

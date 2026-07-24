@@ -1,4 +1,4 @@
-import { shouldRerunArticleResolver } from './article.routes';
+import { shouldRerunArticleResolver, shouldRerunMissingArticleResolver } from './article.routes';
 import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 
 function snapshot(id: string | undefined, childPath: string | undefined): ActivatedRouteSnapshot {
@@ -7,6 +7,16 @@ function snapshot(id: string | undefined, childPath: string | undefined): Activa
 
     return {
         paramMap: convertToParamMap(id === undefined ? {} : { id }),
+        firstChild,
+    } as ActivatedRouteSnapshot;
+}
+
+function titleSnapshot(title: string | undefined, childPath: string | undefined): ActivatedRouteSnapshot {
+    const firstChild =
+        childPath === undefined ? undefined : ({ routeConfig: { path: childPath } } as ActivatedRouteSnapshot);
+
+    return {
+        paramMap: convertToParamMap(title === undefined ? {} : { title }),
         firstChild,
     } as ActivatedRouteSnapshot;
 }
@@ -45,5 +55,35 @@ describe('shouldRerunArticleResolver', () => {
         const to = snapshot('42', '');
 
         expect(shouldRerunArticleResolver(from, to)).toBe(false);
+    });
+});
+
+describe('shouldRerunMissingArticleResolver', () => {
+    it('re-runs when the title changes', () => {
+        const from = titleSnapshot('А', '');
+        const to = titleSnapshot('Б', '');
+
+        expect(shouldRerunMissingArticleResolver(from, to)).toBe(true);
+    });
+
+    it('re-runs when returning to the placeholder from the edit child (refreshes canCreate)', () => {
+        const from = titleSnapshot('А', 'edit');
+        const to = titleSnapshot('А', '');
+
+        expect(shouldRerunMissingArticleResolver(from, to)).toBe(true);
+    });
+
+    it('does not re-run when navigating from the placeholder to a child route', () => {
+        const from = titleSnapshot('А', '');
+        const to = titleSnapshot('А', 'edit');
+
+        expect(shouldRerunMissingArticleResolver(from, to)).toBe(false);
+    });
+
+    it('does not re-run when staying on the placeholder', () => {
+        const from = titleSnapshot('А', '');
+        const to = titleSnapshot('А', '');
+
+        expect(shouldRerunMissingArticleResolver(from, to)).toBe(false);
     });
 });
