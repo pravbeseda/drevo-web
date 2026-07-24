@@ -3,7 +3,7 @@ import { MissingArticle } from '../models/missing-article';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion, encodeArticleTitle } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion } from '@drevo-web/shared';
 
 @Injectable()
 export class ArticlePageService {
@@ -43,7 +43,7 @@ export class ArticlePageService {
             return `/articles/${id}`;
         }
         const missing = this._missing();
-        return missing ? `/articles/find/${encodeArticleTitle(missing.title)}` : undefined;
+        return missing ? `/articles/find/${missing.title}` : undefined;
     });
 
     readonly canCreate = computed(() => this._missing()?.canCreate ?? false);

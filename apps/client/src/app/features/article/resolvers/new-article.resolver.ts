@@ -4,7 +4,6 @@ import { ArticlePageService } from '../services/article-page.service';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
-import { decodeArticleTitle } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
@@ -40,9 +39,10 @@ export function resolveNewArticle(
     route: ActivatedRouteSnapshot,
 ): Observable<ArticleEditSession | RedirectCommand> {
     // `:title` lives on the parent route — child routes do not inherit params
-    // under the default `emptyOnly` inheritance strategy.
-    const titleParam = route.paramMap.get('title') ?? route.parent?.paramMap.get('title') ?? '';
-    const title = decodeArticleTitle(titleParam);
+    // under the default `emptyOnly` inheritance strategy. The router already
+    // percent-decodes the param and the segment carries the title verbatim
+    // (backend emits rawurlencode), so no further transform is needed.
+    const title = route.paramMap.get('title') ?? route.parent?.paramMap.get('title') ?? '';
 
     // Build redirects with createUrlTree so each segment (the title in
     // particular) is encoded by the router. Interpolating a decoded title into
