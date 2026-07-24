@@ -21,7 +21,7 @@ describe('resolveNewArticle', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'findArticleByTitle'>>;
     let router: jest.Mocked<Pick<Router, 'createUrlTree'>>;
     let logger: jest.Mocked<Pick<Logger, 'error'>>;
-    let pageService: jest.Mocked<Pick<ArticlePageService, 'setMissing'>>;
+    let pageService: jest.Mocked<Pick<ArticlePageService, 'setMissing' | 'setError'>>;
 
     function resolve(params: Record<string, string>) {
         return resolveNewArticle(
@@ -39,7 +39,7 @@ describe('resolveNewArticle', () => {
         // segment rather than interpolated into a parsed URL string.
         router = { createUrlTree: jest.fn().mockImplementation((commands: unknown[]) => ({ commands })) };
         logger = { error: jest.fn() };
-        pageService = { setMissing: jest.fn() };
+        pageService = { setMissing: jest.fn(), setError: jest.fn() };
     });
 
     it('should return a create session when creation is allowed', done => {
@@ -110,6 +110,10 @@ describe('resolveNewArticle', () => {
             expect(result).toBeInstanceOf(RedirectCommand);
             expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
             expect(logger.error).toHaveBeenCalled();
+            // Surface the failure in the shared placeholder state — the same-URL
+            // redirect won't re-run the parent resolver, so without this the
+            // button would keep a stale canCreate:true and loop silently.
+            expect(pageService.setError).toHaveBeenCalledWith('Ошибка загрузки статьи');
             done();
         });
     });

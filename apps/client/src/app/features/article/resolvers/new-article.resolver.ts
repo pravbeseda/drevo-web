@@ -68,11 +68,14 @@ export function resolveNewArticle(
         }),
         catchError(error => {
             // Re-check failed (network/contract) — log it (repo convention: no
-            // silent failures) so an operational error is distinguishable from an
-            // expected access-control redirect. Sending the user back to the
-            // placeholder is still correct: its resolver re-runs on return and
-            // surfaces the current state (or its own error).
+            // silent failures). The redirect back to the placeholder is same-URL,
+            // so it won't re-run the parent resolver: without touching the shared
+            // state the placeholder would keep a stale `canCreate: true` and the
+            // "create" button would loop silently. Push an error into the shared
+            // `ArticlePageService` (mirroring the denial branch) — this clears the
+            // missing state, so the button hides and the user sees the load-error.
             logger.error('Failed to re-check title before create', error);
+            pageService.setError('Ошибка загрузки статьи');
             return of(placeholderRedirect());
         }),
     );
