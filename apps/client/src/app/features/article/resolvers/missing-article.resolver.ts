@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../services/articles';
-import { MissingArticle } from '../models/missing-article';
+import { MISSING_ARTICLE_ID, MissingArticle } from '../models/missing-article';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
@@ -30,7 +30,12 @@ export function resolveMissingArticle(
             if (result.found) {
                 return new RedirectCommand(router.parseUrl(`/articles/${result.articleId}`), { replaceUrl: true });
             }
-            return { articleId: 0, title, canCreate: result.canCreate, reason: result.reason } as const;
+            return {
+                articleId: MISSING_ARTICLE_ID,
+                title,
+                canCreate: result.canCreate,
+                reason: result.reason,
+            } as const;
         }),
         catchError(error => {
             // Existence was never established, so we must not render the "does not

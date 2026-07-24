@@ -1,5 +1,6 @@
 import { ArticleService } from '../../../services/articles';
 import { ArticleEditSession } from '../models/article-edit-session';
+import { MISSING_ARTICLE_ID } from '../models/missing-article';
 import { ArticlePageService } from '../services/article-page.service';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
@@ -61,7 +62,12 @@ export function resolveNewArticle(
             if (!result.canCreate) {
                 // Refresh the placeholder's state — the same-URL redirect below
                 // won't re-run the parent resolver, so update it directly.
-                pageService.setMissing({ articleId: 0, title, canCreate: false, reason: result.reason });
+                pageService.setMissing({
+                    articleId: MISSING_ARTICLE_ID,
+                    title,
+                    canCreate: false,
+                    reason: result.reason,
+                });
                 return placeholderRedirect();
             }
             return { mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
