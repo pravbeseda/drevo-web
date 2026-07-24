@@ -149,7 +149,7 @@ test.describe('Article find by title', () => {
 
         await findPage.clickCreate();
         await editPage.waitForReady();
-        await expect(editPage.editorContainer).toContainText('');
+        await expect(editPage.editorContent).toHaveText('');
 
         await editPage.typeInEditor('Текст новой статьи');
         await editPage.clickSave();
