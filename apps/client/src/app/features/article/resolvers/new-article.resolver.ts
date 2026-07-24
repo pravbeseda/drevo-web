@@ -12,6 +12,18 @@ import { catchError, map } from 'rxjs/operators';
  * Re-checks the title so a direct URL hit cannot bypass the placeholder page:
  * an article that meanwhile exists redirects to it, and a user without the
  * right to create is sent back to the placeholder, which explains why.
+ *
+ * This repeats the parent route's `missingArticleResolver` lookup, and that is
+ * intentional: resolvers run before components activate, so this child cannot
+ * read the parent's resolved data, and both the shell (parent) and the editor
+ * (child) legitimately need the title-derived state. The duplicate `find` is
+ * bounded to direct/refresh hits on `/edit` — on the normal flow (placeholder →
+ * "create" button) the parent's `:title` param is unchanged, so under the
+ * default `paramsChange` strategy the parent resolver does not re-run.
+ *
+ * The two resolvers never issue conflicting redirects: when `found`, both
+ * redirect to the same `/articles/:id`; when not found, the parent returns data
+ * (never redirects) while only this child may redirect (to the placeholder).
  */
 export function resolveNewArticle(
     articleService: ArticleService,
