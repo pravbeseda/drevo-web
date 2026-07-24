@@ -3,7 +3,9 @@ import {
     expect,
     bypassSsr,
     mockArticleCreate,
+    mockArticleCreateDuplicate,
     mockArticleFindCreatableThenDenied,
+    mockArticleFindCreatableThenError,
     mockArticleFindFound,
     mockArticleFindMissing,
     mockArticleShow,
@@ -12,6 +14,7 @@ import {
     mockInworkMark,
     mockLinkedHereApi,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import { createCreateArticleResponseDto } from '../../mocks/articles';
 import { createLinkedHereResponse } from '../../mocks/linked-here';
 import { ArticleEditPage } from '../../pages/article-edit.page';
@@ -150,6 +153,28 @@ test.describe('Article find by title', () => {
         expect(pathnameOf(page.url())).toBe(FIND_URL);
     });
 
+    test('shows a load error and hides the create button when the re-check fails', async ({
+        authenticatedPage: page,
+    }) => {
+        // The edit re-check errors (5xx) after the placeholder loaded creatable.
+        // The redirect back is same-URL, so the shared placeholder state must be
+        // refreshed to a load error rather than left looping the stale button.
+        await bypassSsr(page, '**/articles/find/**');
+        await mockArticleFindCreatableThenError(page, NEW_TITLE);
+
+        const findPage = new ArticleFindPage(page);
+        const articlePage = new ArticlePage(page);
+        await page.goto(FIND_URL);
+        await findPage.waitForReady();
+        await expect(findPage.createButton).toBeVisible();
+
+        await findPage.clickCreate();
+
+        await expect(articlePage.error).toContainText('Ошибка загрузки статьи');
+        await expect(findPage.createButton).toHaveCount(0);
+        expect(pathnameOf(page.url())).toBe(FIND_URL);
+    });
+
     test('creates the article from an empty editor', async ({ authenticatedPage: page }) => {
         // A title with parens and a literal '+' exercises the frontend's own
         // routerLink encoding on the "create" button: Angular must emit %28/%29
@@ -177,5 +202,33 @@ test.describe('Article find by title', () => {
 
         await page.waitForURL(`**/articles/${CREATED_ID}`);
         await new ArticlePage(page).waitForReady();
+    });
+
+    test('keeps the draft in the editor on a concurrent duplicate-title 409', async ({ authenticatedPage: page }) => {
+        // Someone else creates this title while the user is typing. The 409 must
+        // not navigate away or discard the draft — the authored text stays put so
+        // the user can copy it out instead of losing it to a silent redirect.
+        const draftText = 'Текст, который автор не хочет потерять';
+        await bypassSsr(page, '**/articles/find/**');
+        await mockArticleFindMissing(page, NEW_TITLE);
+        await mockInworkCheck(page);
+        await mockInworkMark(page);
+        await mockInworkClear(page);
+        await mockArticleCreateDuplicate(page, EXISTING_ID);
+
+        const findPage = new ArticleFindPage(page);
+        const editPage = new ArticleEditPage(page);
+        await page.goto(FIND_URL);
+        await findPage.waitForReady();
+
+        await findPage.clickCreate();
+        await editPage.waitForReady();
+        await editPage.typeInEditor(draftText);
+        await editPage.clickSave();
+
+        await expect(getNotification(page, 'error')).toContainText('уже создана');
+        await expect(editPage.root).toBeVisible();
+        await expect(editPage.editorContent).toHaveText(draftText);
+        expect(pathnameOf(page.url())).toBe(`${FIND_URL}/edit`);
     });
 });

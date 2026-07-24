@@ -53,6 +53,7 @@ export {
     mockArticleFindFound,
     mockArticleFindMissing,
     mockArticleFindCreatableThenDenied,
+    mockArticleFindCreatableThenError,
     mockArticleCreate,
     mockArticleCreateDuplicate,
     mockArticleSave,

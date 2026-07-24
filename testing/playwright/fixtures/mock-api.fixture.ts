@@ -607,6 +607,24 @@ export async function mockArticleFindCreatableThenDenied(page: Page, title: stri
     });
 }
 
+/**
+ * Mock GET /api/articles/find — first call reports the title as creatable, later
+ * calls fail with a server error (simulates the edit re-check failing after the
+ * placeholder loaded, e.g. a transient network/5xx during create).
+ */
+export async function mockArticleFindCreatableThenError(page: Page, title: string, status = 500): Promise<void> {
+    let calls = 0;
+    await page.route('**/api/articles/find**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('title') !== title) return route.fallback();
+        calls += 1;
+        if (calls === 1) {
+            return route.fulfill({ json: apiSuccess({ found: false, canCreate: true }) });
+        }
+        return route.fulfill({ status, json: apiError('Internal server error') });
+    });
+}
+
 /** Mock POST /api/articles/create — success */
 export async function mockArticleCreate(
     page: Page,
