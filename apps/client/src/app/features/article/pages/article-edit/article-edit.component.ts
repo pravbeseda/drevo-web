@@ -321,8 +321,15 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     /**
      * 409 from /create means the article already exists — the id comes back in
      * the `data` envelope of sendErrorWithData, so navigate there instead.
+     *
+     * Only meaningful in create mode: a version save has no title to duplicate,
+     * so a 409 there must fall through to the normal error branch rather than
+     * bounce the editor to another article and drop the draft.
      */
     private handleDuplicateTitle(err: HttpErrorResponse): boolean {
+        if (this.session?.mode !== 'create') {
+            return false;
+        }
         if (err.status !== 409 || err.error?.errorCode !== 'DUPLICATE_TITLE') {
             return false;
         }

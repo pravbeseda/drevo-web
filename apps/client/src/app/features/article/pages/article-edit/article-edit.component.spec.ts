@@ -421,6 +421,24 @@ describe('ArticleEditComponent', () => {
             expect(notificationService.error).toHaveBeenCalledWith('Внутренняя ошибка сервера');
         });
 
+        it('should not treat a 409 DUPLICATE_TITLE as a duplicate on a version save', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 409,
+                statusText: 'Conflict',
+                error: { error: 'Конфликт', errorCode: 'DUPLICATE_TITLE', data: { articleId: 321 } },
+            });
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
+
+            spectator.component.save();
+
+            // Version save has no title to duplicate — must not bounce the editor.
+            expect(router.navigate).not.toHaveBeenCalled();
+            expect(notificationService.error).toHaveBeenCalledWith('Конфликт');
+        });
+
         it('should set isSaving to false after error', () => {
             spectator.detectChanges();
             spectator.component.contentChanged('new content');
