@@ -328,12 +328,16 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         const articleId = err.error?.data?.articleId;
-        this.notificationService.info('Статья с таким названием уже создана');
-        if (typeof articleId === 'number') {
-            this.draftEditorService.discardDraft(this.getDraftRoute());
-            this.clearEditingMark();
-            this.router.navigate(['/articles', articleId]);
+        if (typeof articleId !== 'number') {
+            // Malformed 409 (no usable id) — fall through to the normal error
+            // branch so the user learns the save failed instead of getting stuck.
+            return false;
         }
+
+        this.notificationService.info('Статья с таким названием уже создана');
+        this.draftEditorService.discardDraft(this.getDraftRoute());
+        this.clearEditingMark();
+        this.router.navigate(['/articles', articleId]);
         return true;
     }
 

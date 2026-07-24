@@ -854,6 +854,28 @@ describe('ArticleEditComponent in create mode', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/articles', 321]);
     });
 
+    it('should surface a 409 without a usable articleId as an error and stay put', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Текст новой статьи');
+        const error = new HttpErrorResponse({
+            status: 409,
+            statusText: 'Conflict',
+            error: {
+                success: false,
+                error: 'Статья с таким названием уже существует',
+                errorCode: 'DUPLICATE_TITLE',
+                data: {},
+            },
+        });
+        articleService.createArticle.mockReturnValue(throwError(() => error));
+
+        spectator.component.save();
+
+        expect(notificationService.error).toHaveBeenCalledWith('Статья с таким названием уже существует');
+        expect(notificationService.info).not.toHaveBeenCalledWith('Статья с таким названием уже создана');
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
     it('should stay in the editor on other create errors', () => {
         spectator.detectChanges();
         spectator.component.contentChanged('Текст новой статьи');
