@@ -17,7 +17,7 @@ function createChildRouteSnapshot(parentParams: Record<string, string>): Activat
 
 describe('resolveNewArticle', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'findArticleByTitle'>>;
-    let router: jest.Mocked<Pick<Router, 'parseUrl'>>;
+    let router: jest.Mocked<Pick<Router, 'createUrlTree'>>;
 
     function resolve(params: Record<string, string>) {
         return resolveNewArticle(
@@ -29,7 +29,9 @@ describe('resolveNewArticle', () => {
 
     beforeEach(() => {
         articleService = { findArticleByTitle: jest.fn() };
-        router = { parseUrl: jest.fn().mockImplementation((url: string) => ({ url })) };
+        // createUrlTree encodes segments itself, so the title is passed as a raw
+        // segment rather than interpolated into a parsed URL string.
+        router = { createUrlTree: jest.fn().mockImplementation((commands: unknown[]) => ({ commands })) };
     });
 
     it('should return a create session when creation is allowed', done => {
@@ -52,7 +54,7 @@ describe('resolveNewArticle', () => {
 
         resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
-            expect(router.parseUrl).toHaveBeenCalledWith('/articles/7');
+            expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 7]);
             done();
         });
     });
@@ -64,7 +66,7 @@ describe('resolveNewArticle', () => {
 
         resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
-            expect(router.parseUrl).toHaveBeenCalledWith('/articles/find/НОВАЯ СТАТЬЯ');
+            expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
             done();
         });
     });
@@ -88,7 +90,22 @@ describe('resolveNewArticle', () => {
 
         resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
-            expect(router.parseUrl).toHaveBeenCalledWith('/articles/find/НОВАЯ СТАТЬЯ');
+            expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
+            done();
+        });
+    });
+
+    it('should pass a title with parens and % as a segment, not URL grammar', done => {
+        // Interpolating this into parseUrl would truncate at "(" and throw
+        // "URI malformed" on "%". createUrlTree gets it as a raw segment.
+        const title = 'СВЯТОЙ (+ 1919) 100% воды';
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Недостаточно прав' }),
+        );
+
+        resolve({ title }).subscribe(result => {
+            expect(result).toBeInstanceOf(RedirectCommand);
+            expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', title]);
             done();
         });
     });

@@ -2,7 +2,7 @@ import { ArticleService } from '../../../services/articles';
 import { ArticleEditSession } from '../models/article-edit-session';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
-import { decodeArticleTitle, encodeArticleTitle } from '@drevo-web/shared';
+import { decodeArticleTitle } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
@@ -37,25 +37,26 @@ export function resolveNewArticle(
     const titleParam = route.paramMap.get('title') ?? route.parent?.paramMap.get('title') ?? '';
     const title = decodeArticleTitle(titleParam);
 
+    // Build redirects with createUrlTree so each segment (the title in
+    // particular) is encoded by the router. Interpolating a decoded title into
+    // parseUrl would parse it as URL grammar: "(" truncates the segment and "%"
+    // throws "URI malformed".
+    const placeholderRedirect = () =>
+        new RedirectCommand(router.createUrlTree(['/articles', 'find', title]), { replaceUrl: true });
+
     return articleService.findArticleByTitle(title).pipe(
         map(result => {
             if (result.found) {
-                return new RedirectCommand(router.parseUrl(`/articles/${result.articleId}`), { replaceUrl: true });
-            }
-            if (!result.canCreate) {
-                return new RedirectCommand(router.parseUrl(`/articles/find/${encodeArticleTitle(title)}`), {
+                return new RedirectCommand(router.createUrlTree(['/articles', result.articleId]), {
                     replaceUrl: true,
                 });
             }
+            if (!result.canCreate) {
+                return placeholderRedirect();
+            }
             return { mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
         }),
-        catchError(() =>
-            of(
-                new RedirectCommand(router.parseUrl(`/articles/find/${encodeArticleTitle(title)}`), {
-                    replaceUrl: true,
-                }),
-            ),
-        ),
+        catchError(() => of(placeholderRedirect())),
     );
 }
 
