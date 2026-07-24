@@ -5,6 +5,8 @@ export class ArticleEditPage extends BasePage {
     readonly root = this.page.getByTestId('article-edit');
     /** CodeMirror editor container */
     readonly editorContainer = this.page.getByTestId('editor-container');
+    /** CodeMirror editable content — its text is the current editor value */
+    readonly editorContent = this.editorContainer.locator('.cm-content');
     /** Save sidebar action button (desktop sidebar or mobile FAB) */
     readonly saveAction = this.sidebarAction('save-action');
     /** Cancel sidebar action button (desktop sidebar or mobile FAB) */

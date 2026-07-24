@@ -4,7 +4,7 @@
         title="Ошибка"
         [message]="error()"
     />
-} @else if (article()) {
+} @else if (article() || isMissing()) {
     <app-sidebar-reserve />
 
     <article

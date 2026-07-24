@@ -1,0 +1,13 @@
+.missing {
+    padding: 1.5rem 1rem;
+}
+
+.missing__message {
+    margin: 0;
+    color: var(--themed-text-primary);
+}
+
+.missing__reason {
+    margin: 0;
+    color: var(--themed-text-secondary);
+}

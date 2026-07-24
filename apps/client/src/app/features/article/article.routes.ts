@@ -1,5 +1,7 @@
 import { articleVersionResolver } from './resolvers/article-version.resolver';
 import { articleResolver } from './resolvers/article.resolver';
+import { missingArticleResolver } from './resolvers/missing-article.resolver';
+import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
@@ -23,12 +25,88 @@ export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: Act
     return toPath === '' && fromPath !== '';
 }
 
+/**
+ * Predicate for the `find/:title` route's `runGuardsAndResolvers`.
+ *
+ * Re-runs `missingArticleResolver` when:
+ * - the `:title` changes, or
+ * - the user returns to the empty-child placeholder from a committed child
+ *   (e.g. leaving the editor after `/edit` actually activated), so `canCreate`
+ *   and the "create" button reflect current state.
+ *
+ * The creation-denied redirect is handled separately in `newArticleResolver`:
+ * it never commits `/edit`, so that same-URL redirect isn't observable here.
+ */
+export function shouldRerunMissingArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
+    if (from.paramMap.get('title') !== to.paramMap.get('title')) return true;
+
+    const fromPath = from.firstChild?.routeConfig?.path;
+    const toPath = to.firstChild?.routeConfig?.path;
+    return toPath === '' && fromPath !== '';
+}
+
 export const ARTICLE_ROUTES: Route[] = [
     {
         path: 'version/:versionId',
         title: 'Перенаправление',
         loadComponent: () =>
             import('./pages/version-redirect/version-redirect.component').then(m => m.VersionRedirectComponent),
+    },
+    {
+        // Must stay ahead of `:id`, otherwise `find` is swallowed by it.
+        path: 'find/:title',
+        loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
+        providers: [ArticlePageService, DraftEditorService],
+        // The key must be `article` — PageTitleStrategy reads data[titleSource].
+        resolve: { article: missingArticleResolver },
+        // Refresh canCreate when returning to the placeholder from `/edit`
+        // (creation may have been denied since the button was rendered).
+        runGuardsAndResolvers: shouldRerunMissingArticleResolver,
+        data: { titleSource: 'article' },
+        children: [
+            {
+                path: '',
+                pathMatch: 'full',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-missing-tab/article-missing-tab.component').then(
+                        m => m.ArticleMissingTabComponent,
+                    ),
+            },
+            {
+                path: 'edit',
+                loadComponent: () =>
+                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+                resolve: { session: newArticleResolver },
+                providers: [LinksService],
+                data: { titleSource: 'session', titlePrefix: '*' },
+            },
+            {
+                path: 'news',
+                title: 'Новости',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
+                data: { stubTitle: 'Новости' },
+            },
+            {
+                path: 'forum',
+                title: 'Обсуждение',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
+                        m => m.ArticleStubTabComponent,
+                    ),
+                data: { stubTitle: 'Обсуждение' },
+            },
+            {
+                path: 'linkedhere',
+                title: 'Кто ссылается',
+                loadComponent: () =>
+                    import('./pages/article-page/tabs/article-linkedhere-tab/article-linkedhere-tab.component').then(
+                        m => m.ArticleLinkedHereTabComponent,
+                    ),
+            },
+        ],
     },
     {
         path: ':id',

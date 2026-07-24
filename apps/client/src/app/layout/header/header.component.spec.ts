@@ -141,6 +141,14 @@ describe('HeaderComponent', () => {
 
             expect(spectator.component.canRename()).toBe(false);
         });
+
+        it('should be false for a placeholder (missing) article', () => {
+            // articleId 0 marks a not-yet-existing article — it cannot be renamed.
+            titleContextSignal.set({ articleId: 0, title: 'НОВАЯ СТАТЬЯ' });
+            spectator = createComponent();
+
+            expect(spectator.component.canRename()).toBe(false);
+        });
     });
 
     describe('inline editing (moderator)', () => {

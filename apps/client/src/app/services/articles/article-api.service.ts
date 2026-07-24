@@ -5,6 +5,7 @@ import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
+    ArticleFindResponseDto,
     ArticleHistoryRequestDto,
     ArticleHistoryResponseDto,
     ArticleLinkedHereResponseDto,
@@ -12,6 +13,8 @@ import {
     ArticlePreviewResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    CreateArticleRequestDto,
+    CreateArticleResponseDto,
     ModerationRequestDto,
     ModerationResponseDto,
     RenameArticleResponseDto,
@@ -151,6 +154,52 @@ export class ArticleApiService {
             .get<
                 ApiResponse<ArticleLinkedHereResponseDto>
             >(`${this.apiUrl}/api/articles/linkedhere`, { params, withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Resolve an article id by its title.
+     *
+     * @param title - Article title (decoded, with spaces)
+     * @returns Observable with raw find response
+     */
+    findArticleByTitle(title: string): Observable<ArticleFindResponseDto> {
+        const params = new HttpParams().set('title', title);
+
+        return this.http
+            .get<ApiResponse<ArticleFindResponseDto>>(`${this.apiUrl}/api/articles/find`, {
+                params,
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Create a new article.
+     *
+     * Errors are not auto-notified — the editor handles 409/400/403 itself.
+     *
+     * @param request - Create request with title, content, and optional info
+     * @returns Observable with raw create response
+     */
+    createArticle(request: CreateArticleRequestDto): Observable<CreateArticleResponseDto> {
+        const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
+
+        return this.http
+            .post<
+                ApiResponse<CreateArticleResponseDto>
+            >(`${this.apiUrl}/api/articles/create`, request, { withCredentials: true, context })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

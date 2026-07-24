@@ -421,6 +421,24 @@ describe('ArticleEditComponent', () => {
             expect(notificationService.error).toHaveBeenCalledWith('Внутренняя ошибка сервера');
         });
 
+        it('should not treat a 409 DUPLICATE_TITLE as a duplicate on a version save', () => {
+            spectator.detectChanges();
+            spectator.component.contentChanged('new content');
+
+            const error = new HttpErrorResponse({
+                status: 409,
+                statusText: 'Conflict',
+                error: { error: 'Конфликт', errorCode: 'DUPLICATE_TITLE', data: { articleId: 321 } },
+            });
+            articleService.saveArticleVersion.mockReturnValue(throwError(() => error));
+
+            spectator.component.save();
+
+            // Version save has no title to duplicate — must not bounce the editor.
+            expect(router.navigate).not.toHaveBeenCalled();
+            expect(notificationService.error).toHaveBeenCalledWith('Конфликт');
+        });
+
         it('should set isSaving to false after error', () => {
             spectator.detectChanges();
             spectator.component.contentChanged('new content');
@@ -733,6 +751,155 @@ describe('ArticleEditComponent', () => {
             expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
             expect(router.navigate).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('ArticleEditComponent in create mode', () => {
+    const CREATE_DRAFT_ROUTE = '/articles/find/НОВАЯ СТАТЬЯ/edit';
+    const createSession = {
+        mode: 'create' as const,
+        articleId: 0,
+        versionId: 0,
+        title: 'НОВАЯ СТАТЬЯ',
+        content: '',
+    };
+    const mockCreateResult: SaveArticleVersionResult = {
+        articleId: 555,
+        versionId: 777,
+        title: 'НОВАЯ СТАТЬЯ',
+        author: 'Test Author',
+        date: new Date('2024-01-15T10:00:00Z'),
+        approved: 0,
+    };
+
+    let spectator: Spectator<ArticleEditComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+    let notificationService: jest.Mocked<NotificationService>;
+    let router: jest.Mocked<Router>;
+
+    const createComponent = createComponentFactory({
+        component: ArticleEditComponent,
+        mocks: [ArticleService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [
+            mockLoggerProvider(),
+            {
+                provide: ActivatedRoute,
+                useValue: { snapshot: { data: { session: createSession } } },
+            },
+        ],
+        detectChanges: false,
+    });
+
+    beforeEach(() => {
+        mockDraftEditorService.getDraft.mockResolvedValue(undefined);
+        mockDraftEditorService.hasActiveSession.mockReturnValue(false);
+        mockDraftEditorService.discardDraft.mockClear();
+        mockInwork.getActiveEditor.mockClear().mockReturnValue(of(undefined));
+        mockInwork.markEditing.mockClear().mockReturnValue(of(undefined));
+        mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+        router = spectator.inject(Router) as jest.Mocked<Router>;
+        articleService.createArticle.mockReturnValue(of(mockCreateResult));
+    });
+
+    it('should start with empty content', () => {
+        spectator.detectChanges();
+
+        expect(spectator.component.editorContent()).toBe('');
+        expect(spectator.component.articleId()).toBe(0);
+    });
+
+    it('should use the find route for drafts', () => {
+        spectator.detectChanges();
+
+        expect(mockDraftEditorService.getDraft).toHaveBeenCalledWith(CREATE_DRAFT_ROUTE);
+    });
+
+    it('should refuse to save empty content', () => {
+        spectator.detectChanges();
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Введите текст статьи');
+        expect(articleService.createArticle).not.toHaveBeenCalled();
+    });
+
+    it('should create the article instead of saving a version', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Текст новой статьи');
+
+        spectator.component.save();
+
+        expect(articleService.createArticle).toHaveBeenCalledWith({
+            title: 'НОВАЯ СТАТЬЯ',
+            content: 'Текст новой статьи',
+            info: 'Новая статья',
+        });
+        expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+    });
+
+    it('should navigate to the created article', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Текст новой статьи');
+
+        spectator.component.save();
+
+        expect(notificationService.success).toHaveBeenCalledWith('Статья создана');
+        expect(router.navigate).toHaveBeenCalledWith(['/articles', 555]);
+    });
+
+    it('should keep the draft and stay in the editor on a duplicate title', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Текст новой статьи');
+        const error = new HttpErrorResponse({
+            status: 409,
+            statusText: 'Conflict',
+            error: {
+                success: false,
+                error: 'Статья с таким названием уже существует',
+                errorCode: 'DUPLICATE_TITLE',
+                data: { articleId: 321 },
+            },
+        });
+        articleService.createArticle.mockReturnValue(throwError(() => error));
+
+        spectator.component.save();
+
+        // Concurrent creation — warn the text is unsaved, but don't discard the
+        // draft or bounce the user away, so they can copy their content out.
+        expect(notificationService.error).toHaveBeenCalledWith(
+            'Статья с таким названием уже создана. Ваш текст не сохранён — скопируйте его при необходимости.',
+        );
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
+    });
+
+    it('should stay in the editor on other create errors', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Текст новой статьи');
+        const error = new HttpErrorResponse({
+            status: 403,
+            statusText: 'Forbidden',
+            error: { error: 'Превышен лимит правок' },
+        });
+        articleService.createArticle.mockReturnValue(throwError(() => error));
+
+        spectator.component.save();
+
+        expect(notificationService.error).toHaveBeenCalledWith('Превышен лимит правок');
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should cancel back to the find page', async () => {
+        spectator.detectChanges();
+        mockDraftEditorService.getDraft.mockResolvedValue(undefined);
+
+        await spectator.component.cancel();
+
+        expect(router.navigate).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
     });
 });
 

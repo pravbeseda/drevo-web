@@ -17,15 +17,23 @@ function createMockPageService(
         articleId: number | undefined;
         title: string | undefined;
         editUrl: string | undefined;
+        isMissing: boolean;
+        basePath: string | undefined;
     }> = {},
 ) {
+    const articleId = 'articleId' in overrides ? overrides.articleId : 123;
     return {
         article: signal('article' in overrides ? overrides.article : mockArticle),
         error: signal(overrides.error),
-        articleId: signal('articleId' in overrides ? overrides.articleId : 123),
+        articleId: signal(articleId),
         title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
         editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/123/version/456/edit'),
+        isMissing: signal(overrides.isMissing ?? false),
+        basePath: signal(
+            'basePath' in overrides ? overrides.basePath : articleId ? `/articles/${articleId}` : undefined,
+        ),
         setArticle: jest.fn(),
+        setMissing: jest.fn(),
         setError: jest.fn(),
     };
 }
@@ -143,6 +151,75 @@ describe('ArticleComponent', () => {
 
         const isActive = spectator.component.tabGroups()[0].items[0].isActive;
         expect(isActive?.()).toBe(false);
+    });
+});
+
+describe('ArticleComponent missing article', () => {
+    const missingArticle = { articleId: 0, title: 'НОВАЯ СТАТЬЯ', canCreate: true } as const;
+    const missingPageService = createMockPageService({
+        article: undefined,
+        articleId: undefined,
+        title: 'НОВАЯ СТАТЬЯ',
+        isMissing: true,
+        basePath: '/articles/find/НОВАЯ СТАТЬЯ',
+    });
+
+    const createComponent = createComponentFactory({
+        component: ArticleComponent,
+        providers: [
+            provideRouter([{ path: '**', children: [] }]),
+            mockLoggerProvider(),
+            { provide: ArticlePageService, useValue: missingPageService },
+            {
+                provide: ActivatedRoute,
+                useValue: {
+                    data: new BehaviorSubject({ article: missingArticle }),
+                    snapshot: { data: {} },
+                },
+            },
+        ],
+    });
+
+    it('should call setMissing for a missing article', () => {
+        createComponent();
+
+        expect(missingPageService.setMissing).toHaveBeenCalledWith(missingArticle);
+        expect(missingPageService.setArticle).not.toHaveBeenCalled();
+    });
+
+    it('should render the page instead of an empty body', () => {
+        const spectator = createComponent();
+
+        expect(spectator.query('[data-testid="article-page"]')).toBeTruthy();
+    });
+
+    it('should hide the versions tab', () => {
+        const spectator = createComponent();
+
+        const tabs = spectator.component.tabGroups().flatMap(group => group.items);
+        expect(tabs.some(tab => tab.testId === 'tab-history')).toBe(false);
+    });
+
+    it('should point the remaining tabs at the find route', () => {
+        const spectator = createComponent();
+
+        const groups = spectator.component.tabGroups();
+        expect(groups[0].items.map(item => item.route)).toEqual([
+            '/articles/find/НОВАЯ СТАТЬЯ',
+            '/articles/find/НОВАЯ СТАТЬЯ/news',
+            '/articles/find/НОВАЯ СТАТЬЯ/forum',
+        ]);
+        expect(groups[1].items[0].route).toBe('/articles/find/НОВАЯ СТАТЬЯ/linkedhere');
+    });
+
+    it('should mark the article tab active on the find URL', async () => {
+        const spectator = createComponent();
+        const router = spectator.inject(Router);
+        await router.navigateByUrl('/articles/find/НОВАЯ СТАТЬЯ');
+        spectator.detectChanges();
+
+        const isActive = spectator.component.tabGroups()[0].items[0].isActive;
+        expect(isActive?.()).toBe(true);
     });
 });
 

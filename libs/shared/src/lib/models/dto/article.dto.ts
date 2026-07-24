@@ -80,6 +80,43 @@ export interface SaveArticleVersionResponseDto {
     readonly approved: ApprovalStatusDto;
 }
 
+/**
+ * Response from resolving an article id by title (GET /api/articles/find).
+ *
+ * `canCreate`/`reason` are only present when `found` is false — they gate the
+ * "create article" action before the editor is opened.
+ */
+export interface ArticleFindResponseDto {
+    readonly found: boolean;
+    readonly articleId?: number;
+    readonly canCreate?: boolean;
+    readonly reason?: string;
+}
+
+/**
+ * Request body for creating a new article
+ */
+export interface CreateArticleRequestDto {
+    readonly title: string;
+    readonly content: string;
+    readonly info?: string;
+}
+
+/**
+ * Response from creating a new article.
+ *
+ * Deliberately not reusing SaveArticleVersionResponseDto: /api/articles/create
+ * does not echo `content` back.
+ */
+export interface CreateArticleResponseDto {
+    readonly articleId: number;
+    readonly versionId: number;
+    readonly title: string;
+    readonly author: string;
+    readonly date: string;
+    readonly approved: ApprovalStatusDto;
+}
+
 export interface RenameArticleResponseDto {
     readonly articleId: number;
     readonly title: string;

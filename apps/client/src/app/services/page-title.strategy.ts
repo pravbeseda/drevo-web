@@ -58,7 +58,12 @@ export class PageTitleStrategy extends TitleStrategy {
                 const current = this._titleContext();
                 // Preserve current context if articleId matches — it may hold a
                 // freshly renamed title that route snapshot data doesn't yet reflect.
-                if (!current || current.articleId !== articleData.articleId) {
+                // Only real articles (articleId > 0) are deduped this way: the
+                // missing-article placeholder always uses articleId 0, so distinct
+                // missing titles would otherwise wrongly keep the previous title.
+                const isSameRealArticle =
+                    !!current && current.articleId === articleData.articleId && articleData.articleId > 0;
+                if (!isSameRealArticle) {
                     this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
                 }
             } else {

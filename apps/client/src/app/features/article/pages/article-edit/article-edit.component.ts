@@ -9,6 +9,7 @@ import { SidebarActionComponent } from '../../../../shared/components/sidebar-ac
 import { createPicturePreviewExtension } from '../../../../shared/helpers/picture-tooltip';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
 import { PreviewComponent } from '../../components/preview/preview.component';
+import { ArticleEditSession, toEditSession } from '../../models/article-edit-session';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,
@@ -26,7 +27,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
-import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
+import { ArticleVersion, encodeArticleTitle, formatDateHeader, formatTime } from '@drevo-web/shared';
 import {
     ConfirmationService,
     IconComponent,
@@ -87,7 +88,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
 
     private readonly _validationResult = signal<ValidationResult>({ errors: 0, warnings: 0 });
 
-    private version: ArticleVersion | undefined;
+    private session: ArticleEditSession | undefined;
     private editingCleared = false;
 
     readonly editorContent = this._editorContent.asReadonly();
@@ -118,24 +119,25 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     ];
 
     ngOnInit(): void {
-        const version = this.route.snapshot.data['version'] as ArticleVersion | undefined;
-        if (!version) {
+        const session = this.readSession();
+        if (!session) {
             this._error.set('Версия не найдена');
-            this.logger.error('Version not resolved from route data');
+            this.logger.error('Edit session not resolved from route data');
             return;
         }
 
-        this.version = version;
-        this._articleId.set(version.articleId);
-        this._originalContent.set(version.content);
-        this._editorContent.set(version.content);
-        this.logger.info('Version loaded for editing', {
-            versionId: version.versionId,
-            articleId: version.articleId,
-            title: version.title,
+        this.session = session;
+        this._articleId.set(session.articleId);
+        this._originalContent.set(session.content);
+        this._editorContent.set(session.content);
+        this.logger.info('Edit session started', {
+            mode: session.mode,
+            versionId: session.versionId,
+            articleId: session.articleId,
+            title: session.title,
         });
 
-        this.checkInworkAndMark(version);
+        this.checkInworkAndMark(session);
 
         const draftRoute = this.getDraftRoute();
         const isReentry = this.draftEditorService.hasActiveSession(draftRoute);
@@ -157,6 +159,22 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             .catch(err => {
                 this.logger.error('Failed to check draft', err);
             });
+    }
+
+    /**
+     * The create route resolves a session directly; the existing edit route
+     * still resolves an `ArticleVersion` under `version` and is adapted here,
+     * so that route, its titleSource and its specs stay untouched.
+     */
+    private readSession(): ArticleEditSession | undefined {
+        const data = this.route.snapshot.data;
+        const session = data['session'] as ArticleEditSession | undefined;
+        if (session) {
+            return session;
+        }
+
+        const version = data['version'] as ArticleVersion | undefined;
+        return version ? toEditSession(version) : undefined;
     }
 
     ngOnDestroy(): void {
@@ -186,23 +204,29 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         this._editorContent.set(content);
         this.logger.debug('Content changed', { length: content.length });
 
-        if (this.version) {
+        if (this.session) {
             this.draftEditorService.onContentChanged({
                 route: this.getDraftRoute(),
-                title: this.version.title,
+                title: this.session.title,
                 text: content,
             });
         }
     }
 
     save(): void {
-        if (!this.version || this.isSaving()) {
+        const session = this.session;
+        if (!session || this.isSaving()) {
             return;
         }
 
         const content = this._editorContent();
 
-        if (content === this.version.content) {
+        if (session.mode === 'create') {
+            if (!content.trim()) {
+                this.notificationService.info('Введите текст статьи');
+                return;
+            }
+        } else if (content === session.content) {
             this.notificationService.info('Нет изменений для сохранения');
             return;
         }
@@ -244,49 +268,76 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     private performSave(content: string): void {
-        if (!this.version) return;
+        const session = this.session;
+        if (!session) return;
 
         this._isSaving.set(true);
         this.logger.info('Saving article', {
-            versionId: this.version.versionId,
-            articleId: this.version.articleId,
+            mode: session.mode,
+            versionId: session.versionId,
+            articleId: session.articleId,
             contentLength: content.length,
         });
 
-        this.articleService
-            .saveArticleVersion({
-                versionId: this.version.versionId,
-                content,
-            })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: result => {
-                    this._isSaving.set(false);
-                    this.logger.info('Article saved', {
-                        newVersionId: result.versionId,
-                        articleId: result.articleId,
-                    });
-                    this.notificationService.success('Статья сохранена');
-                    this.draftEditorService.discardDraft(this.getDraftRoute());
-                    this.clearEditingMark();
-                    this.router.navigate(['/articles', result.articleId]);
-                },
-                error: (err: HttpErrorResponse) => {
-                    this._isSaving.set(false);
-                    this.logger.error('Failed to save article', err);
+        const save$ =
+            session.mode === 'create'
+                ? this.articleService.createArticle({ title: session.title, content, info: 'Новая статья' })
+                : this.articleService.saveArticleVersion({ versionId: session.versionId, content });
 
-                    let errorMessage = 'Ошибка сохранения';
-                    if (err.status === 401) {
-                        errorMessage = 'Необходима авторизация';
-                    } else if (err.status === 403) {
-                        errorMessage = err.error?.error || 'Нет прав для сохранения';
-                    } else if (err.error?.error) {
-                        errorMessage = err.error.error;
-                    }
+        save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: result => {
+                this._isSaving.set(false);
+                this.logger.info('Article saved', {
+                    newVersionId: result.versionId,
+                    articleId: result.articleId,
+                });
+                this.notificationService.success(session.mode === 'create' ? 'Статья создана' : 'Статья сохранена');
+                this.draftEditorService.discardDraft(this.getDraftRoute());
+                this.clearEditingMark();
+                this.router.navigate(['/articles', result.articleId]);
+            },
+            error: (err: HttpErrorResponse) => {
+                this._isSaving.set(false);
+                this.logger.error('Failed to save article', err);
 
-                    this.notificationService.error(errorMessage);
-                },
-            });
+                if (this.handleDuplicateTitle(err)) {
+                    return;
+                }
+
+                let errorMessage = 'Ошибка сохранения';
+                if (err.status === 401) {
+                    errorMessage = 'Необходима авторизация';
+                } else if (err.status === 403) {
+                    errorMessage = err.error?.error || 'Нет прав для сохранения';
+                } else if (err.error?.error) {
+                    errorMessage = err.error.error;
+                }
+
+                this.notificationService.error(errorMessage);
+            },
+        });
+    }
+
+    /**
+     * A 409 from /create means the title was created concurrently while the user
+     * was typing. Keep them in the editor with their content and the draft intact
+     * so they can copy it out — navigating away (and discarding the draft) would
+     * silently destroy potentially substantial input for an article they didn't
+     * write. Only meaningful in create mode: a version save has no title to
+     * duplicate, so its 409 falls through to the normal error branch.
+     */
+    private handleDuplicateTitle(err: HttpErrorResponse): boolean {
+        if (this.session?.mode !== 'create') {
+            return false;
+        }
+        if (err.status !== 409 || err.error?.errorCode !== 'DUPLICATE_TITLE') {
+            return false;
+        }
+
+        this.notificationService.error(
+            'Статья с таким названием уже создана. Ваш текст не сохранён — скопируйте его при необходимости.',
+        );
+        return true;
     }
 
     toggleLintPanel(): void {
@@ -300,13 +351,17 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     async cancel(): Promise<void> {
-        if (!this.version) {
+        const session = this.session;
+        if (!session) {
             this.router.navigate(['/']);
             return;
         }
 
         const draftRoute = this.getDraftRoute();
-        const navigateTo = ['/articles', this.version.articleId, 'version', this.version.versionId];
+        const navigateTo =
+            session.mode === 'create'
+                ? ['/articles', 'find', encodeArticleTitle(session.title)]
+                : ['/articles', session.articleId, 'version', session.versionId];
 
         try {
             const draft = await this.draftEditorService.getDraft(draftRoute);
@@ -366,8 +421,13 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     private getDraftRoute(): string {
-        const v = this.version;
-        return v ? `/articles/${v.articleId}/version/${v.versionId}/edit` : '';
+        const session = this.session;
+        if (!session) {
+            return '';
+        }
+        return session.mode === 'create'
+            ? `/articles/find/${encodeArticleTitle(session.title)}/edit`
+            : `/articles/${session.articleId}/version/${session.versionId}/edit`;
     }
 
     private async showRestoreDraftDialog(title: string, time: number, text: string, draftRoute: string): Promise<void> {
@@ -400,19 +460,25 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         return `${dateStr}, ${timeStr}`;
     }
 
-    private checkInworkAndMark(version: ArticleVersion): void {
+    private checkInworkAndMark(session: ArticleEditSession): void {
+        // In create mode versionId is 0, and that is intentional: the inwork mark
+        // is keyed by title (not versionId), the backend defaults versionId to 0,
+        // and locking the title during creation is what warns a second author of a
+        // concurrent create. It cannot go stale or collide — clearEditingMark()
+        // removes it by title on success and on destroy, a backend TTL expires it,
+        // and editing the real version later REPLACEs the row by title.
         this.inworkService
-            .getActiveEditor(version.title)
+            .getActiveEditor(session.title)
             .pipe(
-                switchMap(editor => (editor ? this.confirmInworkEditing(editor, version) : of(true))),
+                switchMap(editor => (editor ? this.confirmInworkEditing(editor, session) : of(true))),
                 filter(shouldMark => shouldMark),
-                switchMap(() => this.inworkService.markEditing(version.title, version.versionId)),
+                switchMap(() => this.inworkService.markEditing(session.title, session.versionId)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
-    private confirmInworkEditing(editor: string, version: ArticleVersion): Observable<boolean> {
+    private confirmInworkEditing(editor: string, session: ArticleEditSession): Observable<boolean> {
         return this.confirmationService
             .open({
                 title: 'Статья редактируется',
@@ -431,17 +497,21 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                         return true;
                     }
                     this.editingCleared = true;
-                    this.router.navigate(['/articles', version.articleId]);
+                    this.router.navigate(
+                        session.mode === 'create'
+                            ? ['/articles', 'find', encodeArticleTitle(session.title)]
+                            : ['/articles', session.articleId],
+                    );
                     return false;
                 }),
             );
     }
 
     private clearEditingMark(): void {
-        if (this.editingCleared || !this.version) {
+        if (this.editingCleared || !this.session) {
             return;
         }
         this.editingCleared = true;
-        this.inworkService.clearEditing(this.version.title).subscribe();
+        this.inworkService.clearEditing(this.session.title).subscribe();
     }
 }

@@ -1,0 +1,27 @@
+<div
+    class="missing"
+    data-testid="article-missing"
+>
+    <ui-banner>
+        <p class="missing__message">Статьи «{{ title() }}» пока не существует</p>
+
+        @if (createUrl(); as url) {
+            <div>
+                <ui-button
+                    accent="primary"
+                    [link]="url"
+                    testId="create-article-action"
+                >
+                    Создать статью
+                </ui-button>
+            </div>
+        } @else {
+            <p
+                class="missing__reason"
+                data-testid="create-article-denied"
+            >
+                {{ reason() ?? 'Создание статьи недоступно' }}
+            </p>
+        }
+    </ui-banner>
+</div>

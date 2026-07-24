@@ -316,6 +316,30 @@ describe('PageTitleStrategy', () => {
 
             expect(spectator.service.titleContext()).toEqual({ articleId: 2, title: 'Сосна' });
         });
+
+        it('should refresh titleContext between different missing articles (both id 0)', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            spectator.service.updateTitle(
+                makeSnapshot(
+                    makeRoute({
+                        titleSource: 'article',
+                        article: { articleId: 0, title: 'СВЯТОЙ АНДРЕЙ' },
+                    }),
+                ),
+            );
+
+            spectator.service.updateTitle(
+                makeSnapshot(
+                    makeRoute({
+                        titleSource: 'article',
+                        article: { articleId: 0, title: 'СВЯТОЙ ПЁТР' },
+                    }),
+                ),
+            );
+
+            expect(spectator.service.titleContext()).toEqual({ articleId: 0, title: 'СВЯТОЙ ПЁТР' });
+        });
     });
 
     describe('rename event handling', () => {
