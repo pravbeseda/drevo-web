@@ -1,5 +1,5 @@
 import { ContentError } from './models/content-error.model';
-import { ALL_RULES } from './rules';
+import { ALL_RULES } from './rules/all-rules';
 
 export function validateWikiContent(text: string): readonly ContentError[] {
     return ALL_RULES.flatMap(rule =>

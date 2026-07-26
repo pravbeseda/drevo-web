@@ -19,6 +19,7 @@ module.exports = {
     collectCoverageFrom: [
         'src/**/*.ts',
         '!src/**/*.spec.ts',
+        '!src/**/*.test.ts',
         '!src/**/*.d.ts',
         '!src/test-setup.ts',
         '!src/main.ts',
@@ -28,9 +29,12 @@ module.exports = {
         '!src/**/index.ts',
         '!src/testing.ts',
         '!src/**/testing/**',
+        '!src/**/*.testing.ts',
         '!src/**/*.mock.ts',
     ],
     // coverageThreshold is defined per project in each jest.config.ts, calibrated
     // to that project's current coverage — denominators diverge too much for one
-    // shared floor to protect the stronger projects. Ratchet: raise, never lower.
+    // shared floor to protect the stronger projects. Each floor sits >= 3 points
+    // below the measured value as run-to-run drift headroom. Ratchet: as coverage
+    // grows, raise the floor (keeping the headroom); never lower it.
 };

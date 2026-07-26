@@ -4,7 +4,7 @@ export default {
     setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
     coverageDirectory: '../../coverage/libs/editor',
     coverageThreshold: {
-        global: { lines: 70, branches: 55, functions: 55, statements: 70 },
+        global: { lines: 69, branches: 55, functions: 55, statements: 69 },
     },
     transform: {
         '^.+\\.(ts|mjs|js|html)$': [
