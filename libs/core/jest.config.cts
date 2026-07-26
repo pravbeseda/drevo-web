@@ -4,7 +4,7 @@ module.exports = {
     setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
     coverageDirectory: '../../coverage/libs/core',
     coverageThreshold: {
-        global: { lines: 76, branches: 72, functions: 57, statements: 73 },
+        global: { lines: 80, branches: 73, functions: 73, statements: 80 },
     },
     transform: {
         '^.+\\.(ts|mjs|js|html)$': [

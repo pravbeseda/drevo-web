@@ -13,7 +13,9 @@ module.exports = {
     coverageReporters: ['text', 'html', 'json-summary'],
     // Include all source in the denominator (relative to each project's rootDir),
     // so entirely untested files count as 0% instead of being silently omitted.
-    // Excludes: specs, type decls, bootstrap, environments, lib public-API barrels.
+    // Excludes non-production code: specs, type decls, bootstrap, environments,
+    // re-export barrels (index.ts), and test-support (secondary testing entry,
+    // testing/ dirs, *.mock.ts) — none of which is executable production source.
     collectCoverageFrom: [
         'src/**/*.ts',
         '!src/**/*.spec.ts',
@@ -23,7 +25,10 @@ module.exports = {
         '!src/main.server.ts',
         '!src/server.ts',
         '!src/environments/**',
-        '!src/index.ts',
+        '!src/**/index.ts',
+        '!src/testing.ts',
+        '!src/**/testing/**',
+        '!src/**/*.mock.ts',
     ],
     // coverageThreshold is defined per project in each jest.config.ts, calibrated
     // to that project's current coverage — denominators diverge too much for one
