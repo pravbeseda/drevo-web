@@ -7,4 +7,7 @@ export default {
     },
     moduleFileExtensions: ['ts', 'js', 'html'],
     coverageDirectory: '../../coverage/libs/shared',
+    coverageThreshold: {
+        global: { lines: 64, branches: 62, functions: 58, statements: 63 },
+    },
 };
