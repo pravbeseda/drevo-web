@@ -1,0 +1,18 @@
+{
+    "extends": "stylelint-config-standard-scss",
+    "rules": {
+        "scss/dollar-variable-pattern": [
+            "^_?[a-z][a-zA-Z0-9-]*$",
+            {
+                "message": "Expected variable to be kebab-case (optional leading underscore, Material palette suffixes allowed)"
+            }
+        ],
+        "selector-class-pattern": null,
+        "keyframes-name-pattern": null,
+        "font-family-no-missing-generic-family-keyword": null,
+        "no-empty-source": null,
+        "scss/comment-no-empty": null,
+        "declaration-block-no-redundant-longhand-properties": [true, { "ignoreShorthands": ["grid-template"] }],
+        "selector-pseudo-element-no-unknown": [true, { "ignorePseudoElements": ["ng-deep"] }]
+    }
+}

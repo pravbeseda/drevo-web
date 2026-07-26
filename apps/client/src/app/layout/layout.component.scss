@@ -28,8 +28,7 @@
     grid-area: main;
     background-color: var(--themed-primary-bg);
     transition: background-color 0.3s ease;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
 }
 
 // Suppress all transitions during breakpoint switch

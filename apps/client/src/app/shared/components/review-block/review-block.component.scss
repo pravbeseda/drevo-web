@@ -70,12 +70,15 @@
     &.success {
         border-left-color: var(--themed-text-success);
     }
+
     &.warning {
         border-left-color: var(--themed-text-warning);
     }
+
     &.error {
         border-left-color: var(--themed-text-error);
     }
+
     &.neutral {
         border-left-color: var(--themed-text-muted);
     }
