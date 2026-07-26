@@ -18,6 +18,7 @@ $tones: (
         &.tone-#{$name}:not(.filled) {
             color: #{$color};
         }
+
         // Filled: the tone becomes a circular background behind a white glyph.
         &.filled.tone-#{$name} {
             background: #{$color};
@@ -41,7 +42,7 @@ mat-icon.material-symbols-rounded {
     letter-spacing: normal;
     text-transform: none;
     white-space: nowrap;
-    word-wrap: normal;
+    overflow-wrap: normal;
     direction: ltr;
     font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;

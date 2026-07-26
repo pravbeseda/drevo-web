@@ -25,6 +25,7 @@
     .mat-mdc-dialog-surface {
         border-radius: $panel-border-radius $panel-border-radius 0 0;
         border-bottom: none;
+
         // Slide via keyframes only. `transition: none` disables the dialog's own
         // transform transition so the two don't overlap (the container's opacity
         // fade lives on a separate element and is untouched). `forwards` holds
