@@ -116,6 +116,7 @@
         "serve": "^14.2.6",
         "stylelint": "^17.14.1",
         "stylelint-config-standard-scss": "^17.0.0",
+        "stylelint-declaration-strict-value": "^1.11.1",
         "ts-jest": "29.4.6",
         "ts-node": "10.9.1",
         "tslib": "^2.3.0",

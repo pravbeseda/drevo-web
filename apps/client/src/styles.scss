@@ -161,6 +161,7 @@ mark {
 }
 
 .mat-mdc-snack-bar-label {
+    // stylelint-disable-next-line scale-unlimited/declaration-strict-value -- intentional high-contrast text on the saturated toast background (stays white in both themes)
     color: white;
 }
 

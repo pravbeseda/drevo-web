@@ -14018,6 +14018,11 @@ stylelint-config-standard@^40.0.0:
   dependencies:
     stylelint-config-recommended "^18.0.0"
 
+stylelint-declaration-strict-value@^1.11.1:
+  version "1.11.1"
+  resolved "https://registry.yarnpkg.com/stylelint-declaration-strict-value/-/stylelint-declaration-strict-value-1.11.1.tgz#491faf2874f25f11afab7525d695f2030b4f424d"
+  integrity sha512-DYihiMuKGk9AeCYp+c3PMy6Z+Qu6yb6wRLeXQJZVMdXV+QOqs7P+Xj6jt8RVTgFJfII+cEQaFI5uWu08WwlkOA==
+
 stylelint-scss@^7.0.0:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/stylelint-scss/-/stylelint-scss-7.2.0.tgz#2a5f7a7e210254f927bbc3e8145245abedd9e390"

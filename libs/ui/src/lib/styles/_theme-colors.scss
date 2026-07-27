@@ -101,6 +101,10 @@ $theme-colors: (
         light: rgb(0 0 0 / 10%),
         dark: rgb(0 0 0 / 40%),
     ),
+    divider-color: (
+        light: rgb(0 0 0 / 12%),
+        dark: rgb(255 255 255 / 12%),
+    ),
     /* Links*/
     link-color: (
         light: $md-blue-700,
