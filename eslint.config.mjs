@@ -71,4 +71,26 @@ export default [
             'no-null/no-null': 'error',
         },
     },
+    // Type-aware linting (Этап 2 · Q3, Вариант B): high-value typed rules only.
+    // projectService enables full type information; scoped to source TS.
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        languageOptions: {
+            parserOptions: {
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+        rules: {
+            // Clean at introduction — locked at error to guard new code.
+            '@typescript-eslint/await-thenable': 'error',
+            '@typescript-eslint/no-misused-promises': 'error',
+            // Existing violations present — warning-first, promote to error after cleanup.
+            // no-floating-promises: real unhandled promises (needs per-site await vs void review).
+            // no-unnecessary-condition: mostly intentional guards against untyped backend data.
+            '@typescript-eslint/no-floating-promises': 'warn',
+            '@typescript-eslint/no-unnecessary-condition': 'warn',
+        },
+    },
 ];
