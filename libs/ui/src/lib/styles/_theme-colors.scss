@@ -282,6 +282,11 @@ $theme-colors: (
         light: $md-blue-700,
         dark: $md-blue-900,
     ),
+    /* White in both themes for fixed high contrast on the saturated toast backgrounds.*/
+    toast-text: (
+        light: white,
+        dark: white,
+    ),
 
     /* FAB (Floating Action Button)*/
     fab-primary-bg: (

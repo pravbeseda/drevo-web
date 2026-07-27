@@ -18,7 +18,16 @@
         "scale-unlimited/declaration-strict-value": [
             ["/color$/", "fill", "stroke"],
             {
-                "ignoreValues": ["transparent", "currentColor", "currentcolor", "inherit", "initial", "unset", "none"],
+                "ignoreValues": [
+                    "transparent",
+                    "currentColor",
+                    "currentcolor",
+                    "inherit",
+                    "initial",
+                    "unset",
+                    "none",
+                    "/#\\{.+\\}/"
+                ],
                 "ignoreFunctions": false,
                 "message": "Use a --themed-* color token instead of a hardcoded color"
             }
