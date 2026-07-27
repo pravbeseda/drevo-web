@@ -1,6 +1,19 @@
 import nx from '@nx/eslint-plugin';
 import noNull from 'eslint-plugin-no-null';
 import importPlugin from 'eslint-plugin-import';
+import sonarjs from 'eslint-plugin-sonarjs';
+
+// sonarjs `recommended` ships rules as `error`; we introduce them warning-first
+// (ratchet: warn → clean up → error), so downgrade every enabled rule to `warn`.
+const sonarjsWarn = Object.fromEntries(
+    Object.entries(sonarjs.configs.recommended.rules).map(([rule, value]) => {
+        const severity = Array.isArray(value) ? value[0] : value;
+        if (severity === 'error' || severity === 2) {
+            return [rule, Array.isArray(value) ? ['warn', ...value.slice(1)] : 'warn'];
+        }
+        return [rule, value];
+    }),
+);
 
 export default [
     ...nx.configs['flat/base'],
@@ -52,6 +65,14 @@ export default [
             ],
             '@typescript-eslint/no-non-null-assertion': 'error',
         },
+    },
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        plugins: {
+            sonarjs,
+        },
+        rules: sonarjsWarn,
     },
     {
         files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
