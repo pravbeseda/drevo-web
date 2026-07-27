@@ -1,5 +1,4 @@
 import { PLATFORM_ID } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { StorageService } from '@drevo-web/core';
@@ -110,22 +109,22 @@ describe('FontScaleService', () => {
 
     it('should apply scale to document font size', () => {
         spectator.service.increase();
-        TestBed.flushEffects();
+        spectator.flushEffects();
         expect(parseFloat(document.documentElement.style.fontSize)).toBeCloseTo(15.4);
     });
 
     it('should save scale to storage', () => {
         spectator.service.increase();
-        TestBed.flushEffects();
+        spectator.flushEffects();
         expect(storageService.set).toHaveBeenCalledWith(FONT_SCALE_KEY, 1.1);
     });
 
     it('should remove from storage when reset to default', () => {
         spectator.service.increase();
-        TestBed.flushEffects();
+        spectator.flushEffects();
 
         spectator.service.reset();
-        TestBed.flushEffects();
+        spectator.flushEffects();
         expect(storageService.remove).toHaveBeenCalledWith(FONT_SCALE_KEY);
     });
 });

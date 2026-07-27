@@ -3,6 +3,10 @@
 //
 // When modifying patterns here, verify they match the legacy PHP counterparts.
 // When legacy patterns change, update this file accordingly.
+//
+// Patterns mirror the PHP originals, so sonarjs regex rules are off for this file —
+// rewriting them for lint would silently desync the two engines.
+/* eslint-disable sonarjs/duplicates-in-character-class, sonarjs/super-linear-regex */
 
 // Synced with: HeaderRule.php — /===(.+?)===|==(.+?)==/u
 // Group 1: h3 content (if matched), Group 2: h2 content (if matched)

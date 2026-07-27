@@ -4,6 +4,7 @@ import { InsertTagCommand } from '@drevo-web/shared';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 
 const allowedOrigins = [
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols -- local dev origins are http by design
     'http://drevo-local.ru',
     'https://drevo-info.ru',
     'https://staging.drevo-info.ru',
@@ -32,6 +33,9 @@ export class IframeService implements OnDestroy {
     }
 
     sendMessage(message: unknown): void {
+        // The legacy host embeds this editor from several origins and the handshake carries none,
+        // so the target cannot be narrowed yet.
+        // eslint-disable-next-line sonarjs/post-message
         this.window?.parent.postMessage(message, '*');
     }
 

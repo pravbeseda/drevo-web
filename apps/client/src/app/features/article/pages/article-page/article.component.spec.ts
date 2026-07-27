@@ -22,6 +22,7 @@ function createMockPageService(
     }> = {},
 ) {
     const articleId = 'articleId' in overrides ? overrides.articleId : 123;
+    const defaultBasePath = articleId ? `/articles/${articleId}` : undefined;
     return {
         article: signal('article' in overrides ? overrides.article : mockArticle),
         error: signal(overrides.error),
@@ -29,9 +30,7 @@ function createMockPageService(
         title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
         editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/123/version/456/edit'),
         isMissing: signal(overrides.isMissing ?? false),
-        basePath: signal(
-            'basePath' in overrides ? overrides.basePath : articleId ? `/articles/${articleId}` : undefined,
-        ),
+        basePath: signal('basePath' in overrides ? overrides.basePath : defaultBasePath),
         setArticle: jest.fn(),
         setMissing: jest.fn(),
         setError: jest.fn(),

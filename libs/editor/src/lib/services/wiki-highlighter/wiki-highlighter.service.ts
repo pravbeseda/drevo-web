@@ -15,8 +15,9 @@ const LINK_STATE_RE = /\bcm-link-(pending|exists|missing)\b/;
 
 @Injectable()
 export class WikiHighlighterService {
-    private readonly footnoteRegex = /\[\[([\s\S]*?)\]\]/g;
-    private readonly linkRegex = /\(\((?!\()(.+?)(=.+?)?\)\)(?!\))/g;
+    // Content lengths are bounded so highlighting stays linear on pathological input.
+    private readonly footnoteRegex = /\[\[([\s\S]{0,20000}?)\]\]/g;
+    private readonly linkRegex = /\(\((?!\()(.{1,2000}?)(=.{1,2000}?)?\)\)(?!\))/g;
     private readonly mapPointRegex = /\{\{Метка:(.+?)\}\}/g;
     private readonly quoteRegex = /^>.*$/gm;
 
@@ -49,33 +50,47 @@ export class WikiHighlighterService {
         }
 
         for (const match of this.matches) {
-            if (LINK_STATE_RE.test(match.className)) {
-                const linkText = this.extractLinkText(this.text, match);
-                if (linkText) {
-                    const normalizedLink = this.normalizeLinkText(linkText);
-                    const status: boolean | undefined = this.linksState[normalizedLink];
-                    let newClass: string | undefined;
-
-                    if (status === true) {
-                        newClass = `${commonClassName} cm-link-exists`;
-                    } else if (status === false) {
-                        newClass = `${commonClassName} cm-link-missing`;
-                    } else {
-                        newClass = `${commonClassName} cm-link-pending`;
-                        this.pendingLinks.push(linkText);
-                    }
-
-                    if (newClass && newClass !== match.className) {
-                        match.className = newClass;
-                        changed = true;
-                    }
-                }
+            if (this.applyLinkState(match)) {
+                changed = true;
             }
         }
 
         this.requestLinksStatus(this.pendingLinks);
 
         return changed;
+    }
+
+    private applyLinkState(match: Match): boolean {
+        if (!LINK_STATE_RE.test(match.className)) {
+            return false;
+        }
+
+        const linkText = this.extractLinkText(this.text, match);
+        if (!linkText) {
+            return false;
+        }
+
+        const newClass = this.resolveLinkClass(linkText);
+        if (newClass === match.className) {
+            return false;
+        }
+
+        match.className = newClass;
+        return true;
+    }
+
+    private resolveLinkClass(linkText: string): string {
+        const status: boolean | undefined = this.linksState[this.normalizeLinkText(linkText)];
+
+        if (status === true) {
+            return `${commonClassName} cm-link-exists`;
+        }
+        if (status === false) {
+            return `${commonClassName} cm-link-missing`;
+        }
+
+        this.pendingLinks.push(linkText);
+        return `${commonClassName} cm-link-pending`;
     }
 
     private requestLinksStatus(links: string[]): void {
