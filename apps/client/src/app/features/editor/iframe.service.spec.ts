@@ -88,6 +88,45 @@ describe('IframeService - Browser Platform', () => {
         spectator.service.ngOnDestroy();
         expect(window.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
     });
+
+    describe('outbound target origin', () => {
+        let postMessage: jest.SpyInstance;
+
+        beforeEach(() => {
+            postMessage = jest.spyOn(window.parent, 'postMessage').mockImplementation(() => undefined);
+        });
+
+        const receiveFromHost = (origin: string): void => {
+            window.dispatchEvent(
+                new MessageEvent('message', {
+                    data: { action: 'loadContent', content: 'x' },
+                    origin,
+                }),
+            );
+        };
+
+        it('should broadcast before the host has identified itself', () => {
+            spectator.service.sendMessage({ action: 'editorReady' });
+
+            expect(postMessage).toHaveBeenCalledWith({ action: 'editorReady' }, '*');
+        });
+
+        it('should send to the host origin once a valid message has arrived', () => {
+            receiveFromHost(allowedOrigin);
+
+            spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
+
+            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, allowedOrigin);
+        });
+
+        it('should keep broadcasting when the only inbound message came from a disallowed origin', () => {
+            receiveFromHost('http://notallowed.com');
+
+            spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
+
+            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, '*');
+        });
+    });
 });
 
 describe('IframeService — Non-Browser Platform', () => {

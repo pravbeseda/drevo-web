@@ -53,6 +53,17 @@ describe('WikiHighlighterService', () => {
         expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
     });
 
+    // A quadratic scan of this shape costs ~215ms locally against ~6ms for a benign
+    // document of the same size, so the bound separates the two by a wide margin.
+    it('should scan a long run of closing parentheses without a quadratic stall', () => {
+        const doc = `((a${')'.repeat(40000)}`;
+
+        const started = performance.now();
+        getView(doc);
+
+        expect(performance.now() - started).toBeLessThan(80);
+    });
+
     it('should not highlight a link spanning a newline', () => {
         const view = getView('((Имя\nФамилия))');
 

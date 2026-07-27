@@ -19,6 +19,8 @@ export class IframeService implements OnDestroy {
     private readonly contentSubject = new ReplaySubject<string>(1);
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(undefined);
     private readonly insertTagSubject = new Subject<InsertTagCommand>();
+    /** Origin of the embedding host, learned from the first message that passed the allowlist. */
+    private hostOrigin: string | undefined;
 
     public readonly content$: Observable<string> = this.contentSubject.asObservable();
     public readonly csrfToken$: Observable<string | undefined> = this.csrfTokenSubject.asObservable();
@@ -33,16 +35,19 @@ export class IframeService implements OnDestroy {
     }
 
     sendMessage(message: unknown): void {
-        // The legacy host embeds this editor from several origins and the handshake carries none,
-        // so the target cannot be narrowed yet.
-        // eslint-disable-next-line sonarjs/post-message
-        this.window?.parent.postMessage(message, '*');
+        // Until the host identifies itself the only outbound message is a payload-free
+        // `editorReady` ping, so broadcasting that leaks nothing. Everything after it —
+        // including the article draft — goes to the origin the host was accepted from.
+        this.window?.parent.postMessage(message, this.hostOrigin ?? '*');
     }
 
     private onMessage(event: MessageEvent): void {
         if (!allowedOrigins.includes(event.origin)) {
             return;
         }
+
+        this.hostOrigin = event.origin;
+
         if (!event.data || typeof event.data.action === 'undefined') {
             return;
         }

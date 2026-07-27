@@ -59,7 +59,12 @@ export default [
         // Roughly a quarter of the sonarjs set is type-aware and silently no-ops
         // without a program, so the parser gets one here.
         languageOptions: {
-            parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+            parserOptions: {
+                // Root-level config files belong to no tsconfig, and the project service
+                // fails them with a parse error rather than skipping them.
+                projectService: { allowDefaultProject: ['*.config.ts'] },
+                tsconfigRootDir: import.meta.dirname,
+            },
         },
         plugins: {
             sonarjs,

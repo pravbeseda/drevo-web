@@ -12,7 +12,6 @@ interface Match {
 
 const commonClassName = 'cm-wikiHighlight';
 const LINK_STATE_RE = /\bcm-link-(pending|exists|missing)\b/;
-const NEWLINE_RE = /[\r\n]/;
 
 interface WikiSpan {
     /** Offset of the opening delimiter. */
@@ -60,18 +59,35 @@ function splitLinkContent(content: string): string {
     return content;
 }
 
-/** Offset of the `))` closing this link, or `undefined` when it has none. */
+/** Offset of the first line break at or after `from`, or `undefined` when there is none. */
+function findNewline(text: string, from: number): number | undefined {
+    const lf = text.indexOf('\n', from);
+    const cr = text.indexOf('\r', from);
+
+    if (lf === -1) {
+        return cr === -1 ? undefined : cr;
+    }
+    return cr === -1 ? lf : Math.min(lf, cr);
+}
+
+/**
+ * Offset of the `))` closing this link, or `undefined` when it has none.
+ *
+ * Candidates are compared by offset rather than by slicing the content out: a run of
+ * `)` yields one failing candidate per character, so copying and rescanning the content
+ * each time made this quadratic, and it runs on every document change.
+ */
 function findLinkEnd(text: string, contentStart: number): number | undefined {
+    // Link text cannot span lines, so the first newline rules out every later candidate.
+    const newline = findNewline(text, contentStart);
     let end = text.indexOf('))', contentStart);
 
     while (end !== -1) {
-        const content = text.slice(contentStart, end);
-        // Link text cannot span lines, so a newline rules out this and every later `))`.
-        if (NEWLINE_RE.test(content)) {
+        if (newline !== undefined && newline < end) {
             return undefined;
         }
         // Content must be non-empty, and a third `)` means the closer is further on.
-        if (content.length > 0 && text[end + 2] !== ')') {
+        if (end > contentStart && text[end + 2] !== ')') {
             return end;
         }
         end = text.indexOf('))', end + 1);
