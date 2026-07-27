@@ -16,6 +16,7 @@ $tones: (
     @each $name, $color in $tones {
         // Default: mat-icon paints with `currentColor`, so `color` tints the glyph.
         &.tone-#{$name}:not(.filled) {
+            // stylelint-disable-next-line scale-unlimited/declaration-strict-value -- $tones holds --themed-* tokens; #{} interpolation is opaque to the linter
             color: #{$color};
         }
 

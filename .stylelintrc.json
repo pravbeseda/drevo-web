@@ -1,5 +1,6 @@
 {
     "extends": "stylelint-config-standard-scss",
+    "plugins": ["stylelint-declaration-strict-value"],
     "rules": {
         "scss/dollar-variable-pattern": [
             "^_?[a-z][a-z0-9]*(-([a-z0-9]+|A[0-9]+))*$",
@@ -13,6 +14,50 @@
         "no-empty-source": null,
         "scss/comment-no-empty": null,
         "declaration-block-no-redundant-longhand-properties": [true, { "ignoreShorthands": ["grid-template"] }],
-        "selector-pseudo-element-no-unknown": [true, { "ignorePseudoElements": ["ng-deep"] }]
-    }
+        "selector-pseudo-element-no-unknown": [true, { "ignorePseudoElements": ["ng-deep"] }],
+        "color-no-hex": true,
+        "color-named": "never",
+        "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla", "hwb", "lab", "lch", "oklab", "oklch", "color"],
+        "scale-unlimited/declaration-strict-value": [
+            ["/color$/", "fill", "stroke"],
+            {
+                "ignoreValues": [
+                    "transparent",
+                    "currentColor",
+                    "currentcolor",
+                    "inherit",
+                    "initial",
+                    "unset",
+                    "none",
+                    "/^var\\(--themed-[a-z0-9-]+\\)$/"
+                ],
+                "ignoreFunctions": false,
+                "ignoreVariables": false,
+                "message": "Use a --themed-* color token instead of a hardcoded color"
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": ["libs/ui/src/lib/styles/_palette.scss", "libs/ui/src/lib/styles/_theme-colors.scss"],
+            "rules": {
+                "scale-unlimited/declaration-strict-value": null,
+                "color-no-hex": null,
+                "color-named": null,
+                "function-disallowed-list": null
+            }
+        },
+        {
+            "files": [
+                "apps/client/src/app/layout/picture-lightbox/**/*.scss",
+                "apps/client/src/app/features/picture/components/picture-card/**/*.scss"
+            ],
+            "rules": {
+                "scale-unlimited/declaration-strict-value": null,
+                "color-no-hex": null,
+                "color-named": null,
+                "function-disallowed-list": null
+            }
+        }
+    ]
 }
