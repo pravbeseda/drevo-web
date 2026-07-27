@@ -33,6 +33,38 @@ describe('WikiHighlighterService', () => {
         expect(footnoteElement?.textContent).toBe('[[Пример сноски]]');
     });
 
+    // The viewport is virtualized, so only presence of the decoration is asserted here —
+    // that is what distinguishes length-independent scanning from a capped match.
+    it('should highlight a footnote far longer than any fixed scan window', () => {
+        const view = getView(`[[${'а'.repeat(25000)}]]`);
+
+        expect(view.dom.querySelector('.cm-footnote')).not.toBeNull();
+    });
+
+    it('should highlight a link far longer than any fixed scan window', () => {
+        const view = getView(`((${'б'.repeat(3000)}))`);
+
+        expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
+    });
+
+    it('should highlight a long link with an alias', () => {
+        const view = getView(`((${'в'.repeat(2500)}=алиас))`);
+
+        expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
+    });
+
+    it('should not highlight a link spanning a newline', () => {
+        const view = getView('((Имя\nФамилия))');
+
+        expect(view.dom.querySelector(pendingSelector)).toBeNull();
+    });
+
+    it('should skip a tripled opening bracket and match from the inner pair', () => {
+        const view = getView('(((Имя))');
+
+        expect(view.dom.querySelector(pendingSelector)?.textContent).toBe('Имя');
+    });
+
     it.each([
         {
             sample: '[[Пример сноски]] и ((ссылка))',

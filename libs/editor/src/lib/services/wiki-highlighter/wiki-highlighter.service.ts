@@ -12,12 +12,103 @@ interface Match {
 
 const commonClassName = 'cm-wikiHighlight';
 const LINK_STATE_RE = /\bcm-link-(pending|exists|missing)\b/;
+const NEWLINE_RE = /[\r\n]/;
+
+interface WikiSpan {
+    /** Offset of the opening delimiter. */
+    readonly index: number;
+    /** The whole span, delimiters included. */
+    readonly text: string;
+    /** Span content; for links, the part before an `=alias` suffix. */
+    readonly content: string;
+}
+
+/**
+ * Delimited spans are scanned with `indexOf` rather than matched with a regex: the
+ * regex form needs a lazy any-run between the delimiters, which degrades quadratically
+ * on unclosed delimiters, and this runs on every document change. Bounding the run
+ * instead would silently stop highlighting long footnotes and links.
+ */
+function findFootnoteSpans(text: string): WikiSpan[] {
+    const spans: WikiSpan[] = [];
+    let cursor = 0;
+
+    for (;;) {
+        const start = text.indexOf('[[', cursor);
+        if (start === -1) {
+            return spans;
+        }
+
+        const contentStart = start + 2;
+        const end = text.indexOf(']]', contentStart);
+        if (end === -1) {
+            return spans;
+        }
+
+        cursor = end + 2;
+        spans.push({ index: start, text: text.slice(start, cursor), content: text.slice(contentStart, end) });
+    }
+}
+
+/** Link text stops at the first `=` that leaves a non-empty alias behind it. */
+function splitLinkContent(content: string): string {
+    for (let i = 1; i < content.length - 1; i++) {
+        if (content[i] === '=') {
+            return content.slice(0, i);
+        }
+    }
+    return content;
+}
+
+/** Offset of the `))` closing this link, or `undefined` when it has none. */
+function findLinkEnd(text: string, contentStart: number): number | undefined {
+    let end = text.indexOf('))', contentStart);
+
+    while (end !== -1) {
+        const content = text.slice(contentStart, end);
+        // Link text cannot span lines, so a newline rules out this and every later `))`.
+        if (NEWLINE_RE.test(content)) {
+            return undefined;
+        }
+        // Content must be non-empty, and a third `)` means the closer is further on.
+        if (content.length > 0 && text[end + 2] !== ')') {
+            return end;
+        }
+        end = text.indexOf('))', end + 1);
+    }
+
+    return undefined;
+}
+
+function findLinkSpans(text: string): WikiSpan[] {
+    const spans: WikiSpan[] = [];
+    let searchFrom = 0;
+
+    for (;;) {
+        const start = text.indexOf('((', searchFrom);
+        if (start === -1) {
+            return spans;
+        }
+
+        const contentStart = start + 2;
+        // A third `(` is not a link opener.
+        const end = text[contentStart] === '(' ? undefined : findLinkEnd(text, contentStart);
+        if (end === undefined) {
+            searchFrom = start + 1;
+            continue;
+        }
+
+        searchFrom = end + 2;
+        spans.push({
+            index: start,
+            text: text.slice(start, searchFrom),
+            content: splitLinkContent(text.slice(contentStart, end)),
+        });
+    }
+}
 
 @Injectable()
 export class WikiHighlighterService {
-    // Content lengths are bounded so highlighting stays linear on pathological input.
-    private readonly footnoteRegex = /\[\[([\s\S]{0,20000}?)\]\]/g;
-    private readonly linkRegex = /\(\((?!\()(.{1,2000}?)(=.{1,2000}?)?\)\)(?!\))/g;
     private readonly mapPointRegex = /\{\{Метка:(.+?)\}\}/g;
     private readonly quoteRegex = /^>.*$/gm;
 
@@ -113,11 +204,12 @@ export class WikiHighlighterService {
         const textChanged = this.text !== text;
         if (textChanged) {
             this.reset(text);
-            this.collectMatches(this.footnoteRegex, 'cm-footnote');
+            const linkSpans = findLinkSpans(this.text);
+            this.collectSpans(findFootnoteSpans(this.text), 'cm-footnote');
             this.collectMapPointMatches();
-            this.collectMatches(this.linkRegex, 'cm-link', true);
+            this.collectSpans(linkSpans, 'cm-link', true);
             this.collectMatches(this.quoteRegex, 'cm-quote');
-            this.collectLinksMatches();
+            this.collectLinksMatches(linkSpans);
             this.matches.sort((a, b) => a.from - b.from);
             this.updateLinksState(this.linksState);
         }
@@ -133,6 +225,17 @@ export class WikiHighlighterService {
         }
 
         return builder.finish();
+    }
+
+    private collectSpans(spans: WikiSpan[], className: string, isBalancedCorrectionNeeded = false): void {
+        for (const span of spans) {
+            const matchedText = isBalancedCorrectionNeeded ? this.trimToBalanced(span.text) : span.text;
+            this.matches.push({
+                from: span.index,
+                to: span.index + matchedText.length,
+                className: `${commonClassName} ${className}`,
+            });
+        }
     }
 
     private collectMatches(regex: RegExp, className: string, isBalancedCorrectionNeeded = false): void {
@@ -151,12 +254,10 @@ export class WikiHighlighterService {
         }
     }
 
-    private collectLinksMatches(): void {
-        let match;
-        // eslint-disable-next-line no-null/no-null
-        while ((match = this.linkRegex.exec(this.text)) !== null) {
-            const matchedText = this.trimToBalanced(match[1]);
-            const start = match.index + 2; // Skip the opening brackets
+    private collectLinksMatches(spans: WikiSpan[]): void {
+        for (const span of spans) {
+            const matchedText = this.trimToBalanced(span.content);
+            const start = span.index + 2; // Skip the opening brackets
             const isMap = matchedText.startsWith('Карты:');
             const specificClass = isMap ? 'cm-map' : 'cm-link-pending';
             this.matches.push({

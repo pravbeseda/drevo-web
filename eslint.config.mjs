@@ -75,6 +75,12 @@ export default [
             // Rejects union returns, which are idiomatic here: `T | undefined` is the
             // house style for absence, and `CanActivateFn` returns value-or-Observable.
             'sonarjs/function-return-type': 'off',
+            // Redundant with `@typescript-eslint/no-unused-vars` above, and it double-reports
+            // on the same line. It also does not honour that rule's `varsIgnorePattern: '^_'`,
+            // so it would break the `_`-prefix opt-out for deliberately unused variables.
+            // `sonarjs/no-dead-store` stays on — it catches overwritten assignments, which
+            // the typescript-eslint rule does not report.
+            'sonarjs/no-unused-vars': 'off',
         },
     },
     {

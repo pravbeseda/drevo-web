@@ -31,6 +31,34 @@ describe('stripMapElements', () => {
         const html = '<div class="map">First</div><p>Keep</p><span class="map">Second</span>';
         expect(stripMapElements(html)).toBe('<p>Keep</p>');
     });
+
+    it('should remove map element with attributes longer than any fixed scan window', () => {
+        const longStyle = `style="${'a:b;'.repeat(200)}"`;
+        const html = `<p>Before</p><div ${longStyle} class="map">Map content</div><p>After</p>`;
+        expect(stripMapElements(html)).toBe('<p>Before</p><p>After</p>');
+    });
+
+    it('should remove map element with a long attribute after the class', () => {
+        const longData = `data-x="${'y'.repeat(800)}"`;
+        const html = `<div class="map" ${longData}>Map content</div><p>Keep</p>`;
+        expect(stripMapElements(html)).toBe('<p>Keep</p>');
+    });
+
+    it('should remove self-closing map element with long attributes', () => {
+        const longStyle = `style="${'a:b;'.repeat(200)}"`;
+        const html = `<p>Before</p><br ${longStyle} class="map"/><p>After</p>`;
+        expect(stripMapElements(html)).toBe('<p>Before</p><p>After</p>');
+    });
+
+    it('should leave an unclosed map element untouched', () => {
+        const html = '<p>Before</p><div class="map">Map content';
+        expect(stripMapElements(html)).toBe(html);
+    });
+
+    it('should not strip elements whose class merely contains "map"', () => {
+        const html = '<div class="roadmap">Keep</div>';
+        expect(stripMapElements(html)).toBe(html);
+    });
 });
 
 describe('sanitizeOnclickAttributes', () => {
