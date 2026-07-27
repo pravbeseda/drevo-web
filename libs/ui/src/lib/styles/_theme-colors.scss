@@ -170,6 +170,10 @@ $theme-colors: (
         light: $md-grey-400,
         dark: $md-grey-700,
     ),
+    editor-skeleton-base: (
+        light: white,
+        dark: white,
+    ),
     editor-skeleton-offset: (
         light: $md-blue-50,
         dark: $md-blue-400,
@@ -181,6 +185,11 @@ $theme-colors: (
     editor-search-match-selected-bg: (
         light: $md-orange-300,
         dark: $md-blue-900,
+    ),
+    /* White outline in both themes for high contrast around the selected match.*/
+    editor-search-match-selected-border: (
+        light: white,
+        dark: white,
     ),
 
     /* Editor decorations (syntax highlighting)*/

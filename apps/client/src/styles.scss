@@ -156,8 +156,8 @@ mark {
 
 // Base styles for all toasts
 .mat-mdc-snack-bar-container {
-    --mdc-snackbar-supporting-text-color: white;
-    --mat-snack-bar-button-color: white;
+    --mdc-snackbar-supporting-text-color: var(--themed-toast-text);
+    --mat-snack-bar-button-color: var(--themed-toast-text);
 }
 
 .mat-mdc-snack-bar-label {
