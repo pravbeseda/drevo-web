@@ -17,6 +17,7 @@
         "selector-pseudo-element-no-unknown": [true, { "ignorePseudoElements": ["ng-deep"] }],
         "color-no-hex": true,
         "color-named": "never",
+        "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla", "hwb", "lab", "lch", "oklab", "oklch", "color"],
         "scale-unlimited/declaration-strict-value": [
             ["/color$/", "fill", "stroke"],
             {
@@ -28,8 +29,7 @@
                     "initial",
                     "unset",
                     "none",
-                    "/^var\\(--themed-/",
-                    "/#\\{.+\\}/"
+                    "/^var\\(--themed-[a-z0-9-]+\\)$/"
                 ],
                 "ignoreFunctions": false,
                 "ignoreVariables": false,
@@ -43,7 +43,8 @@
             "rules": {
                 "scale-unlimited/declaration-strict-value": null,
                 "color-no-hex": null,
-                "color-named": null
+                "color-named": null,
+                "function-disallowed-list": null
             }
         },
         {
@@ -54,7 +55,8 @@
             "rules": {
                 "scale-unlimited/declaration-strict-value": null,
                 "color-no-hex": null,
-                "color-named": null
+                "color-named": null,
+                "function-disallowed-list": null
             }
         }
     ]
