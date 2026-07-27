@@ -28,16 +28,18 @@
                     "initial",
                     "unset",
                     "none",
+                    "/^var\\(--themed-/",
                     "/#\\{.+\\}/"
                 ],
                 "ignoreFunctions": false,
+                "ignoreVariables": false,
                 "message": "Use a --themed-* color token instead of a hardcoded color"
             }
         ]
     },
     "overrides": [
         {
-            "files": ["libs/ui/src/lib/styles/**/*.scss"],
+            "files": ["libs/ui/src/lib/styles/_palette.scss", "libs/ui/src/lib/styles/_theme-colors.scss"],
             "rules": {
                 "scale-unlimited/declaration-strict-value": null,
                 "color-no-hex": null,
