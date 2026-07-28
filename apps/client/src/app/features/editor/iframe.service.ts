@@ -34,11 +34,29 @@ export class IframeService implements OnDestroy {
         this.window?.removeEventListener('message', this.messageHandler);
     }
 
+    /**
+     * Broadcast the payload-free readiness ping — the one outbound message allowed before the
+     * host is known, since it carries nothing to leak.
+     */
+    announceReady(): void {
+        // eslint-disable-next-line sonarjs/post-message -- the target origin is unknown until the host answers this very ping, and it carries no data
+        this.window?.parent.postMessage({ action: 'editorReady' }, '*');
+    }
+
+    /**
+     * Send to the host, or do nothing while it has not identified itself.
+     *
+     * Dropping is deliberate: everything routed here carries article content, and an embedder
+     * that never sends a valid message must not receive it. The alternative — broadcasting to
+     * `'*'` until the host replies — would hand the draft to any page that framed the editor
+     * and then stayed silent.
+     */
     sendMessage(message: unknown): void {
-        // Until the host identifies itself the only outbound message is a payload-free
-        // `editorReady` ping, so broadcasting that leaks nothing. Everything after it —
-        // including the article draft — goes to the origin the host was accepted from.
-        this.window?.parent.postMessage(message, this.hostOrigin ?? '*');
+        if (this.hostOrigin === undefined) {
+            return;
+        }
+
+        this.window?.parent.postMessage(message, this.hostOrigin);
     }
 
     private onMessage(event: MessageEvent): void {
@@ -52,9 +70,10 @@ export class IframeService implements OnDestroy {
 
         // An allowlisted origin is not enough: any window holding a handle to this frame can
         // post to it, and pinning `hostOrigin` to a non-parent origin would make every later
-        // `postMessage` be dropped by the browser without a trace.
+        // `postMessage` be dropped by the browser without a trace. Latched once, so a later
+        // message cannot silently retarget everything that follows it.
         // eslint-disable-next-line sonarjs/different-types-comparison -- the rule does not expand the `WindowProxy` alias in `MessageEventSource` to `Window`, so it misreads the overlap as empty
-        if (event.source === this.window?.parent) {
+        if (this.hostOrigin === undefined && event.source === this.window?.parent) {
             this.hostOrigin = event.origin;
         }
 

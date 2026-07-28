@@ -106,8 +106,8 @@ describe('IframeService - Browser Platform', () => {
             );
         };
 
-        it('should broadcast before the host has identified itself', () => {
-            spectator.service.sendMessage({ action: 'editorReady' });
+        it('should broadcast the ready ping before the host has identified itself', () => {
+            spectator.service.announceReady();
 
             expect(postMessage).toHaveBeenCalledWith({ action: 'editorReady' }, '*');
         });
@@ -120,15 +120,30 @@ describe('IframeService - Browser Platform', () => {
             expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, allowedOrigin);
         });
 
-        it('should keep broadcasting when the only inbound message came from a disallowed origin', () => {
+        it('should keep the first host origin when a later allowlisted message carries another', () => {
+            receiveFromHost(allowedOrigin);
+            receiveFromHost('https://staging.drevo-info.ru');
+
+            spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
+
+            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, allowedOrigin);
+        });
+
+        it('should not send anything before the host has identified itself', () => {
+            spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
+
+            expect(postMessage).not.toHaveBeenCalled();
+        });
+
+        it('should not send when the only inbound message came from a disallowed origin', () => {
             receiveFromHost('http://notallowed.com');
 
             spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
 
-            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, '*');
+            expect(postMessage).not.toHaveBeenCalled();
         });
 
-        it('should keep broadcasting when an allowlisted message came from a window other than the parent', () => {
+        it('should not send when an allowlisted message came from a window other than the parent', () => {
             const frame = document.createElement('iframe');
             document.body.appendChild(frame);
 
@@ -136,12 +151,12 @@ describe('IframeService - Browser Platform', () => {
 
             spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
 
-            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, '*');
+            expect(postMessage).not.toHaveBeenCalled();
 
             frame.remove();
         });
 
-        it('should keep broadcasting when the parent message carries no action', () => {
+        it('should not send when the parent message carries no action', () => {
             window.dispatchEvent(
                 new MessageEvent('message', {
                     data: {},
@@ -152,7 +167,7 @@ describe('IframeService - Browser Platform', () => {
 
             spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
 
-            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, '*');
+            expect(postMessage).not.toHaveBeenCalled();
         });
     });
 });

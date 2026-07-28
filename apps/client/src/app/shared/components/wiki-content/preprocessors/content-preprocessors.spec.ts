@@ -2,6 +2,20 @@ import { resolveFragmentLinks } from './resolve-fragment-links';
 import { sanitizeOnclickAttributes } from './sanitize-onclick-attributes';
 import { stripMapElements } from './strip-map-elements';
 
+// A rescan-per-opener implementation costs ~160x a document of the same shape that holds no
+// map elements; the single-pass one stays under 3x. Compared as a ratio rather than a
+// wall-clock budget, matching wiki-highlighter.service.spec.ts: an absolute bound encodes the
+// machine it was tuned on, and nothing keeps the two ends of it apart on a slower runner.
+const RESCAN_RATIO = 10;
+// Floor for the ratio, so a sub-millisecond baseline cannot make the comparison fire on noise.
+const SCAN_FLOOR_MS = 20;
+
+function elapsed(run: () => void): number {
+    const started = performance.now();
+    run();
+    return performance.now() - started;
+}
+
 describe('stripMapElements', () => {
     it('should return empty string for empty input', () => {
         expect(stripMapElements('')).toBe('');
@@ -106,32 +120,53 @@ describe('stripMapElements', () => {
         expect(stripMapElements(html)).toBe(html);
     });
 
+    // Depth is tracked per tag name rather than on one shared stack. Legacy wiki HTML is not
+    // reliably balanced, and a shared stack would let any unclosed tag inside the block —
+    // a `<div>`, a `<td>` — swallow the `</table>` and leak the whole map into the article.
+    it.each([
+        ['an unclosed inner div', '<table class="map"><tr><td><div style="float: left;"><ul></ul></td></tr></table>'],
+        ['a stray closing div', '<table class="map"><tr><td></div><ul></ul></td></tr></table>'],
+        ['unclosed td and tr', '<table class="map"><tr><td><div>x</div></table>'],
+        ['a balanced nested table', '<table class="map"><tr><td><table><tr><td>x</td></tr></table></td></tr></table>'],
+    ])('should remove a map table containing %s', (_name, mapBlock) => {
+        const html = `<p>Before</p>${mapBlock}<p>After</p>`;
+
+        expect(stripMapElements(html)).toBe('<p>Before</p><p>After</p>');
+    });
+
+    it('should remove the legacy map block when one of its inner divs is unclosed', () => {
+        const mapBlock =
+            '<!--noindex--><table class="map"><tr><td>' +
+            '<div style="float: left;"><div id="yandexMap" class="hidden"><ul id="Yamenu"></ul></div>' +
+            '<div style="float: left;"><div id="map_canvas"></div><ul id="glinks"></ul></div>' +
+            '</td></tr></table><!--/noindex-->';
+        const html = `<p>Текст</p>${mapBlock}<p>Ещё</p>`;
+
+        expect(stripMapElements(html)).toBe('<p>Текст</p><!--noindex--><!--/noindex--><p>Ещё</p>');
+    });
+
     // Documented boundary, matching the previous regex: the formatter never emits it.
     it('should leave a map element carrying more than one class', () => {
         const html = '<div class="map wide">Keep</div>';
         expect(stripMapElements(html)).toBe(html);
     });
 
-    // Each unclosed map tag used to rescan to the end of the document: ~813ms for this
-    // input, against ~1ms once the failed search is not repeated.
-    it('should handle many unclosed map tags without a quadratic stall', () => {
-        const html = '<div class="map">'.repeat(16000);
+    // Baseline is the same tag count and byte length with a class the stripper ignores, so
+    // only the map handling differs between the two measurements.
+    it.each([
+        ['unclosed map tags', ''],
+        ['unclosed map tags followed by a single closer', '</div>'],
+    ])('should handle many %s without a rescan per opener', (_name, suffix) => {
+        const tags = 16000;
+        const pathological = `${'<div class="map">'.repeat(tags)}${suffix}`;
+        const benign = `${'<div class="nap">'.repeat(tags)}${suffix}`;
 
-        const started = performance.now();
-        stripMapElements(html);
+        stripMapElements(benign);
 
-        expect(performance.now() - started).toBeLessThan(100);
-    });
+        const benignMs = elapsed(() => stripMapElements(benign));
+        const pathologicalMs = elapsed(() => stripMapElements(pathological));
 
-    // Same shape, but one closing tag at the end: depth matching must not turn this into a
-    // rescan per opener.
-    it('should handle many unclosed map tags followed by a single closer without a quadratic stall', () => {
-        const html = `${'<div class="map">'.repeat(16000)}</div>`;
-
-        const started = performance.now();
-        stripMapElements(html);
-
-        expect(performance.now() - started).toBeLessThan(100);
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * RESCAN_RATIO, SCAN_FLOOR_MS));
     });
 });
 
