@@ -4,6 +4,14 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { WikiHighlighterService } from './wiki-highlighter.service';
 
+// A quadratic scan costs ~30x a benign document of the same size, a linear one under 3x.
+// Compared as a ratio rather than a wall-clock budget: an absolute bound has to be loose
+// enough for a loaded CI runner, and at that width it stops separating the two shapes.
+const QUADRATIC_SCAN_RATIO = 10;
+// Floor for the ratio, so a sub-millisecond baseline on a fast machine cannot make the
+// comparison fire on timing noise alone.
+const SCAN_FLOOR_MS = 20;
+
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
 const missingSelector = '.cm-link-missing';
@@ -53,15 +61,45 @@ describe('WikiHighlighterService', () => {
         expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
     });
 
-    // A quadratic scan of this shape costs ~215ms locally against ~6ms for a benign
-    // document of the same size, so the bound separates the two by a wide margin.
     it('should scan a long run of closing parentheses without a quadratic stall', () => {
-        const doc = `((a${')'.repeat(40000)}`;
+        const size = 40000;
+        const pathological = `((a${')'.repeat(size)}`;
+        const benign = 'а'.repeat(size + 3);
 
-        const started = performance.now();
-        getView(doc);
+        // The first view of the file pays for CodeMirror setup and a cold JIT, which alone
+        // is an order of magnitude of noise. Discard it before either measurement.
+        getView(benign);
 
-        expect(performance.now() - started).toBeLessThan(80);
+        const benignMs = elapsed(() => getView(benign));
+        const pathologicalMs = elapsed(() => getView(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should scan unclosed openers on separate lines without a quadratic stall', () => {
+        const lines = 64000;
+        const pathological = `${'((a\n'.repeat(lines)}))`;
+        const benign = 'aaa\n'.repeat(lines);
+
+        buildState(benign);
+
+        const benignMs = elapsed(() => buildState(benign));
+        const pathologicalMs = elapsed(() => buildState(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should scan unclosed openers packed into one line without a quadratic stall', () => {
+        const openers = 32000;
+        const pathological = '((a'.repeat(openers);
+        const benign = 'aaa'.repeat(openers);
+
+        buildState(benign);
+
+        const benignMs = elapsed(() => buildState(benign));
+        const pathologicalMs = elapsed(() => buildState(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });
 
     it('should not highlight a link spanning a newline', () => {
@@ -125,6 +163,18 @@ describe('WikiHighlighterService', () => {
             extensions: [service.wikiHighlighter],
         });
         return new EditorView({ state });
+    }
+
+    // Decorations are built by the state field's `create`, so a plain state exercises the
+    // scan without paying for the view's DOM construction.
+    function buildState(text: string) {
+        return EditorState.create({ doc: text, extensions: [service.wikiHighlighter] });
+    }
+
+    function elapsed(run: () => void): number {
+        const started = performance.now();
+        run();
+        return performance.now() - started;
     }
 
     describe('Link Normalization', () => {

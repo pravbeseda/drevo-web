@@ -88,13 +88,25 @@ describe('stripMapElements', () => {
         expect(stripMapElements(html)).toBe('<p>Текст</p><!--noindex--><!--/noindex--><p>Ещё</p>');
     });
 
-    // Documented boundaries, matching the previous regex: the formatter emits neither
-    // shape, so both are pinned rather than fixed.
-    it('should stop at the first same-name closing tag when map content nests one', () => {
+    // A stray closing tag reaches `bypassSecurityTrustHtml`, where it can lift the rest of
+    // the article out of its container, so nesting is matched by depth rather than by the
+    // first same-name closer.
+    it('should remove the whole map element when its content nests a same-name element', () => {
         const html = '<div class="map"><div>x</div></div>';
-        expect(stripMapElements(html)).toBe('</div>');
+        expect(stripMapElements(html)).toBe('');
     });
 
+    it('should remove the whole map element across several levels of same-name nesting', () => {
+        const html = '<p>Before</p><div class="map"><div><div>x</div></div></div><p>After</p>';
+        expect(stripMapElements(html)).toBe('<p>Before</p><p>After</p>');
+    });
+
+    it('should leave a map element whose nesting is never balanced', () => {
+        const html = '<p>Before</p><div class="map"><div>x</div>';
+        expect(stripMapElements(html)).toBe(html);
+    });
+
+    // Documented boundary, matching the previous regex: the formatter never emits it.
     it('should leave a map element carrying more than one class', () => {
         const html = '<div class="map wide">Keep</div>';
         expect(stripMapElements(html)).toBe(html);
@@ -104,6 +116,17 @@ describe('stripMapElements', () => {
     // input, against ~1ms once the failed search is not repeated.
     it('should handle many unclosed map tags without a quadratic stall', () => {
         const html = '<div class="map">'.repeat(16000);
+
+        const started = performance.now();
+        stripMapElements(html);
+
+        expect(performance.now() - started).toBeLessThan(100);
+    });
+
+    // Same shape, but one closing tag at the end: depth matching must not turn this into a
+    // rescan per opener.
+    it('should handle many unclosed map tags followed by a single closer without a quadratic stall', () => {
+        const html = `${'<div class="map">'.repeat(16000)}</div>`;
 
         const started = performance.now();
         stripMapElements(html);

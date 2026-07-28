@@ -12,6 +12,7 @@ interface Match {
 
 const commonClassName = 'cm-wikiHighlight';
 const LINK_STATE_RE = /\bcm-link-(pending|exists|missing)\b/;
+const LINE_BREAK_RE = /[\n\r]/g;
 
 interface WikiSpan {
     /** Offset of the opening delimiter. */
@@ -59,38 +60,38 @@ function splitLinkContent(content: string): string {
     return content;
 }
 
-/** Offset of the first line break at or after `from`, or `undefined` when there is none. */
+/**
+ * Offset of the first line break at or after `from`, or `undefined` when there is none.
+ *
+ * One pattern rather than an `indexOf` per line-break character: a document that uses only
+ * `\n` has no `\r` at all, so searching for it separately scanned to the end of the text on
+ * every call.
+ */
 function findNewline(text: string, from: number): number | undefined {
-    const lf = text.indexOf('\n', from);
-    const cr = text.indexOf('\r', from);
+    LINE_BREAK_RE.lastIndex = from;
+    const match = LINE_BREAK_RE.exec(text);
 
-    if (lf === -1) {
-        return cr === -1 ? undefined : cr;
-    }
-    return cr === -1 ? lf : Math.min(lf, cr);
+    return match ? match.index : undefined;
 }
 
 /**
- * Offset of the `))` closing this link, or `undefined` when it has none.
+ * Offset of the `))` closing this link, or `undefined` when there is none before `lineEnd`.
  *
- * Candidates are compared by offset rather than by slicing the content out: a run of
- * `)` yields one failing candidate per character, so copying and rescanning the content
- * each time made this quadratic, and it runs on every document change.
+ * Scanned character by character rather than with `indexOf`, which takes no upper bound:
+ * it would run to the end of the document and only then have its result compared against
+ * `lineEnd`, making one call cost the whole remaining text. Candidates are also compared
+ * by offset rather than by slicing the content out — a run of `)` yields one failing
+ * candidate per character, and this runs on every document change.
  */
-function findLinkEnd(text: string, contentStart: number): number | undefined {
-    // Link text cannot span lines, so the first newline rules out every later candidate.
-    const newline = findNewline(text, contentStart);
-    let end = text.indexOf('))', contentStart);
-
-    while (end !== -1) {
-        if (newline !== undefined && newline < end) {
-            return undefined;
+function findLinkEnd(text: string, contentStart: number, lineEnd: number): number | undefined {
+    for (let end = contentStart; end + 1 < lineEnd; end++) {
+        if (text[end] !== ')' || text[end + 1] !== ')') {
+            continue;
         }
         // Content must be non-empty, and a third `)` means the closer is further on.
         if (end > contentStart && text[end + 2] !== ')') {
             return end;
         }
-        end = text.indexOf('))', end + 1);
     }
 
     return undefined;
@@ -99,6 +100,9 @@ function findLinkEnd(text: string, contentStart: number): number | undefined {
 function findLinkSpans(text: string): WikiSpan[] {
     const spans: WikiSpan[] = [];
     let searchFrom = 0;
+    // Recomputed only once the scan passes it, so locating line breaks costs one pass over
+    // the document in total instead of one per opener.
+    let lineEnd = findNewline(text, 0) ?? text.length;
 
     for (;;) {
         const start = text.indexOf('((', searchFrom);
@@ -106,11 +110,22 @@ function findLinkSpans(text: string): WikiSpan[] {
             return spans;
         }
 
+        if (start >= lineEnd) {
+            lineEnd = findNewline(text, start) ?? text.length;
+        }
+
         const contentStart = start + 2;
-        // A third `(` is not a link opener.
-        const end = text[contentStart] === '(' ? undefined : findLinkEnd(text, contentStart);
-        if (end === undefined) {
+        // A third `(` is not a link opener, so the next opener starts one character on.
+        if (text[contentStart] === '(') {
             searchFrom = start + 1;
+            continue;
+        }
+
+        const end = findLinkEnd(text, contentStart, lineEnd);
+        if (end === undefined) {
+            // A later opener on this line would search a strictly smaller range under a
+            // stricter non-empty check, so no closer can be found in the rest of the line.
+            searchFrom = lineEnd + 1;
             continue;
         }
 

@@ -3,85 +3,95 @@
 // super-linear; capping their length instead would silently stop stripping map
 // elements that carry long attributes. Both sub-patterns below are unambiguous, so no
 // cap is needed.
-const OPEN_TAG = /<([a-z][\w-]*)(\s[^>]*)?>/gi;
+const ANY_TAG = /<(\/?)([a-z][\w-]*)(\s[^>]*)?>/gi;
 const MAP_CLASS = /\sclass="map"/i;
-const WHITESPACE_RE = /\s/;
+
+interface TagSpan {
+    readonly start: number;
+    readonly end: number;
+}
 
 /**
  * Remove every element carrying `class="map"`, together with its content.
  *
  * Well-formed markup only. A tag that is never terminated (`<abbr class="map"</div>>`)
- * is left in place rather than removed, because `OPEN_TAG` will not match across the
+ * is left in place rather than removed, because `ANY_TAG` will not match across the
  * malformed boundary — the backend emits complete tags, and a browser parser would make
  * an equally arbitrary choice about such input.
  */
 export function stripMapElements(html: string): string {
+    const elements = [...findMapElements(html)].sort((a, b) => a.start - b.start);
+
     let result = '';
     let cursor = 0;
-    // Tag names already searched to the end of the document without a closer. If none
-    // exists past one offset, none exists past a later one either, so repeating the
-    // search for every unclosed map tag of that name would be quadratic.
-    const unclosedNames = new Set<string>();
 
-    OPEN_TAG.lastIndex = 0;
-    for (let match = OPEN_TAG.exec(html); match; match = OPEN_TAG.exec(html)) {
-        const attributes = match[2] ?? '';
-        if (!MAP_CLASS.test(attributes)) {
+    for (const { start, end } of elements) {
+        // Nested inside an element already removed, so its markup is gone with the parent.
+        if (start < cursor) {
             continue;
         }
-
-        const tagName = match[1].toLowerCase();
-        if (unclosedNames.has(tagName)) {
-            continue;
-        }
-
-        const openTagEnd = match.index + match[0].length;
-        // A trailing slash lands in the attribute group, since `/` is not `>`.
-        const elementEnd = attributes.endsWith('/') ? openTagEnd : findClosingTagEnd(html, tagName, openTagEnd);
-
-        // Unclosed and not self-closing: leave the markup untouched.
-        if (elementEnd === undefined) {
-            unclosedNames.add(tagName);
-            continue;
-        }
-
-        result += html.slice(cursor, match.index);
-        cursor = elementEnd;
-        OPEN_TAG.lastIndex = cursor;
+        result += html.slice(cursor, start);
+        cursor = end;
     }
 
     return result + html.slice(cursor);
 }
 
 /**
- * Offset just past the `</tagName>` closing `from`, or `undefined` when there is none.
+ * Spans of every map element, paired with the closing tag that balances it.
  *
- * Offsets stay in `html` coordinates — searching a lowercased copy would shift them,
- * since lowercasing is not length-preserving (`U+0130` becomes two code units). Only the
- * short tag-name slice is folded for comparison.
+ * One stack per tag name rather than one shared stack: unbalanced markup then stays local,
+ * so `<div><p></div></p>` still pairs each name with its own closer instead of discarding
+ * the rest of the document. Pairing by depth is what keeps a nested same-name element from
+ * ending the span early — a stray `</div>` reaching `bypassSecurityTrustHtml` can lift the
+ * remainder of the article out of its container.
+ *
+ * Everything is resolved in one pass, so an unclosed tag costs nothing extra: its entry
+ * simply stays on the stack instead of being searched for again.
  */
-function findClosingTagEnd(html: string, tagName: string, from: number): number | undefined {
-    const lowerName = tagName.toLowerCase();
-    let search = from;
+function findMapElements(html: string): TagSpan[] {
+    const elements: TagSpan[] = [];
+    const openTagsByName = new Map<string, number[]>();
+    const mapStarts = new Set<number>();
 
-    for (;;) {
-        const start = html.indexOf('</', search);
-        if (start === -1) {
-            return undefined;
+    ANY_TAG.lastIndex = 0;
+    for (let match = ANY_TAG.exec(html); match; match = ANY_TAG.exec(html)) {
+        const name = match[2].toLowerCase();
+        const attributes = match[3] ?? '';
+        const end = match.index + match[0].length;
+
+        if (match[1] === '/') {
+            const start = openTagsByName.get(name)?.pop();
+            if (start !== undefined && mapStarts.has(start)) {
+                elements.push({ start, end });
+            }
+            continue;
         }
 
-        const nameStart = start + 2;
-        const nameEnd = nameStart + lowerName.length;
-        // The name must match in full: `</abbr>` does not close `<a>`.
-        if (html.slice(nameStart, nameEnd).toLowerCase() === lowerName && isNameBoundary(html[nameEnd])) {
-            const end = html.indexOf('>', nameEnd);
-            return end === -1 ? undefined : end + 1;
+        const isMap = MAP_CLASS.test(attributes);
+        // A trailing slash lands in the attribute group, since `/` is not `>`.
+        if (attributes.endsWith('/')) {
+            if (isMap) {
+                elements.push({ start: match.index, end });
+            }
+            continue;
         }
 
-        search = nameStart;
+        if (isMap) {
+            mapStarts.add(match.index);
+        }
+        pushOpenTag(openTagsByName, name, match.index);
     }
+
+    return elements;
 }
 
-function isNameBoundary(char: string | undefined): boolean {
-    return char === undefined || char === '>' || char === '/' || WHITESPACE_RE.test(char);
+function pushOpenTag(openTagsByName: Map<string, number[]>, name: string, start: number): void {
+    const openTags = openTagsByName.get(name);
+
+    if (openTags) {
+        openTags.push(start);
+        return;
+    }
+    openTagsByName.set(name, [start]);
 }

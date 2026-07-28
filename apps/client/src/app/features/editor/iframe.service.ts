@@ -19,7 +19,7 @@ export class IframeService implements OnDestroy {
     private readonly contentSubject = new ReplaySubject<string>(1);
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(undefined);
     private readonly insertTagSubject = new Subject<InsertTagCommand>();
-    /** Origin of the embedding host, learned from the first message that passed the allowlist. */
+    /** Origin of the embedding host, learned from the first valid message the parent sent. */
     private hostOrigin: string | undefined;
 
     public readonly content$: Observable<string> = this.contentSubject.asObservable();
@@ -46,10 +46,16 @@ export class IframeService implements OnDestroy {
             return;
         }
 
-        this.hostOrigin = event.origin;
-
         if (!event.data || typeof event.data.action === 'undefined') {
             return;
+        }
+
+        // An allowlisted origin is not enough: any window holding a handle to this frame can
+        // post to it, and pinning `hostOrigin` to a non-parent origin would make every later
+        // `postMessage` be dropped by the browser without a trace.
+        // eslint-disable-next-line sonarjs/different-types-comparison -- the rule does not expand the `WindowProxy` alias in `MessageEventSource` to `Window`, so it misreads the overlap as empty
+        if (event.source === this.window?.parent) {
+            this.hostOrigin = event.origin;
         }
 
         switch (event.data.action) {

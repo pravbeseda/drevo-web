@@ -96,11 +96,12 @@ describe('IframeService - Browser Platform', () => {
             postMessage = jest.spyOn(window.parent, 'postMessage').mockImplementation(() => undefined);
         });
 
-        const receiveFromHost = (origin: string): void => {
+        const receiveFromHost = (origin: string, source: MessageEventSource | undefined = window.parent): void => {
             window.dispatchEvent(
                 new MessageEvent('message', {
                     data: { action: 'loadContent', content: 'x' },
                     origin,
+                    source,
                 }),
             );
         };
@@ -121,6 +122,33 @@ describe('IframeService - Browser Platform', () => {
 
         it('should keep broadcasting when the only inbound message came from a disallowed origin', () => {
             receiveFromHost('http://notallowed.com');
+
+            spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
+
+            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, '*');
+        });
+
+        it('should keep broadcasting when an allowlisted message came from a window other than the parent', () => {
+            const frame = document.createElement('iframe');
+            document.body.appendChild(frame);
+
+            receiveFromHost(allowedOrigin, frame.contentWindow ?? undefined);
+
+            spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
+
+            expect(postMessage).toHaveBeenCalledWith({ action: 'contentChanged', content: 'draft' }, '*');
+
+            frame.remove();
+        });
+
+        it('should keep broadcasting when the parent message carries no action', () => {
+            window.dispatchEvent(
+                new MessageEvent('message', {
+                    data: {},
+                    origin: allowedOrigin,
+                    source: window.parent,
+                }),
+            );
 
             spectator.service.sendMessage({ action: 'contentChanged', content: 'draft' });
 
