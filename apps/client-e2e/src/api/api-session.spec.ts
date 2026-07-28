@@ -40,8 +40,8 @@ function parseCookieHeader(setCookieHeader: string | undefined):
 
     const attributes: Record<string, string | boolean> = {};
     for (const attr of attributeParts) {
-        const [key, val] = attr.split('=');
-        // Flags like HttpOnly have no value
+        // Flags like HttpOnly have no '=', so the value is genuinely absent at runtime.
+        const [key, val] = attr.split('=') as [string, string | undefined];
         attributes[key.toLowerCase()] = val !== undefined ? val : true;
     }
 

@@ -1,5 +1,4 @@
 import { MatTooltip } from '@angular/material/tooltip';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconButtonComponent } from './icon-button.component';
@@ -9,7 +8,6 @@ describe('IconButtonComponent', () => {
 
     const createComponent = createComponentFactory({
         component: IconButtonComponent,
-        imports: [NoopAnimationsModule],
         providers: [provideRouter([])],
     });
 

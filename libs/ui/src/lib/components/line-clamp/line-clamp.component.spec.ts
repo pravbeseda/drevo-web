@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTooltip } from '@angular/material/tooltip';
 import { createComponentFactory, createHostFactory, Spectator, SpectatorHost } from '@ngneat/spectator/jest';
 import { LineClampComponent } from './line-clamp.component';
@@ -7,7 +6,6 @@ describe('LineClampComponent', () => {
     let spectator: Spectator<LineClampComponent>;
     const createComponent = createComponentFactory({
         component: LineClampComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {
@@ -59,7 +57,6 @@ describe('LineClampComponent with content', () => {
     let spectator: SpectatorHost<LineClampComponent>;
     const createHost = createHostFactory({
         component: LineClampComponent,
-        imports: [NoopAnimationsModule],
     });
 
     it('should project content', () => {
@@ -73,7 +70,6 @@ describe('LineClampComponent truncation detection', () => {
     let spectator: Spectator<LineClampComponent>;
     const createComponent = createComponentFactory({
         component: LineClampComponent,
-        imports: [NoopAnimationsModule],
         detectChanges: false,
     });
 

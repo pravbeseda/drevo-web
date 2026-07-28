@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TabItem, TabsComponent } from './tabs.component';
@@ -13,7 +12,6 @@ describe('TabsComponent', () => {
     let spectator: Spectator<TabsComponent>;
     const createComponent = createComponentFactory({
         component: TabsComponent,
-        imports: [NoopAnimationsModule],
         providers: [provideRouter([{ path: '**', children: [] }])],
     });
 

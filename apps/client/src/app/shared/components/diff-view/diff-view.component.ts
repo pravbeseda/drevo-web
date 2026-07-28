@@ -3,6 +3,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { LoggerService } from '@drevo-web/core';
 import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-web/shared';
 
+interface DiffSegment {
+    readonly collapsed: boolean;
+    readonly lines: readonly DiffChange[][];
+}
+
 @Component({
     selector: 'app-diff-view',
     imports: [SidebarActionComponent],
@@ -70,34 +75,49 @@ export class DiffViewComponent {
     }
 
     private renderCollapsedDiffHtml(changes: DiffChange[]): string {
-        const lines = this.splitChangesIntoLines(changes);
-        const isChanged = lines.map(line => line.some(c => c.type !== 'equal'));
+        const segments = this.groupLinesIntoSegments(this.splitChangesIntoLines(changes));
         let result = '';
         let needsNewline = false;
-        let i = 0;
 
-        while (i < lines.length) {
-            if (isChanged[i]) {
+        for (const segment of segments) {
+            if (segment.collapsed) {
+                result += `<div class="diff-collapsed-lines">Строк без изменений: ${segment.lines.length}</div>`;
+                needsNewline = false;
+                continue;
+            }
+            for (const line of segment.lines) {
                 if (needsNewline) result += '\n';
-                result += this.renderDiffHtml(lines[i]);
+                result += this.renderDiffHtml(line);
                 needsNewline = true;
-                i++;
-            } else {
-                let j = i;
-                while (j < lines.length && !isChanged[j]) j++;
-                if (j - i === 1) {
-                    if (needsNewline) result += '\n';
-                    result += this.renderDiffHtml(lines[i]);
-                    needsNewline = true;
-                } else {
-                    result += `<div class="diff-collapsed-lines">Строк без изменений: ${j - i}</div>`;
-                    needsNewline = false;
-                }
-                i = j;
             }
         }
 
         return result;
+    }
+
+    /**
+     * Split lines into runs: every changed line is its own rendered segment, and
+     * a run of unchanged lines collapses into a placeholder unless it is a single line.
+     */
+    private groupLinesIntoSegments(lines: DiffChange[][]): DiffSegment[] {
+        const isChanged = lines.map(line => line.some(c => c.type !== 'equal'));
+        const segments: DiffSegment[] = [];
+        let i = 0;
+
+        while (i < lines.length) {
+            if (isChanged[i]) {
+                segments.push({ collapsed: false, lines: [lines[i]] });
+                i++;
+                continue;
+            }
+            let end = i;
+            while (end < lines.length && !isChanged[end]) end++;
+            const run = lines.slice(i, end);
+            segments.push({ collapsed: run.length > 1, lines: run });
+            i = end;
+        }
+
+        return segments;
     }
 
     private splitChangesIntoLines(changes: DiffChange[]): DiffChange[][] {

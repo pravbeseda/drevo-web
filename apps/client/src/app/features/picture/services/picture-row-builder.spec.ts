@@ -36,7 +36,7 @@ describe('buildRows', () => {
     });
 
     it('should use default aspect ratio (3:4) when dimensions are missing', () => {
-        const pictures = [makePicture(1, undefined, undefined)];
+        const pictures = [makePicture(1)];
         const rows = buildRows(pictures, 1000, 200);
 
         expect(rows).toHaveLength(1);
@@ -142,7 +142,7 @@ describe('buildRows', () => {
     });
 
     it('should not cap items when pictures have unknown dimensions', () => {
-        const pictures = [makePicture(1, undefined, undefined)];
+        const pictures = [makePicture(1)];
         const rows = buildRows(pictures, 1000, 200);
 
         expect(rows[0].height).toBe(200);

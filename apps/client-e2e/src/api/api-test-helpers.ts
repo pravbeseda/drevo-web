@@ -4,6 +4,7 @@ import { APIRequestContext, expect } from '@playwright/test';
  * API Base URL from environment or default
  * Use API_BASE_URL for direct API testing (e.g., http://drevo-local.ru)
  */
+// eslint-disable-next-line sonarjs/no-clear-text-protocols -- local dev backend is http by design
 export const API_BASE_URL = process.env['API_BASE_URL'] || 'http://drevo-local.ru';
 
 /**
