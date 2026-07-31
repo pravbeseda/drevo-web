@@ -127,8 +127,10 @@ export default [
     // uses on purpose. Widen it by adding rules here once their existing violations are clean.
     {
         files: ['**/*.ts', '**/*.tsx'],
-        // Root config files land in the default project, which has no strictNullChecks,
-        // so the typed rules below would only report that they cannot run.
+        // Root config files land in the default project, which has no strictNullChecks, and
+        // no-unnecessary-condition answers that by reporting that it cannot run — noise, not a
+        // finding. Only these rules behave that way; the sonarjs block still applies to those
+        // files, where its type-aware rules go quiet and the rest work normally.
         ignores: ['*.config.ts'],
         languageOptions: {
             parserOptions: typedParserOptions,
@@ -141,7 +143,10 @@ export default [
             // Counts are capped per project by `maxWarnings` in each project.json, so new
             // violations fail lint; lower those baselines as the existing ones get fixed.
             // no-floating-promises: real unhandled promises (needs per-site await vs void review).
-            // no-unnecessary-condition: mostly intentional guards against untyped backend data.
+            // no-unnecessary-condition: mostly guards against backend data the DTO types claim
+            // more about than the backend guarantees. Clearing them means typing that boundary
+            // honestly, NOT deleting the checks — they are load-bearing until it is typed. Do
+            // not promote this rule to error before that pass lands (see issue #237).
             '@typescript-eslint/no-floating-promises': 'warn',
             '@typescript-eslint/no-unnecessary-condition': 'warn',
         },
@@ -154,6 +159,23 @@ export default [
             // Assertions deliberately re-check what the types already promise; that is the
             // point of a test, so the rule reports the test rather than a defect.
             '@typescript-eslint/no-unnecessary-condition': 'off',
+        },
+    },
+    // client-e2e has no typed-rule violations, so nothing needs a warning budget here.
+    // Its `maxWarnings` covers pre-existing playwright/* debt only, and error severity keeps
+    // that budget from being spent on a new typed violation.
+    {
+        files: ['apps/client-e2e/**/*.ts'],
+        rules: {
+            '@typescript-eslint/no-floating-promises': 'error',
+        },
+    },
+    {
+        // Specs keep the no-unnecessary-condition exemption granted above.
+        files: ['apps/client-e2e/**/*.ts'],
+        ignores: ['apps/client-e2e/**/*.spec.ts'],
+        rules: {
+            '@typescript-eslint/no-unnecessary-condition': 'error',
         },
     },
 ];

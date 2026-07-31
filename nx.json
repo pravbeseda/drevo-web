@@ -28,7 +28,7 @@
                 }
             }
         },
-        "@nx/eslint:lint": {
+        "lint": {
             "cache": true,
             "inputs": [
                 "default",
