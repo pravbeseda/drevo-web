@@ -3,6 +3,16 @@ import noNull from 'eslint-plugin-no-null';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
 
+// Shared across every block that needs type information. Flat config replaces
+// `parserOptions` wholesale instead of merging, so each such block must carry the
+// full object — hence one definition reused rather than two that can drift apart.
+const typedParserOptions = {
+    // Root-level config files belong to no tsconfig, and the project service
+    // fails them with a parse error rather than skipping them.
+    projectService: { allowDefaultProject: ['*.config.ts'] },
+    tsconfigRootDir: import.meta.dirname,
+};
+
 export default [
     ...nx.configs['flat/base'],
     ...nx.configs['flat/typescript'],
@@ -59,12 +69,7 @@ export default [
         // Roughly a quarter of the sonarjs set is type-aware and silently no-ops
         // without a program, so the parser gets one here.
         languageOptions: {
-            parserOptions: {
-                // Root-level config files belong to no tsconfig, and the project service
-                // fails them with a parse error rather than skipping them.
-                projectService: { allowDefaultProject: ['*.config.ts'] },
-                tsconfigRootDir: import.meta.dirname,
-            },
+            parserOptions: typedParserOptions,
         },
         plugins: {
             sonarjs,
@@ -115,26 +120,40 @@ export default [
             'no-null/no-null': 'error',
         },
     },
-    // Type-aware linting (Этап 2 · Q3, Вариант B): high-value typed rules only.
-    // projectService enables full type information; scoped to source TS.
+    // Type-aware linting. A deliberately small set rather than the full
+    // `strict-type-checked` preset: these four catch bug classes the compiler does not
+    // (unawaited promises, promises passed where void is expected), while the rest of the
+    // preset mostly restates rules already enforced above or fires on patterns this codebase
+    // uses on purpose. Widen it by adding rules here once their existing violations are clean.
     {
         files: ['**/*.ts', '**/*.tsx'],
-        ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        // Root config files land in the default project, which has no strictNullChecks,
+        // so the typed rules below would only report that they cannot run.
+        ignores: ['*.config.ts'],
         languageOptions: {
-            parserOptions: {
-                projectService: true,
-                tsconfigRootDir: import.meta.dirname,
-            },
+            parserOptions: typedParserOptions,
         },
         rules: {
             // Clean at introduction — locked at error to guard new code.
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
             // Existing violations present — warning-first, promote to error after cleanup.
+            // Counts are capped per project by `maxWarnings` in each project.json, so new
+            // violations fail lint; lower those baselines as the existing ones get fixed.
             // no-floating-promises: real unhandled promises (needs per-site await vs void review).
             // no-unnecessary-condition: mostly intentional guards against untyped backend data.
             '@typescript-eslint/no-floating-promises': 'warn',
             '@typescript-eslint/no-unnecessary-condition': 'warn',
+        },
+    },
+    // Must follow the typed block above — flat config applies the last matching entry,
+    // so an override placed with the other spec rules would be reinstated here.
+    {
+        files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        rules: {
+            // Assertions deliberately re-check what the types already promise; that is the
+            // point of a test, so the rule reports the test rather than a defect.
+            '@typescript-eslint/no-unnecessary-condition': 'off',
         },
     },
 ];
