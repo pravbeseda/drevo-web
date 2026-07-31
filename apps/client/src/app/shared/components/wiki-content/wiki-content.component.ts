@@ -68,6 +68,7 @@ export class WikiContentComponent implements OnInit, OnDestroy {
         html = stripMapElements(html);
         html = sanitizeOnclickAttributes(html);
         html = resolveFragmentLinks(html, this.currentPath());
+        // eslint-disable-next-line sonarjs/no-angular-bypass-sanitization -- wiki markup is server-rendered and must keep its inline structure
         return this.sanitizer.bypassSecurityTrustHtml(html);
     });
 

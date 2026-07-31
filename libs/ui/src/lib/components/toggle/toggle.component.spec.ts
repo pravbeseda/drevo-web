@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ToggleComponent } from './toggle.component';
 
@@ -6,7 +5,6 @@ describe('ToggleComponent', () => {
     let spectator: Spectator<ToggleComponent>;
     const createComponent = createComponentFactory({
         component: ToggleComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {

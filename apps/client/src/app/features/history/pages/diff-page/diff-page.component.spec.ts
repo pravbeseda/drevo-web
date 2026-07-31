@@ -228,7 +228,7 @@ describe('DiffPageComponent', () => {
 
         it('should disable moderation when no pairs', () => {
             spectator = createComponent({
-                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(undefined) }],
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService() }],
             });
             spectator.detectChanges();
             expect(spectator.component.isModerationEnabled()).toBe(false);
@@ -341,7 +341,7 @@ describe('DiffPageComponent', () => {
 
         it('should return zero counts when no pairs', () => {
             const spectator = createComponent({
-                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(undefined) }],
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService() }],
             });
             spectator.detectChanges();
 

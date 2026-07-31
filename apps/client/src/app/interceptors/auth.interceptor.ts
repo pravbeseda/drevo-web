@@ -174,7 +174,7 @@ export class AuthInterceptor implements HttpInterceptor {
     private getUrlPath(url: string): string {
         try {
             // Handle both absolute and relative URLs
-            const urlObj = new URL(url, 'http://dummy');
+            const urlObj = new URL(url, 'https://dummy');
             return urlObj.pathname;
         } catch {
             // Fallback: remove query string and fragment manually

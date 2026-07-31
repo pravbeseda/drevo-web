@@ -144,7 +144,7 @@ describe('AuthService', () => {
             });
 
             const req = httpController.expectOne('http://test-api/api/auth/me');
-            req.error(new ErrorEvent('Network error'));
+            req.error(new ProgressEvent('error'));
         });
 
         it('should update userSubject on successful auth', done => {
@@ -472,7 +472,7 @@ describe('AuthService', () => {
             });
 
             const req = httpController.expectOne('http://test-api/api/auth/logout');
-            req.error(new ErrorEvent('Network error'));
+            req.error(new ProgressEvent('error'));
         });
     });
 

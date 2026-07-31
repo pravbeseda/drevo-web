@@ -100,6 +100,7 @@
         "eslint-plugin-import": "^2.32.0",
         "eslint-plugin-no-null": "^1.0.2",
         "eslint-plugin-playwright": "^1.6.2",
+        "eslint-plugin-sonarjs": "^4.2.0",
         "husky": "^9.1.7",
         "jest": "^30.0.0",
         "jest-environment-jsdom": "^30.0.0",
@@ -124,5 +125,11 @@
         "typescript-eslint": "^8.33.1",
         "wait-on": "^9.0.4",
         "zone.js": "0.16.0"
+    },
+    "//resolutions": {
+        "eslint-plugin-sonarjs/typescript": "The plugin accepts >=5 <6.1.0 and would otherwise install its own TypeScript 6.x. Its type-aware rules must run on the same compiler as the build, or lint results silently diverge between CI, the editor's TS server and `yarn build`. Scoped to the plugin on purpose: an unscoped `typescript` pin would apply to Angular, typescript-eslint and jest too, and would then block the next TypeScript bump from somewhere unrelated to linting. Keep this in step with `devDependencies.typescript`."
+    },
+    "resolutions": {
+        "eslint-plugin-sonarjs/typescript": "5.9.3"
     }
 }
