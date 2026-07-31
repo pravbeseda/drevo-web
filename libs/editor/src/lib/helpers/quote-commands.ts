@@ -13,6 +13,32 @@ const outerPairs: [string, string][] = [
 /** Flattened set of all individual quote chars */
 const allQuoteChars = new Set(outerPairs.flatMap(([open, close]) => [open, close]));
 
+/** Remove every layer of supported quote pairs wrapping the text. */
+function stripOuterPairs(text: string): string {
+    let inner = text;
+    let stripped = true;
+
+    while (stripped) {
+        stripped = false;
+        for (const [open, close] of outerPairs) {
+            if (inner.startsWith(open) && inner.endsWith(close)) {
+                inner = inner.slice(open.length, inner.length - close.length);
+                stripped = true;
+                break;
+            }
+        }
+    }
+
+    return inner;
+}
+
+function buildReplacement(text: string, quoteChar: "'" | '"'): string {
+    if (text.length === 1 && allQuoteChars.has(text)) {
+        return quoteChar;
+    }
+    return quoteChar + stripOuterPairs(text) + quoteChar;
+}
+
 /**
  * Handle a quote key press **only when there is a non-empty selection**:
  * - single-char selection of any supported quote → replace with quoteChar
@@ -36,38 +62,13 @@ export function handleQuote(view: EditorView, quoteChar: "'" | '"'): boolean {
 
     for (const { from, to } of ranges) {
         const text = state.sliceDoc(from, to);
-        let replacement: string;
-        let cursorPos: number;
-
-        if (text.length === 1 && allQuoteChars.has(text)) {
-            // replace a single existing quote
-            replacement = quoteChar;
-            cursorPos = from + 1;
-        } else {
-            // strip all matching outer pairs
-            let inner = text;
-            let stripped: boolean;
-            do {
-                stripped = false;
-                for (const [open, close] of outerPairs) {
-                    if (inner.startsWith(open) && inner.endsWith(close)) {
-                        inner = inner.slice(open.length, inner.length - close.length);
-                        stripped = true;
-                        break;
-                    }
-                }
-            } while (stripped);
-
-            // wrap the stripped (or original) text
-            replacement = quoteChar + inner + quoteChar;
-            cursorPos = from + replacement.length;
-        }
+        const replacement = buildReplacement(text, quoteChar);
 
         if (replacement !== text) {
             didChange = true;
         }
         changes.push({ from, to, insert: replacement });
-        newRanges.push(EditorSelection.cursor(cursorPos));
+        newRanges.push(EditorSelection.cursor(from + replacement.length));
     }
 
     if (!didChange) {

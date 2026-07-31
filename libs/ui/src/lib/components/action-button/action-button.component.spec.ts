@@ -1,4 +1,4 @@
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ActionButtonComponent } from './action-button.component';
 
@@ -7,7 +7,7 @@ describe('ActionButtonComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ActionButtonComponent,
-        imports: [RouterTestingModule],
+        providers: [provideRouter([])],
     });
 
     beforeEach(() => {

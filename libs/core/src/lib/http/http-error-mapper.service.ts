@@ -125,29 +125,48 @@ export class HttpErrorMapperService {
      * Extracts validation error details for 422 responses.
      */
     protected extractValidationMessage(err: HttpErrorResponse): string | undefined {
-        const error = err.error;
+        const errors = this.readErrorsBag(err.error);
 
-        if (typeof error === 'object' && error) {
-            if ('errors' in error) {
-                const errors = error.errors;
-                if (Array.isArray(errors) && errors.length > 0 && typeof errors[0] === 'string') {
-                    return errors[0];
-                }
-                if (typeof errors === 'object' && errors) {
-                    const firstField = Object.keys(errors)[0];
-                    if (firstField) {
-                        const fieldErrors = (errors as Record<string, unknown>)[firstField];
-                        if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
-                            const firstFieldError = fieldErrors[0];
-                            if (typeof firstFieldError === 'string' && firstFieldError.length > 0) {
-                                return `${firstField}: ${firstFieldError}`;
-                            }
-                        }
-                    }
-                }
-            }
+        return this.firstListedMessage(errors) ?? this.firstFieldMessage(errors) ?? this.extractBackendMessage(err);
+    }
+
+    /** `{ errors: ... }` payload, in either the flat-list or per-field shape. */
+    private readErrorsBag(error: unknown): unknown {
+        if (typeof error === 'object' && error && 'errors' in error) {
+            return (error as { errors: unknown }).errors;
+        }
+        return undefined;
+    }
+
+    /** `{ errors: ['message'] }` */
+    private firstListedMessage(errors: unknown): string | undefined {
+        if (Array.isArray(errors) && errors.length > 0 && typeof errors[0] === 'string') {
+            return errors[0];
+        }
+        return undefined;
+    }
+
+    /** `{ errors: { field: ['message'] } }` */
+    private firstFieldMessage(errors: unknown): string | undefined {
+        if (typeof errors !== 'object' || !errors) {
+            return undefined;
         }
 
-        return this.extractBackendMessage(err);
+        const firstField = Object.keys(errors)[0];
+        if (!firstField) {
+            return undefined;
+        }
+
+        const fieldErrors = (errors as Record<string, unknown>)[firstField];
+        if (!Array.isArray(fieldErrors) || fieldErrors.length === 0) {
+            return undefined;
+        }
+
+        const firstFieldError = fieldErrors[0];
+        if (typeof firstFieldError !== 'string' || firstFieldError.length === 0) {
+            return undefined;
+        }
+
+        return `${firstField}: ${firstFieldError}`;
     }
 }

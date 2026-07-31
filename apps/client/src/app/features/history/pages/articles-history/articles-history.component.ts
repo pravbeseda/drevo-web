@@ -10,16 +10,6 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
     { key: 'all', label: 'Все' },
     { key: 'unchecked', label: 'Непроверенные' },
-    // Todo Uncomment if I implement it
-    // {
-    //     label: 'В работе',
-    //     items: [
-    //         { key: 'unfinished', label: 'Неоконченные' },
-    //         { key: 'unmarked', label: 'Неразмеченные' },
-    //         { key: 'outside_dictionaries', label: 'Вне словников' },
-    //         { key: 'required', label: 'Требующиеся' },
-    //     ],
-    // },
 ];
 
 @Component({

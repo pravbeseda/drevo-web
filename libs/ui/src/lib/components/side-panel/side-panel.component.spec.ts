@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { SidePanelComponent } from './side-panel.component';
 
@@ -7,7 +6,6 @@ describe('SidePanelComponent', () => {
 
     const createComponent = createComponentFactory({
         component: SidePanelComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {

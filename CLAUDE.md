@@ -239,13 +239,17 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 
 1. **Russian language** in UI, **English** in code and comments
 2. **Comments** — English only, only where code doesn't explain itself
-3. **Tests are mandatory** for new features and bug fixes. Use Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation. If existing tests break — analyze the root cause before fixing
+3. **TDD is mandatory — always, no exceptions.** Write the test first and *watch it fail* before writing any implementation. Red → green → refactor. A change small enough to "obviously not need a test" is small enough to write the test for. A test that passes before the implementation exists proves nothing — if it doesn't go red first, it isn't testing the change
+    - **Unit tests cover the implementation** — Jest + Spectator. Test public API only (methods, properties, inputs/outputs), not internal implementation
+    - **Playwright coverage must be explicitly considered for every change** — decide whether the behavior also needs an integration test in `testing/playwright/`, and state the decision either way. Unit tests do not cover routing, real navigation, cross-component flows, SSR/hydration, or anything that depends on a real browser
+    - **Bug fixes** — when a bug is real but existing tests pass, the missing failing test comes first (unit or Playwright, whichever fits); only then fix until it passes. Every bug fix ends up with a regression test
+    - **Non-functional changes need tests too** — performance fixes get an assertion that fails on the slow implementation; refactors that must preserve behavior get characterization tests against the old behavior before the swap
+    - If existing tests break — analyze the root cause before fixing
 4. **`data-testid` attributes for test selectors** — in tests, query elements only via `[data-testid="name"]` attributes. Add `data-testid` attributes to component templates only when actually needed by a test
 5. **No unused CSS classes in templates** — every class in HTML templates must have corresponding styles in SCSS; remove classes that aren't used for styling
 6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 7. **No `title` attribute** — use `matTooltip` for visual hints or `aria-label` for accessible name without visual hint
-8. **Test-first bug fixing** — when a bug is reported and existing tests pass, first write a failing test (unit or Playwright, whichever fits) that asserts the correct behavior. Only then fix the bug until the test passes. This ensures every bug fix is covered by a regression test
-9. **Failing tests are a red flag, not an obstacle** — if code changes cause an existing test to fail, do NOT simply fix the test to make it pass. First investigate whether the new code broke expected behavior. Only modify the test if the behavioral change is intentional and justified (e.g. a deliberate API change, not a side effect). When in doubt, fix the code, not the test
+8. **Failing tests are a red flag, not an obstacle** — if code changes cause an existing test to fail, do NOT simply fix the test to make it pass. First investigate whether the new code broke expected behavior. Only modify the test if the behavioral change is intentional and justified (e.g. a deliberate API change, not a side effect). When in doubt, fix the code, not the test
 
 ## Key Patterns
 

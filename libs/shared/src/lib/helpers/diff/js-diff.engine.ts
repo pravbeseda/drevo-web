@@ -21,9 +21,16 @@ export class JsDiffEngine implements DiffEngine {
         );
 
         return changes.map(change => ({
-            type: change.added ? 'insert' : change.removed ? 'delete' : 'equal',
+            type: this.toChangeType(change),
             text: change.value,
         }));
+    }
+
+    private toChangeType(change: Change): DiffChange['type'] {
+        if (change.added) {
+            return 'insert';
+        }
+        return change.removed ? 'delete' : 'equal';
     }
 
     private computeChanges(oldText: string, newText: string, options: JsDiffOptions): Change[] {

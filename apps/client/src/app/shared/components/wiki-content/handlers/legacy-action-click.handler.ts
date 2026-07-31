@@ -47,6 +47,7 @@ export class LegacyActionClickHandler implements WikiClickHandler {
             const action = element.getAttribute('data-action');
             const actionTarget = element.getAttribute('data-target');
             if (action === 'toggle-group' && actionTarget) {
+                // eslint-disable-next-line sonarjs/code-eval -- synthetic marker parsed by dispatchAction, never evaluated
                 return `javascript:toggleGroup('${actionTarget}')`;
             }
             element = element.parentElement ?? undefined;
@@ -74,12 +75,12 @@ export class LegacyActionClickHandler implements WikiClickHandler {
     private parseJavaScriptAction(value: string): { action: string; param?: string } | undefined {
         const trimmed = value.trim();
 
-        const matchWithParam = /^javascript:\s*(?:\w+=)?([a-zA-Z]+)\('([a-zA-Z0-9_-]+)'\)(?:;.*)?$/i.exec(trimmed);
+        const matchWithParam = /^javascript:\s*(?:\w+=)?([a-z]+)\('([a-z0-9_-]+)'\)(?:;.*)?$/i.exec(trimmed);
         if (matchWithParam) {
             return { action: matchWithParam[1], param: matchWithParam[2] };
         }
 
-        const matchSimple = /^javascript:\s*(?:\w+=)?([a-zA-Z]+)(?:\(\))?(?:;.*)?$/i.exec(trimmed);
+        const matchSimple = /^javascript:\s*(?:\w+=)?([a-z]+)(?:\(\))?(?:;.*)?$/i.exec(trimmed);
         if (matchSimple) {
             return { action: matchSimple[1] };
         }
