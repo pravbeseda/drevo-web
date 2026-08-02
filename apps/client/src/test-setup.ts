@@ -22,7 +22,7 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Polyfill CSS.escape for tests
 if (typeof CSS === 'undefined') {
-    Object.defineProperty(globalThis, 'CSS', { writable: true, value: {} });
+    Object.defineProperty(globalThis, 'CSS', { writable: true, configurable: true, value: {} });
 }
 if (!CSS.escape) {
     CSS.escape = (cssIdentifier: string): string => {

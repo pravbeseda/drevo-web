@@ -13,6 +13,12 @@ const typedParserOptions = {
     tsconfigRootDir: import.meta.dirname,
 };
 
+// Every block that matches or exempts tests reuses these, so a narrower copy cannot
+// silently reinstate a rule the base block turned off.
+const specFiles = ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'];
+const e2eFiles = ['apps/client-e2e/**/*.ts', 'apps/client-e2e/**/*.tsx'];
+const e2eSpecFiles = specFiles.map(pattern => `apps/client-e2e/${pattern}`);
+
 export default [
     ...nx.configs['flat/base'],
     ...nx.configs['flat/typescript'],
@@ -112,7 +118,7 @@ export default [
     },
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
-        ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        ignores: specFiles,
         plugins: {
             'no-null': noNull,
         },
@@ -127,11 +133,6 @@ export default [
     // uses on purpose. Widen it by adding rules here once their existing violations are clean.
     {
         files: ['**/*.ts', '**/*.tsx'],
-        // Root config files land in the default project, which has no strictNullChecks, and
-        // no-unnecessary-condition answers that by reporting that it cannot run — noise, not a
-        // finding. Only these rules behave that way; the sonarjs block still applies to those
-        // files, where its type-aware rules go quiet and the rest work normally.
-        ignores: ['*.config.ts'],
         languageOptions: {
             parserOptions: typedParserOptions,
         },
@@ -151,10 +152,23 @@ export default [
             '@typescript-eslint/no-unnecessary-condition': 'warn',
         },
     },
+    // Root config files (currently just jest.config.ts) belong to no tsconfig and land in the
+    // default project, which has no strictNullChecks; no-unnecessary-condition answers that by
+    // reporting that it cannot run — noise, not a finding. The other three typed rules do not
+    // need strictNullChecks and stay on here. Nested config files are not covered by this
+    // pattern and do not need to be: they belong to a real tsconfig. The scope cannot be
+    // widened anyway — typescript-eslint rejects `**` in `allowDefaultProject`, because every
+    // file outside a tsconfig gets its own inferred program.
+    {
+        files: ['*.config.ts'],
+        rules: {
+            '@typescript-eslint/no-unnecessary-condition': 'off',
+        },
+    },
     // Must follow the typed block above — flat config applies the last matching entry,
     // so an override placed with the other spec rules would be reinstated here.
     {
-        files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        files: specFiles,
         rules: {
             // Assertions deliberately re-check what the types already promise; that is the
             // point of a test, so the rule reports the test rather than a defect.
@@ -165,15 +179,15 @@ export default [
     // Its `maxWarnings` covers pre-existing playwright/* debt only, and error severity keeps
     // that budget from being spent on a new typed violation.
     {
-        files: ['apps/client-e2e/**/*.ts'],
+        files: e2eFiles,
         rules: {
             '@typescript-eslint/no-floating-promises': 'error',
         },
     },
     {
         // Specs keep the no-unnecessary-condition exemption granted above.
-        files: ['apps/client-e2e/**/*.ts'],
-        ignores: ['apps/client-e2e/**/*.spec.ts'],
+        files: e2eFiles,
+        ignores: e2eSpecFiles,
         rules: {
             '@typescript-eslint/no-unnecessary-condition': 'error',
         },

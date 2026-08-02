@@ -32,6 +32,9 @@
             "cache": true,
             "inputs": [
                 "default",
+                // Typed rules resolve types through dependencies, so a dependency's
+                // sources must be part of the lint hash or the cache replays stale results.
+                "^production",
                 "{workspaceRoot}/.eslintrc.json",
                 "{workspaceRoot}/.eslintignore",
                 "{workspaceRoot}/eslint.config.mjs"
