@@ -3,6 +3,22 @@ import noNull from 'eslint-plugin-no-null';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
 
+// Shared across every block that needs type information. Flat config replaces
+// `parserOptions` wholesale instead of merging, so each such block must carry the
+// full object — hence one definition reused rather than two that can drift apart.
+const typedParserOptions = {
+    // Root-level config files belong to no tsconfig, and the project service
+    // fails them with a parse error rather than skipping them.
+    projectService: { allowDefaultProject: ['*.config.ts'] },
+    tsconfigRootDir: import.meta.dirname,
+};
+
+// Every block that matches or exempts tests reuses these, so a narrower copy cannot
+// silently reinstate a rule the base block turned off.
+const specFiles = ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'];
+const e2eFiles = ['apps/client-e2e/**/*.ts', 'apps/client-e2e/**/*.tsx'];
+const e2eSpecFiles = specFiles.map(pattern => `apps/client-e2e/${pattern}`);
+
 export default [
     ...nx.configs['flat/base'],
     ...nx.configs['flat/typescript'],
@@ -59,12 +75,7 @@ export default [
         // Roughly a quarter of the sonarjs set is type-aware and silently no-ops
         // without a program, so the parser gets one here.
         languageOptions: {
-            parserOptions: {
-                // Root-level config files belong to no tsconfig, and the project service
-                // fails them with a parse error rather than skipping them.
-                projectService: { allowDefaultProject: ['*.config.ts'] },
-                tsconfigRootDir: import.meta.dirname,
-            },
+            parserOptions: typedParserOptions,
         },
         plugins: {
             sonarjs,
@@ -107,12 +118,78 @@ export default [
     },
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
-        ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        ignores: specFiles,
         plugins: {
             'no-null': noNull,
         },
         rules: {
             'no-null/no-null': 'error',
+        },
+    },
+    // Type-aware linting. A deliberately small set rather than the full
+    // `strict-type-checked` preset: these four catch bug classes the compiler does not
+    // (unawaited promises, promises passed where void is expected), while the rest of the
+    // preset mostly restates rules already enforced above or fires on patterns this codebase
+    // uses on purpose. Widen it by adding rules here once their existing violations are clean.
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        languageOptions: {
+            parserOptions: typedParserOptions,
+        },
+        rules: {
+            // Clean at introduction — locked at error to guard new code.
+            '@typescript-eslint/await-thenable': 'error',
+            '@typescript-eslint/no-misused-promises': 'error',
+            // Existing violations present — warning-first, promote to error after cleanup.
+            // Counts are capped per project by `maxWarnings` in each project.json, so new
+            // violations fail lint; lower those baselines as the existing ones get fixed.
+            // no-floating-promises: real unhandled promises (needs per-site await vs void review).
+            // no-unnecessary-condition: mostly guards against backend data the DTO types claim
+            // more about than the backend guarantees. Clearing them means typing that boundary
+            // honestly, NOT deleting the checks — they are load-bearing until it is typed. Do
+            // not promote this rule to error before that pass lands (see issue #237).
+            '@typescript-eslint/no-floating-promises': 'warn',
+            '@typescript-eslint/no-unnecessary-condition': 'warn',
+        },
+    },
+    // Root config files (currently just jest.config.ts) belong to no tsconfig and land in the
+    // default project, which has no strictNullChecks; no-unnecessary-condition answers that by
+    // reporting that it cannot run — noise, not a finding. The other three typed rules do not
+    // need strictNullChecks and stay on here. Nested config files are not covered by this
+    // pattern and do not need to be: they belong to a real tsconfig. The scope cannot be
+    // widened anyway — typescript-eslint rejects `**` in `allowDefaultProject`, because every
+    // file outside a tsconfig gets its own inferred program.
+    {
+        files: ['*.config.ts'],
+        rules: {
+            '@typescript-eslint/no-unnecessary-condition': 'off',
+        },
+    },
+    // Must follow the typed block above — flat config applies the last matching entry,
+    // so an override placed with the other spec rules would be reinstated here.
+    {
+        files: specFiles,
+        rules: {
+            // Assertions deliberately re-check what the types already promise; that is the
+            // point of a test, so the rule reports the test rather than a defect.
+            '@typescript-eslint/no-unnecessary-condition': 'off',
+        },
+    },
+    // client-e2e has no typed-rule violations, so nothing needs a warning budget here.
+    // Its `maxWarnings` covers pre-existing playwright/* debt only, and error severity keeps
+    // that budget from being spent on a new typed violation.
+    {
+        files: e2eFiles,
+        rules: {
+            '@typescript-eslint/no-floating-promises': 'error',
+        },
+    },
+    {
+        // Specs keep the no-unnecessary-condition exemption granted above.
+        files: e2eFiles,
+        ignores: e2eSpecFiles,
+        rules: {
+            '@typescript-eslint/no-unnecessary-condition': 'error',
         },
     },
 ];
