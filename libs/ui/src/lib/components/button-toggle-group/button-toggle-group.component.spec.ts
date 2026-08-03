@@ -1,5 +1,4 @@
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createHostFactory, SpectatorHost } from '@ngneat/spectator/jest';
 import { ButtonToggleClick, ButtonToggleGroupComponent, ButtonToggleOption } from './button-toggle-group.component';
 
@@ -15,7 +14,7 @@ describe('ButtonToggleGroupComponent', () => {
 
     const createHost = createHostFactory({
         component: ButtonToggleGroupComponent,
-        imports: [ReactiveFormsModule, NoopAnimationsModule],
+        imports: [ReactiveFormsModule],
     });
 
     beforeEach(() => {

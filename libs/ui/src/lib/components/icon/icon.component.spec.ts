@@ -1,6 +1,5 @@
 import { MatIconRegistry } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { DomSanitizer } from '@angular/platform-browser';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconComponent } from './icon.component';
@@ -15,7 +14,6 @@ describe('IconComponent', () => {
     let spectator: Spectator<IconComponent>;
     const createComponent = createComponentFactory({
         component: IconComponent,
-        imports: [NoopAnimationsModule],
     });
 
     it('should create', () => {
@@ -94,7 +92,6 @@ describe('IconComponent', () => {
 
         const createSvgComponent = createComponentFactory({
             component: IconComponent,
-            imports: [NoopAnimationsModule],
             detectChanges: false,
         });
 

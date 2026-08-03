@@ -1,5 +1,6 @@
 import { CountsApiService } from './counts-api.service';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { HistoryCountsDto } from '@drevo-web/shared';
 
@@ -9,7 +10,7 @@ describe('CountsApiService', () => {
 
     const createService = createServiceFactory({
         service: CountsApiService,
-        imports: [HttpClientTestingModule],
+        providers: [provideHttpClient(), provideHttpClientTesting()],
     });
 
     beforeEach(() => {

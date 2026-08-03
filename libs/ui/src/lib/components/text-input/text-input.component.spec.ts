@@ -1,5 +1,4 @@
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TextInputComponent } from './text-input.component';
 
@@ -7,7 +6,6 @@ describe('TextInputComponent', () => {
     let spectator: Spectator<TextInputComponent>;
     const createComponent = createComponentFactory({
         component: TextInputComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {

@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ApprovalStatus } from '@drevo-web/shared';
 
@@ -8,7 +7,6 @@ describe('StatusIconComponent', () => {
     let spectator: Spectator<StatusIconComponent>;
     const createComponent = createComponentFactory({
         component: StatusIconComponent,
-        imports: [NoopAnimationsModule],
     });
 
     it('should create', () => {

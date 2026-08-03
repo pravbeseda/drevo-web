@@ -4,6 +4,14 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { WikiHighlighterService } from './wiki-highlighter.service';
 
+// A quadratic scan costs ~30x a benign document of the same size, a linear one under 3x.
+// Compared as a ratio rather than a wall-clock budget: an absolute bound has to be loose
+// enough for a loaded CI runner, and at that width it stops separating the two shapes.
+const QUADRATIC_SCAN_RATIO = 10;
+// Floor for the ratio, so a sub-millisecond baseline on a fast machine cannot make the
+// comparison fire on timing noise alone.
+const SCAN_FLOOR_MS = 20;
+
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
 const missingSelector = '.cm-link-missing';
@@ -31,6 +39,79 @@ describe('WikiHighlighterService', () => {
 
         expect(footnoteElement).not.toBeNull();
         expect(footnoteElement?.textContent).toBe('[[Пример сноски]]');
+    });
+
+    // The viewport is virtualized, so only presence of the decoration is asserted here —
+    // that is what distinguishes length-independent scanning from a capped match.
+    it('should highlight a footnote far longer than any fixed scan window', () => {
+        const view = getView(`[[${'а'.repeat(25000)}]]`);
+
+        expect(view.dom.querySelector('.cm-footnote')).not.toBeNull();
+    });
+
+    it('should highlight a link far longer than any fixed scan window', () => {
+        const view = getView(`((${'б'.repeat(3000)}))`);
+
+        expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
+    });
+
+    it('should highlight a long link with an alias', () => {
+        const view = getView(`((${'в'.repeat(2500)}=алиас))`);
+
+        expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
+    });
+
+    it('should scan a long run of closing parentheses without a quadratic stall', () => {
+        const size = 40000;
+        const pathological = `((a${')'.repeat(size)}`;
+        const benign = 'а'.repeat(size + 3);
+
+        // The first view of the file pays for CodeMirror setup and a cold JIT, which alone
+        // is an order of magnitude of noise. Discard it before either measurement.
+        getView(benign);
+
+        const benignMs = elapsed(() => getView(benign));
+        const pathologicalMs = elapsed(() => getView(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should scan unclosed openers on separate lines without a quadratic stall', () => {
+        const lines = 64000;
+        const pathological = `${'((a\n'.repeat(lines)}))`;
+        const benign = 'aaa\n'.repeat(lines);
+
+        buildState(benign);
+
+        const benignMs = elapsed(() => buildState(benign));
+        const pathologicalMs = elapsed(() => buildState(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should scan unclosed openers packed into one line without a quadratic stall', () => {
+        const openers = 32000;
+        const pathological = '((a'.repeat(openers);
+        const benign = 'aaa'.repeat(openers);
+
+        buildState(benign);
+
+        const benignMs = elapsed(() => buildState(benign));
+        const pathologicalMs = elapsed(() => buildState(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should not highlight a link spanning a newline', () => {
+        const view = getView('((Имя\nФамилия))');
+
+        expect(view.dom.querySelector(pendingSelector)).toBeNull();
+    });
+
+    it('should skip a tripled opening bracket and match from the inner pair', () => {
+        const view = getView('(((Имя))');
+
+        expect(view.dom.querySelector(pendingSelector)?.textContent).toBe('Имя');
     });
 
     it.each([
@@ -82,6 +163,18 @@ describe('WikiHighlighterService', () => {
             extensions: [service.wikiHighlighter],
         });
         return new EditorView({ state });
+    }
+
+    // Decorations are built by the state field's `create`, so a plain state exercises the
+    // scan without paying for the view's DOM construction.
+    function buildState(text: string) {
+        return EditorState.create({ doc: text, extensions: [service.wikiHighlighter] });
+    }
+
+    function elapsed(run: () => void): number {
+        const started = performance.now();
+        run();
+        return performance.now() - started;
     }
 
     describe('Link Normalization', () => {

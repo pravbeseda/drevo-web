@@ -15,7 +15,11 @@
             "!{projectRoot}/src/test-setup.[jt]s",
             "!{projectRoot}/test-setup.[jt]s"
         ],
-        "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
+        // Workspace-level files that every task depends on. `ci.yml` used to be listed here
+        // but no such workflow exists — lint, test and build all run from the cd-* ones.
+        // tsconfig.base.json holds the path aliases and the strict flags the typed lint rules
+        // are computed from, so a change there must invalidate every cached task.
+        "sharedGlobals": ["{workspaceRoot}/.github/workflows/*.yml", "{workspaceRoot}/tsconfig.base.json"]
     },
     "targetDefaults": {
         "@angular-devkit/build-angular:application": {
@@ -28,14 +32,20 @@
                 }
             }
         },
-        "@nx/eslint:lint": {
+        "lint": {
             "cache": true,
             "inputs": [
                 "default",
+                // Typed rules resolve types through dependencies, so a dependency's
+                // sources must be part of the lint hash or the cache replays stale results.
+                "^production",
                 "{workspaceRoot}/.eslintrc.json",
                 "{workspaceRoot}/.eslintignore",
                 "{workspaceRoot}/eslint.config.mjs"
-            ]
+            ],
+            "options": {
+                "maxWarnings": 0
+            }
         },
         "@nx/jest:jest": {
             "cache": true,

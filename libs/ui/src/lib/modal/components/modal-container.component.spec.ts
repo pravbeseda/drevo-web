@@ -9,15 +9,14 @@ import { LazyComponentLoader, ModalData } from '../models/modal.types';
 import { ModalContainerComponent } from './modal-container.component';
 
 type TestData = { title: string };
-type TestResult = string;
-type TestContainerComponent = ModalContainerComponent<TestData, TestResult>;
+type TestContainerComponent = ModalContainerComponent<TestData, string>;
 
 @Component({
     standalone: true,
     template: '',
 })
 class TestModalComponent {
-    readonly modalData = inject<ModalData<TestData, TestResult>>(MODAL_DATA);
+    readonly modalData = inject<ModalData<TestData, string>>(MODAL_DATA);
 }
 
 describe('ModalContainerComponent', () => {

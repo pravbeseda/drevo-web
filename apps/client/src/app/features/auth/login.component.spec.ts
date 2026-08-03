@@ -1,6 +1,5 @@
 import { PLATFORM_ID } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
@@ -18,7 +17,7 @@ describe('LoginComponent', () => {
 
     const createComponent = createComponentFactory({
         component: LoginComponent,
-        imports: [ReactiveFormsModule, NoopAnimationsModule, TextInputComponent, CheckboxComponent, ButtonComponent],
+        imports: [ReactiveFormsModule, TextInputComponent, CheckboxComponent, ButtonComponent],
         providers: [
             {
                 provide: AuthService,
@@ -414,7 +413,7 @@ describe('LoginComponent SSR', () => {
 
     const createServerComponent = createComponentFactory({
         component: LoginComponent,
-        imports: [ReactiveFormsModule, NoopAnimationsModule, TextInputComponent, CheckboxComponent, ButtonComponent],
+        imports: [ReactiveFormsModule, TextInputComponent, CheckboxComponent, ButtonComponent],
         providers: [
             {
                 provide: AuthService,

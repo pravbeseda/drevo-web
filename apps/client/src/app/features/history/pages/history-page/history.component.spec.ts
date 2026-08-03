@@ -1,6 +1,5 @@
 import { AuthService } from '../../../../services/auth/auth.service';
 import { HistoryCounts, HistoryCountsService } from '../../../../services/counts/history-counts.service';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -47,7 +46,6 @@ describe('HistoryComponent', () => {
 
     const createComponent = createComponentFactory({
         component: HistoryComponent,
-        imports: [NoopAnimationsModule],
         providers: [
             provideRouter([{ path: '**', children: [] }]),
             { provide: AuthService, useValue: mockAuthService },

@@ -10,6 +10,12 @@
             "options": {
                 "command": "playwright test --pass-with-no-tests"
             }
+        },
+        "lint": {
+            "executor": "@nx/eslint:lint",
+            "options": {
+                "maxWarnings": 29
+            }
         }
     }
 }

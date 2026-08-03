@@ -6,7 +6,6 @@ import { RightSidebarComponent } from './right-sidebar.component';
 
 describe('RightSidebarComponent', () => {
     let spectator: Spectator<RightSidebarComponent>;
-    let actionsSignal: WritableSignal<SidebarAction[]>;
 
     const mockActions: SidebarAction[] = [
         {
@@ -32,12 +31,14 @@ describe('RightSidebarComponent', () => {
         },
     ];
 
+    const actionsSignal: WritableSignal<SidebarAction[]> = signal(mockActions);
+
     const createComponent = createComponentFactory({
         component: RightSidebarComponent,
         detectChanges: false,
         providers: [
             mockProvider(SidebarService, {
-                actions: (actionsSignal = signal(mockActions)),
+                actions: actionsSignal,
             }),
         ],
     });

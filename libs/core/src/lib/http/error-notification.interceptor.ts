@@ -79,7 +79,7 @@ export class ErrorNotificationInterceptor implements HttpInterceptor {
 
     private isApiRequest(url: string): boolean {
         try {
-            return new URL(url, 'http://dummy').pathname.startsWith('/api/');
+            return new URL(url, 'https://dummy').pathname.startsWith('/api/');
         } catch {
             return url.startsWith('/api/');
         }
