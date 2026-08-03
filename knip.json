@@ -5,19 +5,19 @@
         "apps/client/src/main.server.ts",
         "apps/client/src/server.ts",
         "apps/client/src/environments/environment.prod.ts",
-        "testing/playwright/**/*.ts",
         "libs/*/src/index.ts",
         "libs/*/src/testing.ts",
         "libs/*/src/test-setup.ts",
         "{apps,libs}/*/eslint.config.mjs",
-        "{apps,libs}/*/jest.config.ts"
+        "{apps,libs}/*/jest.config.{ts,cts}",
+        "testing/playwright/tests/**/*.spec.ts"
     ],
     "project": [
         "apps/**/*.ts",
         "libs/*/src/**/*.ts",
         "testing/**/*.ts",
         "{apps,libs}/*/eslint.config.mjs",
-        "{apps,libs}/*/jest.config.ts"
+        "{apps,libs}/*/jest.config.{ts,cts}"
     ],
     "ignoreDependencies": [
         "@angular/cli",
@@ -31,6 +31,6 @@
         "tslib"
     ],
     "jest": {
-        "config": ["jest.config.ts", "{apps,libs}/*/jest.config.ts"]
+        "config": ["jest.config.ts", "{apps,libs}/*/jest.config.{ts,cts}"]
     }
 }
