@@ -2,7 +2,7 @@ import { Type } from '@angular/core';
 
 export type LazyComponentLoader<T> = () => Promise<Type<T>>;
 
-export type ModalPosition = 'center' | 'bottom';
+type ModalPosition = 'center' | 'bottom';
 
 export interface ModalConfig<TData = unknown> {
     data?: TData;

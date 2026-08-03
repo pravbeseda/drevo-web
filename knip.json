@@ -5,8 +5,11 @@
         "apps/client/src/main.server.ts",
         "apps/client/src/server.ts",
         "apps/client/src/test-setup.ts",
+        "apps/client/src/environments/environment.prod.ts",
         "testing/playwright/**/*.ts",
-        "libs/*/src/index.ts"
+        "libs/*/src/index.ts",
+        "libs/*/src/testing.ts",
+        "libs/*/src/test-setup.ts"
     ],
     "project": ["apps/**/*.ts", "libs/*/src/**/*.ts", "testing/**/*.ts"],
     "ignoreDependencies": [

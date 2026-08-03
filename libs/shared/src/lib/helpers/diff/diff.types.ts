@@ -1,4 +1,4 @@
-export type JsDiffGranularity = 'chars' | 'words' | 'wordsWithSpace' | 'lines' | 'sentences';
+type JsDiffGranularity = 'chars' | 'words' | 'wordsWithSpace' | 'lines' | 'sentences';
 
 export interface JsDiffOptions {
     readonly granularity: JsDiffGranularity;

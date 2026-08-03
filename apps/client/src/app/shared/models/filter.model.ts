@@ -1,4 +1,4 @@
-export interface FilterOption<T extends string = string> {
+interface FilterOption<T extends string = string> {
     readonly key: T;
     readonly label: string;
 }

@@ -28,4 +28,5 @@ export const WIKI_ITALIC_REGEX = /_([^\s_\r\n](?:[^_\r\n]*[^\s_\r\n])?)_/gu;
 export const WIKI_FOOTNOTE_REGEX = /\[\[([\s\S]+?)\]\]/gu;
 
 // Synced with: WikiFormatter::PICTURE_MARKER_PATTERN — /@(-?\d+)@/
+/** @public Part of the PHP-mirrored pattern catalog; kept in sync even while unused on the frontend. */
 export const WIKI_PICTURE_MARKER_REGEX = /@(-?\d+)@/g;
