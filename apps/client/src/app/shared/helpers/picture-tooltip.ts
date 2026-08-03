@@ -108,7 +108,9 @@ export interface PictureCodeMatch {
     readonly to: number;
 }
 
-const PICTURE_CODE_RE = /@(\d+)@/g;
+// Mirrors WikiFormatter::PICTURE_MARKER_PATTERN — `@-N@` renders picture N without a caption,
+// so the sign is a layout variant and the id is the absolute value.
+const PICTURE_CODE_RE = /@(-?\d+)@/g;
 
 export function findPictureCodeAtPosition(lineText: string, posInLine: number): PictureCodeMatch | undefined {
     const regex = new RegExp(PICTURE_CODE_RE.source, PICTURE_CODE_RE.flags);
@@ -120,7 +122,7 @@ export function findPictureCodeAtPosition(lineText: string, posInLine: number): 
         const to = from + match[0].length;
 
         if (posInLine >= from && posInLine <= to) {
-            return { id: Number(match[1]), from, to };
+            return { id: Math.abs(Number(match[1])), from, to };
         }
     }
 
@@ -134,7 +136,7 @@ export function extractPictureIds(text: string): number[] {
 
     // eslint-disable-next-line no-null/no-null
     while ((match = regex.exec(text)) !== null) {
-        ids.add(Number(match[1]));
+        ids.add(Math.abs(Number(match[1])));
     }
 
     return Array.from(ids);

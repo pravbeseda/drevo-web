@@ -61,6 +61,13 @@ describe('findPictureCodeAtPosition', () => {
         expect(findPictureCodeAtPosition('', 0)).toBeUndefined();
     });
 
+    // `@-N@` renders picture N without a caption; the backend takes abs() of the id
+    it('should match a negative picture code and report its absolute id', () => {
+        const result = findPictureCodeAtPosition('text @-123@ more', 7);
+
+        expect(result).toEqual({ id: 123, from: 5, to: 11 });
+    });
+
     it('should handle picture code at line start', () => {
         const result = findPictureCodeAtPosition('@456@ text', 0);
 
@@ -81,6 +88,14 @@ describe('extractPictureIds', () => {
 
     it('should ignore invalid formats', () => {
         expect(extractPictureIds('@abc@ @@ @ @')).toEqual([]);
+    });
+
+    it('should extract negative picture codes as their absolute id', () => {
+        expect(extractPictureIds('text @-100@ and @200@')).toEqual([100, 200]);
+    });
+
+    it('should treat @N@ and @-N@ as the same picture', () => {
+        expect(extractPictureIds('@100@ and @-100@')).toEqual([100]);
     });
 
     it('should handle picture codes on multiple lines', () => {
