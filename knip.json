@@ -1,5 +1,5 @@
 {
-    "$schema": "https://unpkg.com/knip@5/schema.json",
+    "$schema": "https://unpkg.com/knip@6/schema.json",
     "entry": [
         "apps/client/src/main.ts",
         "apps/client/src/main.server.ts",
@@ -13,21 +13,16 @@
         "@angular/cli",
         "@angular/language-service",
         "@nx/workspace",
-        "@swc/types",
         "ts-node",
-        "@eslint/js",
         "angular-eslint",
         "typescript-eslint",
-        "@typescript-eslint/utils",
         "jsonc-eslint-parser",
         "eslint-plugin-playwright",
         "codemirror",
         "@codemirror/lint",
         "@codemirror/search",
         "jest-environment-node",
-        "jest-util",
         "ts-jest",
-        "monocart-coverage-reports",
         "modern-normalize",
         "tslib"
     ]

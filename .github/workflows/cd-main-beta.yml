@@ -41,9 +41,8 @@ jobs:
             - name: Lint styles
               run: yarn lint:styles
 
-            - name: Knip (unused dependencies report)
+            - name: Knip (unused dependencies check)
               run: yarn knip:deps
-              continue-on-error: true
 
             - name: Build verification
               run: |
