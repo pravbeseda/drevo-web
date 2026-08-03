@@ -4,14 +4,21 @@
         "apps/client/src/main.ts",
         "apps/client/src/main.server.ts",
         "apps/client/src/server.ts",
-        "apps/client/src/test-setup.ts",
         "apps/client/src/environments/environment.prod.ts",
         "testing/playwright/**/*.ts",
         "libs/*/src/index.ts",
         "libs/*/src/testing.ts",
-        "libs/*/src/test-setup.ts"
+        "libs/*/src/test-setup.ts",
+        "{apps,libs}/*/eslint.config.mjs",
+        "{apps,libs}/*/jest.config.ts"
     ],
-    "project": ["apps/**/*.ts", "libs/*/src/**/*.ts", "testing/**/*.ts"],
+    "project": [
+        "apps/**/*.ts",
+        "libs/*/src/**/*.ts",
+        "testing/**/*.ts",
+        "{apps,libs}/*/eslint.config.mjs",
+        "{apps,libs}/*/jest.config.ts"
+    ],
     "ignoreDependencies": [
         "@angular/cli",
         "@angular/language-service",
@@ -19,14 +26,11 @@
         "ts-node",
         "angular-eslint",
         "typescript-eslint",
-        "jsonc-eslint-parser",
-        "eslint-plugin-playwright",
-        "codemirror",
-        "@codemirror/lint",
-        "@codemirror/search",
         "jest-environment-node",
-        "ts-jest",
         "modern-normalize",
         "tslib"
-    ]
+    ],
+    "jest": {
+        "config": ["jest.config.ts", "{apps,libs}/*/jest.config.ts"]
+    }
 }

@@ -26,7 +26,3 @@ export const WIKI_ITALIC_REGEX = /_([^\s_\r\n](?:[^_\r\n]*[^\s_\r\n])?)_/gu;
 // Synced with: FootnoteRule.php — /\[\[(.+?)\]\]/smu
 // eslint-disable-next-line sonarjs/super-linear-regex -- `[\s\S]` is the PHP `s` flag; quadratic only inside a single heading, which `findInHeadings` bounds to one line
 export const WIKI_FOOTNOTE_REGEX = /\[\[([\s\S]+?)\]\]/gu;
-
-// Synced with: WikiFormatter::PICTURE_MARKER_PATTERN — /@(-?\d+)@/
-/** @public Part of the PHP-mirrored pattern catalog; kept in sync even while unused on the frontend. */
-export const WIKI_PICTURE_MARKER_REGEX = /@(-?\d+)@/g;
