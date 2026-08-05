@@ -188,17 +188,23 @@ function retryEditedErrors(update: ViewUpdate, errorIds: Set<number>): void {
     }
 
     update.changes.iterChangedRanges((_fromA, _toA, fromB, toB) => {
-        // Scan whole lines, not the inserted range: a deletion reports an empty range,
-        // so `@-N@` losing its sign would otherwise never clear the stored error.
+        // Scan whole lines, because a deletion reports an empty range and would otherwise
+        // hide the marker it happened inside — then keep only the markers the edit touched,
+        // so typing elsewhere on the line does not resurrect a known-missing id.
         const doc = update.state.doc;
-        const changedText = doc.sliceString(doc.lineAt(fromB).from, doc.lineAt(toB).to);
+        const scanFrom = doc.lineAt(fromB).from;
+        const scannedText = doc.sliceString(scanFrom, doc.lineAt(toB).to);
         const regex = createPictureMarkerRegex();
         let match: RegExpExecArray | null;
 
         // eslint-disable-next-line no-null/no-null
-        while ((match = regex.exec(changedText)) !== null) {
-            const id = parsePictureId(match);
-            errorIds.delete(id);
+        while ((match = regex.exec(scannedText)) !== null) {
+            const markerFrom = scanFrom + match.index;
+            const markerTo = markerFrom + match[0].length;
+
+            if (markerTo >= fromB && markerFrom <= toB) {
+                errorIds.delete(parsePictureId(match));
+            }
         }
     });
 }

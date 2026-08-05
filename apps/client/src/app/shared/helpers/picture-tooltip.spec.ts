@@ -282,6 +282,33 @@ describe('createPicturePreviewExtension', () => {
         view.destroy();
     });
 
+    it('should not refetch a failed marker when an unrelated part of its line is edited', async () => {
+        const getPicturesBatch = jest.fn(() => of<PictureBatchResponse>({ items: [], notFoundIds: [999] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@999@ caption text',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        // Typing in the caption must not resurrect the known-missing id
+        view.dispatch({ changes: { from: 18, insert: '!' } });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(1);
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        view.destroy();
+    });
+
     it('should not refetch already cached pictures', async () => {
         const getPicturesBatch = jest.fn(() =>
             of<PictureBatchResponse>({
