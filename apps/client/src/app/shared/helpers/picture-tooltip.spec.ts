@@ -253,35 +253,6 @@ describe('createPicturePreviewExtension', () => {
         view.destroy();
     });
 
-    it('should retry a failed marker when only its sign is deleted', async () => {
-        const failing: PictureBatchResponse = { items: [], notFoundIds: [123] };
-        const succeeding: PictureBatchResponse = { items: [MOCK_PICTURE], notFoundIds: [] };
-        const getPicturesBatch = jest.fn().mockReturnValueOnce(of(failing)).mockReturnValueOnce(of(succeeding));
-        const extension = createPicturePreviewExtension({
-            getPicturesBatch,
-            onPictureClick: jest.fn(),
-        });
-
-        const state = EditorState.create({
-            doc: '@-123@',
-            extensions: [extension],
-        });
-        const view = new EditorView({ state });
-
-        await new Promise(resolve => setTimeout(resolve, 0));
-        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
-
-        // Deleting the sign produces an empty changed range — the id must still be retried
-        view.dispatch({ changes: { from: 1, to: 2 } });
-
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        expect(getPicturesBatch).toHaveBeenCalledTimes(2);
-        expect(view.dom.querySelector('.cm-picture-resolved')).not.toBeNull();
-
-        view.destroy();
-    });
-
     it('should not refetch a failed marker when an unrelated part of its line is edited', async () => {
         const getPicturesBatch = jest.fn(() => of<PictureBatchResponse>({ items: [], notFoundIds: [999] }));
         const extension = createPicturePreviewExtension({

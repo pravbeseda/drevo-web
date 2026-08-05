@@ -1,7 +1,6 @@
 import { MAX_PICTURES_BATCH_SIZE } from '../../services/pictures/picture.constants';
 import { Extension, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, DecorationSet, EditorView, hoverTooltip, Tooltip, ViewPlugin, ViewUpdate } from '@codemirror/view';
-import { createPictureMarkerRegex } from '@drevo-web/editor';
 import { PictureBatchResponse, Picture } from '@drevo-web/shared';
 import { firstValueFrom, Observable } from 'rxjs';
 
@@ -109,6 +108,13 @@ export interface PictureCodeMatch {
     readonly to: number;
 }
 
+// Mirrors WikiFormatter::PICTURE_MARKER_PATTERN — `@-N@` renders picture N without a caption,
+// so the sign is a layout variant and the id is the absolute value.
+// A factory, not a constant: the `g` flag makes `lastIndex` shared state.
+function createPictureMarkerRegex(): RegExp {
+    return /@(-?\d+)@/g;
+}
+
 function parsePictureId(match: RegExpExecArray): number {
     return Math.abs(Number(match[1]));
 }
@@ -188,25 +194,14 @@ function retryEditedErrors(update: ViewUpdate, errorIds: Set<number>): void {
     }
 
     update.changes.iterChangedRanges((_fromA, _toA, fromB, toB) => {
-        // Scan whole lines, because a deletion reports an empty range and would otherwise
-        // hide the marker it happened inside — then keep only the markers the edit touched,
-        // so typing elsewhere on the line does not resurrect a known-missing id.
-        const doc = update.state.doc;
-        const scanFrom = doc.lineAt(fromB).from;
-        const scannedText = doc.sliceString(scanFrom, doc.lineAt(toB).to);
+        const changedText = update.state.doc.sliceString(fromB, toB);
         const regex = createPictureMarkerRegex();
         let match: RegExpExecArray | null;
 
         // eslint-disable-next-line no-null/no-null
-        while ((match = regex.exec(scannedText)) !== null) {
-            const markerFrom = scanFrom + match.index;
-            const markerTo = markerFrom + match[0].length;
-
-            // Strict comparisons: an edit that merely abuts the marker leaves it unchanged,
-            // while the sign deletion that motivates the line scan falls strictly inside it.
-            if (markerTo > fromB && markerFrom < toB) {
-                errorIds.delete(parsePictureId(match));
-            }
+        while ((match = regex.exec(changedText)) !== null) {
+            const id = parsePictureId(match);
+            errorIds.delete(id);
         }
     });
 }
