@@ -181,6 +181,14 @@ import { ... } from '@drevo-web/editor';
 - **Reason** — intra-app barrels grow the module graph (slower Jest/esbuild), invite circular dependencies, and can pull side-effect modules into lazy chunks; they buy nothing over a direct import
 - **Existing app barrels are removed opportunistically** — when you touch a folder that still has an `index.ts` barrel, delete it and switch its consumers to direct imports
 
+### Member types and knip
+
+Knip reports a type that is exported but only reachable through another exported type ("only reachable through an exported member"). The fix depends on whether anything can name it:
+
+- **Keep the export, add `/** @public ... */`** when the type is on a package boundary (`libs/*/src/index.ts`, e.g. `ModalPosition` in `ModalConfig.position`), or when it is an arm of an exported union that consumers narrow (e.g. `FilterOption` in `FilterEntry`, narrowed by the exported `isFilterGroup`). In both cases there is no other way to name it
+- **Drop the `export`** otherwise — an element type of an array member, a shape used only inside its own module or app. It comes back, with `@public`, when a consumer actually needs the name
+- **Never suppress knip for the whole file** — the tag is per-type and states who needs the name
+
 ### Selector Prefixes
 
 - `app-` — application components (`apps/client/`)

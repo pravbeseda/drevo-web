@@ -1,7 +1,7 @@
 import { MAX_PICTURES_BATCH_SIZE } from '../../services/pictures/picture.constants';
 import { Extension, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, DecorationSet, EditorView, hoverTooltip, Tooltip, ViewPlugin, ViewUpdate } from '@codemirror/view';
-import { WIKI_PICTURE_MARKER_REGEX } from '@drevo-web/editor';
+import { createPictureMarkerRegex } from '@drevo-web/editor';
 import { PictureBatchResponse, Picture } from '@drevo-web/shared';
 import { firstValueFrom, Observable } from 'rxjs';
 
@@ -114,7 +114,7 @@ function parsePictureId(match: RegExpExecArray): number {
 }
 
 export function findPictureCodeAtPosition(lineText: string, posInLine: number): PictureCodeMatch | undefined {
-    const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
+    const regex = createPictureMarkerRegex();
     let match: RegExpExecArray | null;
 
     // eslint-disable-next-line no-null/no-null
@@ -131,7 +131,7 @@ export function findPictureCodeAtPosition(lineText: string, posInLine: number): 
 }
 
 export function extractPictureIds(text: string): number[] {
-    const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
+    const regex = createPictureMarkerRegex();
     const ids = new Set<number>();
     let match: RegExpExecArray | null;
 
@@ -188,8 +188,11 @@ function retryEditedErrors(update: ViewUpdate, errorIds: Set<number>): void {
     }
 
     update.changes.iterChangedRanges((_fromA, _toA, fromB, toB) => {
-        const changedText = update.state.doc.sliceString(fromB, toB);
-        const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
+        // Scan whole lines, not the inserted range: a deletion reports an empty range,
+        // so `@-N@` losing its sign would otherwise never clear the stored error.
+        const doc = update.state.doc;
+        const changedText = doc.sliceString(doc.lineAt(fromB).from, doc.lineAt(toB).to);
+        const regex = createPictureMarkerRegex();
         let match: RegExpExecArray | null;
 
         // eslint-disable-next-line no-null/no-null
@@ -206,7 +209,7 @@ const errorDecoration = Decoration.mark({ class: 'cm-picture-error' });
 
 function buildDecorations(text: string, cache: Map<number, Picture>, errorIds: Set<number>): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
-    const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
+    const regex = createPictureMarkerRegex();
     let match: RegExpExecArray | null;
 
     // eslint-disable-next-line no-null/no-null

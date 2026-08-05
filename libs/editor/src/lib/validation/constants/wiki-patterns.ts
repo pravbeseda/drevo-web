@@ -29,4 +29,8 @@ export const WIKI_FOOTNOTE_REGEX = /\[\[([\s\S]+?)\]\]/gu;
 
 // Synced with: WikiFormatter::PICTURE_MARKER_PATTERN — /@(-?\d+)@/
 // `@-N@` renders picture N without a caption, so the sign is a layout variant and the id is the absolute value.
-export const WIKI_PICTURE_MARKER_REGEX = /@(-?\d+)@/g;
+// Exported as a factory rather than a constant: the `g` flag makes `lastIndex` mutable state
+// that callers using `exec`/`test` would otherwise share.
+export function createPictureMarkerRegex(): RegExp {
+    return /@(-?\d+)@/g;
+}
