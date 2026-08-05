@@ -13,7 +13,7 @@ import {
 import { mockUsers } from './users';
 
 /** Create a single ArticleSearchResultDto with overrides */
-export function createArticleDto(overrides: Partial<ArticleSearchResultDto> = {}, index = 1): ArticleSearchResultDto {
+function createArticleDto(overrides: Partial<ArticleSearchResultDto> = {}, index = 1): ArticleSearchResultDto {
     return {
         id: index,
         title: `Статья ${index}`,
@@ -22,7 +22,7 @@ export function createArticleDto(overrides: Partial<ArticleSearchResultDto> = {}
 }
 
 /** Create a list of ArticleSearchResultDtos */
-export function createArticleDtoList(count: number, startId = 1): ArticleSearchResultDto[] {
+function createArticleDtoList(count: number, startId = 1): ArticleSearchResultDto[] {
     return Array.from({ length: count }, (_, i) => createArticleDto({}, startId + i));
 }
 
@@ -201,7 +201,7 @@ export const mockArticleEditData = {
 };
 
 /** Create a single VersionForDiffDto with overrides */
-export function createVersionForDiffDto(overrides: Partial<VersionForDiffDto> = {}, index = 1): VersionForDiffDto {
+function createVersionForDiffDto(overrides: Partial<VersionForDiffDto> = {}, index = 1): VersionForDiffDto {
     return {
         articleId: 42,
         versionId: index * 100,

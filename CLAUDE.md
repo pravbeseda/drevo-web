@@ -181,6 +181,14 @@ import { ... } from '@drevo-web/editor';
 - **Reason** — intra-app barrels grow the module graph (slower Jest/esbuild), invite circular dependencies, and can pull side-effect modules into lazy chunks; they buy nothing over a direct import
 - **Existing app barrels are removed opportunistically** — when you touch a folder that still has an `index.ts` barrel, delete it and switch its consumers to direct imports
 
+### Member types and knip
+
+Knip reports a type that is exported but only reachable through another exported type ("only reachable through an exported member"). The fix depends on whether anything can name it:
+
+- **Keep the export, add `/** @public ... */`** when the type is on a package boundary (`libs/*/src/index.ts`, e.g. `ModalPosition` in `ModalConfig.position`), or when it is an arm of an exported union that consumers narrow (e.g. `FilterOption` in `FilterEntry`, narrowed by the exported `isFilterGroup`). In both cases there is no other way to name it
+- **Drop the `export`** otherwise — an element type of an array member, a shape used only inside its own module or app. It comes back, with `@public`, when a consumer actually needs the name
+- **Never suppress knip for the whole file** — the tag is per-type and states who needs the name
+
 ### Selector Prefixes
 
 - `app-` — application components (`apps/client/`)
@@ -438,7 +446,7 @@ yarn test:playwright:coverage      # With code coverage (monocart-reporter)
 
 1. **Always import `test` and `expect` from `fixtures/`** — not from `@playwright/test` directly. The custom `test` provides `authenticatedPage` / `unauthenticatedPage` fixtures with pre-configured API mocks
 2. **Page Object Model** — all page interactions go through PO classes extending `BasePage`. Each PO implements `waitForReady()` for page readiness
-3. **Mock data via factories** — use `createPictureDto()`, `createPictureDtoList()` etc. from `mocks/` to generate test data
+3. **Mock data via factories** — use `createPictureDto()`, `createPictureDtoList()` etc. from `mocks/` to generate test data. `mocks/index.ts` and `fixtures/index.ts` re-export what specs actually import, not the full surface of their folder — a factory reachable only from its concrete module is not a mistake. Importing from the concrete module always works; add the re-export to the barrel when a spec needs it there, and knip prunes it again once nothing does
 4. **API mocking via `page.route()`** — mock helpers in `fixtures/mock-api.fixture.ts` intercept API requests at the network level
 5. **Element selectors via `data-testid`** — same convention as unit tests
 6. **Tests organized by feature** — mirror the app's feature structure in `tests/` subdirectories

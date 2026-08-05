@@ -27,7 +27,7 @@ export interface CsrfResponse {
 /**
  * User permissions structure
  */
-export interface UserPermissions {
+interface UserPermissions {
     canEdit: boolean;
     canModerate: boolean;
     canAdmin: boolean;
@@ -36,7 +36,7 @@ export interface UserPermissions {
 /**
  * Common user structure used in auth responses
  */
-export interface User {
+interface User {
     login: string;
     name?: string;
     email?: string;
@@ -58,13 +58,6 @@ export interface AuthMeResponse {
 export interface LoginResponse {
     user: User;
     csrfToken: string;
-}
-
-/**
- * Logout response
- */
-export interface LogoutResponse {
-    message: string;
 }
 
 /**
@@ -160,7 +153,7 @@ export async function getCsrfToken(request: APIRequestContext): Promise<string> 
 /**
  * Expected security headers that should be present in API responses
  */
-export const EXPECTED_SECURITY_HEADERS = {
+const EXPECTED_SECURITY_HEADERS = {
     'x-content-type-options': 'nosniff',
     'x-frame-options': 'DENY',
     'referrer-policy': 'same-origin',
@@ -183,12 +176,6 @@ export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestCon
  * On prod server: https://app.drevo-info.ru
  */
 export const ALLOWED_ORIGINS = ['http://localhost:4200', 'http://localhost:4000'];
-
-/**
- * Origin that should be allowed on current test environment
- * Uses same-origin for simplicity (API_BASE_URL origin)
- */
-export const SAME_ORIGIN = new URL(API_BASE_URL).origin;
 
 /**
  * Test origin (not in allowed list)

@@ -1,3 +1,4 @@
+/** @public Named for consumers of the exported `JsDiffOptions.granularity`. */
 export type JsDiffGranularity = 'chars' | 'words' | 'wordsWithSpace' | 'lines' | 'sentences';
 
 export interface JsDiffOptions {

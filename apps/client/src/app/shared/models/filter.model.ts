@@ -1,3 +1,4 @@
+/** @public Named for consumers narrowing the exported `FilterEntry` union with `isFilterGroup`. */
 export interface FilterOption<T extends string = string> {
     readonly key: T;
     readonly label: string;

@@ -134,16 +134,6 @@ export async function mockLogoutError(page: Page, status = 500): Promise<void> {
     );
 }
 
-/** Mock a specific endpoint with a server error */
-export async function mockApiError(page: Page, pattern: string, status: number, message: string): Promise<void> {
-    await page.route(pattern, route =>
-        route.fulfill({
-            status,
-            json: apiError(message),
-        }),
-    );
-}
-
 // ---------------------------------------------------------------------------
 // Pictures
 // ---------------------------------------------------------------------------
@@ -427,13 +417,6 @@ export async function mockArticlesEmpty(page: Page): Promise<void> {
     await mockArticlesApi(page, createArticlesSearchResponse([]));
 }
 
-/** Mock GET /api/articles/search — server error */
-export async function mockArticlesError(page: Page, status = 500): Promise<void> {
-    await page.route('**/api/articles/search**', route =>
-        route.fulfill({ status, json: apiError('Internal server error') }),
-    );
-}
-
 /** Mock GET /api/articles/show/:id — single article for the article page */
 export async function mockArticleShow(
     page: Page,
@@ -539,13 +522,6 @@ export async function mockLinkedHereApi(
     });
 }
 
-/** Mock GET /api/articles/linkedhere — server error */
-export async function mockLinkedHereError(page: Page, status = 500): Promise<void> {
-    await page.route('**/api/articles/linkedhere**', route =>
-        route.fulfill({ status, json: apiError('Internal server error') }),
-    );
-}
-
 // ---------------------------------------------------------------------------
 // Article edit
 // ---------------------------------------------------------------------------
@@ -557,13 +533,6 @@ export async function mockArticleVersion(
     data: ArticleVersionDto = mockArticleEditData.version,
 ): Promise<void> {
     await page.route(`**/api/articles/version/${versionId}`, route => route.fulfill({ json: apiSuccess(data) }));
-}
-
-/** Mock GET /api/articles/version/:versionId — server error */
-export async function mockArticleVersionError(page: Page, versionId: number, status = 500): Promise<void> {
-    await page.route(`**/api/articles/version/${versionId}`, route =>
-        route.fulfill({ status, json: apiError('Internal server error') }),
-    );
 }
 
 /** Mock GET /api/articles/find — article resolved by title */
@@ -695,14 +664,6 @@ export async function mockArticleModerate(
     await page.route('**/api/articles/moderate', route => {
         if (route.request().method() !== 'POST') return route.fallback();
         return route.fulfill({ json: apiSuccess(response) });
-    });
-}
-
-/** Mock POST /api/articles/moderate — error */
-export async function mockArticleModerateError(page: Page, status = 500): Promise<void> {
-    await page.route('**/api/articles/moderate', route => {
-        if (route.request().method() !== 'POST') return route.fallback();
-        return route.fulfill({ status, json: apiError('Internal server error') });
     });
 }
 

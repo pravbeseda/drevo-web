@@ -1,12 +1,10 @@
-export { test, type AuthFixtures } from './auth.fixture';
+export { test } from './auth.fixture';
 export { expect } from '@playwright/test';
 export {
     mockAuthApi,
-    mockUnauthenticatedApi,
     mockLoginSuccess,
     mockLoginError,
     mockLogoutError,
-    mockApiError,
     mockPicturesApi,
     mockPicturesEmpty,
     mockPicturesError,
@@ -39,7 +37,6 @@ export {
     mockArticleRenameValidationError,
     mockArticlesApi,
     mockArticlesEmpty,
-    mockArticlesError,
     mockArticleShow,
     mockArticleShowNotFound,
     mockArticleShowError,
@@ -47,9 +44,7 @@ export {
     mockArticleHistory,
     mockArticleHistoryError,
     mockLinkedHereApi,
-    mockLinkedHereError,
     mockArticleVersion,
-    mockArticleVersionError,
     mockArticleFindFound,
     mockArticleFindMissing,
     mockArticleFindCreatableThenDenied,
@@ -61,7 +56,6 @@ export {
     mockArticlePreview,
     mockArticlePreviewError,
     mockArticleModerate,
-    mockArticleModerateError,
     mockInworkCheck,
     mockInworkList,
     mockInworkMark,

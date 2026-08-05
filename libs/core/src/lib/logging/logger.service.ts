@@ -1,5 +1,4 @@
 import { LogDispatcher } from './log-dispatcher.service';
-import { LogLevel } from './log-provider.interface';
 import { Injectable, inject } from '@angular/core';
 
 /**
@@ -94,6 +93,3 @@ export class LoggerService implements Logger {
         this.dispatcher.dispatch('error', message, context, data);
     }
 }
-
-// Re-export LogLevel for convenience
-export { LogLevel };
