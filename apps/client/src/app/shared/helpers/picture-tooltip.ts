@@ -1,6 +1,7 @@
 import { MAX_PICTURES_BATCH_SIZE } from '../../services/pictures/picture.constants';
 import { Extension, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, DecorationSet, EditorView, hoverTooltip, Tooltip, ViewPlugin, ViewUpdate } from '@codemirror/view';
+import { WIKI_PICTURE_MARKER_REGEX } from '@drevo-web/editor';
 import { PictureBatchResponse, Picture } from '@drevo-web/shared';
 import { firstValueFrom, Observable } from 'rxjs';
 
@@ -108,12 +109,12 @@ export interface PictureCodeMatch {
     readonly to: number;
 }
 
-// Mirrors WikiFormatter::PICTURE_MARKER_PATTERN — `@-N@` renders picture N without a caption,
-// so the sign is a layout variant and the id is the absolute value.
-const PICTURE_CODE_RE = /@(-?\d+)@/g;
+function parsePictureId(match: RegExpExecArray): number {
+    return Math.abs(Number(match[1]));
+}
 
 export function findPictureCodeAtPosition(lineText: string, posInLine: number): PictureCodeMatch | undefined {
-    const regex = new RegExp(PICTURE_CODE_RE.source, PICTURE_CODE_RE.flags);
+    const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
     let match: RegExpExecArray | null;
 
     // eslint-disable-next-line no-null/no-null
@@ -122,7 +123,7 @@ export function findPictureCodeAtPosition(lineText: string, posInLine: number): 
         const to = from + match[0].length;
 
         if (posInLine >= from && posInLine <= to) {
-            return { id: Math.abs(Number(match[1])), from, to };
+            return { id: parsePictureId(match), from, to };
         }
     }
 
@@ -130,13 +131,13 @@ export function findPictureCodeAtPosition(lineText: string, posInLine: number): 
 }
 
 export function extractPictureIds(text: string): number[] {
-    const regex = new RegExp(PICTURE_CODE_RE.source, PICTURE_CODE_RE.flags);
+    const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
     const ids = new Set<number>();
     let match: RegExpExecArray | null;
 
     // eslint-disable-next-line no-null/no-null
     while ((match = regex.exec(text)) !== null) {
-        ids.add(Math.abs(Number(match[1])));
+        ids.add(parsePictureId(match));
     }
 
     return Array.from(ids);
@@ -188,12 +189,12 @@ function retryEditedErrors(update: ViewUpdate, errorIds: Set<number>): void {
 
     update.changes.iterChangedRanges((_fromA, _toA, fromB, toB) => {
         const changedText = update.state.doc.sliceString(fromB, toB);
-        const regex = new RegExp(PICTURE_CODE_RE.source, PICTURE_CODE_RE.flags);
+        const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
         let match: RegExpExecArray | null;
 
         // eslint-disable-next-line no-null/no-null
         while ((match = regex.exec(changedText)) !== null) {
-            const id = Number(match[1]);
+            const id = parsePictureId(match);
             errorIds.delete(id);
         }
     });
@@ -205,14 +206,14 @@ const errorDecoration = Decoration.mark({ class: 'cm-picture-error' });
 
 function buildDecorations(text: string, cache: Map<number, Picture>, errorIds: Set<number>): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
-    const regex = new RegExp(PICTURE_CODE_RE.source, PICTURE_CODE_RE.flags);
+    const regex = new RegExp(WIKI_PICTURE_MARKER_REGEX.source, WIKI_PICTURE_MARKER_REGEX.flags);
     let match: RegExpExecArray | null;
 
     // eslint-disable-next-line no-null/no-null
     while ((match = regex.exec(text)) !== null) {
         const from = match.index;
         const to = from + match[0].length;
-        const id = Number(match[1]);
+        const id = parsePictureId(match);
 
         if (cache.has(id)) {
             builder.add(from, to, resolvedDecoration);

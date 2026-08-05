@@ -438,7 +438,7 @@ yarn test:playwright:coverage      # With code coverage (monocart-reporter)
 
 1. **Always import `test` and `expect` from `fixtures/`** — not from `@playwright/test` directly. The custom `test` provides `authenticatedPage` / `unauthenticatedPage` fixtures with pre-configured API mocks
 2. **Page Object Model** — all page interactions go through PO classes extending `BasePage`. Each PO implements `waitForReady()` for page readiness
-3. **Mock data via factories** — use `createPictureDto()`, `createPictureDtoList()` etc. from `mocks/` to generate test data
+3. **Mock data via factories** — use `createPictureDto()`, `createPictureDtoList()` etc. from `mocks/` to generate test data. `mocks/index.ts` and `fixtures/index.ts` re-export what specs actually import, not the full surface of their folder — a factory reachable only from its concrete module is not a mistake. Importing from the concrete module always works; add the re-export to the barrel when a spec needs it there, and knip prunes it again once nothing does
 4. **API mocking via `page.route()`** — mock helpers in `fixtures/mock-api.fixture.ts` intercept API requests at the network level
 5. **Element selectors via `data-testid`** — same convention as unit tests
 6. **Tests organized by feature** — mirror the app's feature structure in `tests/` subdirectories
