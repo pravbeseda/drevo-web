@@ -1,5 +1,0 @@
-{
-    "*.{ts,tsx,html}": ["eslint --flag v10_config_lookup_from_file --fix --no-warn-ignored", "prettier --write"],
-    "*.scss": ["stylelint --fix", "prettier --write"],
-    "!(*.scss|*.ts|*.tsx|*.html)": "prettier --write --ignore-unknown"
-}
