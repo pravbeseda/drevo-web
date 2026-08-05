@@ -202,7 +202,9 @@ function retryEditedErrors(update: ViewUpdate, errorIds: Set<number>): void {
             const markerFrom = scanFrom + match.index;
             const markerTo = markerFrom + match[0].length;
 
-            if (markerTo >= fromB && markerFrom <= toB) {
+            // Strict comparisons: an edit that merely abuts the marker leaves it unchanged,
+            // while the sign deletion that motivates the line scan falls strictly inside it.
+            if (markerTo > fromB && markerFrom < toB) {
                 errorIds.delete(parsePictureId(match));
             }
         }

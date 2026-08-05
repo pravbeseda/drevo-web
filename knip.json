@@ -10,12 +10,14 @@
         "libs/*/src/test-setup.ts",
         "{apps,libs}/*/eslint.config.mjs",
         "{apps,libs}/*/jest.config.{ts,cts}",
-        "testing/playwright/tests/**/*.spec.ts"
+        "testing/playwright/tests/**/*.spec.ts",
+        "scripts/ecosystem.config.js"
     ],
     "project": [
         "apps/**/*.ts",
         "libs/*/src/**/*.ts",
         "testing/**/*.ts",
+        "scripts/**/*.js",
         "{apps,libs}/*/eslint.config.mjs",
         "{apps,libs}/*/jest.config.{ts,cts}"
     ],

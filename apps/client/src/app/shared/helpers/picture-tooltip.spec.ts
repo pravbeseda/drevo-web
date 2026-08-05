@@ -309,6 +309,57 @@ describe('createPicturePreviewExtension', () => {
         view.destroy();
     });
 
+    it.each([
+        ['deleting the character before it', 'x@999@', { from: 0, to: 1 }],
+        ['typing directly after it', '@999@', { from: 5, insert: 'x' }],
+    ])('should not refetch a failed marker when an edit only abuts it: %s', async (_name, doc, changes) => {
+        const getPicturesBatch = jest.fn(() => of<PictureBatchResponse>({ items: [], notFoundIds: [999] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({ doc, extensions: [extension] });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        view.dispatch({ changes });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(1);
+
+        view.destroy();
+    });
+
+    it('should retry a failed marker when a digit inside it is replaced', async () => {
+        const getPicturesBatch = jest
+            .fn()
+            .mockReturnValueOnce(of<PictureBatchResponse>({ items: [], notFoundIds: [999] }))
+            .mockReturnValueOnce(of<PictureBatchResponse>({ items: [MOCK_PICTURE], notFoundIds: [] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({ doc: '@999@', extensions: [extension] });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        view.dispatch({ changes: { from: 1, to: 4, insert: '123' } });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(2);
+        expect(view.dom.querySelector('.cm-picture-resolved')).not.toBeNull();
+
+        view.destroy();
+    });
+
     it('should not refetch already cached pictures', async () => {
         const getPicturesBatch = jest.fn(() =>
             of<PictureBatchResponse>({
