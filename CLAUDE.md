@@ -213,7 +213,7 @@ Adding an API endpoint, reading the real shape of the data, running the PHP test
 ### TypeScript
 
 1. **Strict TypeScript** — no implicit any, strict null checks
-2. **Describe the shape** — a real type where one exists, `unknown` where the shape is genuinely open and the code narrows it
+2. **Describe the shape** — a real type where one exists, `unknown` where the shape is genuinely open and the code narrows it. `any` is an error (`@typescript-eslint/no-explicit-any`), so it fails the commit rather than spending a warning budget
 3. **`undefined` is absence** — throughout the codebase, enforced by `no-null/no-null`
 4. **Readonly interface properties** — all interface properties must be `readonly` by default
 5. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components

@@ -68,6 +68,11 @@ export default [
                 },
             ],
             '@typescript-eslint/no-non-null-assertion': 'error',
+            // The nx typescript preset ships this as a warning, which left the ban on `any`
+            // resting on each project's shared `maxWarnings` budget rather than on a rule of
+            // its own. The codebase has no violations, so error costs nothing and also reaches
+            // the pre-commit hook, which passes no warning budget.
+            '@typescript-eslint/no-explicit-any': 'error',
         },
     },
     {
