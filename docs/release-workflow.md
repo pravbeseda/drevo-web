@@ -15,7 +15,11 @@ git tag -a X.Y.Z -m "..."
 git push origin X.Y.Z
 ```
 
-The pipeline is the same one the workflow triggers; only the tag creation differs. Use this when the Actions UI is unavailable — the version has to be computed by hand, which is the one thing the primary path does for you.
+Use this when the Actions UI is unavailable. It reaches the same `release` job and deploys the same way — but it is not the same pipeline, and the difference is worth knowing before you type it.
+
+**The guards do not run on this path.** Both of them live in the `compute-version` job, which is `if: github.event_name == 'workflow_dispatch'`. A pushed tag skips that job, and `release` accepts a skipped dependency, so nothing checks that the commit is on `main` and nothing checks that its CI is green. Whatever the tag points at gets deployed.
+
+So the two things the primary path does for you both become yours: compute the next version by hand, and confirm the commit you are tagging is on `main` with a green `ci` check-run. Issue #248 tracks moving the guards where both paths hit them.
 
 ## Hotfixes on `iframe`
 
