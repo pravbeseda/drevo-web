@@ -224,6 +224,7 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 4. **Readonly interface properties** — all interface properties must be `readonly` by default
 5. **No magic numbers** — extract into named constants. Exception: CSS margin/padding/sizes of atomic UI components
 6. **No non-null assertion (`!`)** — do not use `!` operator in TypeScript or templates. Use type narrowing (`if`, `@if ... as`, optional chaining) instead. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files; in templates — convention (use `@if (value(); as v)` pattern instead of `value()!`)
+7. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source
 
 ### Angular
 
@@ -258,6 +259,20 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 7. **No `title` attribute** — use `matTooltip` for visual hints or `aria-label` for accessible name without visual hint
 8. **Failing tests are a red flag, not an obstacle** — if code changes cause an existing test to fail, do NOT simply fix the test to make it pass. First investigate whether the new code broke expected behavior. Only modify the test if the behavioral change is intentional and justified (e.g. a deliberate API change, not a side effect). When in doubt, fix the code, not the test
+9. **Run the checks before reporting done** — never report a task complete on unverified code. The gates, in the order they are cheapest to fix:
+
+    ```bash
+    yarn nx affected -t lint                        # ESLint (pre-commit runs it on staged apps/ and libs/ files too)
+    yarn nx affected -t test --configuration=ci     # unit tests + coverage thresholds
+    yarn format:check                               # Prettier
+    yarn lint:styles                                # Stylelint — when SCSS was touched
+    yarn knip                                       # dead code and unused deps — after refactors and deletions
+    ```
+
+    If a step fails, say so with its output rather than reporting success. `nx test` is transpile-only, so type errors surface in `nx build`, not in the tests — build the affected project when the change touches types
+10. **Coverage thresholds only ratchet up** — `coverageThreshold` lives per project in its `jest.config.ts` (`libs/core/jest.config.cts`). When a change drops coverage below the threshold, write the missing tests. Never lower a threshold to make the run pass without explicit approval from the user, and never widen the `collectCoverageFrom` excludes in `jest.preset.js` to hide code from the denominator
+11. **No `TODO`/`FIXME` comments** — `sonarjs/todo-tag` and `sonarjs/fixme-tag` are errors, so such a comment fails lint and blocks the commit. Either finish the work now or open a GitHub issue for it; when the code needs the context, write a plain comment stating the constraint and referencing the issue number
+12. **Delete the code a change orphans** — when a refactor or a deletion leaves an export, file or dependency with no consumer, remove it in the same change. `yarn knip` finds them; it runs blocking in CI, so leaving them behind fails the PR anyway
 
 ## Key Patterns
 
