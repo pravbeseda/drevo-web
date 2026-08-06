@@ -17,4 +17,6 @@ New endpoints go into `protected/controllers/api/`. Existing code stays as it is
 
 ## Tests
 
-The Yii suite runs from the legacy checkout with `./vendor/bin/phpunit`. Its tests duck-type ActiveRecord through `stdClass`, so service methods take no strict `?Users` hints and optional columns need a `?? default` guard.
+The Yii suite runs from the legacy checkout with `./vendor/bin/phpunit`.
+
+Some tests stand in a `stdClass` for an ActiveRecord model — `Versions` and `Articles` in `ArticleServiceTest` and `LinkedHereServiceTest` among them. A stand-in carries only the columns the test sets, so code reading an optional column from one of these needs a `?? default` rather than trusting the schema. Strict type hints are fine and in use: `ReviewService::isEligibleReviewer(?Users $user)` takes one, and its test builds a real `Users` model for it.
