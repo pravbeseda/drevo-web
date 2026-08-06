@@ -330,7 +330,7 @@ background: var(--themed-primary-bg);
 color: var(--themed-text-secondary);
 ```
 
-Stylelint enforces most of it in `yarn lint:styles`: hex values, named colours and `rgb()`/`hsl()`-family functions fail anywhere, and properties ending in `color` plus `fill`/`stroke` accept nothing but a `--themed-*` variable. Shorthands like `background` fall outside that property list, so a `--mat-sys-*` token there is caught by review rather than by the linter. A colour with no token yet gets one added to `_theme-colors.scss` in the same change. The palette sources and the image overlays are the exceptions, listed as overrides in `.stylelintrc.json`.
+Stylelint enforces this in `yarn lint:styles`: hex values, named colours and `rgb()`/`hsl()`-family functions fail anywhere, properties ending in `color` plus `fill`/`stroke` take nothing but a `--themed-*` variable, and reading a `var(--mat-*)` fails in any property. Material tokens are only ever written to — `libs/ui` assigns them `--themed-*` values, which is how the theme reaches Material. A colour with no token yet gets one added to `_theme-colors.scss` in the same change. The palette sources and the image overlays are the exceptions, listed as overrides in `.stylelintrc.json`.
 
 ### Size Tokens
 
