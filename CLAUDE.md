@@ -32,14 +32,13 @@ yarn serve                         # Dev server at localhost:4200
 yarn build                         # Production build
 yarn build:dev                     # Development build
 yarn nx test client                # Unit tests for one project
-yarn test:playwright               # Integration tests, Chromium (other browsers: test:playwright:* in package.json)
-yarn nx e2e client-e2e             # E2E tests
 yarn format:fix                    # Apply Prettier
+yarn nx e2e client-e2e             # API contract tests against a running drevo-local.ru backend
 ```
 
 ### Quality gates
 
-Green on all five is what "done" means (Quality rule 9), in this order — the earlier ones are the cheaper to fix:
+Green on all of these is what "done" means (Quality rule 9), in this order — the earlier ones are the cheaper to fix. Together they are what `cd-main-beta.yml` and `playwright.yml` run on the PR:
 
 ```bash
 yarn nx affected -t lint                        # ESLint; the pre-commit hook runs it on staged apps/ and libs/ files
@@ -47,7 +46,11 @@ yarn nx affected -t test --configuration=ci     # unit tests + per-project cover
 yarn format:check                               # Prettier
 yarn lint:styles                                # Stylelint — when SCSS was touched
 yarn knip                                       # dead code and unused deps — after refactors and deletions
+yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
+yarn build                                      # production build — the type check the unit tests cannot do
 ```
+
+`nx e2e client-e2e` is not among them: its API tests are disabled when `CI` is set, and locally they need the Yii backend up, so the PR is never gated on them.
 
 ## Project Structure
 
@@ -250,7 +253,7 @@ Adding an API endpoint, reading the real shape of the data, running the PHP test
 6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 7. **No `title` attribute** — use `matTooltip` for visual hints or `aria-label` for accessible name without visual hint
 8. **Failing tests are a red flag, not an obstacle** — if code changes cause an existing test to fail, do NOT simply fix the test to make it pass. First investigate whether the new code broke expected behavior. Only modify the test if the behavioral change is intentional and justified (e.g. a deliberate API change, not a side effect). When in doubt, fix the code, not the test
-9. **Run the quality gates before reporting done** — the block under Commands, in that order; a task is complete when they are green, not when the code looks right. If a step fails, say so with its output rather than reporting success. `nx test` is transpile-only, so type errors surface in `nx build` rather than in the tests — build the affected project when the change touches types
+9. **Run the quality gates before reporting done** — the block under Commands, in that order; a task is complete when they are green, not when the code looks right. If a step fails, say so with its output rather than reporting success. `nx test` is transpile-only, which is why the build is one of the gates: type errors surface there and nowhere earlier
 10. **Coverage thresholds only ratchet up** — `coverageThreshold` lives per project in its `jest.config.ts` (`libs/core/jest.config.cts`). When a change drops coverage below the threshold, write the missing tests. Never lower a threshold to make the run pass without explicit approval from the user, and never widen the `collectCoverageFrom` excludes in `jest.preset.js` to hide code from the denominator
 11. **No `TODO`/`FIXME` comments** — `sonarjs/todo-tag` and `sonarjs/fixme-tag` are errors, so such a comment fails lint and blocks the commit. Either finish the work now or open a GitHub issue for it; when the code needs the context, write a plain comment stating the constraint and referencing the issue number
 12. **Delete the code a change orphans** — when a refactor or a deletion leaves an export, file or dependency with no consumer, remove it in the same change. `yarn knip` finds them; it runs blocking in CI, so leaving them behind fails the PR anyway
