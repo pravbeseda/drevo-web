@@ -177,10 +177,10 @@ describe('WikiHighlighterService', () => {
     // only ever adds time, so the fastest run is the closest estimate of what the scan costs.
     // A single reading of the benign side sets the threshold for the other one, which is how
     // one unlucky pause used to fail the comparison on timing alone.
-    function elapsed(run: () => void, runs = SCAN_SAMPLES): number {
+    function elapsed(run: () => void): number {
         let best = Infinity;
 
-        for (let i = 0; i < runs; i++) {
+        for (let i = 0; i < SCAN_SAMPLES; i++) {
             const started = performance.now();
             run();
             best = Math.min(best, performance.now() - started);
