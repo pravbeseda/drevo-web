@@ -38,6 +38,9 @@ jobs:
                   yarn nx affected -t test --parallel=3 --configuration=ci
                   yarn nx affected -t e2e
 
+            - name: Check formatting
+              run: yarn format:check
+
             - name: Lint styles
               run: yarn lint:styles
 
