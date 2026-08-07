@@ -11,6 +11,8 @@ const QUADRATIC_SCAN_RATIO = 10;
 // Floor for the ratio, so a sub-millisecond baseline on a fast machine cannot make the
 // comparison fire on timing noise alone.
 const SCAN_FLOOR_MS = 20;
+// Runs behind each measurement; the fastest one is kept. See `elapsed`.
+const SCAN_SAMPLES = 5;
 
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
@@ -171,10 +173,20 @@ describe('WikiHighlighterService', () => {
         return EditorState.create({ doc: text, extensions: [service.wikiHighlighter] });
     }
 
-    function elapsed(run: () => void): number {
-        const started = performance.now();
-        run();
-        return performance.now() - started;
+    // Best of N rather than a single reading: interference — a GC pause, a busy CI runner —
+    // only ever adds time, so the fastest run is the closest estimate of what the scan costs.
+    // A single reading of the benign side sets the threshold for the other one, which is how
+    // one unlucky pause used to fail the comparison on timing alone.
+    function elapsed(run: () => void, runs = SCAN_SAMPLES): number {
+        let best = Infinity;
+
+        for (let i = 0; i < runs; i++) {
+            const started = performance.now();
+            run();
+            best = Math.min(best, performance.now() - started);
+        }
+
+        return best;
     }
 
     describe('Link Normalization', () => {
