@@ -16,9 +16,14 @@ const setupInitialVersion = async (page: Page) => {
     await page.route('**/version.json*', route => route.fulfill({ json: INITIAL_VERSION }));
 
     const layout = new LayoutPage(page);
+    // The poll that records the baseline version must have happened before the route is
+    // swapped below, otherwise the first response the app sees is already the updated one
+    // and no notification is due. Waiting for the response itself states that condition;
+    // networkidle only approximates it by timing.
+    const initialVersionFetched = page.waitForResponse(response => response.url().includes('/version.json'));
     await page.goto('/');
     await layout.waitForReady();
-    await page.waitForLoadState('networkidle');
+    await initialVersionFetched;
 };
 
 const switchToUpdatedVersion = async (page: Page) => {

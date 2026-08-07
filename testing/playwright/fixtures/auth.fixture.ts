@@ -1,6 +1,6 @@
-import { Page } from '@playwright/test';
 import { test as coverageTest } from './coverage.fixture';
 import { mockAuthApi, mockUnauthenticatedApi } from './mock-api.fixture';
+import { Page } from '@playwright/test';
 
 export interface AuthFixtures {
     /** Page with mocked authenticated user state */

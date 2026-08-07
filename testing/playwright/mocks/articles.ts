@@ -1,3 +1,4 @@
+import { mockUsers } from './users';
 import {
     ArticleHistoryItemDto,
     ArticleHistoryResponseDto,
@@ -10,7 +11,6 @@ import {
     VersionForDiffDto,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
-import { mockUsers } from './users';
 
 /** Create a single ArticleSearchResultDto with overrides */
 function createArticleDto(overrides: Partial<ArticleSearchResultDto> = {}, index = 1): ArticleSearchResultDto {
@@ -26,13 +26,23 @@ function createArticleDtoList(count: number, startId = 1): ArticleSearchResultDt
     return Array.from({ length: count }, (_, i) => createArticleDto({}, startId + i));
 }
 
-/** Create a paginated articles search response */
-export function createArticlesSearchResponse(
-    items: readonly ArticleSearchResultDto[],
-    overrides: Partial<Omit<ArticleSearchResponseDto, 'items'>> = {},
-): ArticleSearchResponseDto {
+const DEFAULT_PAGE_SIZE = 25;
+
+/** The envelope every paginated list endpoint returns, whatever the item type. */
+interface PaginatedResponse<TItem> {
+    readonly items: readonly TItem[];
+    readonly total: number;
+    readonly page: number;
+    readonly pageSize: number;
+    readonly totalPages: number;
+}
+
+function createPaginatedResponse<TItem>(
+    items: readonly TItem[],
+    overrides: Partial<Omit<PaginatedResponse<TItem>, 'items'>> = {},
+): PaginatedResponse<TItem> {
     const total = overrides.total ?? items.length;
-    const pageSize = overrides.pageSize ?? 25;
+    const pageSize = overrides.pageSize ?? DEFAULT_PAGE_SIZE;
     return {
         items,
         total,
@@ -40,6 +50,14 @@ export function createArticlesSearchResponse(
         pageSize,
         totalPages: overrides.totalPages ?? Math.ceil(total / pageSize),
     };
+}
+
+/** Create a paginated articles search response */
+export function createArticlesSearchResponse(
+    items: readonly ArticleSearchResultDto[],
+    overrides: Partial<Omit<ArticleSearchResponseDto, 'items'>> = {},
+): ArticleSearchResponseDto {
+    return createPaginatedResponse(items, overrides);
 }
 
 /** Pre-built mock data sets for common scenarios */
@@ -108,15 +126,7 @@ export function createArticleHistoryResponse(
     items: readonly ArticleHistoryItemDto[],
     overrides: Partial<Omit<ArticleHistoryResponseDto, 'items'>> = {},
 ): ArticleHistoryResponseDto {
-    const total = overrides.total ?? items.length;
-    const pageSize = overrides.pageSize ?? 25;
-    return {
-        items,
-        total,
-        page: overrides.page ?? 1,
-        pageSize,
-        totalPages: overrides.totalPages ?? Math.ceil(total / pageSize),
-    };
+    return createPaginatedResponse(items, overrides);
 }
 
 /** Pre-built mock data for article view scenarios */
