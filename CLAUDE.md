@@ -9,11 +9,7 @@
 - `main` — active development, default branch. Push triggers beta deploy (drevo-beta, port 4010). Tag `X.Y.Z` triggers release deploy (drevo-release, port 4011).
 - `iframe` — frozen legacy (old Yii-era wrapper). CI runs automatically on PR; CD is manual-only via workflow_dispatch. Hotfix tags: `iframe-X.Y.Z`.
 
-## Release workflow
-
-**Primary (recommended):** GitHub Actions → `CD Main Release` → Run workflow → select `main` → choose bump type (patch/minor/major) → Run. Auto-computes next semver from last tag, validates main is green, creates tag, deploys.
-
-**Backup:** manual `git tag -a X.Y.Z -m "..." && git push origin X.Y.Z` — also works, pipeline identical.
+Cutting a release, bump types, the manual tag fallback, `iframe` hotfixes: [`docs/release-workflow.md`](docs/release-workflow.md).
 
 ## Tech Stack
 
@@ -35,12 +31,26 @@
 yarn serve                         # Dev server at localhost:4200
 yarn build                         # Production build
 yarn build:dev                     # Development build
-yarn nx test client                # Unit tests
-yarn nx e2e client-e2e             # E2E tests
-yarn lint                          # ESLint
-yarn format:check                  # Prettier check
-yarn format:fix                    # Prettier fix
+yarn nx test client                # Unit tests for one project
+yarn format:fix                    # Apply Prettier
+yarn nx e2e client-e2e             # API contract tests against a running drevo-local.ru backend
 ```
+
+### Quality gates
+
+Green on all of these is what "done" means (Quality rule 9), in this order — the earlier ones are the cheaper to fix. Together they are what `cd-main-beta.yml` and `playwright.yml` run on the PR:
+
+```bash
+yarn nx affected -t lint                        # ESLint; the pre-commit hook runs it on staged apps/ and libs/ files
+yarn nx affected -t test --configuration=ci     # unit tests + per-project coverage thresholds
+yarn format:check                               # Prettier
+yarn lint:styles                                # Stylelint — when SCSS was touched
+yarn knip                                       # dead code and unused deps — after refactors and deletions
+yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
+yarn build                                      # production build — the type check the unit tests cannot do
+```
+
+`nx e2e client-e2e` is not among them: its API tests are disabled when `CI` is set, and locally they need the Yii backend up, so the PR is never gated on them.
 
 ## Project Structure
 
@@ -92,7 +102,7 @@ app/features/
 
 #### Feature rules
 
-1. **No cross-feature imports** — `features/X/` must NEVER import from `features/Y/`. Extract shared components/models to `app/shared/`, shared services to `app/services/`
+1. **Self-contained** — what a feature may import is listed under "Import direction rules" below, and a sibling feature is not on that list
 2. **`pages/`** — only routed (lazy-loaded) components. One subfolder per route entry point
 3. **`components/`** — non-routed components used within this feature only
 4. **`services/`** — only feature-scoped services (provided in component or route `providers`, not `providedIn: 'root'`). Global domain services live in `app/services/`
@@ -113,9 +123,8 @@ app/features/
 
 #### `shared/` rules
 
-- **Only code used by 2+ features** — do not preemptively move code to shared
+- **Two consumers make something shared** — code moves here when the second feature needs it, and moves back into a feature when it is down to one consumer again
 - Contains `components/` and `models/` subdirectories
-- If a shared item starts being used by only one feature, move it into that feature
 
 #### Layout structure
 
@@ -136,6 +145,8 @@ app/layout/
 
 #### Import direction rules
 
+Each line is the complete set of what its folder may import — an arrow that is not here is an import that does not happen. A feature reaching for another feature, for `layout/`, `guards/` or `interceptors/` is the case this table exists to catch: extract the shared part to `app/shared/` (components, models) or `app/services/` (services) and both sides import that.
+
 ```
 features/X/      →  app/services/, app/shared/, @drevo-web/*
 app/shared/      →  app/services/, @drevo-web/*
@@ -144,11 +155,6 @@ app/services/    →  @drevo-web/*
 guards/          →  app/services/, @drevo-web/*
 interceptors/    →  app/services/, @drevo-web/*
 ```
-
-- Features, shared, layout, guards, and interceptors may import from `app/services/` and libs
-- Features and layout may import from `app/shared/`
-- Features must NEVER import from other features, `layout/`, `guards/`, or `interceptors/`
-- `app/shared/` must NEVER import from features or layout
 
 #### App-level folders (outside features)
 
@@ -176,9 +182,8 @@ import { ... } from '@drevo-web/editor';
 
 ### Barrel files (`index.ts`)
 
-- **Barrels are allowed ONLY at library boundaries** — `libs/*/src/index.ts` (the public API of `@drevo-web/*`, enforced by `@nx/enforce-module-boundaries`)
-- **No folder-level barrels inside `apps/client/`** — do NOT add `index.ts` re-export files to app folders (`services/X/`, `features/X/`, `shared/`, etc.). Import directly from the concrete module path instead
-- **Reason** — intra-app barrels grow the module graph (slower Jest/esbuild), invite circular dependencies, and can pull side-effect modules into lazy chunks; they buy nothing over a direct import
+- **Library boundaries carry the only barrels** — `libs/*/src/index.ts`, the public API of `@drevo-web/*`, enforced by `@nx/enforce-module-boundaries`
+- **Inside `apps/client/` imports name the concrete module** — `services/X/x.service`, not a folder `index.ts`. An intra-app barrel grows the module graph (slower Jest/esbuild), invites circular dependencies and can pull side-effect modules into lazy chunks, in exchange for a shorter path
 - **Existing app barrels are removed opportunistically** — when you touch a folder that still has an `index.ts` barrel, delete it and switch its consumers to direct imports
 
 ### Member types and knip
@@ -196,15 +201,7 @@ Knip reports a type that is exported but only reachable through another exported
 
 ## Legacy Backend (Yii1)
 
-```
-legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
-  protected/
-    controllers/api/         # API controllers (only this folder is modified)
-    models/                  # Data models (reference for data structures)
-```
-
-- **Policy**: Do not modify existing code, only add new API endpoints
-- **Use as reference**: Data structures and business logic
+Adding an API endpoint, reading the real shape of the data, running the PHP tests — the Yii1 app under `legacy-drevo-yii/`: [`docs/legacy-yii.md`](docs/legacy-yii.md).
 
 ## Design Principles
 
@@ -212,18 +209,19 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 - **No anti-patterns** — no god components, tight coupling, shared mutable state, deep inheritance hierarchies
 - **No logic duplication** — reuse existing services, utilities, and patterns; extract shared logic instead of copy-pasting
 - **Pre-implementation review** — before implementing any task, analyze the proposed solution for over-engineering, non-Angular-way patterns, anti-patterns, and scalability/extensibility issues. Report findings and propose alternatives **before** writing code
-- **Declarative over imperative** — prefer declarative patterns: Angular template syntax over manual DOM manipulation, reactive streams over manual subscriptions, `computed()`/`toSignal()` over manual state sync, `*ngIf`/`@if` over hidden-flag toggling. Avoid imperative loops and side-effectful logic where a declarative expression suffices
+- **Declarative over imperative** — prefer declarative patterns: Angular template syntax over manual DOM manipulation, reactive streams over manual subscriptions, `computed()`/`toSignal()` over manual state sync, `@if`/`@for` over hidden-flag toggling. Where a declarative expression covers the case, it replaces the imperative loop
 
 ## Code Conventions
 
 ### TypeScript
 
 1. **Strict TypeScript** — no implicit any, strict null checks
-2. **No `any`** — use `unknown` if type is truly unknown, otherwise define proper types
-3. **No `null`** — use `undefined` instead of `null` everywhere
+2. **Describe the shape** — a real type where one exists, `unknown` where the shape is genuinely open and the code narrows it. `any` is an error (`@typescript-eslint/no-explicit-any`), so it fails the commit rather than spending a warning budget
+3. **`undefined` is absence** — throughout the codebase, enforced by `no-null/no-null`
 4. **Readonly interface properties** — all interface properties must be `readonly` by default
-5. **No magic numbers** — extract into named constants. Exception: CSS margin/padding/sizes of atomic UI components
-6. **No non-null assertion (`!`)** — do not use `!` operator in TypeScript or templates. Use type narrowing (`if`, `@if ... as`, optional chaining) instead. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files; in templates — convention (use `@if (value(); as v)` pattern instead of `value()!`)
+5. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components
+6. **Narrow instead of asserting** — `if`, `@if (value(); as v)`, optional chaining. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files, convention in templates
+7. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source
 
 ### Angular
 
@@ -233,15 +231,12 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 4. **`providedIn: 'root'` only for global services** — page/feature-scoped services provide in component or route `providers` instead
 5. **`takeUntilDestroyed()`** for subscription cleanup
 6. **Lazy loading** for all pages
-7. **Angular Material via `@drevo-web/ui` only** — never use `mat-*` components or `--mat-*` CSS tokens directly outside `libs/ui`
-8. **Auth guard on all routes** — no public pages except login
-9. **No direct `window` access** — use `WINDOW` token from `@drevo-web/core` for SSR compatibility
-10. **No direct `document` access** — use `DOCUMENT` token from `@angular/common` for SSR compatibility
-11. **`StorageService` for storage** — use `StorageService` from `@drevo-web/core` instead of direct `localStorage`/`sessionStorage`
-12. **Zoneless** — `provideZonelessChangeDetection()`, no `zone.js`
-13. **Styles in separate SCSS files** — no inline `styles` in component metadata, always use `styleUrl` pointing to a `.scss` file
-14. **Templates in separate HTML files** — use `templateUrl` for templates.
-15. **No inner subscribe** — never subscribe inside a `subscribe` callback. Use RxJS flattening operators (`switchMap`, `concatMap`, `mergeMap`, `exhaustMap`) to compose Observable chains instead
+7. **Angular Material stays inside `libs/ui`** — the rest of the workspace consumes it through `@drevo-web/ui` components and `--themed-*` tokens
+8. **Auth guard on all routes** — login is the one page reachable without it
+9. **Browser APIs arrive by injection** — `WINDOW` from `@drevo-web/core`, `DOCUMENT` from `@angular/common`, `StorageService` from `@drevo-web/core` for local and session storage. The server render has no globals, so injection is what keeps SSR working
+10. **Zoneless** — `provideZonelessChangeDetection()`, no `zone.js`
+11. **Styles and templates in their own files** — `styleUrl` to a `.scss`, `templateUrl` to an `.html`
+12. **Flatten instead of nesting subscriptions** — `switchMap`, `concatMap`, `mergeMap`, `exhaustMap` compose the chain; a `subscribe` inside a `subscribe` leaks the outer one
 
 ### Quality
 
@@ -258,6 +253,10 @@ legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
 6. **Log everything via `LoggerService`** — all user actions, navigation, and errors. No silent failures
 7. **No `title` attribute** — use `matTooltip` for visual hints or `aria-label` for accessible name without visual hint
 8. **Failing tests are a red flag, not an obstacle** — if code changes cause an existing test to fail, do NOT simply fix the test to make it pass. First investigate whether the new code broke expected behavior. Only modify the test if the behavioral change is intentional and justified (e.g. a deliberate API change, not a side effect). When in doubt, fix the code, not the test
+9. **Run the quality gates before reporting done** — the block under Commands, in that order; a task is complete when they are green, not when the code looks right. If a step fails, say so with its output rather than reporting success. `nx test` is transpile-only, which is why the build is one of the gates: type errors surface there and nowhere earlier
+10. **Coverage thresholds only ratchet up** — `coverageThreshold` lives per project in its `jest.config.ts` (`libs/core/jest.config.cts`). When a change drops coverage below the threshold, write the missing tests. Never lower a threshold to make the run pass without explicit approval from the user, and never widen the `collectCoverageFrom` excludes in `jest.preset.js` to hide code from the denominator
+11. **No `TODO`/`FIXME` comments** — `sonarjs/todo-tag` and `sonarjs/fixme-tag` are errors, so such a comment fails lint and blocks the commit. Either finish the work now or open a GitHub issue for it; when the code needs the context, write a plain comment stating the constraint and referencing the issue number
+12. **Delete the code a change orphans** — when a refactor or a deletion leaves an export, file or dependency with no consumer, remove it in the same change. `yarn knip` finds them; it runs blocking in CI, so leaving them behind fails the PR anyway
 
 ## Key Patterns
 
@@ -327,18 +326,14 @@ export class ArticleService {
 
 ### Color Tokens
 
-Use only `--themed-*` CSS variables from `libs/ui/src/lib/styles/_theme-colors.scss`:
+Every colour comes from a `--themed-*` variable in `libs/ui/src/lib/styles/_theme-colors.scss`:
 
 ```scss
-// Good
 background: var(--themed-primary-bg);
 color: var(--themed-text-secondary);
-
-// Bad — hardcoded colors
-background: #ffffff;
-// Bad — direct Material tokens
-background: var(--mat-sys-surface);
 ```
+
+Stylelint enforces this in `yarn lint:styles`: hex values, named colours and `rgb()`/`hsl()`-family functions fail anywhere, properties ending in `color` plus `fill`/`stroke` take nothing but a `--themed-*` variable, and reading a `var(--mat-*)` fails in any property. Material tokens are only ever written to — `libs/ui` assigns them `--themed-*` values, which is how the theme reaches Material. A colour with no token yet gets one added to `_theme-colors.scss` in the same change. The palette sources and the image overlays are the exceptions, listed as overrides in `.stylelintrc.json`.
 
 ### Size Tokens
 
@@ -351,28 +346,20 @@ Never define local CSS custom properties for sizes in component styles — add n
 
 ## Available UI Components
 
-All accessed via `@drevo-web/ui`.
+Everything is exported from `@drevo-web/ui`, and `libs/ui/src/index.ts` is the live list — read it before building a component by hand. The library covers more than the obvious set: a tooltip, a line clamp, a side panel and a navigation progress bar are already there.
 
-| Component | Selector | Notes |
-|-----------|----------|-------|
-| Badge | `ui-badge` | Input: `value: number \| string` |
-| Banner | `ui-banner` | Content projection wrapper (flex column, border, background) |
-| Button | `ui-button` | |
-| IconButton | `ui-icon-button` | |
-| ActionButton | `ui-action-button` | |
-| TextInput | `ui-text-input` | |
-| Checkbox | `ui-checkbox` | |
-| Icon | `ui-icon` | |
-| Spinner | `ui-spinner` | |
-| StatusIcon | `ui-status-icon` | Input: `ApprovalStatus` (`-1`/`0`/`1`) |
-| Tabs | `ui-tabs` | |
-| TabsGroup | `ui-tabs-group` | + `TabGroup`, `TabGroupItem` interfaces |
-| DropdownMenu | `ui-dropdown-menu` | + `uiDropdownMenuTrigger`, `ui-dropdown-menu-item` |
-| VirtualScroller | `ui-virtual-scroller` | + `uiVirtualScrollerItem` directive |
-| Modal | via `ModalService` | `@drevo-web/ui` → `ModalService` |
-| HighlightPipe | `highlight` | Pipe for text highlighting |
-| FormatDatePipe | `formatDate` | Pipe for date+time: "15 января 2025, 14:30" |
-| FormatTimePipe | `formatTime` | Pipe for time formatting |
+What the export names alone do not tell you:
+
+| Component | Notes |
+|-----------|-------|
+| `ui-badge` | Input: `value: number \| string` |
+| `ui-banner` | Content projection wrapper (flex column, border, background) |
+| `ui-status-icon` | Input: `ApprovalStatus` (`-1`/`0`/`1`) |
+| `ui-tabs-group` | Ships the `TabGroup` and `TabGroupItem` interfaces |
+| `ui-dropdown-menu` | Ships `uiDropdownMenuTrigger` and `ui-dropdown-menu-item` |
+| `ui-virtual-scroller` | Ships the `uiVirtualScrollerItem` directive |
+| Modal | No selector — opened through `ModalService` |
+| `formatDate` pipe | Date and time: "15 января 2025, 14:30" |
 
 ## Unit Testing
 
@@ -402,45 +389,7 @@ Standalone Playwright test suite in `testing/playwright/` — **separate from** 
 
 ### Structure
 
-```
-testing/playwright/
-  playwright.config.ts         # Config: 5 projects (chromium, firefox, webkit, mobile-chrome, mobile-safari)
-  fixtures/                    # Playwright fixtures (auth, mock-api, coverage)
-    auth.fixture.ts            # authenticatedPage / unauthenticatedPage fixtures
-    mock-api.fixture.ts        # API mock helpers (mockAuthApi, mockPicturesApi, etc.)
-    coverage.fixture.ts        # Code coverage collection
-    index.ts                   # Re-exports all fixtures
-  pages/                       # Page Object Model
-    base.page.ts               # Abstract BasePage with waitForReady()
-    login.page.ts
-    layout.page.ts
-    picture-gallery.page.ts
-    picture-detail.page.ts
-  mocks/                       # Mock data factories
-    common.ts                  # apiSuccess(), apiError() wrappers
-    users.ts                   # mockUsers
-    pictures.ts                # createPictureDto(), createPictureDtoList(), etc.
-    index.ts                   # Re-exports
-  helpers/                     # Shared test helpers
-    notification.ts            # getNotification() helper
-  tests/                       # Test specs organized by feature
-    smoke.spec.ts
-    auth/
-    pictures/
-```
-
-### Commands
-
-```bash
-yarn test:playwright               # Run in Chromium only
-yarn test:playwright:all           # All 5 browser projects
-yarn test:playwright:firefox       # Firefox only
-yarn test:playwright:webkit        # WebKit only
-yarn test:playwright:mobile        # Mobile Chrome + Mobile Safari
-yarn test:playwright:ui            # Playwright UI mode
-yarn test:playwright:headed        # Headed mode (visible browser)
-yarn test:playwright:coverage      # With code coverage (monocart-reporter)
-```
+`fixtures/` (auth, mock-api, coverage), `pages/` (Page Objects), `mocks/` (data factories), `helpers/`, `tests/` (specs, one subdirectory per feature). `playwright.config.ts` defines 5 browser projects: chromium, firefox, webkit, mobile-chrome, mobile-safari.
 
 ### Conventions
 

@@ -76,6 +76,9 @@ body {
     // Use themed CSS variables for consistent theming
     background-color: var(--themed-border-color);
     color: var(--themed-text-primary);
+
+    // The base typography follows the Material theme; there is no --themed-* token for it.
+    // stylelint-disable-next-line declaration-property-value-disallowed-list
     font: var(--mat-sys-body-medium);
     font-size: 1rem;
 

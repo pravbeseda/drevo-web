@@ -18,6 +18,12 @@
         "color-no-hex": true,
         "color-named": "never",
         "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla", "hwb", "lab", "lch", "oklab", "oklch", "color"],
+        "declaration-property-value-disallowed-list": [
+            { "/.*/": ["/var\\(\\s*--mat-/"] },
+            {
+                "message": "Material tokens belong to libs/ui — consume a --themed-* token instead"
+            }
+        ],
         "scale-unlimited/declaration-strict-value": [
             ["/color$/", "fill", "stroke"],
             {
