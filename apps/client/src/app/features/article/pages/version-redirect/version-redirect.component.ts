@@ -41,7 +41,9 @@ export class VersionRedirectComponent implements OnInit {
                         versionId,
                         articleId: article.articleId,
                     });
-                    this.router.navigate(['/articles', article.articleId, 'version', versionId], { replaceUrl: true });
+                    void this.router.navigate(['/articles', article.articleId, 'version', versionId], {
+                        replaceUrl: true,
+                    });
                 },
                 error: (err: HttpErrorResponse) => {
                     this.logger.error('Failed to load version for redirect', {

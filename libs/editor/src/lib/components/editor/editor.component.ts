@@ -102,13 +102,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
     set linksStatus(links: Record<string, boolean>) {
         this.linksSubject.next(links);
 
-        this.wikiHighlighterService.updateLinksState(links).then(changed => {
-            if (changed && this.editor) {
-                this.editor.dispatch({
-                    effects: linksUpdatedEffect.of(undefined),
-                });
-            }
-        });
+        const changed = this.wikiHighlighterService.updateLinksState(links);
+        if (changed && this.editor) {
+            this.editor.dispatch({
+                effects: linksUpdatedEffect.of(undefined),
+            });
+        }
     }
     get linksStatus(): Record<string, boolean> {
         return this.linksSubject.getValue();

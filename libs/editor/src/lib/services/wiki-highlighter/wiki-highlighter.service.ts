@@ -162,13 +162,13 @@ export class WikiHighlighterService {
         provide: f => EditorView.decorations.from(f),
     });
 
-    public async updateLinksState(updateLinksState: Record<string, boolean>): Promise<boolean> {
+    public updateLinksState(updateLinksState: Record<string, boolean>): boolean {
         let changed = false;
         this.linksState = { ...this.linksState, ...updateLinksState };
         this.pendingLinks.length = 0;
 
         if (this.text.length === 0) {
-            return Promise.resolve(true);
+            return true;
         }
 
         for (const match of this.matches) {

@@ -39,7 +39,7 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown> impleme
     protected readonly isLoading = signal(true);
 
     ngAfterViewInit(): void {
-        this.loadComponent();
+        void this.loadComponent();
     }
 
     private async loadComponent(): Promise<void> {

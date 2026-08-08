@@ -145,15 +145,17 @@ export default [
             // Clean at introduction — locked at error to guard new code.
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
+            // Cleaned out and locked. Navigations are marked `void` rather than awaited: the
+            // callers are synchronous handlers, and a rejected navigation surfaces as a
+            // NavigationError, which AppUpdateService already subscribes to.
+            '@typescript-eslint/no-floating-promises': 'error',
             // Existing violations present — warning-first, promote to error after cleanup.
             // Counts are capped per project by `maxWarnings` in each project.json, so new
             // violations fail lint; lower those baselines as the existing ones get fixed.
-            // no-floating-promises: real unhandled promises (needs per-site await vs void review).
-            // no-unnecessary-condition: mostly guards against backend data the DTO types claim
-            // more about than the backend guarantees. Clearing them means typing that boundary
-            // honestly, NOT deleting the checks — they are load-bearing until it is typed. Do
-            // not promote this rule to error before that pass lands (see issue #237).
-            '@typescript-eslint/no-floating-promises': 'warn',
+            // Mostly guards against backend data the DTO types claim more about than the
+            // backend guarantees. Clearing them means typing that boundary honestly, NOT
+            // deleting the checks — they are load-bearing until it is typed. Do not promote
+            // this rule to error before that pass lands (see issue #237).
             '@typescript-eslint/no-unnecessary-condition': 'warn',
         },
     },
@@ -180,16 +182,10 @@ export default [
             '@typescript-eslint/no-unnecessary-condition': 'off',
         },
     },
-    // client-e2e has no typed-rule violations, so nothing needs a warning budget here.
-    // Its `maxWarnings` covers pre-existing playwright/* debt only, and error severity keeps
-    // that budget from being spent on a new typed violation.
     {
-        files: e2eFiles,
-        rules: {
-            '@typescript-eslint/no-floating-promises': 'error',
-        },
-    },
-    {
+        // client-e2e has no no-unnecessary-condition violations, so it needs no warning budget
+        // for the rule; error severity keeps its `maxWarnings` — which covers pre-existing
+        // playwright/* debt only — from being spent on a new typed violation.
         // Specs keep the no-unnecessary-condition exemption granted above.
         files: e2eFiles,
         ignores: e2eSpecFiles,

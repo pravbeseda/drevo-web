@@ -112,7 +112,7 @@ describe('DraftEditorService', () => {
                 title: 'Test',
                 text: 'pending',
             });
-            spectator.service.discardDraft('/articles/123/version/456/edit');
+            void spectator.service.discardDraft('/articles/123/version/456/edit');
             jest.advanceTimersByTime(3000);
 
             expect(draftStorage.save).not.toHaveBeenCalled();
@@ -126,7 +126,7 @@ describe('DraftEditorService', () => {
                 title: 'Test',
                 text: 'before',
             });
-            spectator.service.discardDraft('/articles/123/version/456/edit');
+            void spectator.service.discardDraft('/articles/123/version/456/edit');
             jest.advanceTimersByTime(3000);
             expect(draftStorage.save).not.toHaveBeenCalled();
 
@@ -221,7 +221,7 @@ describe('DraftEditorService', () => {
                 title: 'Test',
                 text: 'pending',
             });
-            spectator.service.discardDraft('/articles/123/version/456/edit');
+            void spectator.service.discardDraft('/articles/123/version/456/edit');
             spectator.service.flush();
 
             // Only deleteByRoute from discardDraft, no save
@@ -242,7 +242,7 @@ describe('DraftEditorService', () => {
 
         it('should return false after discardDraft', () => {
             spectator.service.onContentChanged({ route: '/articles/123/version/456/edit', title: 'Test', text: 'x' });
-            spectator.service.discardDraft('/articles/123/version/456/edit');
+            void spectator.service.discardDraft('/articles/123/version/456/edit');
 
             expect(spectator.service.hasActiveSession('/articles/123/version/456/edit')).toBe(false);
         });

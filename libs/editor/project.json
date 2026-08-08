@@ -17,7 +17,7 @@
         "lint": {
             "executor": "@nx/eslint:lint",
             "options": {
-                "maxWarnings": 5
+                "maxWarnings": 2
             }
         }
     }

@@ -396,7 +396,7 @@ export class PictureDetailComponent {
                 next: editResult => {
                     if (editResult.picture) {
                         this.notificationService.success('Иллюстрация удалена');
-                        this.router.navigate(['/pictures']);
+                        void this.router.navigate(['/pictures']);
                     } else if (editResult.pending) {
                         this.refreshPending();
                         this.notificationService.info('Запрос на удаление отправлен на модерацию');
@@ -512,7 +512,7 @@ export class PictureDetailComponent {
                     this.notificationService.success(successMessage);
                     this.logger.info(logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
                     if (pendingAction === 'approve' && pending.pendingType === 'delete') {
-                        this.router.navigate(['/pictures']);
+                        void this.router.navigate(['/pictures']);
                         return;
                     }
                     this.reloadCurrentPage();
@@ -525,7 +525,7 @@ export class PictureDetailComponent {
                                 : 'Решение по этому предложению уже принято, либо пользователь отменил предложение';
                         this.notificationService.info(notFoundMessage);
                         if (pendingAction === 'approve' && pending.pendingType === 'delete') {
-                            this.router.navigate(['/pictures']);
+                            void this.router.navigate(['/pictures']);
                         } else {
                             this.reloadCurrentPage();
                         }

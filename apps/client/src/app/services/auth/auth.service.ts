@@ -71,7 +71,7 @@ export class AuthService {
                     .subscribe(state => {
                         // If user was logged in and now logged out, redirect to login
                         if (wasAuthenticated && !state.isAuthenticated && this.router.url !== '/login') {
-                            this.router.navigate(['/login']);
+                            void this.router.navigate(['/login']);
                         }
                     });
             }
@@ -218,7 +218,7 @@ export class AuthService {
                 this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
                 this.notifyOtherTabs();
-                this.router.navigate(['/login']);
+                void this.router.navigate(['/login']);
             }),
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
@@ -228,7 +228,7 @@ export class AuthService {
                 this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
                 this.notifyOtherTabs();
-                this.router.navigate(['/login']);
+                void this.router.navigate(['/login']);
                 return of(void 0);
             }),
             finalize(() => this.authOperationInProgressSubject.next(false)),
@@ -264,7 +264,7 @@ export class AuthService {
         // Validate external URL; fall back to router.url if invalid
         const returnUrl = currentUrl && isValidReturnUrl(currentUrl) ? currentUrl : this.router.url;
         if (returnUrl && returnUrl !== '/login') {
-            this.router.navigate(['/login'], {
+            void this.router.navigate(['/login'], {
                 queryParams: { returnUrl },
             });
         }

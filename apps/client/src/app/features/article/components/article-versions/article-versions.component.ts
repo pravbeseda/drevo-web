@@ -78,6 +78,6 @@ export class ArticleVersionsComponent implements OnInit {
 
     onCompare(): void {
         const [older, newer] = [...this._selectedVersionIds()].sort((a, b) => a - b);
-        this.router.navigate(['/history/articles/diff', older, newer]);
+        void this.router.navigate(['/history/articles/diff', older, newer]);
     }
 }
