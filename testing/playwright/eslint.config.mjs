@@ -5,11 +5,11 @@ import baseConfig from '../../eslint.config.mjs';
 // `yarn lint:playwright` runs ESLint here directly; the pre-commit hook and CI both call it.
 //
 // The playwright preset's remaining findings stay warnings, capped by `--max-warnings` in that
-// script so new ones fail the build: no-useless-not (36) rewrites assertions and needs a green
-// suite run to verify, expect-expect (11) needs `assertFunctionNames` configured for the Page
-// Objects, no-conditional-in-test (4) and no-force-option (1) each need a look. Triage is
-// issue #242. The pre-commit hook runs ESLint with --fix, so no-useless-not clears itself in
-// whatever specs a commit touches — lower the cap when it does.
+// script so new ones fail the build: expect-expect (11) needs `assertFunctionNames` configured
+// for the Page Objects, no-conditional-in-test (4) and no-force-option (1) each need a look.
+// Triage is issue #242. None of the three is auto-fixable, so the count only moves when someone
+// clears one deliberately — lower the cap in the same change, or the slack it leaves is what
+// the next new warning slips through.
 export default [
     ...baseConfig,
     {

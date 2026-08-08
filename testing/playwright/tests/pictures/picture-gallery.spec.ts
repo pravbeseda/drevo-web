@@ -107,10 +107,10 @@ test.describe('Picture gallery', () => {
             await gallery.waitForReady();
 
             // After error, loading should stop and page should be visible
-            await expect(gallery.loading).not.toBeVisible();
+            await expect(gallery.loading).toBeHidden();
             await expect(gallery.root).toBeVisible();
             // Gallery should not appear (error fallback returns empty)
-            await expect(gallery.gallery).not.toBeVisible();
+            await expect(gallery.gallery).toBeHidden();
         });
     });
 

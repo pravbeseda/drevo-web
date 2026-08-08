@@ -200,7 +200,7 @@ test.describe('Article edit — validation', () => {
             await expect(lintPanel).toBeVisible();
 
             await indicator.click();
-            await expect(lintPanel).not.toBeVisible();
+            await expect(lintPanel).toBeHidden();
         });
     });
 });

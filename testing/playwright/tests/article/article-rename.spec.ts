@@ -46,7 +46,7 @@ test.describe('Article rename', () => {
             await layout.pageTitleInput.fill('Новое название');
             await layout.pageTitleInput.press('Enter');
 
-            await expect(layout.pageTitleInput).not.toBeVisible();
+            await expect(layout.pageTitleInput).toBeHidden();
             await expect(layout.pageTitle).toHaveText('Новое название');
             await expect(getNotification(page, 'success')).toBeVisible();
         });
@@ -56,7 +56,7 @@ test.describe('Article rename', () => {
             await layout.pageTitleInput.fill('Изменённое');
             await layout.pageTitleInput.press('Escape');
 
-            await expect(layout.pageTitleInput).not.toBeVisible();
+            await expect(layout.pageTitleInput).toBeHidden();
             await expect(layout.pageTitle).toHaveText('Старое название');
         });
 
@@ -67,7 +67,7 @@ test.describe('Article rename', () => {
             await layout.pageTitleInput.fill('Новое');
             await layout.hamburgerButton.click();
 
-            await expect(layout.pageTitleInput).not.toBeVisible();
+            await expect(layout.pageTitleInput).toBeHidden();
             await expect(getNotification(page, 'success')).toBeVisible();
         });
 
@@ -148,7 +148,7 @@ test.describe('Article rename', () => {
             await expect(layout.pageTitle).not.toHaveClass(/page-title--editable/);
 
             await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).not.toBeVisible();
+            await expect(layout.pageTitleInput).toBeHidden();
         });
 
         test('editing disappears after navigating away from article', async ({ authenticatedPage: page }) => {
@@ -164,7 +164,7 @@ test.describe('Article rename', () => {
             await expect(layout.pageTitle).toHaveText('Главная');
 
             await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).not.toBeVisible();
+            await expect(layout.pageTitleInput).toBeHidden();
         });
     });
 
@@ -178,7 +178,7 @@ test.describe('Article rename', () => {
 
             await expect(layout.pageTitle).toHaveText('Старое название');
             await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).not.toBeVisible();
+            await expect(layout.pageTitleInput).toBeHidden();
         });
     });
 });

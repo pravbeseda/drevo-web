@@ -7,6 +7,9 @@ import {
 import { LayoutPage } from '../../pages/layout.page';
 import { Page } from '@playwright/test';
 
+/** Message VersionCheckService logs right after it stores the baseline version. */
+const BASELINE_LOGGED = 'Initial version loaded';
+
 const INITIAL_VERSION = { version: '1.0.0', buildTime: '2026-04-20T00:00:00Z', commit: 'abc' };
 const UPDATED_VERSION = { version: '1.1.0', buildTime: '2026-04-20T01:00:00Z', commit: 'def' };
 
@@ -16,14 +19,15 @@ const setupInitialVersion = async (page: Page) => {
     await page.route('**/version.json*', route => route.fulfill({ json: INITIAL_VERSION }));
 
     const layout = new LayoutPage(page);
-    // The poll that records the baseline version must have happened before the route is
-    // swapped below, otherwise the first response the app sees is already the updated one
-    // and no notification is due. Waiting for the response itself states that condition;
-    // networkidle only approximates it by timing.
-    const initialVersionFetched = page.waitForResponse(response => response.url().includes('/version.json'));
+    // VersionCheckService compares against a baseline it records only once the first
+    // version.json has been consumed; until then the second poll finds `currentVersion`
+    // undefined and returns without a notification, and the mocked clock never fires a
+    // third one. Waiting for the response would only prove the headers arrived, so wait
+    // for the log line the service writes on the statement after it stores the baseline.
+    const baselineRecorded = page.waitForEvent('console', message => message.text().includes(BASELINE_LOGGED));
     await page.goto('/');
     await layout.waitForReady();
-    await initialVersionFetched;
+    await baselineRecorded;
 };
 
 const switchToUpdatedVersion = async (page: Page) => {

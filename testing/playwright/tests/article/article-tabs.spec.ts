@@ -58,7 +58,7 @@ test.describe('Article tabs', () => {
 
             await article.tabArticle.click();
             await expect(article.content).toBeVisible();
-            await expect(article.versionBanner).not.toBeVisible();
+            await expect(article.versionBanner).toBeHidden();
         });
     });
 

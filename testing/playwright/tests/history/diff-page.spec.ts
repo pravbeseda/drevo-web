@@ -19,7 +19,7 @@ test.describe('Diff page', () => {
         await diff.waitForReady();
 
         await expect(diff.meta).toBeVisible();
-        await expect(diff.error).not.toBeVisible();
+        await expect(diff.error).toBeHidden();
     });
 
     test('shows version meta for two-version diff', async ({ authenticatedPage: page }) => {
@@ -30,7 +30,7 @@ test.describe('Diff page', () => {
         await diff.waitForReady();
 
         await expect(diff.meta).toBeVisible();
-        await expect(diff.error).not.toBeVisible();
+        await expect(diff.error).toBeHidden();
     });
 
     test('toggle button switches diff type label', async ({ authenticatedPage: page }) => {
@@ -57,7 +57,7 @@ test.describe('Diff page', () => {
         await diff.waitForReady();
 
         await expect(diff.error).toBeVisible();
-        await expect(diff.meta).not.toBeVisible();
+        await expect(diff.meta).toBeHidden();
     });
 
     test('shows error on server failure', async ({ authenticatedPage: page }) => {
@@ -68,7 +68,7 @@ test.describe('Diff page', () => {
         await diff.waitForReady();
 
         await expect(diff.error).toBeVisible();
-        await expect(diff.meta).not.toBeVisible();
+        await expect(diff.meta).toBeHidden();
     });
 
     test('shows error for invalid (non-numeric) version ID', async ({ authenticatedPage: page }) => {
@@ -77,6 +77,6 @@ test.describe('Diff page', () => {
         await diff.waitForReady();
 
         await expect(diff.error).toBeVisible();
-        await expect(diff.meta).not.toBeVisible();
+        await expect(diff.meta).toBeHidden();
     });
 });

@@ -72,9 +72,9 @@ test.describe('Picture detail — deletion', () => {
             await detail.deleteAction.click();
             await detail.confirmationCancel.click();
 
-            await expect(detail.confirmationTitle).not.toBeVisible();
+            await expect(detail.confirmationTitle).toBeHidden();
             const notification = getNotification(page);
-            await expect(notification).not.toBeVisible();
+            await expect(notification).toBeHidden();
         });
 
         test('successful delete redirects and shows success notification', async ({ authenticatedPage: page }) => {

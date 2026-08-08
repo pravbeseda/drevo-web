@@ -41,8 +41,9 @@ yarn nx e2e client-e2e             # API contract tests against a running drevo-
 Green on all of these is what "done" means (Quality rule 9), in this order — the earlier ones are the cheaper to fix. Together they are what `cd-main-beta.yml` and `playwright.yml` run on the PR:
 
 ```bash
-yarn nx affected -t lint                        # ESLint; the pre-commit hook runs it on staged apps/ and libs/ files
+yarn nx affected -t lint                        # ESLint; the pre-commit hook runs it on staged apps/, libs/ and testing/ files
 yarn nx affected -t test --configuration=ci     # unit tests + per-project coverage thresholds
+yarn lint:playwright                            # ESLint on testing/playwright — no Nx project, so `affected` misses it
 yarn format:check                               # Prettier
 yarn lint:styles                                # Stylelint — when SCSS was touched
 yarn knip                                       # dead code and unused deps — after refactors and deletions
