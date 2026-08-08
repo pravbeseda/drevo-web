@@ -85,7 +85,7 @@ test.describe('Picture detail — file replacement', () => {
                 buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
             });
 
-            await expect(detail.replaceDialogTitle).not.toBeVisible();
+            await expect(detail.replaceDialogTitle).toBeHidden();
         });
     });
 
@@ -111,9 +111,9 @@ test.describe('Picture detail — file replacement', () => {
 
             await detail.replaceDialogCancel.click();
 
-            await expect(detail.replaceDialogTitle).not.toBeVisible();
+            await expect(detail.replaceDialogTitle).toBeHidden();
             const notification = getNotification(page);
-            await expect(notification).not.toBeVisible();
+            await expect(notification).toBeHidden();
         });
     });
 
@@ -173,14 +173,14 @@ test.describe('Picture detail — file replacement', () => {
         });
 
         test('sends file and pic_title in FormData', async ({ authenticatedPage: page }) => {
-            let capturedFormFields: Record<string, string> = {};
+            const capturedFormFields: Record<string, string> = {};
 
             await page.route(`**/api/pictures/${PICTURE_ID}/file`, async route => {
                 if (route.request().method() !== 'POST') return route.fallback();
 
                 const postData = route.request().postData();
                 if (postData) {
-                    const titleMatch = postData.match(/name="pic_title"\r?\n\r?\n([^\r\n-]+)/);
+                    const titleMatch = /name="pic_title"\r?\n\r?\n([^\r\n-]+)/.exec(postData);
                     if (titleMatch) capturedFormFields['pic_title'] = titleMatch[1];
                     if (postData.includes('name="file"')) capturedFormFields['file'] = 'present';
                 }

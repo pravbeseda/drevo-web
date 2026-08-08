@@ -161,7 +161,7 @@ test.describe('Login page', () => {
 
             // Second attempt — error clears, redirects
             await loginPage.login('testuser', 'password123');
-            await expect(loginPage.errorMessage).not.toBeVisible();
+            await expect(loginPage.errorMessage).toBeHidden();
         });
     });
 

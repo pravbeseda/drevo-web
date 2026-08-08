@@ -24,7 +24,7 @@ test.describe('Header — account dropdown', () => {
 
     test('closes dropdown on Escape', async () => {
         await layout.closeAccountMenu();
-        await expect(layout.userName).not.toBeVisible();
+        await expect(layout.userName).toBeHidden();
     });
 
     test('shows download-logs and logout items', async () => {

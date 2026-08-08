@@ -70,7 +70,7 @@ test.describe('Article pictures', () => {
 
         await page.keyboard.press('Escape');
 
-        await expect(lightbox.backdrop).not.toBeVisible();
+        await expect(lightbox.backdrop).toBeHidden();
         await expect(article.content).toBeVisible();
         await expect(page).not.toHaveURL(/#picture=/);
     });

@@ -1,11 +1,10 @@
 import path from 'node:path';
 
-// ESLint runs only where CI already runs it: the Nx projects under apps/ and libs/.
-// testing/playwright belongs to no project, so `nx lint` has never covered it and it
-// carries errors nothing in a diff introduced (issues #242-#244). A hook stricter than
-// CI is a hook people learn to skip with --no-verify, which drops prettier and stylelint
-// too. Prettier still formats those files below — only the lint gate is scoped.
-const ESLINT_ROOTS = ['apps', 'libs'];
+// ESLint runs only where CI already runs it: the Nx projects under apps/ and libs/, plus
+// testing/, which belongs to no project and is linted by `yarn lint:playwright` instead.
+// A hook stricter than CI is a hook people learn to skip with --no-verify, which drops
+// prettier and stylelint too — so this list must not grow past what CI checks.
+const ESLINT_ROOTS = ['apps', 'libs', 'testing'];
 
 const isLintable = file => {
     const relative = path.relative(process.cwd(), file);

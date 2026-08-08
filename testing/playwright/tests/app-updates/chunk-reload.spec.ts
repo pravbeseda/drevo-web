@@ -12,13 +12,18 @@ test.describe('Chunk reload prompt', () => {
         // Load the shell so the initial bundle is already in the browser.
         await page.goto('/');
         await layout.waitForReady();
-        await page.waitForLoadState('networkidle');
 
         // On mobile the sidebar is a closed drawer — open it so nav-item is clickable.
         if (isMobile) {
             await layout.hamburgerButton.click();
             await layout.expectSidebarExpanded();
         }
+
+        // The nav item renders only once the shell has hydrated, so waiting for it is the
+        // deterministic form of "the app has finished fetching what it needs" — and it also
+        // keeps the abort below from landing on a chunk request the shell itself started.
+        const picturesNav = layout.navItem('Иллюстрации');
+        await expect(picturesNav).toBeVisible();
 
         // Simulate post-deploy state: any further lazy JS chunk request 404s.
         // Only lazy chunks (chunk-*.js) are blocked; initial bundle / polyfills are
@@ -28,7 +33,6 @@ test.describe('Chunk reload prompt', () => {
         // SPA navigation to a lazy feature route → dynamic import fails →
         // Angular Router emits NavigationError → ChunkErrorHandler / NavigationError
         // subscription flips AppUpdateService.chunkLoadFailed to true.
-        const picturesNav = layout.navItem('Иллюстрации');
         await picturesNav.click();
 
         const { overlay, host, reloadButton } = getReloadPrompt(page);

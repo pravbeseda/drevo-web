@@ -44,7 +44,7 @@ test.describe('Article moderation', () => {
             await page.goto(`/articles/${ARTICLE_ID}`);
             await article.waitForReady();
 
-            await expect(article.moderationAction).not.toBeVisible();
+            await expect(article.moderationAction).toBeHidden();
         });
 
         test('moderation action visible for moderator', async ({ authenticatedPage: page }) => {
