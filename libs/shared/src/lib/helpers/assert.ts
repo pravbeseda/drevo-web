@@ -9,7 +9,7 @@ export function assertIsDefined<T>(value: T, errorMsg: string): asserts value is
 }
 
 function getErrorMessage(message: string): string {
-    return `${message} ${new Error().stack?.split('\n')?.slice(1, 4).join('\n')}`;
+    return `${message} ${new Error().stack?.split('\n').slice(1, 4).join('\n')}`;
 }
 
 export function isDefined<T>(val: T | null | undefined): val is T {

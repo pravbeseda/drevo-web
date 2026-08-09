@@ -145,7 +145,8 @@ export class WikiHighlighterService {
 
     private text = '';
     private readonly matches: Match[] = [];
-    private linksState: Record<string, boolean> = {};
+    // Values are optional: a link the backend has not reported on yet is simply absent.
+    private linksState: Record<string, boolean | undefined> = {};
     private readonly pendingLinks: string[] = [];
     private readonly updateLinksSubject = new Subject<string[]>();
 
@@ -162,7 +163,7 @@ export class WikiHighlighterService {
         provide: f => EditorView.decorations.from(f),
     });
 
-    public updateLinksState(updateLinksState: Record<string, boolean>): boolean {
+    public updateLinksState(updateLinksState: Record<string, boolean | undefined>): boolean {
         let changed = false;
         this.linksState = { ...this.linksState, ...updateLinksState };
         this.pendingLinks.length = 0;
@@ -202,17 +203,14 @@ export class WikiHighlighterService {
     }
 
     private resolveLinkClass(linkText: string): string {
-        const status: boolean | undefined = this.linksState[this.normalizeLinkText(linkText)];
+        const status = this.linksState[this.normalizeLinkText(linkText)];
 
-        if (status === true) {
-            return `${commonClassName} cm-link-exists`;
-        }
-        if (status === false) {
-            return `${commonClassName} cm-link-missing`;
+        if (status === undefined) {
+            this.pendingLinks.push(linkText);
+            return `${commonClassName} cm-link-pending`;
         }
 
-        this.pendingLinks.push(linkText);
-        return `${commonClassName} cm-link-pending`;
+        return status ? `${commonClassName} cm-link-exists` : `${commonClassName} cm-link-missing`;
     }
 
     private requestLinksStatus(links: string[]): void {

@@ -440,7 +440,16 @@ export class PictureDetailComponent {
         }
 
         const code = `@${pic.id}@`;
-        this.window?.navigator?.clipboard
+        // lib.dom types `navigator.clipboard` as always present; it is missing
+        // in non-secure contexts.
+        const clipboard: Clipboard | undefined = this.window?.navigator.clipboard;
+        if (!clipboard) {
+            this.logger.warn('Clipboard API unavailable', { id: pic.id });
+            this.notificationService.error(`Не удалось скопировать код ${code}`);
+            return;
+        }
+
+        clipboard
             .writeText(code)
             .then(() => {
                 this.notificationService.success('Код скопирован');

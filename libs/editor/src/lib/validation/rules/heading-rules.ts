@@ -6,13 +6,15 @@ import {
     WIKI_LINK_REGEX,
 } from '../constants/wiki-patterns';
 import { RuleMatch, ValidationRule } from '../models/validation-rule.model';
+import { optionalGroup } from '@drevo-web/shared';
 
 function findInHeadings(text: string, pattern: RegExp, message: string): readonly RuleMatch[] {
     const matches: RuleMatch[] = [];
 
     for (const headingMatch of text.matchAll(WIKI_HEADING_REGEX)) {
-        const content = headingMatch[1] ?? headingMatch[2];
-        const markerLen = headingMatch[1] ? 3 : 2;
+        const h3Content = optionalGroup(headingMatch, 1);
+        const content = h3Content ?? optionalGroup(headingMatch, 2) ?? '';
+        const markerLen = h3Content ? 3 : 2;
         const contentStart = headingMatch.index + markerLen;
 
         for (const innerMatch of content.matchAll(pattern)) {

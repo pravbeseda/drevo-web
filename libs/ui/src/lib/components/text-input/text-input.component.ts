@@ -69,7 +69,7 @@ export class TextInputComponent implements ControlValueAccessor {
         /* empty */
     };
 
-    writeValue(value: string): void {
+    writeValue(value: string | undefined): void {
         this.displayValue.set(value ?? '');
     }
 

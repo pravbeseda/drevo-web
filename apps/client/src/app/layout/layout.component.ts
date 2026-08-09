@@ -124,7 +124,7 @@ export class LayoutComponent implements OnInit {
                 }
 
                 if (!new URL(event.urlAfterRedirects, 'https://_').hash) {
-                    this.contentEl()?.nativeElement.scrollTo?.(0, 0);
+                    this.contentEl()?.nativeElement.scrollTo(0, 0);
                 }
             });
     }

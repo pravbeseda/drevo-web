@@ -42,8 +42,8 @@ export class ThemeService {
             return 'light';
         }
 
-        const savedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        if (savedTheme === 'light' || savedTheme === 'dark') {
             return savedTheme;
         }
 

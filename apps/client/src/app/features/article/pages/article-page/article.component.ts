@@ -4,7 +4,7 @@ import { MissingArticle, isMissingArticle } from '../../models/missing-article';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, UrlSegmentGroup } from '@angular/router';
 import { ArticleVersion } from '@drevo-web/shared';
 import { TabGroup, TabsGroupComponent } from '@drevo-web/ui';
 import { filter, map } from 'rxjs';
@@ -47,10 +47,10 @@ export class ArticleComponent {
     );
 
     private readonly articleTabActive = computed(() => {
-        const path = this.router
-            .parseUrl(this.url())
-            .root.children['primary']?.segments.map(s => s.path)
-            .join('/');
+        // `children` is typed as if every outlet were present; only `primary` is guaranteed
+        // to exist while an outlet is actually activated.
+        const children: Record<string, UrlSegmentGroup | undefined> = this.router.parseUrl(this.url()).root.children;
+        const path = children['primary']?.segments.map(s => s.path).join('/');
         const basePath = this.pageService.basePath();
         if (!path || !basePath) return false;
         const base = basePath.slice(1);
