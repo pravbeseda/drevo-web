@@ -162,6 +162,18 @@ describe('LayoutComponent', () => {
             expect(drawerService.restoreSaved).not.toHaveBeenCalled();
         });
 
+        it('should not track breakpoints in SSR (no window)', () => {
+            spectator = createComponent({
+                providers: [
+                    { provide: WINDOW, useFactory: () => undefined },
+                    MockProvider(DrawerService, createDrawerMock(false)),
+                ],
+            });
+
+            expect(spectator.component.isMobile()).toBe(false);
+            expect(spectator.inject(WINDOW)).toBeUndefined();
+        });
+
         it('should close drawer when viewport switches to mobile', () => {
             const mockWindow = createMockWindow(BREAKPOINT_TABLET);
             spectator = createComponent({
@@ -371,6 +383,19 @@ describe('LayoutComponent', () => {
             expect(contentEl.scrollTo).toHaveBeenCalledWith(0, 0);
         });
 
+        // `useFactory` rather than `useValue: undefined`: TestBed.overrideProvider drops an
+        // override whose `useValue` is literally undefined and leaves the token as it was.
+        it('should not scroll on the server, whose DOM has no scrollTo', async () => {
+            spectator = createComponent({ providers: [{ provide: WINDOW, useFactory: () => undefined }] });
+            const contentEl = spectator.query('.main') as HTMLElement;
+            contentEl.scrollTo = jest.fn();
+
+            const router = spectator.inject(Router);
+            await router.navigateByUrl('/test');
+
+            expect(contentEl.scrollTo).not.toHaveBeenCalled();
+        });
+
         it('should not scroll to top when navigating to a fragment', async () => {
             spectator = createComponent();
             const contentEl = spectator.query('.main') as HTMLElement;
@@ -380,54 +405,6 @@ describe('LayoutComponent', () => {
             await router.navigateByUrl('/test#section');
 
             expect(contentEl.scrollTo).not.toHaveBeenCalled();
-        });
-    });
-
-    // A own factory rather than a per-test provider: a `WINDOW` override passed to
-    // `createComponent()` loses to the factory's own provider, so the component keeps
-    // injecting the real window and the server path is never exercised.
-    describe('server render (no window)', () => {
-        const createServerComponent = createComponentFactory({
-            component: LayoutComponent,
-            providers: [
-                provideHttpClient(),
-                provideHttpClientTesting(),
-                provideRouter([{ path: '**', component: DummyComponent }]),
-                { provide: WINDOW, useValue: undefined },
-                MockProvider(DrawerService, createDrawerMock(true)),
-                MockProvider(PageTitleStrategy, {
-                    pageTitle: signal('Древо'),
-                    titleContext: signal(undefined),
-                    tabTitle: signal(undefined),
-                }),
-            ],
-        });
-
-        it('should not track breakpoints', () => {
-            spectator = createServerComponent();
-
-            expect(spectator.component.isMobile()).toBe(false);
-        });
-
-        it('should not scroll the content element, whose server DOM has no scrollTo', async () => {
-            spectator = createServerComponent();
-            const contentEl = spectator.query('.main') as HTMLElement;
-            contentEl.scrollTo = jest.fn();
-
-            const router = spectator.inject(Router);
-            await router.navigateByUrl('/test');
-
-            expect(contentEl.scrollTo).not.toHaveBeenCalled();
-        });
-
-        it('should not close the drawer on navigation', async () => {
-            spectator = createServerComponent();
-            const drawerService = spectator.inject(DrawerService);
-
-            const router = spectator.inject(Router);
-            await router.navigateByUrl('/test');
-
-            expect(drawerService.close).not.toHaveBeenCalled();
         });
     });
 });
