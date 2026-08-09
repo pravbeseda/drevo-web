@@ -111,7 +111,7 @@ export class PicturePageComponent implements OnInit {
         const viewport = element.querySelector('cdk-virtual-scroll-viewport') ?? element;
 
         this.resizeObserver = new ResizeObserver(entries => {
-            const entry = entries[0];
+            const entry = entries.at(0);
             if (entry) {
                 this.resizeSubject.next(Math.floor(entry.contentRect.width));
             }

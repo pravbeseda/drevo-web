@@ -41,7 +41,7 @@ export class ArticleModerationPanelComponent {
     readonly comment = this._comment.asReadonly();
 
     constructor() {
-        effect(() => this._comment.set(this.version().comment ?? ''));
+        effect(() => this._comment.set(this.version().comment));
     }
 
     private readonly _isLoading = signal(false);

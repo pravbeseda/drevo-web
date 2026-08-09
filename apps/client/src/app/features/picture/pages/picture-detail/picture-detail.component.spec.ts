@@ -857,6 +857,47 @@ describe('PictureDetailComponent', () => {
         });
     });
 
+    describe('without clipboard support', () => {
+        const windowWithoutClipboard = { navigator: {} } as unknown as Window;
+
+        const createComponent = createComponentFactory({
+            component: PictureDetailComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(PictureLightboxService),
+                mockProvider(PictureService, {
+                    getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
+                    getPicturePending: jest.fn().mockReturnValue(of([])),
+                }),
+                mockProvider(ModalService),
+                mockProvider(ConfirmationService),
+                mockProvider(NotificationService),
+                { provide: AuthService, useValue: { user$: of(mockEditableUser) } },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { data: of({ picture: mockPicture }) },
+                },
+                { provide: PLATFORM_ID, useValue: 'browser' },
+                { provide: WINDOW, useValue: windowWithoutClipboard },
+            ],
+            detectChanges: false,
+        });
+
+        beforeEach(() => {
+            spectator = createComponent();
+        });
+
+        it('should report a failure instead of throwing when the clipboard API is missing', () => {
+            spectator.detectChanges();
+            const notifications = spectator.inject(NotificationService);
+
+            expect(() => {
+                spectator.component.copyInsertCode();
+            }).not.toThrow();
+            expect(notifications.error).toHaveBeenCalledWith('Не удалось скопировать код @42@');
+        });
+    });
+
     describe('with not-found result', () => {
         const createComponent = createComponentFactory({
             component: PictureDetailComponent,

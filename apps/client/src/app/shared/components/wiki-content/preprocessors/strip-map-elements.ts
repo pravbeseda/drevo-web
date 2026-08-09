@@ -1,3 +1,5 @@
+import { optionalGroup } from '@drevo-web/shared';
+
 // Scanned in a single pass rather than matched with one regex. A single pattern needs
 // `[^>]*\sclass="map"[^>]*`, whose overlapping quantifiers sonarjs flags as
 // super-linear; capping their length instead would silently stop stripping map
@@ -57,7 +59,7 @@ function findMapElements(html: string): TagSpan[] {
     ANY_TAG.lastIndex = 0;
     for (let match = ANY_TAG.exec(html); match; match = ANY_TAG.exec(html)) {
         const name = match[2].toLowerCase();
-        const attributes = match[3] ?? '';
+        const attributes = optionalGroup(match, 3) ?? '';
         const end = match.index + match[0].length;
 
         if (match[1] === '/') {

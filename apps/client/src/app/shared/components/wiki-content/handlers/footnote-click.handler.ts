@@ -32,7 +32,7 @@ export class FootnoteClickHandler implements WikiClickHandler {
 
         event.preventDefault();
 
-        const label = anchor.textContent?.trim() ?? '';
+        const label = anchor.textContent.trim();
         this.logger.info('Open footnote', { footnoteId, label });
 
         this.modalService.open(

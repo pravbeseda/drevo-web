@@ -16,8 +16,6 @@ const typedParserOptions = {
 // Every block that matches or exempts tests reuses these, so a narrower copy cannot
 // silently reinstate a rule the base block turned off.
 const specFiles = ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'];
-const e2eFiles = ['apps/client-e2e/**/*.ts', 'apps/client-e2e/**/*.tsx'];
-const e2eSpecFiles = specFiles.map(pattern => `apps/client-e2e/${pattern}`);
 
 export default [
     ...nx.configs['flat/base'],
@@ -153,14 +151,12 @@ export default [
             // handler. AppUpdateService subscribes to NavigationError for the one case that
             // needs an in-app response, a chunk that failed to load, and ignores the rest.
             '@typescript-eslint/no-floating-promises': 'error',
-            // Existing violations present — warning-first, promote to error after cleanup.
-            // Counts are capped per project by `maxWarnings` in each project.json, so new
-            // violations fail lint; lower those baselines as the existing ones get fixed.
-            // Mostly guards against backend data the DTO types claim more about than the
-            // backend guarantees. Clearing them means typing that boundary honestly, NOT
-            // deleting the checks — they are load-bearing until it is typed. Do not promote
-            // this rule to error before that pass lands (see issue #237).
-            '@typescript-eslint/no-unnecessary-condition': 'warn',
+            // Cleaned out and locked (issue #237). Nearly every site was a type promising
+            // more than the runtime delivers — index access typed as always present, optional
+            // regex groups typed `string`, browser APIs lib.dom declares non-optional — so the
+            // pass fixed the types and kept the checks. Deleting a check to satisfy this rule
+            // is the wrong move: make the type honest, and the check stops being redundant.
+            '@typescript-eslint/no-unnecessary-condition': 'error',
         },
     },
     // Root config files (currently just jest.config.ts) belong to no tsconfig and land in the
@@ -184,17 +180,6 @@ export default [
             // Assertions deliberately re-check what the types already promise; that is the
             // point of a test, so the rule reports the test rather than a defect.
             '@typescript-eslint/no-unnecessary-condition': 'off',
-        },
-    },
-    {
-        // client-e2e has no no-unnecessary-condition violations, so it needs no warning budget
-        // for the rule; error severity keeps its `maxWarnings` — which covers pre-existing
-        // playwright/* debt only — from being spent on a new typed violation.
-        // Specs keep the no-unnecessary-condition exemption granted above.
-        files: e2eFiles,
-        ignores: e2eSpecFiles,
-        rules: {
-            '@typescript-eslint/no-unnecessary-condition': 'error',
         },
     },
 ];

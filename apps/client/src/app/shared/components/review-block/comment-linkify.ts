@@ -44,7 +44,7 @@ export function linkifyComment(text: string): readonly CommentSegment[] {
     let lastIndex = 0;
 
     for (const match of text.matchAll(URL_REGEX)) {
-        const start = match.index ?? 0;
+        const start = match.index;
         const raw = match[0];
         const url = trimTrailingPunctuation(raw);
         const tail = raw.slice(url.length);

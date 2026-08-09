@@ -145,10 +145,13 @@ export class LogDatabase extends Dexie {
      * Falls back to rough estimate based on entry count
      */
     async getStorageSize(): Promise<number> {
-        // Try using Storage API first (more accurate)
-        if (typeof navigator !== 'undefined' && navigator.storage?.estimate) {
+        // Try using Storage API first (more accurate). lib.dom types `navigator.storage`
+        // and its `estimate` as always present; both are missing in non-secure contexts.
+        const storage: { readonly estimate?: () => Promise<StorageEstimate> } | undefined =
+            typeof navigator === 'undefined' ? undefined : navigator.storage;
+        if (storage?.estimate) {
             try {
-                const estimate = await navigator.storage.estimate();
+                const estimate = await storage.estimate();
                 // Note: This gives total IndexedDB usage, not just our database
                 // But it's the most accurate estimate available
                 return estimate.usage ?? 0;

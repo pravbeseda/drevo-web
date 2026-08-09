@@ -84,7 +84,7 @@ export class PageTitleStrategy extends TitleStrategy {
             this._tabTitle.set(this.buildTitle(snapshot));
         }
 
-        const leaf = chain[chain.length - 1];
+        const leaf = chain.at(-1);
         this._titlePrefix.set(leaf?.data['titlePrefix'] as string | undefined);
 
         this.applyDocumentTitle();
@@ -144,7 +144,6 @@ export class PageTitleStrategy extends TitleStrategy {
 
     private getRouteChain(snapshot: RouterStateSnapshot): ActivatedRouteSnapshot[] {
         const chain: ActivatedRouteSnapshot[] = [];
-        if (!snapshot.root) return chain;
         let route: ActivatedRouteSnapshot = snapshot.root;
         chain.push(route);
         while (route.firstChild) {
