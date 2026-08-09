@@ -137,7 +137,7 @@ export class PictureService {
     }
 
     private isPendingDto(dto: PictureDto | PicturePendingDto): dto is PicturePendingDto {
-        return (dto as { readonly pending?: unknown }).pending === true;
+        return 'pending' in dto;
     }
 
     private mapListResponse(response: PicturesListResponseDto): PictureListResponse {

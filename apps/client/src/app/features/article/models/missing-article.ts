@@ -13,5 +13,5 @@ export interface MissingArticle {
 }
 
 export function isMissingArticle(value: unknown): value is MissingArticle {
-    return typeof value === 'object' && !!value && (value as { readonly articleId?: unknown }).articleId === 0;
+    return typeof value === 'object' && !!value && 'articleId' in value && value.articleId === 0;
 }

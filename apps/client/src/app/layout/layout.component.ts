@@ -119,6 +119,12 @@ export class LayoutComponent implements OnInit {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(event => {
+                // Both branches below are browser-only: the server render has no drawer to
+                // close, and its DOM implements no `scrollTo`.
+                if (!this.window) {
+                    return;
+                }
+
                 if (this.isMobile()) {
                     this.drawerService.close();
                 }
