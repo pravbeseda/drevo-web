@@ -81,7 +81,7 @@ export class LoginComponent implements OnInit {
             .subscribe({
                 next: () => {
                     this.loginForm.reset();
-                    this.router.navigateByUrl(this.returnUrl);
+                    void this.router.navigateByUrl(this.returnUrl);
                 },
                 error: error => {
                     this.errorMessage.set(this.getErrorMessage(error));

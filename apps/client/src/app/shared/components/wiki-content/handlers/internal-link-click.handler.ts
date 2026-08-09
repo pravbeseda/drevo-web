@@ -18,7 +18,7 @@ export class InternalLinkClickHandler implements WikiClickHandler {
         }
 
         event.preventDefault();
-        this.router.navigateByUrl(href);
+        void this.router.navigateByUrl(href);
         return true;
     }
 

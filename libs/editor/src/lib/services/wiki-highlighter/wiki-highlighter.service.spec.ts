@@ -141,7 +141,7 @@ describe('WikiHighlighterService', () => {
         expect(linkElement?.textContent).toBe(result);
     });
 
-    it('should show links as exists and missing', async () => {
+    it('should show links as exists and missing', () => {
         const view = getView('[[Пример сноски]] и ((ссылка)) и ((неизвестная))');
         service.updateLinksState({
             ['ССЫЛКА']: true,
@@ -217,10 +217,10 @@ describe('WikiHighlighterService', () => {
                     normalized: 'ЕЛКА НОВОГОДНЯЯ',
                     description: 'combine ё + spaces normalization',
                 },
-            ])('should $description: "$input" -> "$normalized"', async ({ input, normalized }) => {
+            ])('should $description: "$input" -> "$normalized"', ({ input, normalized }) => {
                 const view = getView(`((${input}))`);
 
-                await service.updateLinksState({ [normalized]: true });
+                service.updateLinksState({ [normalized]: true });
                 view.dispatch({
                     effects: linksUpdatedEffect.of(undefined),
                 });
@@ -230,10 +230,10 @@ describe('WikiHighlighterService', () => {
                 expect(existsElement?.textContent).toBe(input);
             });
 
-            it('should handle empty strings without errors', async () => {
+            it('should handle empty strings without errors', () => {
                 getView('((   ))');
 
-                await expect(service.updateLinksState({ '': true })).resolves.not.toThrow();
+                expect(() => service.updateLinksState({ '': true })).not.toThrow();
             });
         });
 
@@ -274,20 +274,28 @@ describe('WikiHighlighterService', () => {
         });
 
         describe('updateLinksState', () => {
-            it('should update link status to "exists" when normalized key matches', async () => {
+            it('should report whether anything changed synchronously', () => {
+                getView('((Ёлка))');
+
+                const changed = service.updateLinksState({ ЕЛКА: true });
+
+                expect(changed).toBe(true);
+            });
+
+            it('should update link status to "exists" when normalized key matches', () => {
                 const view = getView('((Ёлка)) ((Елка))');
 
-                await service.updateLinksState({ ЕЛКА: true });
+                service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const existsElements = view.dom.querySelectorAll(existsSelector);
                 expect(existsElements.length).toBe(2);
             });
 
-            it('should lookup status by normalized key regardless of input variant', async () => {
+            it('should lookup status by normalized key regardless of input variant', () => {
                 const view = getView('((Ёлка)) ((елка  )) ((ЕЛКА))');
 
-                await service.updateLinksState({ ЕЛКА: true });
+                service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const existsElements = view.dom.querySelectorAll(existsSelector);
@@ -297,10 +305,10 @@ describe('WikiHighlighterService', () => {
                 expect(existsElements[2]?.textContent).toBe('ЕЛКА');
             });
 
-            it('should handle non-normalized keys (backward compatibility)', async () => {
+            it('should handle non-normalized keys (backward compatibility)', () => {
                 const view = getView('((СТАРЫЙ_КЛЮЧ))');
 
-                await service.updateLinksState({ СТАРЫЙ_КЛЮЧ: false });
+                service.updateLinksState({ СТАРЫЙ_КЛЮЧ: false });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const missingElement = view.dom.querySelector(missingSelector);
@@ -308,10 +316,10 @@ describe('WikiHighlighterService', () => {
                 expect(missingElement?.textContent).toBe('СТАРЫЙ_КЛЮЧ');
             });
 
-            it('should apply status to all Ё/Е variants in editor', async () => {
+            it('should apply status to all Ё/Е variants in editor', () => {
                 const view = getView('((Ёлка)) и ((Елка))');
 
-                await service.updateLinksState({ ЕЛКА: true });
+                service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const existsElements = view.dom.querySelectorAll(existsSelector);
