@@ -145,9 +145,13 @@ export default [
             // Clean at introduction — locked at error to guard new code.
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
-            // Cleaned out and locked. Navigations are marked `void` rather than awaited: the
-            // callers are synchronous handlers, and a rejected navigation surfaces as a
-            // NavigationError, which AppUpdateService already subscribes to.
+            // Cleaned out and locked. Navigations are marked `void` rather than awaited,
+            // because their callers are synchronous handlers with nothing to await. `void`
+            // handles no rejection — it states that the site is deliberately not waiting,
+            // and leaves the failure path exactly where it was before this rule landed: a
+            // navigation that rejects reaches Sentry through the global unhandledrejection
+            // handler. AppUpdateService subscribes to NavigationError for the one case that
+            // needs an in-app response, a chunk that failed to load, and ignores the rest.
             '@typescript-eslint/no-floating-promises': 'error',
             // Existing violations present — warning-first, promote to error after cleanup.
             // Counts are capped per project by `maxWarnings` in each project.json, so new
