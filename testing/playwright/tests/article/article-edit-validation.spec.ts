@@ -113,7 +113,7 @@ test.describe('Article edit — validation', () => {
             const confirmButton = page.getByTestId('confirmation-dialog-confirm');
             await confirmButton.click();
 
-            await page.waitForURL(`**/articles/${ARTICLE_ID}`);
+            await expect(page).toHaveURL(`/articles/${ARTICLE_ID}`);
         });
 
         test('does not save when user cancels warning dialog', async ({ authenticatedPage: page }) => {

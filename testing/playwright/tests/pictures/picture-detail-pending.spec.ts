@@ -339,7 +339,7 @@ test.describe('Moderator approves delete pending', () => {
 
         const successNotification = getNotification(page, 'success');
         await expect(successNotification).toContainText('Изменение одобрено');
-        await page.waitForURL('**/pictures');
+        await expect(page).toHaveURL('/pictures');
     });
 });
 

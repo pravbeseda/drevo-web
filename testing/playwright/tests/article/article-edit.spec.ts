@@ -156,7 +156,7 @@ test.describe('Article edit', () => {
             await editPageObj.typeInEditor('Новый текст');
             await editPageObj.clickSave();
 
-            await page.waitForURL(`**/articles/${ARTICLE_ID}`);
+            await expect(page).toHaveURL(`/articles/${ARTICLE_ID}`);
 
             const articlePage = new ArticlePage(page);
             await articlePage.waitForReady();
