@@ -171,6 +171,18 @@ export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestCon
 }
 
 /**
+ * Credentials guaranteed not to match an account, so login always fails with
+ * INVALID_CREDENTIALS. Tests that probe the request *envelope* (CSRF header flavour, Referer
+ * fallback, content type) use these: a login that succeeds would authenticate the session and
+ * mask what the test is about. `test`/`test` is a real account on the dev database.
+ */
+export const INVALID_CREDENTIALS = {
+    username: 'nonexistent_user_12345',
+    // eslint-disable-next-line sonarjs/no-hardcoded-passwords -- deliberately not a working password
+    password: 'wrong_password',
+};
+
+/**
  * Allowed origins for CORS (depends on server configuration)
  * On dev server (drevo-local.ru): localhost:4200, localhost:4000
  * On prod server: https://app.drevo-info.ru
