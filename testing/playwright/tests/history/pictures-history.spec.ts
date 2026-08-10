@@ -202,7 +202,7 @@ test.describe('Pictures history page', () => {
         await history.waitForReady();
 
         await history.pendingCards.first().click();
-        await page.waitForURL(`**/pictures/${PICTURE_ID}`);
+        await expect(page).toHaveURL(`/pictures/${PICTURE_ID}`);
     });
 
     test('shows inline pending error when pending fails but recent loads', async ({ authenticatedPage: page }) => {
@@ -240,6 +240,6 @@ test.describe('Pictures history page', () => {
         await history.waitForReady();
 
         await history.recentItems.first().click();
-        await page.waitForURL(`**/pictures/${PICTURE_ID}`);
+        await expect(page).toHaveURL(`/pictures/${PICTURE_ID}`);
     });
 });

@@ -3,13 +3,7 @@ import baseConfig from '../../eslint.config.mjs';
 
 // The integration suite belongs to no Nx project, so `nx affected -t lint` never reaches it.
 // `yarn lint:playwright` runs ESLint here directly; the pre-commit hook and CI both call it.
-//
-// The playwright preset's remaining findings stay warnings, capped by `--max-warnings` in that
-// script so new ones fail the build: expect-expect (11) needs `assertFunctionNames` configured
-// for the Page Objects, no-conditional-in-test (4) and no-force-option (1) each need a look.
-// Triage is issue #242. None of the three is auto-fixable, so the count only moves when someone
-// clears one deliberately — lower the cap in the same change, or the slack it leaves is what
-// the next new warning slips through.
+// The run is clean and `--max-warnings=0` in that script keeps it that way.
 export default [
     ...baseConfig,
     {
@@ -24,6 +18,21 @@ export default [
             // Both rules target `it.skip` / `describe.skip` and cannot tell the two apart.
             'sonarjs/no-skipped-tests': 'off',
             'playwright/no-skipped-test': 'off',
+            // Assertions live in the Page Objects (POM convention), so a test body that only
+            // calls `layout.expectDarkTheme()` has no literal `expect` for the rule to see.
+            // The names are matched exactly — a new PO assertion method is reported until it is
+            // registered here, which is the point: the list states what counts as an assertion.
+            'playwright/expect-expect': [
+                'warn',
+                {
+                    assertFunctionNames: [
+                        'expectDarkTheme',
+                        'expectLightTheme',
+                        'expectSidebarCollapsed',
+                        'expectSidebarExpanded',
+                    ],
+                },
+            ],
             // A forgotten `await` on a click or an assertion produces a flaky test rather than a
             // failing one, which is exactly what this rule is for. No violations here, so error
             // costs nothing — same reasoning as the apps/client-e2e block in the root config.

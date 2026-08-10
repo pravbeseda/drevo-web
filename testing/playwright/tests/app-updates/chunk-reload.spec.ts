@@ -13,11 +13,7 @@ test.describe('Chunk reload prompt', () => {
         await page.goto('/');
         await layout.waitForReady();
 
-        // On mobile the sidebar is a closed drawer — open it so nav-item is clickable.
-        if (isMobile) {
-            await layout.hamburgerButton.click();
-            await layout.expectSidebarExpanded();
-        }
+        await layout.openSidebarOnMobile(isMobile);
 
         // The nav item renders only once the shell has hydrated, so waiting for it is the
         // deterministic form of "the app has finished fetching what it needs" — and it also
@@ -66,13 +62,10 @@ test.describe('Chunk reload prompt', () => {
         await page.goto('/');
         await layout.waitForReady();
 
-        if (isMobile) {
-            await layout.hamburgerButton.click();
-            await layout.expectSidebarExpanded();
-        }
+        await layout.openSidebarOnMobile(isMobile);
 
         await layout.navItem('Иллюстрации').click();
-        await page.waitForURL('**/pictures');
+        await expect(page).toHaveURL('/pictures');
 
         const { overlay } = getReloadPrompt(page);
         await expect(overlay).toHaveCount(0);
