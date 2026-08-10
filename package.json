@@ -9,7 +9,7 @@
         "format:check": "node ./node_modules/.bin/prettier . --check",
         "format:fix": "node ./node_modules/.bin/prettier . --write",
         "commitlint": "commitlint",
-        "lint:playwright": "eslint --flag v10_config_lookup_from_file testing/playwright --max-warnings=16",
+        "lint:playwright": "eslint --flag v10_config_lookup_from_file testing/playwright --max-warnings=0",
         "lint:styles": "stylelint \"{apps,libs}/**/*.scss\"",
         "lint:styles:fix": "stylelint \"{apps,libs}/**/*.scss\" --fix",
         "knip": "knip",

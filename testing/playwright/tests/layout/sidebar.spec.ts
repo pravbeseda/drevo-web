@@ -11,11 +11,7 @@ test.describe('Sidebar', () => {
             layout = new LayoutPage(page);
             await page.goto('/');
             await layout.waitForReady();
-            // On mobile the sidebar is a closed drawer by default; open it first
-            if (isMobile) {
-                await layout.hamburgerButton.click();
-                await layout.expectSidebarExpanded();
-            }
+            await layout.openSidebarOnMobile(isMobile);
         });
 
         test('renders nav links', async () => {
