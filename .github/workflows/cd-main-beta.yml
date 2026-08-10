@@ -47,6 +47,9 @@ jobs:
             - name: Lint styles
               run: yarn lint:styles
 
+            - name: Type coverage
+              run: yarn lint:types
+
             - name: Knip (unused files, exports and dependencies)
               run: yarn knip
 
