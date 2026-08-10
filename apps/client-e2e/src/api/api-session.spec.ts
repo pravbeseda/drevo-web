@@ -20,19 +20,37 @@ import { API_BASE_URL, apiGet, apiPost, ALLOWED_ORIGINS, CsrfResponse, AuthMeRes
 const allowedOrigin = ALLOWED_ORIGINS[0];
 
 /**
- * Cookie flags depend on the transport of the backend under test, not on the response, so the
- * expectation is derived once here: a test body may not branch (`playwright/no-conditional-in-test`).
- * Dev is HTTP, where `Secure` would make the browser drop the cookie and `SameSite=None` requires
- * `Secure` — hence Lax. Production is HTTPS and cross-site, hence None + Secure.
+ * `Secure` follows the transport: `ApiSessionConfig::configureSessionCookies()` sets it as
+ * `$isProduction || $isSecure`, so an HTTPS backend always carries it and an HTTP one must not —
+ * the browser drops a Secure cookie on a plain connection and the session never sticks.
+ *
+ * Derived once here because a test body may not branch (`playwright/no-conditional-in-test`).
  */
-const isHttpsBackend = API_BASE_URL.startsWith('https://');
-const expectedSameSite = isHttpsBackend ? 'None' : 'Lax';
-const expectedSecureFlag = isHttpsBackend;
+const expectedSecureFlag = API_BASE_URL.startsWith('https://');
+
+/**
+ * `SameSite`, unlike `Secure`, follows `YII_DEBUG` rather than the transport (`$isProduction ?
+ * 'None' : 'Lax'`), and the suite cannot see that flag — a debug backend served over HTTPS emits
+ * `Lax` while behaving exactly as configured. So assert the invariant the backend does guarantee
+ * on every configuration: RFC 6265bis makes `None` legal only together with `Secure`, and
+ * `ApiSessionConfig` falls back to `Lax` rather than emit the illegal pair.
+ *
+ * Nothing is lost against the HTTP dev backend: `Secure=false` is asserted exactly, which leaves
+ * `Lax` as the only reachable entry.
+ */
+const LEGAL_COOKIE_POLICIES = ['SameSite=Lax; Secure=false', 'SameSite=Lax; Secure=true', 'SameSite=None; Secure=true'];
 
 interface SessionCookie {
     readonly name: string;
     readonly value: string;
     readonly attributes: Record<string, string | boolean>;
+}
+
+/**
+ * Render the cookie's cross-site policy so a failure names both halves of the pair.
+ */
+function describeCookiePolicy(cookie: SessionCookie): string {
+    return `SameSite=${cookie.attributes['samesite']}; Secure=${Boolean(cookie.attributes['secure'])}`;
 }
 
 /**
@@ -226,7 +244,7 @@ test.describe('Session Cookie Security (Task 1.6)', () => {
         test('session cookie should have appropriate SameSite attribute', async ({ playwright }) => {
             const sessionCookie = await fetchSessionCookie(playwright);
 
-            expect(sessionCookie.attributes['samesite']).toBe(expectedSameSite);
+            expect(LEGAL_COOKIE_POLICIES).toContain(describeCookiePolicy(sessionCookie));
         });
 
         test('session cookie Secure flag matches environment', async ({ playwright }) => {

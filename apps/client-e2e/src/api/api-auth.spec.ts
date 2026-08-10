@@ -218,10 +218,7 @@ test.describe('Auth API - Login Endpoint (Task 1.3)', () => {
             const csrfToken = await getCsrfToken(request);
 
             const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: {
-                    username: 'nonexistent_user_12345',
-                    password: 'wrong_password',
-                },
+                data: INVALID_CREDENTIALS,
                 origin: allowedOrigin,
                 csrfToken,
             });

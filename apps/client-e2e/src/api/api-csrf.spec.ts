@@ -124,7 +124,7 @@ test.describe('CSRF Protection', () => {
     test.describe('CSRF for login endpoint', () => {
         test('POST /api/auth/login should reject without CSRF token', async ({ request }) => {
             const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: { username: 'test', password: 'test' },
+                data: INVALID_CREDENTIALS,
                 origin: allowedOrigin,
                 // No CSRF token
             });
