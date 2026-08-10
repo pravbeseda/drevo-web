@@ -46,6 +46,7 @@ yarn nx affected -t test --configuration=ci     # unit tests + per-project cover
 yarn lint:playwright                            # ESLint on testing/playwright — no Nx project, so `affected` misses it
 yarn format:check                               # Prettier
 yarn lint:styles                                # Stylelint — when SCSS was touched
+yarn lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
 yarn knip                                       # dead code and unused deps — after refactors and deletions
 yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 yarn build                                      # production build — the type check the unit tests cannot do
@@ -258,6 +259,7 @@ Adding an API endpoint, reading the real shape of the data, running the PHP test
 10. **Coverage thresholds only ratchet up** — `coverageThreshold` lives per project in its `jest.config.ts` (`libs/core/jest.config.cts`). When a change drops coverage below the threshold, write the missing tests. Never lower a threshold to make the run pass without explicit approval from the user, and never widen the `collectCoverageFrom` excludes in `jest.preset.js` to hide code from the denominator
 11. **No `TODO`/`FIXME` comments** — `sonarjs/todo-tag` and `sonarjs/fixme-tag` are errors, so such a comment fails lint and blocks the commit. Either finish the work now or open a GitHub issue for it; when the code needs the context, write a plain comment stating the constraint and referencing the issue number
 12. **Delete the code a change orphans** — when a refactor or a deletion leaves an export, file or dependency with no consumer, remove it in the same change. `yarn knip` finds them; it runs blocking in CI, so leaving them behind fails the PR anyway
+13. **Type-coverage thresholds only ratchet up** — the eight `--at-least` values in the `lint:types:*` scripts sit exactly on the measured figure, with no slack: `any` is banned outright by lint, so this gate exists for the *implicit* kind the lint cannot see — values whose type came from an untyped boundary. Raise a threshold when a change improves the figure; never lower one to make the run pass without explicit approval. The fix is almost always an annotation at the boundary (`const error: unknown = err.error`), which restores narrowing rather than suppressing the metric. `apps/client` is deliberately absent — see issue in `docs/code-quality-suggestions.md`
 
 ## Key Patterns
 
