@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL, apiPost, getCsrfToken, ALLOWED_ORIGINS } from './api-test-helpers';
+import { API_BASE_URL, apiPost, getCsrfToken, ALLOWED_ORIGINS, INVALID_CREDENTIALS } from './api-test-helpers';
 
 /**
  * API Integration Tests - CSRF Protection
@@ -138,18 +138,15 @@ test.describe('CSRF Protection', () => {
             const csrfToken = await getCsrfToken(request);
 
             const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: { username: 'nonexistent', password: 'wrong' },
+                data: INVALID_CREDENTIALS,
                 origin: allowedOrigin,
                 csrfToken,
             });
 
-            // Should not be CSRF error - will be 401 for invalid credentials
-            if (response.status() === 403) {
-                expect(body.errorCode).not.toBe('CSRF_VALIDATION_FAILED');
-            } else {
-                expect(response.status()).toBe(401);
-                expect(body.errorCode).toBe('INVALID_CREDENTIALS');
-            }
+            // Reaching credential validation proves the token was accepted: a rejected one
+            // would have produced 403/CSRF_VALIDATION_FAILED before this point.
+            expect(response.status()).toBe(401);
+            expect(body.errorCode).toBe('INVALID_CREDENTIALS');
         });
     });
 });

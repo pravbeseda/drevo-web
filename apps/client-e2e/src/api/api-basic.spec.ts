@@ -22,9 +22,8 @@ test.describe('API Response Format', () => {
             expect(typeof body.success).toBe('boolean');
 
             // Successful responses should have 'data' field
-            if (body.success) {
-                expect(body).toHaveProperty('data');
-            }
+            expect(body.success).toBe(true);
+            expect(body).toHaveProperty('data');
         });
 
         test('should have consistent error response structure', async ({ request }) => {

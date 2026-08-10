@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type PlaywrightWorkerArgs } from '@playwright/test';
 import { API_BASE_URL, apiGet, apiPost, ALLOWED_ORIGINS, CsrfResponse, AuthMeResponse } from './api-test-helpers';
 
 /**
@@ -20,15 +20,25 @@ import { API_BASE_URL, apiGet, apiPost, ALLOWED_ORIGINS, CsrfResponse, AuthMeRes
 const allowedOrigin = ALLOWED_ORIGINS[0];
 
 /**
+ * Cookie flags depend on the transport of the backend under test, not on the response, so the
+ * expectation is derived once here: a test body may not branch (`playwright/no-conditional-in-test`).
+ * Dev is HTTP, where `Secure` would make the browser drop the cookie and `SameSite=None` requires
+ * `Secure` — hence Lax. Production is HTTPS and cross-site, hence None + Secure.
+ */
+const isHttpsBackend = API_BASE_URL.startsWith('https://');
+const expectedSameSite = isHttpsBackend ? 'None' : 'Lax';
+const expectedSecureFlag = isHttpsBackend;
+
+interface SessionCookie {
+    readonly name: string;
+    readonly value: string;
+    readonly attributes: Record<string, string | boolean>;
+}
+
+/**
  * Parse Set-Cookie header to extract cookie attributes
  */
-function parseCookieHeader(setCookieHeader: string | undefined):
-    | {
-          name: string;
-          value: string;
-          attributes: Record<string, string | boolean>;
-      }
-    | undefined {
+function parseCookieHeader(setCookieHeader: string | undefined): SessionCookie | undefined {
     if (!setCookieHeader) return undefined;
 
     const parts = setCookieHeader.split(';').map(p => p.trim());
@@ -51,7 +61,7 @@ function parseCookieHeader(setCookieHeader: string | undefined):
 /**
  * Get session cookie from Set-Cookie headers
  */
-function getSessionCookie(headers: Record<string, string>): ReturnType<typeof parseCookieHeader> {
+function getSessionCookie(headers: Record<string, string>): SessionCookie | undefined {
     // Headers can have multiple Set-Cookie values joined by newlines
     const setCookieHeader = headers['set-cookie'];
     if (!setCookieHeader) return undefined;
@@ -68,25 +78,38 @@ function getSessionCookie(headers: Record<string, string>): ReturnType<typeof pa
     return undefined;
 }
 
+/**
+ * Start a brand new session and return its cookie.
+ *
+ * The backend sends `Set-Cookie` only on the request that creates the session, so a test that
+ * reuses an already-warm context sees no header at all. A dedicated context makes the header
+ * unconditionally present, which is what lets these tests assert instead of branching.
+ */
+async function fetchSessionCookie(playwright: PlaywrightWorkerArgs['playwright']): Promise<SessionCookie> {
+    const context = await playwright.request.newContext();
+
+    try {
+        const response = await context.get(`${API_BASE_URL}/api/auth/csrf`);
+        expect(response.status()).toBe(200);
+
+        const sessionCookie = getSessionCookie(response.headers());
+        if (!sessionCookie) {
+            throw new Error('No PHPSESSID cookie in the Set-Cookie header of a fresh session');
+        }
+
+        return sessionCookie;
+    } finally {
+        await context.dispose();
+    }
+}
+
 test.describe('Session Cookie Security (Task 1.6)', () => {
     test.describe('Session Cookie Attributes', () => {
-        test('session cookie should be set on API request', async ({ request }) => {
-            // Make a request that starts a session
-            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`);
-            const headers = response.headers();
+        test('session cookie should be set on API request', async ({ playwright }) => {
+            const sessionCookie = await fetchSessionCookie(playwright);
 
-            // Check that some form of session cookie is set
-            // Note: Playwright may handle cookies differently, so we check headers
-            expect(response.status()).toBe(200);
-
-            // If Set-Cookie is present, verify it's a session cookie
-            if (headers['set-cookie']) {
-                const sessionCookie = getSessionCookie(headers);
-                if (sessionCookie) {
-                    expect(sessionCookie.name).toBe('PHPSESSID');
-                    expect(sessionCookie.value).toBeTruthy();
-                }
-            }
+            expect(sessionCookie.name).toBe('PHPSESSID');
+            expect(sessionCookie.value).toBeTruthy();
         });
 
         test('session should be maintained across requests', async ({ request }) => {
@@ -194,56 +217,24 @@ test.describe('Session Cookie Security (Task 1.6)', () => {
     });
 
     test.describe('Cookie Security Flags (Development Environment)', () => {
-        test('session cookie should have HttpOnly flag', async ({ request }) => {
-            // Make a fresh request to get Set-Cookie header
-            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`);
-            const headers = response.headers();
+        test('session cookie should have HttpOnly flag', async ({ playwright }) => {
+            const sessionCookie = await fetchSessionCookie(playwright);
 
-            if (headers['set-cookie']) {
-                const sessionCookie = getSessionCookie(headers);
-                if (sessionCookie) {
-                    // HttpOnly should be set
-                    expect(sessionCookie.attributes['httponly']).toBe(true);
-                }
-            }
+            expect(sessionCookie.attributes['httponly']).toBe(true);
         });
 
-        test('session cookie should have appropriate SameSite attribute', async ({ request }) => {
-            // Make a fresh request to get Set-Cookie header
-            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`);
-            const headers = response.headers();
+        test('session cookie should have appropriate SameSite attribute', async ({ playwright }) => {
+            const sessionCookie = await fetchSessionCookie(playwright);
 
-            if (headers['set-cookie']) {
-                const sessionCookie = getSessionCookie(headers);
-                if (sessionCookie && sessionCookie.attributes['samesite']) {
-                    // In dev: SameSite=Lax (same-origin proxy)
-                    // In prod: SameSite=None (cross-site)
-                    const sameSite = sessionCookie.attributes['samesite'];
-                    expect(['Lax', 'None', 'lax', 'none']).toContain(sameSite);
-                }
-            }
+            expect(sessionCookie.attributes['samesite']).toBe(expectedSameSite);
         });
 
-        // Note: In development (HTTP), Secure flag should be false
-        // In production (HTTPS), Secure flag should be true with SameSite=None
-        test('session cookie Secure flag matches environment', async ({ request }) => {
-            const response = await request.get(`${API_BASE_URL}/api/auth/csrf`);
-            const headers = response.headers();
+        test('session cookie Secure flag matches environment', async ({ playwright }) => {
+            const sessionCookie = await fetchSessionCookie(playwright);
 
-            if (headers['set-cookie']) {
-                const sessionCookie = getSessionCookie(headers);
-                if (sessionCookie) {
-                    // In dev (HTTP): Secure should NOT be set
-                    // In prod (HTTPS): Secure MUST be set
-                    const isHttps = API_BASE_URL.startsWith('https://');
-
-                    if (isHttps) {
-                        // Production: Secure must be present
-                        expect(sessionCookie.attributes['secure']).toBe(true);
-                    }
-                    // In HTTP dev, Secure may or may not be present (browsers ignore it anyway)
-                }
-            }
+            // Over HTTP the flag must be absent — a Secure cookie on a plain connection is
+            // dropped by the browser and the session never sticks.
+            expect(Boolean(sessionCookie.attributes['secure'])).toBe(expectedSecureFlag);
         });
     });
 
