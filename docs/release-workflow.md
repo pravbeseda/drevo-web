@@ -8,6 +8,13 @@ GitHub Actions → **CD Main Release** → Run workflow → select `main` → ch
 
 The workflow computes the next semver from the last tag, checks that `main` is green, creates the tag and deploys to drevo-release (port 4011).
 
+## The guards
+
+Both release paths pass through the `guards` job first, and `release` requires it to have succeeded — `needs.guards.result == 'success'`, not `!failure()`, which would also accept a job that never ran:
+
+- the commit being released is on `main` — the `workflow_dispatch` run has to be started from `main`, a pushed tag has to point at a commit reachable from `origin/main`;
+- the latest `ci` check-run on that commit concluded `success` — missing, red or still running all refuse.
+
 ## Backup — a manual tag
 
 ```bash
@@ -15,11 +22,9 @@ git tag -a X.Y.Z -m "..."
 git push origin X.Y.Z
 ```
 
-Use this when the Actions UI is unavailable. It reaches the same `release` job and deploys the same way — but it is not the same pipeline, and the difference is worth knowing before you type it.
+Use this when the Actions UI is unavailable. It reaches the same `release` job and runs under the same guards — a tag on a commit that is off `main` or whose CI is not green is refused before anything deploys.
 
-**The guards do not run on this path.** Both of them live in the `compute-version` job, which is `if: github.event_name == 'workflow_dispatch'`. A pushed tag skips that job, and `release` accepts a skipped dependency, so nothing checks that the commit is on `main` and nothing checks that its CI is green. Whatever the tag points at gets deployed.
-
-So the two things the primary path does for you both become yours: compute the next version by hand, and confirm the commit you are tagging is on `main` with a green `ci` check-run. Issue #248 tracks moving the guards where both paths hit them.
+The one thing the primary path does that this one does not is compute the next version, so that part is yours: read the last tag and pick `X.Y.Z` by hand.
 
 ## Hotfixes on `iframe`
 
