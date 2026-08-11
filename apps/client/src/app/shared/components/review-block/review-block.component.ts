@@ -320,7 +320,7 @@ export class ReviewBlockComponent {
                     this._commentExpanded.set(false);
                     this.logger.info('Review submitted', { versionId, status });
                 },
-                error: error => this.logger.error('Failed to submit review', error),
+                error: (error: unknown) => this.logger.error('Failed to submit review', error),
             });
     }
 
@@ -352,7 +352,7 @@ export class ReviewBlockComponent {
                     this._reviews.set(reviews);
                     this.logger.info('Review deleted', { versionId, reviewer: review.reviewer });
                 },
-                error: error => this.logger.error('Failed to delete review', error),
+                error: (error: unknown) => this.logger.error('Failed to delete review', error),
             });
     }
 }

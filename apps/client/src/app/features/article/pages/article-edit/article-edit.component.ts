@@ -193,7 +193,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 next: linksState => {
                     this._updateLinksState.set(linksState);
                 },
-                error: err => {
+                error: (err: unknown) => {
                     this.logger.error('Failed to check link statuses', err);
                 },
             });

@@ -39,6 +39,26 @@ export default [
             import: importPlugin,
         },
         rules: {
+            // `use-unknown-in-catch-callback-variable` from strict-type-checked covers a native
+            // `catch` and `Promise.catch`, and nothing else. RxJS types both of its error entry
+            // points `any` — `catchError(selector: (err: any, ...))` and the observer's
+            // `error: (err: any) => void` — so an unannotated parameter there silently inherits
+            // `any` and carries it into everything derived from it. Annotating the parameter
+            // (`unknown`, or a concrete type where the stream really guarantees one) is the fix.
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector:
+                        "CallExpression[callee.name='catchError'] > ArrowFunctionExpression > Identifier.params:not([typeAnnotation])",
+                    message: 'Annotate the catchError parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+                },
+                {
+                    selector:
+                        "Property[key.name='error'] > ArrowFunctionExpression > Identifier.params:not([typeAnnotation])",
+                    message:
+                        'Annotate the subscribe error callback parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+                },
+            ],
             'import/no-duplicates': 'error',
             'import/order': [
                 'error',

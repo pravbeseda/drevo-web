@@ -165,7 +165,7 @@ export class PicturesHistoryService {
                     this._pendingItems.set(response.items);
                     this._isPendingLoading.set(false);
                 },
-                error: error => {
+                error: (error: unknown) => {
                     this.logger.error('Failed to load pending pictures', error);
                     this._isPendingLoading.set(false);
                     this._hasPendingError.set(true);
@@ -197,7 +197,7 @@ export class PicturesHistoryService {
                     this._isRecentLoading.set(false);
                     this._isRecentLoadingMore.set(false);
                 },
-                error: error => {
+                error: (error: unknown) => {
                     this.logger.error('Failed to load recent pictures', error);
                     if (loadMore) {
                         this._isRecentLoadingMore.set(false);
