@@ -50,6 +50,9 @@ jobs:
             - name: Type coverage
               run: yarn lint:types
 
+            - name: Release workflow invariants
+              run: yarn lint:workflows
+
             - name: Knip (unused files, exports and dependencies)
               run: yarn knip
 
