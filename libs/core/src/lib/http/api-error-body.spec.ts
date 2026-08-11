@@ -31,7 +31,7 @@ describe('readApiErrorBody', () => {
         expect(readApiErrorBody(responseWith(undefined))).toBeUndefined();
     });
 
-    it('should return undefined for a network failure carrying a ProgressEvent', () => {
+    it('should read no fields from a network failure carrying a ProgressEvent', () => {
         const response = new HttpErrorResponse({ error: new ProgressEvent('error'), status: 0 });
 
         expect(readApiErrorBody(response)).toEqual({

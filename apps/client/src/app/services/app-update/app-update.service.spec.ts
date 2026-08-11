@@ -169,8 +169,8 @@ describe('AppUpdateService', () => {
             expect(notification.showPersistent).toHaveBeenCalledWith({
                 message: 'Доступна новая версия 1.1.0',
                 actionLabel: 'Обновить',
-                onAction: expectAny<() => void>(Function),
-                onDismiss: expectAny<() => void>(Function),
+                onAction: expectAny(Function),
+                onDismiss: expectAny(Function),
             });
         });
 
