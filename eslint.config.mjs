@@ -146,6 +146,12 @@ export default [
     // not by deleting the check.
     {
         files: ['**/*.ts', '**/*.tsx'],
+        // Root config files (currently just jest.config.ts) belong to no tsconfig and land
+        // in the default project, which has no strictNullChecks — several preset rules
+        // refuse to run there. Excluding them beats an off-list that has to chase the
+        // preset's growth for files no lint gate reaches anyway. Nested config files are
+        // not affected: they belong to a real tsconfig and keep the full rule set.
+        ignores: ['*.config.ts'],
         languageOptions: {
             parserOptions: typedParserOptions,
         },
@@ -189,19 +195,6 @@ export default [
             '@typescript-eslint/no-unsafe-call': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
             '@typescript-eslint/no-unsafe-argument': 'off',
-        },
-    },
-    // Root config files (currently just jest.config.ts) belong to no tsconfig and land in the
-    // default project, which has no strictNullChecks; no-unnecessary-condition answers that by
-    // reporting that it cannot run — noise, not a finding. The other three typed rules do not
-    // need strictNullChecks and stay on here. Nested config files are not covered by this
-    // pattern and do not need to be: they belong to a real tsconfig. The scope cannot be
-    // widened anyway — typescript-eslint rejects `**` in `allowDefaultProject`, because every
-    // file outside a tsconfig gets its own inferred program.
-    {
-        files: ['*.config.ts'],
-        rules: {
-            '@typescript-eslint/no-unnecessary-condition': 'off',
         },
     },
     // Must follow the typed block above — flat config applies the last matching entry,
