@@ -48,7 +48,9 @@ describe('ReviewApiService', () => {
         });
 
         it('targets the news endpoint for news type', done => {
-            spectator.service.getSummary('news', [7]).subscribe(() => done());
+            spectator.service.getSummary('news', [7]).subscribe(() => {
+                done();
+            });
 
             const req = httpController.expectOne(r => r.url === 'http://test-api/api/reviews/summary/news');
             req.flush({ success: true, data: [] } satisfies ApiResponse<ReviewSummaryDto[]>);
@@ -83,7 +85,9 @@ describe('ReviewApiService', () => {
                 comment: 'правка',
             };
 
-            spectator.service.setReview(request).subscribe(() => done());
+            spectator.service.setReview(request).subscribe(() => {
+                done();
+            });
 
             const req = httpController.expectOne('http://test-api/api/reviews/set');
             expect(req.request.method).toBe('POST');
@@ -95,7 +99,9 @@ describe('ReviewApiService', () => {
 
     describe('deleteReview', () => {
         it('posts the request body to the delete endpoint', done => {
-            spectator.service.deleteReview({ type: 'news', versionId: 9, reviewer: 'Борис' }).subscribe(() => done());
+            spectator.service.deleteReview({ type: 'news', versionId: 9, reviewer: 'Борис' }).subscribe(() => {
+                done();
+            });
 
             const req = httpController.expectOne('http://test-api/api/reviews/delete');
             expect(req.request.method).toBe('POST');

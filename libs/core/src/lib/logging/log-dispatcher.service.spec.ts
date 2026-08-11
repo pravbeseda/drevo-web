@@ -1,4 +1,5 @@
 import { PLATFORM_ID } from '@angular/core';
+import { expectAny } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LogDispatcher, LOG_PRODUCTION_MODE, LOG_PROVIDERS } from './log-dispatcher.service';
 import { LogProvider } from './log-provider.interface';
@@ -124,7 +125,7 @@ describe('LogDispatcher', () => {
 
             expect(mockProvider.log).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    url: expect.any(String),
+                    url: expectAny(String),
                 }),
             );
         });

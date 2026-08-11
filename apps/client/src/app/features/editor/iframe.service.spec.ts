@@ -84,6 +84,70 @@ describe('IframeService - Browser Platform', () => {
         }, 50);
     });
 
+    it('should not emit article if loadContent carries no string content', done => {
+        const spy = jest.fn();
+        spectator.service.content$.subscribe(spy);
+
+        window.dispatchEvent(
+            new MessageEvent('message', {
+                data: { action: 'loadContent', content: { html: 'Should not emit' } },
+                origin: allowedOrigin,
+            }),
+        );
+
+        setTimeout(() => {
+            expect(spy).not.toHaveBeenCalled();
+            done();
+        }, 50);
+    });
+
+    it('should ignore a csrf token that is not a string', done => {
+        window.dispatchEvent(
+            new MessageEvent('message', {
+                data: { action: 'loadContent', content: 'Test content', csrf: 42 },
+                origin: allowedOrigin,
+            }),
+        );
+
+        spectator.service.csrfToken$.subscribe(token => {
+            expect(token).toBeUndefined();
+            done();
+        });
+    });
+
+    it('should emit insertTag command when the payload is complete', done => {
+        const command = { tagOpen: '[b]', tagClose: '[/b]', sampleText: 'текст' };
+
+        spectator.service.insertTag$.subscribe(received => {
+            expect(received).toEqual(command);
+            done();
+        });
+
+        window.dispatchEvent(
+            new MessageEvent('message', {
+                data: { action: 'insertTag', content: command },
+                origin: allowedOrigin,
+            }),
+        );
+    });
+
+    it('should not emit insertTag command when the payload is incomplete', done => {
+        const spy = jest.fn();
+        spectator.service.insertTag$.subscribe(spy);
+
+        window.dispatchEvent(
+            new MessageEvent('message', {
+                data: { action: 'insertTag', content: { tagOpen: '[b]' } },
+                origin: allowedOrigin,
+            }),
+        );
+
+        setTimeout(() => {
+            expect(spy).not.toHaveBeenCalled();
+            done();
+        }, 50);
+    });
+
     it('should remove event listener on destroy', () => {
         spectator.service.ngOnDestroy();
         expect(window.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));

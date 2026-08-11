@@ -99,7 +99,9 @@ export class HttpErrorMapperService {
      * Override for custom API response structures.
      */
     protected extractBackendMessage(err: HttpErrorResponse): string | undefined {
-        const error = err.error;
+        // `HttpErrorResponse.error` is `any` — whatever the response carried. Annotating it
+        // `unknown` is what makes the narrowing below load-bearing rather than decorative.
+        const error: unknown = err.error;
 
         // Handle common API response structures
         if (typeof error === 'object' && error) {
@@ -162,7 +164,7 @@ export class HttpErrorMapperService {
             return undefined;
         }
 
-        const firstFieldError = fieldErrors[0];
+        const firstFieldError: unknown = fieldErrors[0];
         if (typeof firstFieldError !== 'string' || firstFieldError.length === 0) {
             return undefined;
         }

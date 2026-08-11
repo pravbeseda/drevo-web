@@ -159,7 +159,7 @@ export class ArticleHistoryService {
                     this._loadSummariesSubject.pipe(
                         mergeMap(versionIds =>
                             this.reviewService.getSummary('article', versionIds).pipe(
-                                catchError(error => {
+                                catchError((error: unknown) => {
                                     this.logger.info('Review summaries unavailable, skipping badges', { error });
                                     return of([] as readonly ReviewSummary[]);
                                 }),

@@ -2,15 +2,20 @@ import { AppUpdateService } from './app-update.service';
 import { VersionCheckService } from './version-check.service';
 import { InjectionToken } from '@angular/core';
 import { NavigationError, Router } from '@angular/router';
-import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
+import { LoggerService, NotificationService, PersistentNotificationConfig, WINDOW } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionInfo } from '@drevo-web/shared';
+import { expectAny } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { Subject } from 'rxjs';
 
 const ROUTER_EVENTS = new InjectionToken<Subject<unknown>>('router events');
 const VERSION_AVAILABLE = new InjectionToken<Subject<VersionInfo>>('version available');
+
+/** `showPersistent` is a jest mock behind the service type; this is where that is spelled out. */
+const lastPersistentConfig = (notification: NotificationService): PersistentNotificationConfig =>
+    (notification.showPersistent as jest.MockedFunction<NotificationService['showPersistent']>).mock.calls[0][0];
 
 describe('AppUpdateService', () => {
     let spectator: SpectatorService<AppUpdateService>;
@@ -164,8 +169,8 @@ describe('AppUpdateService', () => {
             expect(notification.showPersistent).toHaveBeenCalledWith({
                 message: 'Доступна новая версия 1.1.0',
                 actionLabel: 'Обновить',
-                onAction: expect.any(Function),
-                onDismiss: expect.any(Function),
+                onAction: expectAny(Function),
+                onDismiss: expectAny(Function),
             });
         });
 
@@ -185,7 +190,7 @@ describe('AppUpdateService', () => {
             getNewVersionAvailable().next(v1);
             expect(notification.showPersistent).toHaveBeenCalledTimes(1);
 
-            const onDismiss = notification.showPersistent.mock.calls[0][0].onDismiss;
+            const onDismiss = lastPersistentConfig(notification).onDismiss;
             onDismiss?.();
             notification.showPersistent.mockClear();
 
@@ -201,7 +206,7 @@ describe('AppUpdateService', () => {
             getNewVersionAvailable().next(version);
             expect(notification.showPersistent).toHaveBeenCalledTimes(1);
 
-            const onDismiss = notification.showPersistent.mock.calls[0][0].onDismiss;
+            const onDismiss = lastPersistentConfig(notification).onDismiss;
             onDismiss?.();
             notification.showPersistent.mockClear();
 
@@ -218,7 +223,7 @@ describe('AppUpdateService', () => {
             const version: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T00:00:00Z', commit: 'def' };
 
             getNewVersionAvailable().next(version);
-            const onAction = notification.showPersistent.mock.calls[0][0].onAction;
+            const onAction = lastPersistentConfig(notification).onAction;
             onAction();
 
             expect(reload).toHaveBeenCalledTimes(1);

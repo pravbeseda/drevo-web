@@ -1,3 +1,5 @@
+export { ApiErrorBody, readApiErrorBody } from './api-error-body';
+
 export { SKIP_ERROR_NOTIFICATION, CUSTOM_ERROR_MESSAGE, SKIP_ERROR_FOR_STATUSES } from './http-context-tokens';
 
 export { HttpErrorMapperService, MappedHttpError } from './http-error-mapper.service';

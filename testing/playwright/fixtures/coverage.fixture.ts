@@ -8,7 +8,7 @@ const isCoverage = !!process.env['COVERAGE'];
  * Active only when COVERAGE=true. Chromium only (V8 API limitation).
  * Coverage data is passed to monocart-reporter via addCoverageReport().
  */
-export const test = base.extend({
+export const test = base.extend<{ autoCollectCoverage: string }>({
     autoCollectCoverage: [
         async ({ page }, use) => {
             const isChromium = test.info().project.name === 'chromium';

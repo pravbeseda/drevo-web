@@ -1,5 +1,6 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { readApiErrorBody } from '@drevo-web/core';
 import { ApprovalStatusDto, ModerationRequestDto } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ArticleApiService } from './article-api.service';
@@ -98,7 +99,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 404 errors', done => {
             spectator.service.getArticle(999).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(404);
                     done();
                 },
@@ -164,7 +165,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 404 errors', done => {
             spectator.service.getVersionShow(999).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(404);
                     done();
                 },
@@ -234,7 +235,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 404 errors', done => {
             spectator.service.getArticleVersion(999).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(404);
                     done();
                 },
@@ -421,7 +422,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 401 errors', done => {
             spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(401);
                     done();
                 },
@@ -433,7 +434,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 403 errors', done => {
             spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(403);
                     done();
                 },
@@ -445,7 +446,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 500 errors', done => {
             spectator.service.saveArticleVersion({ versionId: 456, content: 'New content' }).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(500);
                     done();
                 },
@@ -640,7 +641,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 403 errors', done => {
             spectator.service.moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto }).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(403);
                     done();
                 },
@@ -707,7 +708,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 401 errors', done => {
             spectator.service.previewArticle({ content: 'test', articleId: 1 }).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(401);
                     done();
                 },
@@ -766,9 +767,9 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 409 errors (duplicate title)', done => {
             spectator.service.renameArticle(42, 'Duplicate').subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(409);
-                    expect(err.error?.errorCode).toBe('TITLE_ALREADY_EXISTS');
+                    expect(readApiErrorBody(err)?.errorCode).toBe('TITLE_ALREADY_EXISTS');
                     done();
                 },
             });
@@ -808,7 +809,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 500 errors', done => {
             spectator.service.searchArticles('test').subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(500);
                     done();
                 },
@@ -823,7 +824,7 @@ describe('ArticleApiService', () => {
 
         it('should propagate HTTP 404 errors', done => {
             spectator.service.searchArticles('test').subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(404);
                     done();
                 },
@@ -867,7 +868,9 @@ describe('ArticleApiService', () => {
             // Angular's default codec leaves '+' literal, which a query string
             // (and PHP $_GET) reads as a space — corrupting a title like
             // "… (+ 1919)". The value must be sent as %2B.
-            spectator.service.findArticleByTitle('СВЯТОЙ (+ 1919)').subscribe(() => done());
+            spectator.service.findArticleByTitle('СВЯТОЙ (+ 1919)').subscribe(() => {
+                done();
+            });
 
             const req = httpController.expectOne(request => request.url === '/api/articles/find');
             expect(req.request.urlWithParams).toContain('%2B');
@@ -907,9 +910,9 @@ describe('ArticleApiService', () => {
 
         it('should propagate the 409 duplicate payload', done => {
             spectator.service.createArticle({ title: 'НОВАЯ', content: 'Текст' }).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(409);
-                    expect(err.error.data.articleId).toBe(321);
+                    expect(err.error).toMatchObject({ data: { articleId: 321 } });
                     done();
                 },
             });

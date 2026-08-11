@@ -10,6 +10,15 @@ const TITLE_SUFFIX = ' - Древо';
 const MAX_TITLE_LENGTH = 50;
 const ARTICLE_TITLE_SOURCE = 'article';
 
+/** Reads the `title` a route's resolved data carries, `undefined` when it carries none. */
+function readTitle(data: unknown): string | undefined {
+    if (typeof data === 'object' && data && 'title' in data && typeof data.title === 'string') {
+        return data.title;
+    }
+
+    return undefined;
+}
+
 export interface TitleContext {
     readonly articleId: number;
     readonly title: string;
@@ -53,7 +62,9 @@ export class PageTitleStrategy extends TitleStrategy {
         const source = this.findTitleSource(chain);
 
         if (source?.key === ARTICLE_TITLE_SOURCE) {
-            const articleData = source.route.data[source.key];
+            // `Data` is an index signature of `any`; the guards below only mean something
+            // once the value is read as `unknown`.
+            const articleData: unknown = source.route.data[source.key];
             if (this.isTitleContext(articleData)) {
                 const current = this._titleContext();
                 // Preserve current context if articleId matches — it may hold a
@@ -76,16 +87,17 @@ export class PageTitleStrategy extends TitleStrategy {
             }
             this._tabTitle.set(this.buildTitle(snapshot));
         } else if (source) {
-            const data = source.route.data[source.key] as { readonly title?: string } | undefined;
+            const data: unknown = source.route.data[source.key];
             this._titleContext.set(undefined);
-            this._tabTitle.set(data?.title);
+            this._tabTitle.set(readTitle(data));
         } else {
             this._titleContext.set(undefined);
             this._tabTitle.set(this.buildTitle(snapshot));
         }
 
         const leaf = chain.at(-1);
-        this._titlePrefix.set(leaf?.data['titlePrefix'] as string | undefined);
+        const titlePrefix: unknown = leaf?.data['titlePrefix'];
+        this._titlePrefix.set(typeof titlePrefix === 'string' ? titlePrefix : undefined);
 
         this.applyDocumentTitle();
         this.logger.debug('Title updated', { title: this.pageTitle() });

@@ -19,8 +19,10 @@ export class LinksService {
             links.slice(i * MAX_LINKS, (i + 1) * MAX_LINKS),
         );
 
+        // `Object.assign({}, ...results)` returns `any` for a spread — the reduce keeps the
+        // record type all the way out.
         return forkJoin(chunks.map(chunk => this.linksApiService.checkLinks(chunk))).pipe(
-            map(results => Object.assign({}, ...results)),
+            map(results => results.reduce<Record<string, boolean>>((all, chunk) => ({ ...all, ...chunk }), {})),
         );
     }
 }

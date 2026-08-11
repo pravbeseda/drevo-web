@@ -49,7 +49,10 @@ import { filter, map } from 'rxjs';
 export class WikiContentComponent implements OnInit, OnDestroy {
     readonly content = input<string>('');
 
-    private readonly elementRef = inject(ElementRef<HTMLElement>);
+    // The type argument belongs on `inject`, not on the class reference passed to it:
+    // `inject(ElementRef<HTMLElement>)` is a value position, where TS drops it and hands
+    // back `ElementRef<any>`.
+    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly sanitizer = inject(DomSanitizer);
     private readonly router = inject(Router);
 

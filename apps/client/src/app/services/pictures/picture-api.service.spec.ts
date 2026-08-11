@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
@@ -132,7 +132,7 @@ describe('PictureApiService', () => {
 
         it('should propagate HTTP 500 errors', done => {
             spectator.service.getPictures().subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(500);
                     done();
                 },
@@ -180,7 +180,7 @@ describe('PictureApiService', () => {
 
         it('should propagate HTTP 404 errors', done => {
             spectator.service.getPicture(999).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(404);
                     done();
                 },
@@ -228,7 +228,7 @@ describe('PictureApiService', () => {
 
         it('should propagate HTTP 403 errors', done => {
             spectator.service.updateTitle(123, 'Новая подпись').subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(403);
                     done();
                 },
@@ -274,7 +274,7 @@ describe('PictureApiService', () => {
 
         it('should propagate HTTP 409 errors', done => {
             spectator.service.deletePicture(123).subscribe({
-                error: err => {
+                error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(409);
                     done();
                 },

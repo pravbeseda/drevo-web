@@ -185,16 +185,6 @@ export default [
             // so it reports `output<void>()`, `StateEffect.define<void>()` and
             // `open<void, R>()` — the only void usages here, all legitimate.
             '@typescript-eslint/no-invalid-void-type': 'off',
-            // Deferred, tracked in #259: ~220 sites, dominated by values arriving as `any`
-            // from untyped boundaries (`HttpErrorResponse.error`, jest globals the lint
-            // program cannot resolve, `Response.json()`). The fix is an annotation at each
-            // boundary, not per-site suppressions — a follow-up PR does that cleanup and
-            // flips these five to error.
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-return': 'off',
-            '@typescript-eslint/no-unsafe-argument': 'off',
         },
     },
     // Must follow the typed block above — flat config applies the last matching entry,

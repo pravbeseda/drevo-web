@@ -78,7 +78,7 @@ export class CsrfService {
                     this.csrfToken = token;
                     this.fetchInProgress$ = undefined;
                 }),
-                catchError(error => {
+                catchError((error: unknown) => {
                     this.logger.error('Failed to fetch CSRF token', error);
                     this.fetchInProgress$ = undefined;
                     return throwError(() => error);
