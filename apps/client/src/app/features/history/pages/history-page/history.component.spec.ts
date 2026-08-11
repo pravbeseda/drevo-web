@@ -3,6 +3,7 @@ import { HistoryCounts, HistoryCountsService } from '../../../../services/counts
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
+import { User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { BehaviorSubject } from 'rxjs';
 import { HistoryComponent } from './history.component';

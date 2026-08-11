@@ -2,6 +2,15 @@ import nx from '@nx/eslint-plugin';
 import noNull from 'eslint-plugin-no-null';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
+import tseslint from 'typescript-eslint';
+
+// The full strict-type-checked rule set merged into one object, applied rules-only in the
+// typed block below. Spreading the preset's config objects instead would re-register the
+// @typescript-eslint plugin that nx flat/typescript already provides.
+const strictTypeCheckedRules = Object.assign(
+    {},
+    ...tseslint.configs.strictTypeChecked.map(config => config.rules ?? {}),
+);
 
 // Shared across every block that needs type information. Flat config replaces
 // `parserOptions` wholesale instead of merging, so each such block must carry the
@@ -106,7 +115,6 @@ export default [
         files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
         rules: {
             '@typescript-eslint/no-empty-function': 'off',
-            '@typescript-eslint/no-non-null-assertion': 'off',
             'import/order': 'off',
             // sonarjs rules whose findings are inherent to test code: fixture URLs and
             // credentials, assertion style, float comparisons. Everything else — including
@@ -129,47 +137,64 @@ export default [
             'no-null/no-null': 'error',
         },
     },
-    // Type-aware linting. A deliberately small set rather than the full
-    // `strict-type-checked` preset: these four catch bug classes the compiler does not
-    // (unawaited promises, promises passed where void is expected), while the rest of the
-    // preset mostly restates rules already enforced above or fires on patterns this codebase
-    // uses on purpose. Widen it by adding rules here once their existing violations are clean.
+    // Type-aware linting: the full `strict-type-checked` preset (issue #259), adopted after
+    // measuring every rule against the codebase; each deviation below carries its reason.
+    // Two house patterns predate the preset and remain intentional (#237): navigations are
+    // marked `void` rather than awaited — their callers are synchronous handlers, and a
+    // navigation that rejects reaches Sentry through the global unhandledrejection handler;
+    // and a condition no-unnecessary-condition reports is fixed by making the type honest,
+    // not by deleting the check.
     {
         files: ['**/*.ts', '**/*.tsx'],
+        // Root config files (currently just jest.config.ts) belong to no tsconfig and land
+        // in the default project, which has no strictNullChecks — several preset rules
+        // refuse to run there. Excluding them beats an off-list that has to chase the
+        // preset's growth for files no lint gate reaches anyway. Nested config files are
+        // not affected: they belong to a real tsconfig and keep the full rule set.
+        ignores: ['*.config.ts'],
         languageOptions: {
             parserOptions: typedParserOptions,
         },
         rules: {
-            // Clean at introduction — locked at error to guard new code.
-            '@typescript-eslint/await-thenable': 'error',
-            '@typescript-eslint/no-misused-promises': 'error',
-            // Cleaned out and locked. Navigations are marked `void` rather than awaited,
-            // because their callers are synchronous handlers with nothing to await. `void`
-            // handles no rejection — it states that the site is deliberately not waiting,
-            // and leaves the failure path exactly where it was before this rule landed: a
-            // navigation that rejects reaches Sentry through the global unhandledrejection
-            // handler. AppUpdateService subscribes to NavigationError for the one case that
-            // needs an in-app response, a chunk that failed to load, and ignores the rest.
-            '@typescript-eslint/no-floating-promises': 'error',
-            // Cleaned out and locked (issue #237). Nearly every site was a type promising
-            // more than the runtime delivers — index access typed as always present, optional
-            // regex groups typed `string`, browser APIs lib.dom declares non-optional — so the
-            // pass fixed the types and kept the checks. Deleting a check to satisfy this rule
-            // is the wrong move: make the type honest, and the check stops being redundant.
-            '@typescript-eslint/no-unnecessary-condition': 'error',
-        },
-    },
-    // Root config files (currently just jest.config.ts) belong to no tsconfig and land in the
-    // default project, which has no strictNullChecks; no-unnecessary-condition answers that by
-    // reporting that it cannot run — noise, not a finding. The other three typed rules do not
-    // need strictNullChecks and stay on here. Nested config files are not covered by this
-    // pattern and do not need to be: they belong to a real tsconfig. The scope cannot be
-    // widened anyway — typescript-eslint rejects `**` in `allowDefaultProject`, because every
-    // file outside a tsconfig gets its own inferred program.
-    {
-        files: ['*.config.ts'],
-        rules: {
-            '@typescript-eslint/no-unnecessary-condition': 'off',
+            ...strictTypeCheckedRules,
+            // The preset ships the plain 'error' form, which would drop the `_`-prefix
+            // opt-out configured in the base block above.
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    vars: 'all',
+                    args: 'after-used',
+                    ignoreRestSiblings: true,
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                },
+            ],
+            // Numbers interpolate everywhere here — ids in URLs, counts in log messages —
+            // and stringifying a number is well-defined. The strict default bans it.
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+            // `() => this.doThing()` in event wiring returns void through the shorthand —
+            // idiomatic, not a value mistaken for meaningful.
+            '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
+            // Angular components and directives are classes by contract, and a template-only
+            // component is legitimately an empty one.
+            '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
+            // Every violation is `Validators.required` in a validators array — a static
+            // method that Angular defines exactly for unbound use.
+            '@typescript-eslint/unbound-method': ['error', { ignoreStatic: true }],
+            // The rule does not count type arguments at call sites as generic type arguments,
+            // so it reports `output<void>()`, `StateEffect.define<void>()` and
+            // `open<void, R>()` — the only void usages here, all legitimate.
+            '@typescript-eslint/no-invalid-void-type': 'off',
+            // Deferred, tracked in #259: ~220 sites, dominated by values arriving as `any`
+            // from untyped boundaries (`HttpErrorResponse.error`, jest globals the lint
+            // program cannot resolve, `Response.json()`). The fix is an annotation at each
+            // boundary, not per-site suppressions — a follow-up PR does that cleanup and
+            // flips these five to error.
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
         },
     },
     // Must follow the typed block above — flat config applies the last matching entry,
@@ -180,6 +205,11 @@ export default [
             // Assertions deliberately re-check what the types already promise; that is the
             // point of a test, so the rule reports the test rather than a defect.
             '@typescript-eslint/no-unnecessary-condition': 'off',
+            '@typescript-eslint/no-non-null-assertion': 'off',
+            // `expect(spy.method)` hands the method over unbound by design — jest matchers
+            // inspect it, they never call it. Virtually every assertion on a spy trips the
+            // rule, so it is off for specs rather than suppressed per line.
+            '@typescript-eslint/unbound-method': 'off',
         },
     },
 ];

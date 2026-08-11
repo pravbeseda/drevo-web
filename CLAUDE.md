@@ -224,7 +224,7 @@ Adding an API endpoint, reading the real shape of the data, running the PHP test
 4. **Readonly interface properties** — all interface properties must be `readonly` by default
 5. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components
 6. **Narrow instead of asserting** — `if`, `@if (value(); as v)`, optional chaining. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files, convention in templates
-7. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source
+7. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source. The rule guards against inference that can drift with the implementation, not against signature defaults: a payload-less event is bare `output()` — its type is the fixed `void` default of Angular's signature, and `no-unnecessary-type-arguments` rejects restating it — while anything whose type would be inferred from a value (an `input()` with an initial value, a method body) still gets the annotation
 
 ### Angular
 

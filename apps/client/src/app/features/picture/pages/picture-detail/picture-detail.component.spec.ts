@@ -562,7 +562,7 @@ describe('PictureDetailComponent', () => {
                 triggerFileSelect(spectator, createValidFile());
 
                 expect(pictureService.editPicture).toHaveBeenCalledWith(42, expect.any(FormData));
-                const formData = pictureService.editPicture.mock.calls[0][1] as FormData;
+                const formData = pictureService.editPicture.mock.calls[0][1];
                 expect(formData.get('pic_title')).toBe('Новое описание');
                 expect(formData.get('file')).toBeTruthy();
             });

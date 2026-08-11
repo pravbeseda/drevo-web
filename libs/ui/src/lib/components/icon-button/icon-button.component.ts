@@ -17,7 +17,7 @@ export class IconButtonComponent {
     readonly disabled = input(false);
     readonly link = input<string | readonly (string | number)[]>();
 
-    readonly clicked = output<void>();
+    readonly clicked = output();
 
     onClick(): void {
         this.clicked.emit();

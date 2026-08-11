@@ -32,7 +32,7 @@ export class DropdownMenuItemComponent {
     private readonly cdkMenuItem = inject(CdkMenuItem);
 
     readonly icon = input<string>();
-    readonly clicked = output<void>();
+    readonly clicked = output();
 
     constructor() {
         this.cdkMenuItem.triggered.pipe(takeUntilDestroyed()).subscribe(() => this.clicked.emit());

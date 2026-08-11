@@ -27,7 +27,6 @@
         "@nx/workspace",
         "ts-node",
         "angular-eslint",
-        "typescript-eslint",
         "jest-environment-node",
         "modern-normalize",
         "tslib"

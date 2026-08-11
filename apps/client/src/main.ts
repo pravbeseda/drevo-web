@@ -35,4 +35,4 @@ if (environment.sentryDsn && environment.production) {
 // Merge base config with browser-specific providers (Sentry ErrorHandler, TraceService)
 const config = mergeApplicationConfig(appConfig, browserConfig);
 
-bootstrapApplication(AppComponent, config).catch(err => console.error(err));
+bootstrapApplication(AppComponent, config).catch((err: unknown) => console.error(err));

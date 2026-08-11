@@ -1,6 +1,5 @@
 import { createComponentFactory, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { SidebarService } from '@drevo-web/core';
-import { SidebarAction } from '@drevo-web/shared';
 import { SidebarActionComponent } from './sidebar-action.component';
 
 describe('SidebarActionComponent', () => {
@@ -74,7 +73,7 @@ describe('SidebarActionComponent', () => {
             const activatedSpy = jest.fn();
             spectator.component.activated.subscribe(activatedSpy);
 
-            const action = sidebarService.registerAction.mock.calls[0][0] as SidebarAction;
+            const action = sidebarService.registerAction.mock.calls[0][0];
             action.action?.();
 
             expect(activatedSpy).toHaveBeenCalled();
