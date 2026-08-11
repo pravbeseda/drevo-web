@@ -10,8 +10,10 @@ describe('typed jest matchers', () => {
     });
 
     it('should match a callback in a slot typed as a function', () => {
-        // The slot's type is the assertion: `Matched<FunctionConstructor>` has to land on a
-        // callable, not on `never`, for this to say anything.
+        // The slot's type is the assertion, and what it catches is the fall-through: drop the
+        // `FunctionConstructor` arm and `Matched` infers `Function`, which this slot rejects.
+        // A `never` result would pass here — that hole is held shut by the `Constructor`
+        // constraint, which makes a non-constructor type argument a compile error.
         const expected: { onAction: () => void } = { onAction: expectAny(Function) };
 
         expect({ onAction: () => undefined }).toEqual(expected);
