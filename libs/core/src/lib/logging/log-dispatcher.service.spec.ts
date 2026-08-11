@@ -1,7 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LogDispatcher, LOG_PRODUCTION_MODE, LOG_PROVIDERS } from './log-dispatcher.service';
-import { LogProvider, LogEntry } from './log-provider.interface';
+import { LogProvider } from './log-provider.interface';
 
 describe('LogDispatcher', () => {
     const createMockProvider = (name: string, isAvailable = true): jest.Mocked<LogProvider> => ({
@@ -111,7 +111,7 @@ describe('LogDispatcher', () => {
             spectator.service.dispatch('info', 'Test message');
 
             const after = new Date();
-            const call = mockProvider.log.mock.calls[0][0] as LogEntry;
+            const call = mockProvider.log.mock.calls[0][0];
             expect(call.timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
             expect(call.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
         });

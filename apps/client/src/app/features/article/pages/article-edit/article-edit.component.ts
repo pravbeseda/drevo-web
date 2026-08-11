@@ -159,7 +159,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 // the catch below instead of going unhandled.
                 return this.showRestoreDraftDialog(draft.title, draft.time, draft.text, draftRoute);
             })
-            .catch(err => {
+            .catch((err: unknown) => {
                 this.logger.error('Failed to check draft', err);
             });
     }

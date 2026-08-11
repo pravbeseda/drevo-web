@@ -35,10 +35,7 @@ const mockVersionPairs: VersionPairs = {
     },
 };
 
-function createMockDataService(
-    pairs: VersionPairs | undefined = undefined,
-    error?: string,
-): Partial<DiffPageDataService> {
+function createMockDataService(pairs?: VersionPairs, error?: string): Partial<DiffPageDataService> {
     return {
         isLoading: signal(false).asReadonly(),
         error: signal(error).asReadonly(),

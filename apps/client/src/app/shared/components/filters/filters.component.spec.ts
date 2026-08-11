@@ -77,7 +77,7 @@ describe('FiltersComponent', () => {
             const uncheckedButton = spectator
                 .queryAll('[data-testid="filter-item"]')
                 .find(b => b.textContent?.trim() === 'Непроверенные');
-            spectator.click(uncheckedButton!);
+            spectator.click(uncheckedButton);
 
             expect(filterChangeSpy).toHaveBeenCalledWith('unchecked');
         });
@@ -114,7 +114,7 @@ describe('FiltersComponent', () => {
             const nestedButton = spectator
                 .queryAll('[data-testid="filter-item"].nested')
                 .find(b => b.textContent?.trim() === 'Неоконченные');
-            spectator.click(nestedButton!);
+            spectator.click(nestedButton);
 
             expect(filterChangeSpy).toHaveBeenCalledWith('unfinished');
         });

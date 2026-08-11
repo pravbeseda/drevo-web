@@ -24,7 +24,7 @@ export class ArticleHistoryListComponent {
     readonly canCompare = input(false);
 
     readonly selectItem = output<ArticleHistoryItem>();
-    readonly compareItems = output<void>();
+    readonly compareItems = output();
 
     protected readonly service = inject(ArticleHistoryService);
     protected readonly trackByFn = trackByFn;

@@ -28,7 +28,7 @@ test.describe('Sidebar', () => {
     test.describe('Collapsed / Expanded', () => {
         // These tests describe desktop sidebar behaviour. On mobile the sidebar
         // is a drawer that always starts closed — skip those projects.
-        test.beforeEach(async ({ isMobile }) => {
+        test.beforeEach(({ isMobile }) => {
             test.skip(isMobile, 'On mobile the sidebar is a drawer that starts closed');
         });
 

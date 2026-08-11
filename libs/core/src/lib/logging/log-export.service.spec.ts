@@ -39,6 +39,9 @@ describe('LogExportService', () => {
 
         // Track created links for download testing
         let createdLink: HTMLAnchorElement | null = null;
+        // lib.dom deprecates only the string-options overload; both references here
+        // resolve to the modern signature.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let originalCreateElement: typeof document.createElement;
 
         beforeEach(() => {
@@ -47,6 +50,7 @@ describe('LogExportService', () => {
             createdLink = null;
 
             // Store original
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             originalCreateElement = document.createElement.bind(document);
 
             // Mock createElement to capture anchor element

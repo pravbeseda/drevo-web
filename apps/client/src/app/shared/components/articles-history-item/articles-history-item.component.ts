@@ -34,7 +34,7 @@ export class ArticlesHistoryItemComponent {
     readonly reviewSummary = input<ReviewSummary>();
 
     readonly selectItem = output<ArticleHistoryItem>();
-    readonly compare = output<void>();
+    readonly compare = output();
 
     /**
      * Review pill is only meaningful while a version awaits moderation. Once a

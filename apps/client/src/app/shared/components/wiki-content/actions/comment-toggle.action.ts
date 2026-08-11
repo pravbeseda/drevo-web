@@ -11,7 +11,7 @@ export class CommentToggleAction implements WikiAction {
 
     execute(_actionName: string, host: HTMLElement): void {
         const comments = host.querySelectorAll('.cmnt, .bible-chapters');
-        const links = Array.from(host.querySelectorAll('.LinkComment')) as HTMLElement[];
+        const links = Array.from(host.querySelectorAll<HTMLElement>('.LinkComment'));
 
         const isExpanded = links[0]?.textContent?.trim() === 'Свернуть';
 

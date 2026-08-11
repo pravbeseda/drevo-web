@@ -5,7 +5,7 @@ import { NavigationError, Router } from '@angular/router';
 import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { VersionInfo } from '@drevo-web/shared';
-import { createServiceFactory, SpectatorService, SpyObject } from '@ngneat/spectator/jest';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { Subject } from 'rxjs';
 
@@ -143,7 +143,7 @@ describe('AppUpdateService', () => {
 
     describe('version check', () => {
         beforeEach(() => {
-            const notification = spectator.inject(NotificationService) as SpyObject<NotificationService>;
+            const notification = spectator.inject(NotificationService);
             notification.showPersistent.mockClear();
         });
 
@@ -178,7 +178,7 @@ describe('AppUpdateService', () => {
         });
 
         it('should not show notification during cooldown after dismiss', () => {
-            const notification = spectator.inject(NotificationService) as SpyObject<NotificationService>;
+            const notification = spectator.inject(NotificationService);
             const v1: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T00:00:00Z', commit: 'def' };
             const v2: VersionInfo = { version: '1.2.0', buildTime: '2026-04-20T01:00:00Z', commit: 'ghi' };
 
@@ -195,7 +195,7 @@ describe('AppUpdateService', () => {
         });
 
         it('should show notification again after cooldown expires via reminder timer', () => {
-            const notification = spectator.inject(NotificationService) as SpyObject<NotificationService>;
+            const notification = spectator.inject(NotificationService);
             const version: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T00:00:00Z', commit: 'def' };
 
             getNewVersionAvailable().next(version);
@@ -214,7 +214,7 @@ describe('AppUpdateService', () => {
         });
 
         it('should reload when action button clicked', () => {
-            const notification = spectator.inject(NotificationService) as SpyObject<NotificationService>;
+            const notification = spectator.inject(NotificationService);
             const version: VersionInfo = { version: '1.1.0', buildTime: '2026-04-20T00:00:00Z', commit: 'def' };
 
             getNewVersionAvailable().next(version);

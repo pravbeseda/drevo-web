@@ -12,7 +12,7 @@ describe('HttpErrorMapperService', () => {
         spectator = createService();
     });
 
-    const createHttpError = (status: number, error: unknown = undefined, statusText = 'Error'): HttpErrorResponse => {
+    const createHttpError = (status: number, error?: unknown, statusText = 'Error'): HttpErrorResponse => {
         return new HttpErrorResponse({
             status,
             statusText,
