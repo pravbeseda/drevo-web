@@ -100,6 +100,3 @@ results.sarif
 
 # Generated version file
 apps/client/public/version.json
-
-# Code quality research (local only)
-docs/code-quality-suggestions.md
