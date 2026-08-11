@@ -48,13 +48,19 @@ export default [
             'no-restricted-syntax': [
                 'error',
                 {
+                    // Pinned to `params.0`: the selector's other parameter, `caught: Observable<T>`,
+                    // is typed honestly by RxJS and is the one that must not be annotated by hand.
                     selector:
-                        "CallExpression[callee.name='catchError'] > ArrowFunctionExpression > Identifier.params:not([typeAnnotation])",
+                        "CallExpression[callee.name='catchError'] > ArrowFunctionExpression[params.0.type='Identifier']:not([params.0.typeAnnotation])",
                     message: 'Annotate the catchError parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
                 },
                 {
+                    // Anchored to the observer position — the argument of a `.subscribe()` — rather
+                    // than to the property name, which on its own matches any object that happens to
+                    // carry an `error` callback. Both function forms are covered: the method
+                    // shorthand `error(err) {}` inherits the same `any` as the arrow.
                     selector:
-                        "Property[key.name='error'] > ArrowFunctionExpression > Identifier.params:not([typeAnnotation])",
+                        "CallExpression[callee.property.name='subscribe'] > ObjectExpression > Property[key.name='error'] > :matches(ArrowFunctionExpression, FunctionExpression)[params.0.type='Identifier']:not([params.0.typeAnnotation])",
                     message:
                         'Annotate the subscribe error callback parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
                 },
