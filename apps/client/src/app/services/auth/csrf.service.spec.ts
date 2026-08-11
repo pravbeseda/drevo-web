@@ -83,7 +83,7 @@ describe('CsrfService', () => {
 
         it('should throw error on invalid response', done => {
             spectator.service.getCsrfToken().subscribe({
-                error: err => {
+                error: (err: Error) => {
                     expect(err.message).toBe('Invalid CSRF response');
                     done();
                 },

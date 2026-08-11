@@ -1,4 +1,5 @@
 import { PicturePending } from '@drevo-web/shared';
+import { expectObjectLike } from '@drevo-web/shared/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { PendingBannerComponent } from './pending-banner.component';
 
@@ -85,7 +86,10 @@ describe('PendingBannerComponent', () => {
 
         spectator.click('[data-testid="pending-banner-cancel"]');
 
-        expect(actionSpy).toHaveBeenCalledWith({ pending: expect.objectContaining({ id: 10 }), action: 'cancel' });
+        expect(actionSpy).toHaveBeenCalledWith({
+            pending: expectObjectLike<PicturePending>({ id: 10 }),
+            action: 'cancel',
+        });
     });
 
     it('should emit imageClick output on image click', () => {

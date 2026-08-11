@@ -1,3 +1,4 @@
+import { expectAny } from '@drevo-web/shared/testing';
 import { LogEntry, LogLevel } from '../log-provider.interface';
 import { SentryLogProvider } from './sentry-log.provider';
 
@@ -118,7 +119,7 @@ describe('SentryLogProvider', () => {
                 message: 'Info message',
                 level: 'info',
                 data: { key: 'value' },
-                timestamp: expect.any(Number),
+                timestamp: expectAny(Number),
             });
             expect(mockSentry.captureMessage).not.toHaveBeenCalled();
         });

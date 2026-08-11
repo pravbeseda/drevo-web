@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL, apiGet, CsrfResponse } from './api-test-helpers';
+import { API_BASE_URL, apiGet, ApiResponse, CsrfResponse, readJson } from './api-test-helpers';
 
 /**
  * API Integration Tests - Response Format
@@ -29,7 +29,7 @@ test.describe('API Response Format', () => {
         test('should have consistent error response structure', async ({ request }) => {
             // Try to access non-existent endpoint
             const response = await request.get(`${API_BASE_URL}/api/auth/nonexistent`);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(404);
             expect(body).toHaveProperty('success', false);

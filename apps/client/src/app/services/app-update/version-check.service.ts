@@ -65,7 +65,7 @@ export class VersionCheckService {
     private fetchVersion(): Observable<VersionInfo | undefined> {
         const url = `${VERSION_URL}?_=${Date.now()}`;
         return this.http.get<VersionInfo>(url).pipe(
-            catchError(err => {
+            catchError((err: unknown) => {
                 this.logger.warn('Failed to fetch version.json', { error: err });
                 return of(undefined);
             }),

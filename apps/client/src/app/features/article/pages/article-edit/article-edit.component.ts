@@ -25,7 +25,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import { ArticleVersion, encodeArticleTitle, formatDateHeader, formatTime } from '@drevo-web/shared';
 import {
@@ -307,13 +307,14 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     return;
                 }
 
+                const backendMessage = readApiErrorBody(err)?.error;
                 let errorMessage = 'Ошибка сохранения';
                 if (err.status === 401) {
                     errorMessage = 'Необходима авторизация';
                 } else if (err.status === 403) {
-                    errorMessage = err.error?.error || 'Нет прав для сохранения';
-                } else if (err.error?.error) {
-                    errorMessage = err.error.error;
+                    errorMessage = backendMessage || 'Нет прав для сохранения';
+                } else if (backendMessage) {
+                    errorMessage = backendMessage;
                 }
 
                 this.notificationService.error(errorMessage);
@@ -333,7 +334,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         if (this.session?.mode !== 'create') {
             return false;
         }
-        if (err.status !== 409 || err.error?.errorCode !== 'DUPLICATE_TITLE') {
+        if (err.status !== 409 || readApiErrorBody(err)?.errorCode !== 'DUPLICATE_TITLE') {
             return false;
         }
 

@@ -51,7 +51,7 @@ describe('AuthService SSR', () => {
     describe('login on server', () => {
         it('should throw error indicating login is only available in browser', done => {
             spectator.service.login({ username: 'test', password: 'test' }).subscribe({
-                error: error => {
+                error: (error: Error) => {
                     expect(error.message).toBe('Login is only available in browser');
                     done();
                 },

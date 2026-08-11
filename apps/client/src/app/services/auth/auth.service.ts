@@ -4,10 +4,18 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { LoggerService, SKIP_ERROR_FOR_STATUSES, StorageService, WINDOW } from '@drevo-web/core';
+import { LoggerService, readApiErrorBody, SKIP_ERROR_FOR_STATUSES, StorageService, WINDOW } from '@drevo-web/core';
 import { User, AuthState, AuthResponse, LoginRequest, isValidReturnUrl } from '@drevo-web/shared';
 import { BehaviorSubject, Observable, of, throwError, combineLatest } from 'rxjs';
 import { map, catchError, tap, finalize, switchMap, take } from 'rxjs/operators';
+
+/**
+ * What `login` rejects with — the backend message plus the machine code the UI branches on.
+ */
+export interface LoginError {
+    readonly message: string;
+    readonly code?: string;
+}
 
 @Injectable({
     providedIn: 'root',
@@ -179,12 +187,12 @@ export class AuthService {
                 throw new Error(response.error || 'Login failed');
             }),
             catchError((error: HttpErrorResponse) => {
-                const errorMessage = error.error?.error || error.message || 'Login failed';
-                const errorCode = error.error?.errorCode;
-                return throwError(() => ({
-                    message: errorMessage,
-                    code: errorCode,
-                }));
+                const body = readApiErrorBody(error);
+                const loginError: LoginError = {
+                    message: body?.error || error.message || 'Login failed',
+                    code: body?.errorCode,
+                };
+                return throwError(() => loginError);
             }),
             finalize(() => this.authOperationInProgressSubject.next(false)),
         );

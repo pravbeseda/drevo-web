@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL, apiPost, getCsrfToken, ALLOWED_ORIGINS, INVALID_CREDENTIALS } from './api-test-helpers';
+import {
+    API_BASE_URL,
+    ALLOWED_ORIGINS,
+    ApiResponse,
+    apiPost,
+    getCsrfToken,
+    INVALID_CREDENTIALS,
+    readJson,
+} from './api-test-helpers';
 
 /**
  * API Integration Tests - CSRF Protection
@@ -69,7 +77,7 @@ test.describe('CSRF Protection', () => {
                 },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(200);
             expect(body.success).toBe(true);
@@ -85,7 +93,7 @@ test.describe('CSRF Protection', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
             expect(body.data).toHaveProperty('csrfToken');
         });
@@ -98,7 +106,7 @@ test.describe('CSRF Protection', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
         });
     });

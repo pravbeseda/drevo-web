@@ -74,7 +74,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     private linksSubject = new BehaviorSubject<Record<string, boolean>>({});
 
     @ViewChild('editorContainer')
-    editorContainer?: ElementRef;
+    editorContainer?: ElementRef<HTMLElement>;
 
     readonly content = input.required<string>();
     readonly customExtensions = input<Extension[]>([]);

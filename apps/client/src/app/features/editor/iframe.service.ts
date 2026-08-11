@@ -12,6 +12,32 @@ const allowedOrigins = [
     'http://localhost',
 ];
 
+/**
+ * `MessageEvent.data` is whatever the host posted, so every field the switch below reads is
+ * checked here first: an embedder is not a trusted caller, and the subjects downstream are
+ * typed.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && !!value;
+}
+
+function readInsertTagCommand(content: unknown): InsertTagCommand | undefined {
+    if (
+        !isRecord(content) ||
+        typeof content['tagOpen'] !== 'string' ||
+        typeof content['tagClose'] !== 'string' ||
+        typeof content['sampleText'] !== 'string'
+    ) {
+        return undefined;
+    }
+
+    return {
+        tagOpen: content['tagOpen'],
+        tagClose: content['tagClose'],
+        sampleText: content['sampleText'],
+    };
+}
+
 @Injectable()
 export class IframeService implements OnDestroy {
     private readonly messageHandler = (event: MessageEvent): void => this.onMessage(event);
@@ -59,12 +85,13 @@ export class IframeService implements OnDestroy {
         this.window?.parent.postMessage(message, this.hostOrigin);
     }
 
-    private onMessage(event: MessageEvent): void {
+    private onMessage(event: MessageEvent<unknown>): void {
         if (!allowedOrigins.includes(event.origin)) {
             return;
         }
 
-        if (!event.data || typeof event.data.action === 'undefined') {
+        const message = event.data;
+        if (!isRecord(message) || message['action'] === undefined) {
             return;
         }
 
@@ -77,14 +104,24 @@ export class IframeService implements OnDestroy {
             this.hostOrigin = event.origin;
         }
 
-        switch (event.data.action) {
-            case 'loadContent':
-                this.contentSubject.next(event.data.content);
-                this.csrfTokenSubject.next(event.data.csrf);
+        switch (message['action']) {
+            case 'loadContent': {
+                const content = message['content'];
+                if (typeof content !== 'string') {
+                    return;
+                }
+                const csrf = message['csrf'];
+                this.contentSubject.next(content);
+                this.csrfTokenSubject.next(typeof csrf === 'string' ? csrf : undefined);
                 break;
-            case 'insertTag':
-                this.insertTagSubject.next(event.data.content);
+            }
+            case 'insertTag': {
+                const command = readInsertTagCommand(message['content']);
+                if (command) {
+                    this.insertTagSubject.next(command);
+                }
                 break;
+            }
             default:
                 break;
         }

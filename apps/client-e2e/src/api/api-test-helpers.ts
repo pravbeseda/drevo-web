@@ -1,4 +1,4 @@
-import { APIRequestContext, expect } from '@playwright/test';
+import { APIRequestContext, APIResponse, expect } from '@playwright/test';
 
 /**
  * API Base URL from environment or default
@@ -61,6 +61,16 @@ export interface LoginResponse {
 }
 
 /**
+ * Reads a response body as the shape the caller expects.
+ *
+ * Playwright types `APIResponse.json()` as `Promise<any>` — the body is whatever the server
+ * sent. This is the single place that claim is made, so every call site stays typed.
+ */
+export async function readJson<T>(response: APIResponse): Promise<T> {
+    return (await response.json()) as T;
+}
+
+/**
  * Helper to make API requests with common settings
  */
 export async function apiGet<T>(
@@ -86,7 +96,7 @@ export async function apiGet<T>(
     const response = await request.get(`${API_BASE_URL}${endpoint}`, {
         headers,
     });
-    const body = await response.json();
+    const body = await readJson<ApiResponse<T>>(response);
 
     return { response, body };
 }
@@ -128,7 +138,7 @@ export async function apiPost<T>(
 
     let body: ApiResponse<T>;
     try {
-        body = await response.json();
+        body = await readJson<ApiResponse<T>>(response);
     } catch {
         body = { success: false, error: 'Invalid JSON response' };
     }

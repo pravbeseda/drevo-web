@@ -50,14 +50,24 @@ function createDrawerMock(isOpen: boolean): InstanceType<typeof DrawerService> {
     } as unknown as InstanceType<typeof DrawerService>;
 }
 
-function getMediaQueryList(mockWindow: Window): {
-    addEventListener: jest.Mock;
+type MediaChangeHandler = (e: Partial<MediaQueryListEvent>) => void;
+
+interface MediaQueryListMock {
+    addEventListener: jest.Mock<void, [string, MediaChangeHandler]>;
     removeEventListener: jest.Mock;
-} {
-    return (mockWindow.matchMedia as jest.Mock).mock.results[0].value;
 }
 
-function getMediaChangeHandler(mockWindow: Window): (e: Partial<MediaQueryListEvent>) => void {
+function getMediaQueryList(mockWindow: Window): MediaQueryListMock {
+    const [result] = (mockWindow.matchMedia as jest.Mock<MediaQueryListMock>).mock.results;
+    // A `MockResult` also covers the throwing and in-flight cases, whose `value` is untyped.
+    if (result.type !== 'return') {
+        throw new Error('matchMedia has not returned a media query list');
+    }
+
+    return result.value;
+}
+
+function getMediaChangeHandler(mockWindow: Window): MediaChangeHandler {
     return getMediaQueryList(mockWindow).addEventListener.mock.calls[0][1];
 }
 

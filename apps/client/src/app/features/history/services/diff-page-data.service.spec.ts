@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
@@ -170,9 +171,15 @@ describe('DiffPageDataService', () => {
 
         it('should set specific error for NO_PREVIOUS_VERSION', () => {
             const articleService = {
-                getVersionPairs: jest
-                    .fn()
-                    .mockReturnValue(throwError(() => ({ error: { errorCode: 'NO_PREVIOUS_VERSION' } }))),
+                getVersionPairs: jest.fn().mockReturnValue(
+                    throwError(
+                        () =>
+                            new HttpErrorResponse({
+                                error: { errorCode: 'NO_PREVIOUS_VERSION' },
+                                status: 404,
+                            }),
+                    ),
+                ),
             };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],

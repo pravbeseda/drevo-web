@@ -2,7 +2,7 @@ import { HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse, HttpContext 
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, readApiErrorBody } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
@@ -423,7 +423,8 @@ describe('AuthInterceptor', () => {
                     expect(handler.handle).toHaveBeenCalledTimes(2);
 
                     // Verify second request has new token
-                    const retryRequest = (handler.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    const retryRequest = (handler.handle as jest.Mock<unknown, [HttpRequest<unknown>]>).mock
+                        .calls[1][0];
                     expect(retryRequest.headers.get('X-CSRF-Token')).toBe('new-csrf-token');
                     expect(retryRequest.withCredentials).toBe(true);
                     expect(retryRequest.headers.has('X-CSRF-Retry')).toBe(false);
@@ -502,7 +503,7 @@ describe('AuthInterceptor', () => {
             spectator.service.intercept(request, handler as HttpHandler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
-                    expect(error.error.errorCode).toBe('CSRF_VALIDATION_FAILED');
+                    expect(readApiErrorBody(error)?.errorCode).toBe('CSRF_VALIDATION_FAILED');
                     done();
                 },
             });
@@ -564,8 +565,8 @@ describe('AuthInterceptor', () => {
                     expect(csrfService.refreshCsrfToken).toHaveBeenCalledTimes(1);
 
                     // Both retry requests should have the same new token
-                    const retry1 = (handler1.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
-                    const retry2 = (handler2.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    const retry1 = (handler1.handle as jest.Mock<unknown, [HttpRequest<unknown>]>).mock.calls[1][0];
+                    const retry2 = (handler2.handle as jest.Mock<unknown, [HttpRequest<unknown>]>).mock.calls[1][0];
                     expect(retry1.headers.get('X-CSRF-Token')).toBe('shared-new-token');
                     expect(retry2.headers.get('X-CSRF-Token')).toBe('shared-new-token');
                     done();

@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL, apiPost, getCsrfToken, ALLOWED_ORIGINS, TEST_DISALLOWED_ORIGIN } from './api-test-helpers';
+import {
+    API_BASE_URL,
+    ALLOWED_ORIGINS,
+    ApiResponse,
+    apiPost,
+    getCsrfToken,
+    readJson,
+    TEST_DISALLOWED_ORIGIN,
+} from './api-test-helpers';
 
 /**
  * API Integration Tests - Origin/Referer Validation
@@ -39,7 +47,7 @@ test.describe('Origin/Referer Validation', () => {
                 },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(403);
             expect(body.success).toBe(false);
@@ -107,7 +115,7 @@ test.describe('Origin/Referer Validation', () => {
                 },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(200);
             expect(body.success).toBe(true);
@@ -126,7 +134,7 @@ test.describe('Origin/Referer Validation', () => {
                 },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(403);
             expect(body.success).toBe(false);
@@ -144,7 +152,7 @@ test.describe('Origin/Referer Validation', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
         });
 
@@ -157,7 +165,7 @@ test.describe('Origin/Referer Validation', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
         });
     });
