@@ -47,6 +47,7 @@ yarn lint:playwright                            # ESLint on testing/playwright �
 yarn format:check                               # Prettier
 yarn lint:styles                                # Stylelint — when SCSS was touched
 yarn lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
+yarn lint:workflows                             # release job graph invariants — guards that only fail on a real tag push
 yarn knip                                       # dead code and unused deps — after refactors and deletions
 yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 yarn build                                      # production build — the type check the unit tests cannot do

@@ -10788,6 +10788,13 @@ js-yaml@^4.1.0, js-yaml@^4.1.1:
   dependencies:
     argparse "^2.0.1"
 
+js-yaml@^5.2.3:
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-5.2.3.tgz#0942ae8f507e22eb0e54624871789cd477106e54"
+  integrity sha512-n+mUVyUX5bVv7G/G2zyIHOhdxfuU1dY2NOFzTQUWiMUbFss8b57NFlgCCaggU78wSw5KVS9cllzeLyzyR+n5nw==
+  dependencies:
+    argparse "^2.0.1"
+
 jsdom@^26.1.0:
   version "26.1.0"
   resolved "https://registry.yarnpkg.com/jsdom/-/jsdom-26.1.0.tgz#ab5f1c1cafc04bd878725490974ea5e8bf0c72b3"
