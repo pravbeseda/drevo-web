@@ -46,6 +46,17 @@ updates:
           prefix: chore
           prefix-development: chore
       groups:
+          # The three dependencies `libs/shared/package.json` declares alongside the root.
+          # No `update-types`, so this group also takes a major — which is the only update
+          # that rewrites a caret range, and therefore the only one that can put the two
+          # manifests out of step. Without it a major falls outside every group here and
+          # arrives as one pull request per directory, each red on `@nx/dependency-checks`.
+          # Keep the list equal to the dependencies of `libs/shared/package.json`.
+          shared-lib-dependencies:
+              patterns:
+                  - 'tslib'
+                  - 'diff'
+                  - 'diff-match-patch'
           # Two copies of @codemirror/state break the production build and nothing else —
           # the unit tests stay green. Moving the packages in one PR keeps them deduped.
           codemirror:
