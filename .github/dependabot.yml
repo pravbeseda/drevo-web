@@ -9,9 +9,15 @@ version: 2
 
 updates:
     # Nobody bumps an action by hand, and a floating major tag never crosses to the next major
-    # on its own. One grouped PR a month covers all twelve.
+    # on its own. One grouped PR a month covers all thirteen.
+    #
+    # `/` reaches `.github/workflows` and an `action.yml` in the repository root — not a
+    # composite action in a subdirectory, which is where the deploy action lives and pins
+    # `shimataro/ssh-key-action`. Its directory is listed so that pin is watched too.
     - package-ecosystem: github-actions
-      directory: /
+      directories:
+          - /
+          - /.github/actions/deploy
       schedule:
           interval: monthly
       groups:
@@ -21,14 +27,20 @@ updates:
       commit-message:
           prefix: chore
 
+    # `libs/shared/package.json` repeats the root ranges verbatim (`@nx/dependency-checks` is
+    # an error when the two drift) and the root declares no workspaces, so nothing links them.
+    # Both directories are listed, which puts a change to either manifest in the same grouped
+    # PR instead of a root-only bump that lands red.
     - package-ecosystem: npm
-      directory: /
+      directories:
+          - /
+          - /libs/shared
       schedule:
           interval: monthly
       open-pull-requests-limit: 5
-      # `libs/shared/package.json` repeats the root ranges verbatim — `@nx/dependency-checks`
-      # fails when the two drift. Touching the range only when the new version falls outside it
-      # keeps most updates to yarn.lock, where there is nothing to drift from.
+      # Touching the declared range only when the new version falls outside it keeps patches
+      # and minors in yarn.lock, where there is nothing to drift from — the pair of manifests
+      # only moves together on a major.
       versioning-strategy: increase-if-necessary
       commit-message:
           prefix: chore
@@ -39,10 +51,14 @@ updates:
           codemirror:
               patterns:
                   - '@codemirror/*'
-          # Angular ships its packages in lockstep and refuses a mixed set at runtime.
+          # Angular ships its packages in lockstep and refuses a mixed set at runtime. The
+          # build toolchain is part of that set: `@angular-devkit/*` and `@schematics/angular`
+          # carry the same version as the framework and match none of the `@angular/*` globs.
           angular:
               patterns:
                   - '@angular/*'
+                  - '@angular-devkit/*'
+                  - '@schematics/angular'
                   - '@angular-eslint/*'
                   - 'angular-eslint'
               update-types:
@@ -64,10 +80,18 @@ updates:
                   - minor
                   - patch
       ignore:
-          # A major or minor of Angular, Nx or TypeScript arrives with schematics that rewrite
+          # A major or minor of Angular or Nx arrives with schematics that rewrite
           # source; `nx migrate` runs them and a version bump in package.json does not. Patch
           # releases carry no migration, so they stay in scope above.
           - dependency-name: '@angular/*'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: '@angular-devkit/*'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: '@schematics/angular'
             update-types:
                 - version-update:semver-major
                 - version-update:semver-minor
@@ -87,7 +111,13 @@ updates:
             update-types:
                 - version-update:semver-major
                 - version-update:semver-minor
+          # TypeScript is out of scope at every level, patches included: `resolutions` pins
+          # `eslint-plugin-sonarjs/typescript` to the same version, and the note beside it
+          # requires the two to move together. A bump that touched only devDependencies would
+          # install a second compiler copy — which fails nothing and silently diverges the
+          # type-aware lint results from the build.
           - dependency-name: 'typescript'
             update-types:
                 - version-update:semver-major
                 - version-update:semver-minor
+                - version-update:semver-patch
