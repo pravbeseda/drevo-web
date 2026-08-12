@@ -50,6 +50,9 @@ jobs:
             - name: Type coverage
               run: yarn lint:types
 
+            - name: Per-file coverage floor
+              run: yarn lint:coverage
+
             - name: Release workflow invariants
               run: yarn lint:workflows
 
