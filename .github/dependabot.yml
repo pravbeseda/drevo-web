@@ -1,0 +1,93 @@
+---
+# Security updates already run without this file — it adds the scheduled version updates,
+# which is what keeps a dependency current before a CVE forces the issue.
+#
+# `ignore` suppresses security updates as well as version updates, so nothing here ignores a
+# dependency outright: every entry names `update-types: version-update:*`, which leaves the
+# security channel open on the same package.
+version: 2
+
+updates:
+    # Nobody bumps an action by hand, and a floating major tag never crosses to the next major
+    # on its own. One grouped PR a month covers all twelve.
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: monthly
+      groups:
+          github-actions:
+              patterns:
+                  - '*'
+      commit-message:
+          prefix: chore
+
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: monthly
+      open-pull-requests-limit: 5
+      # `libs/shared/package.json` repeats the root ranges verbatim — `@nx/dependency-checks`
+      # fails when the two drift. Touching the range only when the new version falls outside it
+      # keeps most updates to yarn.lock, where there is nothing to drift from.
+      versioning-strategy: increase-if-necessary
+      commit-message:
+          prefix: chore
+          prefix-development: chore
+      groups:
+          # Two copies of @codemirror/state break the production build and nothing else —
+          # the unit tests stay green. Moving the packages in one PR keeps them deduped.
+          codemirror:
+              patterns:
+                  - '@codemirror/*'
+          # Angular ships its packages in lockstep and refuses a mixed set at runtime.
+          angular:
+              patterns:
+                  - '@angular/*'
+                  - '@angular-eslint/*'
+                  - 'angular-eslint'
+              update-types:
+                  - patch
+          nx:
+              patterns:
+                  - '@nx/*'
+                  - 'nx'
+              update-types:
+                  - patch
+          production-dependencies:
+              dependency-type: production
+              update-types:
+                  - minor
+                  - patch
+          development-dependencies:
+              dependency-type: development
+              update-types:
+                  - minor
+                  - patch
+      ignore:
+          # A major or minor of Angular, Nx or TypeScript arrives with schematics that rewrite
+          # source; `nx migrate` runs them and a version bump in package.json does not. Patch
+          # releases carry no migration, so they stay in scope above.
+          - dependency-name: '@angular/*'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: '@angular-eslint/*'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: 'angular-eslint'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: '@nx/*'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: 'nx'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
+          - dependency-name: 'typescript'
+            update-types:
+                - version-update:semver-major
+                - version-update:semver-minor
