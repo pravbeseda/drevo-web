@@ -72,7 +72,7 @@ export class PictureStateService {
                     this._currentPage.set(1);
                     this.logger.info('Searching pictures', { query });
                     return this.pictureService.getPictures({ query, page: 1 }).pipe(
-                        catchError(error => {
+                        catchError((error: unknown) => {
                             this.logger.error('Failed to load pictures', error);
                             return of({ items: [] as Picture[], total: 0 });
                         }),
@@ -113,7 +113,7 @@ export class PictureStateService {
         this.pictureService
             .getPictures({ query: queryAtRequest, page: nextPage })
             .pipe(
-                catchError(error => {
+                catchError((error: unknown) => {
                     this.logger.error('Failed to load more pictures', error);
                     return of({ items: [] as Picture[], total: 0 });
                 }),

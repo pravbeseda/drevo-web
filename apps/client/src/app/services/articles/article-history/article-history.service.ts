@@ -219,7 +219,7 @@ export class ArticleHistoryService {
                     this._inworkItems.update(items => items.filter(item => item.title !== title));
                     this.logger.info('Cleared inwork editing mark', { title });
                 },
-                error: err => {
+                error: (err: unknown) => {
                     this.logger.error('Failed to clear editing mark', err);
                     this.notificationService.error('Не удалось снять метку редактирования');
                 },
@@ -291,7 +291,7 @@ export class ArticleHistoryService {
                     this._isLoadingMore.set(false);
                     this.loadReviewSummaries(response.items.map(item => item.versionId));
                 },
-                error: error => {
+                error: (error: unknown) => {
                     this.logger.error('Failed to load article history', error);
                     if (loadMore) {
                         this._isLoadingMore.set(false);

@@ -220,11 +220,12 @@ Adding an API endpoint, reading the real shape of the data, running the PHP test
 
 1. **Strict TypeScript** — no implicit any, strict null checks
 2. **Describe the shape** — a real type where one exists, `unknown` where the shape is genuinely open and the code narrows it. `any` is an error (`@typescript-eslint/no-explicit-any`), so it fails the commit rather than spending a warning budget
-3. **`undefined` is absence** — throughout the codebase, enforced by `no-null/no-null`
-4. **Readonly interface properties** — all interface properties must be `readonly` by default
-5. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components
-6. **Narrow instead of asserting** — `if`, `@if (value(); as v)`, optional chaining. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files, convention in templates
-7. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source. The rule guards against inference that can drift with the implementation, not against signature defaults: a payload-less event is bare `output()` — its type is the fixed `void` default of Angular's signature, and `no-unnecessary-type-arguments` rejects restating it — while anything whose type would be inferred from a value (an `input()` with an initial value, a method body) still gets the annotation
+3. **Annotate the error at the boundary** — the places `any` still enters are library signatures, not the code here: `catchError(err => …)` and `subscribe({ error: err => … })` are typed `any` by RxJS, `HttpErrorResponse.error` and `NavigationError.error` by Angular. Write `(err: unknown)` on the callback, `const error: unknown = response.error` on the read. `no-restricted-syntax` in `eslint.config.mjs` enforces the two RxJS forms everywhere; the property reads rest on convention — `yarn lint:types` measures them in `libs/*` only, and `apps/client` is outside that gate until #254 is settled, so an app-side read that skips the annotation fails nothing
+4. **`undefined` is absence** — throughout the codebase, enforced by `no-null/no-null`
+5. **Readonly interface properties** — all interface properties must be `readonly` by default
+6. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components
+7. **Narrow instead of asserting** — `if`, `@if (value(); as v)`, optional chaining. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files, convention in templates
+8. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source. The rule guards against inference that can drift with the implementation, not against signature defaults: a payload-less event is bare `output()` — its type is the fixed `void` default of Angular's signature, and `no-unnecessary-type-arguments` rejects restating it — while anything whose type would be inferred from a value (an `input()` with an initial value, a method body) still gets the annotation
 
 ### Angular
 

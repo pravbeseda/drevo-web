@@ -46,7 +46,7 @@ export class PreviewComponent implements OnInit {
                     this._isLoading.set(false);
                     this.logger.info('Preview loaded', { articleId: this.articleId() });
                 },
-                error: err => {
+                error: (err: unknown) => {
                     this._isLoading.set(false);
                     this._error.set('Не удалось загрузить предпросмотр');
                     this.logger.error('Failed to load preview', err);

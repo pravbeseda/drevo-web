@@ -84,7 +84,7 @@ export class ArticleModerationPanelComponent {
                     this.logger.info('Moderation: success', { versionId, approved });
                     this.moderated.emit(result);
                 },
-                error: err => {
+                error: (err: unknown) => {
                     this._isLoading.set(false);
                     this.notification.error('Не удалось выполнить модерацию');
                     this.logger.error('Moderation: failed', err);

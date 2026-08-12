@@ -364,7 +364,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
-                error: error => {
+                error: (error: unknown) => {
                     expect(error).toBe(tokenError);
                     expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to get CSRF token', tokenError);
                     done();
@@ -380,7 +380,7 @@ describe('AuthInterceptor', () => {
             };
 
             spectator.service.intercept(request, handler as HttpHandler).subscribe({
-                error: error => {
+                error: (error: unknown) => {
                     expect(error).toBe(requestError);
                     expect(loggerService.mockLogger.error).not.toHaveBeenCalledWith(
                         'Failed to get CSRF token',

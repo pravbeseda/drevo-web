@@ -39,6 +39,32 @@ export default [
             import: importPlugin,
         },
         rules: {
+            // `use-unknown-in-catch-callback-variable` from strict-type-checked covers a native
+            // `catch` and `Promise.catch`, and nothing else. RxJS types both of its error entry
+            // points `any` — `catchError(selector: (err: any, ...))` and the observer's
+            // `error: (err: any) => void` — so an unannotated parameter there silently inherits
+            // `any` and carries it into everything derived from it. Annotating the parameter
+            // (`unknown`, or a concrete type where the stream really guarantees one) is the fix.
+            'no-restricted-syntax': [
+                'error',
+                {
+                    // Pinned to `params.0`: the selector's other parameter, `caught: Observable<T>`,
+                    // is typed honestly by RxJS and is the one that must not be annotated by hand.
+                    selector:
+                        "CallExpression[callee.name='catchError'] > ArrowFunctionExpression[params.0.type='Identifier']:not([params.0.typeAnnotation])",
+                    message: 'Annotate the catchError parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+                },
+                {
+                    // Anchored to the observer position — the argument of a `.subscribe()` — rather
+                    // than to the property name, which on its own matches any object that happens to
+                    // carry an `error` callback. Both function forms are covered: the method
+                    // shorthand `error(err) {}` inherits the same `any` as the arrow.
+                    selector:
+                        "CallExpression[callee.property.name='subscribe'] > ObjectExpression > Property[key.name='error'] > :matches(ArrowFunctionExpression, FunctionExpression)[params.0.type='Identifier']:not([params.0.typeAnnotation])",
+                    message:
+                        'Annotate the subscribe error callback parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+                },
+            ],
             'import/no-duplicates': 'error',
             'import/order': [
                 'error',

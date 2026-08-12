@@ -61,7 +61,7 @@ export class AuthService {
             this.checkAuth()
                 .pipe(take(1))
                 .subscribe({
-                    error: error => this.logger.error('Initial auth check failed', error),
+                    error: (error: unknown) => this.logger.error('Initial auth check failed', error),
                 });
             this.initCrossTabSync();
         } else {
@@ -230,7 +230,7 @@ export class AuthService {
             }),
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
-            catchError(error => {
+            catchError((error: unknown) => {
                 this.logger.error('Logout failed', error);
                 // Still clear local state even if server request fails
                 this.userSubject.next(undefined);

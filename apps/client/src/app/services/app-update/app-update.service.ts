@@ -37,8 +37,10 @@ export class AppUpdateService {
                 filter((e): e is NavigationError => e instanceof NavigationError),
             )
             .subscribe(event => {
-                if (isChunkLoadError(event.error)) {
-                    this.notifyChunkLoadFailure(event.error, { url: event.url, source: 'router' });
+                // NavigationError.error is `any` — whatever the failed navigation threw.
+                const error: unknown = event.error;
+                if (isChunkLoadError(error)) {
+                    this.notifyChunkLoadFailure(error, { url: event.url, source: 'router' });
                 }
             });
 

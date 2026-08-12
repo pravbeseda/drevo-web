@@ -77,7 +77,7 @@ export class PictureLightboxService {
             .pipe(
                 switchMap(pictureId =>
                     this.pictureService.getPicture(pictureId).pipe(
-                        catchError(error => {
+                        catchError((error: unknown) => {
                             this.logger.error('Failed to load picture', error);
                             this._isLoading.set(false);
                             this.close();
