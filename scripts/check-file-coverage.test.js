@@ -27,9 +27,9 @@ const writeCoverage = files => {
 
     const byProject = new Map();
     for (const [relativePath, pct] of Object.entries(files)) {
-        const project = relativePath.startsWith('apps/')
-            ? relativePath.split('/').slice(0, 2).join('/')
-            : relativePath.split('/').slice(0, 2).join('/');
+        // Both `apps/client` and `libs/*` are two segments, which is how the gate keys
+        // PROJECT_FLOOR — the fixture derives the project the same way.
+        const project = relativePath.split('/').slice(0, 2).join('/');
         const summary = byProject.get(project) ?? {};
         summary[path.join(repoRoot, relativePath)] = { statements: { pct } };
         byProject.set(project, summary);
@@ -100,7 +100,9 @@ describe('check-file-coverage', () => {
     });
 
     it('passes when nothing was measured at all', () => {
-        const { status, output } = run(fs.mkdtempSync(path.join(os.tmpdir(), 'coverage-gate-empty-')));
+        // No entries means the loop that writes project directories never runs, so this is a
+        // bare coverage root — and it goes through the same helper, so `after` removes it.
+        const { status, output } = run(writeCoverage({}));
 
         assert.equal(status, 0);
         assert.match(output, /checked 0 of 5 projects/);
