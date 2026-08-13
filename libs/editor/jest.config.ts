@@ -3,6 +3,7 @@ export default {
     preset: '../../jest.preset.js',
     setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
     coverageDirectory: '../../coverage/libs/editor',
+    // Aggregate only — the per-file floor is `yarn lint:coverage`. See libs/ui/jest.config.ts.
     coverageThreshold: {
         global: { lines: 69, branches: 55, functions: 55, statements: 69 },
     },

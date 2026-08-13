@@ -16,6 +16,8 @@
         "lint:types:lib": "type-coverage -p libs/core/tsconfig.lib.json --at-least 99.78 && type-coverage -p libs/shared/tsconfig.lib.json --at-least 100 && type-coverage -p libs/ui/tsconfig.lib.json --at-least 100 && type-coverage -p libs/editor/tsconfig.lib.json --at-least 99.73",
         "lint:types:spec": "type-coverage -p libs/core/tsconfig.spec.json --at-least 99.92 && type-coverage -p libs/shared/tsconfig.spec.json --at-least 100 && type-coverage -p libs/ui/tsconfig.spec.json --at-least 99.98 && type-coverage -p libs/editor/tsconfig.spec.json --at-least 99.85",
         "lint:types:detail": "type-coverage -p libs/core/tsconfig.lib.json --detail; type-coverage -p libs/shared/tsconfig.lib.json --detail; type-coverage -p libs/ui/tsconfig.lib.json --detail; type-coverage -p libs/editor/tsconfig.lib.json --detail",
+        "lint:coverage": "node scripts/check-file-coverage.js",
+        "test:scripts": "node --test \"scripts/*.test.js\"",
         "lint:workflows": "node scripts/check-release-workflow.js",
         "knip": "knip",
         "knip:deps": "knip --dependencies",
