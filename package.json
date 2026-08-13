@@ -119,7 +119,7 @@
         "lint-staged": "16",
         "monocart-reporter": "^2.10.0",
         "ng-mocks": "^14.15.0",
-        "nx": "22.6.3",
+        "nx": "22.6.5",
         "prettier": "3.8.1",
         "serve": "^14.2.6",
         "stylelint": "^17.14.1",
