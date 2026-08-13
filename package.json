@@ -92,7 +92,7 @@
         "@nx/web": "22.6.3",
         "@nx/workspace": "22.6.3",
         "@playwright/test": "^1.36.0",
-        "@schematics/angular": "21.2.5",
+        "@schematics/angular": "21.2.20",
         "@sentry/cli": "^3.1.0",
         "@swc-node/register": "1.11.1",
         "@swc/core": "1.15.8",

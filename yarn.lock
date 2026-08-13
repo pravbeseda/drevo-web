@@ -222,7 +222,7 @@
     "@angular-devkit/architect" "0.2102.5"
     rxjs "7.8.2"
 
-"@angular-devkit/core@21.1.2", "@angular-devkit/core@>= 21.0.0 < 22.0.0":
+"@angular-devkit/core@21.1.2":
   version "21.1.2"
   resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-21.1.2.tgz#a5d21f7ac12627882676a44d64fb32d226b61621"
   integrity sha512-0wl5nJlFWsbwfUB2CQeTSmnVQ8AtqqwM3bYPYtXSc+vA8+hzsOAjjDuRnBxZS9zTnqtXKXB1e7M3Iy7KUwh7LA==
@@ -231,6 +231,18 @@
     ajv-formats "3.0.1"
     jsonc-parser "3.3.1"
     picomatch "4.0.3"
+    rxjs "7.8.2"
+    source-map "0.7.6"
+
+"@angular-devkit/core@21.2.20", "@angular-devkit/core@>= 21.0.0 < 22.0.0":
+  version "21.2.20"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-21.2.20.tgz#b226fe120494b5b092479e0131350bd2a1e53d31"
+  integrity sha512-QViRAYFj3jcElWND79hM6y4vTSYhMlJSOjy9nby9JsQaPgetkf039jI2u9Lp+PduE6lysewzf85d1UGsm3eI0A==
+  dependencies:
+    ajv "8.18.0"
+    ajv-formats "3.0.1"
+    jsonc-parser "3.3.1"
+    picomatch "4.0.4"
     rxjs "7.8.2"
     source-map "0.7.6"
 
@@ -246,6 +258,17 @@
     rxjs "7.8.2"
     source-map "0.7.6"
 
+"@angular-devkit/schematics@21.2.20", "@angular-devkit/schematics@>= 21.0.0 < 22.0.0":
+  version "21.2.20"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-21.2.20.tgz#f07d22c34518f0ca4163fde90131c4e62950b008"
+  integrity sha512-XH0BtcqSwHlyLRzvbZccSEe5Hcl7Yex8fXfj3gMVBB5g+KBUm2OGtGN3lDOl5BtrwrZBVnNNXkg0ehNrWzxVgw==
+  dependencies:
+    "@angular-devkit/core" "21.2.20"
+    jsonc-parser "3.3.1"
+    magic-string "0.30.21"
+    ora "9.3.0"
+    rxjs "7.8.2"
+
 "@angular-devkit/schematics@21.2.5":
   version "21.2.5"
   resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-21.2.5.tgz#3016af4d66213b4df5929508a84f44d9adadbc98"
@@ -255,17 +278,6 @@
     jsonc-parser "3.3.1"
     magic-string "0.30.21"
     ora "9.3.0"
-    rxjs "7.8.2"
-
-"@angular-devkit/schematics@>= 21.0.0 < 22.0.0":
-  version "21.1.2"
-  resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-21.1.2.tgz#978e7624568a8e43dbfaf8f36ebaa0c97ddcbd99"
-  integrity sha512-PA3gkiFhHUuXd2XuP7yzKg/9N++bjw+uOl473KwIsMuZwMPhncKa4+mUYBaffDoPqaujZvjfo6mjtCBuiBv05w==
-  dependencies:
-    "@angular-devkit/core" "21.1.2"
-    jsonc-parser "3.3.1"
-    magic-string "0.30.21"
-    ora "9.0.0"
     rxjs "7.8.2"
 
 "@angular-eslint/builder@21.3.1":
@@ -5108,6 +5120,15 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@rtsao/scc/-/scc-1.1.0.tgz#927dd2fae9bc3361403ac2c7a00c32ddce9ad7e8"
   integrity sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==
+
+"@schematics/angular@21.2.20":
+  version "21.2.20"
+  resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-21.2.20.tgz#474308302f9cfe72a16b64613279d48fa246c01a"
+  integrity sha512-D0MFRofD144Gn+LMPgrRQKazv3sNxfB11kbdU19yN8JyXyRqmB3C8/k3lLA/+LyXVeyLwzIKs7Cw/PSzPUaAxA==
+  dependencies:
+    "@angular-devkit/core" "21.2.20"
+    "@angular-devkit/schematics" "21.2.20"
+    jsonc-parser "3.3.1"
 
 "@schematics/angular@21.2.5":
   version "21.2.5"
@@ -12175,21 +12196,6 @@ ora@5.3.0:
     strip-ansi "^6.0.0"
     wcwidth "^1.0.1"
 
-ora@9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/ora/-/ora-9.0.0.tgz#945236f5ce78a024cf4c25df6c46ecd09ab6e685"
-  integrity sha512-m0pg2zscbYgWbqRR6ABga5c3sZdEon7bSgjnlXC64kxtxLOyjRcbbUkLj7HFyy/FTD+P2xdBWu8snGhYI0jc4A==
-  dependencies:
-    chalk "^5.6.2"
-    cli-cursor "^5.0.0"
-    cli-spinners "^3.2.0"
-    is-interactive "^2.0.0"
-    is-unicode-supported "^2.1.0"
-    log-symbols "^7.0.1"
-    stdin-discarder "^0.2.2"
-    string-width "^8.1.0"
-    strip-ansi "^7.1.2"
-
 ora@9.3.0:
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/ora/-/ora-9.3.0.tgz#187c87cc1062350f549f481de32bf91424c2b0e3"
@@ -14221,11 +14227,6 @@ statuses@^2.0.1, statuses@^2.0.2, statuses@~2.0.1, statuses@~2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-2.0.2.tgz#8f75eecef765b5e1cfcdc080da59409ed424e382"
   integrity sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==
-
-stdin-discarder@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/stdin-discarder/-/stdin-discarder-0.2.2.tgz#390037f44c4ae1a1ae535c5fe38dc3aba8d997be"
-  integrity sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==
 
 stdin-discarder@^0.3.1:
   version "0.3.1"
