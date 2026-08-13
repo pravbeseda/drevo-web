@@ -53,6 +53,9 @@ jobs:
             - name: Per-file coverage floor
               run: yarn lint:coverage
 
+            - name: Tests for the gate scripts
+              run: yarn test:scripts
+
             - name: Release workflow invariants
               run: yarn lint:workflows
 
