@@ -135,7 +135,7 @@ export class HttpErrorMapperService {
     /** `{ errors: ... }` payload, in either the flat-list or per-field shape. */
     private readErrorsBag(error: unknown): unknown {
         if (typeof error === 'object' && error && 'errors' in error) {
-            return (error as { errors: unknown }).errors;
+            return error.errors;
         }
         return undefined;
     }

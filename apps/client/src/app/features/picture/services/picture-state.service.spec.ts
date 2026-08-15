@@ -40,7 +40,7 @@ describe('PicturesStateService', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         spectator = createService();
-        pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+        pictureService = spectator.inject(PictureService);
     });
 
     afterEach(() => {

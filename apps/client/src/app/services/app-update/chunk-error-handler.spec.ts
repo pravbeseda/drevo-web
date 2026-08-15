@@ -21,7 +21,7 @@ describe('ChunkErrorHandler', () => {
 
     beforeEach(() => {
         spectator = createService();
-        appUpdateService = spectator.inject(AppUpdateService) as jest.Mocked<AppUpdateService>;
+        appUpdateService = spectator.inject(AppUpdateService);
         superHandleSpy = jest.spyOn(ErrorHandler.prototype, 'handleError').mockImplementation(() => undefined);
     });
 

@@ -14,7 +14,7 @@ describe('LinksService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        linksApiService = spectator.inject(LinksApiService) as jest.Mocked<LinksApiService>;
+        linksApiService = spectator.inject(LinksApiService);
     });
 
     it('should be created', () => {

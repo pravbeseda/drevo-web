@@ -613,22 +613,20 @@ describe('ArticleApiService', () => {
         });
 
         it('should extract data from response wrapper', done => {
-            spectator.service
-                .moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto })
-                .subscribe(result => {
-                    expect(result.versionId).toBe(200);
-                    expect(result.articleId).toBe(1);
-                    expect(result.approved).toBe(1);
-                    expect(result.comment).toBe('Approved');
-                    done();
-                });
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 }).subscribe(result => {
+                expect(result.versionId).toBe(200);
+                expect(result.articleId).toBe(1);
+                expect(result.approved).toBe(1);
+                expect(result.comment).toBe('Approved');
+                done();
+            });
 
             const req = httpController.expectOne('/api/articles/moderate');
             req.flush(mockModerationResponse);
         });
 
         it('should throw when response.data is undefined', done => {
-            spectator.service.moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto }).subscribe({
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 }).subscribe({
                 error: (err: Error) => {
                     expect(err.message).toContain('Response data is undefined');
                     done();
@@ -640,7 +638,7 @@ describe('ArticleApiService', () => {
         });
 
         it('should propagate HTTP 403 errors', done => {
-            spectator.service.moderateVersion({ versionId: 200, approved: 1 as ApprovalStatusDto }).subscribe({
+            spectator.service.moderateVersion({ versionId: 200, approved: 1 }).subscribe({
                 error: (err: HttpErrorResponse) => {
                     expect(err.status).toBe(403);
                     done();

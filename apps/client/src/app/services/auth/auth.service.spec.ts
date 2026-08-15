@@ -72,7 +72,7 @@ describe('AuthService', () => {
         };
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
-        csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
+        csrfService = spectator.inject(CsrfService);
 
         // Default mock for CSRF
         csrfService.getCsrfToken.mockReturnValue(of('test-csrf-token'));
@@ -567,7 +567,7 @@ describe('AuthService', () => {
         let storageService: jest.Mocked<StorageService>;
 
         beforeEach(() => {
-            storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+            storageService = spectator.inject(StorageService);
             storageService.setString.mockReturnValue(true);
         });
 

@@ -125,7 +125,7 @@ describe('PictureDetailComponent', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             spectator = createComponent();
-            pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+            pictureService = spectator.inject(PictureService);
             pictureService.getPictureArticles.mockReturnValue(of(mockArticles));
             pictureService.getPicturePending.mockReturnValue(of([]));
         });
@@ -482,7 +482,7 @@ describe('PictureDetailComponent', () => {
                 return Object.assign([file], {
                     item: (i: number) => (i === 0 ? file : null),
                     length: 1,
-                }) as unknown as FileList;
+                });
             }
 
             function triggerFileSelect(s: Spectator<PictureDetailComponent>, file: File): void {
@@ -680,7 +680,7 @@ describe('PictureDetailComponent', () => {
             let routerNavigateSpy: jest.SpyInstance;
 
             beforeEach(() => {
-                confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+                confirmationService = spectator.inject(ConfirmationService);
                 notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
                 routerNavigateSpy = jest.spyOn(spectator.inject(Router), 'navigate').mockResolvedValue(true);
             });
@@ -975,7 +975,7 @@ describe('PictureDetailComponent', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             spectator = createComponent();
-            pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+            pictureService = spectator.inject(PictureService);
         });
 
         it('should show approve and reject buttons for foreign pending', () => {

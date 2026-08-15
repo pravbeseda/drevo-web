@@ -20,7 +20,7 @@ describe('DraftEditorService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        draftStorage = spectator.inject(DraftStorageService) as unknown as MockDraftStorageService;
+        draftStorage = spectator.inject(DraftStorageService);
         loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
     });
 

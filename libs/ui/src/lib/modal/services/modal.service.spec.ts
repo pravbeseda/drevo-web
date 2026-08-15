@@ -29,7 +29,7 @@ describe('ModalService', () => {
         } as unknown as jest.Mocked<MatDialogRef<ModalContainerComponent>>;
 
         spectator = createService();
-        dialogMock = spectator.inject(MatDialog) as jest.Mocked<MatDialog>;
+        dialogMock = spectator.inject(MatDialog);
         dialogMock.open.mockReturnValue(dialogRefMock);
     });
 

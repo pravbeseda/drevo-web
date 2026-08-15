@@ -18,7 +18,7 @@ describe('FootnoteClickHandler', () => {
     beforeEach(() => {
         window.history.replaceState({}, '', '/articles/1');
         spectator = createService();
-        modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+        modalService = spectator.inject(ModalService);
         host = document.createElement('div');
     });
 

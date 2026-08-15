@@ -28,8 +28,8 @@ describe('InworkService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        inworkApiService = spectator.inject(InworkApiService) as jest.Mocked<InworkApiService>;
-        authService = spectator.inject(AuthService) as jest.Mocked<AuthService>;
+        inworkApiService = spectator.inject(InworkApiService);
+        authService = spectator.inject(AuthService);
         Object.defineProperty(authService, 'currentUser', { get: () => mockUser, configurable: true });
     });
 

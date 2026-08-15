@@ -15,7 +15,7 @@ describe('ReviewService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        api = spectator.inject(ReviewApiService) as jest.Mocked<ReviewApiService>;
+        api = spectator.inject(ReviewApiService);
     });
 
     describe('getSummary', () => {

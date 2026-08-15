@@ -16,13 +16,7 @@ import {
 import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
 
 export type HistoryFilter =
-    | 'all'
-    | 'unchecked'
-    | 'unfinished'
-    | 'unmarked'
-    | 'outside_dictionaries'
-    | 'required'
-    | 'my';
+    'all' | 'unchecked' | 'unfinished' | 'unmarked' | 'outside_dictionaries' | 'required' | 'my';
 
 export type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }

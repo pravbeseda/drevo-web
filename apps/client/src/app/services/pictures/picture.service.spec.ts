@@ -21,7 +21,7 @@ describe('PictureService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        pictureApiService = spectator.inject(PictureApiService) as jest.Mocked<PictureApiService>;
+        pictureApiService = spectator.inject(PictureApiService);
     });
 
     const mockPictureDto: PictureDto = {
