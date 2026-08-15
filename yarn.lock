@@ -1892,9 +1892,9 @@
     "@marijn/find-cluster-break" "^1.0.0"
 
 "@codemirror/view@^6.17.0", "@codemirror/view@^6.23.0", "@codemirror/view@^6.27.0", "@codemirror/view@^6.37.0", "@codemirror/view@^6.42.0", "@codemirror/view@^6.43.7":
-  version "6.43.7"
-  resolved "https://registry.yarnpkg.com/@codemirror/view/-/view-6.43.7.tgz#21fd71e9b395af6fe8282a6ef8624258ff508467"
-  integrity sha512-FZsExxkoxnAN+d9TgqXLg5g4A1oQwzX9WlkOT5i2PKkcW7xx3Bmu0vs90g6fo9Mpdsb/l96dnAraQ8932aO4/g==
+  version "6.43.8"
+  resolved "https://registry.yarnpkg.com/@codemirror/view/-/view-6.43.8.tgz#c211dc77aca139ecc51aff7712c0c4a32cc5f74a"
+  integrity sha512-qtItTDssZ/5GFfi94hrILu9j/VUeFPDPkhovEfmWFj2ipTxnzPB8DdHgfbb8HYTzLTYhrndKmyQxXUz/PDLenw==
   dependencies:
     "@codemirror/state" "^6.7.0"
     crelt "^1.0.6"
@@ -5376,55 +5376,35 @@
     "@angular-devkit/schematics" "21.2.21"
     jsonc-parser "3.3.1"
 
-"@sentry-internal/browser-utils@10.38.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/browser-utils/-/browser-utils-10.38.0.tgz#576780062808bd3bae21476393f50caf9acbe12f"
-  integrity sha512-UOJtYmdcxHCcV0NPfXFff/a95iXl/E0EhuQ1y0uE0BuZDMupWSF5t2BgC4HaE5Aw3RTjDF3XkSHWoIF6ohy7eA==
-  dependencies:
-    "@sentry/core" "10.38.0"
-
-"@sentry-internal/feedback@10.38.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/feedback/-/feedback-10.38.0.tgz#c15b00513cddfbe839dbb86684115ec4860abd58"
-  integrity sha512-JXneg9zRftyfy1Fyfc39bBlF/Qd8g4UDublFFkVvdc1S6JQPlK+P6q22DKz3Pc8w3ySby+xlIq/eTu9Pzqi4KA==
-  dependencies:
-    "@sentry/core" "10.38.0"
-
-"@sentry-internal/replay-canvas@10.38.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/replay-canvas/-/replay-canvas-10.38.0.tgz#40fc937e2d05f9819b68c4c5d4d69e789c324823"
-  integrity sha512-OXWM9jEqNYh4VTvrMu7v+z1anz+QKQ/fZXIZdsO7JTT2lGNZe58UUMeoq386M+Saxen8F9SUH7yTORy/8KI5qw==
-  dependencies:
-    "@sentry-internal/replay" "10.38.0"
-    "@sentry/core" "10.38.0"
-
-"@sentry-internal/replay@10.38.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/replay/-/replay-10.38.0.tgz#b901acf514265bf882e3e4ad849e6d9dd8276633"
-  integrity sha512-YWIkL6/dnaiQyFiZXJ/nN+NXGv/15z45ia86bE/TMq01CubX/DUOilgsFz0pk2v/pg3tp/U2MskLO9Hz0cnqeg==
-  dependencies:
-    "@sentry-internal/browser-utils" "10.38.0"
-    "@sentry/core" "10.38.0"
-
 "@sentry/angular@^10.34.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry/angular/-/angular-10.38.0.tgz#738645f0d06397f8a40771af204e738727123e08"
-  integrity sha512-Ncr4dzE1QUqrf1yaKovUrtvsvOH+rhV8Gu0ZExJyhw8NnqlRLypV/p8XwKgJwged36gFzzbeuW+cGVRXwua+yg==
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/angular/-/angular-10.70.0.tgz#793972b171c0b8efbba6633f50437e28e253ef2a"
+  integrity sha512-jYC6cgdcoLqgze+6IiWs2mCrL7c0VV7Chd4+IuQ0S+HnNTHkGfFRefEEG8+jt4Aus+9noF9TwXps6lUU7bKVQw==
   dependencies:
-    "@sentry/browser" "10.38.0"
-    "@sentry/core" "10.38.0"
+    "@sentry/browser" "10.70.0"
+    "@sentry/conventions" "^0.16.0"
+    "@sentry/core" "10.70.0"
     tslib "^2.4.1"
 
-"@sentry/browser@10.38.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-10.38.0.tgz#2409e3982756ae8a0b3e46c701a51b63d4ed84cc"
-  integrity sha512-3phzp1YX4wcQr9mocGWKbjv0jwtuoDBv7+Y6Yfrys/kwyaL84mDLjjQhRf4gL5SX7JdYkhBp4WaiNlR0UC4kTA==
+"@sentry/browser-utils@10.70.0":
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/browser-utils/-/browser-utils-10.70.0.tgz#277a78d6162bd5dfca9846c727598471e7dc0186"
+  integrity sha512-IvjhafF5NFXrPCg5EHbAPGDwIhHxgUcLlHTklZ3DAdA6ky88BJYMfevbcnOEmgavf4nylhCaquRUFNB5+szj+A==
   dependencies:
-    "@sentry-internal/browser-utils" "10.38.0"
-    "@sentry-internal/feedback" "10.38.0"
-    "@sentry-internal/replay" "10.38.0"
-    "@sentry-internal/replay-canvas" "10.38.0"
-    "@sentry/core" "10.38.0"
+    "@sentry/conventions" "^0.16.0"
+    "@sentry/core" "10.70.0"
+
+"@sentry/browser@10.70.0":
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-10.70.0.tgz#0305d0a1a644d4878b31a83934c656a0ce5f84c6"
+  integrity sha512-IK6+J+8H06tZe+A8L37TT5ZxxwNtyQatW8zl5RYYJ/e9CsjrM8fPi8I1OT7uquTw8UtjqFHt7bEef/Vy63ksPg==
+  dependencies:
+    "@sentry/browser-utils" "10.70.0"
+    "@sentry/conventions" "^0.16.0"
+    "@sentry/core" "10.70.0"
+    "@sentry/feedback" "10.70.0"
+    "@sentry/replay" "10.70.0"
+    "@sentry/replay-canvas" "10.70.0"
 
 "@sentry/cli-darwin@3.1.0":
   version "3.1.0"
@@ -5485,10 +5465,40 @@
     "@sentry/cli-win32-i686" "3.1.0"
     "@sentry/cli-win32-x64" "3.1.0"
 
-"@sentry/core@10.38.0":
-  version "10.38.0"
-  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-10.38.0.tgz#391f2535fde084e3eff4b1d2d634aa5619629b34"
-  integrity sha512-1pubWDZE5y5HZEPMAZERP4fVl2NH3Ihp1A+vMoVkb3Qc66Diqj1WierAnStlZP7tCx0TBa0dK85GTW/ZFYyB9g==
+"@sentry/conventions@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/conventions/-/conventions-0.16.0.tgz#3b58d15714cf44dca1518496c00749eec5525009"
+  integrity sha512-fO9PLmHdVURcSPUpWCItWAtgKiMwGdJHbovoSEyLplX5sxs2ugvI4CBPTrkkgqhObnZOD0CnWBKDzSVQYBKEyQ==
+
+"@sentry/core@10.70.0":
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-10.70.0.tgz#96eb9f2beab7d4b3b10c1b59ec7833e4dfe5fb73"
+  integrity sha512-ozhCTDqg89oB4XmWfAwuHshABpvT7AkRpaPnogopPfMAaI61G1t8EKCJ4W7aum8JSBonlfyjPCyW5oYZFm0KvA==
+  dependencies:
+    "@sentry/conventions" "^0.16.0"
+
+"@sentry/feedback@10.70.0":
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/feedback/-/feedback-10.70.0.tgz#72b3f390f296982f9822aa372686b777ab955f17"
+  integrity sha512-6VQn2ETJjHkk4QQDdx/587/JDfXsk3yBTLZ3UZOMtBVrkmwgk+1FJZ8ULJ3ud1xZcuh2icunIkc7tGVv2axdnw==
+  dependencies:
+    "@sentry/core" "10.70.0"
+
+"@sentry/replay-canvas@10.70.0":
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/replay-canvas/-/replay-canvas-10.70.0.tgz#16a3a57ea36bab248925b6d0ca709af7c95012c6"
+  integrity sha512-irzpw22bK5CF3jbecDa0gBUcfjv7tgeUoLAvtIfeHOP5ajmf3o4Cp99a9RQqkfgvkcMeRZBUwE91SQhp6Ank+w==
+  dependencies:
+    "@sentry/core" "10.70.0"
+    "@sentry/replay" "10.70.0"
+
+"@sentry/replay@10.70.0":
+  version "10.70.0"
+  resolved "https://registry.yarnpkg.com/@sentry/replay/-/replay-10.70.0.tgz#2138a596a152f07e5076f300ffbeba0bab03817e"
+  integrity sha512-xMnSGzJn9Xd29rYd32lkx/gFW+5mtgqADJ2FiZvis0MBGZuDlNRwPn0/Cs1xA3JNXKV3NGfhdmmvs90w4dHSmw==
+  dependencies:
+    "@sentry/browser-utils" "10.70.0"
+    "@sentry/core" "10.70.0"
 
 "@sigstore/bundle@^4.0.0":
   version "4.0.0"
@@ -8238,9 +8248,9 @@ detect-port@^1.5.1:
     debug "4"
 
 dexie@^4.2.1:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.3.0.tgz#5b6b9e3ed4e48ba1c36442e6a7d07b86335e2df5"
-  integrity sha512-5EeoQpJvMKHe6zWt/FSIIuRa3CWlZeIl6zKXt+Lz7BU6RoRRLgX9dZEynRfXrkLcldKYCBiz7xekTEylnie1Ug==
+  version "4.4.4"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.4.4.tgz#ed75e818e6cb4a131a6956095f96f6669cfab464"
+  integrity sha512-jIwsYI8Os2hgnqc6O49YwFDKGc5v5QjGx0wPVp543ip1F53VFAKMLthV2pQosQcVTv3eAskTWYspOx195PM0FQ==
 
 diff-match-patch@^1.0.5:
   version "1.0.5"
