@@ -148,10 +148,10 @@ describe('ArticleHistoryService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-        inworkService = spectator.inject(InworkService) as jest.Mocked<InworkService>;
-        storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
-        reviewService = spectator.inject(ReviewService) as jest.Mocked<ReviewService>;
+        articleService = spectator.inject(ArticleService);
+        inworkService = spectator.inject(InworkService);
+        storageService = spectator.inject(StorageService);
+        reviewService = spectator.inject(ReviewService);
         inworkService.getInworkList.mockReturnValue(of([]));
         inworkService.clearEditing.mockReturnValue(of(undefined));
         reviewService.getSummary.mockReturnValue(of([]));

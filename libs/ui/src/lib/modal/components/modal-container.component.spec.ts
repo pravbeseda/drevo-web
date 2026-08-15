@@ -24,7 +24,7 @@ describe('ModalContainerComponent', () => {
     let dialogRef: { close: jest.Mock };
 
     const createComponent = createComponentFactory<TestContainerComponent>({
-        component: ModalContainerComponent as Type<TestContainerComponent>,
+        component: ModalContainerComponent,
         providers: [mockLoggerProvider()],
     });
 

@@ -32,7 +32,7 @@ describe('PictureLightboxService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+        pictureService = spectator.inject(PictureService);
         location = spectator.inject(Location) as jest.Mocked<Location>;
         location.path.mockReturnValue('/articles/1');
     });

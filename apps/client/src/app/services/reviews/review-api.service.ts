@@ -90,9 +90,9 @@ export class ReviewApiService {
      */
     setReview(request: SetReviewRequestDto): Observable<readonly ReviewDto[]> {
         return this.http
-            .post<
-                ApiResponse<readonly ReviewDto[]>
-            >(`${this.apiUrl}/api/reviews/set`, request, { withCredentials: true })
+            .post<ApiResponse<readonly ReviewDto[]>>(`${this.apiUrl}/api/reviews/set`, request, {
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -109,9 +109,9 @@ export class ReviewApiService {
      */
     deleteReview(request: DeleteReviewRequestDto): Observable<readonly ReviewDto[]> {
         return this.http
-            .post<
-                ApiResponse<readonly ReviewDto[]>
-            >(`${this.apiUrl}/api/reviews/delete`, request, { withCredentials: true })
+            .post<ApiResponse<readonly ReviewDto[]>>(`${this.apiUrl}/api/reviews/delete`, request, {
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

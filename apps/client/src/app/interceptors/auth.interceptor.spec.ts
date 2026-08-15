@@ -36,10 +36,10 @@ describe('AuthInterceptor', () => {
 
     beforeEach(() => {
         spectator = createService();
-        authService = spectator.inject(AuthService) as jest.Mocked<AuthService>;
-        csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
+        authService = spectator.inject(AuthService);
+        csrfService = spectator.inject(CsrfService);
         loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
-        mockHandler = createMockHandler() as jest.Mocked<HttpHandler>;
+        mockHandler = createMockHandler();
 
         // Default mocks
         authOperationInProgress$ = new BehaviorSubject<boolean>(false);
@@ -379,7 +379,7 @@ describe('AuthInterceptor', () => {
                 handle: jest.fn().mockReturnValue(throwError(() => requestError)),
             };
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: unknown) => {
                     expect(error).toBe(requestError);
                     expect(loggerService.mockLogger.error).not.toHaveBeenCalledWith(
@@ -448,7 +448,7 @@ describe('AuthInterceptor', () => {
                 errorCode: 'CSRF_VALIDATION_FAILED',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     // Should NOT retry - error should be propagated
                     expect(error.status).toBe(403);
@@ -465,7 +465,7 @@ describe('AuthInterceptor', () => {
                 errorCode: 'ACCESS_DENIED',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
                     expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
@@ -480,7 +480,7 @@ describe('AuthInterceptor', () => {
                 errorCode: 'CSRF_VALIDATION_FAILED',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
                     expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
@@ -500,7 +500,7 @@ describe('AuthInterceptor', () => {
             };
             csrfService.refreshCsrfToken.mockReturnValue(throwError(() => new Error('Refresh failed')));
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
                     expect(readApiErrorBody(error)?.errorCode).toBe('CSRF_VALIDATION_FAILED');
@@ -590,7 +590,7 @@ describe('AuthInterceptor', () => {
                 message: 'Unauthorized',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     done();
@@ -604,7 +604,7 @@ describe('AuthInterceptor', () => {
                 message: 'Server error',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(500);
                     done();
@@ -616,7 +616,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('GET', 'http://test-api/api/resource');
             const handler = createErrorHandler(0);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(0);
                     done();
@@ -634,7 +634,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('GET', 'http://test-api/api/articles');
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).toHaveBeenCalled();
@@ -650,7 +650,7 @@ describe('AuthInterceptor', () => {
             });
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).not.toHaveBeenCalled();
@@ -663,7 +663,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('GET', 'http://test-api/api/auth/me');
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).not.toHaveBeenCalled();
@@ -676,7 +676,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('POST', 'http://test-api/api/auth/logout', {});
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).not.toHaveBeenCalled();

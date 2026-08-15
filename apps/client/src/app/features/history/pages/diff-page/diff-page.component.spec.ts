@@ -68,7 +68,7 @@ describe('DiffPageComponent', () => {
 
         beforeEach(() => {
             spectator = createComponent();
-            storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+            storageService = spectator.inject(StorageService);
         });
 
         it('should create', () => {

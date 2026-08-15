@@ -74,10 +74,10 @@ describe('ArticleEditComponent', () => {
         mockInwork.markEditing.mockClear().mockReturnValue(of(undefined));
         mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
         spectator = createComponent();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService);
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
-        router = spectator.inject(Router) as jest.Mocked<Router>;
-        confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+        router = spectator.inject(Router);
+        confirmationService = spectator.inject(ConfirmationService);
     });
 
     it('should create', () => {
@@ -118,7 +118,7 @@ describe('ArticleEditComponent', () => {
             confirmationService.open.mockReturnValue(of('restore'));
 
             spectator = createComponent();
-            confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            confirmationService = spectator.inject(ConfirmationService);
             spectator.detectChanges();
 
             await mockDraftEditorService.getDraft.mock.results[0].value;
@@ -137,7 +137,7 @@ describe('ArticleEditComponent', () => {
             confirmationService.open.mockReturnValue(of('restore'));
 
             spectator = createComponent();
-            confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            confirmationService = spectator.inject(ConfirmationService);
             spectator.detectChanges();
 
             await mockDraftEditorService.getDraft.mock.results[0].value;
@@ -153,7 +153,7 @@ describe('ArticleEditComponent', () => {
             mockDraftEditorService.hasActiveSession.mockReturnValue(true);
 
             spectator = createComponent();
-            confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            confirmationService = spectator.inject(ConfirmationService);
             spectator.detectChanges();
 
             await mockDraftEditorService.getDraft.mock.results[0].value;
@@ -168,8 +168,8 @@ describe('ArticleEditComponent', () => {
             confirmationService.open.mockReturnValue(of('restore'));
 
             spectator = createComponent();
-            articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-            confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+            articleService = spectator.inject(ArticleService);
+            confirmationService = spectator.inject(ConfirmationService);
             articleService.saveArticleVersion.mockReturnValue(
                 of({
                     articleId: 123,
@@ -799,9 +799,9 @@ describe('ArticleEditComponent in create mode', () => {
         mockInwork.markEditing.mockClear().mockReturnValue(of(undefined));
         mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
         spectator = createComponent();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService);
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
-        router = spectator.inject(Router) as jest.Mocked<Router>;
+        router = spectator.inject(Router);
         articleService.createArticle.mockReturnValue(of(mockCreateResult));
     });
 

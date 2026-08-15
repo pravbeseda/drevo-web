@@ -35,7 +35,7 @@ describe('InworkItemComponent', () => {
                 item: createInworkItem(),
             },
         });
-        confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+        confirmationService = spectator.inject(ConfirmationService);
     });
 
     it('should create', () => {

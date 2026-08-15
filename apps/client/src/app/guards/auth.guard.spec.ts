@@ -1,5 +1,5 @@
 import { PLATFORM_ID, EnvironmentInjector, runInInjectionContext, Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { BehaviorSubject, isObservable, firstValueFrom } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
@@ -46,7 +46,7 @@ describe('authGuard in browser', () => {
         };
 
         routerMock = {
-            createUrlTree: jest.fn().mockReturnValue({} as UrlTree),
+            createUrlTree: jest.fn().mockReturnValue({}),
         };
 
         mockRoute = {} as ActivatedRouteSnapshot;
@@ -158,7 +158,7 @@ describe('authGuard on server (SSR)', () => {
         };
 
         routerMock = {
-            createUrlTree: jest.fn().mockReturnValue({} as UrlTree),
+            createUrlTree: jest.fn().mockReturnValue({}),
         };
 
         spectator = createService();
