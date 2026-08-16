@@ -4,7 +4,7 @@ import { environment } from '../environments/environment';
 import { ChunkErrorHandler } from './services/app-update/chunk-error-handler';
 import { AuthService } from './services/auth/auth.service';
 import { PageTitleStrategy } from './services/page-title.strategy';
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ApplicationConfig, ErrorHandler, inject, provideZonelessChangeDetection } from '@angular/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy, withComponentInputBinding } from '@angular/router';
@@ -30,7 +30,7 @@ export const appConfig: ApplicationConfig = {
         provideClientHydration(withEventReplay()),
         provideZonelessChangeDetection(),
         provideRouter(appRoutes, withComponentInputBinding()),
-        provideHttpClient(withFetch(), withInterceptorsFromDi()),
+        provideHttpClient(withInterceptorsFromDi()),
         authInterceptorProvider,
         errorNotificationInterceptorProvider,
         { provide: ErrorHandler, useClass: ChunkErrorHandler },
