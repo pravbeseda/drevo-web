@@ -13,8 +13,8 @@
         "lint:styles": "stylelint \"{apps,libs}/**/*.scss\"",
         "lint:styles:fix": "stylelint \"{apps,libs}/**/*.scss\" --fix",
         "lint:types": "yarn lint:types:lib && yarn lint:types:spec",
-        "lint:types:lib": "type-coverage -p libs/core/tsconfig.lib.json --at-least 99.78 && type-coverage -p libs/shared/tsconfig.lib.json --at-least 100 && type-coverage -p libs/ui/tsconfig.lib.json --at-least 100 && type-coverage -p libs/editor/tsconfig.lib.json --at-least 99.73",
-        "lint:types:spec": "type-coverage -p libs/core/tsconfig.spec.json --at-least 99.92 && type-coverage -p libs/shared/tsconfig.spec.json --at-least 100 && type-coverage -p libs/ui/tsconfig.spec.json --at-least 99.98 && type-coverage -p libs/editor/tsconfig.spec.json --at-least 99.85",
+        "lint:types:lib": "type-coverage -p libs/core/tsconfig.lib.json --at-least 99.90 && type-coverage -p libs/shared/tsconfig.lib.json --at-least 100 && type-coverage -p libs/ui/tsconfig.lib.json --at-least 99.94 && type-coverage -p libs/editor/tsconfig.lib.json --at-least 99.88",
+        "lint:types:spec": "type-coverage -p libs/core/tsconfig.spec.json --at-least 99.95 && type-coverage -p libs/shared/tsconfig.spec.json --at-least 100 && type-coverage -p libs/ui/tsconfig.spec.json --at-least 99.95 && type-coverage -p libs/editor/tsconfig.spec.json --at-least 99.90",
         "lint:types:detail": "type-coverage -p libs/core/tsconfig.lib.json --detail; type-coverage -p libs/shared/tsconfig.lib.json --detail; type-coverage -p libs/ui/tsconfig.lib.json --detail; type-coverage -p libs/editor/tsconfig.lib.json --detail",
         "lint:coverage": "node scripts/check-file-coverage.js",
         "test:scripts": "node --test \"scripts/*.test.js\"",
@@ -129,7 +129,7 @@
         "ts-node": "10.9.2",
         "tslib": "^2.3.0",
         "type-coverage": "^2.30.1",
-        "typescript": "5.9.3",
+        "typescript": "6.0.3",
         "typescript-eslint": "^8.33.1",
         "wait-on": "^9.0.4",
         "zone.js": "0.16.2"
@@ -138,6 +138,6 @@
         "eslint-plugin-sonarjs/typescript": "The plugin accepts >=5 <6.1.0 and would otherwise install its own TypeScript 6.x. Its type-aware rules must run on the same compiler as the build, or lint results silently diverge between CI, the editor's TS server and `yarn build`. Scoped to the plugin on purpose: an unscoped `typescript` pin would apply to Angular, typescript-eslint and jest too, and would then block the next TypeScript bump from somewhere unrelated to linting. Keep this in step with `devDependencies.typescript`."
     },
     "resolutions": {
-        "eslint-plugin-sonarjs/typescript": "5.9.3"
+        "eslint-plugin-sonarjs/typescript": "6.0.3"
     }
 }
