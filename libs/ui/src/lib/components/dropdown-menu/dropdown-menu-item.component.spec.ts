@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CdkMenuItem } from '@angular/cdk/menu';
 import { DropdownMenuComponent } from './dropdown-menu.component';
@@ -11,8 +11,8 @@ import { DropdownMenuItemComponent } from './dropdown-menu-item.component';
         <ui-dropdown-menu>
             <ui-dropdown-menu-item
                 #item
-                [icon]="icon"
-                [disabled]="disabled"
+                [icon]="icon()"
+                [disabled]="disabled()"
             >
                 Test Label
             </ui-dropdown-menu-item>
@@ -20,8 +20,8 @@ import { DropdownMenuItemComponent } from './dropdown-menu-item.component';
     `,
 })
 class TestHostComponent {
-    icon?: string;
-    disabled = false;
+    readonly icon = signal<string | undefined>(undefined);
+    readonly disabled = signal(false);
 }
 
 describe('DropdownMenuItemComponent', () => {
@@ -49,7 +49,7 @@ describe('DropdownMenuItemComponent', () => {
     });
 
     it('should render icon when icon input is set', () => {
-        spectator.component.icon = 'download';
+        spectator.component.icon.set('download');
         spectator.detectChanges();
 
         const icon = spectator.query('ui-icon');
@@ -57,7 +57,7 @@ describe('DropdownMenuItemComponent', () => {
     });
 
     it('should sync disabled state to CdkMenuItem', () => {
-        spectator.component.disabled = true;
+        spectator.component.disabled.set(true);
         spectator.detectChanges();
 
         const cdkMenuItem = spectator.query(CdkMenuItem)!;
