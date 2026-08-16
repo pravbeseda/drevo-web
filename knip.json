@@ -23,6 +23,7 @@
     ],
     "ignoreDependencies": [
         "@angular/cli",
+        "@angular/platform-browser-dynamic",
         "@angular/language-service",
         "@nx/workspace",
         "ts-node",
