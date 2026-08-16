@@ -4,7 +4,7 @@
         "rootDir": ".",
         "sourceMap": true,
         "declaration": false,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "strict": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
@@ -16,15 +16,14 @@
         "lib": ["es2022", "dom"],
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
-        "baseUrl": ".",
         "paths": {
-            "@angular/material/*": ["node_modules/@angular/material/types/*.d.ts"],
-            "@drevo-web/editor": ["libs/editor/src/index.ts"],
-            "@drevo-web/shared": ["libs/shared/src/index.ts"],
-            "@drevo-web/shared/testing": ["libs/shared/src/testing.ts"],
-            "@drevo-web/ui": ["libs/ui/src/index.ts"],
-            "@drevo-web/core": ["libs/core/src/index.ts"],
-            "@drevo-web/core/testing": ["libs/core/src/testing.ts"]
+            "@angular/material/*": ["./node_modules/@angular/material/types/*.d.ts"],
+            "@drevo-web/editor": ["./libs/editor/src/index.ts"],
+            "@drevo-web/shared": ["./libs/shared/src/index.ts"],
+            "@drevo-web/shared/testing": ["./libs/shared/src/testing.ts"],
+            "@drevo-web/ui": ["./libs/ui/src/index.ts"],
+            "@drevo-web/core": ["./libs/core/src/index.ts"],
+            "@drevo-web/core/testing": ["./libs/core/src/testing.ts"]
         }
     },
     "exclude": ["node_modules", "tmp"]

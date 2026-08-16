@@ -53,14 +53,19 @@ export function sanitizeLogData(value: unknown, depth = 0): unknown {
         };
     }
 
-    // Handle arrays
+    // Handle arrays. `Array.isArray` narrows `unknown` to `any[]`, so the element type has to be
+    // put back by hand — otherwise every element travels on as `any`.
     if (Array.isArray(value)) {
-        return value.map(item => sanitizeLogData(item, depth + 1));
+        const items: unknown[] = value;
+
+        return items.map(item => sanitizeLogData(item, depth + 1));
     }
 
-    // Handle objects
+    // Handle objects. `Object.entries` infers its value type as `any` for a loose object, so the
+    // entries are annotated for the same reason as the array branch above.
     const sanitized: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value)) {
+    const entries: readonly (readonly [string, unknown])[] = Object.entries(value);
+    for (const [key, val] of entries) {
         if (isSensitiveKey(key)) {
             sanitized[key] = REDACTED;
         } else {
