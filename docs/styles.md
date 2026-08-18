@@ -21,12 +21,12 @@ The palette sources and the image overlays are the exceptions, listed as overrid
 
 All size tokens live in `libs/ui/src/lib/styles/_tokens.scss`:
 
-- **Breakpoints**: `$breakpoint-tablet: 768px`, `$breakpoint-desktop: 1024px` (also in `@drevo-web/ui` → `breakpoints`)
-- **Layout**: `$header-height: 50px`, `$sidebar-width: 260px`, `$sidebar-collapsed-width: 50px`
+- **Breakpoints**: `$breakpoint-tablet: 768px`, `$breakpoint-desktop: 1024px` — the values are repeated deliberately, because `@drevo-web/ui` → `breakpoints` has to agree with them
+- **Layout**: `$header-height`, `$sidebar-width`, `$sidebar-collapsed-width` — read the current values from `_tokens.scss`; they are not restated here, so they cannot go stale here
 
 Never define local CSS custom properties for sizes in component styles — add a new token to `_tokens.scss`.
 
-Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_modal.scss`; set `width`/`maxWidth`/`height` in `ModalConfig` (`maxHeight` is fixed at `90vh`), and `border: false` for a borderless modal.
+Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_modal.scss`. `ModalConfig` takes `width`, `maxWidth`, `height`, `border: false` for a borderless modal and `disableClose`; `maxHeight` is not among them — `ModalService` sets it from `position` alone, `90vh` for a centered dialog and `66.67vh` for a bottom sheet. `position: 'bottom'` also changes the width defaults (`100vw` instead of `500px` / `90vw`) and adds the `ui-modal-bottom-sheet` class, so size a bottom sheet against those, not against the centered ones.
 
 ## UI library (`libs/ui`)
 
