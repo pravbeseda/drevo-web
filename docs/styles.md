@@ -26,7 +26,7 @@ All size tokens live in `libs/ui/src/lib/styles/_tokens.scss`:
 
 Never define local CSS custom properties for sizes in component styles — add a new token to `_tokens.scss`.
 
-Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_modal.scss`. `ModalConfig` takes `width`, `maxWidth`, `height`, `border: false` for a borderless modal and `disableClose`; `maxHeight` is not among them — `ModalService` sets it from `position` alone, `90vh` for a centered dialog and `66.67vh` for a bottom sheet. `position: 'bottom'` also changes the width defaults (`100vw` instead of `500px` / `90vw`) and adds the `ui-modal-bottom-sheet` class, so size a bottom sheet against those, not against the centered ones.
+Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_modal.scss`. What a modal accepts is the `ModalConfig` interface in `libs/ui/src/lib/modal/models/modal.types.ts` — read it there rather than from a list here. Two things that interface does not tell you: `maxHeight` is absent from it because `ModalService` sets it from `position` alone (`90vh` for a centered dialog, `66.67vh` for a bottom sheet), and `position: 'bottom'` also changes the width defaults to `100vw` instead of `500px` / `90vw` and adds the `ui-modal-bottom-sheet` class. Size a bottom sheet against those, not against the centered ones.
 
 ## UI library (`libs/ui`)
 
