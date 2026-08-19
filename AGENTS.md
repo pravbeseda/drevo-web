@@ -70,6 +70,7 @@ yarn lint:playwright                            # ESLint on testing/playwright �
 yarn format:check                               # Prettier
 yarn lint:styles                                # Stylelint — when SCSS was touched
 yarn lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
+yarn lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
 yarn lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
 yarn test:scripts                               # node:test specs for the gate scripts in scripts/ — no jest project there
 yarn lint:workflows                             # release job graph invariants — guards that only fail on a real tag push
