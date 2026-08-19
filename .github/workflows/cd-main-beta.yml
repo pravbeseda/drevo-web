@@ -50,6 +50,9 @@ jobs:
             - name: Type coverage
               run: yarn lint:types
 
+            - name: Type check the projects the build does not compile
+              run: yarn lint:typecheck
+
             - name: Per-file coverage floor
               run: yarn lint:coverage
 

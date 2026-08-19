@@ -1,6 +1,6 @@
 import { HttpContext, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
+import { createHttpFactory, HttpMethod, SpectatorHttp, SpyObject } from '@ngneat/spectator/jest';
 import { NotificationService } from '../services/notification.service';
 import { ErrorNotificationInterceptor } from './error-notification.interceptor';
 import { SKIP_ERROR_NOTIFICATION, CUSTOM_ERROR_MESSAGE, SKIP_ERROR_FOR_STATUSES } from './http-context-tokens';
@@ -25,7 +25,7 @@ class TestHttpService {
 
 describe('ErrorNotificationInterceptor', () => {
     let spectator: SpectatorHttp<TestHttpService>;
-    let notificationService: jest.Mocked<NotificationService>;
+    let notificationService: SpyObject<NotificationService>;
 
     const createHttp = createHttpFactory({
         service: TestHttpService,
@@ -42,7 +42,7 @@ describe('ErrorNotificationInterceptor', () => {
 
     beforeEach(() => {
         spectator = createHttp();
-        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+        notificationService = spectator.inject(NotificationService);
     });
 
     describe('automatic error notifications', () => {

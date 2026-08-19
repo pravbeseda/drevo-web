@@ -13,6 +13,7 @@ export function createMockArticle(overrides: Partial<ArticleVersion> = {}): Arti
         approved: 1,
         info: '',
         comment: '',
+        topics: [],
         ...overrides,
     };
 }

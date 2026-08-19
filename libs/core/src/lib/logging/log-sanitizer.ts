@@ -1,3 +1,5 @@
+import { LogEntry } from './log-provider.interface';
+
 /**
  * Patterns for detecting sensitive data in log entries
  */
@@ -79,7 +81,7 @@ export function sanitizeLogData(value: unknown, depth = 0): unknown {
 /**
  * Sanitize a log entry, masking sensitive data in the data field
  */
-export function sanitizeLogEntry<T extends { data?: unknown }>(entry: T): T {
+export function sanitizeLogEntry(entry: LogEntry): LogEntry {
     if (entry.data === undefined) {
         return entry;
     }

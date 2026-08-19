@@ -32,3 +32,20 @@ Raise a threshold when a change improves the figure; never lower one to make the
 ## Why the build is a gate
 
 `nx test` is transpile-only, so type errors surface at build time and nowhere earlier. A green unit run is not a type check — see [testing.md](testing.md).
+
+## What the build still cannot check
+
+The build compiles `tsconfig.app.json`, and that project sees less than it looks: its `files` names three entry points, so the compiler walks the import graph from `main.ts`, `main.server.ts` and `server.ts` and nothing else, while its `exclude` drops `*.spec.ts`, `*.test.ts` and `*.testing.ts`. Every spec, every test helper, every e2e file and every app module no entry point reaches is transpiled and never type-checked.
+
+`yarn lint:typecheck` runs `tsc --noEmit` over the projects that gap leaves out:
+
+| project | what it adds |
+| --- | --- |
+| `libs/shared`, `libs/core`, `libs/ui`, `libs/editor` — `tsconfig.spec.json` | the library specs |
+| `apps/client/tsconfig.editor.json` | all of `src/**/*.ts` bar the specs — the `*.testing.ts` helpers, and any module the entry-point graph misses |
+| `apps/client-e2e/tsconfig.json` | the API contract tests and the Playwright config |
+| `testing/playwright/tsconfig.json` | the integration suite |
+
+A mock that no longer matches the type it claims is what this gate is for: it makes a test pass against a shape the production code never receives.
+
+`apps/client/tsconfig.spec.json` is still outside the chain with 44 errors — issue #318 carries the breakdown. Append it to `lint:typecheck` in the change that clears them, and delete this paragraph.
