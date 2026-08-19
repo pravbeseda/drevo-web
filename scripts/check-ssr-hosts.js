@@ -119,6 +119,8 @@ const run = async () => {
             }
         }
 
+        // Opposite in sign to the loop above, and load-bearing for it: a verdict that inverts,
+        // or a probe that stops varying `Host`, fails one of the two rather than passing both.
         if (!(await isHostRejected(port, FOREIGN_HOST))) {
             failures.push(`"${FOREIGN_HOST}" is accepted — the host check is disabled`);
         }
