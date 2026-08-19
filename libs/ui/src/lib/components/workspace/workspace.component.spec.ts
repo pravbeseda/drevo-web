@@ -23,9 +23,13 @@ const HOST_TEMPLATE = `
     </ui-workspace>
 `;
 
+interface WorkspaceHost {
+    tabChanged: jest.Mock;
+}
+
 describe('WorkspaceComponent', () => {
-    let spectator: SpectatorHost<WorkspaceComponent>;
-    const createHost = createHostFactory({
+    let spectator: SpectatorHost<WorkspaceComponent, WorkspaceHost>;
+    const createHost = createHostFactory<WorkspaceComponent, WorkspaceHost>({
         component: WorkspaceComponent,
         imports: [WorkspaceTabComponent],
     });
@@ -87,13 +91,13 @@ describe('WorkspaceComponent', () => {
     it('should emit activeTabChange on tab switch', () => {
         spectator.click('[data-testid="workspace-tab-btn-2"]');
 
-        expect(spectator.hostComponent['tabChanged']).toHaveBeenCalledWith(2);
+        expect(spectator.hostComponent.tabChanged).toHaveBeenCalledWith(2);
     });
 
     it('should not emit activeTabChange when clicking already active tab', () => {
         spectator.click('[data-testid="workspace-tab-btn-0"]');
 
-        expect(spectator.hostComponent['tabChanged']).not.toHaveBeenCalled();
+        expect(spectator.hostComponent.tabChanged).not.toHaveBeenCalled();
     });
 
     it('should keep keepAlive tab in DOM after switching away', () => {

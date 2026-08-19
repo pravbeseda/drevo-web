@@ -1,15 +1,10 @@
 // Interfaces
-export {
-    LogLevel,
-    LogEntry,
-    LogProvider,
-    LogStorageProvider,
-    GetLogsOptions,
-    isStorageProvider,
-} from './log-provider.interface';
+export { isStorageProvider } from './log-provider.interface';
+export type { GetLogsOptions, LogEntry, LogLevel, LogProvider, LogStorageProvider } from './log-provider.interface';
 
 // Services
-export { LoggerService, Logger } from './logger.service';
+export { LoggerService } from './logger.service';
+export type { Logger } from './logger.service';
 export {
     LogDispatcher,
     LOG_PROVIDERS,
@@ -28,4 +23,5 @@ export { LogDatabase } from './log-database';
 // Providers
 export { ConsoleLogProvider } from './providers/console-log.provider';
 export { IndexedDBLogProvider, createIndexedDBLogProvider } from './providers/indexed-db-log.provider';
-export { SentryLogProvider, SentryLogProviderOptions, createSentryLogProvider } from './providers/sentry-log.provider';
+export { SentryLogProvider, createSentryLogProvider } from './providers/sentry-log.provider';
+export type { SentryLogProviderOptions } from './providers/sentry-log.provider';

@@ -10,7 +10,7 @@ const apiBaseURL = process.env['API_BASE_URL'] || 'http://drevo-local.ru';
 
 // API tests are enabled locally by default, disabled in CI
 // Set ENABLE_API_TESTS=true to force enable, ENABLE_API_TESTS=false to force disable
-const isCI = !!process.env.CI;
+const isCI = !!process.env['CI'];
 const enableApiTests =
     process.env['ENABLE_API_TESTS'] !== undefined ? process.env['ENABLE_API_TESTS'] === 'true' : !isCI; // Default: enabled locally, disabled in CI
 

@@ -20,7 +20,7 @@ export async function watchForNotification(page: Page, type: NotificationType): 
 
     await page.evaluate(
         ({ sel, k }) => {
-            const w = window as Record<string, unknown>;
+            const w = window as unknown as Record<string, unknown>;
             w[k] = false;
             const check = (): void => {
                 if (document.querySelector(sel)) {
@@ -37,7 +37,7 @@ export async function watchForNotification(page: Page, type: NotificationType): 
 
     return async () => {
         return page.evaluate(k => {
-            const w = window as Record<string, unknown>;
+            const w = window as unknown as Record<string, unknown>;
             const cleanup = w[`${k}_cleanup`] as (() => void) | undefined;
             if (cleanup) cleanup();
             return w[k] as boolean;
