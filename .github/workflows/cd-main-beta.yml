@@ -71,6 +71,9 @@ jobs:
                   npx nx build client --configuration=production
                   echo "Build successful"
 
+            - name: SSR host allow-list
+              run: yarn lint:ssr-hosts
+
     deploy:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         needs: ci
@@ -117,6 +120,9 @@ jobs:
                   fi
 
                   npx nx build client --configuration=production
+
+            - name: SSR host allow-list
+              run: yarn lint:ssr-hosts
 
             - name: Upload source maps to Sentry
               env:

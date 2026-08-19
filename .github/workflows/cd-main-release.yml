@@ -211,6 +211,9 @@ jobs:
 
                   npx nx build client --configuration=production
 
+            - name: SSR host allow-list
+              run: yarn lint:ssr-hosts
+
             - name: Upload source maps to Sentry
               env:
                   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

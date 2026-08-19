@@ -20,6 +20,7 @@
         "lint:coverage": "node scripts/check-file-coverage.js",
         "test:scripts": "node --test \"scripts/*.test.js\"",
         "lint:workflows": "node scripts/check-release-workflow.js",
+        "lint:ssr-hosts": "node scripts/check-ssr-hosts.js",
         "knip": "knip",
         "knip:deps": "knip --dependencies",
         "e2e": "yarn playwright test --config=apps/client-e2e/playwright.config.ts",

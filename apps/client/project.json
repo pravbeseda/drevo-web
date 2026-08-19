@@ -32,7 +32,10 @@
                 "ssr": {
                     "entry": "apps/client/src/server.ts"
                 },
-                "outputMode": "server"
+                "outputMode": "server",
+                "security": {
+                    "allowedHosts": ["drevo-info.ru", "app.drevo-info.ru", "beta.drevo-info.ru", "localhost"]
+                }
             },
             "configurations": {
                 "production": {
