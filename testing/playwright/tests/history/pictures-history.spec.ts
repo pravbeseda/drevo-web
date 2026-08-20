@@ -243,6 +243,7 @@ test.describe('Pictures history page', () => {
 
         await expect(getNotification(page, 'success')).toBeVisible();
         await history.expectPendingCardCount(0);
+        await history.expectEmptyState();
     });
 
     test('keeps a normal pending card clickable', async ({ authenticatedPage: page }) => {

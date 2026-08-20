@@ -29,6 +29,7 @@ export default [
                         'expectDarkTheme',
                         'expectDeleteButtonCount',
                         'expectDeletedPictureCard',
+                        'expectEmptyState',
                         'expectLightTheme',
                         'expectNoDeletedPictureCard',
                         'expectPendingCardCount',

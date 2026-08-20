@@ -34,6 +34,11 @@ export class PicturesHistoryPage extends BasePage {
         await expect(this.pendingCards).toHaveCount(count);
     }
 
+    /** Assert the page fell through to its empty state (retries until true or timeout). */
+    async expectEmptyState(): Promise<void> {
+        await expect(this.recentEmpty).toBeVisible();
+    }
+
     /** Assert no card stands for a deleted picture. */
     async expectNoDeletedPictureCard(): Promise<void> {
         await expect(this.pendingCardNoThumbnails).toHaveCount(0);
