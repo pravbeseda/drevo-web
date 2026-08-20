@@ -79,6 +79,7 @@ yarn lint:workflows                             # release job graph invariants �
 yarn knip                                       # dead code and unused deps — after refactors and deletions
 yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 yarn build                                      # production build — the type check the unit tests cannot do
+yarn lint:ssr-hosts                             # boots the built SSR server and checks the deployed hosts — needs `yarn build` first
 ```
 
 Never lower a coverage or type-coverage threshold, and never widen the coverage excludes, to make a gate pass without explicit approval — see [`docs/quality-gates.md`](docs/quality-gates.md).

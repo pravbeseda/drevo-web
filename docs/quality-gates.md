@@ -49,3 +49,11 @@ The build compiles `tsconfig.app.json`, and that project sees less than it looks
 A mock that no longer matches the type it claims is what this gate is for: it makes a test pass against a shape the production code never receives.
 
 `apps/client/tsconfig.spec.json` is still outside the chain with 44 errors — issue #318 carries the breakdown. Append it to `lint:typecheck` in the change that clears them, and delete this paragraph.
+
+## The SSR host allow-list
+
+`@angular/ssr` answers `400 Header "host" … is not allowed` to every request whose `Host` is absent from `security.allowedHosts` under the `build` target in `apps/client/project.json`. The list is baked into `dist/apps/client/server/angular-app-engine-manifest.mjs` at build time; `NG_ALLOWED_HOSTS` can extend it on the server but the artifact ships with whatever the build put there. A missing entry therefore takes the whole site down, and no other gate notices: unit tests never boot a server, and Playwright drives the dev server, which carries its own `allowedHosts` under the `serve` target.
+
+`yarn lint:ssr-hosts` closes that gap. It boots the built `server.mjs`, sends a request per deployed host, and fails if any is rejected — plus one foreign host that must still be rejected, so widening the list to `*` fails too. It reads the build output rather than `project.json`, which keeps it honest if Angular moves where the list comes from. Run `yarn build` first. In CI it runs three times, always straight after a build: in the `ci` job, so a PR fails before the merge, and in each deploy job ahead of the Sentry upload, so the artifact that ships is the one that answered. The `ci` run does not cover the other two — each job builds its own copy, and only a check on the shipped bytes says anything about them.
+
+Adding a domain means adding it in both places: `security.allowedHosts` and `DEPLOYED_HOSTS` in `scripts/check-ssr-hosts.js`.
