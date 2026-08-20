@@ -34,10 +34,12 @@ export interface PicturePendingDto {
     readonly pp_user: string;
     readonly pp_date: string;
     readonly pending: true;
-    readonly pic_title: string;
-    readonly pic_folder: string;
-    readonly pic_width: number | null;
-    readonly pic_height: number | null;
+    /** The picture is gone — every pic_* field below is absent. */
+    readonly pic_deleted: boolean;
+    readonly pic_title?: string;
+    readonly pic_folder?: string;
+    readonly pic_width?: number | null;
+    readonly pic_height?: number | null;
 }
 
 export interface PicturePendingListResponseDto {

@@ -10,6 +10,8 @@ export class PicturesHistoryPage extends BasePage {
     readonly pendingCardTitles = this.page.getByTestId('pending-card-title');
     readonly pendingItemTypes = this.page.getByTestId('pending-item-type');
     readonly pendingItemAuthors = this.page.getByTestId('pending-item-author');
+    readonly pendingCardNoThumbnails = this.page.getByTestId('pending-card-no-thumbnail');
+    readonly pendingItemDeleteButtons = this.page.getByTestId('pending-item-delete');
 
     readonly recentItems = this.page.getByTestId('recent-item');
     readonly recentItemTitles = this.page.getByTestId('recent-item-title');

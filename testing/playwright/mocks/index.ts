@@ -11,6 +11,7 @@ export {
     createPictureDto,
     createPictureDtoList,
     createPicturesListResponse,
+    createOrphanPicturePendingDto,
     createPicturePendingDto,
     mockPictureData,
 } from './pictures';

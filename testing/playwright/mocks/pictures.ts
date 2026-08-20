@@ -56,12 +56,31 @@ export function createPicturePendingDto(overrides: Partial<PicturePendingDto> = 
         pp_user: 'testuser',
         pp_date: '2025-01-15 12:00:00',
         pending: true,
+        pic_deleted: false,
         pic_title: `Иллюстрация ${index}`,
         pic_folder: `folder${index}`,
         pic_width: 800,
         pic_height: 600,
         ...overrides,
     };
+}
+
+/** Create a PicturePendingDto whose picture has already been deleted */
+export function createOrphanPicturePendingDto(
+    overrides: Partial<PicturePendingDto> = {},
+    index = 1,
+): PicturePendingDto {
+    return createPicturePendingDto(
+        {
+            pic_deleted: true,
+            pic_title: undefined,
+            pic_folder: undefined,
+            pic_width: undefined,
+            pic_height: undefined,
+            ...overrides,
+        },
+        index,
+    );
 }
 
 /** Pre-built mock data sets for common scenarios */

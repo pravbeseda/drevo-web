@@ -35,4 +35,8 @@ export class PicturesHistoryComponent implements OnInit {
     onPictureClick(pictureId: number): void {
         void this.router.navigate(['/pictures', pictureId]);
     }
+
+    onDeletePending(pendingId: number): void {
+        this.service.removePending(pendingId);
+    }
 }

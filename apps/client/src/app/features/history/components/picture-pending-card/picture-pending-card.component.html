@@ -1,25 +1,35 @@
 <div
     class="pending-card"
+    [class.pending-card--orphan]="!isNavigable()"
     data-testid="pending-card"
-    tabindex="0"
-    role="button"
+    [attr.tabindex]="isNavigable() ? 0 : undefined"
+    [attr.role]="isNavigable() ? 'button' : undefined"
     (click)="emitPictureClick()"
     (keydown.enter)="emitPictureClick()"
     (keydown.space)="emitPictureClick(); $event.preventDefault()"
-    [attr.aria-label]="'Перейти к иллюстрации: ' + group().currentTitle"
+    [attr.aria-label]="ariaLabel()"
 >
-    <img
-        class="pending-card__thumbnail"
-        [src]="group().currentThumbnailUrl"
-        [alt]="group().currentTitle"
-        data-testid="pending-card-thumbnail"
-    />
+    @if (group().currentThumbnailUrl; as thumbnailUrl) {
+        <img
+            class="pending-card__thumbnail"
+            [src]="thumbnailUrl"
+            [alt]="title()"
+            data-testid="pending-card-thumbnail"
+        />
+    } @else {
+        <div
+            class="pending-card__thumbnail pending-card__thumbnail--missing"
+            data-testid="pending-card-no-thumbnail"
+        >
+            <ui-icon name="image_not_supported" />
+        </div>
+    }
     <div class="pending-card__content">
         <span
             class="pending-card__title"
             data-testid="pending-card-title"
         >
-            {{ group().currentTitle }}
+            {{ title() }}
         </span>
         @for (pending of group().items; track pending.id) {
             <div
@@ -45,6 +55,15 @@
                 >
                     {{ pending.user }}
                 </span>
+                @if (group().isPictureDeleted) {
+                    <ui-icon-button
+                        class="pending-card__delete"
+                        icon="delete"
+                        label="Удалить заявку"
+                        data-testid="pending-item-delete"
+                        (clicked)="emitDeletePending(pending.id)"
+                    />
+                }
             </div>
         }
     </div>

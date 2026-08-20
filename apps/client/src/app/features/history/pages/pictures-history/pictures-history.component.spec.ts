@@ -18,6 +18,7 @@ describe('PicturesHistoryComponent', () => {
         displayItems: signal([]),
         displayTotalItems: signal(0),
         onLoadMore: jest.fn(),
+        removePending: jest.fn(),
     };
 
     const createComponent = createComponentFactory({
@@ -135,5 +136,13 @@ describe('PicturesHistoryComponent', () => {
         spectator.component.onPictureClick(42);
 
         expect(router.navigate).toHaveBeenCalledWith(['/pictures', 42]);
+    });
+
+    it('should ask the service to remove a pending of a deleted picture', () => {
+        spectator.detectChanges();
+
+        spectator.component.onDeletePending(7);
+
+        expect(mockService.removePending).toHaveBeenCalledWith(7);
     });
 });
