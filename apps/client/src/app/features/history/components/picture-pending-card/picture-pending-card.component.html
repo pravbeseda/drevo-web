@@ -6,7 +6,7 @@
     [attr.role]="isNavigable() ? 'button' : undefined"
     (click)="emitPictureClick()"
     (keydown.enter)="emitPictureClick()"
-    (keydown.space)="emitPictureClick(); $event.preventDefault()"
+    (keydown.space)="onSpaceKeydown($event)"
     [attr.aria-label]="ariaLabel()"
 >
     @if (group().currentThumbnailUrl; as thumbnailUrl) {
@@ -60,7 +60,7 @@
                         class="pending-card__delete"
                         icon="delete"
                         label="Удалить заявку"
-                        data-testid="pending-item-delete"
+                        testId="pending-item-delete"
                         (clicked)="emitDeletePending(pending.id)"
                     />
                 }

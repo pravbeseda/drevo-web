@@ -4,7 +4,6 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { formatDateHeader, Picture, PicturePending } from '@drevo-web/shared';
-import { finalize } from 'rxjs/operators';
 
 const PENDING_PAGE_SIZE = 200;
 const NOT_FOUND_STATUS = 404;
@@ -88,7 +87,6 @@ export class PicturesHistoryService {
     private readonly logger = inject(LoggerService).withContext('PicturesHistoryService');
 
     private readonly _pendingItems = signal<readonly PicturePending[]>([]);
-    private readonly _removingPendingId = signal<number | undefined>(undefined);
     private readonly _isPendingLoading = signal(false);
     private readonly _hasPendingError = signal(false);
 
@@ -163,17 +161,15 @@ export class PicturesHistoryService {
     /**
      * Reject a pending whose picture is gone. Only moderators are shown one,
      * and rejection is the only action the server still accepts on it.
+     *
+     * A repeated click sends a second request rather than being swallowed: the
+     * 404 branch below already answers it, and a guard here would also reject
+     * clicks on the other cards.
      */
     removePending(pendingId: number): void {
-        if (this._removingPendingId() !== undefined) return;
-
-        this._removingPendingId.set(pendingId);
         this.pictureService
             .rejectPending(pendingId)
-            .pipe(
-                takeUntilDestroyed(this.destroyRef),
-                finalize(() => this._removingPendingId.set(undefined)),
-            )
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
                     this.dropPending(pendingId);

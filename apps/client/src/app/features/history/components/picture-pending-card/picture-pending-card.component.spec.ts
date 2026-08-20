@@ -152,9 +152,21 @@ describe('PicturePendingCardComponent', () => {
 
         it('should emit deletePending with the pending id', () => {
             const spy = jest.spyOn(spectator.component.deletePending, 'emit');
-            spectator.click('[data-testid="pending-item-delete"] button');
+            spectator.click('[data-testid="pending-item-delete"]');
             expect(spy).toHaveBeenCalledWith(7);
         });
+
+        it('should leave Space on the delete button to the browser', () => {
+            const event = spectator.dispatchKeyboardEvent('[data-testid="pending-item-delete"]', 'keydown', ' ');
+
+            expect(event.defaultPrevented).toBe(false);
+        });
+    });
+
+    it('should swallow Space on a card that navigates, so the page does not scroll', () => {
+        const event = spectator.dispatchKeyboardEvent('[data-testid="pending-card"]', 'keydown', ' ');
+
+        expect(event.defaultPrevented).toBe(true);
     });
 
     it('should not offer deletion while the picture exists', () => {

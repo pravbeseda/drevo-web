@@ -223,9 +223,8 @@ test.describe('Pictures history page', () => {
         const history = new PicturesHistoryPage(page);
         await history.waitForReady();
 
-        await expect(history.pendingCardTitles.first()).toHaveText('Иллюстрация удалена');
-        await expect(history.pendingCardNoThumbnails).toHaveCount(1);
-        await expect(history.pendingItemDeleteButtons).toHaveCount(1);
+        await history.expectDeletedPictureCard('Иллюстрация удалена');
+        await history.expectDeleteButtonCount(1);
     });
 
     test('removes a pending of a deleted picture from the list', async ({ authenticatedPage: page }) => {
@@ -240,11 +239,10 @@ test.describe('Pictures history page', () => {
         const history = new PicturesHistoryPage(page);
         await history.waitForReady();
 
-        await history.pendingItemDeleteButtons.first().click();
+        await history.deleteFirstPending();
 
         await expect(getNotification(page, 'success')).toBeVisible();
-        await expect(history.pendingCards).toHaveCount(0);
-        await expect(history.recentEmpty).toBeVisible();
+        await history.expectPendingCardCount(0);
     });
 
     test('keeps a normal pending card clickable', async ({ authenticatedPage: page }) => {
@@ -256,8 +254,8 @@ test.describe('Pictures history page', () => {
         const history = new PicturesHistoryPage(page);
         await history.waitForReady();
 
-        await expect(history.pendingItemDeleteButtons).toHaveCount(0);
-        await expect(history.pendingCardNoThumbnails).toHaveCount(0);
+        await history.expectDeleteButtonCount(0);
+        await history.expectNoDeletedPictureCard();
     });
 
     test('shows inline pending error when pending fails but recent loads', async ({ authenticatedPage: page }) => {

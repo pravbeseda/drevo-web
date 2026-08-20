@@ -193,14 +193,22 @@ describe('PicturesHistoryService', () => {
             expect(spectator.service.pendingGroups()).toEqual([]);
         });
 
-        it('should ignore a second request while one is in flight', () => {
-            initWithOrphan();
-            mockPictureService.rejectPending.mockReturnValue(new Subject<void>());
+        it('should remove a second pending while the first is still in flight', () => {
+            const second = createPending({ id: 8, pictureId: 98, isPictureDeleted: true, currentTitle: undefined });
+            mockPictureService.getPending.mockReturnValue(
+                of({ ...EMPTY_PENDING_RESPONSE, items: [orphan, second], total: 2 }),
+            );
+            mockPictureService.getPictures.mockReturnValue(of(EMPTY_RECENT_RESPONSE));
+            spectator.service.init();
+            mockPictureService.rejectPending
+                .mockReturnValueOnce(new Subject<void>())
+                .mockReturnValueOnce(of(undefined));
 
             spectator.service.removePending(7);
-            spectator.service.removePending(7);
+            spectator.service.removePending(8);
 
-            expect(mockPictureService.rejectPending).toHaveBeenCalledTimes(1);
+            expect(mockPictureService.rejectPending).toHaveBeenCalledTimes(2);
+            expect(spectator.service.pendingGroups()).toHaveLength(1);
         });
     });
 

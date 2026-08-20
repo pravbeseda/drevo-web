@@ -31,6 +31,17 @@ export class PicturePendingCardComponent {
         this.pictureClick.emit(this.group().pictureId);
     }
 
+    /**
+     * Space scrolls the page, so a card acting as a button swallows it. A card
+     * that navigates nowhere must not: the event may come from the delete
+     * button inside it, and a canceled keydown never activates a native button.
+     */
+    onSpaceKeydown(event: Event): void {
+        if (!this.isNavigable()) return;
+        this.emitPictureClick();
+        event.preventDefault();
+    }
+
     emitDeletePending(pendingId: number): void {
         this.deletePending.emit(pendingId);
     }

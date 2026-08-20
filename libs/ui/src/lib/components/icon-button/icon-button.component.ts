@@ -16,6 +16,11 @@ export class IconButtonComponent {
     readonly label = input('');
     readonly disabled = input(false);
     readonly link = input<string | readonly (string | number)[]>();
+    /**
+     * Lands on the native button or anchor, not on this host: a consumer test
+     * clicks the control, and the host is not the clickable element.
+     */
+    readonly testId = input<string>();
 
     readonly clicked = output();
 

@@ -4,6 +4,7 @@
             mat-icon-button
             [routerLink]="link()"
             [attr.aria-label]="label()"
+            [attr.data-testid]="testId()"
         >
             <mat-icon>{{ icon() }}</mat-icon>
         </a>
@@ -12,6 +13,7 @@
             mat-icon-button
             [disabled]="disabled()"
             [attr.aria-label]="label()"
+            [attr.data-testid]="testId()"
             (click)="onClick()"
         >
             <mat-icon>{{ icon() }}</mat-icon>

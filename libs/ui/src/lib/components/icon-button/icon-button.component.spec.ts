@@ -46,6 +46,16 @@ describe('IconButtonComponent', () => {
             expect(spectator.query('button')?.getAttribute('aria-label')).toBe('Settings');
         });
 
+        it('should put testId on the button itself, so a consumer test can click it', () => {
+            spectator.setInput('testId', 'remove-item');
+
+            expect(spectator.query('button')?.getAttribute('data-testid')).toBe('remove-item');
+        });
+
+        it('should leave data-testid off when no testId is given', () => {
+            expect(spectator.query('button')?.hasAttribute('data-testid')).toBe(false);
+        });
+
         it('should disable button when disabled input is true', () => {
             spectator.setInput('disabled', true);
 
@@ -101,6 +111,12 @@ describe('IconButtonComponent', () => {
 
         it('should set routerLink href', () => {
             expect(spectator.query('a')?.getAttribute('href')).toBe('/history/diff/42');
+        });
+
+        it('should put testId on the anchor', () => {
+            spectator.setInput('testId', 'open-diff');
+
+            expect(spectator.query('a')?.getAttribute('data-testid')).toBe('open-diff');
         });
 
         it('should have aria-label on anchor', () => {
