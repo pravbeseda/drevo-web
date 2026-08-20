@@ -246,7 +246,7 @@ test.describe('Pictures history page', () => {
         await history.expectEmptyState();
     });
 
-    test('keeps a normal pending card clickable', async ({ authenticatedPage: page }) => {
+    test('shows no removal affordance while the picture exists', async ({ authenticatedPage: page }) => {
         await mockPicturesPendingList(page, [createPicturePendingDto({ pp_id: 1, pp_pic_id: 1 })]);
         await mockPicturesEmpty(page);
         await mockPictureImages(page);
