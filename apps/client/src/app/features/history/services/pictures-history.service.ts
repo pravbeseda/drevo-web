@@ -1,10 +1,12 @@
 import { PictureService } from '../../../services/pictures/picture.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { formatDateHeader, Picture, PicturePending } from '@drevo-web/shared';
 
 const PENDING_PAGE_SIZE = 200;
+const NOT_FOUND_STATUS = 404;
 
 export type PicturesDisplayItem =
     | { readonly type: 'header'; readonly date: string }
@@ -42,8 +44,9 @@ export const trackByFn = (_index: number, item: PicturesDisplayItem): string => 
 
 export interface PendingGroup {
     readonly pictureId: number;
-    readonly currentTitle: string;
-    readonly currentThumbnailUrl: string;
+    readonly currentTitle: string | undefined;
+    readonly currentThumbnailUrl: string | undefined;
+    readonly isPictureDeleted: boolean;
     readonly items: readonly PicturePending[];
 }
 
@@ -68,6 +71,7 @@ function groupByPicture(items: readonly PicturePending[]): readonly PendingGroup
                 pictureId,
                 currentTitle: groupItems[0].currentTitle,
                 currentThumbnailUrl: groupItems[0].currentThumbnailUrl,
+                isPictureDeleted: groupItems[0].isPictureDeleted,
                 items: groupItems,
             });
         }
@@ -79,6 +83,7 @@ function groupByPicture(items: readonly PicturePending[]): readonly PendingGroup
 export class PicturesHistoryService {
     private readonly destroyRef = inject(DestroyRef);
     private readonly pictureService = inject(PictureService);
+    private readonly notificationService = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('PicturesHistoryService');
 
     private readonly _pendingItems = signal<readonly PicturePending[]>([]);
@@ -151,6 +156,41 @@ export class PicturesHistoryService {
 
         this._recentCurrentPage.update(p => p + 1);
         this.loadRecent(true);
+    }
+
+    /**
+     * Reject a pending whose picture is gone. Only moderators are shown one,
+     * and rejection is the only action the server still accepts on it.
+     *
+     * A repeated click sends a second request rather than being swallowed: the
+     * 404 branch below already answers it, and a guard here would also reject
+     * clicks on the other cards.
+     */
+    removePending(pendingId: number): void {
+        this.pictureService
+            .rejectPending(pendingId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this.dropPending(pendingId);
+                    this.notificationService.success('Заявка удалена');
+                    this.logger.info('Pending of a deleted picture rejected', { pendingId });
+                },
+                error: (error: unknown) => {
+                    if (error instanceof HttpErrorResponse && error.status === NOT_FOUND_STATUS) {
+                        this.dropPending(pendingId);
+                        this.notificationService.info('Заявка уже обработана');
+                        this.logger.info('Pending was already gone', { pendingId });
+                        return;
+                    }
+                    this.logger.error('Failed to reject pending of a deleted picture', error);
+                    this.notificationService.error('Не удалось удалить заявку');
+                },
+            });
+    }
+
+    private dropPending(pendingId: number): void {
+        this._pendingItems.update(items => items.filter(item => item.id !== pendingId));
     }
 
     private loadPending(): void {

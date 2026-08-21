@@ -27,7 +27,12 @@ export default [
                 {
                     assertFunctionNames: [
                         'expectDarkTheme',
+                        'expectDeleteButtonCount',
+                        'expectDeletedPictureCard',
+                        'expectEmptyState',
                         'expectLightTheme',
+                        'expectNoDeletedPictureCard',
+                        'expectPendingCardCount',
                         'expectSidebarCollapsed',
                         'expectSidebarExpanded',
                     ],

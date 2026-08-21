@@ -18,6 +18,7 @@ const createPending = (overrides: Partial<PicturePending> = {}): PicturePending 
     currentWidth: 800,
     currentHeight: 600,
     pendingImageUrl: undefined,
+    isPictureDeleted: false,
     ...overrides,
 });
 
@@ -25,9 +26,19 @@ const createGroup = (overrides: Partial<PendingGroup> = {}): PendingGroup => ({
     pictureId: 10,
     currentTitle: 'Old Title',
     currentThumbnailUrl: '/images/thumbs/folder/000010.jpg',
+    isPictureDeleted: false,
     items: [createPending()],
     ...overrides,
 });
+
+const createDeletedGroup = (overrides: Partial<PendingGroup> = {}): PendingGroup =>
+    createGroup({
+        isPictureDeleted: true,
+        currentTitle: undefined,
+        currentThumbnailUrl: undefined,
+        items: [createPending({ id: 7, isPictureDeleted: true, currentTitle: undefined })],
+        ...overrides,
+    });
 
 describe('PicturePendingCardComponent', () => {
     let spectator: Spectator<PicturePendingCardComponent>;
@@ -116,6 +127,50 @@ describe('PicturePendingCardComponent', () => {
         expect(spectator.query('[data-testid="pending-item-type"]')?.textContent?.trim()).toBe(
             'Изменение описания и файла',
         );
+    });
+
+    describe('when the picture has been deleted', () => {
+        beforeEach(() => {
+            spectator = createComponent({ props: { group: createDeletedGroup() } });
+        });
+
+        it('should say the picture is gone instead of showing a title', () => {
+            expect(spectator.query('[data-testid="pending-card-title"]')?.textContent?.trim()).toBe(
+                'Иллюстрация удалена',
+            );
+        });
+
+        it('should not render a thumbnail', () => {
+            expect(spectator.query('[data-testid="pending-card-thumbnail"]')).toBeNull();
+        });
+
+        it('should not navigate to the missing picture', () => {
+            const spy = jest.spyOn(spectator.component.pictureClick, 'emit');
+            spectator.click('[data-testid="pending-card"]');
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('should emit deletePending with the pending id', () => {
+            const spy = jest.spyOn(spectator.component.deletePending, 'emit');
+            spectator.click('[data-testid="pending-item-delete"]');
+            expect(spy).toHaveBeenCalledWith(7);
+        });
+
+        it('should leave Space on the delete button to the browser', () => {
+            const event = spectator.dispatchKeyboardEvent('[data-testid="pending-item-delete"]', 'keydown', ' ');
+
+            expect(event.defaultPrevented).toBe(false);
+        });
+    });
+
+    it('should swallow Space on a card that navigates, so the page does not scroll', () => {
+        const event = spectator.dispatchKeyboardEvent('[data-testid="pending-card"]', 'keydown', ' ');
+
+        expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('should not offer deletion while the picture exists', () => {
+        expect(spectator.query('[data-testid="pending-item-delete"]')).toBeNull();
     });
 
     it('should emit pictureClick on Enter keydown', () => {

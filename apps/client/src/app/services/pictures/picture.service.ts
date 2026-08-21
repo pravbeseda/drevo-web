@@ -178,6 +178,7 @@ export class PictureService {
     private mapPicturePending(dto: PicturePendingDto): PicturePending {
         const paddedPicId = String(dto.pp_pic_id).padStart(6, '0');
         const hasPendingFile = dto.pp_type === 'edit_file' || dto.pp_type === 'edit_both';
+        const folder = dto.pic_folder;
         return {
             id: dto.pp_id,
             pictureId: dto.pp_pic_id,
@@ -188,11 +189,12 @@ export class PictureService {
             user: dto.pp_user,
             date: parseDate(dto.pp_date),
             currentTitle: dto.pic_title,
-            currentImageUrl: `/images/${dto.pic_folder}/${paddedPicId}.jpg`,
-            currentThumbnailUrl: `/images/thumbs/${dto.pic_folder}/${paddedPicId}.jpg`,
+            currentImageUrl: folder ? `/images/${folder}/${paddedPicId}.jpg` : undefined,
+            currentThumbnailUrl: folder ? `/images/thumbs/${folder}/${paddedPicId}.jpg` : undefined,
             currentWidth: dto.pic_width ?? undefined,
             currentHeight: dto.pic_height ?? undefined,
             pendingImageUrl: hasPendingFile ? `/images/pending/${dto.pp_pic_id}_pp${dto.pp_id}.jpg` : undefined,
+            isPictureDeleted: dto.pic_deleted,
         };
     }
 }

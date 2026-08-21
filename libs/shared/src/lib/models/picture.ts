@@ -43,12 +43,15 @@ export interface PicturePending {
     readonly height: number | undefined;
     readonly user: string;
     readonly date: Date;
-    readonly currentTitle: string;
-    readonly currentImageUrl: string;
-    readonly currentThumbnailUrl: string;
+    /** Absent when the picture has been deleted — see isPictureDeleted. */
+    readonly currentTitle: string | undefined;
+    readonly currentImageUrl: string | undefined;
+    readonly currentThumbnailUrl: string | undefined;
     readonly currentWidth: number | undefined;
     readonly currentHeight: number | undefined;
     readonly pendingImageUrl: string | undefined;
+    /** The picture was deleted while this pending change was queued. */
+    readonly isPictureDeleted: boolean;
 }
 
 export interface PicturePendingListResponse {

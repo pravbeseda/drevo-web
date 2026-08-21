@@ -421,7 +421,7 @@ export class PictureDetailComponent {
         const lightboxPicture: Picture = {
             ...picture,
             id: pending.pictureId,
-            title: pending.title ?? pending.currentTitle,
+            title: pending.title ?? pending.currentTitle ?? picture.title,
             user: pending.user,
             date: pending.date,
             width: pending.width ?? pending.currentWidth,

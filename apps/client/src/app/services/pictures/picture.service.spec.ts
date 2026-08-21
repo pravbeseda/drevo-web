@@ -44,6 +44,7 @@ describe('PictureService', () => {
         pp_user: 'Пётр Петров',
         pp_date: '2025-03-11T10:00:00+00:00',
         pending: true,
+        pic_deleted: false,
         pic_title: 'Храм Христа Спасителя',
         pic_folder: '004',
         pic_width: 800,
@@ -343,6 +344,33 @@ describe('PictureService', () => {
                 expect(pending.currentImageUrl).toBe('/images/004/000123.jpg');
                 expect(pending.currentThumbnailUrl).toBe('/images/thumbs/004/000123.jpg');
                 expect(pending.pendingImageUrl).toBeUndefined();
+                done();
+            });
+        });
+
+        it('should map a pending whose picture was deleted', done => {
+            const orphanDto: PicturePendingDto = {
+                pp_id: 10,
+                pp_pic_id: 123,
+                pp_type: 'edit_title',
+                pp_title: 'Новая подпись',
+                pp_width: null,
+                pp_height: null,
+                pp_user: 'Пётр Петров',
+                pp_date: '2025-03-11T10:00:00+00:00',
+                pending: true,
+                pic_deleted: true,
+            };
+            pictureApiService.getPending.mockReturnValue(
+                of({ items: [orphanDto], total: 1, page: 1, pageSize: 25, totalPages: 1 }),
+            );
+
+            spectator.service.getPending().subscribe(result => {
+                const pending = result.items[0];
+                expect(pending.isPictureDeleted).toBe(true);
+                expect(pending.currentTitle).toBeUndefined();
+                expect(pending.currentImageUrl).toBeUndefined();
+                expect(pending.currentThumbnailUrl).toBeUndefined();
                 done();
             });
         });
