@@ -36,7 +36,7 @@ describe('MapStubAction', () => {
         it('should show not-implemented notification', () => {
             const notification = spectator.inject(NotificationService);
 
-            spectator.service.execute('toggleYandexMap', document.createElement('div'));
+            spectator.service.execute();
 
             expect(notification.info).toHaveBeenCalledWith('Функция еще не реализована');
         });

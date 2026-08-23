@@ -43,12 +43,11 @@ The build compiles `tsconfig.app.json`, and that project sees less than it looks
 | --- | --- |
 | `libs/shared`, `libs/core`, `libs/ui`, `libs/editor` — `tsconfig.spec.json` | the library specs |
 | `apps/client/tsconfig.editor.json` | all of `src/**/*.ts` bar the specs — the `*.testing.ts` helpers, and any module the entry-point graph misses |
+| `apps/client/tsconfig.spec.json` | the app specs |
 | `apps/client-e2e/tsconfig.json` | the API contract tests and the Playwright config |
 | `testing/playwright/tsconfig.json` | the integration suite |
 
 A mock that no longer matches the type it claims is what this gate is for: it makes a test pass against a shape the production code never receives.
-
-`apps/client/tsconfig.spec.json` is still outside the chain with 44 errors — issue #318 carries the breakdown. Append it to `lint:typecheck` in the change that clears them, and delete this paragraph.
 
 ## The SSR host allow-list
 

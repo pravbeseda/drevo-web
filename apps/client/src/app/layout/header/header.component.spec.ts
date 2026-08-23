@@ -6,16 +6,12 @@ import { MockProvider } from 'ng-mocks';
 import { Subject, of, throwError } from 'rxjs';
 import { DrawerService, LogExportService, NotificationService, WINDOW } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { ModalService } from '@drevo-web/ui';
 import { ArticleService } from '../../services/articles/article.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { PageTitleStrategy, TitleContext } from '../../services/page-title.strategy';
 import { HeaderComponent } from './header.component';
-
-const createMockUser = (canModerate: boolean) => ({
-    login: 'testuser',
-    permissions: { canModerate },
-});
 
 const mockWindowObj = {
     getSelection: jest.fn(() => ({ isCollapsed: true })),
@@ -58,7 +54,7 @@ describe('HeaderComponent', () => {
                 toggle: jest.fn(),
             }),
             MockProvider(AuthService, {
-                user$: of(createMockUser(true)),
+                user$: of(createMockUser({ permissions: { canModerate: true } })),
                 isLoading$: of(false),
             }),
             MockProvider(ArticleService, {
@@ -118,7 +114,7 @@ describe('HeaderComponent', () => {
             spectator = createComponent({
                 providers: [
                     MockProvider(AuthService, {
-                        user$: of(createMockUser(false)),
+                        user$: of(createMockUser({ permissions: { canModerate: false } })),
                         isLoading$: of(false),
                     }),
                 ],
@@ -391,7 +387,7 @@ describe('HeaderComponent', () => {
             spectator = createComponent({
                 providers: [
                     MockProvider(AuthService, {
-                        user$: of(createMockUser(false)),
+                        user$: of(createMockUser({ permissions: { canModerate: false } })),
                         isLoading$: of(false),
                     }),
                 ],
@@ -406,7 +402,7 @@ describe('HeaderComponent', () => {
             spectator = createComponent({
                 providers: [
                     MockProvider(AuthService, {
-                        user$: of(createMockUser(false)),
+                        user$: of(createMockUser({ permissions: { canModerate: false } })),
                         isLoading$: of(false),
                     }),
                 ],

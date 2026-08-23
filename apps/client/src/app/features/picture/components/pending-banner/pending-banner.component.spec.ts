@@ -21,6 +21,7 @@ describe('PendingBannerComponent', () => {
         currentWidth: 800,
         currentHeight: 600,
         pendingImageUrl: '/images/pending/42_pp10.jpg',
+        isPictureDeleted: false,
     };
 
     const createComponent = createComponentFactory({

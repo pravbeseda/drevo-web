@@ -464,7 +464,7 @@ describe('trackByFn', () => {
         expect(
             trackByFn(0, {
                 type: 'pending',
-                data: { pictureId: 10, currentTitle: '', currentThumbnailUrl: '', items: [] },
+                data: { pictureId: 10, currentTitle: '', currentThumbnailUrl: '', isPictureDeleted: false, items: [] },
             }),
         ).toBe('pending-10');
     });

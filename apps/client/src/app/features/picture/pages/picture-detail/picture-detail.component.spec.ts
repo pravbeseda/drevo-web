@@ -10,7 +10,7 @@ import { NotificationService, WINDOW } from '@drevo-web/core';
 import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { ConfirmationService, ModalService } from '@drevo-web/ui';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
 
 const mockPicture: Picture = {
@@ -69,6 +69,7 @@ function createPending(overrides: Partial<PicturePending> = {}): PicturePending 
         currentWidth: 1920,
         currentHeight: 1280,
         pendingImageUrl: undefined,
+        isPictureDeleted: false,
         ...overrides,
     };
 }
@@ -676,12 +677,12 @@ describe('PictureDetailComponent', () => {
         });
         describe('deletion', () => {
             let confirmationService: jest.Mocked<ConfirmationService>;
-            let notification: jest.Mocked<NotificationService>;
+            let notification: SpyObject<NotificationService>;
             let routerNavigateSpy: jest.SpyInstance;
 
             beforeEach(() => {
                 confirmationService = spectator.inject(ConfirmationService);
-                notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+                notification = spectator.inject(NotificationService);
                 routerNavigateSpy = jest.spyOn(spectator.inject(Router), 'navigate').mockResolvedValue(true);
             });
 

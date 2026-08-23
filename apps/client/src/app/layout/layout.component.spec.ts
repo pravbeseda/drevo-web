@@ -9,6 +9,7 @@ import {
     NavigationStart,
     provideRouter,
     Router,
+    RouterState,
 } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
@@ -21,7 +22,7 @@ import { LayoutComponent } from './layout.component';
 @Component({ template: '', standalone: true })
 class DummyComponent {}
 
-function createMockWindow(innerWidth: number): Window {
+function createMockWindow(innerWidth: number): MockWindow {
     return {
         innerWidth,
         localStorage: {
@@ -37,7 +38,7 @@ function createMockWindow(innerWidth: number): Window {
             addEventListener: jest.fn(),
             removeEventListener: jest.fn(),
         })),
-    } as unknown as Window;
+    } as unknown as MockWindow;
 }
 
 function createDrawerMock(isOpen: boolean): InstanceType<typeof DrawerService> {
@@ -57,8 +58,10 @@ interface MediaQueryListMock {
     removeEventListener: jest.Mock;
 }
 
-function getMediaQueryList(mockWindow: Window): MediaQueryListMock {
-    const [result] = (mockWindow.matchMedia as jest.Mock<MediaQueryListMock>).mock.results;
+type MockWindow = Window & { matchMedia: jest.Mock<MediaQueryListMock> };
+
+function getMediaQueryList(mockWindow: MockWindow): MediaQueryListMock {
+    const [result] = mockWindow.matchMedia.mock.results;
     // A `MockResult` also covers the throwing and in-flight cases, whose `value` is untyped.
     if (result.type !== 'return') {
         throw new Error('matchMedia has not returned a media query list');
@@ -67,7 +70,7 @@ function getMediaQueryList(mockWindow: Window): MediaQueryListMock {
     return result.value;
 }
 
-function getMediaChangeHandler(mockWindow: Window): MediaChangeHandler {
+function getMediaChangeHandler(mockWindow: MockWindow): MediaChangeHandler {
     return getMediaQueryList(mockWindow).addEventListener.mock.calls[0][1];
 }
 
@@ -277,7 +280,11 @@ describe('LayoutComponent', () => {
                 component: LayoutComponent,
                 shallow: true,
                 providers: [
-                    MockProvider(Router, { events: routerEvents$, routerState: { root: {} } }),
+                    MockProvider(Router, {
+                        events: routerEvents$,
+                        // RouterOutlet reads routerState.root while rendering.
+                        routerState: { root: {} } as unknown as RouterState,
+                    }),
                     {
                         provide: WINDOW,
                         useFactory: () => createMockWindow(BREAKPOINT_TABLET),

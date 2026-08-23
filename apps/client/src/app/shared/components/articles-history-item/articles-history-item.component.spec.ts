@@ -1,6 +1,6 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticlesHistoryItemComponent } from './articles-history-item.component';
-import { ArticleHistoryItem, ReviewStatus } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ReviewStatus } from '@drevo-web/shared';
 import { IconButtonComponent, StatusIconComponent } from '@drevo-web/ui';
 import { provideRouter } from '@angular/router';
 
@@ -295,9 +295,9 @@ describe('ArticlesHistoryItemComponent', () => {
         });
 
         it.each([
-            { label: 'approved', approved: 1 },
-            { label: 'rejected', approved: -1 },
-            { label: 'cancelled', approved: -2 },
+            { label: 'approved', approved: ApprovalStatus.Approved },
+            { label: 'rejected', approved: ApprovalStatus.Rejected },
+            { label: 'cancelled', approved: ApprovalStatus.Cancelled },
         ])('hides the review badge for a $label version even when a summary is provided', ({ approved }) => {
             spectator = createComponent({
                 props: { item: createMockItem({ approved }), reviewSummary: summary },

@@ -12,17 +12,17 @@ describe('AnchorClickHandler', () => {
         providers: [
             {
                 provide: WINDOW,
-                useFactory: () => ({
-                    location: { pathname: '/articles/1', search: '' },
-                    history: { pushState: jest.fn() },
-                }),
+                useFactory: () => mockWindow,
             },
         ],
     });
 
     beforeEach(() => {
+        mockWindow = {
+            location: { pathname: '/articles/1', search: '' },
+            history: { pushState: jest.fn() },
+        };
         spectator = createService();
-        mockWindow = spectator.inject(WINDOW) as typeof mockWindow;
         host = document.createElement('div');
     });
 
