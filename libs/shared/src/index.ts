@@ -1,7 +1,6 @@
 export * from './lib/models';
 
 export * from './lib/helpers/approval-status';
-export * from './lib/helpers/article-title-url';
 export * from './lib/helpers/assert';
 export * from './lib/helpers/date';
 export * from './lib/helpers/html';

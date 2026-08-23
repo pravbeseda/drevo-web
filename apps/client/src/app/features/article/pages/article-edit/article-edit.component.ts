@@ -27,7 +27,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
-import { ArticleVersion, encodeArticleTitle, formatDateHeader, formatTime } from '@drevo-web/shared';
+import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
 import {
     ConfirmationService,
     IconComponent,
@@ -364,7 +364,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const draftRoute = this.getDraftRoute();
         const navigateTo =
             session.mode === 'create'
-                ? ['/articles', 'find', encodeArticleTitle(session.title)]
+                ? ['/articles', 'find', session.title]
                 : ['/articles', session.articleId, 'version', session.versionId];
 
         try {
@@ -430,7 +430,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             return '';
         }
         return session.mode === 'create'
-            ? `/articles/find/${encodeArticleTitle(session.title)}/edit`
+            ? `/articles/find/${session.title}/edit`
             : `/articles/${session.articleId}/version/${session.versionId}/edit`;
     }
 
@@ -503,7 +503,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     this.editingCleared = true;
                     void this.router.navigate(
                         session.mode === 'create'
-                            ? ['/articles', 'find', encodeArticleTitle(session.title)]
+                            ? ['/articles', 'find', session.title]
                             : ['/articles', session.articleId],
                     );
                     return false;
