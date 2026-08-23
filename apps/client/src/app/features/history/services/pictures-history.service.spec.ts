@@ -1,7 +1,8 @@
 import { PicturesHistoryService, buildDisplayItems, trackByFn } from './pictures-history.service';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of, Subject, throwError } from 'rxjs';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { Picture, PicturePending, PicturePendingListResponse, PictureListResponse } from '@drevo-web/shared';
 
@@ -20,6 +21,7 @@ const createPending = (overrides: Partial<PicturePending> = {}): PicturePending 
     currentWidth: 800,
     currentHeight: 600,
     pendingImageUrl: undefined,
+    isPictureDeleted: false,
     ...overrides,
 });
 
@@ -57,6 +59,7 @@ describe('PicturesHistoryService', () => {
     let mockPictureService: {
         getPending: jest.Mock;
         getPictures: jest.Mock;
+        rejectPending: jest.Mock;
     };
 
     const createService = createServiceFactory({
@@ -74,6 +77,7 @@ describe('PicturesHistoryService', () => {
         mockPictureService = {
             getPending: jest.fn().mockReturnValue(of(EMPTY_PENDING_RESPONSE)),
             getPictures: jest.fn().mockReturnValue(of(EMPTY_RECENT_RESPONSE)),
+            rejectPending: jest.fn().mockReturnValue(of(undefined)),
         };
         spectator = createService();
     });
@@ -149,6 +153,80 @@ describe('PicturesHistoryService', () => {
             expect(groups[0].items).toHaveLength(2);
             expect(groups[1].pictureId).toBe(20);
             expect(groups[1].items).toHaveLength(1);
+        });
+    });
+
+    describe('removePending', () => {
+        const orphan = createPending({ id: 7, pictureId: 99, isPictureDeleted: true, currentTitle: undefined });
+
+        const initWithOrphan = (): void => {
+            mockPictureService.getPending.mockReturnValue(of({ ...EMPTY_PENDING_RESPONSE, items: [orphan], total: 1 }));
+            mockPictureService.getPictures.mockReturnValue(of(EMPTY_RECENT_RESPONSE));
+            spectator.service.init();
+        };
+
+        it('should reject the pending and drop it from the list', () => {
+            initWithOrphan();
+            mockPictureService.rejectPending.mockReturnValue(of(undefined));
+
+            spectator.service.removePending(7);
+
+            expect(mockPictureService.rejectPending).toHaveBeenCalledWith(7);
+            expect(spectator.service.pendingGroups()).toEqual([]);
+        });
+
+        it('should keep the pending in the list when rejection fails', () => {
+            initWithOrphan();
+            mockPictureService.rejectPending.mockReturnValue(throwError(() => new Error('boom')));
+
+            spectator.service.removePending(7);
+
+            expect(spectator.service.pendingGroups()).toHaveLength(1);
+        });
+
+        it('should drop the pending when it is already gone', () => {
+            initWithOrphan();
+            mockPictureService.rejectPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+
+            spectator.service.removePending(7);
+
+            expect(spectator.service.pendingGroups()).toEqual([]);
+        });
+
+        it('should remove a second pending while the first is still in flight', () => {
+            const second = createPending({ id: 8, pictureId: 98, isPictureDeleted: true, currentTitle: undefined });
+            mockPictureService.getPending.mockReturnValue(
+                of({ ...EMPTY_PENDING_RESPONSE, items: [orphan, second], total: 2 }),
+            );
+            mockPictureService.getPictures.mockReturnValue(of(EMPTY_RECENT_RESPONSE));
+            spectator.service.init();
+            mockPictureService.rejectPending
+                .mockReturnValueOnce(new Subject<void>())
+                .mockReturnValueOnce(of(undefined));
+
+            spectator.service.removePending(7);
+            spectator.service.removePending(8);
+
+            expect(mockPictureService.rejectPending).toHaveBeenCalledTimes(2);
+            expect(spectator.service.pendingGroups()).toHaveLength(1);
+        });
+    });
+
+    describe('pendingGroups with a deleted picture', () => {
+        it('should carry the deleted flag onto the group', () => {
+            mockPictureService.getPending.mockReturnValue(
+                of({
+                    ...EMPTY_PENDING_RESPONSE,
+                    items: [createPending({ id: 7, pictureId: 99, isPictureDeleted: true, currentTitle: undefined })],
+                    total: 1,
+                }),
+            );
+            mockPictureService.getPictures.mockReturnValue(of(EMPTY_RECENT_RESPONSE));
+
+            spectator.service.init();
+
+            expect(spectator.service.pendingGroups()[0].isPictureDeleted).toBe(true);
+            expect(spectator.service.pendingGroups()[0].currentTitle).toBeUndefined();
         });
     });
 

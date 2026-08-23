@@ -56,7 +56,7 @@ export class DraftEditorService {
 
     flush(): void {
         if (this.lastPendingInput && !this.discarded && this.lastPendingInput.text !== this.lastSavedText) {
-            this.saveDraft(this.lastPendingInput);
+            void this.saveDraft(this.lastPendingInput);
             this.lastPendingInput = undefined;
         }
     }
@@ -74,7 +74,7 @@ export class DraftEditorService {
                 if (this.discarded || input.text === this.lastSavedText) {
                     return;
                 }
-                this.saveDraft(input);
+                void this.saveDraft(input);
             });
     }
 

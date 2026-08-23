@@ -35,7 +35,7 @@ export class SharedEditorComponent implements AfterViewInit {
     readonly updateLinksState$ = this.updateLinksStateSubject.asObservable();
 
     ngAfterViewInit(): void {
-        this.iframeService.sendMessage({ action: 'editorReady' });
+        this.iframeService.announceReady();
 
         this.contentUpdateSubject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(content => {
             this.iframeService.sendMessage({

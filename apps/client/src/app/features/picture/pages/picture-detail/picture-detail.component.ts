@@ -396,7 +396,7 @@ export class PictureDetailComponent {
                 next: editResult => {
                     if (editResult.picture) {
                         this.notificationService.success('Иллюстрация удалена');
-                        this.router.navigate(['/pictures']);
+                        void this.router.navigate(['/pictures']);
                     } else if (editResult.pending) {
                         this.refreshPending();
                         this.notificationService.info('Запрос на удаление отправлен на модерацию');
@@ -421,7 +421,7 @@ export class PictureDetailComponent {
         const lightboxPicture: Picture = {
             ...picture,
             id: pending.pictureId,
-            title: pending.title ?? pending.currentTitle,
+            title: pending.title ?? pending.currentTitle ?? picture.title,
             user: pending.user,
             date: pending.date,
             width: pending.width ?? pending.currentWidth,
@@ -440,7 +440,16 @@ export class PictureDetailComponent {
         }
 
         const code = `@${pic.id}@`;
-        this.window?.navigator?.clipboard
+        // lib.dom types `navigator.clipboard` as always present; it is missing
+        // in non-secure contexts.
+        const clipboard: Clipboard | undefined = this.window?.navigator.clipboard;
+        if (!clipboard) {
+            this.logger.warn('Clipboard API unavailable', { id: pic.id });
+            this.notificationService.error(`Не удалось скопировать код ${code}`);
+            return;
+        }
+
+        clipboard
             .writeText(code)
             .then(() => {
                 this.notificationService.success('Код скопирован');
@@ -512,7 +521,7 @@ export class PictureDetailComponent {
                     this.notificationService.success(successMessage);
                     this.logger.info(logMessage, { pendingId: pending.id, pictureId: pending.pictureId });
                     if (pendingAction === 'approve' && pending.pendingType === 'delete') {
-                        this.router.navigate(['/pictures']);
+                        void this.router.navigate(['/pictures']);
                         return;
                     }
                     this.reloadCurrentPage();
@@ -525,7 +534,7 @@ export class PictureDetailComponent {
                                 : 'Решение по этому предложению уже принято, либо пользователь отменил предложение';
                         this.notificationService.info(notFoundMessage);
                         if (pendingAction === 'approve' && pending.pendingType === 'delete') {
-                            this.router.navigate(['/pictures']);
+                            void this.router.navigate(['/pictures']);
                         } else {
                             this.reloadCurrentPage();
                         }

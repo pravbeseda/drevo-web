@@ -18,5 +18,5 @@ export interface MissingArticle {
 }
 
 export function isMissingArticle(value: unknown): value is MissingArticle {
-    return typeof value === 'object' && !!value && (value as MissingArticle).articleId === MISSING_ARTICLE_ID;
+    return typeof value === 'object' && !!value && 'articleId' in value && value.articleId === MISSING_ARTICLE_ID;
 }

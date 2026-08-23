@@ -104,7 +104,7 @@ export class ArticleVersionTabComponent implements OnInit {
                             urlArticleId: expectedArticleId,
                             actualArticleId: version.articleId,
                         });
-                        this.router.navigate(['/articles', version.articleId, 'version', version.versionId], {
+                        void this.router.navigate(['/articles', version.articleId, 'version', version.versionId], {
                             replaceUrl: true,
                         });
                         return;

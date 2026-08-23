@@ -50,14 +50,24 @@ function createDrawerMock(isOpen: boolean): InstanceType<typeof DrawerService> {
     } as unknown as InstanceType<typeof DrawerService>;
 }
 
-function getMediaQueryList(mockWindow: Window): {
-    addEventListener: jest.Mock;
+type MediaChangeHandler = (e: Partial<MediaQueryListEvent>) => void;
+
+interface MediaQueryListMock {
+    addEventListener: jest.Mock<void, [string, MediaChangeHandler]>;
     removeEventListener: jest.Mock;
-} {
-    return (mockWindow.matchMedia as jest.Mock).mock.results[0].value;
 }
 
-function getMediaChangeHandler(mockWindow: Window): (e: Partial<MediaQueryListEvent>) => void {
+function getMediaQueryList(mockWindow: Window): MediaQueryListMock {
+    const [result] = (mockWindow.matchMedia as jest.Mock<MediaQueryListMock>).mock.results;
+    // A `MockResult` also covers the throwing and in-flight cases, whose `value` is untyped.
+    if (result.type !== 'return') {
+        throw new Error('matchMedia has not returned a media query list');
+    }
+
+    return result.value;
+}
+
+function getMediaChangeHandler(mockWindow: Window): MediaChangeHandler {
     return getMediaQueryList(mockWindow).addEventListener.mock.calls[0][1];
 }
 
@@ -162,6 +172,18 @@ describe('LayoutComponent', () => {
             expect(drawerService.restoreSaved).not.toHaveBeenCalled();
         });
 
+        it('should not track breakpoints in SSR (no window)', () => {
+            spectator = createComponent({
+                providers: [
+                    { provide: WINDOW, useFactory: () => undefined },
+                    MockProvider(DrawerService, createDrawerMock(false)),
+                ],
+            });
+
+            expect(spectator.component.isMobile()).toBe(false);
+            expect(spectator.inject(WINDOW)).toBeUndefined();
+        });
+
         it('should close drawer when viewport switches to mobile', () => {
             const mockWindow = createMockWindow(BREAKPOINT_TABLET);
             spectator = createComponent({
@@ -233,17 +255,6 @@ describe('LayoutComponent', () => {
             spectator.fixture.destroy();
 
             expect(mql.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-        });
-
-        it('should not track breakpoints in SSR (no window)', () => {
-            spectator = createComponent({
-                providers: [
-                    { provide: WINDOW, useValue: undefined },
-                    MockProvider(DrawerService, createDrawerMock(false)),
-                ],
-            });
-
-            expect(spectator.component.isMobile()).toBe(false);
         });
     });
 
@@ -380,6 +391,19 @@ describe('LayoutComponent', () => {
             await router.navigateByUrl('/test');
 
             expect(contentEl.scrollTo).toHaveBeenCalledWith(0, 0);
+        });
+
+        // `useFactory` rather than `useValue: undefined`: TestBed.overrideProvider drops an
+        // override whose `useValue` is literally undefined and leaves the token as it was.
+        it('should not scroll on the server, whose DOM has no scrollTo', async () => {
+            spectator = createComponent({ providers: [{ provide: WINDOW, useFactory: () => undefined }] });
+            const contentEl = spectator.query('.main') as HTMLElement;
+            contentEl.scrollTo = jest.fn();
+
+            const router = spectator.inject(Router);
+            await router.navigateByUrl('/test');
+
+            expect(contentEl.scrollTo).not.toHaveBeenCalled();
         });
 
         it('should not scroll to top when navigating to a fragment', async () => {

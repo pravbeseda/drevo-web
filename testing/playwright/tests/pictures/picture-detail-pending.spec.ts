@@ -19,7 +19,7 @@ import { getNotification, watchForNotification } from '../../helpers/notificatio
 import { createPictureDto, createPicturePendingDto, mockUsers } from '../../mocks';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
 import { PicturePendingDto, PicturePendingType } from '@drevo-web/shared';
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 const PICTURE_ID = 42;
 const PICTURE = createPictureDto({
@@ -339,27 +339,36 @@ test.describe('Moderator approves delete pending', () => {
 
         const successNotification = getNotification(page, 'success');
         await expect(successNotification).toContainText('Изменение одобрено');
-        await page.waitForURL('**/pictures');
+        await expect(page).toHaveURL('/pictures');
     });
 });
 
 test.describe('Moderator pending action returns 404', () => {
-    const MODERATOR_ACTIONS: readonly { action: 'approve' | 'reject'; label: string }[] = [
-        { action: 'approve', label: 'принять' },
-        { action: 'reject', label: 'отклонить' },
+    // The mock and the button travel with the action so the test body stays branch-free.
+    const MODERATOR_ACTIONS: readonly {
+        label: string;
+        mockNotFound: (page: Page, pendingId: number) => Promise<void>;
+        button: (detail: PictureDetailPage) => Locator;
+    }[] = [
+        {
+            label: 'принять',
+            mockNotFound: mockPictureApprovePendingNotFound,
+            button: detail => detail.pendingApprove,
+        },
+        {
+            label: 'отклонить',
+            mockNotFound: mockPictureRejectPendingNotFound,
+            button: detail => detail.pendingReject,
+        },
     ];
 
     for (const { type, label: typeLabel } of PENDING_TYPES) {
-        for (const { action, label: actionLabel } of MODERATOR_ACTIONS) {
+        for (const { label: actionLabel, mockNotFound, button } of MODERATOR_ACTIONS) {
             test(`${typeLabel} — ${actionLabel}: shows info notification on 404`, async ({ page }) => {
                 const PENDING_ID = 100;
                 const pendingItem = createPendingByType(type, PENDING_ID, 'Другой пользователь');
 
-                if (action === 'approve') {
-                    await mockPictureApprovePendingNotFound(page, PENDING_ID);
-                } else {
-                    await mockPictureRejectPendingNotFound(page, PENDING_ID);
-                }
+                await mockNotFound(page, PENDING_ID);
 
                 const detail = await setupPageWithDynamicPending(page, [pendingItem], [], {
                     asModerator: true,
@@ -367,8 +376,7 @@ test.describe('Moderator pending action returns 404', () => {
                 await expect(detail.pendingBanners).toHaveCount(1);
 
                 const didErrorAppear = await watchForNotification(page, 'error');
-                const actionButton = action === 'approve' ? detail.pendingApprove : detail.pendingReject;
-                await actionButton.click();
+                await button(detail).click();
 
                 const infoNotification = getNotification(page, 'info');
                 await expect(infoNotification).toContainText(

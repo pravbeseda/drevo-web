@@ -200,7 +200,7 @@ test.describe('Article find by title', () => {
         await editPage.typeInEditor('Текст новой статьи');
         await editPage.clickSave();
 
-        await page.waitForURL(`**/articles/${CREATED_ID}`);
+        await expect(page).toHaveURL(`/articles/${CREATED_ID}`);
         await new ArticlePage(page).waitForReady();
     });
 

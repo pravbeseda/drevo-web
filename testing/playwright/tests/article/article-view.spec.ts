@@ -52,7 +52,7 @@ test.describe('Article view', () => {
             await article.waitForError();
 
             await expect(article.error).toBeVisible();
-            await expect(article.root).not.toBeVisible();
+            await expect(article.root).toBeHidden();
         });
 
         test('shows error for server failure (500)', async ({ authenticatedPage: page }) => {

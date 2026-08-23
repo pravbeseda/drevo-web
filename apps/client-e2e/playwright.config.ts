@@ -5,11 +5,12 @@ import { defineConfig } from '@playwright/test';
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
 
 // API Base URL for API tests (can be different from UI base URL)
+// eslint-disable-next-line sonarjs/no-clear-text-protocols -- local dev backend is http by design
 const apiBaseURL = process.env['API_BASE_URL'] || 'http://drevo-local.ru';
 
 // API tests are enabled locally by default, disabled in CI
 // Set ENABLE_API_TESTS=true to force enable, ENABLE_API_TESTS=false to force disable
-const isCI = !!process.env.CI;
+const isCI = !!process.env['CI'];
 const enableApiTests =
     process.env['ENABLE_API_TESTS'] !== undefined ? process.env['ENABLE_API_TESTS'] === 'true' : !isCI; // Default: enabled locally, disabled in CI
 

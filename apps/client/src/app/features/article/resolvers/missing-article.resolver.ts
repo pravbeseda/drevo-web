@@ -37,7 +37,7 @@ export function resolveMissingArticle(
                 reason: result.reason,
             } as const;
         }),
-        catchError(error => {
+        catchError((error: unknown) => {
             // Existence was never established, so we must not render the "does not
             // exist" placeholder. Resolve to undefined — ArticleComponent then
             // shows its generic load-error state instead of a false result.

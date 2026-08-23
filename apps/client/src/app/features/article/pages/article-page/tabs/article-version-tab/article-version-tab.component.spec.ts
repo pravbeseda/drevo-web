@@ -68,7 +68,7 @@ describe('ArticleVersionTabComponent', () => {
                 },
             ],
         });
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService);
         articleService.getVersionShow.mockReturnValue(of(mockVersion));
     });
 

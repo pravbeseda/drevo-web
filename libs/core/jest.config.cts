@@ -3,6 +3,10 @@ module.exports = {
     preset: '../../jest.preset.js',
     setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
     coverageDirectory: '../../coverage/libs/core',
+    // Aggregate only — the per-file floor is `yarn lint:coverage`. See libs/ui/jest.config.ts.
+    coverageThreshold: {
+        global: { lines: 80, branches: 73, functions: 73, statements: 80 },
+    },
     transform: {
         '^.+\\.(ts|mjs|js|html)$': [
             'jest-preset-angular',

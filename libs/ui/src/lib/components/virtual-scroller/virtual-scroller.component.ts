@@ -68,7 +68,7 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     readonly trackByFn = input<(index: number, item: T) => unknown>((index: number) => index);
 
     /** Emitted when more items should be loaded */
-    readonly loadMore = output<void>();
+    readonly loadMore = output();
 
     /** Reference to the viewport for scroll handling */
     readonly viewport = viewChild.required(CdkVirtualScrollViewport);

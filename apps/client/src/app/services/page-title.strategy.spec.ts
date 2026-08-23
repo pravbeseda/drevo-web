@@ -99,6 +99,15 @@ describe('PageTitleStrategy', () => {
             expect(titleService.setTitle).toHaveBeenCalledWith('# Берёза - Древо');
         });
 
+        it('should ignore a titlePrefix that is not a string', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue('Берёза');
+
+            spectator.service.updateTitle(makeSnapshot(makeRoute({ titlePrefix: 42 })));
+
+            expect(titleService.setTitle).toHaveBeenCalledWith('Берёза - Древо');
+        });
+
         it('should not apply titlePrefix when route has no title', () => {
             const titleService = spectator.inject(Title);
             jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
@@ -158,6 +167,17 @@ describe('PageTitleStrategy', () => {
             jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
 
             const route = makeRoute({ titleSource: 'article' });
+            spectator.service.updateTitle(makeSnapshot(route));
+
+            expect(spectator.service.pageTitle()).toBe('Древо');
+            expect(titleService.setTitle).toHaveBeenCalledWith('Древо');
+        });
+
+        it('should fall back to default when titleSource points to a title that is not a string', () => {
+            const titleService = spectator.inject(Title);
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+
+            const route = makeRoute({ titleSource: 'version', version: { title: 42 } });
             spectator.service.updateTitle(makeSnapshot(route));
 
             expect(spectator.service.pageTitle()).toBe('Древо');

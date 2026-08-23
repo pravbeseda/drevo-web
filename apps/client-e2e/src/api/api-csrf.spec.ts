@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL, apiPost, getCsrfToken, ALLOWED_ORIGINS } from './api-test-helpers';
+import {
+    API_BASE_URL,
+    ALLOWED_ORIGINS,
+    ApiResponse,
+    apiPost,
+    getCsrfToken,
+    INVALID_CREDENTIALS,
+    readJson,
+} from './api-test-helpers';
 
 /**
  * API Integration Tests - CSRF Protection
@@ -69,7 +77,7 @@ test.describe('CSRF Protection', () => {
                 },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(200);
             expect(body.success).toBe(true);
@@ -85,7 +93,7 @@ test.describe('CSRF Protection', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
             expect(body.data).toHaveProperty('csrfToken');
         });
@@ -98,7 +106,7 @@ test.describe('CSRF Protection', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
         });
     });
@@ -124,7 +132,7 @@ test.describe('CSRF Protection', () => {
     test.describe('CSRF for login endpoint', () => {
         test('POST /api/auth/login should reject without CSRF token', async ({ request }) => {
             const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: { username: 'test', password: 'test' },
+                data: INVALID_CREDENTIALS,
                 origin: allowedOrigin,
                 // No CSRF token
             });
@@ -138,18 +146,15 @@ test.describe('CSRF Protection', () => {
             const csrfToken = await getCsrfToken(request);
 
             const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: { username: 'nonexistent', password: 'wrong' },
+                data: INVALID_CREDENTIALS,
                 origin: allowedOrigin,
                 csrfToken,
             });
 
-            // Should not be CSRF error - will be 401 for invalid credentials
-            if (response.status() === 403) {
-                expect(body.errorCode).not.toBe('CSRF_VALIDATION_FAILED');
-            } else {
-                expect(response.status()).toBe(401);
-                expect(body.errorCode).toBe('INVALID_CREDENTIALS');
-            }
+            // Reaching credential validation proves the token was accepted: a rejected one
+            // would have produced 403/CSRF_VALIDATION_FAILED before this point.
+            expect(response.status()).toBe(401);
+            expect(body.errorCode).toBe('INVALID_CREDENTIALS');
         });
     });
 });

@@ -1,4 +1,4 @@
-$skeleton-color: white;
+$skeleton-color: var(--themed-editor-skeleton-base);
 $skeleton-offset: var(--themed-editor-skeleton-offset);
 
 .container {
@@ -31,6 +31,7 @@ $skeleton-offset: var(--themed-editor-skeleton-offset);
     0% {
         background-position: -100% 0;
     }
+
     100% {
         background-position: 100% 0;
     }

@@ -46,6 +46,18 @@ export class LayoutPage extends BasePage {
         await this.header.waitFor({ state: 'visible' });
     }
 
+    /**
+     * Make the nav items reachable. On mobile the sidebar is a drawer that starts closed;
+     * on desktop it is already expanded and this is a no-op.
+     */
+    async openSidebarOnMobile(isMobile: boolean): Promise<void> {
+        if (!isMobile) {
+            return;
+        }
+        await this.hamburgerButton.click();
+        await this.expectSidebarExpanded();
+    }
+
     /** Get a nav item by its aria-label */
     navItem(label: string) {
         return this.sidebar.locator(`[data-testid="nav-item"][aria-label="${label}"]`);
@@ -103,7 +115,7 @@ export class LayoutPage extends BasePage {
 
     /** Close the font-scale popup by clicking the backdrop */
     async closeFontScalePopup(): Promise<void> {
-        await this.fontScaleBackdrop.click({ force: true });
+        await this.fontScaleBackdrop.click();
         await this.fontScalePopup.waitFor({ state: 'hidden' });
     }
 }

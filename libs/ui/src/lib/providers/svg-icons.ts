@@ -14,6 +14,7 @@ export function provideSvgIcons(icons: readonly SvgIconConfig[]): EnvironmentPro
             const sanitizer = inject(DomSanitizer);
 
             for (const icon of icons) {
+                // eslint-disable-next-line sonarjs/no-angular-bypass-sanitization -- icon URLs are compile-time constants, never user input
                 registry.addSvgIcon(icon.name, sanitizer.bypassSecurityTrustResourceUrl(icon.url));
             }
         }),

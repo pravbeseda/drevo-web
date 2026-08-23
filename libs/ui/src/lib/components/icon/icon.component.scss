@@ -16,8 +16,10 @@ $tones: (
     @each $name, $color in $tones {
         // Default: mat-icon paints with `currentColor`, so `color` tints the glyph.
         &.tone-#{$name}:not(.filled) {
+            // stylelint-disable-next-line scale-unlimited/declaration-strict-value -- $tones holds --themed-* tokens; #{} interpolation is opaque to the linter
             color: #{$color};
         }
+
         // Filled: the tone becomes a circular background behind a white glyph.
         &.filled.tone-#{$name} {
             background: #{$color};
@@ -41,7 +43,7 @@ mat-icon.material-symbols-rounded {
     letter-spacing: normal;
     text-transform: none;
     white-space: nowrap;
-    word-wrap: normal;
+    overflow-wrap: normal;
     direction: ltr;
     font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;

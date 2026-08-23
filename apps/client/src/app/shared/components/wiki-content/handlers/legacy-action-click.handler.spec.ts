@@ -6,6 +6,7 @@ import { LegacyActionClickHandler } from './legacy-action-click.handler';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
+import { expectAny } from '@drevo-web/shared/testing';
 
 describe('LegacyActionClickHandler', () => {
     let spectator: SpectatorService<LegacyActionClickHandler>;
@@ -106,7 +107,7 @@ describe('LegacyActionClickHandler', () => {
             const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                 'Invalid javascript action format',
-                expect.objectContaining({ value: expect.any(String) }),
+                expect.objectContaining({ value: expectAny(String) }),
             );
         });
 
@@ -120,7 +121,7 @@ describe('LegacyActionClickHandler', () => {
             const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                 'Unknown javascript action',
-                expect.objectContaining({ action: 'unknownAction', value: expect.any(String) }),
+                expect.objectContaining({ action: 'unknownAction', value: expectAny(String) }),
             );
         });
 
@@ -134,7 +135,7 @@ describe('LegacyActionClickHandler', () => {
             const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(logger.mockLogger.warn).toHaveBeenCalledWith(
                 'Unknown javascript action',
-                expect.objectContaining({ action: 'alert', value: expect.any(String) }),
+                expect.objectContaining({ action: 'alert', value: expectAny(String) }),
             );
         });
     });

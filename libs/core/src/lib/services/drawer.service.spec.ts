@@ -13,7 +13,7 @@ describe('DrawerService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        storage = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+        storage = spectator.inject(StorageService);
     });
 
     it('should be created', () => {

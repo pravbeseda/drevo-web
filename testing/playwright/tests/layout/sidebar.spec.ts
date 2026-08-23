@@ -11,11 +11,7 @@ test.describe('Sidebar', () => {
             layout = new LayoutPage(page);
             await page.goto('/');
             await layout.waitForReady();
-            // On mobile the sidebar is a closed drawer by default; open it first
-            if (isMobile) {
-                await layout.hamburgerButton.click();
-                await layout.expectSidebarExpanded();
-            }
+            await layout.openSidebarOnMobile(isMobile);
         });
 
         test('renders nav links', async () => {
@@ -32,7 +28,7 @@ test.describe('Sidebar', () => {
     test.describe('Collapsed / Expanded', () => {
         // These tests describe desktop sidebar behaviour. On mobile the sidebar
         // is a drawer that always starts closed — skip those projects.
-        test.beforeEach(async ({ isMobile }) => {
+        test.beforeEach(({ isMobile }) => {
             test.skip(isMobile, 'On mobile the sidebar is a drawer that starts closed');
         });
 

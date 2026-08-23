@@ -1,7 +1,8 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { Logger, LoggerService } from '@drevo-web/core';
+import { Logger, LoggerService, readApiErrorBody } from '@drevo-web/core';
 import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
 import { Observable, catchError, of, shareReplay, tap } from 'rxjs';
 
@@ -84,8 +85,8 @@ export class DiffPageDataService {
                     previousId: pairs.previous.versionId,
                 });
             }),
-            catchError(err => {
-                const errorCode = err?.error?.errorCode;
+            catchError((err: unknown) => {
+                const errorCode = err instanceof HttpErrorResponse ? readApiErrorBody(err)?.errorCode : undefined;
                 if (errorCode === 'NO_PREVIOUS_VERSION') {
                     this._error.set('Предыдущая версия не найдена');
                 } else {

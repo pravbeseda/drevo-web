@@ -32,7 +32,10 @@
                 "ssr": {
                     "entry": "apps/client/src/server.ts"
                 },
-                "outputMode": "server"
+                "outputMode": "server",
+                "security": {
+                    "allowedHosts": ["drevo-info.ru", "app.drevo-info.ru", "beta.drevo-info.ru", "localhost"]
+                }
             },
             "configurations": {
                 "production": {
@@ -106,7 +109,10 @@
             }
         },
         "lint": {
-            "executor": "@nx/eslint:lint"
+            "executor": "@nx/eslint:lint",
+            "options": {
+                "maxWarnings": 0
+            }
         },
         "test": {
             "executor": "@nx/jest:jest",

@@ -2,7 +2,7 @@ import { HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse, HttpContext 
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, readApiErrorBody } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthService } from '../services/auth/auth.service';
 import { CsrfService } from '../services/auth/csrf.service';
@@ -36,10 +36,10 @@ describe('AuthInterceptor', () => {
 
     beforeEach(() => {
         spectator = createService();
-        authService = spectator.inject(AuthService) as jest.Mocked<AuthService>;
-        csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
+        authService = spectator.inject(AuthService);
+        csrfService = spectator.inject(CsrfService);
         loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
-        mockHandler = createMockHandler() as jest.Mocked<HttpHandler>;
+        mockHandler = createMockHandler();
 
         // Default mocks
         authOperationInProgress$ = new BehaviorSubject<boolean>(false);
@@ -364,7 +364,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('POST', 'http://test-api/api/resource', {});
 
             spectator.service.intercept(request, mockHandler).subscribe({
-                error: error => {
+                error: (error: unknown) => {
                     expect(error).toBe(tokenError);
                     expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to get CSRF token', tokenError);
                     done();
@@ -379,8 +379,8 @@ describe('AuthInterceptor', () => {
                 handle: jest.fn().mockReturnValue(throwError(() => requestError)),
             };
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
-                error: error => {
+            spectator.service.intercept(request, handler).subscribe({
+                error: (error: unknown) => {
                     expect(error).toBe(requestError);
                     expect(loggerService.mockLogger.error).not.toHaveBeenCalledWith(
                         'Failed to get CSRF token',
@@ -423,7 +423,8 @@ describe('AuthInterceptor', () => {
                     expect(handler.handle).toHaveBeenCalledTimes(2);
 
                     // Verify second request has new token
-                    const retryRequest = (handler.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    const retryRequest = (handler.handle as jest.Mock<unknown, [HttpRequest<unknown>]>).mock
+                        .calls[1][0];
                     expect(retryRequest.headers.get('X-CSRF-Token')).toBe('new-csrf-token');
                     expect(retryRequest.withCredentials).toBe(true);
                     expect(retryRequest.headers.has('X-CSRF-Retry')).toBe(false);
@@ -447,7 +448,7 @@ describe('AuthInterceptor', () => {
                 errorCode: 'CSRF_VALIDATION_FAILED',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     // Should NOT retry - error should be propagated
                     expect(error.status).toBe(403);
@@ -464,7 +465,7 @@ describe('AuthInterceptor', () => {
                 errorCode: 'ACCESS_DENIED',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
                     expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
@@ -479,7 +480,7 @@ describe('AuthInterceptor', () => {
                 errorCode: 'CSRF_VALIDATION_FAILED',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
                     expect(csrfService.refreshCsrfToken).not.toHaveBeenCalled();
@@ -499,10 +500,10 @@ describe('AuthInterceptor', () => {
             };
             csrfService.refreshCsrfToken.mockReturnValue(throwError(() => new Error('Refresh failed')));
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(403);
-                    expect(error.error.errorCode).toBe('CSRF_VALIDATION_FAILED');
+                    expect(readApiErrorBody(error)?.errorCode).toBe('CSRF_VALIDATION_FAILED');
                     done();
                 },
             });
@@ -564,8 +565,8 @@ describe('AuthInterceptor', () => {
                     expect(csrfService.refreshCsrfToken).toHaveBeenCalledTimes(1);
 
                     // Both retry requests should have the same new token
-                    const retry1 = (handler1.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
-                    const retry2 = (handler2.handle as jest.Mock).mock.calls[1][0] as HttpRequest<unknown>;
+                    const retry1 = (handler1.handle as jest.Mock<unknown, [HttpRequest<unknown>]>).mock.calls[1][0];
+                    const retry2 = (handler2.handle as jest.Mock<unknown, [HttpRequest<unknown>]>).mock.calls[1][0];
                     expect(retry1.headers.get('X-CSRF-Token')).toBe('shared-new-token');
                     expect(retry2.headers.get('X-CSRF-Token')).toBe('shared-new-token');
                     done();
@@ -589,7 +590,7 @@ describe('AuthInterceptor', () => {
                 message: 'Unauthorized',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     done();
@@ -603,7 +604,7 @@ describe('AuthInterceptor', () => {
                 message: 'Server error',
             });
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(500);
                     done();
@@ -615,7 +616,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('GET', 'http://test-api/api/resource');
             const handler = createErrorHandler(0);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(0);
                     done();
@@ -633,7 +634,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('GET', 'http://test-api/api/articles');
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).toHaveBeenCalled();
@@ -649,7 +650,7 @@ describe('AuthInterceptor', () => {
             });
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).not.toHaveBeenCalled();
@@ -662,7 +663,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('GET', 'http://test-api/api/auth/me');
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).not.toHaveBeenCalled();
@@ -675,7 +676,7 @@ describe('AuthInterceptor', () => {
             const request = new HttpRequest('POST', 'http://test-api/api/auth/logout', {});
             const handler = createErrorHandler(401);
 
-            spectator.service.intercept(request, handler as HttpHandler).subscribe({
+            spectator.service.intercept(request, handler).subscribe({
                 error: (error: HttpErrorResponse) => {
                     expect(error.status).toBe(401);
                     expect(authService.handleUnauthorized).not.toHaveBeenCalled();

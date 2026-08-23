@@ -102,6 +102,6 @@ test.describe('Search modal', () => {
         await search.firstResult.click();
 
         await expect(page).toHaveURL(new RegExp(`/articles/${firstArticleId}`));
-        await expect(search.container).not.toBeVisible();
+        await expect(search.container).toBeHidden();
     });
 });

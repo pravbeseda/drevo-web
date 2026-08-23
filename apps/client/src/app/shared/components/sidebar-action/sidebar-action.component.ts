@@ -26,7 +26,7 @@ export class SidebarActionComponent implements OnDestroy {
     readonly badge = input<number>();
     readonly testId = input<string>();
 
-    readonly activated = output<void>();
+    readonly activated = output();
 
     constructor() {
         effect(() => {

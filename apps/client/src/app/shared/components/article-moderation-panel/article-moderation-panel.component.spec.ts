@@ -35,7 +35,7 @@ describe('ArticleModerationPanelComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent({ props: { version: mockVersion } });
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService);
         notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
     });
 

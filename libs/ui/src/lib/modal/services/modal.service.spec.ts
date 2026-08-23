@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { expectObjectLike } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { Subject } from 'rxjs';
 import { ModalContainerComponent } from '../components/modal-container.component';
@@ -28,7 +29,7 @@ describe('ModalService', () => {
         } as unknown as jest.Mocked<MatDialogRef<ModalContainerComponent>>;
 
         spectator = createService();
-        dialogMock = spectator.inject(MatDialog) as jest.Mocked<MatDialog>;
+        dialogMock = spectator.inject(MatDialog);
         dialogMock.open.mockReturnValue(dialogRefMock);
     });
 
@@ -270,9 +271,7 @@ describe('ModalService', () => {
             expect(dialogMock.open).toHaveBeenCalledWith(
                 ModalContainerComponent,
                 expect.objectContaining({
-                    data: expect.objectContaining({
-                        data,
-                    }),
+                    data: expectObjectLike<{ data: CustomData }>({ data }),
                 }),
             );
         });

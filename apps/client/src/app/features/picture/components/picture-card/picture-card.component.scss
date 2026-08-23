@@ -1,6 +1,7 @@
 $overlay-font-size: 0.8rem;
 $overlay-line-height: 1.3;
 $overlay-padding: 6px;
+
 // 2 lines of text + top/bottom padding
 $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 + #{$overlay-padding} * 2);
 
@@ -40,8 +41,9 @@ $overlay-max-2-lines: calc(#{$overlay-font-size} * #{$overlay-line-height} * 2 +
         max-height: $overlay-max-2-lines;
         overflow: hidden;
         transition: max-height 0.3s ease;
+
         // Intentional: fixed dark overlay on top of image, not theme-dependent
-        background: rgba(0, 0, 0, 0.7);
+        background: rgb(0 0 0 / 70%);
         color: #ddd;
         padding: $overlay-padding 8px;
     }

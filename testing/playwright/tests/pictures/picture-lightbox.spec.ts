@@ -72,7 +72,7 @@ test.describe('Picture lightbox', () => {
         await lightbox.titleLink.click();
 
         await expect(page).toHaveURL(new RegExp(`/pictures/${PICTURE_ID}`));
-        await expect(lightbox.backdrop).not.toBeVisible();
+        await expect(lightbox.backdrop).toBeHidden();
     });
 
     test('closes lightbox via close button', async () => {
@@ -81,6 +81,6 @@ test.describe('Picture lightbox', () => {
 
         await lightbox.close.click();
 
-        await expect(lightbox.backdrop).not.toBeVisible();
+        await expect(lightbox.backdrop).toBeHidden();
     });
 });

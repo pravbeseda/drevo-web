@@ -61,6 +61,13 @@ describe('findPictureCodeAtPosition', () => {
         expect(findPictureCodeAtPosition('', 0)).toBeUndefined();
     });
 
+    // `@-N@` renders picture N without a caption; the backend takes abs() of the id
+    it('should match a negative picture code and report its absolute id', () => {
+        const result = findPictureCodeAtPosition('text @-123@ more', 7);
+
+        expect(result).toEqual({ id: 123, from: 5, to: 11 });
+    });
+
     it('should handle picture code at line start', () => {
         const result = findPictureCodeAtPosition('@456@ text', 0);
 
@@ -81,6 +88,14 @@ describe('extractPictureIds', () => {
 
     it('should ignore invalid formats', () => {
         expect(extractPictureIds('@abc@ @@ @ @')).toEqual([]);
+    });
+
+    it('should extract negative picture codes as their absolute id', () => {
+        expect(extractPictureIds('text @-100@ and @200@')).toEqual([100, 200]);
+    });
+
+    it('should treat @N@ and @-N@ as the same picture', () => {
+        expect(extractPictureIds('@100@ and @-100@')).toEqual([100]);
     });
 
     it('should handle picture codes on multiple lines', () => {
@@ -179,6 +194,139 @@ describe('createPicturePreviewExtension', () => {
         const errorElement = view.dom.querySelector('.cm-picture-error');
         expect(errorElement).not.toBeNull();
         expect(errorElement?.textContent).toBe('@999@');
+
+        view.destroy();
+    });
+
+    it('should apply resolved decoration to a negative picture code', async () => {
+        const batchResponse: PictureBatchResponse = {
+            items: [MOCK_PICTURE],
+            notFoundIds: [],
+        };
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch: () => of(batchResponse),
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@-123@',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const resolvedElement = view.dom.querySelector('.cm-picture-resolved');
+        expect(resolvedElement).not.toBeNull();
+        expect(resolvedElement?.textContent).toBe('@-123@');
+
+        view.destroy();
+    });
+
+    it('should retry a failed negative picture code after it is edited', async () => {
+        const getPicturesBatch = jest
+            .fn()
+            .mockReturnValueOnce(of<PictureBatchResponse>({ items: [], notFoundIds: [999] }))
+            .mockReturnValueOnce(of<PictureBatchResponse>({ items: [MOCK_PICTURE], notFoundIds: [] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@-999@',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        // Editing the marker must drop the stored error so the id is fetched again
+        view.dispatch({ changes: { from: 0, to: 6, insert: '@-123@' } });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(2);
+        expect(view.dom.querySelector('.cm-picture-resolved')).not.toBeNull();
+
+        view.destroy();
+    });
+
+    it('should not refetch a failed marker when an unrelated part of its line is edited', async () => {
+        const getPicturesBatch = jest.fn(() => of<PictureBatchResponse>({ items: [], notFoundIds: [999] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({
+            doc: '@999@ caption text',
+            extensions: [extension],
+        });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        // Typing in the caption must not resurrect the known-missing id
+        view.dispatch({ changes: { from: 18, insert: '!' } });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(1);
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        view.destroy();
+    });
+
+    it.each([
+        ['deleting the character before it', 'x@999@', { from: 0, to: 1 }],
+        ['typing directly after it', '@999@', { from: 5, insert: 'x' }],
+    ])('should not refetch a failed marker when an edit only abuts it: %s', async (_name, doc, changes) => {
+        const getPicturesBatch = jest.fn(() => of<PictureBatchResponse>({ items: [], notFoundIds: [999] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({ doc, extensions: [extension] });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        view.dispatch({ changes });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(1);
+
+        view.destroy();
+    });
+
+    it('should retry a failed marker when a digit inside it is replaced', async () => {
+        const getPicturesBatch = jest
+            .fn()
+            .mockReturnValueOnce(of<PictureBatchResponse>({ items: [], notFoundIds: [999] }))
+            .mockReturnValueOnce(of<PictureBatchResponse>({ items: [MOCK_PICTURE], notFoundIds: [] }));
+        const extension = createPicturePreviewExtension({
+            getPicturesBatch,
+            onPictureClick: jest.fn(),
+        });
+
+        const state = EditorState.create({ doc: '@999@', extensions: [extension] });
+        const view = new EditorView({ state });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(view.dom.querySelector('.cm-picture-error')).not.toBeNull();
+
+        view.dispatch({ changes: { from: 1, to: 4, insert: '123' } });
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(getPicturesBatch).toHaveBeenCalledTimes(2);
+        expect(view.dom.querySelector('.cm-picture-resolved')).not.toBeNull();
 
         view.destroy();
     });

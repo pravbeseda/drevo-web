@@ -25,8 +25,8 @@ describe('WikiContentComponent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         spectator = createComponent();
-        router = spectator.inject(Router) as jest.Mocked<Router>;
-        lightboxService = spectator.inject(PictureLightboxService) as jest.Mocked<PictureLightboxService>;
+        router = spectator.inject(Router);
+        lightboxService = spectator.inject(PictureLightboxService);
     });
 
     afterEach(() => {

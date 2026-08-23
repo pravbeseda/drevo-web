@@ -24,12 +24,28 @@
         outline-offset: 2px;
     }
 
+    &--orphan {
+        cursor: default;
+
+        &:hover {
+            background: var(--themed-hover-bg);
+        }
+    }
+
     &__thumbnail {
         width: 48px;
         height: 48px;
         object-fit: cover;
         border-radius: 6px;
         flex-shrink: 0;
+    }
+
+    &__thumbnail--missing {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--themed-active-bg);
+        color: var(--themed-text-muted);
     }
 
     &__content {
@@ -77,5 +93,9 @@
 
     &__author {
         color: var(--themed-text-secondary);
+    }
+
+    &__delete {
+        margin-left: 4px;
     }
 }

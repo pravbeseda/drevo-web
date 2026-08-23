@@ -14,8 +14,8 @@ test.describe('History tab badges', () => {
 
         await expect(history.badgeFor(history.tabArticles)).toHaveText('5');
         await expect(history.badgeFor(history.tabNews)).toHaveText('2');
-        await expect(history.badgeFor(history.tabForum)).not.toBeVisible();
-        await expect(history.badgeFor(history.tabPictures)).not.toBeVisible();
+        await expect(history.badgeFor(history.tabForum)).toBeHidden();
+        await expect(history.badgeFor(history.tabPictures)).toBeHidden();
     });
 
     test('regular user does not see badges', async ({ authenticatedPage: page }) => {
@@ -26,9 +26,9 @@ test.describe('History tab badges', () => {
         const history = new HistoryPage(page);
         await history.waitForReady();
 
-        await expect(history.badgeFor(history.tabArticles)).not.toBeVisible();
-        await expect(history.badgeFor(history.tabNews)).not.toBeVisible();
-        await expect(history.badgeFor(history.tabPictures)).not.toBeVisible();
+        await expect(history.badgeFor(history.tabArticles)).toBeHidden();
+        await expect(history.badgeFor(history.tabNews)).toBeHidden();
+        await expect(history.badgeFor(history.tabPictures)).toBeHidden();
     });
 
     test('moderator sees no badges when all counts are zero', async ({ page }) => {
@@ -40,8 +40,8 @@ test.describe('History tab badges', () => {
         const history = new HistoryPage(page);
         await history.waitForReady();
 
-        await expect(history.badgeFor(history.tabArticles)).not.toBeVisible();
-        await expect(history.badgeFor(history.tabNews)).not.toBeVisible();
-        await expect(history.badgeFor(history.tabPictures)).not.toBeVisible();
+        await expect(history.badgeFor(history.tabArticles)).toBeHidden();
+        await expect(history.badgeFor(history.tabNews)).toBeHidden();
+        await expect(history.badgeFor(history.tabPictures)).toBeHidden();
     });
 });

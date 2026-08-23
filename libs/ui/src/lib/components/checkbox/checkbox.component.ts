@@ -32,7 +32,7 @@ export class CheckboxComponent implements ControlValueAccessor {
         /* empty */
     };
 
-    writeValue(value: boolean): void {
+    writeValue(value: boolean | undefined): void {
         this.checked.set(value ?? false);
     }
 

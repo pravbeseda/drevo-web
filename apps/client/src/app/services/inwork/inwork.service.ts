@@ -24,7 +24,7 @@ export class InworkService {
                 }
                 return editor;
             }),
-            catchError(err => {
+            catchError((err: unknown) => {
                 this.logger.error('Failed to check inwork status', err);
                 return of(undefined);
             }),
@@ -34,7 +34,7 @@ export class InworkService {
     getInworkList(): Observable<InworkItem[]> {
         return this.inworkApiService.getList().pipe(
             map(items => items.map(dto => this.mapItem(dto))),
-            catchError(err => {
+            catchError((err: unknown) => {
                 this.logger.error('Failed to get inwork list', err);
                 return of([]);
             }),
@@ -43,7 +43,7 @@ export class InworkService {
 
     markEditing(title: string, versionId: number): Observable<void> {
         return this.inworkApiService.markEditing(INWORK_MODULE, title, versionId).pipe(
-            catchError(err => {
+            catchError((err: unknown) => {
                 this.logger.error('Failed to mark article as editing', err);
                 return EMPTY;
             }),

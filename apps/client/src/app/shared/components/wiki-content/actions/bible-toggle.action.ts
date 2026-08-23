@@ -18,8 +18,8 @@ export class BibleToggleAction implements WikiAction {
     }
 
     private toggleTranslation(host: HTMLElement, primaryClass: string, otherClass: string): void {
-        const primaryElements = Array.from(host.querySelectorAll(`.${primaryClass}`)) as HTMLElement[];
-        const otherElements = Array.from(host.querySelectorAll(`.${otherClass}`)) as HTMLElement[];
+        const primaryElements = Array.from(host.querySelectorAll<HTMLElement>(`.${primaryClass}`));
+        const otherElements = Array.from(host.querySelectorAll<HTMLElement>(`.${otherClass}`));
 
         const willBeHidden = primaryElements[0]?.style.display !== 'none';
         primaryElements.forEach(el => {
@@ -36,11 +36,11 @@ export class BibleToggleAction implements WikiAction {
     }
 
     private updateBibleLinks(host: HTMLElement): void {
-        const rusLinks = Array.from(host.querySelectorAll('.toggleRus')) as HTMLElement[];
-        const cslLinks = Array.from(host.querySelectorAll('.toggleCsl')) as HTMLElement[];
+        const rusLinks = Array.from(host.querySelectorAll<HTMLElement>('.toggleRus'));
+        const cslLinks = Array.from(host.querySelectorAll<HTMLElement>('.toggleCsl'));
 
-        const rusVisible = (host.querySelector('.BibleRus') as HTMLElement)?.style.display !== 'none';
-        const cslVisible = (host.querySelector('.BibleCsl') as HTMLElement)?.style.display !== 'none';
+        const rusVisible = host.querySelector<HTMLElement>('.BibleRus')?.style.display !== 'none';
+        const cslVisible = host.querySelector<HTMLElement>('.BibleCsl')?.style.display !== 'none';
 
         const rusText = rusVisible ? 'Скрыть русский перевод' : 'Показать русский перевод';
         const cslText = cslVisible ? 'Скрыть церковнославянский перевод' : 'Показать церковнославянский перевод';

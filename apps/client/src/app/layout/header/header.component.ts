@@ -19,7 +19,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { DrawerService, LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
+import { DrawerService, LoggerService, NotificationService, readApiErrorBody, WINDOW } from '@drevo-web/core';
 import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-web/ui';
 
 @Component({
@@ -158,10 +158,11 @@ export class HeaderComponent {
                 error: (err: unknown) => {
                     this._isSavingTitle.set(false);
                     this.titleControl.enable();
-                    if (err instanceof HttpErrorResponse && err.error?.errorCode === 'TITLE_ALREADY_EXISTS') {
+                    const body = err instanceof HttpErrorResponse ? readApiErrorBody(err) : undefined;
+                    if (body?.errorCode === 'TITLE_ALREADY_EXISTS') {
                         this.notificationService.error('Статья с таким названием уже существует');
-                    } else if (err instanceof HttpErrorResponse && err.error?.errorCode === 'VALIDATION_ERROR') {
-                        this.notificationService.error(err.error.error ?? 'Не удалось переименовать статью');
+                    } else if (body?.errorCode === 'VALIDATION_ERROR') {
+                        this.notificationService.error(body.error ?? 'Не удалось переименовать статью');
                     } else {
                         this.notificationService.error('Не удалось переименовать статью');
                     }

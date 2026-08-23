@@ -1,5 +1,4 @@
 import { MatTooltip } from '@angular/material/tooltip';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconButtonComponent } from './icon-button.component';
@@ -9,7 +8,6 @@ describe('IconButtonComponent', () => {
 
     const createComponent = createComponentFactory({
         component: IconButtonComponent,
-        imports: [NoopAnimationsModule],
         providers: [provideRouter([])],
     });
 
@@ -46,6 +44,12 @@ describe('IconButtonComponent', () => {
             spectator.setInput('label', 'Settings');
 
             expect(spectator.query('button')?.getAttribute('aria-label')).toBe('Settings');
+        });
+
+        it('should put testId on the button itself, so a consumer test can click it', () => {
+            spectator.setInput('testId', 'remove-item');
+
+            expect(spectator.query('button')?.getAttribute('data-testid')).toBe('remove-item');
         });
 
         it('should disable button when disabled input is true', () => {
@@ -103,6 +107,12 @@ describe('IconButtonComponent', () => {
 
         it('should set routerLink href', () => {
             expect(spectator.query('a')?.getAttribute('href')).toBe('/history/diff/42');
+        });
+
+        it('should put testId on the anchor', () => {
+            spectator.setInput('testId', 'open-diff');
+
+            expect(spectator.query('a')?.getAttribute('data-testid')).toBe('open-diff');
         });
 
         it('should have aria-label on anchor', () => {

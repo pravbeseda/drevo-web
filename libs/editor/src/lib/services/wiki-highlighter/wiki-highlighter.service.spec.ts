@@ -4,6 +4,16 @@ import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { WikiHighlighterService } from './wiki-highlighter.service';
 
+// A quadratic scan costs ~30x a benign document of the same size, a linear one under 3x.
+// Compared as a ratio rather than a wall-clock budget: an absolute bound has to be loose
+// enough for a loaded CI runner, and at that width it stops separating the two shapes.
+const QUADRATIC_SCAN_RATIO = 10;
+// Floor for the ratio, so a sub-millisecond baseline on a fast machine cannot make the
+// comparison fire on timing noise alone.
+const SCAN_FLOOR_MS = 20;
+// Runs behind each measurement; the fastest one is kept. See `elapsed`.
+const SCAN_SAMPLES = 5;
+
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
 const missingSelector = '.cm-link-missing';
@@ -33,6 +43,79 @@ describe('WikiHighlighterService', () => {
         expect(footnoteElement?.textContent).toBe('[[Пример сноски]]');
     });
 
+    // The viewport is virtualized, so only presence of the decoration is asserted here —
+    // that is what distinguishes length-independent scanning from a capped match.
+    it('should highlight a footnote far longer than any fixed scan window', () => {
+        const view = getView(`[[${'а'.repeat(25000)}]]`);
+
+        expect(view.dom.querySelector('.cm-footnote')).not.toBeNull();
+    });
+
+    it('should highlight a link far longer than any fixed scan window', () => {
+        const view = getView(`((${'б'.repeat(3000)}))`);
+
+        expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
+    });
+
+    it('should highlight a long link with an alias', () => {
+        const view = getView(`((${'в'.repeat(2500)}=алиас))`);
+
+        expect(view.dom.querySelector(pendingSelector)).not.toBeNull();
+    });
+
+    it('should scan a long run of closing parentheses without a quadratic stall', () => {
+        const size = 40000;
+        const pathological = `((a${')'.repeat(size)}`;
+        const benign = 'а'.repeat(size + 3);
+
+        // The first view of the file pays for CodeMirror setup and a cold JIT, which alone
+        // is an order of magnitude of noise. Discard it before either measurement.
+        getView(benign);
+
+        const benignMs = elapsed(() => getView(benign));
+        const pathologicalMs = elapsed(() => getView(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should scan unclosed openers on separate lines without a quadratic stall', () => {
+        const lines = 64000;
+        const pathological = `${'((a\n'.repeat(lines)}))`;
+        const benign = 'aaa\n'.repeat(lines);
+
+        buildState(benign);
+
+        const benignMs = elapsed(() => buildState(benign));
+        const pathologicalMs = elapsed(() => buildState(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should scan unclosed openers packed into one line without a quadratic stall', () => {
+        const openers = 32000;
+        const pathological = '((a'.repeat(openers);
+        const benign = 'aaa'.repeat(openers);
+
+        buildState(benign);
+
+        const benignMs = elapsed(() => buildState(benign));
+        const pathologicalMs = elapsed(() => buildState(pathological));
+
+        expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
+    });
+
+    it('should not highlight a link spanning a newline', () => {
+        const view = getView('((Имя\nФамилия))');
+
+        expect(view.dom.querySelector(pendingSelector)).toBeNull();
+    });
+
+    it('should skip a tripled opening bracket and match from the inner pair', () => {
+        const view = getView('(((Имя))');
+
+        expect(view.dom.querySelector(pendingSelector)?.textContent).toBe('Имя');
+    });
+
     it.each([
         {
             sample: '[[Пример сноски]] и ((ссылка))',
@@ -58,7 +141,7 @@ describe('WikiHighlighterService', () => {
         expect(linkElement?.textContent).toBe(result);
     });
 
-    it('should show links as exists and missing', async () => {
+    it('should show links as exists and missing', () => {
         const view = getView('[[Пример сноски]] и ((ссылка)) и ((неизвестная))');
         service.updateLinksState({
             ['ССЫЛКА']: true,
@@ -82,6 +165,28 @@ describe('WikiHighlighterService', () => {
             extensions: [service.wikiHighlighter],
         });
         return new EditorView({ state });
+    }
+
+    // Decorations are built by the state field's `create`, so a plain state exercises the
+    // scan without paying for the view's DOM construction.
+    function buildState(text: string) {
+        return EditorState.create({ doc: text, extensions: [service.wikiHighlighter] });
+    }
+
+    // Best of N rather than a single reading: interference — a GC pause, a busy CI runner —
+    // only ever adds time, so the fastest run is the closest estimate of what the scan costs.
+    // A single reading of the benign side sets the threshold for the other one, which is how
+    // one unlucky pause used to fail the comparison on timing alone.
+    function elapsed(run: () => void): number {
+        let best = Infinity;
+
+        for (let i = 0; i < SCAN_SAMPLES; i++) {
+            const started = performance.now();
+            run();
+            best = Math.min(best, performance.now() - started);
+        }
+
+        return best;
     }
 
     describe('Link Normalization', () => {
@@ -112,10 +217,10 @@ describe('WikiHighlighterService', () => {
                     normalized: 'ЕЛКА НОВОГОДНЯЯ',
                     description: 'combine ё + spaces normalization',
                 },
-            ])('should $description: "$input" -> "$normalized"', async ({ input, normalized }) => {
+            ])('should $description: "$input" -> "$normalized"', ({ input, normalized }) => {
                 const view = getView(`((${input}))`);
 
-                await service.updateLinksState({ [normalized]: true });
+                service.updateLinksState({ [normalized]: true });
                 view.dispatch({
                     effects: linksUpdatedEffect.of(undefined),
                 });
@@ -125,10 +230,10 @@ describe('WikiHighlighterService', () => {
                 expect(existsElement?.textContent).toBe(input);
             });
 
-            it('should handle empty strings without errors', async () => {
+            it('should handle empty strings without errors', () => {
                 getView('((   ))');
 
-                await expect(service.updateLinksState({ '': true })).resolves.not.toThrow();
+                expect(() => service.updateLinksState({ '': true })).not.toThrow();
             });
         });
 
@@ -169,20 +274,28 @@ describe('WikiHighlighterService', () => {
         });
 
         describe('updateLinksState', () => {
-            it('should update link status to "exists" when normalized key matches', async () => {
+            it('should report whether anything changed synchronously', () => {
+                getView('((Ёлка))');
+
+                const changed = service.updateLinksState({ ЕЛКА: true });
+
+                expect(changed).toBe(true);
+            });
+
+            it('should update link status to "exists" when normalized key matches', () => {
                 const view = getView('((Ёлка)) ((Елка))');
 
-                await service.updateLinksState({ ЕЛКА: true });
+                service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const existsElements = view.dom.querySelectorAll(existsSelector);
                 expect(existsElements.length).toBe(2);
             });
 
-            it('should lookup status by normalized key regardless of input variant', async () => {
+            it('should lookup status by normalized key regardless of input variant', () => {
                 const view = getView('((Ёлка)) ((елка  )) ((ЕЛКА))');
 
-                await service.updateLinksState({ ЕЛКА: true });
+                service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const existsElements = view.dom.querySelectorAll(existsSelector);
@@ -192,10 +305,10 @@ describe('WikiHighlighterService', () => {
                 expect(existsElements[2]?.textContent).toBe('ЕЛКА');
             });
 
-            it('should handle non-normalized keys (backward compatibility)', async () => {
+            it('should handle non-normalized keys (backward compatibility)', () => {
                 const view = getView('((СТАРЫЙ_КЛЮЧ))');
 
-                await service.updateLinksState({ СТАРЫЙ_КЛЮЧ: false });
+                service.updateLinksState({ СТАРЫЙ_КЛЮЧ: false });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const missingElement = view.dom.querySelector(missingSelector);
@@ -203,10 +316,10 @@ describe('WikiHighlighterService', () => {
                 expect(missingElement?.textContent).toBe('СТАРЫЙ_КЛЮЧ');
             });
 
-            it('should apply status to all Ё/Е variants in editor', async () => {
+            it('should apply status to all Ё/Е variants in editor', () => {
                 const view = getView('((Ёлка)) и ((Елка))');
 
-                await service.updateLinksState({ ЕЛКА: true });
+                service.updateLinksState({ ЕЛКА: true });
                 view.dispatch({ effects: linksUpdatedEffect.of(undefined) });
 
                 const existsElements = view.dom.querySelectorAll(existsSelector);

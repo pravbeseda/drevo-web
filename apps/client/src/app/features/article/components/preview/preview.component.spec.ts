@@ -22,7 +22,7 @@ describe('PreviewComponent', () => {
                 articleId: 42,
             },
         });
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService);
     });
 
     it('should create', () => {

@@ -35,10 +35,7 @@ const mockVersionPairs: VersionPairs = {
     },
 };
 
-function createMockDataService(
-    pairs: VersionPairs | undefined = undefined,
-    error?: string,
-): Partial<DiffPageDataService> {
+function createMockDataService(pairs?: VersionPairs, error?: string): Partial<DiffPageDataService> {
     return {
         isLoading: signal(false).asReadonly(),
         error: signal(error).asReadonly(),
@@ -71,7 +68,7 @@ describe('DiffPageComponent', () => {
 
         beforeEach(() => {
             spectator = createComponent();
-            storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+            storageService = spectator.inject(StorageService);
         });
 
         it('should create', () => {
@@ -228,7 +225,7 @@ describe('DiffPageComponent', () => {
 
         it('should disable moderation when no pairs', () => {
             spectator = createComponent({
-                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(undefined) }],
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService() }],
             });
             spectator.detectChanges();
             expect(spectator.component.isModerationEnabled()).toBe(false);
@@ -341,7 +338,7 @@ describe('DiffPageComponent', () => {
 
         it('should return zero counts when no pairs', () => {
             const spectator = createComponent({
-                providers: [{ provide: DiffPageDataService, useValue: createMockDataService(undefined) }],
+                providers: [{ provide: DiffPageDataService, useValue: createMockDataService() }],
             });
             spectator.detectChanges();
 

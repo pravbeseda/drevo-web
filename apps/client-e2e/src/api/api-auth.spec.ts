@@ -6,9 +6,12 @@ import {
     getCsrfToken,
     expectSecurityHeaders,
     ALLOWED_ORIGINS,
+    INVALID_CREDENTIALS,
     CsrfResponse,
     AuthMeResponse,
     LoginResponse,
+    ApiResponse,
+    readJson,
 } from './api-test-helpers';
 
 /**
@@ -74,7 +77,7 @@ test.describe('Auth API - CSRF Token Endpoint (Task 1.3.1)', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
             expect(body.data).toHaveProperty('csrfToken');
         });
@@ -100,7 +103,7 @@ test.describe('Auth API - Current User Endpoint (Task 1.4)', () => {
             });
 
             expect(response.status()).toBe(200);
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
             expect(body.success).toBe(true);
         });
 
@@ -146,7 +149,7 @@ test.describe('Auth API - Login Endpoint (Task 1.3)', () => {
                 data: { username: 'testuser', password: 'testpass' },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(403);
             expect(body.success).toBe(false);
@@ -217,10 +220,7 @@ test.describe('Auth API - Login Endpoint (Task 1.3)', () => {
             const csrfToken = await getCsrfToken(request);
 
             const { response, body } = await apiPost(request, '/api/auth/login', {
-                data: {
-                    username: 'nonexistent_user_12345',
-                    password: 'wrong_password',
-                },
+                data: INVALID_CREDENTIALS,
                 origin: allowedOrigin,
                 csrfToken,
             });
@@ -242,7 +242,7 @@ test.describe('Auth API - Login Endpoint (Task 1.3)', () => {
                     'X-CSRF-Token': csrfToken,
                     Origin: allowedOrigin,
                 },
-                data: { username: 'test', password: 'test' },
+                data: INVALID_CREDENTIALS,
             });
 
             const contentType = response.headers()['content-type'];
@@ -291,7 +291,7 @@ test.describe('Auth API - Logout Endpoint (Task 1.5)', () => {
                 },
             });
 
-            const body = await response.json();
+            const body = await readJson<ApiResponse>(response);
 
             expect(response.status()).toBe(403);
             expect(body.success).toBe(false);
@@ -417,14 +417,14 @@ test.describe('Auth API - X-XSRF-TOKEN Header Support (Angular)', () => {
                 Origin: allowedOrigin,
                 'X-XSRF-TOKEN': csrfToken, // Angular-style header
             },
-            data: { username: 'test', password: 'test' },
+            data: INVALID_CREDENTIALS,
         });
 
-        // Should not return CSRF error (may return 401 for invalid credentials)
-        const body = await response.json();
-        if (response.status() === 403) {
-            expect(body.errorCode).not.toBe('CSRF_VALIDATION_FAILED');
-        }
+        // Reaching credential validation proves the Angular-style header passed CSRF checks:
+        // a rejected token would have produced 403/CSRF_VALIDATION_FAILED before this point.
+        const body = await readJson<ApiResponse>(response);
+        expect(response.status()).toBe(401);
+        expect(body.errorCode).toBe('INVALID_CREDENTIALS');
     });
 
     test('logout should accept X-XSRF-TOKEN header', async ({ request }) => {
@@ -439,7 +439,7 @@ test.describe('Auth API - X-XSRF-TOKEN Header Support (Angular)', () => {
             },
         });
 
-        const body = await response.json();
+        const body = await readJson<ApiResponse>(response);
 
         // Should succeed (not CSRF error)
         expect(response.status()).toBe(200);
@@ -459,15 +459,15 @@ test.describe('Auth API - Referer Fallback', () => {
                 Referer: `${allowedOrigin}/login`,
                 // No Origin header
             },
-            data: { username: 'test', password: 'test' },
+            data: INVALID_CREDENTIALS,
         });
 
-        const body = await response.json();
+        const body = await readJson<ApiResponse>(response);
 
-        // Should not get ORIGIN_REQUIRED error
-        if (response.status() === 403) {
-            expect(body.errorCode).not.toBe('ORIGIN_REQUIRED');
-        }
+        // Reaching credential validation proves Referer was accepted in place of Origin:
+        // a missing origin would have produced 403/ORIGIN_REQUIRED before this point.
+        expect(response.status()).toBe(401);
+        expect(body.errorCode).toBe('INVALID_CREDENTIALS');
     });
 
     test('logout should accept Referer when Origin is missing', async ({ request }) => {
@@ -483,7 +483,7 @@ test.describe('Auth API - Referer Fallback', () => {
             },
         });
 
-        const body = await response.json();
+        const body = await readJson<ApiResponse>(response);
 
         // Should succeed
         expect(response.status()).toBe(200);

@@ -10,8 +10,8 @@ export class CommentToggleAction implements WikiAction {
     }
 
     execute(_actionName: string, host: HTMLElement): void {
-        const comments = host.querySelectorAll('.cmnt, .bible-chapters');
-        const links = Array.from(host.querySelectorAll('.LinkComment')) as HTMLElement[];
+        const comments = host.querySelectorAll<HTMLElement>('.cmnt, .bible-chapters');
+        const links = Array.from(host.querySelectorAll<HTMLElement>('.LinkComment'));
 
         const isExpanded = links[0]?.textContent?.trim() === 'Свернуть';
 
@@ -19,8 +19,8 @@ export class CommentToggleAction implements WikiAction {
             link.textContent = isExpanded ? 'Развернуть' : 'Свернуть';
         });
 
-        comments.forEach((comment: Element) => {
-            (comment as HTMLElement).style.display = isExpanded ? 'none' : '';
+        comments.forEach(comment => {
+            comment.style.display = isExpanded ? 'none' : '';
         });
     }
 }

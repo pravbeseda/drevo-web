@@ -11,8 +11,15 @@ import {
     mockPictureDetail,
     mockPictureArticles,
     mockPicturePending,
+    mockPictureRejectPending,
 } from '../../fixtures';
-import { createPicturePendingDto, createPictureDto, createPicturesListResponse } from '../../mocks';
+import { getNotification } from '../../helpers/notification';
+import {
+    createOrphanPicturePendingDto,
+    createPicturePendingDto,
+    createPictureDto,
+    createPicturesListResponse,
+} from '../../mocks';
 import { PicturesHistoryPage } from '../../pages/pictures-history.page';
 import { assertIsDefined } from '@drevo-web/shared';
 
@@ -202,7 +209,54 @@ test.describe('Pictures history page', () => {
         await history.waitForReady();
 
         await history.pendingCards.first().click();
-        await page.waitForURL(`**/pictures/${PICTURE_ID}`);
+        await expect(page).toHaveURL(`/pictures/${PICTURE_ID}`);
+    });
+
+    test('marks a pending whose picture was deleted', async ({ authenticatedPage: page }) => {
+        await mockPicturesPendingList(page, [
+            createOrphanPicturePendingDto({ pp_id: 7, pp_pic_id: 99, pp_user: 'moderator' }),
+        ]);
+        await mockPicturesEmpty(page);
+        await mockPictureImages(page);
+
+        await page.goto('/history/pictures');
+        const history = new PicturesHistoryPage(page);
+        await history.waitForReady();
+
+        await history.expectDeletedPictureCard('Иллюстрация удалена');
+        await history.expectDeleteButtonCount(1);
+    });
+
+    test('removes a pending of a deleted picture from the list', async ({ authenticatedPage: page }) => {
+        await mockPicturesPendingList(page, [
+            createOrphanPicturePendingDto({ pp_id: 7, pp_pic_id: 99, pp_user: 'moderator' }),
+        ]);
+        await mockPicturesEmpty(page);
+        await mockPictureImages(page);
+        await mockPictureRejectPending(page, 7);
+
+        await page.goto('/history/pictures');
+        const history = new PicturesHistoryPage(page);
+        await history.waitForReady();
+
+        await history.deleteFirstPending();
+
+        await expect(getNotification(page, 'success')).toBeVisible();
+        await history.expectPendingCardCount(0);
+        await history.expectEmptyState();
+    });
+
+    test('shows no removal affordance while the picture exists', async ({ authenticatedPage: page }) => {
+        await mockPicturesPendingList(page, [createPicturePendingDto({ pp_id: 1, pp_pic_id: 1 })]);
+        await mockPicturesEmpty(page);
+        await mockPictureImages(page);
+
+        await page.goto('/history/pictures');
+        const history = new PicturesHistoryPage(page);
+        await history.waitForReady();
+
+        await history.expectDeleteButtonCount(0);
+        await history.expectNoDeletedPictureCard();
     });
 
     test('shows inline pending error when pending fails but recent loads', async ({ authenticatedPage: page }) => {
@@ -240,6 +294,6 @@ test.describe('Pictures history page', () => {
         await history.waitForReady();
 
         await history.recentItems.first().click();
-        await page.waitForURL(`**/pictures/${PICTURE_ID}`);
+        await expect(page).toHaveURL(`/pictures/${PICTURE_ID}`);
     });
 });

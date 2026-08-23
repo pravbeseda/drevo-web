@@ -1,6 +1,7 @@
 import { TOOLBAR_GROUPS } from './editor-toolbar.config';
 import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { EditorComponent } from './editor.component';
 
@@ -16,7 +17,7 @@ describe('EditorComponent', () => {
     beforeEach(() => {
         spectator = createComponent({ props: { content: '' } });
         const editorFactory = spectator.debugElement.injector.get(EditorFactoryService);
-        createStateSpy = jest.spyOn(editorFactory, 'createState').mockReturnValue(EditorView.defaultState);
+        createStateSpy = jest.spyOn(editorFactory, 'createState').mockReturnValue(EditorState.create({}));
     });
 
     it('should create', () => {

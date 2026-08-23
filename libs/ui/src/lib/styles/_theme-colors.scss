@@ -15,7 +15,7 @@
 
 // prettier-ignore
 $theme-colors: (
-    // Background colors
+    /* Background colors*/
     primary-bg: (
         light: white,
         dark: $md-grey-900,
@@ -32,7 +32,7 @@ $theme-colors: (
         light: $md-grey-100,
         dark: $md-grey-800,
     ),
-    // Text colors
+    /* Text colors*/
     text-primary: (
         light: $md-grey-900,
         dark: $md-grey-300,
@@ -61,8 +61,8 @@ $theme-colors: (
         light: $md-blue-900,
         dark: $md-blue-400,
     ),
-    // Glyph color for a filled (tone-disc) icon — white in both themes for a
-    // fixed high contrast against the saturated status background.
+    /* Glyph color for a filled (tone-disc) icon — white in both themes for a*/
+    /* fixed high contrast against the saturated status background.*/
     icon-on-tone: (
         light: white,
         dark: white,
@@ -71,10 +71,10 @@ $theme-colors: (
         light: $md-orange-200,
         dark: rgba($md-orange-400, 0.15),
     ),
-    // Menu
+    /* Menu*/
     menu-hover-background: (
         light: $md-grey-200,
-        dark: rgba(white, 0.06),
+        dark: rgb(white, 0.06),
     ),
     menu-selected-background: (
         light: $md-grey-300,
@@ -92,16 +92,20 @@ $theme-colors: (
         light: black,
         dark: $md-cyan-300,
     ),
-    // Border & Shadow
+    /* Border & Shadow*/
     border-color: (
         light: $md-grey-300,
         dark: $md-grey-600,
     ),
     shadow-color: (
-        light: rgba(0, 0, 0, 0.1),
-        dark: rgba(0, 0, 0, 0.4),
+        light: rgb(0 0 0 / 10%),
+        dark: rgb(0 0 0 / 40%),
     ),
-    // Links
+    divider-color: (
+        light: rgb(0 0 0 / 12%),
+        dark: rgb(255 255 255 / 12%),
+    ),
+    /* Links*/
     link-color: (
         light: $md-blue-700,
         dark: $md-blue-300,
@@ -111,7 +115,7 @@ $theme-colors: (
         dark: $md-blue-200,
     ),
 
-    // Wiki colors
+    /* Wiki colors*/
     wiki-note-link: (
         light: $md-brown-600,
         dark: $md-brown-300,
@@ -141,14 +145,14 @@ $theme-colors: (
         dark: $md-grey-800,
     ),
 
-    // Editor base (surface, chrome)
+    /* Editor base (surface, chrome)*/
     editor-selection-bg: (
         light: $md-blue-100,
-        dark: rgba(white, 0.1),
+        dark: rgb(white, 0.1),
     ),
     editor-active-line-bg: (
         light: $md-grey-100,
-        dark: rgba(white, 0.05),
+        dark: rgb(white, 0.05),
     ),
     editor-panel-bg: (
         light: $md-grey-100,
@@ -166,6 +170,10 @@ $theme-colors: (
         light: $md-grey-400,
         dark: $md-grey-700,
     ),
+    editor-skeleton-base: (
+        light: white,
+        dark: white,
+    ),
     editor-skeleton-offset: (
         light: $md-blue-50,
         dark: $md-blue-400,
@@ -178,8 +186,13 @@ $theme-colors: (
         light: $md-orange-300,
         dark: $md-blue-900,
     ),
+    /* White outline in both themes for high contrast around the selected match.*/
+    editor-search-match-selected-border: (
+        light: white,
+        dark: white,
+    ),
 
-    // Editor decorations (syntax highlighting)
+    /* Editor decorations (syntax highlighting)*/
     editor-link: (
         light: $md-blue-900,
         dark: $md-blue-200,
@@ -230,7 +243,7 @@ $theme-colors: (
     ),
     editor-footnote: (
         light: black,
-        dark: currentColor,
+        dark: currentcolor,
     ),
     editor-footnote-bg: (
         light: $md-grey-300,
@@ -265,7 +278,7 @@ $theme-colors: (
         dark: transparent,
     ),
 
-    // Toast backgrounds (darker for better contrast with white text)
+    /* Toast backgrounds (darker for better contrast with white text)*/
     toast-success-bg: (
         light: $md-green-700,
         dark: $md-green-800,
@@ -278,8 +291,13 @@ $theme-colors: (
         light: $md-blue-700,
         dark: $md-blue-900,
     ),
+    /* White in both themes for fixed high contrast on the saturated toast backgrounds.*/
+    toast-text: (
+        light: white,
+        dark: white,
+    ),
 
-    // FAB (Floating Action Button)
+    /* FAB (Floating Action Button)*/
     fab-primary-bg: (
         light: $md-blue-700,
         dark: $md-blue-300,
@@ -297,7 +315,7 @@ $theme-colors: (
         dark: $md-grey-400,
     ),
 
-    // Button accents
+    /* Button accents*/
     button-secondary-bg: (
         light: $md-grey-200,
         dark: $md-grey-700,
@@ -347,7 +365,7 @@ $theme-colors: (
         dark: $md-red-300,
     ),
 
-    // Tab badge
+    /* Tab badge*/
     tab-badge-bg: (
         light: $md-grey-200,
         dark: $md-grey-700,
@@ -357,23 +375,23 @@ $theme-colors: (
         dark: $md-grey-200,
     ),
 
-    // Dropdown
+    /* Dropdown*/
     dropdown-panel-bg: (
         light: $md-white,
         dark: $md-grey-800,
     ),
 
-    // Drawer / Side panel
+    /* Drawer / Side panel*/
     drawer-backdrop-bg: (
-        light: rgba(0, 0, 0, 0.4),
-        dark: rgba(0, 0, 0, 0.6),
+        light: rgb(0 0 0 / 40%),
+        dark: rgb(0 0 0 / 60%),
     ),
     side-panel-backdrop-bg: (
-        light: rgba(0, 0, 0, 0.4),
-        dark: rgba(0, 0, 0, 0.6),
+        light: rgb(0 0 0 / 40%),
+        dark: rgb(0 0 0 / 60%),
     ),
 
-    // Status colors
+    /* Status colors*/
     status-approved: (
         light: $md-green-800,
         dark: $md-green-400,
@@ -391,8 +409,8 @@ $theme-colors: (
         dark: $md-grey-400,
     ),
 
-    // Review badge (people's review pill) — tinted bg + text + dot per verdict.
-    // Palette mirrors the legacy review_history_indicator pill.
+    /* Review badge (people's review pill) — tinted bg + text + dot per verdict.*/
+    /* Palette mirrors the legacy review_history_indicator pill.*/
     review-approve-bg: (
         light: $md-green-50,
         dark: rgba($md-green-400, 0.15),
@@ -438,7 +456,7 @@ $theme-colors: (
         dark: $md-cyan-600,
     ),
 
-    // Moderator comment
+    /* Moderator comment*/
     moderator-comment-bg: (
         light: $md-amber-50,
         dark: $md-blue-grey-900,
@@ -452,10 +470,10 @@ $theme-colors: (
         dark: $md-cyan-500,
     ),
 
-    // Selection
+    /* Selection*/
     hover-bg: (
         light: $md-grey-100,
-        dark: rgba(white, 0.05),
+        dark: rgb(white, 0.05),
     ),
     selected-bg: (
         light: $md-blue-50,
@@ -470,7 +488,7 @@ $theme-colors: (
         dark: $md-blue-grey-800,
     ),
 
-    // Diff colors
+    /* Diff colors*/
     diff-insert-bg: (
         light: $md-green-100,
         dark: rgba($md-green-400, 0.2),

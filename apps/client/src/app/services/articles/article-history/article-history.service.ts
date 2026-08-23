@@ -16,13 +16,7 @@ import {
 import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
 
 export type HistoryFilter =
-    | 'all'
-    | 'unchecked'
-    | 'unfinished'
-    | 'unmarked'
-    | 'outside_dictionaries'
-    | 'required'
-    | 'my';
+    'all' | 'unchecked' | 'unfinished' | 'unmarked' | 'outside_dictionaries' | 'required' | 'my';
 
 export type HistoryDisplayItem =
     | { readonly type: 'header'; readonly date: string }
@@ -159,7 +153,7 @@ export class ArticleHistoryService {
                     this._loadSummariesSubject.pipe(
                         mergeMap(versionIds =>
                             this.reviewService.getSummary('article', versionIds).pipe(
-                                catchError(error => {
+                                catchError((error: unknown) => {
                                     this.logger.info('Review summaries unavailable, skipping badges', { error });
                                     return of([] as readonly ReviewSummary[]);
                                 }),
@@ -219,7 +213,7 @@ export class ArticleHistoryService {
                     this._inworkItems.update(items => items.filter(item => item.title !== title));
                     this.logger.info('Cleared inwork editing mark', { title });
                 },
-                error: err => {
+                error: (err: unknown) => {
                     this.logger.error('Failed to clear editing mark', err);
                     this.notificationService.error('Не удалось снять метку редактирования');
                 },
@@ -291,7 +285,7 @@ export class ArticleHistoryService {
                     this._isLoadingMore.set(false);
                     this.loadReviewSummaries(response.items.map(item => item.versionId));
                 },
-                error: error => {
+                error: (error: unknown) => {
                     this.logger.error('Failed to load article history', error);
                     if (loadMore) {
                         this._isLoadingMore.set(false);

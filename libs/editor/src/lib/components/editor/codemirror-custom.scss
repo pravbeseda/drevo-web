@@ -23,7 +23,7 @@
 
     .cm-cursor,
     .cm-dropCursor {
-        border-left-color: var(--themed-text-primary, black);
+        border-left-color: var(--themed-text-primary);
     }
 
     .cm-activeLine {
@@ -108,7 +108,7 @@
         &.cm-searchMatch-selected {
             background-color: var(--themed-editor-search-match-selected-bg);
             display: inline-block;
-            border: 1px solid white;
+            border: 1px solid var(--themed-editor-search-match-selected-border);
             border-radius: 2px;
         }
 
@@ -275,7 +275,7 @@
             color: var(--themed-text-secondary);
             text-align: center;
             line-height: 1.3;
-            word-break: break-word;
+            overflow-wrap: anywhere;
         }
     }
 }

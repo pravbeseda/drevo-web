@@ -76,6 +76,9 @@ body {
     // Use themed CSS variables for consistent theming
     background-color: var(--themed-border-color);
     color: var(--themed-text-primary);
+
+    // The base typography follows the Material theme; there is no --themed-* token for it.
+    // stylelint-disable-next-line declaration-property-value-disallowed-list
     font: var(--mat-sys-body-medium);
     font-size: 1rem;
 
@@ -156,12 +159,12 @@ mark {
 
 // Base styles for all toasts
 .mat-mdc-snack-bar-container {
-    --mdc-snackbar-supporting-text-color: white;
-    --mat-snack-bar-button-color: white;
+    --mdc-snackbar-supporting-text-color: var(--themed-toast-text);
+    --mat-snack-bar-button-color: var(--themed-toast-text);
 }
 
 .mat-mdc-snack-bar-label {
-    color: white;
+    color: var(--themed-toast-text);
 }
 
 // Error toast (red background)

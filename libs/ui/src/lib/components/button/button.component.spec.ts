@@ -1,4 +1,3 @@
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ButtonComponent } from './button.component';
@@ -7,7 +6,6 @@ describe('ButtonComponent', () => {
     let spectator: Spectator<ButtonComponent>;
     const createComponent = createComponentFactory({
         component: ButtonComponent,
-        imports: [NoopAnimationsModule],
         providers: [provideRouter([{ path: '**', children: [] }])],
     });
 

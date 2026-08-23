@@ -1,0 +1,38 @@
+{
+    "$schema": "https://unpkg.com/knip@6/schema.json",
+    "entry": [
+        "apps/client/src/main.ts",
+        "apps/client/src/main.server.ts",
+        "apps/client/src/server.ts",
+        "apps/client/src/environments/environment.prod.ts",
+        "libs/*/src/index.ts",
+        "libs/*/src/testing.ts",
+        "libs/*/src/test-setup.ts",
+        "{apps,libs}/*/eslint.config.mjs",
+        "{apps,libs}/*/jest.config.{ts,cts}",
+        "testing/playwright/tests/**/*.spec.ts",
+        "scripts/ecosystem.config.js"
+    ],
+    "project": [
+        "apps/**/*.ts",
+        "libs/*/src/**/*.ts",
+        "testing/**/*.ts",
+        "scripts/**/*.js",
+        "{apps,libs}/*/eslint.config.mjs",
+        "{apps,libs}/*/jest.config.{ts,cts}"
+    ],
+    "ignoreDependencies": [
+        "@angular/cli",
+        "@angular/platform-browser-dynamic",
+        "@angular/language-service",
+        "@nx/workspace",
+        "ts-node",
+        "angular-eslint",
+        "jest-environment-node",
+        "modern-normalize",
+        "tslib"
+    ],
+    "jest": {
+        "config": ["jest.config.ts", "{apps,libs}/*/jest.config.{ts,cts}"]
+    }
+}

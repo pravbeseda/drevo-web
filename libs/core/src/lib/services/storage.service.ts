@@ -40,6 +40,9 @@ export class StorageService {
      * @param key - Storage key
      * @returns Parsed value or undefined if not found/invalid
      */
+    // T is the caller's declared shape for a value with no runtime schema; returning
+    // `unknown` instead would move the exact same cast to every call site.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
     get<T>(key: string): T | undefined {
         if (!this.isBrowser) {
             return undefined;
@@ -76,7 +79,7 @@ export class StorageService {
      * @param value - Value to store (will be JSON stringified)
      * @returns true if successful, false otherwise
      */
-    set<T>(key: string, value: T): boolean {
+    set(key: string, value: unknown): boolean {
         if (!this.isBrowser) {
             return false;
         }

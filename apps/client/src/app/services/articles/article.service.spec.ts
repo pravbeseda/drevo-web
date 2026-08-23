@@ -26,7 +26,7 @@ describe('ArticleService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        articleApiService = spectator.inject(ArticleApiService) as jest.Mocked<ArticleApiService>;
+        articleApiService = spectator.inject(ArticleApiService);
     });
 
     describe('getArticle', () => {
@@ -804,8 +804,12 @@ describe('ArticleService', () => {
             articleApiService.findArticleByTitle.mockReturnValue(of({ found: true }));
 
             spectator.service.findArticleByTitle('ВИФСАИДА').subscribe({
-                next: () => done.fail('expected an error'),
-                error: () => done(),
+                next: () => {
+                    done.fail('expected an error');
+                },
+                error: () => {
+                    done();
+                },
             });
         });
     });

@@ -72,7 +72,7 @@ export function resolveNewArticle(
             }
             return { mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
         }),
-        catchError(error => {
+        catchError((error: unknown) => {
             // Re-check failed (network/contract) — log it (repo convention: no
             // silent failures). The redirect back to the placeholder is same-URL,
             // so it won't re-run the parent resolver: without touching the shared

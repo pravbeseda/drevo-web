@@ -67,9 +67,9 @@ export class ArticleApiService {
      */
     getVersionShow(versionId: number): Observable<ArticleVersionDto> {
         return this.http
-            .get<
-                ApiResponse<ArticleVersionDto>
-            >(`${this.apiUrl}/api/articles/version-show/${versionId}`, { withCredentials: true })
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/articles/version-show/${versionId}`, {
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -86,9 +86,9 @@ export class ArticleApiService {
      */
     getArticleVersion(versionId: number): Observable<ArticleVersionDto> {
         return this.http
-            .get<
-                ApiResponse<ArticleVersionDto>
-            >(`${this.apiUrl}/api/articles/version/${versionId}`, { withCredentials: true })
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/articles/version/${versionId}`, {
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -118,9 +118,10 @@ export class ArticleApiService {
         }
 
         return this.http
-            .get<
-                ApiResponse<ArticleSearchResponseDto>
-            >(`${this.apiUrl}/api/articles/search`, { params, withCredentials: true })
+            .get<ApiResponse<ArticleSearchResponseDto>>(`${this.apiUrl}/api/articles/search`, {
+                params,
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -151,9 +152,10 @@ export class ArticleApiService {
             .set('size', pageSize.toString());
 
         return this.http
-            .get<
-                ApiResponse<ArticleLinkedHereResponseDto>
-            >(`${this.apiUrl}/api/articles/linkedhere`, { params, withCredentials: true })
+            .get<ApiResponse<ArticleLinkedHereResponseDto>>(`${this.apiUrl}/api/articles/linkedhere`, {
+                params,
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -197,9 +199,10 @@ export class ArticleApiService {
         const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
 
         return this.http
-            .post<
-                ApiResponse<CreateArticleResponseDto>
-            >(`${this.apiUrl}/api/articles/create`, request, { withCredentials: true, context })
+            .post<ApiResponse<CreateArticleResponseDto>>(`${this.apiUrl}/api/articles/create`, request, {
+                withCredentials: true,
+                context,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -218,9 +221,10 @@ export class ArticleApiService {
         const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
 
         return this.http
-            .post<
-                ApiResponse<SaveArticleVersionResponseDto>
-            >(`${this.apiUrl}/api/articles/save`, request, { withCredentials: true, context })
+            .post<ApiResponse<SaveArticleVersionResponseDto>>(`${this.apiUrl}/api/articles/save`, request, {
+                withCredentials: true,
+                context,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -258,9 +262,10 @@ export class ArticleApiService {
         }
 
         return this.http
-            .get<
-                ApiResponse<ArticleHistoryResponseDto>
-            >(`${this.apiUrl}/api/articles/history`, { params, withCredentials: true })
+            .get<ApiResponse<ArticleHistoryResponseDto>>(`${this.apiUrl}/api/articles/history`, {
+                params,
+                withCredentials: true,
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -317,9 +322,11 @@ export class ArticleApiService {
      */
     updateTopics(articleId: number, topics: readonly number[]): Observable<readonly number[]> {
         return this.http
-            .post<
-                ApiResponse<{ readonly topics: readonly number[] }>
-            >(`${this.apiUrl}/api/articles/${articleId}/topics`, { topics }, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) })
+            .post<ApiResponse<{ readonly topics: readonly number[] }>>(
+                `${this.apiUrl}/api/articles/${articleId}/topics`,
+                { topics },
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
+            )
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -330,9 +337,11 @@ export class ArticleApiService {
 
     renameArticle(articleId: number, title: string): Observable<RenameArticleResponseDto> {
         return this.http
-            .post<
-                ApiResponse<RenameArticleResponseDto>
-            >(`${this.apiUrl}/api/articles/${articleId}/rename`, { title }, { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) })
+            .post<ApiResponse<RenameArticleResponseDto>>(
+                `${this.apiUrl}/api/articles/${articleId}/rename`,
+                { title },
+                { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true) },
+            )
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

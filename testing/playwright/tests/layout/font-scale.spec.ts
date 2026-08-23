@@ -26,7 +26,7 @@ test.describe('Font scale control', () => {
         test('closes popup on backdrop click', async () => {
             await layout.openFontScalePopup();
             await layout.closeFontScalePopup();
-            await expect(layout.fontScalePopup).not.toBeVisible();
+            await expect(layout.fontScalePopup).toBeHidden();
         });
     });
 

@@ -36,7 +36,7 @@ describe('VersionRedirectComponent', () => {
 
     beforeEach(() => {
         spectator = createComponent();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
+        articleService = spectator.inject(ArticleService);
     });
 
     it('should create', () => {

@@ -29,7 +29,7 @@ export class ActionButtonComponent {
     readonly disabled = input<boolean>();
     readonly badge = input<number>();
 
-    readonly clicked = output<void>();
+    readonly clicked = output();
 
     protected onClick(): void {
         this.clicked.emit();

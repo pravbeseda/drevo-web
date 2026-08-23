@@ -1,4 +1,4 @@
-import { AuthService } from '../../services/auth/auth.service';
+import { AuthService, LoginError } from '../../services/auth/auth.service';
 import { isPlatformBrowser } from '@angular/common';
 import { Component, signal, inject, PLATFORM_ID, DestroyRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -81,15 +81,15 @@ export class LoginComponent implements OnInit {
             .subscribe({
                 next: () => {
                     this.loginForm.reset();
-                    this.router.navigateByUrl(this.returnUrl);
+                    void this.router.navigateByUrl(this.returnUrl);
                 },
-                error: error => {
+                error: (error: LoginError) => {
                     this.errorMessage.set(this.getErrorMessage(error));
                 },
             });
     }
 
-    private getErrorMessage(error: { code?: string }): string {
+    private getErrorMessage(error: LoginError): string {
         if (error.code === 'ACCOUNT_NOT_ACTIVE') {
             return 'Аккаунт не активирован. Проверьте email для подтверждения.';
         }

@@ -23,11 +23,11 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 30
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v7
 
-            - uses: actions/setup-node@v5
+            - uses: actions/setup-node@v7
               with:
-                  node-version: '20'
+                  node-version: '22'
                   cache: 'yarn'
 
             - name: Install dependencies
@@ -35,7 +35,7 @@ jobs:
 
             - name: Cache Playwright browsers
               id: playwright-cache
-              uses: actions/cache@v4
+              uses: actions/cache@v6
               with:
                   path: ~/.cache/ms-playwright
                   key: playwright-all-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
@@ -76,7 +76,7 @@ jobs:
 
             - name: Upload test report
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: cross-browser-report-${{ inputs.browsers }}
                   path: testing/playwright/playwright-report/
@@ -84,7 +84,7 @@ jobs:
 
             - name: Upload test results
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: cross-browser-test-results-${{ inputs.browsers }}
                   path: testing/playwright/test-results/

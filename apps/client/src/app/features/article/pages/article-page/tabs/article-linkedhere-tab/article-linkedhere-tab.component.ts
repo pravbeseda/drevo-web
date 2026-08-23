@@ -93,7 +93,7 @@ export class ArticleLinkedHereTabComponent implements OnInit {
                 switchMap(action =>
                     this.fetchPage(action.query, action.page).pipe(
                         map(response => ({ response, action })),
-                        catchError(error => {
+                        catchError((error: unknown) => {
                             this.logger.error('Failed to load linked-here', error);
                             return of({ response: EMPTY_RESPONSE, action });
                         }),

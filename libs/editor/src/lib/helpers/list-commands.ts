@@ -1,163 +1,77 @@
+import { Line } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+
+const LIST_PREFIX_RE = /^([*#]+)(\s*)/;
+const QUOTE_PREFIX_RE = /^>\s*/;
+
+interface PrefixChange {
+    readonly from: number;
+    readonly to: number;
+    readonly insert: string;
+}
+
+/** Returns the new list prefix, or `undefined` when the line must stay untouched. */
+type PrefixTransform = (prefix: string) => string | undefined;
 
 export function continueLists(view: EditorView): boolean {
     return handleQuoteContinuation(view) || handleListContinuation(view);
 }
 
-export function increaseListIndent(view: EditorView): boolean {
-    const { state } = view;
-    const { doc } = state;
-    const selection = state.selection;
+function buildPrefixChange(line: Line, transform: PrefixTransform): PrefixChange | undefined {
+    const match = LIST_PREFIX_RE.exec(line.text);
+    if (!match) {
+        return undefined;
+    }
 
-    // Проверяем, есть ли выделение
-    if (selection.ranges.length > 0) {
-        // Получаем диапазон строк, затронутых выделением
-        const startLine = doc.lineAt(selection.main.from);
-        const endLine = doc.lineAt(selection.main.to);
+    const newPrefix = transform(match[1]);
+    if (newPrefix === undefined) {
+        return undefined;
+    }
 
-        // Если выделение охватывает несколько строк
-        if (startLine.number !== endLine.number) {
-            const changes = [];
-            let affectedLines = false;
+    return {
+        from: line.from,
+        to: line.from + match[0].length,
+        insert: newPrefix + match[2],
+    };
+}
 
-            // Проходим по всем строкам в выделении
-            for (let i = startLine.number; i <= endLine.number; i++) {
-                const line = doc.line(i);
-                const lineContent = line.text;
+/** Apply `transform` to every selected list line, falling back to the cursor line. */
+function applyPrefixTransform(view: EditorView, transform: PrefixTransform): boolean {
+    const { doc, selection } = view.state;
+    const startLine = doc.lineAt(selection.main.from);
+    const endLine = doc.lineAt(selection.main.to);
 
-                // Проверяем, является ли строка элементом списка
-                const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-
-                if (listPrefixMatch) {
-                    affectedLines = true;
-                    const currentPrefix = listPrefixMatch[1];
-                    // Используем последний символ префикса вместо первого
-                    const lastChar = currentPrefix[currentPrefix.length - 1];
-                    const newPrefix = currentPrefix + lastChar;
-                    const spaceAfter = listPrefixMatch[2];
-
-                    changes.push({
-                        from: line.from,
-                        to: line.from + listPrefixMatch[0].length,
-                        insert: newPrefix + spaceAfter,
-                    });
-                }
+    if (startLine.number !== endLine.number) {
+        const changes: PrefixChange[] = [];
+        for (let i = startLine.number; i <= endLine.number; i++) {
+            const change = buildPrefixChange(doc.line(i), transform);
+            if (change) {
+                changes.push(change);
             }
+        }
 
-            if (affectedLines) {
-                view.dispatch({ changes });
-                return true;
-            }
+        if (changes.length > 0) {
+            view.dispatch({ changes });
+            return true;
         }
     }
 
-    // Обработка одной строки (как раньше)
-    const { head } = selection.main;
-
-    // Получаем текущую строку
-    const line = doc.lineAt(head);
-    const lineContent = line.text;
-
-    // Проверяем, начинается ли строка с маркера списка (* или #)
-    const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-
-    if (listPrefixMatch) {
-        // Увеличиваем уровень вложенности, добавляя один символ в начало
-        // Используем последний символ из текущего префикса
-        const currentPrefix = listPrefixMatch[1]; // Текущие символы * и #
-        const lastChar = currentPrefix[currentPrefix.length - 1]; // Последний символ
-        const newPrefix = currentPrefix + lastChar; // Добавляем один символ того же типа
-        const spaceAfter = listPrefixMatch[2]; // Сохраняем пробелы после префикса
-
-        // Заменяем старый префикс на новый
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.from + listPrefixMatch[0].length,
-                insert: newPrefix + spaceAfter,
-            },
-        });
-
-        return true;
+    const change = buildPrefixChange(doc.lineAt(selection.main.head), transform);
+    if (!change) {
+        return false;
     }
 
-    return false;
+    view.dispatch({ changes: change });
+    return true;
+}
+
+export function increaseListIndent(view: EditorView): boolean {
+    // Deepen by repeating the last marker char, so the list type is preserved.
+    return applyPrefixTransform(view, prefix => prefix + prefix[prefix.length - 1]);
 }
 
 export function decreaseListIndent(view: EditorView): boolean {
-    const { state } = view;
-    const { doc } = state;
-    const selection = state.selection;
-
-    // Проверяем, есть ли выделение
-    if (selection.ranges.length > 0) {
-        // Получаем диапазон строк, затронутых выделением
-        const startLine = doc.lineAt(selection.main.from);
-        const endLine = doc.lineAt(selection.main.to);
-
-        // Если выделение охватывает несколько строк
-        if (startLine.number !== endLine.number) {
-            const changes = [];
-            let affectedLines = false;
-
-            // Проходим по всем строкам в выделении
-            for (let i = startLine.number; i <= endLine.number; i++) {
-                const line = doc.line(i);
-                const lineContent = line.text;
-
-                // Проверяем, является ли строка элементом списка с вложенностью > 1
-                const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-
-                if (listPrefixMatch && listPrefixMatch[1].length > 1) {
-                    affectedLines = true;
-                    const currentPrefix = listPrefixMatch[1];
-                    const newPrefix = currentPrefix.slice(0, -1); // Удаляем последний символ
-                    const spaceAfter = listPrefixMatch[2];
-
-                    changes.push({
-                        from: line.from,
-                        to: line.from + listPrefixMatch[0].length,
-                        insert: newPrefix + spaceAfter,
-                    });
-                }
-            }
-
-            if (affectedLines) {
-                view.dispatch({ changes });
-                return true;
-            }
-        }
-    }
-
-    // Обработка одной строки (как раньше)
-    const { head } = selection.main;
-
-    // Получаем текущую строку
-    const line = doc.lineAt(head);
-    const lineContent = line.text;
-
-    // Проверяем, начинается ли строка с маркера списка (* или #)
-    const listPrefixMatch = lineContent.match(/^([*#]+)(\s*)/);
-
-    if (listPrefixMatch && listPrefixMatch[1].length > 1) {
-        // Уменьшаем уровень вложенности, удаляя один символ из начала
-        const currentPrefix = listPrefixMatch[1];
-        const newPrefix = currentPrefix.slice(0, -1); // Удаляем последний символ
-        const spaceAfter = listPrefixMatch[2]; // Сохраняем пробелы после префикса
-
-        // Заменяем старый префикс на новый
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.from + listPrefixMatch[0].length,
-                insert: newPrefix + spaceAfter,
-            },
-        });
-
-        return true;
-    }
-
-    return false;
+    return applyPrefixTransform(view, prefix => (prefix.length > 1 ? prefix.slice(0, -1) : undefined));
 }
 
 function handleListContinuation(view: EditorView): boolean {
@@ -172,7 +86,7 @@ function handleListContinuation(view: EditorView): boolean {
         return false;
     }
 
-    const listMatch = lineContent.match(/^([*#]+)(\s*)/);
+    const listMatch = LIST_PREFIX_RE.exec(lineContent);
 
     if (!listMatch) return false;
 
@@ -232,7 +146,7 @@ function handleQuoteContinuation(view: EditorView): boolean {
     }
 
     // Check if the line starts with a quote character ">"
-    const quoteMatch = lineContent.match(/^>\s*/);
+    const quoteMatch = QUOTE_PREFIX_RE.exec(lineContent);
 
     if (!quoteMatch) return false;
 

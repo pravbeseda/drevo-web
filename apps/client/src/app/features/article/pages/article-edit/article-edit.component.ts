@@ -25,7 +25,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
 import {
@@ -152,11 +152,14 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 if (isReentry) {
                     this._editorContent.set(draft.text);
                     this.logger.info('Draft silently restored (re-entry)', { route: draftRoute });
-                } else {
-                    this.showRestoreDraftDialog(draft.title, draft.time, draft.text, draftRoute);
+                    return;
                 }
+
+                // Returned, not fired and forgotten: the dialog's rejection then lands in
+                // the catch below instead of going unhandled.
+                return this.showRestoreDraftDialog(draft.title, draft.time, draft.text, draftRoute);
             })
-            .catch(err => {
+            .catch((err: unknown) => {
                 this.logger.error('Failed to check draft', err);
             });
     }
@@ -190,7 +193,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 next: linksState => {
                     this._updateLinksState.set(linksState);
                 },
-                error: err => {
+                error: (err: unknown) => {
                     this.logger.error('Failed to check link statuses', err);
                 },
             });
@@ -292,9 +295,9 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     articleId: result.articleId,
                 });
                 this.notificationService.success(session.mode === 'create' ? 'Статья создана' : 'Статья сохранена');
-                this.draftEditorService.discardDraft(this.getDraftRoute());
+                void this.draftEditorService.discardDraft(this.getDraftRoute());
                 this.clearEditingMark();
-                this.router.navigate(['/articles', result.articleId]);
+                void this.router.navigate(['/articles', result.articleId]);
             },
             error: (err: HttpErrorResponse) => {
                 this._isSaving.set(false);
@@ -304,13 +307,14 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                     return;
                 }
 
+                const backendMessage = readApiErrorBody(err)?.error;
                 let errorMessage = 'Ошибка сохранения';
                 if (err.status === 401) {
                     errorMessage = 'Необходима авторизация';
                 } else if (err.status === 403) {
-                    errorMessage = err.error?.error || 'Нет прав для сохранения';
-                } else if (err.error?.error) {
-                    errorMessage = err.error.error;
+                    errorMessage = backendMessage || 'Нет прав для сохранения';
+                } else if (backendMessage) {
+                    errorMessage = backendMessage;
                 }
 
                 this.notificationService.error(errorMessage);
@@ -330,7 +334,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         if (this.session?.mode !== 'create') {
             return false;
         }
-        if (err.status !== 409 || err.error?.errorCode !== 'DUPLICATE_TITLE') {
+        if (err.status !== 409 || readApiErrorBody(err)?.errorCode !== 'DUPLICATE_TITLE') {
             return false;
         }
 
@@ -353,7 +357,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     async cancel(): Promise<void> {
         const session = this.session;
         if (!session) {
-            this.router.navigate(['/']);
+            void this.router.navigate(['/']);
             return;
         }
 
@@ -370,7 +374,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 // Discard pending input so ngOnDestroy.flush() won't persist it
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();
-                this.router.navigate(navigateTo);
+                void this.router.navigate(navigateTo);
                 return;
             }
 
@@ -389,7 +393,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             if (result === 'confirm') {
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();
-                this.router.navigate(navigateTo);
+                void this.router.navigate(navigateTo);
             }
         } catch (error) {
             this.logger.error('Failed to confirm discard', error);
@@ -497,7 +501,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                         return true;
                     }
                     this.editingCleared = true;
-                    this.router.navigate(
+                    void this.router.navigate(
                         session.mode === 'create'
                             ? ['/articles', 'find', session.title]
                             : ['/articles', session.articleId],

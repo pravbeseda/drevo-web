@@ -11,7 +11,7 @@ import {
     HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { Injectable, inject, Injector } from '@angular/core';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, readApiErrorBody } from '@drevo-web/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, filter, finalize, shareReplay, switchMap, take } from 'rxjs/operators';
 
@@ -58,7 +58,9 @@ export class AuthInterceptor implements HttpInterceptor {
 
         // For GET requests, just add credentials
         if (!this.isStateChangingMethod(request.method)) {
-            return next.handle(request).pipe(catchError(error => this.handleError(error, request, next)));
+            return next
+                .handle(request)
+                .pipe(catchError((error: HttpErrorResponse) => this.handleError(error, request, next)));
         }
 
         // For auth endpoints (login/logout), add CSRF directly without waiting
@@ -77,7 +79,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     private addCsrfAndSend(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
         return this.csrfService.getCsrfToken().pipe(
-            catchError(error => {
+            catchError((error: unknown) => {
                 this.logger.error('Failed to get CSRF token', error);
                 return throwError(() => error);
             }),
@@ -87,7 +89,9 @@ export class AuthInterceptor implements HttpInterceptor {
                         'X-CSRF-Token': csrfToken,
                     },
                 });
-                return next.handle(csrfRequest).pipe(catchError(error => this.handleError(error, request, next)));
+                return next
+                    .handle(csrfRequest)
+                    .pipe(catchError((error: HttpErrorResponse) => this.handleError(error, request, next)));
             }),
         );
     }
@@ -107,7 +111,7 @@ export class AuthInterceptor implements HttpInterceptor {
         // Uses shared observable to coordinate concurrent refresh attempts
         if (
             error.status === 403 &&
-            error.error?.errorCode === 'CSRF_VALIDATION_FAILED' &&
+            readApiErrorBody(error)?.errorCode === 'CSRF_VALIDATION_FAILED' &&
             this.isStateChangingMethod(request.method) &&
             !request.context.get(CSRF_ALREADY_RETRIED) // Prevent infinite retry loops
         ) {
@@ -133,7 +137,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     });
                     return next.handle(retryRequest);
                 }),
-                catchError(retryError => {
+                catchError((retryError: unknown) => {
                     this.logger.error('CSRF retry request failed', {
                         originalError: error,
                         retryError,
@@ -174,7 +178,7 @@ export class AuthInterceptor implements HttpInterceptor {
     private getUrlPath(url: string): string {
         try {
             // Handle both absolute and relative URLs
-            const urlObj = new URL(url, 'http://dummy');
+            const urlObj = new URL(url, 'https://dummy');
             return urlObj.pathname;
         } catch {
             // Fallback: remove query string and fragment manually

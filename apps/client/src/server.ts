@@ -16,7 +16,13 @@ const BASE_PATH = process.env['BASE_PATH'] || '/';
 const normalizedBasePath = BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+// Node serves plain HTTP behind the reverse proxy, so without this the SSR request URL would
+// carry `http` while the site is served over `https`. `x-forwarded-host` is deliberately not
+// trusted: the proxy already passes the original host in `Host`, and a spoofable host header is
+// the more dangerous of the two.
+const angularApp = new AngularNodeAppEngine({
+    trustProxyHeaders: ['x-forwarded-proto'],
+});
 
 console.log(`Server configured with BASE_PATH: ${BASE_PATH}`);
 

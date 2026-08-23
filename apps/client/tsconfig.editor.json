@@ -1,6 +1,11 @@
 {
     "extends": "./tsconfig.json",
     "include": ["src/**/*.ts"],
-    "compilerOptions": {},
+    // `include` covers the `*.testing.ts` helpers, which use the `jest` namespace. TypeScript 6
+    // no longer pulls every visible `@types` package in when `types` is unset, so the ones this
+    // project needs are named here.
+    "compilerOptions": {
+        "types": ["jest", "node"]
+    },
     "exclude": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }

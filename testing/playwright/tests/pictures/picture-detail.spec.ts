@@ -132,7 +132,7 @@ test.describe('Picture detail', () => {
             await detail.editTitle('Новое описание на модерацию');
 
             await expect(detail.title).toBeVisible();
-            await expect(detail.titleEdit).not.toBeVisible();
+            await expect(detail.titleEdit).toBeHidden();
         });
     });
 
@@ -183,7 +183,7 @@ test.describe('Picture detail', () => {
             await page.goto(`/pictures/${PICTURE_ID}`);
             await detail.waitForReady();
 
-            await expect(detail.dimensions).not.toBeVisible();
+            await expect(detail.dimensions).toBeHidden();
         });
     });
 });

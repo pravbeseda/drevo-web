@@ -24,25 +24,43 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
-    compute-version:
-        if: github.event_name == 'workflow_dispatch'
+    # Both release paths pass through here: the workflow_dispatch one and the
+    # manually pushed tag. Anything downstream must require `needs.guards.result
+    # == 'success'` — a `!failure()` condition also accepts a *skipped* job,
+    # which is how the push path used to reach `release` unguarded.
+    guards:
         runs-on: ubuntu-latest
         outputs:
-            version: ${{ steps.bump.outputs.version }}
-            tag: ${{ steps.bump.outputs.tag }}
+            sha: ${{ steps.target.outputs.sha }}
         steps:
-            - name: Guard — only from main
-              if: github.ref != 'refs/heads/main'
+            - name: Guard — dispatch only from main
+              if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
               run: |
                   echo "::error::workflow_dispatch for releases is only allowed from main (current: ${{ github.ref }})"
                   exit 1
 
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
-                  ref: main
+                  ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
 
-            - name: Guard — HEAD must be green
+            # Everything downstream works off this SHA rather than resolving
+            # `main` again: a second checkout would pick up whatever merged in
+            # the meantime, and the tag would land on a commit no guard saw.
+            - name: Resolve the guarded commit
+              id: target
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Guard — tagged commit must be on main
+              if: github.event_name == 'push'
+              run: |
+                  git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                      echo "::error::Tag ${GITHUB_REF_NAME} points at a commit that is not on main. Refusing to release."
+                      exit 1
+                  fi
+
+            - name: Guard — commit must be green
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
@@ -52,15 +70,28 @@ jobs:
                   latest=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
                       --jq '[.check_runs[] | select(.name == "ci")] | sort_by(.started_at) | last')
                   if [ -z "$latest" ] || [ "$latest" = "null" ]; then
-                      echo "::error::No 'ci' check-run found on main ($SHA). Refusing to release."
+                      echo "::error::No 'ci' check-run found on $SHA. Refusing to release."
                       exit 1
                   fi
                   conclusion=$(echo "$latest" | jq -r '.conclusion // "in_progress"')
                   echo "Latest 'ci' check-run on $SHA: $conclusion"
                   if [ "$conclusion" != "success" ]; then
-                      echo "::error::Latest CI on main ($SHA) is $conclusion. Refusing to release."
+                      echo "::error::Latest CI on $SHA is $conclusion. Refusing to release."
                       exit 1
                   fi
+
+    compute-version:
+        if: github.event_name == 'workflow_dispatch'
+        needs: [guards]
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.bump.outputs.version }}
+            tag: ${{ steps.bump.outputs.tag }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+                  ref: ${{ needs.guards.outputs.sha }}
 
             - name: Compute next version
               id: bump
@@ -101,10 +132,11 @@ jobs:
 
     release:
         if: |
-            !failure() && !cancelled() &&
+            !cancelled() && needs.guards.result == 'success' &&
             (github.event_name == 'push' ||
-             (github.event_name == 'workflow_dispatch' && !inputs.dry_run))
-        needs: [compute-version]
+             (github.event_name == 'workflow_dispatch' && !inputs.dry_run &&
+              needs.compute-version.result == 'success'))
+        needs: [guards, compute-version]
         runs-on: ubuntu-latest
         environment: release
 
@@ -120,7 +152,7 @@ jobs:
                       echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
                   fi
 
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
                   ref: ${{ steps.version.outputs.tag }}
@@ -146,9 +178,9 @@ jobs:
                     echo "EOF" >> $GITHUB_OUTPUT
                   fi
 
-            - uses: actions/setup-node@v5
+            - uses: actions/setup-node@v7
               with:
-                  node-version: '20'
+                  node-version: '22'
                   cache: 'yarn'
 
             - name: Install dependencies
@@ -178,6 +210,9 @@ jobs:
                   fi
 
                   npx nx build client --configuration=production
+
+            - name: SSR host allow-list
+              run: yarn lint:ssr-hosts
 
             - name: Upload source maps to Sentry
               env:
@@ -233,7 +268,7 @@ jobs:
                   version: ${{ steps.version.outputs.version }}
 
             - name: Create GitHub Release
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@v3
               with:
                   tag_name: ${{ steps.version.outputs.tag }}
                   name: Release ${{ steps.version.outputs.version }}

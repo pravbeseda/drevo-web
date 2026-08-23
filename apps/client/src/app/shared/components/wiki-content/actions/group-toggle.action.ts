@@ -18,7 +18,7 @@ export class GroupToggleAction implements WikiAction {
             return;
         }
 
-        const elements = Array.from(host.querySelectorAll(`.${CSS.escape(param)}`)) as HTMLElement[];
+        const elements = Array.from(host.querySelectorAll<HTMLElement>(`.${CSS.escape(param)}`));
 
         elements.forEach(el => {
             el.style.display = el.style.display === 'none' ? '' : 'none';

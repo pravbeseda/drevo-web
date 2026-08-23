@@ -13,7 +13,7 @@ import {
     ReviewSummary,
     User,
 } from '@drevo-web/shared';
-import { createMockUser } from '@drevo-web/shared/testing';
+import { createMockUser, expectObjectLike } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
@@ -148,10 +148,10 @@ describe('ArticleHistoryService', () => {
 
     beforeEach(() => {
         spectator = createService();
-        articleService = spectator.inject(ArticleService) as jest.Mocked<ArticleService>;
-        inworkService = spectator.inject(InworkService) as jest.Mocked<InworkService>;
-        storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
-        reviewService = spectator.inject(ReviewService) as jest.Mocked<ReviewService>;
+        articleService = spectator.inject(ArticleService);
+        inworkService = spectator.inject(InworkService);
+        storageService = spectator.inject(StorageService);
+        reviewService = spectator.inject(ReviewService);
         inworkService.getInworkList.mockReturnValue(of([]));
         inworkService.clearEditing.mockReturnValue(of(undefined));
         reviewService.getSummary.mockReturnValue(of([]));
@@ -291,13 +291,13 @@ describe('ArticleHistoryService', () => {
             const versionItems = displayItems.filter(i => i.type === 'version');
 
             expect(versionItems[0]).toMatchObject({
-                data: expect.objectContaining({ approved: 1 }),
+                data: expectObjectLike<ArticleHistoryItem>({ approved: 1 }),
             });
             expect(versionItems[1]).toMatchObject({
-                data: expect.objectContaining({ approved: -1 }),
+                data: expectObjectLike<ArticleHistoryItem>({ approved: -1 }),
             });
             expect(versionItems[2]).toMatchObject({
-                data: expect.objectContaining({ approved: 0 }),
+                data: expectObjectLike<ArticleHistoryItem>({ approved: 0 }),
             });
         });
 
@@ -312,7 +312,7 @@ describe('ArticleHistoryService', () => {
 
             expect(versionItem).toMatchObject({
                 type: 'version',
-                data: expect.objectContaining({ date: testDate }),
+                data: expectObjectLike<ArticleHistoryItem>({ date: testDate }),
             });
         });
 
@@ -540,7 +540,7 @@ describe('ArticleHistoryService', () => {
             const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
             expect(inworkService.clearEditing).toHaveBeenCalledWith('Remove me');
             expect(inworkItems).toHaveLength(1);
-            expect(inworkItems[0]).toMatchObject({ data: expect.objectContaining({ title: 'Keep me' }) });
+            expect(inworkItems[0]).toMatchObject({ data: expectObjectLike<InworkItem>({ title: 'Keep me' }) });
         });
 
         it('should show error notification when cancel fails', () => {

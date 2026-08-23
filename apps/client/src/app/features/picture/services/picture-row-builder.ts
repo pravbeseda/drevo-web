@@ -8,7 +8,7 @@ const MIN_ROW_HEIGHT = 200;
 const THUMB_MAX_WIDTH = 400;
 const THUMB_MAX_HEIGHT = 400;
 
-export interface PictureRowItem {
+interface PictureRowItem {
     readonly picture: Picture;
     readonly width: number;
     readonly height: number;

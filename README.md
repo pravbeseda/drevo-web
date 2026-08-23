@@ -62,7 +62,7 @@ legacy-drevo-yii/            # Symlink to legacy Yii1 backend
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22.12+ (or 24+)
 - Yarn
 - Playwright (for E2E testing)
 

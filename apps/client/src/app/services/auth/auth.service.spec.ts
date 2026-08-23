@@ -8,7 +8,7 @@ import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { AuthResponse } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { AuthService } from './auth.service';
+import { AuthService, LoginError } from './auth.service';
 import { CsrfService } from './csrf.service';
 
 jest.mock('../../../environments/environment', () => ({
@@ -72,7 +72,7 @@ describe('AuthService', () => {
         };
         spectator = createService();
         httpController = spectator.inject(HttpTestingController);
-        csrfService = spectator.inject(CsrfService) as jest.Mocked<CsrfService>;
+        csrfService = spectator.inject(CsrfService);
 
         // Default mock for CSRF
         csrfService.getCsrfToken.mockReturnValue(of('test-csrf-token'));
@@ -144,7 +144,7 @@ describe('AuthService', () => {
             });
 
             const req = httpController.expectOne('http://test-api/api/auth/me');
-            req.error(new ErrorEvent('Network error'));
+            req.error(new ProgressEvent('error'));
         });
 
         it('should update userSubject on successful auth', done => {
@@ -296,7 +296,7 @@ describe('AuthService', () => {
             };
 
             spectator.service.login(loginRequest).subscribe({
-                error: error => {
+                error: (error: LoginError) => {
                     expect(error.message).toBe('Invalid credentials');
                     done();
                 },
@@ -315,7 +315,7 @@ describe('AuthService', () => {
             };
 
             spectator.service.login(loginRequest).subscribe({
-                error: error => {
+                error: (error: LoginError) => {
                     expect(error.message).toBe('Login failed');
                     done();
                 },
@@ -327,7 +327,7 @@ describe('AuthService', () => {
 
         it('should handle HTTP error response', done => {
             spectator.service.login(loginRequest).subscribe({
-                error: error => {
+                error: (error: LoginError) => {
                     expect(error.message).toBeDefined();
                     done();
                 },
@@ -342,7 +342,7 @@ describe('AuthService', () => {
 
         it('should include error code in error response', done => {
             spectator.service.login(loginRequest).subscribe({
-                error: error => {
+                error: (error: LoginError) => {
                     expect(error.code).toBe('INVALID_CREDENTIALS');
                     done();
                 },
@@ -372,7 +372,7 @@ describe('AuthService', () => {
             csrfService.getCsrfToken.mockReturnValue(throwError(() => new Error('CSRF fetch failed')));
 
             spectator.service.login(loginRequest).subscribe({
-                error: error => {
+                error: (error: Error) => {
                     expect(error.message).toContain('CSRF fetch failed');
                     done();
                 },
@@ -401,7 +401,9 @@ describe('AuthService', () => {
     describe('logout', () => {
         beforeEach(done => {
             // First login to have authenticated state
-            spectator.service.login({ username: 'test', password: 'test' }).subscribe(() => done());
+            spectator.service.login({ username: 'test', password: 'test' }).subscribe(() => {
+                done();
+            });
             const req = httpController.expectOne('http://test-api/api/auth/login');
             req.flush(mockAuthResponse);
         });
@@ -472,7 +474,7 @@ describe('AuthService', () => {
             });
 
             const req = httpController.expectOne('http://test-api/api/auth/logout');
-            req.error(new ErrorEvent('Network error'));
+            req.error(new ProgressEvent('error'));
         });
     });
 
@@ -565,7 +567,7 @@ describe('AuthService', () => {
         let storageService: jest.Mocked<StorageService>;
 
         beforeEach(() => {
-            storageService = spectator.inject(StorageService) as jest.Mocked<StorageService>;
+            storageService = spectator.inject(StorageService);
             storageService.setString.mockReturnValue(true);
         });
 

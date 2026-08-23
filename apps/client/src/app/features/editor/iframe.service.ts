@@ -4,12 +4,39 @@ import { InsertTagCommand } from '@drevo-web/shared';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 
 const allowedOrigins = [
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols -- local dev origins are http by design
     'http://drevo-local.ru',
     'https://drevo-info.ru',
     'https://staging.drevo-info.ru',
     'https://app.drevo-info.ru',
     'http://localhost',
 ];
+
+/**
+ * `MessageEvent.data` is whatever the host posted, so every field the switch below reads is
+ * checked here first: an embedder is not a trusted caller, and the subjects downstream are
+ * typed.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && !!value;
+}
+
+function readInsertTagCommand(content: unknown): InsertTagCommand | undefined {
+    if (
+        !isRecord(content) ||
+        typeof content['tagOpen'] !== 'string' ||
+        typeof content['tagClose'] !== 'string' ||
+        typeof content['sampleText'] !== 'string'
+    ) {
+        return undefined;
+    }
+
+    return {
+        tagOpen: content['tagOpen'],
+        tagClose: content['tagClose'],
+        sampleText: content['sampleText'],
+    };
+}
 
 @Injectable()
 export class IframeService implements OnDestroy {
@@ -18,6 +45,8 @@ export class IframeService implements OnDestroy {
     private readonly contentSubject = new ReplaySubject<string>(1);
     private readonly csrfTokenSubject = new BehaviorSubject<string | undefined>(undefined);
     private readonly insertTagSubject = new Subject<InsertTagCommand>();
+    /** Origin of the embedding host, learned from the first valid message the parent sent. */
+    private hostOrigin: string | undefined;
 
     public readonly content$: Observable<string> = this.contentSubject.asObservable();
     public readonly csrfToken$: Observable<string | undefined> = this.csrfTokenSubject.asObservable();
@@ -31,26 +60,68 @@ export class IframeService implements OnDestroy {
         this.window?.removeEventListener('message', this.messageHandler);
     }
 
-    sendMessage(message: unknown): void {
-        this.window?.parent.postMessage(message, '*');
+    /**
+     * Broadcast the payload-free readiness ping — the one outbound message allowed before the
+     * host is known, since it carries nothing to leak.
+     */
+    announceReady(): void {
+        // eslint-disable-next-line sonarjs/post-message -- the target origin is unknown until the host answers this very ping, and it carries no data
+        this.window?.parent.postMessage({ action: 'editorReady' }, '*');
     }
 
-    private onMessage(event: MessageEvent): void {
+    /**
+     * Send to the host, or do nothing while it has not identified itself.
+     *
+     * Dropping is deliberate: everything routed here carries article content, and an embedder
+     * that never sends a valid message must not receive it. The alternative — broadcasting to
+     * `'*'` until the host replies — would hand the draft to any page that framed the editor
+     * and then stayed silent.
+     */
+    sendMessage(message: unknown): void {
+        if (this.hostOrigin === undefined) {
+            return;
+        }
+
+        this.window?.parent.postMessage(message, this.hostOrigin);
+    }
+
+    private onMessage(event: MessageEvent<unknown>): void {
         if (!allowedOrigins.includes(event.origin)) {
             return;
         }
-        if (!event.data || typeof event.data.action === 'undefined') {
+
+        const message = event.data;
+        if (!isRecord(message) || message['action'] === undefined) {
             return;
         }
 
-        switch (event.data.action) {
-            case 'loadContent':
-                this.contentSubject.next(event.data.content);
-                this.csrfTokenSubject.next(event.data.csrf);
+        // An allowlisted origin is not enough: any window holding a handle to this frame can
+        // post to it, and pinning `hostOrigin` to a non-parent origin would make every later
+        // `postMessage` be dropped by the browser without a trace. Latched once, so a later
+        // message cannot silently retarget everything that follows it.
+        // eslint-disable-next-line sonarjs/different-types-comparison -- the rule does not expand the `WindowProxy` alias in `MessageEventSource` to `Window`, so it misreads the overlap as empty
+        if (this.hostOrigin === undefined && event.source === this.window?.parent) {
+            this.hostOrigin = event.origin;
+        }
+
+        switch (message['action']) {
+            case 'loadContent': {
+                const content = message['content'];
+                if (typeof content !== 'string') {
+                    return;
+                }
+                const csrf = message['csrf'];
+                this.contentSubject.next(content);
+                this.csrfTokenSubject.next(typeof csrf === 'string' ? csrf : undefined);
                 break;
-            case 'insertTag':
-                this.insertTagSubject.next(event.data.content);
+            }
+            case 'insertTag': {
+                const command = readInsertTagCommand(message['content']);
+                if (command) {
+                    this.insertTagSubject.next(command);
+                }
                 break;
+            }
             default:
                 break;
         }

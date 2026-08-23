@@ -1,6 +1,7 @@
 import { FootnoteClickHandler } from './footnote-click.handler';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { expectObjectLike } from '@drevo-web/shared/testing';
 import { ModalService } from '@drevo-web/ui';
 
 describe('FootnoteClickHandler', () => {
@@ -17,7 +18,7 @@ describe('FootnoteClickHandler', () => {
     beforeEach(() => {
         window.history.replaceState({}, '', '/articles/1');
         spectator = createService();
-        modalService = spectator.inject(ModalService) as jest.Mocked<ModalService>;
+        modalService = spectator.inject(ModalService);
         host = document.createElement('div');
     });
 
@@ -83,7 +84,7 @@ describe('FootnoteClickHandler', () => {
             expect.any(Function),
             expect.objectContaining({
                 position: 'bottom',
-                data: expect.objectContaining({ label: '[1]' }),
+                data: expectObjectLike<{ label: string }>({ label: '[1]' }),
             }),
         );
     });

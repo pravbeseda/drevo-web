@@ -4,10 +4,18 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { LoggerService, SKIP_ERROR_FOR_STATUSES, StorageService, WINDOW } from '@drevo-web/core';
+import { LoggerService, readApiErrorBody, SKIP_ERROR_FOR_STATUSES, StorageService, WINDOW } from '@drevo-web/core';
 import { User, AuthState, AuthResponse, LoginRequest, isValidReturnUrl } from '@drevo-web/shared';
 import { BehaviorSubject, Observable, of, throwError, combineLatest } from 'rxjs';
 import { map, catchError, tap, finalize, switchMap, take } from 'rxjs/operators';
+
+/**
+ * What `login` rejects with — the backend message plus the machine code the UI branches on.
+ */
+export interface LoginError {
+    readonly message: string;
+    readonly code?: string;
+}
 
 @Injectable({
     providedIn: 'root',
@@ -53,7 +61,7 @@ export class AuthService {
             this.checkAuth()
                 .pipe(take(1))
                 .subscribe({
-                    error: error => this.logger.error('Initial auth check failed', error),
+                    error: (error: unknown) => this.logger.error('Initial auth check failed', error),
                 });
             this.initCrossTabSync();
         } else {
@@ -71,7 +79,7 @@ export class AuthService {
                     .subscribe(state => {
                         // If user was logged in and now logged out, redirect to login
                         if (wasAuthenticated && !state.isAuthenticated && this.router.url !== '/login') {
-                            this.router.navigate(['/login']);
+                            void this.router.navigate(['/login']);
                         }
                     });
             }
@@ -179,12 +187,12 @@ export class AuthService {
                 throw new Error(response.error || 'Login failed');
             }),
             catchError((error: HttpErrorResponse) => {
-                const errorMessage = error.error?.error || error.message || 'Login failed';
-                const errorCode = error.error?.errorCode;
-                return throwError(() => ({
-                    message: errorMessage,
-                    code: errorCode,
-                }));
+                const body = readApiErrorBody(error);
+                const loginError: LoginError = {
+                    message: body?.error || error.message || 'Login failed',
+                    code: body?.errorCode,
+                };
+                return throwError(() => loginError);
             }),
             finalize(() => this.authOperationInProgressSubject.next(false)),
         );
@@ -218,17 +226,17 @@ export class AuthService {
                 this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
                 this.notifyOtherTabs();
-                this.router.navigate(['/login']);
+                void this.router.navigate(['/login']);
             }),
             switchMap(() => this.csrfService.refreshCsrfToken()),
             map(() => void 0),
-            catchError(error => {
+            catchError((error: unknown) => {
                 this.logger.error('Logout failed', error);
                 // Still clear local state even if server request fails
                 this.userSubject.next(undefined);
                 this.isAuthenticatedSubject.next(false);
                 this.notifyOtherTabs();
-                this.router.navigate(['/login']);
+                void this.router.navigate(['/login']);
                 return of(void 0);
             }),
             finalize(() => this.authOperationInProgressSubject.next(false)),
@@ -264,7 +272,7 @@ export class AuthService {
         // Validate external URL; fall back to router.url if invalid
         const returnUrl = currentUrl && isValidReturnUrl(currentUrl) ? currentUrl : this.router.url;
         if (returnUrl && returnUrl !== '/login') {
-            this.router.navigate(['/login'], {
+            void this.router.navigate(['/login'], {
                 queryParams: { returnUrl },
             });
         }

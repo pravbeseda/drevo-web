@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { MatTooltip } from '@angular/material/tooltip';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TooltipDirective } from './tooltip.directive';
 
@@ -22,7 +21,6 @@ describe('TooltipDirective', () => {
 
     const createComponent = createComponentFactory({
         component: HostComponent,
-        imports: [NoopAnimationsModule],
     });
 
     beforeEach(() => {

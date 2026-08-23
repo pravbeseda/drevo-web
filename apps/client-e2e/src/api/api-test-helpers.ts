@@ -1,9 +1,10 @@
-import { APIRequestContext, expect } from '@playwright/test';
+import { APIRequestContext, APIResponse, expect } from '@playwright/test';
 
 /**
  * API Base URL from environment or default
  * Use API_BASE_URL for direct API testing (e.g., http://drevo-local.ru)
  */
+// eslint-disable-next-line sonarjs/no-clear-text-protocols -- local dev backend is http by design
 export const API_BASE_URL = process.env['API_BASE_URL'] || 'http://drevo-local.ru';
 
 /**
@@ -26,7 +27,7 @@ export interface CsrfResponse {
 /**
  * User permissions structure
  */
-export interface UserPermissions {
+interface UserPermissions {
     canEdit: boolean;
     canModerate: boolean;
     canAdmin: boolean;
@@ -35,7 +36,7 @@ export interface UserPermissions {
 /**
  * Common user structure used in auth responses
  */
-export interface User {
+interface User {
     login: string;
     name?: string;
     email?: string;
@@ -60,10 +61,13 @@ export interface LoginResponse {
 }
 
 /**
- * Logout response
+ * Reads a response body as the shape the caller expects.
+ *
+ * Playwright types `APIResponse.json()` as `Promise<any>` — the body is whatever the server
+ * sent. This is the single place that claim is made, so every call site stays typed.
  */
-export interface LogoutResponse {
-    message: string;
+export async function readJson<T>(response: APIResponse): Promise<T> {
+    return (await response.json()) as T;
 }
 
 /**
@@ -92,7 +96,7 @@ export async function apiGet<T>(
     const response = await request.get(`${API_BASE_URL}${endpoint}`, {
         headers,
     });
-    const body = await response.json();
+    const body = await readJson<ApiResponse<T>>(response);
 
     return { response, body };
 }
@@ -134,7 +138,7 @@ export async function apiPost<T>(
 
     let body: ApiResponse<T>;
     try {
-        body = await response.json();
+        body = await readJson<ApiResponse<T>>(response);
     } catch {
         body = { success: false, error: 'Invalid JSON response' };
     }
@@ -159,7 +163,7 @@ export async function getCsrfToken(request: APIRequestContext): Promise<string> 
 /**
  * Expected security headers that should be present in API responses
  */
-export const EXPECTED_SECURITY_HEADERS = {
+const EXPECTED_SECURITY_HEADERS = {
     'x-content-type-options': 'nosniff',
     'x-frame-options': 'DENY',
     'referrer-policy': 'same-origin',
@@ -177,17 +181,23 @@ export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestCon
 }
 
 /**
+ * Credentials guaranteed not to match an account, so login always fails with
+ * INVALID_CREDENTIALS. Tests that probe the request *envelope* (CSRF header flavour, Referer
+ * fallback, content type) use these: a login that succeeds would authenticate the session and
+ * mask what the test is about. `test`/`test` is a real account on the dev database.
+ */
+export const INVALID_CREDENTIALS = {
+    username: 'nonexistent_user_12345',
+    // eslint-disable-next-line sonarjs/no-hardcoded-passwords -- deliberately not a working password
+    password: 'wrong_password',
+};
+
+/**
  * Allowed origins for CORS (depends on server configuration)
  * On dev server (drevo-local.ru): localhost:4200, localhost:4000
  * On prod server: https://app.drevo-info.ru
  */
 export const ALLOWED_ORIGINS = ['http://localhost:4200', 'http://localhost:4000'];
-
-/**
- * Origin that should be allowed on current test environment
- * Uses same-origin for simplicity (API_BASE_URL origin)
- */
-export const SAME_ORIGIN = new URL(API_BASE_URL).origin;
 
 /**
  * Test origin (not in allowed list)

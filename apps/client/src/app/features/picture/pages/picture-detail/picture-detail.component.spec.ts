@@ -125,7 +125,7 @@ describe('PictureDetailComponent', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             spectator = createComponent();
-            pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+            pictureService = spectator.inject(PictureService);
             pictureService.getPictureArticles.mockReturnValue(of(mockArticles));
             pictureService.getPicturePending.mockReturnValue(of([]));
         });
@@ -482,7 +482,7 @@ describe('PictureDetailComponent', () => {
                 return Object.assign([file], {
                     item: (i: number) => (i === 0 ? file : null),
                     length: 1,
-                }) as unknown as FileList;
+                });
             }
 
             function triggerFileSelect(s: Spectator<PictureDetailComponent>, file: File): void {
@@ -562,7 +562,7 @@ describe('PictureDetailComponent', () => {
                 triggerFileSelect(spectator, createValidFile());
 
                 expect(pictureService.editPicture).toHaveBeenCalledWith(42, expect.any(FormData));
-                const formData = pictureService.editPicture.mock.calls[0][1] as FormData;
+                const formData = pictureService.editPicture.mock.calls[0][1];
                 expect(formData.get('pic_title')).toBe('Новое описание');
                 expect(formData.get('file')).toBeTruthy();
             });
@@ -680,7 +680,7 @@ describe('PictureDetailComponent', () => {
             let routerNavigateSpy: jest.SpyInstance;
 
             beforeEach(() => {
-                confirmationService = spectator.inject(ConfirmationService) as jest.Mocked<ConfirmationService>;
+                confirmationService = spectator.inject(ConfirmationService);
                 notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
                 routerNavigateSpy = jest.spyOn(spectator.inject(Router), 'navigate').mockResolvedValue(true);
             });
@@ -857,6 +857,47 @@ describe('PictureDetailComponent', () => {
         });
     });
 
+    describe('without clipboard support', () => {
+        const windowWithoutClipboard = { navigator: {} } as unknown as Window;
+
+        const createComponent = createComponentFactory({
+            component: PictureDetailComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(PictureLightboxService),
+                mockProvider(PictureService, {
+                    getPictureArticles: jest.fn().mockReturnValue(of(mockArticles)),
+                    getPicturePending: jest.fn().mockReturnValue(of([])),
+                }),
+                mockProvider(ModalService),
+                mockProvider(ConfirmationService),
+                mockProvider(NotificationService),
+                { provide: AuthService, useValue: { user$: of(mockEditableUser) } },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { data: of({ picture: mockPicture }) },
+                },
+                { provide: PLATFORM_ID, useValue: 'browser' },
+                { provide: WINDOW, useValue: windowWithoutClipboard },
+            ],
+            detectChanges: false,
+        });
+
+        beforeEach(() => {
+            spectator = createComponent();
+        });
+
+        it('should report a failure instead of throwing when the clipboard API is missing', () => {
+            spectator.detectChanges();
+            const notifications = spectator.inject(NotificationService);
+
+            expect(() => {
+                spectator.component.copyInsertCode();
+            }).not.toThrow();
+            expect(notifications.error).toHaveBeenCalledWith('Не удалось скопировать код @42@');
+        });
+    });
+
     describe('with not-found result', () => {
         const createComponent = createComponentFactory({
             component: PictureDetailComponent,
@@ -934,7 +975,7 @@ describe('PictureDetailComponent', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             spectator = createComponent();
-            pictureService = spectator.inject(PictureService) as jest.Mocked<PictureService>;
+            pictureService = spectator.inject(PictureService);
         });
 
         it('should show approve and reject buttons for foreign pending', () => {
