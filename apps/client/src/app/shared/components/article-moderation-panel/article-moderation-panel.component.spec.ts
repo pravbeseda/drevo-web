@@ -1,6 +1,6 @@
 import { ArticleService } from '../../../services/articles/article.service';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
@@ -25,7 +25,7 @@ const mockModerationResult: ModerationResult = {
 describe('ArticleModerationPanelComponent', () => {
     let spectator: Spectator<ArticleModerationPanelComponent>;
     let articleService: jest.Mocked<ArticleService>;
-    let notificationService: jest.Mocked<NotificationService>;
+    let notificationService: SpyObject<NotificationService>;
 
     const createComponent = createComponentFactory({
         component: ArticleModerationPanelComponent,
@@ -36,7 +36,7 @@ describe('ArticleModerationPanelComponent', () => {
     beforeEach(() => {
         spectator = createComponent({ props: { version: mockVersion } });
         articleService = spectator.inject(ArticleService);
-        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+        notificationService = spectator.inject(NotificationService);
     });
 
     it('should create', () => {

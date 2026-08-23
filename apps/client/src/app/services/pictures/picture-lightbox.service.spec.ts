@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { createServiceFactory, SpectatorService, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { WINDOW } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
@@ -10,7 +10,7 @@ import { PictureService } from './picture.service';
 describe('PictureLightboxService', () => {
     let spectator: SpectatorService<PictureLightboxService>;
     let pictureService: jest.Mocked<PictureService>;
-    let location: jest.Mocked<Location>;
+    let location: SpyObject<Location>;
 
     const mockPicture: Picture = {
         id: 123,
@@ -33,7 +33,7 @@ describe('PictureLightboxService', () => {
     beforeEach(() => {
         spectator = createService();
         pictureService = spectator.inject(PictureService);
-        location = spectator.inject(Location) as jest.Mocked<Location>;
+        location = spectator.inject(Location);
         location.path.mockReturnValue('/articles/1');
     });
 

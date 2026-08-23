@@ -178,7 +178,7 @@ describe('TopicsSidebarActionComponent', () => {
 
                 const articleService = spectator.inject(ArticleService);
                 const updatedTopics = [1, 2, 3];
-                articleService.updateTopics = jest.fn().mockReturnValue(of(updatedTopics));
+                articleService.updateTopics.mockReturnValue(of(updatedTopics));
 
                 const topicsChangedSpy = jest.fn();
                 spectator.component.topicsChanged.subscribe(topicsChangedSpy);
@@ -196,7 +196,7 @@ describe('TopicsSidebarActionComponent', () => {
                 spectator.component.togglePanel();
 
                 const articleService = spectator.inject(ArticleService);
-                articleService.updateTopics = jest.fn().mockReturnValue(of([1, 2]));
+                articleService.updateTopics.mockReturnValue(of([1, 2]));
 
                 const notification = spectator.inject(NotificationService);
 
@@ -210,7 +210,7 @@ describe('TopicsSidebarActionComponent', () => {
                 spectator.component.togglePanel();
 
                 const articleService = spectator.inject(ArticleService);
-                articleService.updateTopics = jest.fn().mockReturnValue(throwError(() => new Error('fail')));
+                articleService.updateTopics.mockReturnValue(throwError(() => new Error('fail')));
 
                 const notification = spectator.inject(NotificationService);
 
@@ -226,7 +226,7 @@ describe('TopicsSidebarActionComponent', () => {
                 spectator.component.togglePanel();
 
                 const articleService = spectator.inject(ArticleService);
-                articleService.updateTopics = jest.fn().mockReturnValue(of([1, 2]));
+                articleService.updateTopics.mockReturnValue(of([1, 2]));
 
                 expect(spectator.component.isSaving()).toBe(false);
                 spectator.component.save();

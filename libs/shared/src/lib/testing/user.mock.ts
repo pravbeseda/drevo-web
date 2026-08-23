@@ -1,4 +1,4 @@
-import { User } from '../models/user';
+import { User, UserPermissions } from '../models/user';
 
 /**
  * Default authenticated user for tests. A plain `user` role, not a moderator,
@@ -18,6 +18,10 @@ const DEFAULT_USER: User = {
     isReviewer: false,
 };
 
+type UserOverrides = Partial<Omit<User, 'permissions'>> & {
+    readonly permissions?: Partial<UserPermissions>;
+};
+
 /**
  * Build a `User` for tests with sensible defaults. Pass `overrides` to tweak any
  * field; `permissions` is shallow-merged so a test can set just `canModerate`.
@@ -25,7 +29,7 @@ const DEFAULT_USER: User = {
  * Single source for User mocks across specs — keeps a new required field (e.g.
  * `isReviewer`) from breaking every test that builds a user by hand.
  */
-export function createMockUser(overrides: Partial<User> = {}): User {
+export function createMockUser(overrides: UserOverrides = {}): User {
     return {
         ...DEFAULT_USER,
         ...overrides,

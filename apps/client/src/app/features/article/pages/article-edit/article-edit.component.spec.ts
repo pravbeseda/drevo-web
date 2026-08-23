@@ -10,7 +10,7 @@ import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { SaveArticleVersionResult } from '@drevo-web/shared';
 import { ConfirmationService } from '@drevo-web/ui';
 import { NotificationService } from '@drevo-web/core';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { NEVER, of, throwError } from 'rxjs';
 
 const DRAFT_ROUTE = '/articles/123/version/456/edit';
@@ -53,7 +53,7 @@ function createMockActivatedRoute(version = mockVersion) {
 describe('ArticleEditComponent', () => {
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
-    let notificationService: jest.Mocked<NotificationService>;
+    let notificationService: SpyObject<NotificationService>;
     let router: jest.Mocked<Router>;
     let confirmationService: jest.Mocked<ConfirmationService>;
     const createComponent = createComponentFactory({
@@ -75,7 +75,7 @@ describe('ArticleEditComponent', () => {
         mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
         spectator = createComponent();
         articleService = spectator.inject(ArticleService);
-        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+        notificationService = spectator.inject(NotificationService);
         router = spectator.inject(Router);
         confirmationService = spectator.inject(ConfirmationService);
     });
@@ -774,7 +774,7 @@ describe('ArticleEditComponent in create mode', () => {
 
     let spectator: Spectator<ArticleEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
-    let notificationService: jest.Mocked<NotificationService>;
+    let notificationService: SpyObject<NotificationService>;
     let router: jest.Mocked<Router>;
 
     const createComponent = createComponentFactory({
@@ -800,7 +800,7 @@ describe('ArticleEditComponent in create mode', () => {
         mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
         spectator = createComponent();
         articleService = spectator.inject(ArticleService);
-        notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+        notificationService = spectator.inject(NotificationService);
         router = spectator.inject(Router);
         articleService.createArticle.mockReturnValue(of(mockCreateResult));
     });

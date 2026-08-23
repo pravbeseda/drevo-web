@@ -551,7 +551,7 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onCancelInwork('Fail me');
 
-            const notificationService = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+            const notificationService = spectator.inject(NotificationService);
             expect(notificationService.error).toHaveBeenCalledWith('Не удалось снять метку редактирования');
             const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
             expect(inworkItems).toHaveLength(1);

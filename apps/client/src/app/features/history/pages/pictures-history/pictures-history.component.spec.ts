@@ -1,4 +1,4 @@
-import { PicturesHistoryService } from '../../services/pictures-history.service';
+import { PicturesDisplayItem, PicturesHistoryService } from '../../services/pictures-history.service';
 import { PicturesHistoryComponent } from './pictures-history.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -15,7 +15,7 @@ describe('PicturesHistoryComponent', () => {
         hasPendingItems: signal(false),
         hasItems: signal(false),
         isRecentLoadingMore: signal(false),
-        displayItems: signal([]),
+        displayItems: signal<readonly PicturesDisplayItem[]>([]),
         displayTotalItems: signal(0),
         onLoadMore: jest.fn(),
     };
@@ -85,7 +85,10 @@ describe('PicturesHistoryComponent', () => {
         mockService.hasItems.set(true);
         mockService.hasRecentError.set(true);
         mockService.displayItems.set([
-            { type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } },
+            {
+                type: 'pending',
+                data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', isPictureDeleted: false, items: [] },
+            },
         ]);
         mockService.displayTotalItems.set(1);
         spectator.detectChanges();
@@ -111,7 +114,10 @@ describe('PicturesHistoryComponent', () => {
         mockService.hasPendingError.set(true);
         mockService.hasPendingItems.set(true);
         mockService.displayItems.set([
-            { type: 'pending', data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', items: [] } },
+            {
+                type: 'pending',
+                data: { pictureId: 1, currentTitle: '', currentThumbnailUrl: '', isPictureDeleted: false, items: [] },
+            },
         ]);
         mockService.displayTotalItems.set(1);
         spectator.detectChanges();

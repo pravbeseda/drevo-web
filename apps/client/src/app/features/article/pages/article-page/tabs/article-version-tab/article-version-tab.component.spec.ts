@@ -23,6 +23,7 @@ const mockVersion: ArticleVersion = {
     approved: 0,
     info: 'Updated intro',
     comment: '',
+    topics: [],
 };
 
 describe('ArticleVersionTabComponent', () => {

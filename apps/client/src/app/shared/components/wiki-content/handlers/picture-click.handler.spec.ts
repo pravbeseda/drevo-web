@@ -22,7 +22,7 @@ describe('PictureClickHandler', () => {
         const img = host.querySelector('img') as HTMLImageElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = spectator.service.handleClick(event, img, host);
+        const result = spectator.service.handleClick(event, img);
 
         expect(result).toBe(true);
         expect(spectator.inject(PictureLightboxService).open).toHaveBeenCalledWith(123);
@@ -35,7 +35,7 @@ describe('PictureClickHandler', () => {
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         const spy = jest.spyOn(event, 'preventDefault');
 
-        spectator.service.handleClick(event, img, host);
+        spectator.service.handleClick(event, img);
 
         expect(spy).toHaveBeenCalled();
     });
@@ -45,7 +45,7 @@ describe('PictureClickHandler', () => {
         const p = host.querySelector('p') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = spectator.service.handleClick(event, p, host);
+        const result = spectator.service.handleClick(event, p);
 
         expect(result).toBe(false);
         expect(spectator.inject(PictureLightboxService).open).not.toHaveBeenCalled();
@@ -56,7 +56,7 @@ describe('PictureClickHandler', () => {
         const desc = host.querySelector('.picdesc') as HTMLElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = spectator.service.handleClick(event, desc, host);
+        const result = spectator.service.handleClick(event, desc);
 
         expect(result).toBe(false);
     });
@@ -67,7 +67,7 @@ describe('PictureClickHandler', () => {
         const img = host.querySelector('img') as HTMLImageElement;
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-        const result = spectator.service.handleClick(event, img, host);
+        const result = spectator.service.handleClick(event, img);
 
         expect(result).toBe(false);
     });
