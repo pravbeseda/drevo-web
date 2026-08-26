@@ -1,0 +1,22 @@
+@use 'tokens' as *;
+
+// Shared frame and heading for every block of the home page.
+@mixin panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    min-height: $main-panel-min-height;
+    border: 1px solid var(--themed-border-color);
+    border-radius: $panel-border-radius;
+    background: var(--themed-primary-bg);
+
+    .panel-title {
+        margin: 0;
+        font-size: $font-size-md;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--themed-text-secondary);
+    }
+}

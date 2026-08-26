@@ -1,1 +1,21 @@
-<section class="main"></section>
+<section class="main">
+    <div class="main__row">
+        <app-day-card data-testid="day-card" />
+
+        <div class="main__side">
+            <app-month-calendar data-testid="month-calendar" />
+            <app-site-numbers data-testid="site-numbers" />
+        </div>
+    </div>
+
+    <div class="main__row">
+        <app-article-of-day data-testid="article-of-day" />
+
+        <div class="main__side">
+            <app-latest-articles data-testid="latest-articles" />
+            <app-popular-articles data-testid="popular-articles" />
+        </div>
+    </div>
+
+    <app-sections data-testid="sections" />
+</section>

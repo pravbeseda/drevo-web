@@ -1,0 +1,5 @@
+@use '../../panel' as *;
+
+:host {
+    @include panel;
+}

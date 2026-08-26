@@ -1,0 +1,8 @@
+@use 'tokens' as *;
+@use '../../panel' as *;
+
+:host {
+    @include panel;
+
+    min-height: $main-calendar-min-height;
+}
