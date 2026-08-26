@@ -6,3 +6,4 @@
 .angular
 *.md
 docs/**
+prototypes/**

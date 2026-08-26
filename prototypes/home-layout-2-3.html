@@ -1,0 +1,427 @@
+<!doctype html>
+<!--
+    Static prototype of the home page layout — not part of the build.
+    Content is a snapshot taken from drevo-info.ru on 2026-08-25, and the
+    images load from that host, so the page needs network access to render.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Древо — главная 2/3 + 1/3</title>
+<style>
+:root {
+    --bg: #ffffff; --bg-2: #f5f5f5; --text: #212121; --text-2: #616161; --muted: #9e9e9e;
+    --border: #e0e0e0; --divider: rgb(0 0 0 / 12%); --link: #1976d2;
+    --brand: #2e7d32; --brand-soft: #e7f7e7; --brand-border: #c6e3c7;
+    --died: #6d4c41; --born: #1565c0; --radius: 10px;
+}
+html[data-theme='dark'] {
+    --bg: #212121; --bg-2: #424242; --text: #e0e0e0; --text-2: #bdbdbd; --muted: #9e9e9e;
+    --border: #616161; --divider: rgb(255 255 255 / 12%); --link: #64b5f6;
+    --brand: #66bb6a; --brand-soft: rgb(102 187 106 / 12%); --brand-border: rgb(102 187 106 / 35%);
+    --died: #bcaaa4; --born: #64b5f6;
+}
+* { box-sizing: border-box; }
+html { font-size: 14px; }
+body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg-2); color: var(--text); }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; }
+
+.switcher { position: sticky; top: 0; z-index: 60; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 8px 12px; background: #1b1b1b; color: #eee; font-size: 12px; }
+.switcher b { font-weight: 600; margin-right: 4px; }
+.switcher button { font-size: 12px; padding: 5px 9px; border-radius: 999px; cursor: pointer; border: 1px solid #555; background: #2a2a2a; color: #ddd; }
+.switcher button.on { background: #4caf50; border-color: #4caf50; color: #08210b; font-weight: 600; }
+.switcher .spacer { flex: 1; }
+
+.app { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 50px 1fr; gap: 1px; background: var(--divider); min-height: calc(100vh - 37px); }
+.app > .header { grid-column: 1 / -1; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: var(--bg-2); }
+.header .brand { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; }
+.header .brand .leaf { color: var(--brand); }
+.header .actions { display: flex; gap: 12px; color: var(--text-2); }
+.left { background: var(--bg-2); padding: 12px 8px; }
+.nav-item { display: flex; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+.nav-item.active { background: var(--border); font-weight: 600; }
+.stage { background: var(--bg); padding: 18px 24px 60px; }
+
+/* ---------- сетка 2/3 + 1/3 ---------- */
+.row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;      /* высоту ряда задаёт колонка потяжелее */
+    margin-bottom: 16px;
+}
+.stack { display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+
+.card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding: 16px; }
+.card > h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-2); display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.card > h3 .more { font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.list { margin: 0; padding: 0; list-style: none; }
+.list li { padding: 5px 0; border-bottom: 1px solid var(--divider); font-size: 13px; }
+.list li:last-child { border-bottom: 0; }
+.list .views { float: right; color: var(--muted); font-size: 11px; padding-left: 8px; }
+.ol { margin: 0; padding-left: 22px; }
+.ol li { padding: 5px 0; font-size: 13px; }
+.muted { color: var(--muted); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); border: 1px solid var(--brand-border); font-size: 11px; font-weight: 600; }
+
+/* ---------- врезка дня со скроллом (D1) ---------- */
+.day-card {
+    border: 1px solid var(--brand-border); background: var(--brand-soft);
+    border-radius: var(--radius); padding: 16px;
+    display: flex; flex-direction: column;   /* чтобы скроллбокс тянулся по высоте ряда */
+    min-height: 0;
+}
+.day-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.day-head .date { font-size: 21px; font-weight: 600; color: var(--brand); }
+.day-head .old { font-size: 13px; color: var(--text-2); }
+.day-nav { display: flex; gap: 4px; margin-left: auto; }
+.day-nav button { font-size: 12px; padding: 4px 11px; border-radius: 999px; cursor: pointer; border: 1px solid var(--brand-border); background: transparent; color: var(--brand); }
+.day-nav button.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+.day-pills { margin-top: 7px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+.scrollbox { position: relative; flex: 1; min-height: 220px; margin-top: 12px; }
+.scrollbox .inner {
+    position: absolute; inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;            /* колесо не «пробивает» на страницу */
+    padding-right: 10px;
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent 100%);
+}
+.scrollbox .inner::-webkit-scrollbar { width: 8px; }
+.scrollbox .inner::-webkit-scrollbar-thumb { background: var(--brand-border); border-radius: 4px; }
+.day-section h5 {
+    position: sticky; top: 0; z-index: 1;
+    margin: 0; padding: 6px 0 5px; background: var(--brand-soft);
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2);
+    display: flex; gap: 8px; align-items: baseline;
+}
+.day-section h5 .count { text-transform: none; letter-spacing: 0; color: var(--muted); font-weight: 400; }
+.day-section + .day-section { margin-top: 10px; }
+.memory { margin: 0; font-size: 13px; line-height: 1.75; }
+.day-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--brand-border); font-size: 12px; display: flex; gap: 16px; flex-wrap: wrap; }
+
+.timeline { margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.timeline li { display: flex; gap: 8px; padding: 3px 0; align-items: baseline; }
+.timeline .mark { flex: none; width: 13px; text-align: center; font-size: 11px; }
+.timeline .mark.born { color: var(--born); }
+.timeline .mark.died { color: var(--died); }
+.timeline .mark.event { color: var(--brand); }
+.timeline .year { flex: none; width: 40px; color: var(--brand); font-weight: 600; }
+
+/* иконы внутри дня (опционально) */
+.icon-rail { display: flex; gap: 10px; overflow-x: auto; padding: 2px 0 10px; }
+.icon-card { flex: none; width: 92px; text-align: center; }
+.icon-card img { width: 92px; height: 104px; object-fit: cover; border-radius: 6px; border: 1px solid var(--brand-border); display: block; }
+.icon-card span { display: block; margin-top: 4px; font-size: 11px; line-height: 1.35; }
+
+/* ---------- мини-календарь ---------- */
+.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cal caption { font-size: 13px; font-weight: 600; padding-bottom: 10px; color: var(--text-2);
+    display: flex; justify-content: space-between; align-items: center; }
+.cal caption button { background: none; border: 0; cursor: pointer; color: var(--link); font-size: 15px; padding: 0 6px; }
+.cal th { color: var(--muted); font-weight: 400; padding: 3px 0; }
+.cal td { text-align: center; padding: 5px 0; border-radius: 6px; color: var(--link); cursor: pointer; }
+.cal td.empty { color: transparent; cursor: default; }
+.cal td.weekend { color: #c62828; }
+.cal td.today { background: var(--brand); color: #fff; font-weight: 700; }
+.cal td.feast { box-shadow: inset 0 0 0 1px var(--brand-border); font-weight: 600; }
+.cal td:hover:not(.empty):not(.today) { background: var(--bg-2); }
+html[data-theme='dark'] .cal td.weekend { color: #ef9a9a; }
+
+/* ---------- Древо в цифрах ---------- */
+.numbers { display: grid; gap: 2px; }
+.num-row { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--divider); font-size: 13px; color: var(--text-2); }
+.num-row:last-of-type { border-bottom: 0; }
+.num-row b { font-size: 18px; font-weight: 600; color: var(--brand); font-variant-numeric: tabular-nums; }
+.help { margin-top: 10px; display: block; text-align: center; padding: 8px; border-radius: 8px; background: var(--brand-soft); border: 1px solid var(--brand-border); font-size: 12px; color: var(--brand); font-weight: 600; }
+.help:hover { text-decoration: none; }
+
+/* ---------- избранная статья ---------- */
+.featured { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 18px; }
+.featured img { width: 210px; height: 100%; min-height: 190px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+.featured h2 { margin: 6px 0 8px; font-size: 20px; line-height: 1.25; }
+.featured p { margin: 0 0 10px; font-size: 13.5px; line-height: 1.7; color: var(--text-2); }
+.featured .meta { font-size: 12px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.why { font-size: 11px; }
+@media (max-width: 640px) { .featured { grid-template-columns: 1fr; } .featured img { width: 100%; height: 200px; } }
+
+/* ---------- рубрикатор ---------- */
+.section-title { margin: 22px 0 12px; font-size: 16px; font-weight: 600; }
+.rubrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.rubric { display: flex; gap: 14px; }
+.rubric img { width: 68px; height: 68px; object-fit: cover; border-radius: 6px; flex: none; border: 1px solid var(--border); }
+.rubric h4 { margin: 0 0 5px; font-size: 15px; }
+.rubric p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--text-2); }
+
+.note { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: var(--bg-2); font-size: 12px; color: var(--text-2); line-height: 1.65; }
+.note .ref { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="switcher">
+    <b>Избранная статья:</b>
+    <button data-f="manual" class="on">выбирает редактор</button>
+    <button data-f="top">самая читаемая</button>
+    <button data-f="feast">связана с днём</button>
+    <span style="width: 16px"></span>
+    <b>Иконы во врезке:</b>
+    <button data-icons="on">показать</button>
+    <span class="spacer"></span>
+    <button id="themeBtn">Тёмная</button>
+</div>
+
+<div class="app">
+    <div class="header">
+        <div class="brand"><span class="leaf">🌿</span> Древо</div>
+        <div class="actions"><span>🔍</span><span>Aa</span><span>🌗</span><span>👤</span></div>
+    </div>
+    <aside class="left">
+        <div class="nav-item active">🏠 Главная</div>
+        <div class="nav-item">📅 Календарь</div>
+        <div class="nav-item">🕘 Изменения</div>
+        <div class="nav-item">🖼 Иллюстрации</div>
+    </aside>
+    <main class="stage" id="stage"></main>
+</div>
+
+<script>
+// ===== реальные данные: 25.08.2026 = 12 августа ст. ст., drevo-info.ru =====
+const COUNTS = { memory: 57, events: 2, died: 13, born: 15 };
+const T = 'https://drevo-info.ru/images/thumbs/';
+
+const MEMORY = [
+    'Сщмч. Александра, епископа Команского (III в.)',
+    'Мчч. Памфила и Капитона (III в.)',
+    'Мчч. Фотия и Аникиты и многих с ними (305–306)',
+    'Прп. Паламона Египетского (ок. 323)',
+    'Двенадцати мучеников-воинов на Крите (IV в.; Греч.)',
+    'Прп. Иуста Пензанского, Корнуоллского (ок. V в.; Кельт. и Брит.)',
+    'Св. Молэза Девенишского (563; Кельт. и Брит.)',
+    'Свт. Мюрдаха (Муртага), епископа Киллалийского (V–VI в.; Кельт. и Брит.)',
+    'Прп. Сегина Ионского (652; Кельт. и Брит.)',
+    'Прпп. Боголепа, Германа и Лонгина, игуменов Кожеезерских (после 1606; Новгород.)',
+    'Прмчч. Геронтия, Серапиона, Германа, Виссариона, Михаила, Отара и Симона Гареджийских (1851; Груз.)',
+    'Прмч. архим. Варлаама (Коноплева), настоятеля Белогорского монастыря, и братии: иером. Сергия (Вершинина), Илии (Попова), Вячеслава (Косожилина), Иоасафа (Сабанцева), Иоанна (Новосёлова), Антония (Арапова) (1918)',
+    'Сщмч. Василия (Инфантьева), пресвитера (1918)',
+    'Сщмч. Алексия (Лопатина), протоиерея (1918)',
+    'Сщмч. Павла (Гордовского), пресвитера (1919; Укр.)',
+    'Сщмчч. Леонида (Бирюковича), Иоанна (Никольского), Николая (Доброумова), пресвитеров (1937)',
+    'Свт. Евмения (Хорольского), архиеп. Житомирского (1967; Житомир.)',
+    'Собор Житомирских святых (Укр.)',
+];
+const EVENTS = [
+    { year: '2012', text: 'учреждена Вознесенская епархия' },
+    { year: '2012', text: 'открыт Мало-Тарасовский Александровский скит' },
+];
+const DIED = [
+    { year: '1895', text: 'Варсонофий (Охотин), еп. Симбирский' },
+    { year: '1918', text: 'сщмч. Алексий Лопатин, прот., расстрелян в Вятке' },
+    { year: '1918', text: 'прмчч. Варлаам (Коноплев), Вячеслав (Косожилин), расстреляны в Пермской губ.' },
+    { year: '1918', text: 'сщмч. Василий Инфантьев, свящ., замучен в с. Таушканском Пермской губ.' },
+    { year: '1937', text: 'сщмч. Леонид Бирюкович, прот., расстрелян в Минске' },
+    { year: '1937', text: 'сщмч. Николай Доброумов, свящ., расстрелян под Сыктывкаром' },
+    { year: '1937', text: 'сщмч. Иоанн Никольский, свящ., расстрелян' },
+    { year: '1938', text: 'мц. Евдокия Сафронова, скончалась в Тайшетлагере' },
+    { year: '1954', text: 'Сергий Савинский, прот.' },
+    { year: '1967', text: 'свт. Евмений (Хорольский), архиеп. Житомирский' },
+    { year: '1978', text: 'Серафим (Баранов), игум.' },
+    { year: '1980', text: 'Зернов Николай Михайлович, общественный деятель, богослов' },
+    { year: '2014', text: 'Лонгин (Талыпин), архиеп. Клинский' },
+];
+const BORN = [
+    { year: '1740', text: 'Иоанн Антонович, бывш. император (†1764)' },
+    { year: '1817', text: 'Антонин (Капустин), архим., учёный-византинист (†1894)' },
+    { year: '1851', text: 'Муретов Митрофан Дмитриевич, проф. МДА (†1917)' },
+    { year: '1852', text: 'Александр Гиляревский, прот. (†не ранее 1910)' },
+    { year: '1867', text: 'Модест (Никитин), архиеп. Смоленский (†1937)' },
+    { year: '1868', text: 'сщмч. Андрей Ясенев, прот. (†1938)' },
+    { year: '1871', text: 'сщмч. Андрей Ковалев, свящ. (†1921)' },
+    { year: '1929', text: 'Пимен (Зайня), архиеп. Сучавский (†2020)' },
+    { year: '1938', text: 'Богдан Сойко, прот. (†2023)' },
+    { year: '1940', text: 'Кронид (Мищенко), еп. Днепропетровский (†1993)' },
+    { year: '1956', text: 'Иаков (Тасев), еп. Месемврийский' },
+    { year: '1967', text: 'Антоний (Паканич), митр. Бориспольский' },
+    { year: '1975', text: 'Дионисий Пугачев, свящ.' },
+    { year: '1983', text: 'Максим Цапко, свящ.' },
+    { year: '1984', text: 'Михаил Куземка, свящ.' },
+];
+const ICONS = [
+    { img: T + '002/007061.jpg', name: 'Сщмч. Александр Команский' },
+    { img: T + '002/007063.jpg', name: 'Мчч. Памфил и Капитон' },
+    { img: T + '002/007067.jpg', name: 'Мч. Фотий' },
+    { img: T + '002/007065.jpg', name: 'Мч. Аникита' },
+    { img: T + '004/020699.jpg', name: 'Прмч. Варлаам (Коноплев)' },
+];
+
+const NEW_ARTICLES = ['НИКОЛАЙ II МИРЛИКИЙСКИЙ', 'ПАПА МЛАДШИЙ', 'МИХАИЛ (КРАУЛИ)', 'АЛЕКСИЙ (ОСКОЛКОВ)',
+    'СПИРИДОН (ГУСАКОВ)', 'ВЫБУТСКИЙ ИЛЬИНСКИЙ ХРАМ', 'ПЕРШИНСКИЙ ТРОИЦКИЙ ХРАМ', 'КАМЫШАНСКИЙ АЛЕКСАНДР ПАВЛОВИЧ',
+    'КОНСТАНТИН КИЕВСКИЙ', 'ИСААКИЙ (ИВАНОВ)', 'ТАИСИЯ ЕГИПЕТСКАЯ', 'УССУРИЙСКАЯ ИКОНА БОЖИЕЙ МАТЕРИ'];
+const TOP_ARTICLES = [
+    { t: 'СОБОР НОВОМУЧЕНИКОВ СОЛОВЕЦКИХ', v: 241 }, { t: '11 АВГУСТА', v: 176 },
+    { t: '10 АВГУСТА', v: 136 }, { t: '12 АВГУСТА', v: 120 },
+    { t: 'РУССКАЯ ПРАВОСЛАВНАЯ ЦЕРКОВЬ', v: 110 }, { t: 'ГРУЗИНСКАЯ ПРАВОСЛАВНАЯ ЦЕРКОВЬ', v: 99 },
+    { t: 'КОРОСТЕНЬ', v: 98 }, { t: 'ЕПИСКОПАТ РПЦ', v: 94 },
+    { t: 'АНТИОХИЙСКАЯ ПРАВОСЛАВНАЯ ЦЕРКОВЬ', v: 93 }, { t: 'ПРАВОСЛАВНАЯ ЦЕРКОВЬ В АМЕРИКЕ', v: 93 },
+    { t: 'ПОЛЬСКАЯ ПРАВОСЛАВНАЯ ЦЕРКОВЬ', v: 83 }, { t: 'КИПРСКАЯ ПРАВОСЛАВНАЯ ЦЕРКОВЬ', v: 78 }];
+
+const FEATURED = {
+    manual: {
+        why: 'Статья дня · выбрал редактор',
+        img: T + '002/008319.jpg',
+        title: 'СОБОР НОВОМУЧЕНИКОВ И ИСПОВЕДНИКОВ СОЛОВЕЦКИХ',
+        lead: 'Празднование Русской Православной Церкви, установленное указом патриарха Алексия II от 25 марта 2000 года. Празднуется 10 августа. Текст службы утверждён Священным Синодом 27 декабря 2011 года. В лик Соловецких новомучеников входят сщмч. Никодим (Кононов), еп. Белгородский, мц. Анна Лыкошина, прмч. Вениамин (Кононов) и десятки других исповедников веры, прошедших через Соловецкий лагерь.',
+        meta: ['последняя правка 3 дня назад', '241 просмотр за двое суток', '17 иллюстраций'],
+    },
+    top: {
+        why: 'Самая читаемая за двое суток · 241 просмотр',
+        img: T + '002/008319.jpg',
+        title: 'СОБОР НОВОМУЧЕНИКОВ И ИСПОВЕДНИКОВ СОЛОВЕЦКИХ',
+        lead: 'Празднование Русской Православной Церкви, установленное указом патриарха Алексия II от 25 марта 2000 года. В лик Соловецких новомучеников входят сщмч. Никодим (Кононов), еп. Белгородский, мц. Анна Лыкошина, прмч. Вениамин (Кононов) и десятки других исповедников веры, прошедших через Соловецкий лагерь.',
+        meta: ['241 просмотр за двое суток', 'выбирается автоматически, без участия редактора'],
+    },
+    feast: {
+        why: 'Связана с сегодняшним днём · Прмч. Варлаам (Коноплев)',
+        img: T + '004/020699.jpg',
+        title: 'ВАРЛААМ (КОНОПЛЕВ)',
+        lead: 'Преподобномученик, архимандрит, настоятель Белогорского Свято-Николаевского монастыря в Пермской губернии. В августе 1918 года расстрелян красноармейцами вместе с братией обители — 26 иноков приняли смерть в один день. Память совершается 12 августа по старому стилю; сегодня Церковь чтит его вместе со всем собором белогорских преподобномучеников.',
+        meta: ['память сегодня', 'связана со статьёй «12 августа»', '4 иллюстрации'],
+    },
+};
+
+const RUBRICS = [
+    { img: T + '002/005484.jpg', title: 'Православное Христианство', links: ['Бог', 'Иисус Христос', 'Христианство', 'Православие', 'Вероучение', 'Библия', 'Богослужение', 'Храм', 'Таинства', 'Соборы', 'Церковные праздники', 'Пост'] },
+    { img: T + '002/005486.jpg', title: 'Поместные Церкви', links: ['Константинопольская', 'Александрийская', 'Антиохийская', 'Иерусалимская', 'Русская', 'Грузинская', 'Сербская', 'Румынская', 'Болгарская', 'Кипрская', 'Элладская'] },
+    { img: T + '002/005487.jpg', title: 'Проблемы Православной Церкви', links: ['Расколы', 'Ереси', '«Альтернативное православие»', 'Имяславие', 'Календарный вопрос', 'Обновленчество', 'Старообрядчество', 'Экуменизм'] },
+    { img: T + '002/005489.jpg', title: 'Другие религии и учения', links: ['Нехристианские религии', 'Астрология', 'Атеизм', 'Буддизм', 'Индуизм', 'Ислам', 'Иудаизм', 'Оккультизм', 'Язычество'] },
+];
+
+// ===== рендер =====
+const link = t => `<a href="#">${t}</a>`;
+const tl = (items, kind) => `<ul class="timeline">${items.map(i =>
+    `<li><span class="mark ${kind}">${kind === 'born' ? '✳' : kind === 'died' ? '✝' : '●'}</span>
+     <span class="year">${i.year}</span><span>${link(i.text)}</span></li>`).join('')}</ul>`;
+
+const calendar = () => {
+    const shift = (new Date(2026, 7, 1).getDay() + 6) % 7;
+    const feasts = [19, 28];
+    let c = '';
+    for (let i = 0; i < shift; i++) c += '<td class="empty">0</td>';
+    for (let d = 1; d <= 31; d++) {
+        const dow = (shift + d - 1) % 7;
+        const cls = [d === 25 ? 'today' : '', dow >= 5 ? 'weekend' : '', feasts.includes(d) ? 'feast' : ''].filter(Boolean).join(' ');
+        c += `<td class="${cls}">${d}</td>`;
+        if ((shift + d) % 7 === 0) c += '</tr><tr>';
+    }
+    return `<table class="cal">
+        <caption><button>‹</button><span>Август 2026</span><button>›</button></caption>
+        <tr>${['пн','вт','ср','чт','пт','сб','вс'].map(w => `<th>${w}</th>`).join('')}</tr><tr>${c}</tr></table>`;
+};
+
+let featuredMode = 'manual';
+let showIcons = false;
+
+const render = () => {
+    const f = FEATURED[featuredMode];
+    document.getElementById('stage').innerHTML = `
+    <p class="note">Сетка <b>2/3 + 1/3</b>. Ряд 1 — день со скроллом (D1) и справа календарь + «Древо в цифрах».
+    Ряд 2 — избранная статья и справа «Новое» / «Популярное». Рубрикатор во всю ширину внизу.
+    <span class="ref">Высоту ряда 1 задаёт правая колонка: скроллбокс дня растягивается ровно до низа «цифр», так что края рядов совпадают на любой ширине.</span></p>
+
+    <div class="row">
+        <div class="day-card">
+            <div class="day-head">
+                <span class="date">25 августа</span>
+                <span class="old">12 августа ст. ст., вторник</span>
+                <span class="day-nav"><button class="on">Сегодня</button><button>Завтра</button></span>
+            </div>
+            <div class="day-pills">
+                <span class="pill">Попразднство Преображения Господня</span>
+                <span class="pill">Собор Житомирских святых</span>
+            </div>
+            <div class="scrollbox"><div class="inner">
+                ${showIcons ? `<div class="icon-rail">${ICONS.map(i =>
+                    `<a class="icon-card" href="#"><img src="${i.img}" alt="" /><span>${i.name}</span></a>`).join('')}</div>` : ''}
+                <div class="day-section"><h5>Память <span class="count">${COUNTS.memory} имён</span></h5>
+                    <p class="memory">${MEMORY.map(link).join(' · ')}</p></div>
+                <div class="day-section"><h5>События <span class="count">${COUNTS.events}</span></h5>
+                    ${tl(EVENTS, 'event')}</div>
+                <div class="day-section"><h5>Скончались <span class="count">${COUNTS.died}</span></h5>
+                    ${tl(DIED, 'died')}</div>
+                <div class="day-section"><h5>Родились <span class="count">${COUNTS.born}</span></h5>
+                    ${tl(BORN, 'born')}</div>
+            </div></div>
+            <div class="day-foot">
+                <a href="#">Полная статья «12 августа» →</a>
+                <a href="#">Календарь на август →</a>
+            </div>
+        </div>
+
+        <div class="stack">
+            <div class="card">${calendar()}</div>
+            <div class="card">
+                <h3>Древо в цифрах</h3>
+                <div class="numbers">
+                    <div class="num-row"><span>Статей</span><b>32 175</b></div>
+                    <div class="num-row"><span>Иллюстраций</span><b>20 799</b></div>
+                    <div class="num-row"><span>Авторов</span><b>1 199</b></div>
+                    <div class="num-row"><span>Правок за сутки</span><b>64</b></div>
+                </div>
+                <a class="help" href="#">Нам нужна ваша помощь →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card">
+            <h3>Избранная статья <span class="why muted">${f.why}</span></h3>
+            <div class="featured">
+                <img src="${f.img}" alt="" />
+                <div>
+                    <h2>${link(f.title)}</h2>
+                    <p>${f.lead}</p>
+                    <div class="meta">${f.meta.map(m => `<span>${m}</span>`).join('')}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stack">
+            <div class="card"><h3>Новое <a href="#" class="more">все изменения →</a></h3>
+                <ul class="list">${NEW_ARTICLES.map(t => `<li>${link(t)}</li>`).join('')}</ul></div>
+            <div class="card"><h3>Популярное <a href="#" class="more">весь список →</a></h3>
+                <ol class="ol">${TOP_ARTICLES.map(a => `<li>${link(a.t)}<span class="views">${a.v}</span></li>`).join('')}</ol></div>
+        </div>
+    </div>
+
+    <h2 class="section-title">Разделы</h2>
+    <div class="rubrics">${RUBRICS.map(r => `<div class="rubric"><img src="${r.img}" alt="" />
+        <div><h4>${link(r.title)}</h4><p>${r.links.map(link).join(' &nbsp;·&nbsp; ')}</p></div></div>`).join('')}</div>`;
+};
+
+document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+    featuredMode = b.dataset.f;
+    document.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b));
+    render();
+}));
+document.querySelector('[data-icons]').addEventListener('click', e => {
+    showIcons = !showIcons;
+    e.target.classList.toggle('on', showIcons);
+    e.target.textContent = showIcons ? 'скрыть' : 'показать';
+    render();
+});
+document.getElementById('themeBtn').addEventListener('click', e => {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+    e.target.textContent = dark ? 'Тёмная' : 'Светлая';
+});
+render();
+</script>
+</body>
+</html>
