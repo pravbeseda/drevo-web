@@ -42,6 +42,7 @@ const EXCEPTIONS = {
     'apps/client/src/app/app.routes.server.ts': 0,
     'apps/client/src/app/features/history/history.routes.ts': 0,
     'apps/client/src/app/features/picture/picture.routes.ts': 0,
+    'apps/client/src/app/features/calendar/calendar.routes.ts': 0,
 
     // Partially covered rather than untested: 178 lines with a spec of its own. The floor is
     // its measured figure, so it cannot regress while the rest is worked out in #267.
@@ -49,6 +50,7 @@ const EXCEPTIONS = {
 
     // Data tables and type declarations. `topic.ts` is deliberately absent from this list —
     // it holds two functions beside its table, and they are tested.
+    'libs/shared/src/lib/models/calendar.ts': 0,
     'libs/shared/src/lib/models/review.ts': 0,
     'libs/shared/src/lib/models/user.ts': 0,
     'libs/ui/src/lib/constants/breakpoints.ts': 0,

@@ -1,6 +1,7 @@
 import {
     apiError,
     apiSuccess,
+    createCalendarYearDto,
     createInworkItemDto,
     createPicturePendingDto,
     createPicturesListResponse,
@@ -24,6 +25,7 @@ import {
     ArticleLinkedHereResponseDto,
     ArticleSearchResponseDto,
     ArticleVersionDto,
+    CalendarYearDto,
     CreateArticleResponseDto,
     HistoryCountsDto,
     InworkItemDto,
@@ -756,6 +758,31 @@ export async function mockHistoryCounts(
     counts: HistoryCountsDto = { pendingArticles: 0, pendingNews: 0, pendingPictures: 0 },
 ): Promise<void> {
     await page.route('**/api/counts', route => route.fulfill({ json: apiSuccess(counts) }));
+}
+
+// ---------------------------------------------------------------------------
+// Calendar
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/calendar/year/:year — returns the year as data */
+export async function mockCalendarYear(page: Page, year: number, dto?: CalendarYearDto): Promise<void> {
+    await page.route(`**/api/calendar/year/${year}`, route =>
+        route.fulfill({ json: apiSuccess(dto ?? createCalendarYearDto({ year })) }),
+    );
+}
+
+/** Mock GET /api/calendar/year/:year — the range check the backend applies */
+export async function mockCalendarYearOutOfRange(page: Page, year: number): Promise<void> {
+    await page.route(`**/api/calendar/year/${year}`, route =>
+        route.fulfill({ status: 400, json: apiError('Year out of range', 'INVALID_YEAR') }),
+    );
+}
+
+/** Mock GET /api/calendar/year/:year — a server failure */
+export async function mockCalendarYearError(page: Page, year: number): Promise<void> {
+    await page.route(`**/api/calendar/year/${year}`, route =>
+        route.fulfill({ status: 500, json: apiError('Server error') }),
+    );
 }
 
 // ---------------------------------------------------------------------------

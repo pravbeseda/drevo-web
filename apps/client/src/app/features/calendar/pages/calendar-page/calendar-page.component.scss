@@ -1,0 +1,47 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+// The grid and the legend sit side by side where there is room and stack where
+// there is not. Wrapping is the breakpoint: the two flex bases plus the gap are
+// the width at which they stop fitting on one line, so no viewport size is
+// written down.
+.columns {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: rem($calendar-columns-gap);
+}
+
+// The year tabs belong to the calendar column, not to the page: stretched over
+// the legend as well they read as a section header for both.
+.calendar {
+    flex: 3 1 rem($calendar-grid-basis);
+}
+
+// Fixed tracks rather than 1fr: a month is a fixed size, so a stretching track
+// would only vary the space between months with the viewport. The leftover
+// width goes to the outer edges instead.
+.grid {
+    display: grid;
+    margin-top: $gap-xl;
+    grid-template-columns: repeat(auto-fill, rem($calendar-month-width));
+    justify-content: center;
+    gap: rem($calendar-grid-gap);
+}
+
+.legend {
+    flex: 1 1 rem($calendar-legend-basis);
+
+    // A legend is prose: past this it is a worse read, not a better one.
+    max-width: rem($calendar-legend-max-width);
+}
+
+.disclaimer {
+    margin-top: $gap-lg;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+}

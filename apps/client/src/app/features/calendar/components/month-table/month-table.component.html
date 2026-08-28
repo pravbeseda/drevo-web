@@ -1,0 +1,41 @@
+<table class="month">
+    <caption data-testid="month-name">{{ month().name }}</caption>
+    <thead>
+        <tr>
+            @for (weekday of weekdays; track $index) {
+                <th
+                    class="weekday"
+                    scope="col"
+                    data-testid="weekday"
+                >
+                    {{ weekday }}
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (week of month().weeks; track $index) {
+            <tr>
+                @for (day of week; track $index) {
+                    @if (day) {
+                        <td
+                            class="day"
+                            data-testid="calendar-day"
+                            [ngClass]="dayClasses(day)"
+                        >
+                            <a
+                                [routerLink]="dayLink(day)"
+                                [class.newlink]="day.articleId === undefined"
+                                [attr.aria-label]="day.articleTitle"
+                            >
+                                {{ day.dayOfMonth }}
+                            </a>
+                        </td>
+                    } @else {
+                        <td class="day"></td>
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+</table>

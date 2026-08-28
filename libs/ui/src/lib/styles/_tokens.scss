@@ -61,6 +61,7 @@ $brand-gap: 4px;
 $header-actions-gap: 2px;
 $gap-md: 1rem;
 $gap-lg: 1.5rem;
+$gap-xl: 2rem;
 
 // Font scale popup
 $font-scale-popup-padding: 16px;
@@ -74,3 +75,17 @@ $article-max-width: 1000px;
 // Main page
 $main-panel-min-height: 140px;
 $main-calendar-min-height: 260px;
+
+// Calendar page
+$calendar-month-width: 198px;
+$calendar-grid-gap: 32px;
+$calendar-columns-gap: 24px;
+$calendar-legend-basis: 400px;
+$calendar-legend-max-width: 560px;
+$calendar-grid-basis: 520px;
+$calendar-cell-gap: 2px;
+$calendar-day-padding-v: 5px;
+$calendar-day-padding-h: 2px;
+$calendar-weekday-padding: 4px;
+$calendar-day-font-size: 0.9rem;
+$calendar-weekday-font-size: 0.7rem;

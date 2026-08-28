@@ -25,6 +25,10 @@ export const appRoutes: Route[] = [
                     import('./features/editor/shared-editor.component').then(m => m.SharedEditorComponent),
             },
             {
+                path: 'calendar',
+                loadChildren: () => import('./features/calendar/calendar.routes').then(m => m.CALENDAR_ROUTES),
+            },
+            {
                 path: 'history',
                 title: 'История изменений',
                 loadChildren: () => import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),
