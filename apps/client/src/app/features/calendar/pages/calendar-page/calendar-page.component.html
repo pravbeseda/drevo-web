@@ -35,7 +35,7 @@
 } @else {
     <app-error
         title="Календарь не найден"
-        message="Календарь доступен только для лет с 1920 по 2037."
+        [message]="notFoundMessage"
         [showHomeButton]="true"
         data-testid="calendar-not-found"
     />

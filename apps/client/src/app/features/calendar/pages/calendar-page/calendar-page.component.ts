@@ -5,6 +5,7 @@ import { CalendarYearResolveResult } from '../../resolvers/calendar-year.resolve
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
+import { CALENDAR_MAX_YEAR, CALENDAR_MIN_YEAR } from '@drevo-web/shared';
 import { TabItem, TabsComponent } from '@drevo-web/ui';
 import { map } from 'rxjs/operators';
 
@@ -17,6 +18,12 @@ import { map } from 'rxjs/operators';
 })
 export class CalendarPageComponent {
     private readonly route = inject(ActivatedRoute);
+
+    /**
+     * Built from the bounds the resolver enforces, so the message and the
+     * routing that produced it cannot come to disagree.
+     */
+    readonly notFoundMessage = `Календарь доступен только для лет с ${CALENDAR_MIN_YEAR} по ${CALENDAR_MAX_YEAR}.`;
 
     private readonly resolveResult = toSignal(
         this.route.data.pipe(map(data => data['calendar'] as CalendarYearResolveResult)),

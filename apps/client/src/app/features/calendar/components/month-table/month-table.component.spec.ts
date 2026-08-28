@@ -32,6 +32,8 @@ describe('MonthTableComponent', () => {
     };
 
     const cells = (): HTMLElement[] => spectator.queryAll('[data-testid="calendar-day"]');
+    const emptyCells = (): HTMLElement[] => spectator.queryAll('[data-testid="calendar-empty"]');
+    const firstLink = (): HTMLElement | null => spectator.query('[data-testid="day-link"]');
 
     it('names the month and heads the columns with the seven weekdays', () => {
         render(month([day(1)]));
@@ -52,13 +54,15 @@ describe('MonthTableComponent', () => {
         render(month([undefined, undefined, day(1)]));
 
         expect(cells()).toHaveLength(1);
-        expect(spectator.queryAll('td')).toHaveLength(3);
+        // The padding slots still occupy the row: a week that loses them shifts
+        // every date in the month by as many columns.
+        expect(emptyCells()).toHaveLength(2);
     });
 
     it('links a written article by id', () => {
         render(month([day(1, { articleId: 42 })]));
 
-        const link = spectator.query('[data-testid="calendar-day"] a');
+        const link = firstLink();
         expect(link).toHaveAttribute('href', '/articles/42');
         expect(link).toHaveText('1');
         expect(link).toHaveAttribute('aria-label', '1 ДЕКАБРЯ');
@@ -67,7 +71,7 @@ describe('MonthTableComponent', () => {
     it('links a missing article by title and marks it as new', () => {
         render(month([day(1, { articleId: undefined, articleTitle: '19 ДЕКАБРЯ' })]));
 
-        const link = spectator.query('[data-testid="calendar-day"] a');
+        const link = firstLink();
         expect(link).toHaveAttribute('href', '/articles/find/19%20%D0%94%D0%95%D0%9A%D0%90%D0%91%D0%A0%D0%AF');
         expect(link).toHaveClass('newlink');
     });
@@ -109,6 +113,6 @@ describe('MonthTableComponent', () => {
     it('marks no cell when no date is given', () => {
         render(month([day(1), day(2)]));
 
-        expect(spectator.queryAll('.today')).toHaveLength(0);
+        expect(cells().some(cell => cell.classList.contains('today'))).toBe(false);
     });
 });

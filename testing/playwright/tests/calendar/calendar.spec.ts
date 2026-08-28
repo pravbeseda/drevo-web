@@ -8,6 +8,7 @@ import {
 } from '../../fixtures';
 import { createCalendarYearDto } from '../../mocks/calendar';
 import { CalendarPage } from '../../pages/calendar.page';
+import { LayoutPage } from '../../pages/layout.page';
 
 const YEAR = 2026;
 
@@ -28,13 +29,13 @@ test.describe('Calendar page', () => {
         });
 
         test('names the page in the header rather than on the page', async ({ authenticatedPage: page }) => {
-            await expect(page.getByTestId('page-title')).toHaveText('Православный календарь');
-            await expect(page.locator('h1')).toHaveCount(0);
+            await expect(new LayoutPage(page).pageTitle).toHaveText('Православный календарь');
+            await expect(calendar.pageHeadings).toHaveCount(0);
         });
 
-        test('renders the legend and the disclaimer the API sent', async ({ authenticatedPage: page }) => {
-            await expect(page.getByRole('heading', { name: 'Церковные праздники в 2026 году' })).toBeVisible();
-            await expect(page.getByText('может содержать неточности')).toBeVisible();
+        test('renders the legend and the disclaimer the API sent', async () => {
+            await expect(calendar.legendHeading).toBeVisible();
+            await expect(calendar.disclaimer).toBeVisible();
         });
 
         test('marks a fast day and a feast day differently', async () => {
@@ -43,13 +44,13 @@ test.describe('Calendar page', () => {
         });
 
         test('a day opens its article without a full page load', async ({ authenticatedPage: page }) => {
-            await calendar.day('Январь', 1).getByRole('link').click();
+            await calendar.dayLink('Январь', 1).click();
 
             await expect(page).toHaveURL(/\/articles\/1122$/);
         });
 
         test('a day whose article is missing links to the find route', async () => {
-            await expect(calendar.day('Январь', 4).getByRole('link')).toHaveAttribute('href', /\/articles\/find\/.+/);
+            await expect(calendar.dayLink('Январь', 4)).toHaveAttribute('href', /\/articles\/find\/.+/);
         });
 
         test('the year tab switches the year', async ({ authenticatedPage: page }) => {

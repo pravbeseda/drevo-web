@@ -2,11 +2,19 @@ import { CalendarService } from '../../../services/calendar/calendar.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
+import { Logger, LoggerService } from '@drevo-web/core';
 import { CALENDAR_MAX_YEAR, CALENDAR_MIN_YEAR, CalendarYear } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 const OUT_OF_RANGE_STATUS = 400;
+
+/**
+ * A decimal year and nothing else. `Number()` on its own reads every JavaScript
+ * literal form, so `0x7ea`, `2e3` and `+2026` would all open the 2026 calendar
+ * under an address neither the route pattern nor the backend names.
+ */
+const YEAR_PATTERN = /^\d+$/;
 
 export type CalendarYearResolveResult = CalendarYear | 'not-found' | 'load-error';
 
@@ -20,6 +28,7 @@ export type CalendarYearResolveResult = CalendarYear | 'not-found' | 'load-error
  */
 export function resolveCalendarYear(
     calendarService: CalendarService,
+    logger: Logger,
     route: ActivatedRouteSnapshot,
     currentYear: number,
 ): Observable<CalendarYearResolveResult> {
@@ -27,27 +36,46 @@ export function resolveCalendarYear(
     // in undefined, so the absence is normalised on the way in.
     const yearParam = route.paramMap.get('year') ?? undefined;
     if (yearParam === undefined) {
-        return loadYear(calendarService, currentYear);
+        return loadYear(calendarService, logger, currentYear);
     }
 
-    const year = Number(yearParam);
-    if (!Number.isInteger(year) || year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) {
+    if (!YEAR_PATTERN.test(yearParam)) {
         return of('not-found' as const);
     }
 
-    return loadYear(calendarService, year);
+    const year = Number(yearParam);
+    if (year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) {
+        return of('not-found' as const);
+    }
+
+    return loadYear(calendarService, logger, year);
 }
 
-function loadYear(calendarService: CalendarService, year: number): Observable<CalendarYearResolveResult> {
+function loadYear(
+    calendarService: CalendarService,
+    logger: Logger,
+    year: number,
+): Observable<CalendarYearResolveResult> {
     return calendarService.getYear(year).pipe(
         catchError((error: unknown) => {
+            // A year the calendar does not cover is a stale link, not a fault,
+            // so it is answered without a log entry. Anything else is reported:
+            // recovering the stream here is what keeps it from reaching the
+            // global error handler, and so from reaching Sentry.
             if (error instanceof HttpErrorResponse && error.status === OUT_OF_RANGE_STATUS) {
                 return of('not-found' as const);
             }
+
+            logger.error(`Failed to load the calendar year ${year}`, error);
             return of('load-error' as const);
         }),
     );
 }
 
 export const calendarYearResolver: ResolveFn<CalendarYearResolveResult> = route =>
-    resolveCalendarYear(inject(CalendarService), route, new Date().getFullYear());
+    resolveCalendarYear(
+        inject(CalendarService),
+        inject(LoggerService).withContext('CalendarYearResolver'),
+        route,
+        new Date().getFullYear(),
+    );

@@ -38,10 +38,3 @@ export interface CalendarYearDto {
     readonly legend: string;
     readonly disclaimer: string;
 }
-
-export interface CalendarMonthResponseDto {
-    readonly year: number;
-    readonly month: number;
-    readonly name: string;
-    readonly weeks: readonly CalendarWeekDto[];
-}

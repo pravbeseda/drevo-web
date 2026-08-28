@@ -1,7 +1,7 @@
 import { CalendarYearResolveResult } from '../../resolvers/calendar-year.resolver';
 import { CalendarPageComponent } from './calendar-page.component';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { CalendarMonth, CalendarYear } from '@drevo-web/shared';
+import { CALENDAR_MAX_YEAR, CALENDAR_MIN_YEAR, CalendarMonth, CalendarYear } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 
@@ -127,6 +127,17 @@ describe('CalendarPageComponent', () => {
 
         expect(spectator.query('[data-testid="calendar-not-found"]')).toBeTruthy();
         expect(spectator.queryAll('app-month-table')).toHaveLength(0);
+    });
+
+    /**
+     * The message names the range the resolver enforces, so a change to the
+     * bounds cannot leave the two disagreeing.
+     */
+    it('names the supported range from the constants that enforce it', () => {
+        render('not-found');
+
+        expect(spectator.component.notFoundMessage).toContain(`${CALENDAR_MIN_YEAR}`);
+        expect(spectator.component.notFoundMessage).toContain(`${CALENDAR_MAX_YEAR}`);
     });
 
     it('shows the load error when the request failed', () => {

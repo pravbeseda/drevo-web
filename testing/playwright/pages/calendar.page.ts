@@ -10,6 +10,12 @@ export class CalendarPage extends BasePage {
     readonly nextYear: Locator = this.page.getByTestId('year-next');
     readonly notFound: Locator = this.page.getByTestId('calendar-not-found');
     readonly loadError: Locator = this.page.getByTestId('calendar-load-error');
+    /** The page names itself in the header, so its body carries no heading of its own. */
+    readonly pageHeadings: Locator = this.page.locator('h1');
+    readonly legendHeading: Locator = this.page.getByRole('heading', {
+        name: 'Церковные праздники в 2026 году',
+    });
+    readonly disclaimer: Locator = this.page.getByText('может содержать неточности');
 
     async waitForReady(): Promise<void> {
         await this.grid.waitFor({ state: 'visible' });
@@ -22,5 +28,10 @@ export class CalendarPage extends BasePage {
             .filter({ has: this.page.getByTestId('month-name').filter({ hasText: monthName }) })
             .getByTestId('calendar-day')
             .filter({ hasText: new RegExp(`^\\s*${dayOfMonth}\\s*$`) });
+    }
+
+    /** The link a day cell carries — to the article, written or not. */
+    dayLink(monthName: string, dayOfMonth: number): Locator {
+        return this.day(monthName, dayOfMonth).getByRole('link');
     }
 }
