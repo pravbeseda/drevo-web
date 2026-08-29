@@ -47,6 +47,24 @@ export class LayoutPage extends BasePage {
     }
 
     /**
+     * Wait until the auth check has settled. The account button replaces its
+     * disabled loading twin once `/api/auth/me` answers, so a negative
+     * assertion about a permission cannot pass merely by running too early.
+     */
+    async waitForAuthReady(): Promise<void> {
+        await this.accountButton.waitFor({ state: 'visible' });
+    }
+
+    /**
+     * Wait until the title is actually renamable. The header renders before the
+     * auth and article requests resolve, and a click that lands earlier is
+     * dropped by the component instead of being retried.
+     */
+    async expectTitleEditable(): Promise<void> {
+        await expect(this.pageTitle).toHaveClass(/page-title--editable/);
+    }
+
+    /**
      * Make the nav items reachable. On mobile the sidebar is a drawer that starts closed;
      * on desktop it is already expanded and this is a no-op.
      */
