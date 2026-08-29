@@ -30,6 +30,7 @@ test.describe('Article rename', () => {
             layout = new LayoutPage(page);
             await page.goto(`/articles/${ARTICLE_ID}`);
             await layout.waitForReady();
+            await layout.expectTitleEditable();
         });
 
         test('title is clickable and opens input', async () => {
@@ -175,6 +176,7 @@ test.describe('Article rename', () => {
             layout = new LayoutPage(page);
             await page.goto(`/articles/${ARTICLE_ID}`);
             await layout.waitForReady();
+            await layout.waitForAuthReady();
 
             await expect(layout.pageTitle).toHaveText('Старое название');
             await layout.pageTitle.click();
