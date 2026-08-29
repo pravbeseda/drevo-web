@@ -1,0 +1,42 @@
+@if (calendar(); as year) {
+    <div class="columns">
+        <ui-tabs
+            class="calendar"
+            [tabs]="tabs()"
+        >
+            <div
+                class="grid"
+                data-testid="calendar-grid"
+            >
+                @for (month of year.months; track month.number) {
+                    <app-month-table
+                        [month]="month"
+                        [today]="today()"
+                    />
+                }
+            </div>
+        </ui-tabs>
+
+        <aside class="legend">
+            <app-wiki-content [content]="year.legend" />
+        </aside>
+    </div>
+
+    <footer class="disclaimer">
+        <app-wiki-content [content]="year.disclaimer" />
+    </footer>
+} @else if (isLoadError()) {
+    <app-error
+        title="Ошибка загрузки"
+        message="Не удалось загрузить календарь. Попробуйте обновить страницу."
+        [showHomeButton]="true"
+        data-testid="calendar-load-error"
+    />
+} @else {
+    <app-error
+        title="Календарь не найден"
+        [message]="notFoundMessage"
+        [showHomeButton]="true"
+        data-testid="calendar-not-found"
+    />
+}

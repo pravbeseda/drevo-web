@@ -15,5 +15,6 @@ export {
     createPicturePendingDto,
     mockPictureData,
 } from './pictures';
+export { createCalendarYearDto } from './calendar';
 export { createInworkItemDto } from './inwork';
 export { createReviewSummaryDto } from './reviews';

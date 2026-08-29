@@ -1,0 +1,72 @@
+@use 'index' as *;
+
+// A month is a fixed width rather than a share of its track: with a fixed table
+// layout the seven day cells then come out identical everywhere, and a wider
+// track centres the table instead of spreading the numbers across it.
+// Separate cells, not collapsed ones: the fast-day background belongs to the
+// day, and collapsed borders merge a whole week of them into one green block.
+// The spacing doubles as the table's outer padding, so the table needs none.
+.month {
+    table-layout: fixed;
+    width: rem($calendar-month-width);
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: rem($calendar-cell-gap);
+}
+
+caption {
+    font-weight: bold;
+    text-align: center;
+    color: var(--themed-text-primary);
+}
+
+.weekday {
+    text-align: center;
+    font-size: $calendar-weekday-font-size;
+    font-weight: normal;
+    color: var(--themed-text-muted);
+    padding: rem($calendar-weekday-padding);
+}
+
+.day {
+    text-align: center;
+    font-size: $calendar-day-font-size;
+    padding: rem($calendar-day-padding-v) rem($calendar-day-padding-h);
+
+    a {
+        color: var(--themed-text-primary);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &.newlink {
+            color: var(--themed-wiki-newlink);
+        }
+    }
+}
+
+.weekend a {
+    color: var(--themed-calendar-weekend);
+}
+
+.holyday {
+    color: var(--themed-calendar-feast);
+
+    a {
+        color: var(--themed-calendar-feast);
+    }
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.fast {
+    background: var(--themed-calendar-fast-bg);
+}
+
+.today {
+    outline: 1px solid var(--themed-calendar-today-border);
+}

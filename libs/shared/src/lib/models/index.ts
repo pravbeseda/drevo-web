@@ -4,6 +4,7 @@ export * from './article-linked-here';
 export * from './article-search';
 export * from './article-version-pairs';
 export * from './auth';
+export * from './calendar';
 export * from './dto';
 export * from './editor';
 export * from './inwork';

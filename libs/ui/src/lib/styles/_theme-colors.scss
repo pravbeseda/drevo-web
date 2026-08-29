@@ -145,6 +145,26 @@ $theme-colors: (
         dark: $md-grey-800,
     ),
 
+    /* Orthodox calendar grid*/
+    /* A feast outranks the weekend, which is why the two are distinct reds*/
+    /* rather than one with an opacity.*/
+    calendar-feast: (
+        light: $md-red-700,
+        dark: $md-red-300,
+    ),
+    calendar-weekend: (
+        light: $md-red-900,
+        dark: $md-red-200,
+    ),
+    calendar-fast-bg: (
+        light: $md-green-50,
+        dark: rgb($md-green-200, 0.12),
+    ),
+    calendar-today-border: (
+        light: $md-blue-700,
+        dark: $md-blue-300,
+    ),
+
     /* Editor base (surface, chrome)*/
     editor-selection-bg: (
         light: $md-blue-100,
