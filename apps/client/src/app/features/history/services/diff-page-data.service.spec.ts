@@ -153,8 +153,9 @@ describe('DiffPageDataService', () => {
             expect(spectator.service.isLoading()).toBe(false);
         });
 
-        // parseInt reads a prefix and Number() reads every literal form, so each of
-        // these once resolved to a real version under an address the route never names.
+        // parseInt() read a prefix and dropped the rest, so the first two once
+        // resolved to version 42 under an address the route never names. The hex
+        // form was already rejected here, by parseInt('0x2a', 10) answering 0.
         const MALFORMED_IDS = [
             ['with trailing garbage', '42abc'],
             ['hexadecimal', '0x2a'],
