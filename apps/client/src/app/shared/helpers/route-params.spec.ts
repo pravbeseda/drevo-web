@@ -16,8 +16,14 @@ describe('parsePositiveIntParam', () => {
         // parseInt() would read the prefix and drop the rest.
         ['trailing garbage', '42abc'],
         ['zero', '0'],
+        // A leading zero is one more address for an id that already has one.
+        ['padded with zeros', '042'],
         ['negative', '-5'],
         ['empty', ''],
+        // Past MAX_SAFE_INTEGER the conversion answers a different id than the
+        // param names, and past ~1e308 it answers Infinity.
+        ['above the safe integer range', '9007199254740993'],
+        ['too long to convert', '9'.repeat(309)],
     ])('answers undefined for an id %s', (_case, value) => {
         expect(parsePositiveIntParam(value)).toBeUndefined();
     });
