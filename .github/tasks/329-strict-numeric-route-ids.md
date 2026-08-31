@@ -22,7 +22,7 @@ through one helper shared by every call site.
 
 ## Steps
 - [x] 1. Add `parsePositiveIntParam` + spec — files: `apps/client/src/app/shared/helpers/route-params.ts`, `route-params.spec.ts` — lenses: security — done when: the new spec covers decimal, hex, exponential, signed, padded, fractional, trailing-garbage, zero, negative, empty and missing, and goes green.
-- [ ] 2. Move the four resolvers onto it — files: `features/picture/resolvers/picture.resolver.ts`, `features/article/resolvers/article.resolver.ts`, `features/article/resolvers/article-version.resolver.ts`, `features/calendar/resolvers/calendar-year.resolver.ts` (+ specs) — lenses: security — done when: each spec asserts `not-found`/`undefined` for `0x2a`, `2e3`, `+42`, ` 42 ` without the service being called, and the suite is green.
+- [x] 2. Move the four resolvers onto it — files: `features/picture/resolvers/picture.resolver.ts`, `features/article/resolvers/article.resolver.ts`, `features/article/resolvers/article-version.resolver.ts`, `features/calendar/resolvers/calendar-year.resolver.ts` (+ specs) — lenses: security — done when: each spec asserts `not-found`/`undefined` for `0x2a`, `2e3`, `+42`, ` 42 ` without the service being called, and the suite is green.
 - [ ] 3. Move the two `parseInt` sites onto it — files: `features/history/services/diff-page-data.service.ts`, `features/article/pages/version-redirect/version-redirect.component.ts` (+ specs) — lenses: security — done when: both reject `42abc` and `0x2a` with their existing invalid-id behaviour, asserted by their specs, and the suite is green.
 
 ## Rulings
@@ -38,5 +38,22 @@ through one helper shared by every call site.
 - Step 1, quality reviewer, `route-params.spec.ts:19` — "the `'0'` row is now unreachable and removable".
   Dropped: `'0'` is still an input with an asserted answer, and the row is what turns red if the pattern
   is ever loosened back.
+- Step 2, quality reviewer `suggestion`, the five-row tables in the four resolver specs — "the helper's own
+  spec already owns this contract; one representative row per resolver would prove delegation". Dropped:
+  these rows are the regression tests for #329, which names the forms per resolver, and a shared parser
+  loosened later SHOULD turn five files red rather than one.
+- Step 2, quality reviewer `suggestion`, the two remaining `parseInt` sites — already step 3 of this plan,
+  so no ruling is needed; it confirms the scope the user chose.
+- Step 2, security lens `suggestion`, `picture.resolver.ts:22` and the two article resolvers — "`/pictures/1;id=42`
+  loads picture 42, because Angular spreads a segment's matrix params after the positional ones". Verified in
+  `node_modules/@angular/router/fesm2022/_router-chunk.mjs:2845-2848` and parked: it predates the branch, the
+  value still passes the helper, and the fix belongs in the route layer rather than in a parser.
 
 ## Parked
+- `/pictures/1;id=42`, `/articles/1;id=42` and `/articles/1/version/1;versionId=42` load entity 42 under a path
+  segment that reads `1`. Angular merges a segment's matrix params over the positional ones
+  (`node_modules/@angular/router/fesm2022/_router-chunk.mjs:2845-2848`), so `paramMap.get('id')` answers `'42'`.
+  Sites: `apps/client/src/app/features/picture/resolvers/picture.resolver.ts:22`,
+  `apps/client/src/app/features/article/resolvers/article.resolver.ts:17`,
+  `apps/client/src/app/features/article/resolvers/article-version.resolver.ts:17`. Pre-existing; the same
+  alias-URL class as #329 but one layer up, so it is a routing decision, not a parsing one.
