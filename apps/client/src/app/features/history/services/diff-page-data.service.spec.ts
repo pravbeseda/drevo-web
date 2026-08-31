@@ -152,6 +152,40 @@ describe('DiffPageDataService', () => {
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
+
+        // parseInt reads a prefix and Number() reads every literal form, so each of
+        // these once resolved to a real version under an address the route never names.
+        const MALFORMED_IDS = [
+            ['with trailing garbage', '42abc'],
+            ['hexadecimal', '0x2a'],
+            ['padded with a leading zero', '042'],
+        ];
+
+        it.each(MALFORMED_IDS)('should set error for an id1 %s, without asking the API', (_case, id1) => {
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id1 })).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
+
+        it.each(MALFORMED_IDS)('should set error for an id2 %s, without asking the API', (_case, id2) => {
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id1: '10', id2 })).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
     });
 
     describe('load error handling', () => {

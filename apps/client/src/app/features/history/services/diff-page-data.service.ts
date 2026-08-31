@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
@@ -46,9 +47,9 @@ export class DiffPageDataService {
         const id1Param = paramMap.get('id1') ?? paramMap.get('id');
         const id2Param = paramMap.get('id2');
 
-        const version1 = id1Param ? parseInt(id1Param, 10) : NaN;
+        const version1 = parsePositiveIntParam(id1Param ?? undefined);
 
-        if (isNaN(version1) || version1 <= 0) {
+        if (version1 === undefined) {
             this._error.set('Неверный ID версии');
             this._isLoading.set(false);
             this.logger.error('Invalid version ID in route', id1Param);
@@ -60,8 +61,8 @@ export class DiffPageDataService {
         let older: number | undefined;
 
         if (id2Param) {
-            const version2 = parseInt(id2Param, 10);
-            if (isNaN(version2) || version2 <= 0) {
+            const version2 = parsePositiveIntParam(id2Param);
+            if (version2 === undefined) {
                 this._error.set('Неверный ID версии');
                 this._isLoading.set(false);
                 this.logger.error('Invalid version2 ID in route', id2Param);

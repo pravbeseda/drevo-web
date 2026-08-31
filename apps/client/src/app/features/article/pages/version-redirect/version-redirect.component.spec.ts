@@ -98,4 +98,26 @@ describe('VersionRedirectComponent with invalid ID', () => {
 
         expect(spectator.component.error()).toBe('Неверный ID версии');
     });
+
+    // parseInt reads a prefix and Number() reads every literal form, so each of
+    // these once resolved to a real version under an address the route never names.
+    it.each([
+        ['with trailing garbage', '42abc'],
+        ['hexadecimal', '0x2a'],
+        ['padded with a leading zero', '042'],
+    ])('should show error for an ID %s, without asking the API', (_case, versionId) => {
+        const articleService = { getVersionShow: jest.fn() };
+        const spectator = createComponent({
+            providers: [
+                { provide: ArticleService, useValue: articleService },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { snapshot: { paramMap: convertToParamMap({ versionId }) } },
+                },
+            ],
+        });
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
 });

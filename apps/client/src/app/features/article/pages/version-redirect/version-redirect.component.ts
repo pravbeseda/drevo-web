@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../../services/articles';
+import { parsePositiveIntParam } from '../../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,9 +25,9 @@ export class VersionRedirectComponent implements OnInit {
 
     ngOnInit(): void {
         const idParam = this.route.snapshot.paramMap.get('versionId');
-        const versionId = idParam ? parseInt(idParam, 10) : NaN;
+        const versionId = parsePositiveIntParam(idParam ?? undefined);
 
-        if (isNaN(versionId) || versionId <= 0) {
+        if (versionId === undefined) {
             this.error.set('Неверный ID версии');
             this.logger.error('Invalid version ID for redirect', idParam);
             return;
