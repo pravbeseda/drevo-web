@@ -1,4 +1,5 @@
 import { CalendarService } from '../../../services/calendar/calendar.service';
+import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -8,13 +9,6 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 const OUT_OF_RANGE_STATUS = 400;
-
-/**
- * A decimal year and nothing else. `Number()` on its own reads every JavaScript
- * literal form, so `0x7ea`, `2e3` and `+2026` would all open the 2026 calendar
- * under an address neither the route pattern nor the backend names.
- */
-const YEAR_PATTERN = /^\d+$/;
 
 export type CalendarYearResolveResult = CalendarYear | 'not-found' | 'load-error';
 
@@ -39,12 +33,8 @@ export function resolveCalendarYear(
         return loadYear(calendarService, logger, currentYear);
     }
 
-    if (!YEAR_PATTERN.test(yearParam)) {
-        return of('not-found' as const);
-    }
-
-    const year = Number(yearParam);
-    if (year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) {
+    const year = parsePositiveIntParam(yearParam);
+    if (year === undefined || year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) {
         return of('not-found' as const);
     }
 

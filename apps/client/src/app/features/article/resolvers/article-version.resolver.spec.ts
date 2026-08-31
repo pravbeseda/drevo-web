@@ -58,6 +58,25 @@ describe('resolveArticleVersion', () => {
         });
     });
 
+    it.each([
+        // Number() reads every JavaScript literal form, and none of them is an
+        // id the URL pattern or the backend names.
+        ['hexadecimal', '0x2a'],
+        ['exponential', '2e3'],
+        ['signed', '+42'],
+        ['padded with spaces', ' 42 '],
+        ['padded with a leading zero', '042'],
+    ])('should return undefined for an ID %s, without asking the API', (_case, versionId) => {
+        const route = createRouteSnapshot({ versionId });
+        // A sentinel, so that an observable that never emitted cannot pass as undefined.
+        let result: unknown = 'not resolved';
+
+        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+
+        expect(result).toBeUndefined();
+        expect(articleService.getArticleVersion).not.toHaveBeenCalled();
+    });
+
     it('should return undefined for missing ID param', done => {
         const route = createRouteSnapshot({});
 
