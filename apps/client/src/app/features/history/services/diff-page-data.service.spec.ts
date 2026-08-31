@@ -158,8 +158,8 @@ describe('DiffPageDataService', () => {
         // form was already rejected here, by parseInt('0x2a', 10) answering 0.
         const MALFORMED_IDS = [
             ['with trailing garbage', '42abc'],
-            ['hexadecimal', '0x2a'],
             ['padded with a leading zero', '042'],
+            ['hexadecimal', '0x2a'],
         ];
 
         it.each(MALFORMED_IDS)('should set error for an id1 %s, without asking the API', (_case, id1) => {

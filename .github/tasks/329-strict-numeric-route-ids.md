@@ -69,6 +69,10 @@ through one helper shared by every call site.
 - Step 3, security lens informational, `diff-page-data.service.ts:37` — the raw `paramsKey` can collide
   (`/articles/diff/1_2/3` and `/articles/diff/1/2_3`). Dropped: a valid URL's key contains exactly one `_`,
   so only two already-rejected URLs can collide, and both cache the same error.
+- Final gate, quality reviewer `suggestion`, `version-redirect.component.spec.ts:102` and
+  `diff-page-data.service.spec.ts:156` — "the comment says 'the first two', but the rows are ordered
+  `42abc`, `0x2a`, `042`, so it names the hex form the same sentence calls already-rejected". Fixed by
+  reordering the rows to match the third copy of the table; the comment was right and the order was not.
 
 ## Parked
 - `/pictures/1;id=42`, `/articles/1;id=42` and `/articles/1/version/1;versionId=42` load entity 42 under a path

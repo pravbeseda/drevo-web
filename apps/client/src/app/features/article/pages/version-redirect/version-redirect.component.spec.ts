@@ -104,8 +104,8 @@ describe('VersionRedirectComponent with invalid ID', () => {
     // form was already rejected here, by parseInt('0x2a', 10) answering 0.
     it.each([
         ['with trailing garbage', '42abc'],
-        ['hexadecimal', '0x2a'],
         ['padded with a leading zero', '042'],
+        ['hexadecimal', '0x2a'],
     ])('should show error for an ID %s, without asking the API', (_case, versionId) => {
         const articleService = { getVersionShow: jest.fn() };
         const spectator = createComponent({
