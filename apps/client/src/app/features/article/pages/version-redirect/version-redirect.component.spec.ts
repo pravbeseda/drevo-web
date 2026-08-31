@@ -98,4 +98,27 @@ describe('VersionRedirectComponent with invalid ID', () => {
 
         expect(spectator.component.error()).toBe('Неверный ID версии');
     });
+
+    // parseInt() read a prefix and dropped the rest, so the first two once
+    // resolved to version 42 under an address the route never names. The hex
+    // form was already rejected here, by parseInt('0x2a', 10) answering 0.
+    it.each([
+        ['with trailing garbage', '42abc'],
+        ['padded with a leading zero', '042'],
+        ['hexadecimal', '0x2a'],
+    ])('should show error for an ID %s, without asking the API', (_case, versionId) => {
+        const articleService = { getVersionShow: jest.fn() };
+        const spectator = createComponent({
+            providers: [
+                { provide: ArticleService, useValue: articleService },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { snapshot: { paramMap: convertToParamMap({ versionId }) } },
+                },
+            ],
+        });
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
 });

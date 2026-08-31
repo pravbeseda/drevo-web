@@ -77,6 +77,24 @@ describe('resolvePicture', () => {
         });
     });
 
+    it.each([
+        // Number() reads every JavaScript literal form, and none of them is an
+        // id the URL pattern or the backend names.
+        ['hexadecimal', '0x2a'],
+        ['exponential', '2e3'],
+        ['signed', '+42'],
+        ['padded with spaces', ' 42 '],
+        ['padded with a leading zero', '042'],
+    ])('should return not-found for an ID %s, without asking the API', (_case, id) => {
+        const route = createRouteSnapshot({ id });
+        let result: unknown;
+
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(value => (result = value));
+
+        expect(result).toBe('not-found');
+        expect(pictureService.getPicture).not.toHaveBeenCalled();
+    });
+
     it('should return not-found for missing ID param', done => {
         const route = createRouteSnapshot({});
 

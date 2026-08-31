@@ -62,6 +62,7 @@ describe('resolveCalendarYear', () => {
         ['exponential', '2e3'],
         ['signed', '+2026'],
         ['padded with spaces', ' 2026 '],
+        ['padded with a leading zero', '02026'],
     ])('answers not-found for a year %s, without asking the API', (_case, yearParam) => {
         expect(resolve(yearParam)).toBe('not-found');
         expect(calendarService.getYear).not.toHaveBeenCalled();

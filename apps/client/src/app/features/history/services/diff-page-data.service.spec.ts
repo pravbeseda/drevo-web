@@ -152,6 +152,41 @@ describe('DiffPageDataService', () => {
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
         });
+
+        // parseInt() read a prefix and dropped the rest, so the first two once
+        // resolved to version 42 under an address the route never names. The hex
+        // form was already rejected here, by parseInt('0x2a', 10) answering 0.
+        const MALFORMED_IDS = [
+            ['with trailing garbage', '42abc'],
+            ['padded with a leading zero', '042'],
+            ['hexadecimal', '0x2a'],
+        ];
+
+        it.each(MALFORMED_IDS)('should set error for an id1 %s, without asking the API', (_case, id1) => {
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id1 })).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
+
+        it.each(MALFORMED_IDS)('should set error for an id2 %s, without asking the API', (_case, id2) => {
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id1: '10', id2 })).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
     });
 
     describe('load error handling', () => {

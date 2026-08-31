@@ -225,3 +225,43 @@ describe('ArticleVersionTabComponent with invalid ID', () => {
         expect(spectator.component.error()).toBe('Неверный ID версии');
     });
 });
+
+describe('ArticleVersionTabComponent with a malformed ID', () => {
+    const createComponent = createComponentFactory({
+        component: ArticleVersionTabComponent,
+        providers: [
+            provideRouter([]),
+            mockLoggerProvider(),
+            {
+                provide: ArticlePageService,
+                useValue: {
+                    articleId: signal(100),
+                    editUrl: signal(undefined),
+                },
+            },
+        ],
+    });
+
+    it.each([
+        // parseInt() read a prefix and dropped the rest, so the first two once
+        // loaded version 42 under an address the route never names. The hex form
+        // was already rejected here, by parseInt('0x2a', 10) answering 0.
+        ['trailing garbage', '42abc'],
+        ['padded with a leading zero', '042'],
+        ['hexadecimal', '0x2a'],
+    ])('shows the error for a version ID %s, without asking the API', (_case, versionId) => {
+        const articleService = { getVersionShow: jest.fn() };
+        const spectator = createComponent({
+            providers: [
+                { provide: ArticleService, useValue: articleService },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { paramMap: of(convertToParamMap({ versionId })) },
+                },
+            ],
+        });
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
+});

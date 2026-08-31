@@ -1,6 +1,7 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { ReviewBlockComponent } from '../../../../../../shared/components/review-block/review-block.component';
 import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
+import { parsePositiveIntParam } from '../../../../../../shared/helpers/route-params';
 import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -67,19 +68,17 @@ export class ArticleVersionTabComponent implements OnInit {
     ngOnInit(): void {
         this.route.paramMap
             .pipe(
-                map(params => {
-                    const idParam = params.get('versionId');
-                    return idParam ? parseInt(idParam, 10) : NaN;
-                }),
+                map(params => params.get('versionId') ?? undefined),
                 distinctUntilChanged(),
                 takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe(versionId => {
-                if (isNaN(versionId) || versionId <= 0) {
+            .subscribe(idParam => {
+                const versionId = parsePositiveIntParam(idParam);
+                if (versionId === undefined) {
                     this._version.set(undefined);
                     this._error.set('Неверный ID версии');
                     this._isLoading.set(false);
-                    this.logger.error('Invalid version ID', versionId);
+                    this.logger.error('Invalid version ID', idParam);
                     return;
                 }
 
