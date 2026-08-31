@@ -75,6 +75,9 @@ through one helper shared by every call site.
   reordering the rows to match the third copy of the table; the comment was right and the order was not.
 
 ## Parked
+
+Filed as #335 and #336.
+
 - `/pictures/1;id=42`, `/articles/1;id=42` and `/articles/1/version/1;versionId=42` load entity 42 under a path
   segment that reads `1`. Angular merges a segment's matrix params over the positional ones
   (`node_modules/@angular/router/fesm2022/_router-chunk.mjs:2845-2848`), so `paramMap.get('id')` answers `'42'`.
