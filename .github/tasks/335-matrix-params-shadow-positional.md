@@ -109,6 +109,8 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
 
 ## Parked
 
+Filed as #343.
+
 - `testing/playwright/tests/app-updates/chunk-reload.spec.ts:6` — "shows overlay when a lazy chunk fails to
   load and reloads on click" failed once in a full parallel `yarn test:playwright` run (timeout in
   `openSidebarOnMobile`, `chunk-reload.spec.ts:13`), then passed in isolation and in a second full run.
