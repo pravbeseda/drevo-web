@@ -28,17 +28,21 @@ export function parsePositiveIntParam(value: string | undefined): number | undef
 
 /**
  * Answers the string a positional route param denotes, or undefined when the
- * param is absent or any segment of the route carries matrix params. Angular
- * merges a segment's matrix params over the positional ones, so `/pictures/1;id=42`
- * resolves picture 42 under a segment that reads `1`. The whole segment is
- * rejected rather than only a name that collides with `name`: a segment carrying
- * matrix params is an address the route pattern never named, whatever those
- * params are called, and the rule needs no revision when a route gains a param.
+ * param is absent or any segment of the matched URL carries matrix params.
+ * Angular merges a segment's matrix params over the positional ones, so
+ * `/pictures/1;id=42` resolves picture 42 under a segment that reads `1`. The
+ * whole segment is rejected rather than only a name that collides with `name`:
+ * a segment carrying matrix params is an address the route pattern never named,
+ * whatever those params are called, and the rule needs no revision when a route
+ * gains a param. The scan walks `pathFromRoot` rather than this route's own
+ * segments because a snapshot inherits every ancestor's params — the router
+ * defaults to `paramsInheritanceStrategy: 'always'` — so an ancestor's matrix
+ * param reaches this `paramMap` without ever appearing in this route's `url`.
  */
 export function readRouteParam(route: ActivatedRouteSnapshot, name: string): string | undefined {
-    if (route.url.some(segment => Object.keys(segment.parameters).length > 0)) {
-        return undefined;
-    }
+    const carriesMatrixParams = route.pathFromRoot.some(ancestor =>
+        ancestor.url.some(segment => Object.keys(segment.parameters).length > 0),
+    );
 
-    return route.paramMap.get(name) ?? undefined;
+    return carriesMatrixParams ? undefined : (route.paramMap.get(name) ?? undefined);
 }

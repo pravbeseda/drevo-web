@@ -34,8 +34,11 @@ describe('parsePositiveIntParam', () => {
     });
 });
 
-function createRouteSnapshot(params: Record<string, string>, url: UrlSegment[]): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params), url } as ActivatedRouteSnapshot;
+function createRouteSnapshot(params: Record<string, string>, ...urls: UrlSegment[][]): ActivatedRouteSnapshot {
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: urls.map(url => ({ url }) as ActivatedRouteSnapshot),
+    } as ActivatedRouteSnapshot;
 }
 
 describe('readRouteParam', () => {
@@ -76,6 +79,25 @@ describe('readRouteParam', () => {
 
     it('answers undefined when the route names no such param', () => {
         const route = createRouteSnapshot({}, [new UrlSegment('42', {})]);
+
+        expect(readRouteParam(route, 'id')).toBeUndefined();
+    });
+
+    // The router inherits every ancestor's params into a child snapshot
+    // (`paramsInheritanceStrategy` defaults to `'always'`), so a shadowed value
+    // reaches a child whose own segments are clean.
+    it('answers undefined when an ancestor segment carries matrix params', () => {
+        const route = createRouteSnapshot(
+            { id: '42' },
+            [new UrlSegment('1', { id: '42' })],
+            [new UrlSegment('history', {})],
+        );
+
+        expect(readRouteParam(route, 'id')).toBeUndefined();
+    });
+
+    it('answers undefined when an ancestor carries matrix params and the child matched no segment', () => {
+        const route = createRouteSnapshot({ id: '42' }, [new UrlSegment('1', { id: '42' })], []);
 
         expect(readRouteParam(route, 'id')).toBeUndefined();
     });
