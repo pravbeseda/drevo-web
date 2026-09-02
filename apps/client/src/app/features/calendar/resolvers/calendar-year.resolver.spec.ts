@@ -1,7 +1,7 @@
 import { resolveCalendarYear } from './calendar-year.resolver';
 import { CalendarService } from '../../../services/calendar/calendar.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, UrlSegment } from '@angular/router';
 import { Logger } from '@drevo-web/core';
 import { CALENDAR_MAX_YEAR, CALENDAR_MIN_YEAR, CalendarYear } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
@@ -24,17 +24,23 @@ describe('resolveCalendarYear', () => {
         logger = { error: jest.fn() };
     });
 
-    const routeWith = (yearParam?: string): ActivatedRouteSnapshot =>
+    const routeWith = (
+        yearParam?: string,
+        // A matched path with no matrix params is the default, so that only the
+        // cases about them have to spell their segments out.
+        segments: UrlSegment[] = yearParam === undefined ? [] : [new UrlSegment(yearParam, {})],
+    ): ActivatedRouteSnapshot =>
         ({
             paramMap: convertToParamMap(yearParam === undefined ? {} : { year: yearParam }),
+            pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
         }) as ActivatedRouteSnapshot;
 
-    const resolve = (yearParam?: string): unknown => {
+    const resolve = (yearParam?: string, segments?: UrlSegment[]): unknown => {
         let result: unknown;
         resolveCalendarYear(
             calendarService as unknown as CalendarService,
             logger as unknown as Logger,
-            routeWith(yearParam),
+            routeWith(yearParam, segments),
             CURRENT_YEAR,
         ).subscribe(value => (result = value));
         return result;
@@ -65,6 +71,14 @@ describe('resolveCalendarYear', () => {
         ['padded with a leading zero', '02026'],
     ])('answers not-found for a year %s, without asking the API', (_case, yearParam) => {
         expect(resolve(yearParam)).toBe('not-found');
+        expect(calendarService.getYear).not.toHaveBeenCalled();
+    });
+
+    it('answers not-found when a segment carries matrix params, without asking the API', () => {
+        // `/calendar/2020;year=1990` — Angular merges `;year=1990` over the
+        // positional `2020`. The route still names a year, so the fallback to
+        // the current year must not swallow it: the address is rejected.
+        expect(resolve('1990', [new UrlSegment('2020', { year: '1990' })])).toBe('not-found');
         expect(calendarService.getYear).not.toHaveBeenCalled();
     });
 

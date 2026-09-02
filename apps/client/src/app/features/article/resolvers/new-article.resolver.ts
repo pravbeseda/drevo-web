@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles';
+import { readRouteParam } from '../../../shared/helpers/route-params';
 import { ArticleEditSession } from '../models/article-edit-session';
 import { MISSING_ARTICLE_ID } from '../models/missing-article';
 import { ArticlePageService } from '../services/article-page.service';
@@ -39,11 +40,13 @@ export function resolveNewArticle(
     pageService: ArticlePageService,
     route: ActivatedRouteSnapshot,
 ): Observable<ArticleEditSession | RedirectCommand> {
-    // `:title` lives on the parent route — child routes do not inherit params
-    // under the default `emptyOnly` inheritance strategy. The router already
-    // percent-decodes the param and the segment carries the title verbatim
-    // (backend emits rawurlencode), so no further transform is needed.
-    const title = route.paramMap.get('title') ?? route.parent?.paramMap.get('title') ?? '';
+    // `:title` lives on the parent route; the child inherits it under the
+    // router's default `always` inheritance strategy, and the parent read stays
+    // as the fallback. The router already percent-decodes the param and the
+    // segment carries the title verbatim (backend emits rawurlencode), so no
+    // further transform is needed.
+    const parentTitle = route.parent ? readRouteParam(route.parent, 'title') : undefined;
+    const title = readRouteParam(route, 'title') ?? parentTitle ?? '';
 
     // Build redirects with createUrlTree so each segment (the title in
     // particular) is encoded by the router. Interpolating a decoded title into

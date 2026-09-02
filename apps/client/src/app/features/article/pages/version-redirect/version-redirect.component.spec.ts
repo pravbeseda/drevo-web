@@ -2,12 +2,31 @@ import { ArticleService } from '../../../../services/articles';
 import { VersionRedirectComponent } from './version-redirect.component';
 import { createMockArticle } from '../../testing/article-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import {
+    ActivatedRoute,
+    ActivatedRouteSnapshot,
+    convertToParamMap,
+    provideRouter,
+    Router,
+    UrlSegment,
+} from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle({ articleId: 100, versionId: 789, title: 'Article' });
+
+function createRouteSnapshot(
+    params: Record<string, string>,
+    // A matched path with no matrix params is the default, so that only the
+    // cases about them have to spell their segments out.
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+): ActivatedRouteSnapshot {
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
+    } as ActivatedRouteSnapshot;
+}
 
 describe('VersionRedirectComponent', () => {
     let spectator: Spectator<VersionRedirectComponent>;
@@ -24,11 +43,7 @@ describe('VersionRedirectComponent', () => {
             },
             {
                 provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ versionId: '789' }),
-                    },
-                },
+                useValue: { snapshot: createRouteSnapshot({ versionId: '789' }) },
             },
         ],
         detectChanges: false,
@@ -84,11 +99,7 @@ describe('VersionRedirectComponent with invalid ID', () => {
             },
             {
                 provide: ActivatedRoute,
-                useValue: {
-                    snapshot: {
-                        paramMap: convertToParamMap({ versionId: 'invalid' }),
-                    },
-                },
+                useValue: { snapshot: createRouteSnapshot({ versionId: 'invalid' }) },
             },
         ],
     });
@@ -113,7 +124,29 @@ describe('VersionRedirectComponent with invalid ID', () => {
                 { provide: ArticleService, useValue: articleService },
                 {
                     provide: ActivatedRoute,
-                    useValue: { snapshot: { paramMap: convertToParamMap({ versionId }) } },
+                    useValue: { snapshot: createRouteSnapshot({ versionId }) },
+                },
+            ],
+        });
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
+
+    it('should show the error when a segment carries matrix params, without asking the API', () => {
+        // Angular merges `;versionId=789` over the positional `1`, so the
+        // paramMap reads 789 under an address the route pattern never named.
+        const articleService = { getVersionShow: jest.fn() };
+        const spectator = createComponent({
+            providers: [
+                { provide: ArticleService, useValue: articleService },
+                {
+                    provide: ActivatedRoute,
+                    useValue: {
+                        snapshot: createRouteSnapshot({ versionId: '789' }, [
+                            new UrlSegment('1', { versionId: '789' }),
+                        ]),
+                    },
                 },
             ],
         });

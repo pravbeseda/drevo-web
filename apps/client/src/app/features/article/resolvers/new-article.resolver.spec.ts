@@ -1,19 +1,33 @@
 import { resolveNewArticle } from './new-article.resolver';
 import { ArticlePageService } from '../services/article-page.service';
 import { ArticleService } from '../../../services/articles';
-import { ActivatedRouteSnapshot, RedirectCommand, Router, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, RedirectCommand, Router, UrlSegment, convertToParamMap } from '@angular/router';
 import { Logger } from '@drevo-web/core';
 import { of, throwError } from 'rxjs';
 
-function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
+function createRouteSnapshot(
+    params: Record<string, string>,
+    // A matched path with no matrix params is the default, so that only the
+    // cases about them have to spell their segments out.
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+): ActivatedRouteSnapshot {
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
+    } as ActivatedRouteSnapshot;
 }
 
 /** The create route is a child of `find/:title`, which owns the param. */
-function createChildRouteSnapshot(parentParams: Record<string, string>): ActivatedRouteSnapshot {
+function createChildRouteSnapshot(
+    parentParams: Record<string, string>,
+    parentSegments?: UrlSegment[],
+): ActivatedRouteSnapshot {
+    const parent = createRouteSnapshot(parentParams, parentSegments);
+
     return {
         paramMap: convertToParamMap({}),
-        parent: createRouteSnapshot(parentParams),
+        parent,
+        pathFromRoot: [...parent.pathFromRoot, { url: [new UrlSegment('edit', {})] } as ActivatedRouteSnapshot],
     } as ActivatedRouteSnapshot;
 }
 
@@ -23,13 +37,13 @@ describe('resolveNewArticle', () => {
     let logger: jest.Mocked<Pick<Logger, 'error'>>;
     let pageService: jest.Mocked<Pick<ArticlePageService, 'setMissing' | 'setError'>>;
 
-    function resolve(params: Record<string, string>) {
+    function resolve(params: Record<string, string>, segments?: UrlSegment[]) {
         return resolveNewArticle(
             articleService as unknown as ArticleService,
             router as unknown as Router,
             logger as unknown as Logger,
             pageService as unknown as ArticlePageService,
-            createRouteSnapshot(params),
+            createRouteSnapshot(params, segments),
         );
     }
 
@@ -99,6 +113,42 @@ describe('resolveNewArticle', () => {
         ).subscribe(result => {
             expect(articleService.findArticleByTitle).toHaveBeenCalledWith('НОВАЯ СТАТЬЯ');
             expect(result).toEqual(expect.objectContaining({ mode: 'create', title: 'НОВАЯ СТАТЬЯ' }));
+            done();
+        });
+    });
+
+    it('should not create under the title a matrix param shadows the segment with', done => {
+        // `/articles/find/ВИФСАИДА;title=ГОЛГОФА/edit` — Angular merges the
+        // matrix `title` over the segment, so the paramMap names an article the
+        // address does not.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolve({ title: 'ГОЛГОФА' }, [new UrlSegment('ВИФСАИДА', { title: 'ГОЛГОФА' })]).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toBeInstanceOf(RedirectCommand);
+            expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', '']);
+            done();
+        });
+    });
+
+    it('should not read a parent title a matrix param shadows the segment with', done => {
+        // The same address, reached through the parent snapshot the fallback
+        // reads: the shadowed title must not survive that route either.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolveNewArticle(
+            articleService as unknown as ArticleService,
+            router as unknown as Router,
+            logger as unknown as Logger,
+            pageService as unknown as ArticlePageService,
+            createChildRouteSnapshot({ title: 'ГОЛГОФА' }, [new UrlSegment('ВИФСАИДА', { title: 'ГОЛГОФА' })]),
+        ).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toBeInstanceOf(RedirectCommand);
             done();
         });
     });

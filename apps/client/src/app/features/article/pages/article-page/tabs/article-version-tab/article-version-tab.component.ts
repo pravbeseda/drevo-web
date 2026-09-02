@@ -1,7 +1,7 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { ReviewBlockComponent } from '../../../../../../shared/components/review-block/review-block.component';
 import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
-import { parsePositiveIntParam } from '../../../../../../shared/helpers/route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../../../../../shared/helpers/route-params';
 import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -68,7 +68,9 @@ export class ArticleVersionTabComponent implements OnInit {
     ngOnInit(): void {
         this.route.paramMap
             .pipe(
-                map(params => params.get('versionId') ?? undefined),
+                // The snapshot is current at every paramMap emission, and it is
+                // what carries the matched segments the read has to inspect.
+                map(() => readRouteParam(this.route.snapshot, 'versionId')),
                 distinctUntilChanged(),
                 takeUntilDestroyed(this.destroyRef),
             )

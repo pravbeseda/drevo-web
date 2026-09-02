@@ -20,6 +20,12 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   #329's scope decision: fixing one reader and leaving its neighbours is what produced the follow-up.
   The `runGuardsAndResolvers` predicates in `article.routes.ts:21,41` stay out — they compare two
   snapshots and address nothing.
+- `calendar-year.resolver` decides *whether* the route names a year with `paramMap.has('year')` and only
+  then reads the value through the helper. `/calendar` names no year and means the current one, so handing
+  the helper's `undefined` straight to that branch would make `/calendar/2020;year=1990` show today's year —
+  the page answering a question the URL did not ask, which is the failure #335 calls worse than an alias.
+  Decided here rather than escalated: it is what the rule above already says, applied to the one site where
+  absence carries its own meaning.
 - Playwright: one case. The unit suite builds its own snapshots (`{ paramMap: convertToParamMap(...) }`),
   so it asserts the helper against our model of a snapshot, not against the router's. TestBed is barred
   by the project rules, so the real router is only reachable through Playwright. One case is enough:
@@ -32,7 +38,7 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
 ## Steps
 - [x] 1. Add `readRouteParam(route, name)` + spec — files: `apps/client/src/app/shared/helpers/route-params.ts`, `route-params.spec.ts` — lenses: security — done when: the spec covers a clean segment, a matrix param on the last segment, a matrix param on an earlier segment, an empty matrix value, a matrix param whose name differs from the one read, and an absent param, and goes green.
 - [x] 2. Move the four sites #335 names onto it — files: `features/picture/resolvers/picture.resolver.ts`, `features/article/resolvers/article.resolver.ts`, `features/article/resolvers/article-version.resolver.ts`, `features/history/services/diff-page-data.service.ts` (both the `paramsKey` read at `:37` and the id reads at `:47,48`, plus the `id2Param !== undefined` test) — lenses: security — done when: each spec asserts the site's existing invalid-param answer for a snapshot whose segment carries matrix params, without the service being called, and the suite is green.
-- [ ] 3. Move the five remaining reads onto it — files: `features/article/pages/version-redirect/version-redirect.component.ts`, `features/article/pages/article-page/tabs/article-version-tab/article-version-tab.component.ts` (reads `paramMap` as an observable, so it needs the snapshot at emission time), `features/calendar/resolvers/calendar-year.resolver.ts`, `features/article/resolvers/missing-article.resolver.ts`, `features/article/resolvers/new-article.resolver.ts` (reads the **parent** snapshot's `title`) — lenses: security — done when: each spec asserts the same rejection, and `rg 'paramMap\.get' apps/client/src --glob '!*.spec.ts'` reports only `route-params.ts` and the two `article.routes.ts` predicates.
+- [x] 3. Move the five remaining reads onto it — files: `features/article/pages/version-redirect/version-redirect.component.ts`, `features/article/pages/article-page/tabs/article-version-tab/article-version-tab.component.ts` (reads `paramMap` as an observable, so it needs the snapshot at emission time), `features/calendar/resolvers/calendar-year.resolver.ts`, `features/article/resolvers/missing-article.resolver.ts`, `features/article/resolvers/new-article.resolver.ts` (reads the **parent** snapshot's `title`) — lenses: security — done when: each spec asserts the same rejection, and `rg 'paramMap\.get' apps/client/src --glob '!*.spec.ts'` reports only `route-params.ts` and the two `article.routes.ts` predicates.
 - [ ] 4. Add the Playwright case — files: `testing/playwright/tests/pictures/` — lenses: none — done when: a case navigating to `/pictures/1;id=42` sees the detail page's not-found state and no request for picture 42, and the file passes under `yarn test:playwright`.
 
 ## Rulings

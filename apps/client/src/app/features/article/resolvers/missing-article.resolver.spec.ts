@@ -1,11 +1,19 @@
 import { resolveMissingArticle } from './missing-article.resolver';
 import { ArticleService } from '../../../services/articles';
-import { ActivatedRouteSnapshot, RedirectCommand, Router, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, RedirectCommand, Router, UrlSegment, convertToParamMap } from '@angular/router';
 import { Logger } from '@drevo-web/core';
 import { of, throwError } from 'rxjs';
 
-function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
+function createRouteSnapshot(
+    params: Record<string, string>,
+    // A matched path with no matrix params is the default, so that only the
+    // cases about them have to spell their segments out.
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+): ActivatedRouteSnapshot {
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
+    } as ActivatedRouteSnapshot;
 }
 
 describe('resolveMissingArticle', () => {
@@ -13,12 +21,12 @@ describe('resolveMissingArticle', () => {
     let router: jest.Mocked<Pick<Router, 'parseUrl'>>;
     let logger: jest.Mocked<Pick<Logger, 'error'>>;
 
-    function resolve(params: Record<string, string>) {
+    function resolve(params: Record<string, string>, segments?: UrlSegment[]) {
         return resolveMissingArticle(
             articleService as unknown as ArticleService,
             router as unknown as Router,
             logger as unknown as Logger,
-            createRouteSnapshot(params),
+            createRouteSnapshot(params, segments),
         );
     }
 
@@ -72,6 +80,26 @@ describe('resolveMissingArticle', () => {
                 title: 'НОВАЯ',
                 canCreate: false,
                 reason: 'Недостаточно прав',
+            });
+            done();
+        });
+    });
+
+    it('should not look up the title a matrix param shadows the segment with', done => {
+        // `/articles/find/ВИФСАИДА;title=ГОЛГОФА` — Angular merges the matrix
+        // `title` over the segment, so the paramMap names an article the address
+        // does not. The empty title resolves to the placeholder instead.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolve({ title: 'ГОЛГОФА' }, [new UrlSegment('ВИФСАИДА', { title: 'ГОЛГОФА' })]).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toEqual({
+                articleId: 0,
+                title: '',
+                canCreate: false,
+                reason: 'Пустое название',
             });
             done();
         });

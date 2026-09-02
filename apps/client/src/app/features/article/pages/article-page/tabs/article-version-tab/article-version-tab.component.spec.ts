@@ -3,7 +3,14 @@ import { ArticlePageService } from '../../../../services/article-page.service';
 import { createReviewBlockStubs } from '../../../../../../shared/components/review-block/review-block.testing';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import {
+    ActivatedRoute,
+    ActivatedRouteSnapshot,
+    convertToParamMap,
+    provideRouter,
+    Router,
+    UrlSegment,
+} from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -25,6 +32,18 @@ const mockVersion: ArticleVersion = {
     comment: '',
     topics: [],
 };
+
+function createRouteSnapshot(
+    params: Record<string, string>,
+    // A matched path with no matrix params is the default, so that only the
+    // cases about them have to spell their segments out.
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+): ActivatedRouteSnapshot {
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
+    } as ActivatedRouteSnapshot;
+}
 
 describe('ArticleVersionTabComponent', () => {
     let spectator: Spectator<ArticleVersionTabComponent>;
@@ -65,6 +84,7 @@ describe('ArticleVersionTabComponent', () => {
                     provide: ActivatedRoute,
                     useValue: {
                         paramMap: paramMapSubject.asObservable(),
+                        snapshot: createRouteSnapshot({ versionId: '789' }),
                     },
                 },
             ],
@@ -176,6 +196,7 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
                 provide: ActivatedRoute,
                 useValue: {
                     paramMap: of(convertToParamMap({ versionId: '789' })),
+                    snapshot: createRouteSnapshot({ versionId: '789' }),
                 },
             },
         ],
@@ -214,6 +235,7 @@ describe('ArticleVersionTabComponent with invalid ID', () => {
                 provide: ActivatedRoute,
                 useValue: {
                     paramMap: of(convertToParamMap({ versionId: 'invalid' })),
+                    snapshot: createRouteSnapshot({ versionId: 'invalid' }),
                 },
             },
         ],
@@ -256,7 +278,33 @@ describe('ArticleVersionTabComponent with a malformed ID', () => {
                 { provide: ArticleService, useValue: articleService },
                 {
                     provide: ActivatedRoute,
-                    useValue: { paramMap: of(convertToParamMap({ versionId })) },
+                    useValue: {
+                        paramMap: of(convertToParamMap({ versionId })),
+                        snapshot: createRouteSnapshot({ versionId }),
+                    },
+                },
+            ],
+        });
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
+
+    it('shows the error when a segment carries matrix params, without asking the API', () => {
+        // Angular merges `;versionId=789` over the positional `1`, so the
+        // paramMap reads 789 under an address the route pattern never named.
+        const articleService = { getVersionShow: jest.fn() };
+        const spectator = createComponent({
+            providers: [
+                { provide: ArticleService, useValue: articleService },
+                {
+                    provide: ActivatedRoute,
+                    useValue: {
+                        paramMap: of(convertToParamMap({ versionId: '789' })),
+                        snapshot: createRouteSnapshot({ versionId: '789' }, [
+                            new UrlSegment('1', { versionId: '789' }),
+                        ]),
+                    },
                 },
             ],
         });

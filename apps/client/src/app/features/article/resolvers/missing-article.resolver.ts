@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles';
+import { readRouteParam } from '../../../shared/helpers/route-params';
 import { MISSING_ARTICLE_ID, MissingArticle } from '../models/missing-article';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
@@ -23,7 +24,7 @@ export function resolveMissingArticle(
 ): Observable<MissingArticle | RedirectCommand | undefined> {
     // The router already percent-decodes the param and the segment carries the
     // title verbatim (backend emits rawurlencode), so no transform is needed.
-    const title = route.paramMap.get('title') ?? '';
+    const title = readRouteParam(route, 'title') ?? '';
 
     return articleService.findArticleByTitle(title).pipe(
         map(result => {
