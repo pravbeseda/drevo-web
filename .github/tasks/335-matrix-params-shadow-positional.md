@@ -31,7 +31,7 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
 
 ## Steps
 - [x] 1. Add `readRouteParam(route, name)` + spec — files: `apps/client/src/app/shared/helpers/route-params.ts`, `route-params.spec.ts` — lenses: security — done when: the spec covers a clean segment, a matrix param on the last segment, a matrix param on an earlier segment, an empty matrix value, a matrix param whose name differs from the one read, and an absent param, and goes green.
-- [ ] 2. Move the four sites #335 names onto it — files: `features/picture/resolvers/picture.resolver.ts`, `features/article/resolvers/article.resolver.ts`, `features/article/resolvers/article-version.resolver.ts`, `features/history/services/diff-page-data.service.ts` (both the `paramsKey` read at `:37` and the id reads at `:47,48`, plus the `id2Param !== undefined` test) — lenses: security — done when: each spec asserts the site's existing invalid-param answer for a snapshot whose segment carries matrix params, without the service being called, and the suite is green.
+- [x] 2. Move the four sites #335 names onto it — files: `features/picture/resolvers/picture.resolver.ts`, `features/article/resolvers/article.resolver.ts`, `features/article/resolvers/article-version.resolver.ts`, `features/history/services/diff-page-data.service.ts` (both the `paramsKey` read at `:37` and the id reads at `:47,48`, plus the `id2Param !== undefined` test) — lenses: security — done when: each spec asserts the site's existing invalid-param answer for a snapshot whose segment carries matrix params, without the service being called, and the suite is green.
 - [ ] 3. Move the five remaining reads onto it — files: `features/article/pages/version-redirect/version-redirect.component.ts`, `features/article/pages/article-page/tabs/article-version-tab/article-version-tab.component.ts` (reads `paramMap` as an observable, so it needs the snapshot at emission time), `features/calendar/resolvers/calendar-year.resolver.ts`, `features/article/resolvers/missing-article.resolver.ts`, `features/article/resolvers/new-article.resolver.ts` (reads the **parent** snapshot's `title`) — lenses: security — done when: each spec asserts the same rejection, and `rg 'paramMap\.get' apps/client/src --glob '!*.spec.ts'` reports only `route-params.ts` and the two `article.routes.ts` predicates.
 - [ ] 4. Add the Playwright case — files: `testing/playwright/tests/pictures/` — lenses: none — done when: a case navigating to `/pictures/1;id=42` sees the detail page's not-found state and no request for picture 42, and the file passes under `yarn test:playwright`.
 
@@ -46,5 +46,25 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   `/articles/find/Ivan;title=Peter/edit` — a call site this plan wires in step 3 — would have passed the
   original guard. Two spec rows cover it and fail against the `route.url` version. Cost if wrong: none
   found — the wider scan can only reject more addresses, and every address it adds carries a `;`.
+
+- Step 2, spec reviewer and quality reviewer, both `blocking`, `diff-page-data.service.ts:40` — "the
+  `paramsKey` move onto the `readRouteParam` values is covered by no test: revert the line and the suite
+  stays green". Fixed with a test, not with code — the line itself is right. Verified the reproduction
+  myself: `load()` for `/articles/diff/10` caches the pairs under the raw key `10_`, and the old key gives
+  `/articles/diff/1;id1=10` the same `10_`, so the early return at `:42` serves the rejected address the
+  accepted one's pairs. The new two-load test fails against the reverted line and nothing else.
+- Step 2, spec reviewer `blocking` and quality reviewer `suggestion`, `diff-page-data.service.spec.ts:215` —
+  "the empty-matrix-`id2` test passes with `id2Param !== undefined` reverted: its snapshot carries matrix
+  params, so the run ends at the `version1` check and the `id2` branch never executes". Fixed. The `;id2=`
+  test stays, renamed to what it actually proves — it is #335's own reproduction URL — and a second test
+  reaches the branch with a clean snapshot. `load()` takes any snapshot, so an empty `id2` is inside its
+  contract even though the router cannot produce one from a path segment; the test fails under `if (id2Param)`.
+- Step 2, quality reviewer `suggestion`, the four spec factories — "the rest parameter `...urls: UrlSegment[][]`
+  models multiple ancestors, but every caller passes at most one array". Fixed: a single defaulted
+  `segments: UrlSegment[]` parameter. The multi-ancestor walk is the helper's own concern and is covered in
+  the helper's spec.
+- Step 2, security lens, no blocking finding. Its one observation — that two *rejected* addresses can share
+  the new `undefined_` key — was checked and dropped on its own reasoning: both cache the identical error
+  state, so the only loss is a duplicate log line, and separating them would add code.
 
 ## Parked

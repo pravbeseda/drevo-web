@@ -6,14 +6,15 @@ import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
 
-function createRouteSnapshot(params: Record<string, string>, ...urls: UrlSegment[][]): ActivatedRouteSnapshot {
+function createRouteSnapshot(
+    params: Record<string, string>,
     // A matched path with no matrix params is the default, so that only the
     // cases about them have to spell their segments out.
-    const pathFromRoot = urls.length > 0 ? urls : [Object.values(params).map(value => new UrlSegment(value, {}))];
-
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+): ActivatedRouteSnapshot {
     return {
         paramMap: convertToParamMap(params),
-        pathFromRoot: pathFromRoot.map(url => ({ url }) as ActivatedRouteSnapshot),
+        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
     } as ActivatedRouteSnapshot;
 }
 

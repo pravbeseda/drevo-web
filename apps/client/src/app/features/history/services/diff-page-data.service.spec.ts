@@ -33,14 +33,15 @@ const MOCK_VERSION_PAIRS: VersionPairs = {
     },
 };
 
-function makeSnapshot(params: Record<string, string>, ...urls: UrlSegment[][]): ActivatedRouteSnapshot {
+function makeSnapshot(
+    params: Record<string, string>,
     // A matched path with no matrix params is the default, so that only the
     // cases about them have to spell their segments out.
-    const pathFromRoot = urls.length > 0 ? urls : [Object.values(params).map(value => new UrlSegment(value, {}))];
-
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+): ActivatedRouteSnapshot {
     return {
         paramMap: convertToParamMap(params),
-        pathFromRoot: pathFromRoot.map(url => ({ url }) as ActivatedRouteSnapshot),
+        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
     } as unknown as ActivatedRouteSnapshot;
 }
 
@@ -212,9 +213,7 @@ describe('DiffPageDataService', () => {
             expect(articleService.getVersionPairs).not.toHaveBeenCalled();
         });
 
-        it('should reject an empty matrix id2 instead of diffing id1 against its predecessor', () => {
-            // `/articles/diff/7/9;id2=` — the empty `;id2=` blanks the positional
-            // id2, which a truthiness test would read as "no second version".
+        it('should reject `/articles/diff/7/9;id2=` before it reaches the id2 branch', () => {
             const articleService = { getVersionPairs: jest.fn() };
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
@@ -226,6 +225,39 @@ describe('DiffPageDataService', () => {
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
+
+        it('should not serve a matrix address from the cache of the id it shadows', () => {
+            // The matrix `;id1=10` and the plain `10` produce the same raw
+            // paramMap, so a cache key built from `paramMap` would hand the
+            // rejected address the pairs the accepted one loaded.
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+            spectator.service.load(makeSnapshot({ id1: '10' })).subscribe();
+
+            spectator.service.load(makeSnapshot({ id1: '10' }, [new UrlSegment('1', { id1: '10' })])).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.versionPairs()).toBeUndefined();
+            expect(articleService.getVersionPairs).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('load with an empty second version id', () => {
+        // `load()` takes any snapshot, and an absent id2 is what sends the page
+        // down the "diff against the predecessor" path. An empty one is not that.
+        it('should set error rather than diff id1 against its predecessor', () => {
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id1: '7', id2: '' })).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(articleService.getVersionPairs).not.toHaveBeenCalled();
         });
     });
