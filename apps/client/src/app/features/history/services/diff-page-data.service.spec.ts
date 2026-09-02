@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, UrlSegment } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
@@ -33,8 +33,15 @@ const MOCK_VERSION_PAIRS: VersionPairs = {
     },
 };
 
-function makeSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as unknown as ActivatedRouteSnapshot;
+function makeSnapshot(params: Record<string, string>, ...urls: UrlSegment[][]): ActivatedRouteSnapshot {
+    // A matched path with no matrix params is the default, so that only the
+    // cases about them have to spell their segments out.
+    const pathFromRoot = urls.length > 0 ? urls : [Object.values(params).map(value => new UrlSegment(value, {}))];
+
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: pathFromRoot.map(url => ({ url }) as ActivatedRouteSnapshot),
+    } as unknown as ActivatedRouteSnapshot;
 }
 
 describe('DiffPageDataService', () => {
@@ -182,6 +189,40 @@ describe('DiffPageDataService', () => {
             });
 
             spectator.service.load(makeSnapshot({ id1: '10', id2 })).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('load with matrix params', () => {
+        it('should set error when a segment carries matrix params, without asking the API', () => {
+            // Angular merges `;id1=10` over the positional `1`, so the paramMap
+            // reads version 10 under an address the route pattern never named.
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service.load(makeSnapshot({ id1: '10' }, [new UrlSegment('1', { id1: '10' })])).subscribe();
+
+            expect(spectator.service.error()).toBe('Неверный ID версии');
+            expect(spectator.service.isLoading()).toBe(false);
+            expect(articleService.getVersionPairs).not.toHaveBeenCalled();
+        });
+
+        it('should reject an empty matrix id2 instead of diffing id1 against its predecessor', () => {
+            // `/articles/diff/7/9;id2=` — the empty `;id2=` blanks the positional
+            // id2, which a truthiness test would read as "no second version".
+            const articleService = { getVersionPairs: jest.fn() };
+            spectator = createService({
+                providers: [{ provide: ArticleService, useValue: articleService }],
+            });
+
+            spectator.service
+                .load(makeSnapshot({ id1: '7', id2: '' }, [new UrlSegment('7', {}), new UrlSegment('9', { id2: '' })]))
+                .subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);

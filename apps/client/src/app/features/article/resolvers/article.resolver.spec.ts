@@ -1,13 +1,20 @@
 import { resolveArticle } from './article.resolver';
 import { createMockArticle } from '../testing/article-testing.helper';
-import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, UrlSegment } from '@angular/router';
 import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
 
-function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
+function createRouteSnapshot(params: Record<string, string>, ...urls: UrlSegment[][]): ActivatedRouteSnapshot {
+    // A matched path with no matrix params is the default, so that only the
+    // cases about them have to spell their segments out.
+    const pathFromRoot = urls.length > 0 ? urls : [Object.values(params).map(value => new UrlSegment(value, {}))];
+
+    return {
+        paramMap: convertToParamMap(params),
+        pathFromRoot: pathFromRoot.map(url => ({ url }) as ActivatedRouteSnapshot),
+    } as ActivatedRouteSnapshot;
 }
 
 describe('resolveArticle', () => {
@@ -68,6 +75,19 @@ describe('resolveArticle', () => {
         ['padded with a leading zero', '042'],
     ])('should return undefined for an ID %s, without asking the API', (_case, id) => {
         const route = createRouteSnapshot({ id });
+        // A sentinel, so that an observable that never emitted cannot pass as undefined.
+        let result: unknown = 'not resolved';
+
+        resolveArticle(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+
+        expect(result).toBeUndefined();
+        expect(articleService.getArticle).not.toHaveBeenCalled();
+    });
+
+    it('should return undefined when a segment carries matrix params, without asking the API', () => {
+        // Angular merges `;id=123` over the positional `1`, so the paramMap reads
+        // 123 under an address the route pattern never named.
+        const route = createRouteSnapshot({ id: '123' }, [new UrlSegment('1', { id: '123' })]);
         // A sentinel, so that an observable that never emitted cannot pass as undefined.
         let result: unknown = 'not resolved';
 

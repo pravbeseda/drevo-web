@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
-import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
@@ -33,8 +33,11 @@ export class DiffPageDataService {
     }
 
     load(snapshot: ActivatedRouteSnapshot): Observable<VersionPairs | undefined> {
-        const paramMap = snapshot.paramMap;
-        const paramsKey = `${paramMap.get('id1') ?? paramMap.get('id')}_${paramMap.get('id2') ?? ''}`;
+        const id1Param = readRouteParam(snapshot, 'id1') ?? readRouteParam(snapshot, 'id');
+        const id2Param = readRouteParam(snapshot, 'id2');
+        // The key is built from the values the load below uses, so that a
+        // rejected address and an accepted one cannot share a cache entry.
+        const paramsKey = `${id1Param}_${id2Param ?? ''}`;
 
         if (this._load$ && this._loadedParams === paramsKey) return this._load$;
 
@@ -44,10 +47,7 @@ export class DiffPageDataService {
         this._versionPairs.set(undefined);
         this._load$ = undefined;
 
-        const id1Param = paramMap.get('id1') ?? paramMap.get('id');
-        const id2Param = paramMap.get('id2');
-
-        const version1 = parsePositiveIntParam(id1Param ?? undefined);
+        const version1 = parsePositiveIntParam(id1Param);
 
         if (version1 === undefined) {
             this._error.set('Неверный ID версии');
@@ -60,7 +60,7 @@ export class DiffPageDataService {
         let newer: number;
         let older: number | undefined;
 
-        if (id2Param) {
+        if (id2Param !== undefined) {
             const version2 = parsePositiveIntParam(id2Param);
             if (version2 === undefined) {
                 this._error.set('Неверный ID версии');
