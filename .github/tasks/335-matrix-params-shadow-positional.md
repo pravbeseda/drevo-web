@@ -18,8 +18,9 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   `article-version-tab.component`, `calendar-year.resolver`, `missing-article.resolver` and
   `new-article.resolver`, ten reads across nine files → chosen by the user, on the same reasoning as
   #329's scope decision: fixing one reader and leaving its neighbours is what produced the follow-up.
-  The `runGuardsAndResolvers` predicates in `article.routes.ts:21,41` stay out — they compare two
-  snapshots and address nothing.
+  The `runGuardsAndResolvers` predicates in `article.routes.ts` were scoped out at planning time — they
+  compare two snapshots and address nothing — and moved onto the helper after the review; see the last
+  entry under Rulings for why that reasoning did not hold.
 - `calendar-year.resolver` decides *whether* the route names a year with `paramMap.has('year')` and only
   then reads the value through the helper. `/calendar` names no year and means the current one, so handing
   the helper's `undefined` straight to that branch would make `/calendar/2020;year=1990` show today's year —
@@ -32,11 +33,14 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   run before the change. Under the router's `always` inheritance the child already carries the parent's
   `title`, so that leak was the fallback's only remaining reachable effect. Cost if wrong: were Angular to
   return to `emptyOnly`, the create route would resolve an empty title; the comment on the line says so.
-- Playwright: one case. The unit suite builds its own snapshots (`{ paramMap: convertToParamMap(...) }`),
-  so it asserts the helper against our model of a snapshot, not against the router's. TestBed is barred
-  by the project rules, so the real router is only reachable through Playwright. One case is enough:
-  the claim under test — the router surfaces a matrix param the way the helper expects — is the same
-  for all four addresses in the issue.
+- Playwright: one case per router claim, two in the end. The unit suite builds its own snapshots
+  (`{ paramMap: convertToParamMap(...) }`, and later its own `urlSubject`), so it asserts the code against
+  our model of the router rather than against the router. TestBed is barred by the project rules, so the
+  real router is only reachable through Playwright. The first case (`/pictures/1;id=42`) covers the claim
+  that the router surfaces a matrix param the way the helper expects, which is the same for all four
+  addresses in the issue. The review added a second claim — a custom `runGuardsAndResolvers` predicate
+  fully replaces `paramsChange`, and `paramsSubject` stays silent exactly where `urlSubject` fires — which
+  a fresh load cannot exercise, so it has its own case: an in-app click on an author-supplied wiki link.
 - `diff-page-data.service.ts:63` moves from `if (id2Param)` to an explicit `!== undefined` test in the
   same change. Under the rule above the empty `;id2=` is already rejected one layer earlier, so this is
   belt-and-braces rather than the fix; it costs one token and removes a truthiness read of a string.
@@ -44,7 +48,7 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
 ## Steps
 - [x] 1. Add `readRouteParam(route, name)` + spec — files: `apps/client/src/app/shared/helpers/route-params.ts`, `route-params.spec.ts` — lenses: security — done when: the spec covers a clean segment, a matrix param on the last segment, a matrix param on an earlier segment, an empty matrix value, a matrix param whose name differs from the one read, and an absent param, and goes green.
 - [x] 2. Move the four sites #335 names onto it — files: `features/picture/resolvers/picture.resolver.ts`, `features/article/resolvers/article.resolver.ts`, `features/article/resolvers/article-version.resolver.ts`, `features/history/services/diff-page-data.service.ts` (both the `paramsKey` read at `:37` and the id reads at `:47,48`, plus the `id2Param !== undefined` test) — lenses: security — done when: each spec asserts the site's existing invalid-param answer for a snapshot whose segment carries matrix params, without the service being called, and the suite is green.
-- [x] 3. Move the five remaining reads onto it — files: `features/article/pages/version-redirect/version-redirect.component.ts`, `features/article/pages/article-page/tabs/article-version-tab/article-version-tab.component.ts` (reads `paramMap` as an observable, so it needs the snapshot at emission time), `features/calendar/resolvers/calendar-year.resolver.ts`, `features/article/resolvers/missing-article.resolver.ts`, `features/article/resolvers/new-article.resolver.ts` (reads the **parent** snapshot's `title`) — lenses: security — done when: each spec asserts the same rejection, and `rg 'paramMap\.get' apps/client/src --glob '!*.spec.ts'` reports only `route-params.ts` and the two `article.routes.ts` predicates.
+- [x] 3. Move the five remaining reads onto it — files: `features/article/pages/version-redirect/version-redirect.component.ts`, `features/article/pages/article-page/tabs/article-version-tab/article-version-tab.component.ts` (reads `paramMap` as an observable, so it needs the snapshot at emission time), `features/calendar/resolvers/calendar-year.resolver.ts`, `features/article/resolvers/missing-article.resolver.ts`, `features/article/resolvers/new-article.resolver.ts` (reads the **parent** snapshot's `title`) — lenses: security — done when: each spec asserts the same rejection, and `rg 'paramMap\.get' apps/client/src --glob '!*.spec.ts'` reports only `route-params.ts` (at planning time the two `article.routes.ts` predicates were expected to remain; the review moved them too).
 - [x] 4. Add the Playwright case — files: `testing/playwright/tests/pictures/` — lenses: none — done when: a case navigating to `/pictures/1;id=42` sees the detail page's not-found state and no request for picture 42, and the file passes under `yarn test:playwright`.
 
 ## Rulings
@@ -106,6 +110,25 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   into eight files, which `AGENTS.md` forbids under "no logic duplication". Fixed by extracting
   `apps/client/src/app/shared/testing/route-testing.helper.ts`, following the existing
   `features/article/testing/article-testing.helper.ts` precedent; 156 lines out, 58 in.
+
+- PR review round 1, `ali-review-pr` (Claude Opus) `blocking` x2, `article.routes.ts:21,41` and
+  `article-version-tab.component.ts:73` — "the rule holds on a fresh load but not on an in-app navigation".
+  Both fixed. Verified before acting rather than from the description: `equalSegments`
+  (`_router-chunk.mjs:306`) compares the segments' matrix parameters, so the default `paramsChange` a custom
+  predicate replaces (`:2356`) was strictly stronger than comparing the merged map; running
+  `shouldRerunArticleResolver` on `/articles/5` -> `/articles/9;id=5` answered `false`; and
+  `advanceActivatedRoute` (`:1632`) emits params only when the merged map differs, which a matrix value is
+  exactly what leaves unchanged. The predicates now read through `readRouteParam`, and the version tab pipes
+  off `route.url` (a `BehaviorSubject` at `:2077`, so the first read is unchanged). Reachable through
+  `InternalLinkClickHandler`, which routes author-supplied wiki hrefs into `router.navigateByUrl`.
+- PR review round 2, `ali-review-pr` (Claude Opus) `blocking`, this file — "the plan now says the opposite of
+  the code it ships with, in the Decisions entry, in step 3's acceptance criterion and in the Playwright
+  ruling". All three verified and fixed above; the round-1 fixes are recorded in the entry before this one.
+  The Playwright decision was reopened rather than merely restated: the second router claim is the one our
+  own model got wrong, and a unit test that drives `urlSubject` by hand cannot catch that, so it got its own
+  case (`article-view.spec.ts`, "rejects a matrix address reached by an in-app link"), which fails against
+  the `paramMap.get` predicate — the page keeps rendering article 5 under `/articles/9;id=5`.
+- PR review round 2, Codex reviewer, no findings in either round.
 
 ## Parked
 
