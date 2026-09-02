@@ -1,30 +1,45 @@
 import { shouldRerunArticleResolver, shouldRerunMissingArticleResolver } from './article.routes';
-import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
+import { createRouteSnapshot } from '../../shared/testing/route-testing.helper';
+import { ActivatedRouteSnapshot, UrlSegment } from '@angular/router';
 
-function snapshot(id: string | undefined, childPath: string | undefined): ActivatedRouteSnapshot {
-    const firstChild =
-        childPath === undefined ? undefined : ({ routeConfig: { path: childPath } } as ActivatedRouteSnapshot);
+function withChild(route: ActivatedRouteSnapshot, childPath: string | undefined): ActivatedRouteSnapshot {
+    if (childPath !== undefined) {
+        Object.assign(route, { firstChild: { routeConfig: { path: childPath } } });
+    }
 
-    return {
-        paramMap: convertToParamMap(id === undefined ? {} : { id }),
-        firstChild,
-    } as ActivatedRouteSnapshot;
+    return route;
 }
 
-function titleSnapshot(title: string | undefined, childPath: string | undefined): ActivatedRouteSnapshot {
-    const firstChild =
-        childPath === undefined ? undefined : ({ routeConfig: { path: childPath } } as ActivatedRouteSnapshot);
+function snapshot(
+    id: string | undefined,
+    childPath: string | undefined,
+    segments?: UrlSegment[],
+): ActivatedRouteSnapshot {
+    return withChild(createRouteSnapshot(id === undefined ? {} : { id }, segments), childPath);
+}
 
-    return {
-        paramMap: convertToParamMap(title === undefined ? {} : { title }),
-        firstChild,
-    } as ActivatedRouteSnapshot;
+function titleSnapshot(
+    title: string | undefined,
+    childPath: string | undefined,
+    segments?: UrlSegment[],
+): ActivatedRouteSnapshot {
+    return withChild(createRouteSnapshot(title === undefined ? {} : { title }, segments), childPath);
 }
 
 describe('shouldRerunArticleResolver', () => {
     it('re-runs when the article id changes', () => {
         const from = snapshot('42', '');
         const to = snapshot('43', '');
+
+        expect(shouldRerunArticleResolver(from, to)).toBe(true);
+    });
+
+    it('re-runs when a matrix param shadows the id the address names', () => {
+        // `/articles/42` -> `/articles/43;id=42`: the merged paramMap reads `42`
+        // on both sides, so comparing it would keep article 42 on screen under
+        // an address whose segment reads 43.
+        const from = snapshot('42', '');
+        const to = snapshot('42', '', [new UrlSegment('43', { id: '42' })]);
 
         expect(shouldRerunArticleResolver(from, to)).toBe(true);
     });
@@ -85,5 +100,13 @@ describe('shouldRerunMissingArticleResolver', () => {
         const to = titleSnapshot('А', '');
 
         expect(shouldRerunMissingArticleResolver(from, to)).toBe(false);
+    });
+
+    it('re-runs when a matrix param shadows the title the address names', () => {
+        // `/articles/find/ВИФСАИДА` -> `/articles/find/ГОЛГОФА;title=ВИФСАИДА`.
+        const from = titleSnapshot('ВИФСАИДА', '');
+        const to = titleSnapshot('ВИФСАИДА', '', [new UrlSegment('ГОЛГОФА', { title: 'ВИФСАИДА' })]);
+
+        expect(shouldRerunMissingArticleResolver(from, to)).toBe(true);
     });
 });

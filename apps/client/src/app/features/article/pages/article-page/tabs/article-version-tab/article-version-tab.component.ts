@@ -66,10 +66,13 @@ export class ArticleVersionTabComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.route.paramMap
+        // `url`, not `paramMap`: the router emits params only when the merged
+        // map changes (`_router-chunk.mjs:1632`), and a matrix value is exactly
+        // what leaves it unchanged — `/version/456;versionId=789` reads the same
+        // `789` as `/version/789`. The segments differ, so `url` does emit, and
+        // the snapshot is already current when it does.
+        this.route.url
             .pipe(
-                // The snapshot is current at every paramMap emission, and it is
-                // what carries the matched segments the read has to inspect.
                 map(() => readRouteParam(this.route.snapshot, 'versionId')),
                 distinctUntilChanged(),
                 takeUntilDestroyed(this.destroyRef),
