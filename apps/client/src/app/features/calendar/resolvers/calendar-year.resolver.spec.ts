@@ -1,7 +1,8 @@
+import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { resolveCalendarYear } from './calendar-year.resolver';
 import { CalendarService } from '../../../services/calendar/calendar.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, convertToParamMap, UrlSegment } from '@angular/router';
+import { ActivatedRouteSnapshot, UrlSegment } from '@angular/router';
 import { Logger } from '@drevo-web/core';
 import { CALENDAR_MAX_YEAR, CALENDAR_MIN_YEAR, CalendarYear } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
@@ -24,16 +25,10 @@ describe('resolveCalendarYear', () => {
         logger = { error: jest.fn() };
     });
 
-    const routeWith = (
-        yearParam?: string,
-        // A matched path with no matrix params is the default, so that only the
-        // cases about them have to spell their segments out.
-        segments: UrlSegment[] = yearParam === undefined ? [] : [new UrlSegment(yearParam, {})],
-    ): ActivatedRouteSnapshot =>
-        ({
-            paramMap: convertToParamMap(yearParam === undefined ? {} : { year: yearParam }),
-            pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
-        }) as ActivatedRouteSnapshot;
+    const routeWith = (yearParam?: string, segments?: UrlSegment[]): ActivatedRouteSnapshot =>
+        yearParam === undefined
+            ? createRouteSnapshot({}, segments ?? [])
+            : createRouteSnapshot({ year: yearParam }, segments);
 
     const resolve = (yearParam?: string, segments?: UrlSegment[]): unknown => {
         let result: unknown;

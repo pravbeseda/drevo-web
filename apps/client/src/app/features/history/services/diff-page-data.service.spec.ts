@@ -1,5 +1,6 @@
+import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, convertToParamMap, UrlSegment } from '@angular/router';
+import { UrlSegment } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
@@ -33,18 +34,6 @@ const MOCK_VERSION_PAIRS: VersionPairs = {
     },
 };
 
-function makeSnapshot(
-    params: Record<string, string>,
-    // A matched path with no matrix params is the default, so that only the
-    // cases about them have to spell their segments out.
-    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
-): ActivatedRouteSnapshot {
-    return {
-        paramMap: convertToParamMap(params),
-        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
-    } as unknown as ActivatedRouteSnapshot;
-}
-
 describe('DiffPageDataService', () => {
     let spectator: SpectatorService<DiffPageDataService>;
 
@@ -60,7 +49,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, undefined);
             expect(spectator.service.isLoading()).toBe(false);
@@ -74,7 +63,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '15' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '15' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(15, undefined);
             expect(spectator.service.versionPairs()).toEqual(MOCK_VERSION_PAIRS);
@@ -88,7 +77,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '10', id2: '5' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '10', id2: '5' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, 5);
             expect(spectator.service.isLoading()).toBe(false);
@@ -100,7 +89,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '3', id2: '20' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '3', id2: '20' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, 3);
         });
@@ -110,7 +99,7 @@ describe('DiffPageDataService', () => {
         it('should set error for non-numeric id', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({ id: 'abc' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: 'abc' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -119,7 +108,7 @@ describe('DiffPageDataService', () => {
         it('should set error for zero id', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({ id: '0' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '0' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -128,7 +117,7 @@ describe('DiffPageDataService', () => {
         it('should set error for negative id', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({ id: '-5' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '-5' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -137,7 +126,7 @@ describe('DiffPageDataService', () => {
         it('should set error for missing id params', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({})).subscribe();
+            spectator.service.load(createRouteSnapshot({})).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -146,7 +135,7 @@ describe('DiffPageDataService', () => {
         it('should set error for invalid id2 when id1 is valid', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({ id1: '10', id2: 'abc' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '10', id2: 'abc' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -155,7 +144,7 @@ describe('DiffPageDataService', () => {
         it('should set error for zero id2', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({ id1: '10', id2: '0' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '10', id2: '0' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -176,7 +165,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1 })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1 })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -189,7 +178,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '10', id2 })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '10', id2 })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -206,7 +195,9 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '10' }, [new UrlSegment('1', { id1: '10' })])).subscribe();
+            spectator.service
+                .load(createRouteSnapshot({ id1: '10' }, [new UrlSegment('1', { id1: '10' })]))
+                .subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.isLoading()).toBe(false);
@@ -220,7 +211,12 @@ describe('DiffPageDataService', () => {
             });
 
             spectator.service
-                .load(makeSnapshot({ id1: '7', id2: '' }, [new UrlSegment('7', {}), new UrlSegment('9', { id2: '' })]))
+                .load(
+                    createRouteSnapshot({ id1: '7', id2: '' }, [
+                        new UrlSegment('7', {}),
+                        new UrlSegment('9', { id2: '' }),
+                    ]),
+                )
                 .subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
@@ -236,9 +232,11 @@ describe('DiffPageDataService', () => {
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
-            spectator.service.load(makeSnapshot({ id1: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '10' })).subscribe();
 
-            spectator.service.load(makeSnapshot({ id1: '10' }, [new UrlSegment('1', { id1: '10' })])).subscribe();
+            spectator.service
+                .load(createRouteSnapshot({ id1: '10' }, [new UrlSegment('1', { id1: '10' })]))
+                .subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(spectator.service.versionPairs()).toBeUndefined();
@@ -255,7 +253,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '7', id2: '' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '7', id2: '' })).subscribe();
 
             expect(spectator.service.error()).toBe('Неверный ID версии');
             expect(articleService.getVersionPairs).not.toHaveBeenCalled();
@@ -271,7 +269,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
 
             expect(spectator.service.error()).toBe('Ошибка загрузки данных');
             expect(spectator.service.isLoading()).toBe(false);
@@ -293,7 +291,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
 
             expect(spectator.service.error()).toBe('Предыдущая версия не найдена');
             expect(spectator.service.isLoading()).toBe(false);
@@ -308,7 +306,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalled();
@@ -342,7 +340,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id1: '20', id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id1: '20', id: '10' })).subscribe();
 
             expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, undefined);
         });
@@ -354,7 +352,7 @@ describe('DiffPageDataService', () => {
             spectator = createService({
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
-            const snapshot = makeSnapshot({ id: '10' });
+            const snapshot = createRouteSnapshot({ id: '10' });
 
             const obs1 = spectator.service.load(snapshot);
             const obs2 = spectator.service.load(snapshot);
@@ -373,7 +371,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
             spectator.service.updateCurrentApproval(ApprovalStatus.Rejected);
 
             expect(spectator.service.versionPairs()?.current.approved).toBe(ApprovalStatus.Rejected);
@@ -385,7 +383,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
             spectator.service.updateCurrentApproval(ApprovalStatus.Approved);
 
             const pairs = spectator.service.versionPairs();
@@ -400,7 +398,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
             spectator.service.updateCurrentApproval(ApprovalStatus.Rejected, 'Rejection reason');
 
             const pairs = spectator.service.versionPairs();
@@ -418,7 +416,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
             spectator.service.updateCurrentApproval(ApprovalStatus.Approved, '');
 
             expect(spectator.service.versionPairs()?.current.comment).toBe('');
@@ -440,7 +438,7 @@ describe('DiffPageDataService', () => {
                 providers: [{ provide: ArticleService, useValue: articleService }],
             });
 
-            spectator.service.load(makeSnapshot({ id: '10' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.info).toHaveBeenCalledWith('Version pairs loaded', {
@@ -452,7 +450,7 @@ describe('DiffPageDataService', () => {
         it('should log error for invalid version ID', () => {
             spectator = createService();
 
-            spectator.service.load(makeSnapshot({ id: 'invalid' })).subscribe();
+            spectator.service.load(createRouteSnapshot({ id: 'invalid' })).subscribe();
 
             const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
             expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Invalid version ID in route', 'invalid');

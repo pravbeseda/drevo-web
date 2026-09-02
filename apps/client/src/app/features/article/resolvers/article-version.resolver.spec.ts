@@ -1,22 +1,11 @@
+import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { resolveArticleVersion } from './article-version.resolver';
 import { createMockArticle } from '../testing/article-testing.helper';
-import { ActivatedRouteSnapshot, convertToParamMap, UrlSegment } from '@angular/router';
+import { UrlSegment } from '@angular/router';
 import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
-
-function createRouteSnapshot(
-    params: Record<string, string>,
-    // A matched path with no matrix params is the default, so that only the
-    // cases about them have to spell their segments out.
-    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
-): ActivatedRouteSnapshot {
-    return {
-        paramMap: convertToParamMap(params),
-        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
-    } as ActivatedRouteSnapshot;
-}
 
 describe('resolveArticleVersion', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'getArticleVersion'>>;

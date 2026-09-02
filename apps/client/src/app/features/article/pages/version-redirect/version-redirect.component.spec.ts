@@ -1,32 +1,14 @@
+import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
 import { ArticleService } from '../../../../services/articles';
 import { VersionRedirectComponent } from './version-redirect.component';
 import { createMockArticle } from '../../testing/article-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ActivatedRoute,
-    ActivatedRouteSnapshot,
-    convertToParamMap,
-    provideRouter,
-    Router,
-    UrlSegment,
-} from '@angular/router';
+import { ActivatedRoute, provideRouter, Router, UrlSegment } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle({ articleId: 100, versionId: 789, title: 'Article' });
-
-function createRouteSnapshot(
-    params: Record<string, string>,
-    // A matched path with no matrix params is the default, so that only the
-    // cases about them have to spell their segments out.
-    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
-): ActivatedRouteSnapshot {
-    return {
-        paramMap: convertToParamMap(params),
-        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
-    } as ActivatedRouteSnapshot;
-}
 
 describe('VersionRedirectComponent', () => {
     let spectator: Spectator<VersionRedirectComponent>;

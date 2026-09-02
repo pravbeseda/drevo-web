@@ -95,4 +95,21 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   against a reverted `picture.resolver` — the detail page rendered picture 42 — which is the one thing the unit
   suite cannot show, since it builds its own snapshots.
 
+- Final gate, run by me after the three reviewers died on a session limit. All thirteen quality gates are
+  green and Playwright is 259/259; the routes were walked one by one against their readers, including the
+  `withComponentInputBinding()` path — no routed component takes a route param through `input()`, so
+  `paramMap` really is the only channel. `calendar-page.component.ts:39` still reads `paramMap.has('year')`,
+  but only to choose between two canonical tab addresses, and only once the resolver has already accepted
+  the address. Nothing in the app or in `legacy-drevo-yii` emits a matrix URL, and no document describes the
+  old behaviour.
+- Final gate, found by me, the eight identical spec snapshot factories — the branch had copied one decision
+  into eight files, which `AGENTS.md` forbids under "no logic duplication". Fixed by extracting
+  `apps/client/src/app/shared/testing/route-testing.helper.ts`, following the existing
+  `features/article/testing/article-testing.helper.ts` precedent; 156 lines out, 58 in.
+
 ## Parked
+
+- `testing/playwright/tests/app-updates/chunk-reload.spec.ts:6` — "shows overlay when a lazy chunk fails to
+  load and reloads on click" failed once in a full parallel `yarn test:playwright` run (timeout in
+  `openSidebarOnMobile`, `chunk-reload.spec.ts:13`), then passed in isolation and in a second full run.
+  Same class as the flaky test parked in #329's plan: a Playwright case that is order- or load-sensitive.

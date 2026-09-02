@@ -1,16 +1,10 @@
+import { createRouteSnapshot } from '../../../../../../shared/testing/route-testing.helper';
 import { ArticleService } from '../../../../../../services/articles';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { createReviewBlockStubs } from '../../../../../../shared/components/review-block/review-block.testing';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-    ActivatedRoute,
-    ActivatedRouteSnapshot,
-    convertToParamMap,
-    provideRouter,
-    Router,
-    UrlSegment,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router, UrlSegment } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -32,18 +26,6 @@ const mockVersion: ArticleVersion = {
     comment: '',
     topics: [],
 };
-
-function createRouteSnapshot(
-    params: Record<string, string>,
-    // A matched path with no matrix params is the default, so that only the
-    // cases about them have to spell their segments out.
-    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
-): ActivatedRouteSnapshot {
-    return {
-        paramMap: convertToParamMap(params),
-        pathFromRoot: [{ url: segments } as ActivatedRouteSnapshot],
-    } as ActivatedRouteSnapshot;
-}
 
 describe('ArticleVersionTabComponent', () => {
     let spectator: Spectator<ArticleVersionTabComponent>;
