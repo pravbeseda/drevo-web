@@ -17,17 +17,21 @@ function createRouteSnapshot(
     } as ActivatedRouteSnapshot;
 }
 
-/** The create route is a child of `find/:title`, which owns the param. */
+/**
+ * The create route is a child of `find/:title`, which owns the param. The child
+ * inherits it: the router's `paramsInheritanceStrategy` defaults to `always`.
+ */
 function createChildRouteSnapshot(
     parentParams: Record<string, string>,
     parentSegments?: UrlSegment[],
+    childSegments: UrlSegment[] = [new UrlSegment('edit', {})],
 ): ActivatedRouteSnapshot {
     const parent = createRouteSnapshot(parentParams, parentSegments);
 
     return {
-        paramMap: convertToParamMap({}),
+        paramMap: convertToParamMap(parentParams),
         parent,
-        pathFromRoot: [...parent.pathFromRoot, { url: [new UrlSegment('edit', {})] } as ActivatedRouteSnapshot],
+        pathFromRoot: [...parent.pathFromRoot, { url: childSegments } as ActivatedRouteSnapshot],
     } as ActivatedRouteSnapshot;
 }
 
@@ -101,7 +105,7 @@ describe('resolveNewArticle', () => {
         });
     });
 
-    it('should read the title from the parent route', done => {
+    it('should read the title the child inherits from the parent route', done => {
         articleService.findArticleByTitle.mockReturnValue(of({ found: false, canCreate: true }));
 
         resolveNewArticle(
@@ -133,9 +137,9 @@ describe('resolveNewArticle', () => {
         });
     });
 
-    it('should not read a parent title a matrix param shadows the segment with', done => {
-        // The same address, reached through the parent snapshot the fallback
-        // reads: the shadowed title must not survive that route either.
+    it('should not create under a shadowed title reached through the child route', done => {
+        // The same address seen from the child: the ancestor scan has to reject
+        // it there too, or the child route would be a way back in.
         articleService.findArticleByTitle.mockReturnValue(
             of({ found: false, canCreate: false, reason: 'Пустое название' }),
         );
@@ -179,6 +183,26 @@ describe('resolveNewArticle', () => {
         resolve({ title }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
             expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', title]);
+            done();
+        });
+    });
+
+    it('should not create when the child segment itself carries a matrix param', done => {
+        // `/articles/find/ВИФСАИДА/edit;foo=1` — the parent segment is clean, so
+        // reading the title off the parent would let this address through.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolveNewArticle(
+            articleService as unknown as ArticleService,
+            router as unknown as Router,
+            logger as unknown as Logger,
+            pageService as unknown as ArticlePageService,
+            createChildRouteSnapshot({ title: 'ВИФСАИДА' }, undefined, [new UrlSegment('edit', { foo: '1' })]),
+        ).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toBeInstanceOf(RedirectCommand);
             done();
         });
     });

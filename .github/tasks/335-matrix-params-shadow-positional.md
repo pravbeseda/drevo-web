@@ -26,6 +26,12 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
   the page answering a question the URL did not ask, which is the failure #335 calls worse than an alias.
   Decided here rather than escalated: it is what the rule above already says, applied to the one site where
   absence carries its own meaning.
+- `new-article.resolver`'s parent-title fallback is removed → chosen by the user over guarding it or parking
+  it. `readRouteParam` scans `pathFromRoot`, which for the parent stops short of the child's own segment, so
+  the fallback let `/articles/find/X/edit;a=1` resolve after the child had rejected it — verified with a probe
+  run before the change. Under the router's `always` inheritance the child already carries the parent's
+  `title`, so that leak was the fallback's only remaining reachable effect. Cost if wrong: were Angular to
+  return to `emptyOnly`, the create route would resolve an empty title; the comment on the line says so.
 - Playwright: one case. The unit suite builds its own snapshots (`{ paramMap: convertToParamMap(...) }`),
   so it asserts the helper against our model of a snapshot, not against the router's. TestBed is barred
   by the project rules, so the real router is only reachable through Playwright. One case is enough:
@@ -72,5 +78,16 @@ matrix value cannot shadow, so a segment carrying matrix params stops addressing
 - Step 2, security lens, no blocking finding. Its one observation — that two *rejected* addresses can share
   the new `undefined_` key — was checked and dropped on its own reasoning: both cache the identical error
   state, so the only loss is a duplicate log line, and separating them would add code.
+
+- Step 3, gate run by me after all three reviewers died on a session limit. Seven mutations, one per site
+  (both calendar decisions separately): each reds exactly one test, so every line the step moved is pinned.
+  Two things the reviewers were asked about and that I checked in the router source instead:
+  `advanceActivatedRoute` (`_router-chunk.mjs:1621-1633`) assigns `route.snapshot` **before**
+  `paramsSubject.next`, so the version tab's `map(() => readRouteParam(this.route.snapshot, …))` reads a
+  current snapshot; and `missing-article`'s `?? ''` cannot serve another article, because the backend answers
+  an empty title with `found: false` — the resolver's own comment records that contract.
+- Step 3, found by me, `new-article.resolver.ts:48` — the parent fallback resolved an address the child had
+  already rejected. Escalated as a user decision rather than ruled on, since the fix deletes an assertion this
+  run had just added; see the fifth entry under Decisions.
 
 ## Parked
