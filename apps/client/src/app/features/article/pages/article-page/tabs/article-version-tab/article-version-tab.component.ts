@@ -1,7 +1,7 @@
 import { ArticleService } from '../../../../../../services/articles';
 import { ReviewBlockComponent } from '../../../../../../shared/components/review-block/review-block.component';
 import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
-import { parsePositiveIntParam } from '../../../../../../shared/helpers/route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../../../../../shared/helpers/route-params';
 import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -66,9 +66,14 @@ export class ArticleVersionTabComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.route.paramMap
+        // `url`, not `paramMap`: the router emits params only when the merged
+        // map changes (`_router-chunk.mjs:1632`), and a matrix value is exactly
+        // what leaves it unchanged — `/version/456;versionId=789` reads the same
+        // `789` as `/version/789`. The segments differ, so `url` does emit, and
+        // the snapshot is already current when it does.
+        this.route.url
             .pipe(
-                map(params => params.get('versionId') ?? undefined),
+                map(() => readRouteParam(this.route.snapshot, 'versionId')),
                 distinctUntilChanged(),
                 takeUntilDestroyed(this.destroyRef),
             )

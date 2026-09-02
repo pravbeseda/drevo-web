@@ -157,6 +157,26 @@ test.describe('Picture detail', () => {
             await expect(detail.loadError).toBeVisible();
         });
 
+        test('shows not-found when a matrix param shadows the id', async ({ authenticatedPage: page }) => {
+            // `/pictures/1;id=42` — Angular merges a segment's matrix params over
+            // the positional ones, so the paramMap would name picture 42 under a
+            // segment that reads `1`. Picture 42 is mocked, so a regression shows
+            // the detail page here instead of failing for some unrelated reason.
+            const requestedIds: string[] = [];
+            page.on('request', request => {
+                const match = /\/api\/pictures\/(\d+)$/.exec(new URL(request.url()).pathname);
+                if (match) requestedIds.push(match[1]);
+            });
+            await bypassSsr(page, '**/pictures/1;id=42');
+            await mockPictureImages(page);
+            await mockPictureDetail(page, 42, PICTURE);
+            detail = new PictureDetailPage(page);
+            await page.goto('/pictures/1;id=42');
+
+            await expect(detail.notFoundError).toBeVisible();
+            expect(requestedIds).toEqual([]);
+        });
+
         test('shows not-found for invalid ID', async ({ authenticatedPage: page }) => {
             await bypassSsr(page, '**/pictures/abc');
             await mockPictureImages(page);

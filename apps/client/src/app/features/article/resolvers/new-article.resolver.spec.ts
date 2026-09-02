@@ -1,19 +1,26 @@
+import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { resolveNewArticle } from './new-article.resolver';
 import { ArticlePageService } from '../services/article-page.service';
 import { ArticleService } from '../../../services/articles';
-import { ActivatedRouteSnapshot, RedirectCommand, Router, convertToParamMap } from '@angular/router';
+import { ActivatedRouteSnapshot, RedirectCommand, Router, UrlSegment, convertToParamMap } from '@angular/router';
 import { Logger } from '@drevo-web/core';
 import { of, throwError } from 'rxjs';
 
-function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
-}
+/**
+ * The create route is a child of `find/:title`, which owns the param. The child
+ * inherits it: the router's `paramsInheritanceStrategy` defaults to `always`.
+ */
+function createChildRouteSnapshot(
+    parentParams: Record<string, string>,
+    parentSegments?: UrlSegment[],
+    childSegments: UrlSegment[] = [new UrlSegment('edit', {})],
+): ActivatedRouteSnapshot {
+    const parent = createRouteSnapshot(parentParams, parentSegments);
 
-/** The create route is a child of `find/:title`, which owns the param. */
-function createChildRouteSnapshot(parentParams: Record<string, string>): ActivatedRouteSnapshot {
     return {
-        paramMap: convertToParamMap({}),
-        parent: createRouteSnapshot(parentParams),
+        paramMap: convertToParamMap(parentParams),
+        parent,
+        pathFromRoot: [...parent.pathFromRoot, { url: childSegments } as ActivatedRouteSnapshot],
     } as ActivatedRouteSnapshot;
 }
 
@@ -23,13 +30,13 @@ describe('resolveNewArticle', () => {
     let logger: jest.Mocked<Pick<Logger, 'error'>>;
     let pageService: jest.Mocked<Pick<ArticlePageService, 'setMissing' | 'setError'>>;
 
-    function resolve(params: Record<string, string>) {
+    function resolve(params: Record<string, string>, segments?: UrlSegment[]) {
         return resolveNewArticle(
             articleService as unknown as ArticleService,
             router as unknown as Router,
             logger as unknown as Logger,
             pageService as unknown as ArticlePageService,
-            createRouteSnapshot(params),
+            createRouteSnapshot(params, segments),
         );
     }
 
@@ -87,7 +94,7 @@ describe('resolveNewArticle', () => {
         });
     });
 
-    it('should read the title from the parent route', done => {
+    it('should read the title the child inherits from the parent route', done => {
         articleService.findArticleByTitle.mockReturnValue(of({ found: false, canCreate: true }));
 
         resolveNewArticle(
@@ -99,6 +106,42 @@ describe('resolveNewArticle', () => {
         ).subscribe(result => {
             expect(articleService.findArticleByTitle).toHaveBeenCalledWith('НОВАЯ СТАТЬЯ');
             expect(result).toEqual(expect.objectContaining({ mode: 'create', title: 'НОВАЯ СТАТЬЯ' }));
+            done();
+        });
+    });
+
+    it('should not create under the title a matrix param shadows the segment with', done => {
+        // `/articles/find/ВИФСАИДА;title=ГОЛГОФА/edit` — Angular merges the
+        // matrix `title` over the segment, so the paramMap names an article the
+        // address does not.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolve({ title: 'ГОЛГОФА' }, [new UrlSegment('ВИФСАИДА', { title: 'ГОЛГОФА' })]).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toBeInstanceOf(RedirectCommand);
+            expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', '']);
+            done();
+        });
+    });
+
+    it('should not create under a shadowed title reached through the child route', done => {
+        // The same address seen from the child: the ancestor scan has to reject
+        // it there too, or the child route would be a way back in.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolveNewArticle(
+            articleService as unknown as ArticleService,
+            router as unknown as Router,
+            logger as unknown as Logger,
+            pageService as unknown as ArticlePageService,
+            createChildRouteSnapshot({ title: 'ГОЛГОФА' }, [new UrlSegment('ВИФСАИДА', { title: 'ГОЛГОФА' })]),
+        ).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toBeInstanceOf(RedirectCommand);
             done();
         });
     });
@@ -129,6 +172,26 @@ describe('resolveNewArticle', () => {
         resolve({ title }).subscribe(result => {
             expect(result).toBeInstanceOf(RedirectCommand);
             expect(router.createUrlTree).toHaveBeenCalledWith(['/articles', 'find', title]);
+            done();
+        });
+    });
+
+    it('should not create when the child segment itself carries a matrix param', done => {
+        // `/articles/find/ВИФСАИДА/edit;foo=1` — the parent segment is clean, so
+        // reading the title off the parent would let this address through.
+        articleService.findArticleByTitle.mockReturnValue(
+            of({ found: false, canCreate: false, reason: 'Пустое название' }),
+        );
+
+        resolveNewArticle(
+            articleService as unknown as ArticleService,
+            router as unknown as Router,
+            logger as unknown as Logger,
+            pageService as unknown as ArticlePageService,
+            createChildRouteSnapshot({ title: 'ВИФСАИДА' }, undefined, [new UrlSegment('edit', { foo: '1' })]),
+        ).subscribe(result => {
+            expect(articleService.findArticleByTitle).toHaveBeenCalledWith('');
+            expect(result).toBeInstanceOf(RedirectCommand);
             done();
         });
     });

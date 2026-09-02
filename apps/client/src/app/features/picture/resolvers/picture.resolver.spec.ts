@@ -1,6 +1,7 @@
+import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { resolvePicture } from './picture.resolver';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
+import { UrlSegment } from '@angular/router';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { Picture } from '@drevo-web/shared';
 import { of, throwError } from 'rxjs';
@@ -16,10 +17,6 @@ const mockPicture: Picture = {
     imageUrl: '/images/0000/0042.jpg',
     thumbnailUrl: '/images/thumbs/0000/0042.jpg',
 };
-
-function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
-}
 
 describe('resolvePicture', () => {
     let pictureService: jest.Mocked<Pick<PictureService, 'getPicture'>>;
@@ -87,6 +84,18 @@ describe('resolvePicture', () => {
         ['padded with a leading zero', '042'],
     ])('should return not-found for an ID %s, without asking the API', (_case, id) => {
         const route = createRouteSnapshot({ id });
+        let result: unknown;
+
+        resolvePicture(pictureService as unknown as PictureService, route).subscribe(value => (result = value));
+
+        expect(result).toBe('not-found');
+        expect(pictureService.getPicture).not.toHaveBeenCalled();
+    });
+
+    it('should return not-found when a segment carries matrix params, without asking the API', () => {
+        // Angular merges `;id=42` over the positional `1`, so the paramMap reads
+        // 42 under an address the route pattern never named.
+        const route = createRouteSnapshot({ id: '42' }, [new UrlSegment('1', { id: '42' })]);
         let result: unknown;
 
         resolvePicture(pictureService as unknown as PictureService, route).subscribe(value => (result = value));

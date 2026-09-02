@@ -7,7 +7,7 @@ import {
     mockArticleVersionShow,
     bypassSsr,
 } from '../../fixtures';
-import { mockArticleViewData } from '../../mocks/articles';
+import { createArticleVersionDto, mockArticleViewData } from '../../mocks/articles';
 import { ArticlePage } from '../../pages/article.page';
 
 const ARTICLE_ID = 42;
@@ -44,6 +44,40 @@ test.describe('Article view', () => {
     });
 
     test.describe('Error states', () => {
+        test('rejects a matrix address reached by an in-app link', async ({ authenticatedPage: page }) => {
+            // The fresh-load case cannot reach this one: the router reuses the
+            // resolver and the component when the merged params are unchanged,
+            // which is exactly what a matrix value leaves them. The link comes
+            // from article content, which is author-supplied, so this is also
+            // how the address is reachable at all.
+            const requestedIds: string[] = [];
+            page.on('request', request => {
+                const match = /\/api\/articles\/show\/(\d+)$/.exec(new URL(request.url()).pathname);
+                if (match) requestedIds.push(match[1]);
+            });
+            await mockArticleShow(
+                page,
+                5,
+                createArticleVersionDto({
+                    articleId: 5,
+                    versionId: 50,
+                    title: 'ВИФСАИДА',
+                    content: '<p><a href="/articles/9;id=5">ГОЛГОФА</a></p>',
+                }),
+            );
+            await mockArticleShow(page, 9, createArticleVersionDto({ articleId: 9, versionId: 90, title: 'ГОЛГОФА' }));
+            article = new ArticlePage(page);
+            await page.goto('/articles/5');
+            await article.waitForReady();
+
+            await article.content.locator('a[href="/articles/9;id=5"]').click();
+            await article.waitForError();
+
+            await expect(article.error).toBeVisible();
+            await expect(article.root).toBeHidden();
+            expect(requestedIds).toEqual(['5']);
+        });
+
         test('shows error for non-existent article (404)', async ({ authenticatedPage: page }) => {
             await bypassSsr(page, '**/articles/999');
             await mockArticleShowNotFound(page, 999);

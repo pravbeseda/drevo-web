@@ -1,5 +1,5 @@
 import { PictureService } from '../../../services/pictures/picture.service';
-import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -19,7 +19,7 @@ export function resolvePicture(
     pictureService: PictureService,
     route: ActivatedRouteSnapshot,
 ): Observable<PictureResolveResult> {
-    const id = parsePositiveIntParam(route.paramMap.get('id') ?? undefined);
+    const id = parsePositiveIntParam(readRouteParam(route, 'id'));
     if (id === undefined) {
         return of('not-found' as const);
     }

@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../../services/articles';
-import { parsePositiveIntParam } from '../../../../shared/helpers/route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,8 +24,8 @@ export class VersionRedirectComponent implements OnInit {
     readonly error = signal<string | undefined>(undefined);
 
     ngOnInit(): void {
-        const idParam = this.route.snapshot.paramMap.get('versionId');
-        const versionId = parsePositiveIntParam(idParam ?? undefined);
+        const idParam = readRouteParam(this.route.snapshot, 'versionId');
+        const versionId = parsePositiveIntParam(idParam);
 
         if (versionId === undefined) {
             this.error.set('Неверный ID версии');

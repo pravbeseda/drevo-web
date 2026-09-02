@@ -1,5 +1,5 @@
 import { CalendarService } from '../../../services/calendar/calendar.service';
-import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -26,14 +26,14 @@ export function resolveCalendarYear(
     route: ActivatedRouteSnapshot,
     currentYear: number,
 ): Observable<CalendarYearResolveResult> {
-    // paramMap.get() answers with null for a missing param; the codebase speaks
-    // in undefined, so the absence is normalised on the way in.
-    const yearParam = route.paramMap.get('year') ?? undefined;
-    if (yearParam === undefined) {
+    // `/calendar` names no year and means the current one. Whether the route
+    // names one is asked of paramMap directly — a year readRouteParam rejects
+    // is still a year the address asked for, and must not fall back to today.
+    if (!route.paramMap.has('year')) {
         return loadYear(calendarService, logger, currentYear);
     }
 
-    const year = parsePositiveIntParam(yearParam);
+    const year = parsePositiveIntParam(readRouteParam(route, 'year'));
     if (year === undefined || year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) {
         return of('not-found' as const);
     }

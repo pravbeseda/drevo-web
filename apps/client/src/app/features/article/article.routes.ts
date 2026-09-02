@@ -4,6 +4,7 @@ import { missingArticleResolver } from './resolvers/missing-article.resolver';
 import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
+import { readRouteParam } from '../../shared/helpers/route-params';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
 
@@ -16,9 +17,15 @@ import { ActivatedRouteSnapshot, Route } from '@angular/router';
  *   route (edit, version view, history, etc.). This keeps the article content
  *   fresh after an edit and also catches changes made in another tab or by
  *   another user.
+ *
+ * The id is read with `readRouteParam`, not off `paramMap`: a custom predicate
+ * fully replaces the default `paramsChange`, whose `equalParamsAndUrlSegments`
+ * compares the segments' matrix parameters too. Comparing the merged map alone
+ * would answer "unchanged" for `/articles/42` -> `/articles/43;id=42` and leave
+ * article 42 on screen under an address naming 43.
  */
 export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
-    if (from.paramMap.get('id') !== to.paramMap.get('id')) return true;
+    if (readRouteParam(from, 'id') !== readRouteParam(to, 'id')) return true;
 
     const fromPath = from.firstChild?.routeConfig?.path;
     const toPath = to.firstChild?.routeConfig?.path;
@@ -34,11 +41,13 @@ export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: Act
  *   (e.g. leaving the editor after `/edit` actually activated), so `canCreate`
  *   and the "create" button reflect current state.
  *
+ * The title is read with `readRouteParam` for the same reason as above.
+ *
  * The creation-denied redirect is handled separately in `newArticleResolver`:
  * it never commits `/edit`, so that same-URL redirect isn't observable here.
  */
 export function shouldRerunMissingArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
-    if (from.paramMap.get('title') !== to.paramMap.get('title')) return true;
+    if (readRouteParam(from, 'title') !== readRouteParam(to, 'title')) return true;
 
     const fromPath = from.firstChild?.routeConfig?.path;
     const toPath = to.firstChild?.routeConfig?.path;

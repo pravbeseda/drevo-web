@@ -1,14 +1,11 @@
+import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { resolveArticleVersion } from './article-version.resolver';
 import { createMockArticle } from '../testing/article-testing.helper';
-import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
+import { UrlSegment } from '@angular/router';
 import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
-
-function createRouteSnapshot(params: Record<string, string>): ActivatedRouteSnapshot {
-    return { paramMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
-}
 
 describe('resolveArticleVersion', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'getArticleVersion'>>;
@@ -68,6 +65,19 @@ describe('resolveArticleVersion', () => {
         ['padded with a leading zero', '042'],
     ])('should return undefined for an ID %s, without asking the API', (_case, versionId) => {
         const route = createRouteSnapshot({ versionId });
+        // A sentinel, so that an observable that never emitted cannot pass as undefined.
+        let result: unknown = 'not resolved';
+
+        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+
+        expect(result).toBeUndefined();
+        expect(articleService.getArticleVersion).not.toHaveBeenCalled();
+    });
+
+    it('should return undefined when a segment carries matrix params, without asking the API', () => {
+        // Angular merges `;versionId=456` over the positional `1`, so the paramMap
+        // reads 456 under an address the route pattern never named.
+        const route = createRouteSnapshot({ versionId: '456' }, [new UrlSegment('1', { versionId: '456' })]);
         // A sentinel, so that an observable that never emitted cannot pass as undefined.
         let result: unknown = 'not resolved';
 

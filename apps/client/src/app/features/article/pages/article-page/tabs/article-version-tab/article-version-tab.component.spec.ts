@@ -1,9 +1,10 @@
+import { createRouteSnapshot } from '../../../../../../shared/testing/route-testing.helper';
 import { ArticleService } from '../../../../../../services/articles';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { createReviewBlockStubs } from '../../../../../../shared/components/review-block/review-block.testing';
 import { ArticleVersionTabComponent } from './article-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router, UrlSegment } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -26,10 +27,22 @@ const mockVersion: ArticleVersion = {
     topics: [],
 };
 
+/**
+ * The tab reads its id off `route.snapshot` and re-reads it on every `route.url`
+ * emission, so a stub has to carry both, built from the same segments.
+ */
+function routeStub(
+    params: Record<string, string>,
+    segments: UrlSegment[] = Object.values(params).map(value => new UrlSegment(value, {})),
+) {
+    return { url: of(segments), snapshot: createRouteSnapshot(params, segments) };
+}
+
 describe('ArticleVersionTabComponent', () => {
     let spectator: Spectator<ArticleVersionTabComponent>;
     let articleService: jest.Mocked<ArticleService>;
-    let paramMapSubject: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+    let urlSubject: BehaviorSubject<UrlSegment[]>;
+    let routeMock: { url: unknown; snapshot: ReturnType<typeof createRouteSnapshot> };
 
     const reviewBlockStubs = createReviewBlockStubs();
 
@@ -58,16 +71,13 @@ describe('ArticleVersionTabComponent', () => {
         jest.clearAllMocks();
         reviewBlockStubs.user$.next(undefined);
         reviewBlockStubs.getReviews.mockReturnValue(of<readonly Review[]>([]));
-        paramMapSubject = new BehaviorSubject(convertToParamMap({ versionId: '789' }));
+        urlSubject = new BehaviorSubject([new UrlSegment('version', {}), new UrlSegment('789', {})]);
+        routeMock = {
+            url: urlSubject.asObservable(),
+            snapshot: createRouteSnapshot({ versionId: '789' }),
+        };
         spectator = createComponent({
-            providers: [
-                {
-                    provide: ActivatedRoute,
-                    useValue: {
-                        paramMap: paramMapSubject.asObservable(),
-                    },
-                },
-            ],
+            providers: [{ provide: ActivatedRoute, useValue: routeMock }],
         });
         articleService = spectator.inject(ArticleService);
         articleService.getVersionShow.mockReturnValue(of(mockVersion));
@@ -143,6 +153,22 @@ describe('ArticleVersionTabComponent', () => {
 
         expect(spectator.component.error()).toBe('Ошибка загрузки версии');
     });
+    it('rejects a matrix address reached by an in-app navigation', () => {
+        // `/articles/100/version/456;versionId=789` — the matrix value wins over
+        // the positional one, so the merged params are unchanged and paramMap
+        // never emits. Only the url does, and the tab must notice.
+        spectator.detectChanges();
+        expect(articleService.getVersionShow).toHaveBeenCalledWith(789);
+        const shadowed = [new UrlSegment('version', {}), new UrlSegment('456', { versionId: '789' })];
+
+        routeMock.snapshot = createRouteSnapshot({ versionId: '789' }, shadowed);
+        urlSubject.next(shadowed);
+        spectator.detectChanges();
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(spectator.component.version()).toBeUndefined();
+        expect(articleService.getVersionShow).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('ArticleVersionTabComponent with mismatched article', () => {
@@ -174,9 +200,7 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
             },
             {
                 provide: ActivatedRoute,
-                useValue: {
-                    paramMap: of(convertToParamMap({ versionId: '789' })),
-                },
+                useValue: routeStub({ versionId: '789' }),
             },
         ],
         detectChanges: false,
@@ -212,9 +236,7 @@ describe('ArticleVersionTabComponent with invalid ID', () => {
             },
             {
                 provide: ActivatedRoute,
-                useValue: {
-                    paramMap: of(convertToParamMap({ versionId: 'invalid' })),
-                },
+                useValue: routeStub({ versionId: 'invalid' }),
             },
         ],
     });
@@ -256,7 +278,25 @@ describe('ArticleVersionTabComponent with a malformed ID', () => {
                 { provide: ArticleService, useValue: articleService },
                 {
                     provide: ActivatedRoute,
-                    useValue: { paramMap: of(convertToParamMap({ versionId })) },
+                    useValue: routeStub({ versionId }),
+                },
+            ],
+        });
+
+        expect(spectator.component.error()).toBe('Неверный ID версии');
+        expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
+
+    it('shows the error when a segment carries matrix params, without asking the API', () => {
+        // Angular merges `;versionId=789` over the positional `1`, so the
+        // paramMap reads 789 under an address the route pattern never named.
+        const articleService = { getVersionShow: jest.fn() };
+        const spectator = createComponent({
+            providers: [
+                { provide: ArticleService, useValue: articleService },
+                {
+                    provide: ActivatedRoute,
+                    useValue: routeStub({ versionId: '789' }, [new UrlSegment('1', { versionId: '789' })]),
                 },
             ],
         });
