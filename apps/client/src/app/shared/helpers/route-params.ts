@@ -1,3 +1,5 @@
+import { ActivatedRouteSnapshot } from '@angular/router';
+
 /**
  * A canonical decimal id and nothing else. `Number()` on its own reads every
  * JavaScript literal form, so `0x2a`, `2e3`, `+42` and ` 42 ` would all resolve
@@ -22,4 +24,21 @@ export function parsePositiveIntParam(value: string | undefined): number | undef
 
     const parsed = Number(value);
     return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+/**
+ * Answers the string a positional route param denotes, or undefined when the
+ * param is absent or any segment of the route carries matrix params. Angular
+ * merges a segment's matrix params over the positional ones, so `/pictures/1;id=42`
+ * resolves picture 42 under a segment that reads `1`. The whole segment is
+ * rejected rather than only a name that collides with `name`: a segment carrying
+ * matrix params is an address the route pattern never named, whatever those
+ * params are called, and the rule needs no revision when a route gains a param.
+ */
+export function readRouteParam(route: ActivatedRouteSnapshot, name: string): string | undefined {
+    if (route.url.some(segment => Object.keys(segment.parameters).length > 0)) {
+        return undefined;
+    }
+
+    return route.paramMap.get(name) ?? undefined;
 }
