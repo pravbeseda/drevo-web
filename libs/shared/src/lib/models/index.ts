@@ -7,6 +7,7 @@ export * from './auth';
 export * from './calendar';
 export * from './dto';
 export * from './editor';
+export * from './forum';
 export * from './inwork';
 export * from './moderation';
 export * from './picture';
