@@ -1,0 +1,12 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+.topics-page__more {
+    display: flex;
+    justify-content: center;
+    padding: $gap-md 0;
+}

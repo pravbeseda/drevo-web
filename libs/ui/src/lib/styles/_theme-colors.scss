@@ -508,6 +508,13 @@ $theme-colors: (
         dark: $md-blue-grey-800,
     ),
 
+    /* Forum*/
+    /* The card a deep link anchors on, so the reader sees where they landed.*/
+    forum-anchor-bg: (
+        light: $md-yellow-100,
+        dark: rgba($md-yellow-600, 0.15),
+    ),
+
     /* Diff colors*/
     diff-insert-bg: (
         light: $md-green-100,

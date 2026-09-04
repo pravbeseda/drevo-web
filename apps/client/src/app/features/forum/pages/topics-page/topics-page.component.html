@@ -1,0 +1,29 @@
+@if (hasTopicList()) {
+    <app-topic-list [items]="topics()" />
+    @if (hasMore()) {
+        <div class="topics-page__more">
+            <ui-button
+                data-testid="topics-load-more"
+                variant="outlined"
+                [loading]="isLoadingMore()"
+                (click)="onLoadMore()"
+            >
+                Показать следующие
+            </ui-button>
+        </div>
+    }
+} @else if (isNotFound()) {
+    <app-error
+        title="Раздел не найден"
+        message="Запрашиваемый раздел форума не существует."
+        [showHomeButton]="true"
+        data-testid="topics-not-found"
+    />
+} @else if (isLoadError()) {
+    <app-error
+        title="Ошибка загрузки"
+        message="Не удалось загрузить список тем. Попробуйте обновить страницу."
+        [showHomeButton]="true"
+        data-testid="topics-load-error"
+    />
+}

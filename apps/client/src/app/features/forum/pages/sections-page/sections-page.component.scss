@@ -1,0 +1,34 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+.sections {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sections__item {
+    padding: $dropdown-item-padding-v 0;
+    border-bottom: 1px solid var(--themed-menu-border-color);
+}
+
+.sections__name {
+    color: var(--themed-link-color);
+    text-decoration: none;
+    font-size: $font-size-lg;
+
+    &:hover {
+        color: var(--themed-link-hover);
+        text-decoration: underline;
+    }
+}
+
+.sections__description {
+    margin: $brand-gap 0 0;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+}

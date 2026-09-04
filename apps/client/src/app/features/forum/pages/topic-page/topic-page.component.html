@@ -1,0 +1,73 @@
+@if (topic(); as topic) {
+    <header class="topic-page__header">
+        <h1
+            class="topic-page__title"
+            data-testid="topic-title"
+        >
+            {{ topic.title }}
+        </h1>
+        <div class="topic-page__meta">
+            <span data-testid="topic-author">{{ topic.author }}</span>
+            @if (topic.createdAt; as createdAt) {
+                <span data-testid="topic-created">{{ createdAt | formatDate }}</span>
+            }
+            @if (topic.article; as article) {
+                <a
+                    class="topic-page__article"
+                    data-testid="topic-article"
+                    [routerLink]="['/articles', article.id]"
+                >
+                    {{ article.title }}
+                </a>
+            }
+        </div>
+    </header>
+
+    @if (hasPrevious()) {
+        <div class="topic-page__more">
+            <ui-button
+                data-testid="topic-load-previous"
+                variant="outlined"
+                [loading]="isLoadingPrevious()"
+                (click)="onLoadPrevious()"
+            >
+                Показать предыдущие
+            </ui-button>
+        </div>
+    }
+
+    @for (message of messages(); track message.id) {
+        <app-message-card
+            [message]="message"
+            [topicId]="topic.id"
+            [anchored]="message.id === anchorId()"
+        />
+    }
+
+    @if (hasNext()) {
+        <div class="topic-page__more">
+            <ui-button
+                data-testid="topic-load-next"
+                variant="outlined"
+                [loading]="isLoadingNext()"
+                (click)="onLoadNext()"
+            >
+                Показать следующие
+            </ui-button>
+        </div>
+    }
+} @else if (isNotFound()) {
+    <app-error
+        title="Тема не найдена"
+        message="Запрашиваемая тема не существует или была удалена."
+        [showHomeButton]="true"
+        data-testid="topic-not-found"
+    />
+} @else if (isLoadError()) {
+    <app-error
+        title="Ошибка загрузки"
+        message="Не удалось загрузить тему. Попробуйте обновить страницу."
+        [showHomeButton]="true"
+        data-testid="topic-load-error"
+    />
+}
