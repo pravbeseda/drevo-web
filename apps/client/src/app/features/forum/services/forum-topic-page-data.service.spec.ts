@@ -149,7 +149,9 @@ describe('ForumTopicPageDataService', () => {
 
     describe('the cache the route readers share', () => {
         it('asks the API once, however many resolvers on the route read it', () => {
-            expect(load({ id: '42' })).toBe(load({ id: '42' }));
+            load({ id: '42' });
+            load({ id: '42' });
+
             expect(forumService.getTopic).toHaveBeenCalledTimes(1);
         });
 

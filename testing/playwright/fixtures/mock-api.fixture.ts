@@ -526,6 +526,9 @@ export async function mockLinkedHereApi(
     });
 }
 
+/** Matches GET /api/forum/topics (with or without query params), but NOT /api/forum/topics/:id */
+const FORUM_TOPICS_LIST_RE = /\/api\/forum\/topics(\?.*)?$/;
+
 /**
  * Mock GET /api/forum/topics — the topic list of a forum section.
  *
@@ -537,7 +540,7 @@ export async function mockForumTopicsApi(
     page: RouteTarget,
     response: ForumTopicListResponseDto = createForumTopicListResponse([]),
 ): Promise<void> {
-    await page.route('**/api/forum/topics**', route => route.fulfill({ json: apiSuccess(response) }));
+    await page.route(FORUM_TOPICS_LIST_RE, route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 // ---------------------------------------------------------------------------

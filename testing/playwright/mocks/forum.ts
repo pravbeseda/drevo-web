@@ -8,7 +8,7 @@ export function createForumTopicListItemDto(
         id: index,
         title: `Тема ${index}`,
         author: 'Иванов И.И.',
-        createdAt: '2025-03-15 10:00:00',
+        createdAt: '2025-03-15T10:00:00+03:00',
         repliesCount: 2,
         lastPostId: 0,
         lastPostAt: null,
