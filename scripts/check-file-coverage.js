@@ -40,6 +40,7 @@ const EXCEPTIONS = {
     'apps/client/src/app/app.config.server.ts': 0,
     'apps/client/src/app/app.routes.ts': 0,
     'apps/client/src/app/app.routes.server.ts': 0,
+    'apps/client/src/app/features/forum/forum.routes.ts': 0,
     'apps/client/src/app/features/history/history.routes.ts': 0,
     'apps/client/src/app/features/picture/picture.routes.ts': 0,
     'apps/client/src/app/features/calendar/calendar.routes.ts': 0,

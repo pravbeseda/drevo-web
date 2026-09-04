@@ -1,0 +1,23 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+.article-forum__message {
+    margin: 0;
+    color: var(--themed-text-secondary);
+}
+
+.article-forum__all {
+    display: inline-block;
+    margin-top: $gap-md;
+    color: var(--themed-link-color);
+    text-decoration: none;
+
+    &:hover {
+        color: var(--themed-link-hover);
+        text-decoration: underline;
+    }
+}

@@ -44,6 +44,7 @@ export {
     mockArticleHistory,
     mockArticleHistoryError,
     mockLinkedHereApi,
+    mockForumTopicsApi,
     mockArticleVersion,
     mockArticleFindFound,
     mockArticleFindMissing,

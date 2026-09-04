@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
     { label: 'Изменения', route: '/history/articles', icon: 'history' },
     { label: 'Иллюстрации', route: '/pictures', icon: 'photo_library' },
     { label: 'Календарь', route: '/calendar', icon: 'calendar_month' },
+    { label: 'Форум', route: '/forum', icon: 'forum' },
 ];
 
 @Component({

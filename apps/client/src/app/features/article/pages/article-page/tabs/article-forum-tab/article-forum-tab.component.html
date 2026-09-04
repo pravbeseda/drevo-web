@@ -1,0 +1,28 @@
+@if (topics(); as items) {
+    @if (items.length === 0) {
+        <p
+            class="article-forum__message"
+            data-testid="article-forum-empty"
+        >
+            Обсуждений этой статьи пока нет.
+        </p>
+    } @else {
+        <app-topic-list [items]="items" />
+        <a
+            class="article-forum__all"
+            data-testid="article-forum-all"
+            [routerLink]="sectionUrl()"
+        >
+            Все обсуждения
+        </a>
+    }
+} @else if (isLoadError()) {
+    <p
+        class="article-forum__message"
+        data-testid="article-forum-error"
+    >
+        Не удалось загрузить обсуждения. Попробуйте обновить страницу.
+    </p>
+} @else {
+    <ui-spinner />
+}

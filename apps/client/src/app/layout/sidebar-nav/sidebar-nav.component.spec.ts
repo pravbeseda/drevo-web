@@ -34,6 +34,14 @@ describe('SidebarNavComponent', () => {
         expect(items[0]).toHaveText('Изменения');
     });
 
+    it('should link to the forum', () => {
+        spectator = createComponent();
+
+        const forumItem = spectator.queryAll('.nav-item').find(item => item.textContent?.includes('Форум'));
+
+        expect(forumItem).toHaveAttribute('href', '/forum');
+    });
+
     it('should pass label as tooltip to icon', () => {
         spectator = createComponent();
 

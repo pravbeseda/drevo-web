@@ -161,10 +161,9 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: 'forum',
                 title: 'Обсуждение',
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent,
+                    import('./pages/article-page/tabs/article-forum-tab/article-forum-tab.component').then(
+                        m => m.ArticleForumTabComponent,
                     ),
-                data: { stubTitle: 'Обсуждение' },
             },
             {
                 path: 'history',

@@ -19,6 +19,7 @@ import {
     mockArticleViewData,
     mockDiffData,
 } from '../mocks/articles';
+import { createForumTopicListResponse } from '../mocks/forum';
 import { createLinkedHereResponse } from '../mocks/linked-here';
 import {
     ArticleHistoryResponseDto,
@@ -27,6 +28,7 @@ import {
     ArticleVersionDto,
     CalendarYearDto,
     CreateArticleResponseDto,
+    ForumTopicListResponseDto,
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
@@ -522,6 +524,20 @@ export async function mockLinkedHereApi(
         const body = typeof response === 'function' ? response(query, pageNumber) : response;
         return route.fulfill({ json: apiSuccess(body) });
     });
+}
+
+/**
+ * Mock GET /api/forum/topics — the topic list of a forum section.
+ *
+ * The article's discussion tab asks for its own section (`part=articles`,
+ * `partId=<article id>`), and the forum pages ask for theirs; both are served
+ * from here.
+ */
+export async function mockForumTopicsApi(
+    page: RouteTarget,
+    response: ForumTopicListResponseDto = createForumTopicListResponse([]),
+): Promise<void> {
+    await page.route('**/api/forum/topics**', route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 // ---------------------------------------------------------------------------

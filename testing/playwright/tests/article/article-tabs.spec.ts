@@ -5,8 +5,10 @@ import {
     mockArticleVersionShow,
     mockArticleHistory,
     mockArticleHistoryError,
+    mockForumTopicsApi,
 } from '../../fixtures';
 import { createArticleHistoryResponse, mockArticleViewData } from '../../mocks/articles';
+import { createForumTopicListItemDto, createForumTopicListResponse } from '../../mocks/forum';
 import { ArticlePage } from '../../pages/article.page';
 
 const ARTICLE_ID = 42;
@@ -29,10 +31,24 @@ test.describe('Article tabs', () => {
             await article.tabNews.click();
             await expect(article.stub).toBeVisible();
         });
+    });
 
-        test('forum tab shows stub content', async () => {
+    test.describe('Forum tab', () => {
+        test('lists the discussions of this article', async ({ authenticatedPage: page }) => {
+            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
+
             await article.tabForum.click();
-            await expect(article.stub).toBeVisible();
+
+            await expect(article.forumTopics).toHaveCount(1);
+            await expect(article.forumAllTopics).toHaveAttribute('href', `/forum/articles/${ARTICLE_ID}`);
+        });
+
+        test('states that the article has no discussions yet', async ({ authenticatedPage: page }) => {
+            await mockForumTopicsApi(page);
+
+            await article.tabForum.click();
+
+            await expect(article.forumEmpty).toBeVisible();
         });
     });
 

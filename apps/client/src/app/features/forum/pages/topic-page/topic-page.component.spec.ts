@@ -1,6 +1,6 @@
 import { ForumService } from '../../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
-import { ForumTopicResolveResult } from '../../resolvers/forum-topic.resolver';
+import { ForumTopicResolveResult } from '../../services/forum-topic-page-data.service';
 import { TopicPageComponent } from './topic-page.component';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';

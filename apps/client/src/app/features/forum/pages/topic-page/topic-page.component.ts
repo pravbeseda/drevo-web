@@ -2,7 +2,7 @@ import { ForumService } from '../../../../services/forum/forum.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { MessageCardComponent } from '../../components/message-card/message-card.component';
 import { readForumAnchor } from '../../forum-route-params';
-import { ForumTopicResolveResult } from '../../resolvers/forum-topic.resolver';
+import { ForumTopicResolveResult } from '../../services/forum-topic-page-data.service';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
