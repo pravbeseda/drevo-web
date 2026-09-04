@@ -1,53 +1,44 @@
-@if (items().length === 0) {
-    <p
-        class="topic-list__empty"
-        data-testid="topics-empty"
-    >
-        В этом разделе пока нет тем.
-    </p>
-} @else {
-    <ul class="topic-list">
-        @for (topic of items(); track topic.id) {
-            <li
-                class="topic-list__item"
-                data-testid="topic-item"
-            >
-                <div class="topic-list__title-row">
-                    @if (topic.pinned) {
-                        <ui-icon
-                            class="topic-list__pin"
-                            data-testid="topic-pinned"
-                            name="push_pin"
-                            size="small"
-                            tooltip="Закреплённая тема"
-                        />
+<ul class="topic-list">
+    @for (topic of items(); track topic.id) {
+        <li
+            class="topic-list__item"
+            data-testid="topic-item"
+        >
+            <div class="topic-list__title-row">
+                @if (topic.pinned) {
+                    <ui-icon
+                        class="topic-list__pin"
+                        data-testid="topic-pinned"
+                        name="push_pin"
+                        size="small"
+                        tooltip="Закреплённая тема"
+                    />
+                }
+                <a
+                    class="topic-list__title"
+                    data-testid="topic-title"
+                    [routerLink]="['/forum/topic', topic.id]"
+                >
+                    {{ topic.title }}
+                </a>
+            </div>
+            <div class="topic-list__meta">
+                <span data-testid="topic-author">{{ topic.author }}</span>
+                <span data-testid="topic-replies">Ответов: {{ topic.repliesCount }}</span>
+                @if (topic.lastPostAt) {
+                    @if (topic.lastPostId; as lastPostId) {
+                        <a
+                            class="topic-list__last-post"
+                            data-testid="topic-last-post"
+                            [routerLink]="['/forum/topic', topic.id, lastPostId]"
+                        >
+                            {{ topic.lastPostAt | formatDate }}
+                        </a>
+                    } @else {
+                        <span data-testid="topic-last-post">{{ topic.lastPostAt | formatDate }}</span>
                     }
-                    <a
-                        class="topic-list__title"
-                        data-testid="topic-title"
-                        [routerLink]="['/forum/topic', topic.id]"
-                    >
-                        {{ topic.title }}
-                    </a>
-                </div>
-                <div class="topic-list__meta">
-                    <span data-testid="topic-author">{{ topic.author }}</span>
-                    <span data-testid="topic-replies">Ответов: {{ topic.repliesCount }}</span>
-                    @if (topic.lastPostAt) {
-                        @if (topic.lastPostId; as lastPostId) {
-                            <a
-                                class="topic-list__last-post"
-                                data-testid="topic-last-post"
-                                [routerLink]="['/forum/topic', topic.id, lastPostId]"
-                            >
-                                {{ topic.lastPostAt | formatDate }}
-                            </a>
-                        } @else {
-                            <span data-testid="topic-last-post">{{ topic.lastPostAt | formatDate }}</span>
-                        }
-                    }
-                </div>
-            </li>
-        }
-    </ul>
-}
+                }
+            </div>
+        </li>
+    }
+</ul>

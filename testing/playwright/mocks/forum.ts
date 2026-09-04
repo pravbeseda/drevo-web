@@ -1,6 +1,5 @@
 import {
     ForumMessageDto,
-    ForumMessageListResponseDto,
     ForumSectionDto,
     ForumTopicDto,
     ForumTopicListItemDto,
@@ -8,13 +7,12 @@ import {
     ForumTopicPageDto,
 } from '@drevo-web/shared';
 
-export function createForumTopicListItemDto(
-    overrides: Partial<ForumTopicListItemDto> = {},
-    index = 1,
-): ForumTopicListItemDto {
+const DEFAULT_PAGE_SIZE = 20;
+
+export function createForumTopicListItemDto(overrides: Partial<ForumTopicListItemDto> = {}): ForumTopicListItemDto {
     return {
-        id: index,
-        title: `Тема ${index}`,
+        id: 1,
+        title: 'Тема 1',
         author: 'Иванов И.И.',
         createdAt: '2025-03-15T10:00:00+03:00',
         repliesCount: 2,
@@ -25,18 +23,13 @@ export function createForumTopicListItemDto(
     };
 }
 
-export function createForumTopicListResponse(
-    items: readonly ForumTopicListItemDto[],
-    overrides: Partial<Omit<ForumTopicListResponseDto, 'items'>> = {},
-): ForumTopicListResponseDto {
-    const total = overrides.total ?? items.length;
-    const pageSize = overrides.pageSize ?? 20;
+export function createForumTopicListResponse(items: readonly ForumTopicListItemDto[]): ForumTopicListResponseDto {
     return {
         items,
-        total,
-        page: overrides.page ?? 1,
-        pageSize,
-        totalPages: overrides.totalPages ?? Math.ceil(total / pageSize),
+        total: items.length,
+        page: 1,
+        pageSize: DEFAULT_PAGE_SIZE,
+        totalPages: Math.ceil(items.length / DEFAULT_PAGE_SIZE),
     };
 }
 
@@ -84,21 +77,16 @@ export function createForumMessageDto(overrides: Partial<ForumMessageDto> = {}, 
     };
 }
 
-export function createForumTopicPage(
-    topic: ForumTopicDto,
-    messages: readonly ForumMessageDto[],
-    overrides: Partial<Omit<ForumMessageListResponseDto, 'items'>> = {},
-): ForumTopicPageDto {
-    const total = overrides.total ?? messages.length;
-    const pageSize = overrides.pageSize ?? Math.max(messages.length, 1);
+/** One page holding every message it is given, so no load-more control appears. */
+export function createForumTopicPage(topic: ForumTopicDto, messages: readonly ForumMessageDto[]): ForumTopicPageDto {
     return {
         topic,
         messages: {
             items: messages,
-            total,
-            page: overrides.page ?? 1,
-            pageSize,
-            totalPages: overrides.totalPages ?? Math.ceil(total / pageSize),
+            total: messages.length,
+            page: 1,
+            pageSize: Math.max(messages.length, 1),
+            totalPages: 1,
         },
     };
 }

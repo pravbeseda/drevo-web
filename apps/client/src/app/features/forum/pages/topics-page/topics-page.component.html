@@ -1,5 +1,14 @@
 @if (hasTopicList()) {
-    <app-topic-list [items]="topics()" />
+    @if (topics().length === 0) {
+        <p
+            class="topics-page__empty"
+            data-testid="topics-empty"
+        >
+            В этом разделе пока нет тем.
+        </p>
+    } @else {
+        <app-topic-list [items]="topics()" />
+    }
     @if (hasMore()) {
         <div class="topics-page__more">
             <ui-button

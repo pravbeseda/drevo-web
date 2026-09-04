@@ -10,3 +10,9 @@
     justify-content: center;
     padding: $gap-md 0;
 }
+
+.topics-page__empty {
+    margin: 0;
+    padding: $dropdown-item-padding-v $dropdown-item-padding-h;
+    color: var(--themed-text-secondary);
+}

@@ -1,6 +1,5 @@
 import { ForumService } from '../../../services/forum/forum.service';
-import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
-import { readForumSectionParams } from '../forum-route-params';
+import { readForumPage, readForumSectionParams } from '../forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -33,7 +32,7 @@ export function resolveForumTopics(
         return of('not-found' as const);
     }
 
-    const page = parsePositiveIntParam(route.queryParamMap.get('page') ?? undefined);
+    const page = readForumPage(route);
 
     return forumService.getTopics(section.part, section.partId, page).pipe(
         catchError((error: unknown) => {

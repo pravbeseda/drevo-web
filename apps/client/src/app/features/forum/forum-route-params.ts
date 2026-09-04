@@ -42,3 +42,12 @@ export function readForumAnchor(route: ActivatedRouteSnapshot): number | undefin
 
     return parsePositiveIntParam(readRouteParam(route, 'messageId')) ?? INVALID_ANCHOR;
 }
+
+/**
+ * The page an address asks for, `undefined` when it names none or names
+ * something that is not a page. Shared for the same reason as the readers
+ * above: what `?page` means is one decision, not one per reader.
+ */
+export function readForumPage(route: ActivatedRouteSnapshot): number | undefined {
+    return parsePositiveIntParam(route.queryParamMap.get('page') ?? undefined);
+}

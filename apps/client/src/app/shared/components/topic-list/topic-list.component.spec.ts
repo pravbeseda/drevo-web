@@ -80,10 +80,9 @@ describe('TopicListComponent', () => {
         expect(spectator.query('[data-testid="topic-pinned"]')).toBeNull();
     });
 
-    it('tells the reader the section is empty', () => {
+    it('renders nothing for an empty list — the empty state belongs to the page', () => {
         render([]);
 
-        expect(spectator.query('[data-testid="topics-empty"]')).toHaveText('В этом разделе пока нет тем.');
         expect(spectator.queryAll('[data-testid="topic-item"]')).toHaveLength(0);
     });
 });

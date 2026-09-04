@@ -1,6 +1,6 @@
 import { ForumService } from '../../../services/forum/forum.service';
 import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
-import { INVALID_ANCHOR, readForumAnchor } from '../forum-route-params';
+import { INVALID_ANCHOR, readForumAnchor, readForumPage } from '../forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
@@ -62,7 +62,7 @@ export class ForumTopicPageDataService {
             return of('not-found' as const);
         }
 
-        const page = parsePositiveIntParam(route.queryParamMap.get('page') ?? undefined);
+        const page = readForumPage(route);
 
         return this.forumService.getTopic(id, page, anchor).pipe(
             catchError((error: unknown) => {
