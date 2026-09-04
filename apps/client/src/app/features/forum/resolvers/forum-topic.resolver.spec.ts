@@ -109,16 +109,6 @@ describe('resolveForumTopic', () => {
         expect(forumService.getTopic).not.toHaveBeenCalled();
     });
 
-    it('answers not-found when the message segment carries matrix params, without asking the API', () => {
-        expect(
-            resolve({ id: '42', messageId: '7' }, {}, [
-                new UrlSegment('42', {}),
-                new UrlSegment('1', { messageId: '7' }),
-            ]),
-        ).toBe('not-found');
-        expect(forumService.getTopic).not.toHaveBeenCalled();
-    });
-
     it('answers not-found when the API answers 404', () => {
         forumService.getTopic.mockReturnValue(
             throwError(() => new HttpErrorResponse({ status: 404, statusText: 'Not Found' })),

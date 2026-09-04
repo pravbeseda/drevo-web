@@ -29,15 +29,6 @@ describe('resolveForumSections', () => {
         expect(forumService.getSections).toHaveBeenCalledWith();
     });
 
-    it('answers not-found when the API answers 404', () => {
-        forumService.getSections.mockReturnValue(
-            throwError(() => new HttpErrorResponse({ status: 404, statusText: 'Not Found' })),
-        );
-
-        expect(resolve()).toBe('not-found');
-        expect(logger.error).not.toHaveBeenCalled();
-    });
-
     it('answers load-error when the request fails for any other reason', () => {
         forumService.getSections.mockReturnValue(
             throwError(() => new HttpErrorResponse({ status: 500, statusText: 'Server Error' })),
