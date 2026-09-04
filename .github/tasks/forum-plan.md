@@ -137,11 +137,11 @@ Behaviour:
 
 #### Steps (red → green → refactor)
 
-- [ ] 1. **DTOs and models.** — files: `libs/shared/src/lib/models/dto/forum.dto.ts`, `libs/shared/src/lib/models/forum.ts`, both barrels — lenses: none — done when: `yarn nx test shared --configuration=ci` and `yarn lint:types` are green and `@drevo-web/shared` exports `ForumSectionDto`/`ForumSection`, `ForumTopicListItemDto`/`ForumTopicListItem`, `ForumTopicDto`/`ForumTopic`, `ForumMessageDto`/`ForumMessage`, `ForumTopicPageDto`/`ForumTopicPage`. Types only, no behaviour: the DTO mirrors the wire (`T | null` where the contract says `null`), the model follows the repository's rules (`undefined` for absence), and the red test that covers them is step 2's spec, written before step 2's implementation.
+- [x] 1. **DTOs and models.** — files: `libs/shared/src/lib/models/dto/forum.dto.ts`, `libs/shared/src/lib/models/forum.ts`, both barrels — lenses: none — done when: `yarn nx test shared --configuration=ci` and `yarn lint:types` are green and `@drevo-web/shared` exports `ForumSectionDto`/`ForumSection`, `ForumTopicListItemDto`/`ForumTopicListItem`, `ForumTopicDto`/`ForumTopic`, `ForumMessageDto`/`ForumMessage`, `ForumTopicPageDto`/`ForumTopicPage`. Types only, no behaviour: the DTO mirrors the wire (`T | null` where the contract says `null`), the model follows the repository's rules (`undefined` for absence), and the red test that covers them is step 2's spec, written before step 2's implementation.
 
 - [ ] 2. **`ForumApiService`.** — files: `apps/client/src/app/services/forum/forum-api.service.ts` + spec, `index.ts` — lenses: none — done when: the spec, red first, pins `GET /api/forum/sections`; `/api/forum/topics` with `part`, `partId`, `page` and no empty params; `/api/forum/topics/:id` with `page` and `anchor`; `withCredentials: true` on all three and `data` unwrapped from `ApiResponse`.
 
-- [ ] 3. **`ForumService`.** — files: `apps/client/src/app/services/forum/forum.service.ts` + spec — lenses: none — done when: the spec covers dates through `parseDate`, a missing `author.login` mapped to `undefined`, `article: null` mapped to `undefined`, `pinned`, and `total`/`page`/`pageSize`/`totalPages` carried through unchanged.
+- [ ] 3. **`ForumService`.** — files: `apps/client/src/app/services/forum/forum.service.ts` + spec — lenses: none — done when: the spec covers dates through `parseDate`, a missing `author.login` mapped to `undefined`, `article: null` mapped to `undefined`, the three `0` sentinels of the wire (`lastPostId`, `partId`, `parentId`) mapped to `undefined`, `pinned`, and `total`/`page`/`pageSize`/`totalPages` carried through unchanged.
 
 - [ ] 4. **Resolvers.** — files: `apps/client/src/app/features/forum/resolvers/forum-sections.resolver.ts`, `forum-topics.resolver.ts`, `forum-topic.resolver.ts` + specs, `apps/client/src/app/shared/testing/route-testing.helper.ts` (a `queryParams` argument) — lenses: security — done when: the specs cover a non-numeric, zero, negative and matrix-param id resolving to `'not-found'` without the service being called, a 404 to `'not-found'`, any other error to `'load-error'`, `?page` read from the query, and `:messageId` passed as `anchor`.
 
@@ -256,6 +256,9 @@ Legacy, per PR: `composer test`, `composer coverage:patch`, `composer stan`,
 ## Rulings
 
 _One line per reviewer finding not fixed: what it said, what was decided, why._
+
+- Step 1, quality: the paged envelope `{items, total, page, pageSize, totalPages}` is written out four times and a `ForumPage<T>` generic would remove two interfaces per file. Dropped: every other model in `libs/shared` repeats the envelope per domain (`picture.ts:28,62`, `article-history.ts:30`), so a generic here makes the forum the one shape read differently from the rest; a shared envelope is a repository-wide refactor, not this step's. Cost if wrong: four declarations to edit together if the backend ever changes the envelope.
+- Step 1, spec: `lastPostId` carried the wire's `0` sentinel into the domain model. Fixed, and with it the two fields of the same class the finding did not name — `partId` (`0` for a topic attached to no article) and `parentId` (`0` on a root message). All three are `number | undefined` in the model and stay `number` in the DTO, which mirrors the wire; the `0 -> undefined` conversion is step 3's mapper, and step 3's done-criterion now names it.
 
 ## Parked
 
