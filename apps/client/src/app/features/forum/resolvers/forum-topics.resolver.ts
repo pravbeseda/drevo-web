@@ -1,5 +1,6 @@
 import { ForumService } from '../../../services/forum/forum.service';
-import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
+import { parsePositiveIntParam } from '../../../shared/helpers/route-params';
+import { readForumSectionParams } from '../forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -18,27 +19,23 @@ export type ForumTopicsResolveResult = ForumTopicListResponse | 'not-found' | 'l
  * Pure function for resolving a page of forum topics from route params.
  * Extracted for testability without injection context.
  *
- * `/forum` names no section and means every one. Whether the address names one
- * is asked of paramMap directly — a param `readRouteParam` rejects is still a
- * param the address asked for, and must not fall back to "every section".
+ * `/forum` names no section and means every one; an address naming one the
+ * readers refuse is not that page. `readForumSectionParams` is shared with the
+ * page, which pages through the same section.
  */
 export function resolveForumTopics(
     forumService: ForumService,
     logger: Logger,
     route: ActivatedRouteSnapshot,
 ): Observable<ForumTopicsResolveResult> {
-    const namesPart = route.paramMap.has('part');
-    const namesPartId = route.paramMap.has('partId');
-    const part = namesPart ? readRouteParam(route, 'part') : undefined;
-    const partId = namesPartId ? parsePositiveIntParam(readRouteParam(route, 'partId')) : undefined;
-
-    if ((namesPart && part === undefined) || (namesPartId && partId === undefined)) {
+    const section = readForumSectionParams(route);
+    if (section === undefined) {
         return of('not-found' as const);
     }
 
     const page = parsePositiveIntParam(route.queryParamMap.get('page') ?? undefined);
 
-    return forumService.getTopics(part, partId, page).pipe(
+    return forumService.getTopics(section.part, section.partId, page).pipe(
         catchError((error: unknown) => {
             // A section that does not exist is a stale link, not a fault, so it
             // is answered without a log entry. Anything else is reported:

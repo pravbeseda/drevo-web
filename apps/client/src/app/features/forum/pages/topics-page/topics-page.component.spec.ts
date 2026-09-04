@@ -2,7 +2,7 @@ import { ForumService } from '../../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { TopicsPageComponent } from './topics-page.component';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
@@ -99,6 +99,19 @@ describe('TopicsPageComponent', () => {
         loadMore();
 
         expect(titles()).toEqual(['Тема 1', 'Тема 2']);
+    });
+
+    it('never rewrites the address, so the resolver does not re-run', () => {
+        render(createPage({ page: 1, totalPages: 3 }));
+        const router = spectator.inject(Router);
+        const navigate = jest.spyOn(router, 'navigate');
+        const navigateByUrl = jest.spyOn(router, 'navigateByUrl');
+        forumService.getTopics.mockReturnValue(of(createPage({ items: [createItem(2)], page: 2, totalPages: 3 })));
+
+        loadMore();
+
+        expect(navigate).not.toHaveBeenCalled();
+        expect(navigateByUrl).not.toHaveBeenCalled();
     });
 
     it('asks for the next page of the section the address names', () => {

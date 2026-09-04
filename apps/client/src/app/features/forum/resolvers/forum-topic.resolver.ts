@@ -1,5 +1,6 @@
 import { ForumService } from '../../../services/forum/forum.service';
 import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
+import { INVALID_ANCHOR, readForumAnchor } from '../forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -30,9 +31,8 @@ export function resolveForumTopic(
         return of('not-found' as const);
     }
 
-    const namesMessage = route.paramMap.has('messageId');
-    const anchor = namesMessage ? parsePositiveIntParam(readRouteParam(route, 'messageId')) : undefined;
-    if (namesMessage && anchor === undefined) {
+    const anchor = readForumAnchor(route);
+    if (anchor === INVALID_ANCHOR) {
         return of('not-found' as const);
     }
 

@@ -14,9 +14,11 @@ type MessageLink = readonly (string | number)[];
     styleUrl: './message-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
-        // The anchor scroll finds a card by this id, so it names the message
-        // rather than the position, which "load more" changes.
-        '[attr.data-testid]': 'testId()',
+        // The anchor scroll finds a card by its `id`, which names the message
+        // rather than the position — "load more" changes the position. The
+        // test hook carries the same name but stays a test concern.
+        '[attr.id]': 'elementId()',
+        '[attr.data-testid]': 'elementId()',
         '[class.message-card--anchored]': 'anchored()',
     },
 })
@@ -34,5 +36,5 @@ export class MessageCardComponent {
         return parentId === undefined ? undefined : ['/forum/topic', this.topicId(), parentId];
     });
 
-    protected readonly testId = computed(() => `message-${this.message().id}`);
+    protected readonly elementId = computed(() => `message-${this.message().id}`);
 }

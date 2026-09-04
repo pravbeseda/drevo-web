@@ -1,7 +1,7 @@
 import { ForumService } from '../../../../services/forum/forum.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { TopicListComponent } from '../../../../shared/components/topic-list/topic-list.component';
-import { parsePositiveIntParam, readRouteParam } from '../../../../shared/helpers/route-params';
+import { readForumSectionParams } from '../../forum-route-params';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -84,18 +84,15 @@ export class TopicsPageComponent {
     }
 
     /**
-     * The address the resolver was given decides which section is paged, and
-     * the params are read the way the resolver reads them — a matrix param or a
-     * malformed id must not silently widen the request to every section.
+     * The address the resolver was given decides which section is paged, read
+     * through the same function the resolver used. A section it refuses cannot
+     * reach here: the resolver answered `'not-found'` and there is no list to
+     * page through.
      */
     private fetchNextPage(): Observable<ForumTopicListResponse | undefined> {
-        const snapshot = this.route.snapshot;
-        const part = snapshot.paramMap.has('part') ? readRouteParam(snapshot, 'part') : undefined;
-        const partId = snapshot.paramMap.has('partId')
-            ? parsePositiveIntParam(readRouteParam(snapshot, 'partId'))
-            : undefined;
+        const section = readForumSectionParams(this.route.snapshot);
 
-        return this.forumService.getTopics(part, partId, this._lastPage() + 1).pipe(
+        return this.forumService.getTopics(section?.part, section?.partId, this._lastPage() + 1).pipe(
             catchError((error: unknown) => {
                 this.logger.error('Failed to load more forum topics', error);
                 return of(undefined);

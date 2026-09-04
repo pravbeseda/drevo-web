@@ -100,7 +100,7 @@ describe('TopicPageComponent', () => {
         it('shows the title, the author and the date', () => {
             render(createTopicPage([createMessage(1)], 1, 1));
 
-            expect(spectator.query('[data-testid="topic-title"]')).toHaveText('Тема о святых');
+            expect(spectator.query('[data-testid="topic-page-title"]')).toHaveText('Тема о святых');
             expect(spectator.query('[data-testid="topic-author"]')).toHaveText('Иванов И.И.');
             expect(spectator.query('[data-testid="topic-created"]')).toBeTruthy();
         });
@@ -191,6 +191,25 @@ describe('TopicPageComponent', () => {
             expect(forumService.getTopic).toHaveBeenCalledWith(42, 3);
             expect(cardIds()).toEqual(['message-3', 'message-4']);
             expect(spectator.query('[data-testid="topic-load-next"]')).toBeNull();
+        });
+
+        /**
+         * The two directions are independent requests, so one in flight must
+         * not be torn down by a click on the other.
+         */
+        it('lets the two directions run side by side', () => {
+            render(createTopicPage([createMessage(3)], 2, 3));
+            const previous = new Subject<ForumTopicPage>();
+            const next = new Subject<ForumTopicPage>();
+            forumService.getTopic.mockReturnValueOnce(previous).mockReturnValueOnce(next);
+
+            click('topic-load-previous');
+            click('topic-load-next');
+            previous.next(createTopicPage([createMessage(2)], 1, 3));
+            next.next(createTopicPage([createMessage(4)], 3, 3));
+            spectator.detectChanges();
+
+            expect(cardIds()).toEqual(['message-2', 'message-3', 'message-4']);
         });
 
         it('never rewrites the address, so the resolver does not re-run', () => {
