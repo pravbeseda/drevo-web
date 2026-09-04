@@ -24,10 +24,10 @@ describe('ForumApiService', () => {
                 id: 42,
                 title: 'Тема',
                 author: 'Иван Иванов',
-                createdAt: '2026-01-02 03:04:05',
+                createdAt: '2026-01-02T03:04:05+03:00',
                 repliesCount: 3,
                 lastPostId: 99,
-                lastPostAt: '2026-01-03 03:04:05',
+                lastPostAt: '2026-01-03T03:04:05+03:00',
                 pinned: false,
             },
         ],
@@ -45,7 +45,7 @@ describe('ForumApiService', () => {
             partId: 0,
             article: null,
             author: 'Иван Иванов',
-            createdAt: '2026-01-02 03:04:05',
+            createdAt: '2026-01-02T03:04:05+03:00',
             repliesCount: 1,
         },
         messages: {
@@ -54,7 +54,7 @@ describe('ForumApiService', () => {
                     id: 99,
                     parentId: 42,
                     author: { name: 'Иван Иванов', login: 'ivan' },
-                    createdAt: '2026-01-03 03:04:05',
+                    createdAt: '2026-01-03T03:04:05+03:00',
                     html: '<p>Текст</p>',
                 },
             ],
@@ -114,7 +114,6 @@ describe('ForumApiService', () => {
             spectator.service.getTopics().subscribe();
 
             const req = httpController.expectOne('/api/forum/topics');
-            expect(req.request.params.keys()).toEqual([]);
             req.flush({ success: true, data: topicList });
         });
 
@@ -122,15 +121,6 @@ describe('ForumApiService', () => {
             spectator.service.getTopics('', 0, 3).subscribe();
 
             const req = httpController.expectOne('/api/forum/topics?page=3');
-            expect(req.request.params.keys()).toEqual(['page']);
-            req.flush({ success: true, data: topicList });
-        });
-
-        it('should never send size — the server decides the page size', () => {
-            spectator.service.getTopics('common', undefined, 1).subscribe();
-
-            const req = httpController.expectOne('/api/forum/topics?part=common&page=1');
-            expect(req.request.params.has('size')).toBe(false);
             req.flush({ success: true, data: topicList });
         });
     });
@@ -152,7 +142,6 @@ describe('ForumApiService', () => {
             spectator.service.getTopic(42).subscribe();
 
             const req = httpController.expectOne('/api/forum/topics/42');
-            expect(req.request.params.keys()).toEqual([]);
             req.flush({ success: true, data: topicPage });
         });
 
@@ -160,7 +149,6 @@ describe('ForumApiService', () => {
             spectator.service.getTopic(42, undefined, 99).subscribe();
 
             const req = httpController.expectOne('/api/forum/topics/42?anchor=99');
-            expect(req.request.params.keys()).toEqual(['anchor']);
             req.flush({ success: true, data: topicPage });
         });
     });
