@@ -8,7 +8,7 @@
             [routerLink]="tab.route"
             routerLinkActive
             #rla="routerLinkActive"
-            [routerLinkActiveOptions]="{ exact: tab.exact ?? false }"
+            [routerLinkActiveOptions]="tab.exact ? exactPathMatch : prefixPathMatch"
             [active]="rla.isActive"
             [attr.data-testid]="tab.testId ?? null"
             [matTooltip]="tab.tooltip"

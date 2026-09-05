@@ -120,5 +120,12 @@ describe('TabsComponent', () => {
 
             expect(activeStates()).toEqual([true, false]);
         });
+
+        it('should keep the exact tab active when its route carries a query string', async () => {
+            await spectator.inject(Router).navigate(['/forum'], { queryParams: { page: 2 } });
+            spectator.detectChanges();
+
+            expect(activeStates()).toEqual([true, false]);
+        });
     });
 });
