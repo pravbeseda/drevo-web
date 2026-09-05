@@ -29,6 +29,10 @@ export const appRoutes: Route[] = [
                 loadChildren: () => import('./features/calendar/calendar.routes').then(m => m.CALENDAR_ROUTES),
             },
             {
+                path: 'forum',
+                loadChildren: () => import('./features/forum/forum.routes').then(m => m.FORUM_ROUTES),
+            },
+            {
                 path: 'history',
                 title: 'История изменений',
                 loadChildren: () => import('./features/history/history.routes').then(m => m.HISTORY_ROUTES),

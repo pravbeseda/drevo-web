@@ -1,0 +1,31 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $dropdown-item-padding-v $dropdown-item-padding-h;
+    border-bottom: 1px solid var(--themed-menu-border-color);
+}
+
+:host(.message-card--anchored) {
+    background-color: var(--themed-forum-anchor-bg);
+}
+
+.message-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $dropdown-item-gap;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+}
+
+.message-card__author {
+    font-weight: 500;
+}
+
+.message-card__reply-to {
+    color: var(--themed-link-color);
+
+    &:hover {
+        color: var(--themed-link-hover);
+    }
+}

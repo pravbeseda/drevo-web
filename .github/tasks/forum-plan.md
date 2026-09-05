@@ -1,0 +1,297 @@
+# Forum
+
+Bring the forum to the Angular front in three vertical slices: read, write,
+moderate. Each slice starts in the legacy app, where the forum logic moves out
+of `PostsController` / `Forum` into services under characterization tests, then
+gets a JSON API on top of those services, and ends on the front. The legacy web
+forum keeps working throughout, as a thin wrapper over the same services.
+
+Backend work lands in [drevo-yii](https://github.com/pravbeseda/drevo-yii)
+(checked out at `legacy-drevo-yii/`); the plan and the front live here.
+
+## Decisions
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Slicing | Vertical: read-only first, then posting, then moderation and subscriptions. Every slice is a shippable PR pair (backend, front) and closes an existing stub |
+| 2 | Discussion model | Flat chronological thread with quotes, one view. The three legacy modes (`table` / `tree` / `modern`), the two sort orders and the two message formats are not carried over. `parentId` stays in the data and the DTO as an «in reply to» link, so a tree view remains possible later without a migration |
+| 2a | Positioning in a long thread | Deep link `/forum/topic/:id/:messageId`: the API returns the page that contains the message. Read position is server-side, in a new `forum_reads` table, and arrives with slice 3 — no browser-storage interim |
+| 3 | Guests | The API requires an authenticated user; guest posting, captcha, the external-link and per-IP rules stay in the legacy web form. Stop words and link shorteners move to a shared `SpamFilterService` used by both paths |
+| 4 | Refactoring depth | Services are designed as shared, but only forum call sites migrate: `ForumService`, `SpamFilterService`, `WikiRenderService`, `SubscriptionService`, `ForumReadService`. Article and news call sites move in a follow-up issue |
+| 5 | Message editor | `lib-editor` from `@drevo-web/editor` in a compact mode, with server-side preview through the same renderer. No second markup, no second editor |
+
+## Conventions shared by all slices
+
+- Legacy: every new file under `services/`, `controllers/api/` ships with tests;
+  `composer coverage:patch` ≥ 80 %; `stan:strict` clean; input via
+  `Yii::app()->request`, no raw SQL outside models; a new model query gets a
+  `DbTestCase` test. Before an action of `PostsController` moves to a service,
+  a characterization test pins its current behaviour through the existing
+  testable subclass (`PostsController.php:397-410`).
+- API: `BaseApiController`, `{success, data | error, errorCode}`, GETs listed
+  in `$csrfExemptActions` / `$originExemptActions`, pagination as
+  `?page&size` → `{items, total, page, pageSize, totalPages}`, routes in
+  `protected/config/config.php` next to `api/reviews/...`.
+- Front: DTOs in `libs/shared/src/lib/models/dto/forum.dto.ts`, domain models
+  in `libs/shared/src/lib/models/forum.ts`, `ForumApiService` +
+  `ForumService` in `apps/client/src/app/services/forum/`, the feature in
+  `apps/client/src/app/features/forum/`. Spec first for every file; Playwright
+  in `testing/playwright/tests/forum/` with page objects in
+  `testing/playwright/pages/` and API mocked through factories.
+- Author identity: `forum.f_author` holds a display name, not a login. The
+  service resolves names to logins in one batched query per page;
+  `author.login` is absent for guests (`f_email` set) and for unknown names.
+
+## Slice 1 — read
+
+### Backend
+
+Services:
+
+- `WikiRenderService` — wraps the `new FormatterAdapter()` boilerplate. Forum
+  call sites (`PostsController.php:171,253,311,366`, `ForumUtil.php:68`,
+  `_topic_plain.php:4`) move to it.
+- `ForumService::sections()`, `topics(part, partId, page, size)`,
+  `topic(id, page, size, anchor)`. Built on model methods; `listTopic()` loads
+  a whole topic today, so the model gains `listTopicPage()` and
+  `countBefore(topicId, messageId)` (the anchor → page arithmetic). Message
+  order is `f_id ASC`, stable under the anchor. Topics are ordered by
+  `f_top DESC, f_lastid DESC` (sticky first, then last activity — the legacy
+  `lastmes` order).
+- `PostsController::actionIndex` / `actionTopic` become wrappers over the
+  service; `CountMessages` widget and `JsonController::actionGetPostsCount`
+  call `ForumService::countPosts()` instead of importing the model by hand.
+
+Contract:
+
+```
+GET /api/forum/sections
+  → [{id, name, description}]                      # forum_parts
+
+GET /api/forum/topics?part=&partId=&page=&size=
+  → {items, total, page, pageSize, totalPages}
+item = {id, title, author, createdAt, repliesCount, lastPostId, lastPostAt,
+        pinned}
+
+GET /api/forum/topics/<id>?page=&size=&anchor=<messageId>
+  → {topic, messages: {items, total, page, pageSize, totalPages}}
+topic   = {id, title, part, partId, article: {id, title} | null, author,
+           createdAt, repliesCount}
+message = {id, parentId, author: {name, login?}, createdAt, html}
+```
+
+`anchor` overrides `page`; the response carries the page actually served.
+Unapproved messages are excluded (slice 3 adds them for moderators). 404 for
+a missing or unapproved topic, 400 for an unknown `part`.
+
+Files: `protected/services/{ForumService,WikiRenderService}.php`,
+`protected/controllers/api/ForumApiController.php`, model methods in
+`modules/forum/models/Forum.php`, routes, `phpstan-components.neon`, and a
+test per file (`unit/services/`, `unit/api/`, `unit/modules/forum/`).
+
+### Front
+
+```
+libs/shared/src/lib/models/forum.ts, dto/forum.dto.ts
+apps/client/src/app/services/forum/forum-api.service.ts, forum.service.ts
+apps/client/src/app/shared/components/topic-list/          # used by the forum and the article tab
+apps/client/src/app/features/forum/
+    forum.routes.ts
+    resolvers/forum-sections.resolver.ts, forum-topics.resolver.ts, forum-topic.resolver.ts
+    pages/sections-page/          # /forum
+    pages/topics-page/            # /forum/:part, /forum/:part/:partId
+    pages/topic-page/             # /forum/topic/:id, /forum/topic/:id/:messageId
+    components/message-card/      # author, date, «in reply to» link, app-wiki-content
+apps/client/src/app/features/article/pages/article-page/tabs/article-forum-tab/
+```
+
+Route registration in `app.routes.ts` under the `authGuard` children; the
+article tab replaces the `forum` stub of the `:id` branch in
+`article.routes.ts`, and the `find/:title` branch keeps its stub; a «Форум» item in `layout/sidebar-nav`.
+
+Behaviour:
+
+- Resolvers return `'not-found'` / `'load-error'` as
+  `features/picture/resolvers/picture.resolver.ts` does; pages render
+  `ErrorComponent` for both.
+- Topic messages are paged with «load more» in both directions from the
+  served page, the pattern of `article-linkedhere-tab`. The URL keeps
+  `?page` so a reload lands on the same page.
+- With `:messageId` the page passes it as `anchor`, scrolls to
+  `[data-testid="message-<id>"]` in `afterNextRender` through the injected
+  `DOCUMENT`, and highlights the card with a new `--themed-*` token.
+- «In reply to» on a message links to `/forum/topic/:id/:parentId`.
+- Topic title through a `title:` resolver, as `history.routes.ts` does.
+- Every navigation and load error goes through `LoggerService`.
+
+#### Decisions taken for this run
+
+| # | Question | Decision |
+|---|---|---|
+| F1 | Addressing a section's discussion | `/forum/:part/:partId` is added beside `/forum/:part`, the legacy shape (`forum/<part>/<partid>`), so existing links to an article's or a news item's discussion keep resolving; the article tab renders the same list component under its own address |
+| F2 | Legacy `/forum/<messageId>` | Not resolved on the front. `ForumService::topic()` 404s on a non-root id (`ForumService.php:164-170`), so a reply id cannot become a topic without a new endpoint, and a digits-only redirect would serve roots alone while reading as full support. `/forum/123` falls into `/forum/:part`, matches no section and renders «not found». Parked as an issue for when the front becomes the default entry; until then the legacy app still serves those links |
+| F3 | Coverage floor for `forum.routes.ts` | Listed at `0` in `scripts/check-file-coverage.js`, in the block that already holds `app.routes.ts`, `history.routes.ts`, `picture.routes.ts` and `calendar.routes.ts` — declaration-only, exercised by step 7's navigation. Every other new file meets the 70 % floor with a spec of its own |
+| F4 | Empty and error copy | The repository's own shapes: `ErrorComponent` with «Не удалось загрузить … Попробуйте обновить страницу» (`picture-detail.component.html:183`) for a failed load, inline «Ничего не найдено» (`picture-page.component.html:44`) for an empty list |
+| F5 | Page size | The front never sends `size`; the server's `listPerPage` decides and the response's `pageSize` is what the pager reads |
+| F6 | Model names | `ForumSection`, `ForumTopic`, `ForumTopicListItem`, `ForumMessage`. `libs/shared` already exports `Topic` — the article rubrics of `models/topic.ts` — and a bare `Topic` would collide in `models/index.ts` |
+
+#### Steps (red → green → refactor)
+
+- [x] 1. **DTOs and models.** — files: `libs/shared/src/lib/models/dto/forum.dto.ts`, `libs/shared/src/lib/models/forum.ts`, both barrels — lenses: none — done when: `yarn nx test shared --configuration=ci` and `yarn lint:types` are green and `@drevo-web/shared` exports `ForumSectionDto`/`ForumSection`, `ForumTopicListItemDto`/`ForumTopicListItem`, `ForumTopicDto`/`ForumTopic`, `ForumMessageDto`/`ForumMessage`, `ForumTopicPageDto`/`ForumTopicPage`. Types only, no behaviour: the DTO mirrors the wire (`T | null` where the contract says `null`), the model follows the repository's rules (`undefined` for absence), and the red test that covers them is step 2's spec, written before step 2's implementation.
+
+- [x] 2. **`ForumApiService`.** — files: `apps/client/src/app/services/forum/forum-api.service.ts` + spec — lenses: none — done when: the spec, red first, pins `GET /api/forum/sections`; `/api/forum/topics` with `part`, `partId`, `page` and no empty params; `/api/forum/topics/:id` with `page` and `anchor`; `withCredentials: true` on all three and `data` unwrapped from `ApiResponse`.
+
+- [x] 3. **`ForumService`.** — files: `apps/client/src/app/services/forum/forum.service.ts` + spec — lenses: none — done when: the spec covers dates through `parseDate`, a missing `author.login` mapped to `undefined`, `article: null` mapped to `undefined`, the three `0` sentinels of the wire (`lastPostId`, `partId`, `parentId`) mapped to `undefined`, `pinned`, and `total`/`page`/`pageSize`/`totalPages` carried through unchanged.
+
+- [x] 4. **Resolvers.** — files: `apps/client/src/app/features/forum/resolvers/forum-sections.resolver.ts`, `forum-topics.resolver.ts`, `forum-topic.resolver.ts` + specs, `apps/client/src/app/shared/testing/route-testing.helper.ts` (a `queryParams` argument) — lenses: security — done when: the specs cover a non-numeric, zero, negative and matrix-param id resolving to `'not-found'` without the service being called, a 404 to `'not-found'`, any other error to `'load-error'`, `?page` read from the query, and `:messageId` passed as `anchor`.
+
+- [x] 5. **Components and pages.** — files: `apps/client/src/app/shared/components/topic-list/`, `apps/client/src/app/features/forum/components/message-card/`, `pages/sections-page/`, `pages/topics-page/`, `pages/topic-page/` + specs, `libs/ui/src/lib/styles/_theme-colors.scss` (the anchor highlight token, added where it is first used) — lenses: security — done when: Spectator specs cover each page's `'not-found'` and `'load-error'` branch rendering `ErrorComponent`, «load more» in both directions from the served page, `data-testid="message-<id>"` on the card, and the «in reply to» link pointing at `/forum/topic/:id/:parentId`.
+
+- [x] 6. **Routes, article tab, sidebar, token.** — files: `apps/client/src/app/features/forum/forum.routes.ts`, `app.routes.ts`, `features/article/article.routes.ts` (the `:id` branch's `forum` stub), `features/article/pages/article-page/tabs/article-forum-tab/`, `layout/sidebar-nav/sidebar-nav.component.ts`, `scripts/check-file-coverage.js` (F3) — lenses: compatibility — done when: `yarn nx affected -t lint,test`, `yarn lint:styles` and `yarn lint:coverage` are green and the article's «Обсуждение» tab lists that article's topics instead of the stub.
+
+- [x] 7. **Playwright.** — files: `testing/playwright/tests/forum/`, `testing/playwright/pages/forum*.page.ts`, `testing/playwright/mocks/forum.ts`, `fixtures/mock-api.fixture.ts` — lenses: none — done when: `yarn test:playwright` is green and carries the plan's three scenarios — sections → section → topic; a deep link scrolls to and highlights the message; the article tab lists the article's topics.
+
+## Slice 2 — write
+
+### Backend
+
+- `SpamFilterService` — stop words (list moves out of `Forum.php:436-471`)
+  and shortened links; the `Forum` validators delegate to it, the API calls it
+  directly. Captcha, `checkExternalLink`, `checkUnapprovedMessages` stay as
+  guest-only validators in the legacy form.
+- `ForumService::createTopic`, `reply`, `edit`, `quote`, `preview`.
+  `makeQuote` / `replyTitle` / `DelQuote` move from `ForumUtil` into the
+  service. The three duplicated blocks of `PostsController` (preview
+  `:167-172` vs `:249-254`, section correction `:176-183` vs `:258-265`,
+  `Events` creation `:186-201` vs `:271-286`) collapse into the service;
+  `actionNew` / `actionEdit` become wrappers. Logging through `LogService`.
+- Edit rule as today (`PostsController.php:237`): own message, within 24 h,
+  no replies — or `moder`.
+
+Contract:
+
+```
+POST  /api/forum/topics                   {part, partId?, title, text} → topic
+POST  /api/forum/topics/<id>/messages     {parentId?, text}           → message
+PATCH /api/forum/messages/<id>            {title?, text}              → message
+GET   /api/forum/messages/<id>/quote      → {title, text}   # prefilled reply
+POST  /api/forum/preview                  {text}            → {html}
+```
+
+All require auth; `readonly` is refused with 403 as in `accessRules()`.
+Validation failures answer 400 `VALIDATION_ERROR` with the field errors in
+`data`, the shape of `ArticlesApiController::actionSave`.
+
+### Front
+
+- Reply form at the bottom of the topic page: `lib-editor` compact (short
+  toolbar, autosize), «Текст | Превью» tabs, preview through the API.
+  «Ответить» on a card fetches the quote and inserts it into the form.
+- `/forum/:part/new` (and from the article tab, with `partId`) for a new
+  topic. Editing is inline in the card, same editor, shown only when the API
+  says the message is editable (`message.editable`, added to the DTO here).
+- On success: the new message is appended, the URL moves to its deep link,
+  the form clears; `NotificationService` on error.
+- Playwright: post a reply against the mocked API and see it appended; open
+  the preview tab; create a topic from an article tab.
+
+## Slice 3 — moderate, subscribe, read position
+
+### Backend
+
+- `ForumService::approve`, `delete`, `move`, `pending(page, size)`,
+  `history(author, page, size)`; moderators receive unapproved messages with
+  `approved: false` in every list. `actionApprove` / `actionDelete` /
+  `actionModeration` / `actionHistory` become wrappers.
+- `SubscriptionService` over `EventsSubscribes::isSubscribe / subscribe /
+  unsubscribe` for the `forum` object type.
+- `ForumReadService` with the table `forum_reads (login, topic_id,
+  last_read_id, updated_at)`, shipped as `docs/sql/forum-reads.sql` the way
+  `premoderation-reviews.sql` was. Topic lists gain `unreadCount` and
+  `firstUnreadId` for the current user.
+
+Contract:
+
+```
+POST   /api/forum/messages/<id>/approve            (moder)
+DELETE /api/forum/messages/<id>                    (moder)
+PATCH  /api/forum/topics/<id>/section  {part, partId}   (moder)
+GET    /api/forum/pending?page&size                (moder) — moderation queue
+GET    /api/forum/history?author&page&size         — recent messages
+PUT    /api/forum/topics/<id>/subscription | DELETE …
+PUT    /api/forum/topics/<id>/read     {lastReadId}
+```
+
+### Front
+
+- Approve / delete on the card and «move topic» on the topic page, gated by
+  `UserPermissions.canModerate`; a pending badge on unapproved cards.
+- Subscribe toggle in the topic header.
+- «N новых» badge in topic lists; an unread divider and a «к первому
+  непрочитанному» button on the topic page; the page reports the last visible
+  message id as the user scrolls (debounced, one request per page).
+- `/history/forum` replaces its stub with the history list; the moderation
+  queue is a filter on it, as in the legacy `?approved=0`.
+- Playwright: approve a pending message as a moderator; open a topic with
+  unread messages and jump to the first one.
+
+## Verification
+
+Legacy, per PR: `composer test`, `composer coverage:patch`, `composer stan`,
+`composer stan:strict`, `composer cs`. Front, per PR, the gates of
+`AGENTS.md` in order; the slice is done when `yarn nx affected -t lint,test`,
+`yarn lint:styles`, `yarn test:playwright` and `yarn build` are green.
+
+## Out of scope
+
+- RSS (`posts/feed`), Elastic search over the forum, and the view / sort /
+  format settings (`SetForm`, `usr_forumview` and friends).
+- Guest posting through the API (Decision 3).
+- Migrating article and news call sites to `WikiRenderService` and
+  `SubscriptionService` — a follow-up issue in drevo-yii.
+- Retiring the legacy forum views and the dead
+  `protected/controllers/ForumController.php` — after the front is the
+  default entry.
+
+## Rulings
+
+_One line per reviewer finding not fixed: what it said, what was decided, why._
+
+- Step 1, quality: the paged envelope `{items, total, page, pageSize, totalPages}` is written out four times and a `ForumPage<T>` generic would remove two interfaces per file. Dropped: every other model in `libs/shared` repeats the envelope per domain (`picture.ts:28,62`, `article-history.ts:30`), so a generic here makes the forum the one shape read differently from the rest; a shared envelope is a repository-wide refactor, not this step's. Cost if wrong: four declarations to edit together if the backend ever changes the envelope.
+- Step 2, spec and quality: the step's file list named an `index.ts` the commit does not contain. Not a defect in the code — `docs/architecture.md:69-71` gives library boundaries the only barrels, tells `apps/client/` imports to name the concrete module, and has existing app barrels deleted opportunistically; the sibling folders of the same shape (`services/calendar/`, `counts/`, `links/`, `reviews/`) carry none. The plan text was wrong and is corrected, in step 2 and step 3 both.
+- Step 2, quality: three `params.keys()` assertions and a whole `should never send size` block restate what the exact-URL `expectOne` already matched (`expectOne(string)` compares `urlWithParams`). Fixed by removing them: the exact-URL match proves the absence of `size` in every argument combination the file exercises, and the decision itself is stated in the service's docblock.
+- Step 2, own finding: the spec's date fixtures used `Y-m-d H:i:s`, the format of the other endpoints, while this one answers with PHP `date('c')` (`ForumService.php:379`) — ISO 8601 with an offset. Fixed. The format matters from step 3 on, and step 7's Playwright mocks are copied from here.
+- Final, quality: `createForumTopicListItemDto`'s `index` and the envelope `overrides` of `createForumTopicListResponse` / `createForumTopicPage` have no caller. Fixed — and this overturns step 6's ruling, which kept `index` because "step 7 lists several topics": step 7 as shipped never does, so the premise was false. Only the whole-branch view could see that.
+- Final, quality: `parsePositiveIntParam(route.queryParamMap.get('page') ?? undefined)` was written in both the topics resolver and the topic data service. Fixed — `readForumPage` joins `readForumSectionParams` and `readForumAnchor` in `forum-route-params.ts`, which exists for exactly this.
+- Final, quality: the shared `TopicListComponent` owned an empty state that its second consumer had to bypass with a copy of its own. Fixed — the paragraph moved to `topics-page.component.html`, the only place it rendered; the list renders a list, and each page owns its own empty wording.
+- Step 7, gate: both reviewers died on a session rate limit before reporting, so this step's gate is my own reading, not an independent one. What I checked: every assertion turns on something the application decided rather than something the mock guarantees (the `anchor` reaching the request, the highlight class, the card in the viewport, the computed background differing from a plain card); the mocks describe the wire honestly (`date('c')` dates, `0` for an absent id, `article: null`); every added `page.route` is anchored, and the topic mock is built per id so it cannot swallow the list endpoint. I re-ran the implementer's key mutation myself — dropping `providers: [ForumTopicPageDataService]` together with its orphaned import fails 4 of the 5 forum tests, which is the runtime failure no unit test can see.
+- Step 6, own decision: only the `:id` branch's `forum` stub is replaced, where the plan's step named both. An article reached through `find/:title` does not exist yet and has no id, so the tab would sit on a spinner for ever; the plan text is corrected rather than the code.
+- Step 6, quality, blocking: the Playwright mock dated topics `Y-m-d H:i:s`, the format of the other endpoints, while this one answers `date('c')` (`ForumService.php:379`). `parseDate` accepts both, so the tests were green against a shape the backend never sends. Fixed — the same finding as step 2's, in the file step 2's ruling predicted it would reach.
+- Step 6, spec and quality, both: `page.route('**/api/forum/topics**')` also matches `/api/forum/topics/:id`, so the list mock would serve a list to the topic page as soon as a test mocks both. Fixed with an anchored regex, the shape `PICTURES_LIST_RE` already uses in that file for the same collision.
+- Step 6, quality: `expect(load(x)).toBe(load(x))` cannot fail — both sides are the same stubbed object whether the cache is hit or not. Fixed; the two calls stay, the assertion is the call count.
+- Step 6, quality: the cache test and the replay test were called duplicates. Kept both: under `share()` instead of `shareReplay(1)` the replay test fails and the call-count test does not, so they pin different halves of the mechanism.
+- Step 6, quality: `overrides` and `index` on the Playwright forum factories have no caller yet. Kept: `testing/playwright/mocks/linked-here.ts` is the file they were modelled on and carries exactly the same two parameters, and step 7 lists several topics, which needs distinct ids.
+- Step 6, spec: `forum-topics.resolver.ts` keeps the pure-function shape that `forum-topic.resolver.ts` abandoned for the page-scoped service, leaving two shapes in one folder. Dropped: the topic route needs the service because its title and its data must share one request; the topics route has no title resolver, so giving it one would add a class to make two files look alike.
+- Step 6, spec: nothing executes `forum.routes.ts` — a dropped `providers` entry would be a runtime `NullInjectorError` no gate here catches. Not fixed here: step 7 is the Playwright step and its done-criterion already walks sections -> section -> topic, which is what executes the table. Carried into step 7's brief.
+- Step 5, security, blocking: forum message bodies reach `bypassSecurityTrustHtml` (`wiki-content.component.ts:75`) unescaped. Verified: articles and news are escaped on save (`ArticleService.php:20` -> `ProFormatter::preformat`, `:516`), the forum never is (no `preformat`, `htmlspecialchars` or `strip_tags` anywhere in `modules/forum/`), and `f_approved = 1` is set for any logged-in author (`PostsController.php:193`); the reviewer ran the real formatter and `<img src=x onerror=...>` came out intact. The hole is not created here — the legacy view echoes the same string raw (`_message.php:25`) — but this is the first Angular consumer to bypass the sanitizer on text no one escaped. **Escalated; decided by the user: escape in `WikiRenderService::render()` on the backend, for every forum message, moderators included.** That is the one place both the API and the legacy views go through, so it also covers the messages already stored. Shipped as its own change in drevo-yii; the front needs no edit.
+- Step 5, quality, blocking: the pages re-read the section and the anchor from the snapshot, duplicating what the resolvers decide. Fixed — `features/forum/forum-route-params.ts` now holds `readForumSectionParams` and `readForumAnchor`, and the resolver and its page share them.
+- Step 5, quality, blocking: the deep-link scroll located the card by `data-testid`, which AGENTS.md Quality rule 4 reserves for tests. Fixed — the card host carries a real `id`, the scroll uses `getElementById`, and `#message-42` becomes a fragment target for free; the test hook stays.
+- Step 5, quality: the `if (!topic)` guard in `fetchPage` cannot be reached. Fixed by carrying the resolved topic id into the inner pipe, which also stops a load-more from firing on an error page.
+- Step 5, spec: the inner `mergeMap`'s comment claimed behaviour nothing pinned — the reviewer swapped it for `switchMap` and the suite stayed green. Fixed by adding the test; I re-ran the same mutation and it now fails, then restored the operator.
+- Step 5, spec: only the topic page pinned "never rewrites the address". Fixed — the topics page has the same test.
+- Step 5, spec: `data-testid="topic-title"` collided with the topic-list row link, which step 7 walks in one flow. Fixed — the page's title is `topic-page-title`.
+- Step 5, spec: the empty-list copy is «В этом разделе пока нет тем.» where F4 named «Ничего не найдено». Kept: F4 records the repository's *shape* for an empty list, and «Ничего не найдено» is the search-result wording of `picture-page.component.html:44`; an empty forum section is not a failed search, and the specific sentence is what a reader needs.
+- Step 5, spec: `yarn knip` is red across this commit on the three resolver exports. Known and expected — step 4 introduced them and step 6 wires them; it is the one gate that cannot be green in between.
+- Step 4, quality, blocking: the sections resolver answered a 404 with `'not-found'` and no log line. Fixed — `actionSections` (`ForumApiController.php:30-37`) never 404s on its own, so the only 404 there is `missingAction` (`BaseApiController.php:476-478`), a route that is not deployed; that is a fault to report, not a stale link. The branch and `'not-found'` are gone from the resolver's result type.
+- Step 4, spec, two suggestions: the matrix-param tests for `:messageId` and `:partId` never reach their own branch — `readRouteParam` rejects the whole route when any segment carries matrix params (`route-params.ts:47-51`), so the first param's check returns first. Fixed by removing both; no reachable address can isolate those branches, so nothing loses coverage.
+- Step 4, quality: the `it.each` tables also cover `0x2a`, `2e3`, `+42`, `' 42 '` and `'042'`, which `route-params.spec.ts:9-21` already pins. Dropped: the resolver hands the string to the helper whole, so the four forms the criterion names are no more independent than these five, and the line between "named" and "extra" rows would be arbitrary. The table reads as the list of address forms this repository has actually been bitten by (#329), and both precedents carry the same one.
+- Step 4, decisions taken in the step and confirmed by the spec reviewer: a param the address names but the readers refuse answers `'not-found'` rather than falling back to absent (`/forum/common;part=hidden` must not become "every section"); `/forum/topic/42/abc` is `'not-found'` rather than the topic without an anchor; only the swallowed `'load-error'` is logged, so the journal does not fill with mistyped addresses.
+- Step 3, own decision, both reviewers content: `getSections()` returns the API layer's observable with no mapper, where `picture.service.ts:171-176` keeps an identity one. Kept: `ForumSectionDto` and `ForumSection` are structurally identical, and the type direction is fail-safe — a field added to the model breaks compilation at that return and forces a mapper. Cost if wrong: a field added to the DTO alone reaches a caller unmapped.
+- Step 1, spec: `lastPostId` carried the wire's `0` sentinel into the domain model. Fixed, and with it the two fields of the same class the finding did not name — `partId` (`0` for a topic attached to no article) and `parentId` (`0` on a root message). All three are `number | undefined` in the model and stay `number` in the DTO, which mirrors the wire; the `0 -> undefined` conversion is step 3's mapper, and step 3's done-criterion now names it.
+
+## Parked
+
+_Real findings outside this run's scope. Each becomes an issue at the end._
+
+- #346 — Decision F2's follow-up: `/forum/<messageId>`, the legacy address of a single message, is not resolved on the front. It needs a backend lookup from a message to its topic (`ForumService::topic()` 404s on a non-root id, `ForumService.php:164-170`), and it only starts to matter when the Angular client becomes the default entry — until then the legacy app serves those links.
+- #347 — `testing/playwright/tests/article/article-edit.spec.ts` and `article-edit-validation.spec.ts` time out on the editor page (35 s) whenever the vite dependency cache is cold and the suite runs with 7 workers: 23 failures. Proven not to be this branch's doing — reproduced with the branch's Playwright changes stashed, and again on `main` at `a8654c6e` in a clean worktree, while the same test alone with one worker passes in 11 s. The same family as #343, a much larger instance.

@@ -1,0 +1,21 @@
+<div class="message-card__meta">
+    <span
+        class="message-card__author"
+        data-testid="message-author"
+    >
+        {{ message().author.name }}
+    </span>
+    @if (message().createdAt; as createdAt) {
+        <span data-testid="message-date">{{ createdAt | formatDate }}</span>
+    }
+    @if (replyLink(); as link) {
+        <a
+            class="message-card__reply-to"
+            data-testid="message-reply-to"
+            [routerLink]="link"
+        >
+            в ответ на
+        </a>
+    }
+</div>
+<app-wiki-content [content]="message().html" />

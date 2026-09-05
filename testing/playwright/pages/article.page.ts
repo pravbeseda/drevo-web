@@ -18,6 +18,9 @@ export class ArticlePage extends BasePage {
     readonly versionBanner = this.page.getByTestId('version-banner');
     readonly historyEmpty = this.page.getByTestId('history-empty');
     readonly historyError = this.page.getByTestId('history-error');
+    readonly forumTopics = this.page.getByTestId('topic-item');
+    readonly forumEmpty = this.page.getByTestId('article-forum-empty');
+    readonly forumAllTopics = this.page.getByTestId('article-forum-all');
 
     readonly tabArticle = this.page.getByTestId('tab-article');
     readonly tabNews = this.page.getByTestId('tab-news');

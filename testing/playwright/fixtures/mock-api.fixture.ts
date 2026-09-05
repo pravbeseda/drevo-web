@@ -19,6 +19,7 @@ import {
     mockArticleViewData,
     mockDiffData,
 } from '../mocks/articles';
+import { createForumTopicListResponse, mockForumSections } from '../mocks/forum';
 import { createLinkedHereResponse } from '../mocks/linked-here';
 import {
     ArticleHistoryResponseDto,
@@ -27,6 +28,9 @@ import {
     ArticleVersionDto,
     CalendarYearDto,
     CreateArticleResponseDto,
+    ForumSectionDto,
+    ForumTopicListResponseDto,
+    ForumTopicPageDto,
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
@@ -522,6 +526,59 @@ export async function mockLinkedHereApi(
         const body = typeof response === 'function' ? response(query, pageNumber) : response;
         return route.fulfill({ json: apiSuccess(body) });
     });
+}
+
+/** Matches GET /api/forum/topics (with or without query params), but NOT /api/forum/topics/:id */
+const FORUM_TOPICS_LIST_RE = /\/api\/forum\/topics(\?.*)?$/;
+
+/**
+ * Mock GET /api/forum/topics — the topic list of a forum section.
+ *
+ * The article's discussion tab asks for its own section (`part=articles`,
+ * `partId=<article id>`), and the forum pages ask for theirs; both are served
+ * from here.
+ */
+export async function mockForumTopicsApi(
+    page: RouteTarget,
+    response: ForumTopicListResponseDto = createForumTopicListResponse([]),
+): Promise<void> {
+    await page.route(FORUM_TOPICS_LIST_RE, route => route.fulfill({ json: apiSuccess(response) }));
+}
+
+/** Mock GET /api/forum/topics — the 400 the backend answers for a section that is not in its table */
+export async function mockForumTopicsUnknownPart(page: RouteTarget): Promise<void> {
+    await page.route(FORUM_TOPICS_LIST_RE, route =>
+        route.fulfill({ status: 400, json: apiError('Unknown forum part', 'INVALID_PART') }),
+    );
+}
+
+/** Matches GET /api/forum/sections (with or without query params) */
+const FORUM_SECTIONS_RE = /\/api\/forum\/sections(\?.*)?$/;
+
+/** Mock GET /api/forum/sections — the sections the forum's front page lists */
+export async function mockForumSectionsApi(
+    page: RouteTarget,
+    sections: readonly ForumSectionDto[] = mockForumSections,
+): Promise<void> {
+    await page.route(FORUM_SECTIONS_RE, route => route.fulfill({ json: apiSuccess(sections) }));
+}
+
+/**
+ * Matches GET /api/forum/topics/:id for one id — anchored, so that the list
+ * endpoint one path segment up is never swallowed by it.
+ */
+function forumTopicRe(id: number): RegExp {
+    return new RegExp(`/api/forum/topics/${id}(\\?.*)?$`);
+}
+
+/** Mock GET /api/forum/topics/:id — a topic and a page of its messages */
+export async function mockForumTopicApi(page: RouteTarget, id: number, response: ForumTopicPageDto): Promise<void> {
+    await page.route(forumTopicRe(id), route => route.fulfill({ json: apiSuccess(response) }));
+}
+
+/** Mock GET /api/forum/topics/:id — 404 */
+export async function mockForumTopicNotFound(page: RouteTarget, id: number): Promise<void> {
+    await page.route(forumTopicRe(id), route => route.fulfill({ status: 404, json: apiError('Topic not found') }));
 }
 
 // ---------------------------------------------------------------------------

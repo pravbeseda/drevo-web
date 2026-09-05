@@ -1,0 +1,38 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+.topic-page__header {
+    margin-bottom: $gap-md;
+}
+
+.topic-page__title {
+    margin: 0;
+    color: var(--themed-text-primary);
+    font-size: $font-size-lg;
+}
+
+.topic-page__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $dropdown-item-gap;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+}
+
+.topic-page__article {
+    color: var(--themed-link-color);
+
+    &:hover {
+        color: var(--themed-link-hover);
+    }
+}
+
+.topic-page__more {
+    display: flex;
+    justify-content: center;
+    padding: $gap-md 0;
+}
