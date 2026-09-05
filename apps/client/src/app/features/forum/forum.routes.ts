@@ -25,16 +25,20 @@ const TOPICS_ROUTE: Omit<Route, 'path'> = {
 };
 
 export const FORUM_ROUTES: Route[] = [
-    {
-        path: '',
-        pathMatch: 'full',
-        title: 'Форум',
-        resolve: { sections: forumSectionsResolver },
-        loadComponent: () => import('./pages/sections-page/sections-page.component').then(m => m.SectionsPageComponent),
-    },
-    // Must stay ahead of `:part`, otherwise `topic` is swallowed by it.
+    // Must stay ahead of the tabbed shell, whose `:part` child swallows `topic`.
     { path: 'topic/:id', ...TOPIC_ROUTE },
     { path: 'topic/:id/:messageId', ...TOPIC_ROUTE },
-    { path: ':part', ...TOPICS_ROUTE },
+    // One article's or news item's discussion, the legacy address. Its list is a
+    // filtered one, not a section, so the section tabs would name the wrong page.
     { path: ':part/:partId', ...TOPICS_ROUTE },
+    {
+        path: '',
+        resolve: { sections: forumSectionsResolver },
+        loadComponent: () => import('./pages/forum-page/forum-page.component').then(m => m.ForumPageComponent),
+        children: [
+            // No section named: every section's topics, the tab the forum opens on.
+            { path: '', ...TOPICS_ROUTE },
+            { path: ':part', ...TOPICS_ROUTE },
+        ],
+    },
 ];
