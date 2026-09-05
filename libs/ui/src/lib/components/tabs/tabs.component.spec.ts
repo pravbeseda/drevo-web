@@ -1,4 +1,5 @@
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router, RouterLinkActive } from '@angular/router';
+import { MatTooltip } from '@angular/material/tooltip';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TabItem, TabsComponent } from './tabs.component';
 
@@ -76,6 +77,55 @@ describe('TabsComponent', () => {
         const links = spectator.queryAll('a[mat-tab-link]');
         links.forEach(link => {
             expect(link.getAttribute('data-testid')).toBeNull();
+        });
+    });
+
+    it('should set the tooltip when the tab carries one', () => {
+        spectator.setInput('tabs', [{ label: 'Hinted', route: '/hinted', tooltip: 'What this tab holds' }]);
+
+        const tooltip = spectator.query('a[mat-tab-link]', { read: MatTooltip });
+
+        expect(tooltip?.message).toBe('What this tab holds');
+    });
+
+    it('should leave the tooltip empty when the tab carries none', () => {
+        const tooltip = spectator.query('a[mat-tab-link]', { read: MatTooltip });
+
+        expect(tooltip?.message).toBeFalsy();
+    });
+
+    describe('a tab whose route is the prefix of another', () => {
+        const NESTED_TABS: TabItem[] = [
+            { label: 'All', route: '/forum', exact: true },
+            { label: 'Common', route: '/forum/common' },
+        ];
+
+        const activeStates = (): boolean[] =>
+            spectator.queryAll('a[mat-tab-link]', { read: RouterLinkActive }).map(link => link.isActive);
+
+        beforeEach(() => {
+            spectator.setInput('tabs', NESTED_TABS);
+        });
+
+        it('should mark only the nested tab active on the nested route', async () => {
+            await spectator.inject(Router).navigate(['/forum/common']);
+            spectator.detectChanges();
+
+            expect(activeStates()).toEqual([false, true]);
+        });
+
+        it('should mark the exact tab active on its own route', async () => {
+            await spectator.inject(Router).navigate(['/forum']);
+            spectator.detectChanges();
+
+            expect(activeStates()).toEqual([true, false]);
+        });
+
+        it('should keep the exact tab active when its route carries a query string', async () => {
+            await spectator.inject(Router).navigate(['/forum'], { queryParams: { page: 2 } });
+            spectator.detectChanges();
+
+            expect(activeStates()).toEqual([true, false]);
         });
     });
 });

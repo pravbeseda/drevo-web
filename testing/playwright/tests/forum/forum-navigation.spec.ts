@@ -15,7 +15,7 @@ import {
     createForumTopicPage,
     mockForumSections,
 } from '../../mocks/forum';
-import { ForumSectionsPage } from '../../pages/forum-sections.page';
+import { ForumTabsPage } from '../../pages/forum-tabs.page';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
 
@@ -27,7 +27,9 @@ const MESSAGE_ID = 11;
 const MESSAGE_AUTHOR = 'Сидоров С.С.';
 
 test.describe('Forum navigation', () => {
-    test('walks from the sections to a section and into a topic', async ({ authenticatedPage: page }) => {
+    test('opens on every section, switches to one by its tab and walks into a topic', async ({
+        authenticatedPage: page,
+    }) => {
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
             page,
@@ -41,20 +43,25 @@ test.describe('Forum navigation', () => {
             ]),
         );
 
-        const sections = new ForumSectionsPage(page);
-        await page.goto('/forum');
-        await sections.waitForReady();
-
-        await expect(sections.items).toHaveCount(mockForumSections.length);
-        await expect(sections.link(SECTION.name)).toBeVisible();
-
-        await sections.open(SECTION.name);
-
+        const tabs = new ForumTabsPage(page);
         const topics = new ForumTopicsPage(page);
+
+        await page.goto('/forum');
+        await tabs.waitForReady();
+        await topics.waitForReady();
+
+        // The forum opens on the topics of every section, not on a list of sections.
+        await expect(tabs.tabs).toHaveCount(mockForumSections.length + 1);
+        await expect(tabs.allTopics).toHaveAttribute('aria-selected', 'true');
+        await expect(topics.title(TOPIC_TITLE)).toBeVisible();
+
+        await tabs.open(SECTION.id);
         await topics.waitForReady();
 
         await expect(page).toHaveURL(new RegExp(`/forum/${SECTION.id}$`));
-        await expect(topics.title(TOPIC_TITLE)).toBeVisible();
+        // «All topics» is the prefix of every section address and must not stay active with it.
+        await expect(tabs.tab(SECTION.id)).toHaveAttribute('aria-selected', 'true');
+        await expect(tabs.allTopics).toHaveAttribute('aria-selected', 'false');
 
         await topics.open(TOPIC_TITLE);
 
@@ -67,9 +74,12 @@ test.describe('Forum navigation', () => {
         await expect(topic.message(MESSAGE_ID)).toContainText(MESSAGE_AUTHOR);
         // The topic's own title names the tab — the route resolves it, nothing on the page does.
         await expect(page).toHaveTitle(`${TOPIC_TITLE} - Древо`);
+        // A topic is not a section, so the section tabs are gone.
+        await expect(tabs.tabs).toHaveCount(0);
     });
 
     test('loads the topic again when the reader comes back to it', async ({ authenticatedPage: page }) => {
+        await mockForumSectionsApi(page);
         await mockForumTopicsApi(
             page,
             createForumTopicListResponse([createForumTopicListItemDto({ id: TOPIC_ID, title: TOPIC_TITLE })]),
@@ -121,6 +131,7 @@ test.describe('Forum navigation', () => {
     });
 
     test('answers an unknown section with the section not-found page', async ({ authenticatedPage: page }) => {
+        await mockForumSectionsApi(page);
         await mockForumTopicsUnknownPart(page);
 
         await page.goto('/forum/nonexistent');

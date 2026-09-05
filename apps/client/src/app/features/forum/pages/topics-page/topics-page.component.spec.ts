@@ -190,9 +190,9 @@ describe('TopicsPageComponent', () => {
         expect(spectator.query('app-topic-list')).toBeNull();
     });
 
-    it('tells the reader an existing section is empty', () => {
+    it('tells the reader the list it served is empty', () => {
         render(createPage({ items: [], total: 0, page: 1, totalPages: 0 }));
 
-        expect(spectator.query('[data-testid="topics-empty"]')).toHaveText('В этом разделе пока нет тем.');
+        expect(spectator.query('[data-testid="topics-empty"]')).toHaveText('Тем пока нет.');
     });
 });
