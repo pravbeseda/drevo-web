@@ -3,7 +3,7 @@ import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/r
 import { INVALID_ANCHOR, readForumAnchor, readForumPage } from '../forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
 import { ForumTopicPage } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
@@ -17,31 +17,38 @@ export type ForumTopicResolveResult = ForumTopicPage | 'not-found' | 'load-error
  * The topic behind `/forum/topic/:id`, loaded once for every reader of the
  * route: the page's data and the route's title are two readers of one request.
  *
- * Page-scoped — the route's `providers` hold it — and its instance outlives a
- * single activation, so the address it loaded for is part of the cache key.
+ * Page-scoped — the route's `providers` hold it — but the router builds that
+ * injector once per route config and destroys it only under
+ * `withExperimentalAutoCleanupInjectors()`, so the instance outlives the
+ * activation it was made for. The navigation is therefore part of the cache
+ * key: without it a second visit to an address would replay the first visit's
+ * load, however old it is.
  */
 @Injectable()
 export class ForumTopicPageDataService {
     private readonly forumService = inject(ForumService);
+    private readonly router = inject(Router);
     private readonly logger: Logger = inject(LoggerService).withContext('ForumTopicPageDataService');
 
     private _load$: Observable<ForumTopicResolveResult> | undefined;
-    private _loadedParams: string | undefined;
+    private _loadedKey: string | undefined;
 
     load(route: ActivatedRouteSnapshot): Observable<ForumTopicResolveResult> {
-        // The key is built from the values the load below reads, so that a
-        // rejected address and an accepted one cannot share a cache entry.
-        const paramsKey = [
+        // The navigation is what limits the cache to one activation; the values
+        // the load below reads are what keeps a rejected address and an
+        // accepted one out of a single cache entry.
+        const loadKey = [
+            this.router.currentNavigation()?.id,
             readRouteParam(route, 'id'),
             readRouteParam(route, 'messageId'),
             route.queryParamMap.get('page'),
         ].join('_');
 
-        if (this._load$ && this._loadedParams === paramsKey) {
+        if (this._load$ && this._loadedKey === loadKey) {
             return this._load$;
         }
 
-        this._loadedParams = paramsKey;
+        this._loadedKey = loadKey;
         this._load$ = this.loadTopic(route).pipe(shareReplay(1));
         return this._load$;
     }

@@ -1,5 +1,4 @@
 import {
-    bypassSsr,
     expect,
     mockForumSectionsApi,
     mockForumTopicApi,
@@ -70,8 +69,46 @@ test.describe('Forum navigation', () => {
         await expect(page).toHaveTitle(`${TOPIC_TITLE} - Древо`);
     });
 
+    test('loads the topic again when the reader comes back to it', async ({ authenticatedPage: page }) => {
+        await mockForumTopicsApi(
+            page,
+            createForumTopicListResponse([createForumTopicListItemDto({ id: TOPIC_ID, title: TOPIC_TITLE })]),
+        );
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
+                createForumMessageDto({ id: MESSAGE_ID }),
+            ]),
+        );
+
+        // The page-scoped data service outlives the activation that built it, so
+        // only a second visit to one address tells a cache bound to the
+        // navigation from one bound to the address alone.
+        let topicRequests = 0;
+        page.on('request', request => {
+            if (new URL(request.url()).pathname.endsWith(`/api/forum/topics/${TOPIC_ID}`)) {
+                topicRequests += 1;
+            }
+        });
+
+        const topics = new ForumTopicsPage(page);
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/${SECTION.id}`);
+        await topics.waitForReady();
+        await topics.open(TOPIC_TITLE);
+        await topic.waitForReady();
+
+        await page.goBack();
+        await topics.waitForReady();
+        await topics.open(TOPIC_TITLE);
+        await topic.waitForReady();
+
+        await expect.poll(() => topicRequests).toBe(2);
+    });
+
     test('answers a topic that is gone with the topic not-found page', async ({ authenticatedPage: page }) => {
-        await bypassSsr(page, '**/forum/**');
         await mockForumTopicNotFound(page, TOPIC_ID);
         // A route table that let `:part` match first would serve this list here instead.
         await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
@@ -84,7 +121,6 @@ test.describe('Forum navigation', () => {
     });
 
     test('answers an unknown section with the section not-found page', async ({ authenticatedPage: page }) => {
-        await bypassSsr(page, '**/forum/**');
         await mockForumTopicsUnknownPart(page);
 
         await page.goto('/forum/nonexistent');

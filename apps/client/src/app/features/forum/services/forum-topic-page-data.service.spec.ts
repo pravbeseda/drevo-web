@@ -2,7 +2,7 @@ import { ForumTopicPageDataService, ForumTopicResolveResult } from './forum-topi
 import { ForumService } from '../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
-import { UrlSegment } from '@angular/router';
+import { Router, UrlSegment } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { MockLogger, MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumTopicPage } from '@drevo-web/shared';
@@ -27,13 +27,19 @@ describe('ForumTopicPageDataService', () => {
     let spectator: SpectatorService<ForumTopicPageDataService>;
     let forumService: { getTopic: jest.Mock };
     let logger: MockLogger;
+    let navigationId: number;
 
     const createService = createServiceFactory({
         service: ForumTopicPageDataService,
-        providers: [mockLoggerProvider(), { provide: ForumService, useFactory: () => forumService }],
+        providers: [
+            mockLoggerProvider(),
+            { provide: ForumService, useFactory: () => forumService },
+            { provide: Router, useFactory: () => ({ currentNavigation: () => ({ id: navigationId }) }) },
+        ],
     });
 
     beforeEach(() => {
+        navigationId = 1;
         forumService = { getTopic: jest.fn().mockReturnValue(of(topicPage)) };
         spectator = createService();
         logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
@@ -184,6 +190,15 @@ describe('ForumTopicPageDataService', () => {
 
             expect(load({ id: '42' })).toBe(topicPage);
             expect(forumService.getTopic).toHaveBeenCalledTimes(1);
+        });
+
+        it('loads again when the reader comes back to the same address on a later navigation', () => {
+            load({ id: '42' });
+            navigationId += 1;
+
+            load({ id: '42' });
+
+            expect(forumService.getTopic).toHaveBeenCalledTimes(2);
         });
 
         it('replays the loaded topic to a reader that subscribes after the load', () => {
