@@ -140,3 +140,9 @@ updates:
                 - version-update:semver-major
                 - version-update:semver-minor
                 - version-update:semver-patch
+          # The major of `@types/node` tracks the lowest Node that `engines` accepts, not the
+          # newest release: typings for a later major type-check calls that crash on that
+          # runtime. Raise it by hand together with the `engines` floor.
+          - dependency-name: '@types/node'
+            update-types:
+                - version-update:semver-major
