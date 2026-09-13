@@ -66,7 +66,11 @@ const shouldStartServer = isMainModule(import.meta.url) || process.env['PM2_HOME
 if (shouldStartServer) {
     const port = process.env['PORT'] || 4000;
 
-    app.listen(port, () => {
+    app.listen(port, error => {
+        if (error) {
+            throw error;
+        }
+
         console.log(`Node Express server listening on http://localhost:${port}`);
 
         // Send ready signal to PM2 if running under PM2
