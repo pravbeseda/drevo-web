@@ -7,7 +7,6 @@ module.exports = {
             env: {
                 NODE_ENV: 'production',
                 PORT: 4002,
-                BASE_PATH: '/',
             },
             instances: 'max',
             exec_mode: 'cluster',
@@ -39,7 +38,6 @@ module.exports = {
             env: {
                 NODE_ENV: 'production',
                 PORT: 4010,
-                BASE_PATH: '/',
             },
             instances: 'max',
             exec_mode: 'cluster',
@@ -71,7 +69,6 @@ module.exports = {
             env: {
                 NODE_ENV: 'production',
                 PORT: 4011,
-                BASE_PATH: '/',
             },
             instances: 'max',
             exec_mode: 'cluster',
