@@ -18,10 +18,10 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const leadingMajor = range => Number(range.match(/\d+/)?.[0]);
 
 const engines = manifest.engines?.node;
-const typesVersion = manifest.devDependencies?.['@types/node'] ?? manifest.dependencies?.['@types/node'];
+const typesVersion = manifest.devDependencies?.['@types/node'];
 
 if (engines === undefined || typesVersion === undefined) {
-    console.error(`${manifestPath}: needs both \`engines.node\` and a \`@types/node\` dependency to compare`);
+    console.error(`${manifestPath}: needs both \`engines.node\` and a \`@types/node\` devDependency to compare`);
     process.exit(1);
 }
 
