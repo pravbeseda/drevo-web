@@ -19,7 +19,7 @@
         "lint:typecheck": "tsc -p libs/shared/tsconfig.spec.json --noEmit && tsc -p libs/core/tsconfig.spec.json --noEmit && tsc -p libs/ui/tsconfig.spec.json --noEmit && tsc -p libs/editor/tsconfig.spec.json --noEmit && tsc -p apps/client/tsconfig.editor.json --noEmit && tsc -p apps/client/tsconfig.spec.json --noEmit && tsc -p apps/client-e2e/tsconfig.json --noEmit && tsc -p testing/playwright/tsconfig.json --noEmit",
         "lint:coverage": "node scripts/check-file-coverage.js",
         "test:scripts": "node --test \"scripts/*.test.js\"",
-        "lint:workflows": "node scripts/check-release-workflow.js",
+        "lint:workflows": "node scripts/check-release-workflow.js && node scripts/check-dependabot-groups.js",
         "lint:ssr-hosts": "node scripts/check-ssr-hosts.js",
         "knip": "knip",
         "knip:deps": "knip --dependencies",

@@ -80,12 +80,20 @@ updates:
                   - 'nx'
               update-types:
                   - patch
+          # `patterns: ['*']` below is not redundant. Dependabot hands a dependency to the most
+          # specific group it matches, not the first, and a group with no patterns outranks any
+          # wildcard — without it these two take `@angular/*`, `@nx/*` and `@codemirror/*` from
+          # the groups above (#361). `yarn lint:workflows` guards it.
           production-dependencies:
+              patterns:
+                  - '*'
               dependency-type: production
               update-types:
                   - minor
                   - patch
           development-dependencies:
+              patterns:
+                  - '*'
               dependency-type: development
               update-types:
                   - minor
