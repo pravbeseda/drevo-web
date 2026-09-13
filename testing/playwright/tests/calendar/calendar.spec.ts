@@ -29,7 +29,7 @@ test.describe('Calendar page', () => {
         });
 
         test('names the page in the header rather than on the page', async ({ authenticatedPage: page }) => {
-            await expect(new LayoutPage(page).pageTitle).toHaveText('Православный календарь');
+            await expect(new LayoutPage(page).titleHeading).toHaveText('Православный календарь');
             await expect(calendar.pageHeadings).toHaveCount(0);
         });
 
