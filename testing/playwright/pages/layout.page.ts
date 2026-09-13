@@ -4,8 +4,8 @@ import { expect } from '@playwright/test';
 export class LayoutPage extends BasePage {
     // Header
     readonly header = this.page.getByTestId('header');
-    readonly pageTitle = this.page.getByTestId('page-title');
-    readonly pageTitleInput = this.page.getByTestId('page-title-input');
+    readonly titleHeading = this.page.getByTestId('page-title');
+    readonly titleInput = this.page.getByTestId('page-title-input');
     readonly hamburgerButton = this.page.getByTestId('hamburger-button');
 
     // Search
@@ -61,7 +61,7 @@ export class LayoutPage extends BasePage {
      * dropped by the component instead of being retried.
      */
     async expectTitleEditable(): Promise<void> {
-        await expect(this.pageTitle).toHaveClass(/page-title--editable/);
+        await expect(this.titleHeading).toHaveClass(/page-title--editable/);
     }
 
     /**
