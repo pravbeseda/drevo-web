@@ -336,10 +336,10 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/platform-server@22.1.2":
-  version "22.1.2"
-  resolved "https://registry.yarnpkg.com/@angular/platform-server/-/platform-server-22.1.2.tgz#26a5b922eddc29e6561b6987f0b26cf9d29827ca"
-  integrity sha512-RRKARqF95NTK1MCxa6HgU1tZsv8goLdgwnGZRN+8+Q2ujZmbblXo+3nnIsbwUvMr2KyexHnQ3sslfXBgq6B1Dg==
+"@angular/platform-server@22.1.4":
+  version "22.1.4"
+  resolved "https://registry.yarnpkg.com/@angular/platform-server/-/platform-server-22.1.4.tgz#61d9838f14c33f36eb2ad883f173ee2d108253c6"
+  integrity sha512-ZhCIT+Iu2dpTOtM9BAy8jEt9yTMV2XpEZjh9wUM+/JGfkZfm9e12ZEx0n5VbAHJNnufw3qulEyfdF8yG19tN/g==
   dependencies:
     tslib "^2.3.0"
     xhr2 "^0.2.0"

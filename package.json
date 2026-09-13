@@ -55,7 +55,7 @@
         "@angular/material": "22.1.2",
         "@angular/platform-browser": "22.1.2",
         "@angular/platform-browser-dynamic": "22.1.2",
-        "@angular/platform-server": "22.1.2",
+        "@angular/platform-server": "22.1.4",
         "@angular/router": "22.1.2",
         "@angular/ssr": "22.1.4",
         "@codemirror/autocomplete": "^6.20.0",
