@@ -118,7 +118,7 @@
         "js-yaml": "^5.2.3",
         "jsonc-eslint-parser": "^3.3.0",
         "knip": "^6.29.0",
-        "lint-staged": "16",
+        "lint-staged": "17",
         "monocart-reporter": "^2.10.0",
         "ng-mocks": "^14.15.0",
         "nx": "23.2.1",
