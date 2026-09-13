@@ -73,7 +73,7 @@ yarn lint:types                                 # type-coverage on libs/* — im
 yarn lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
 yarn lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
 yarn test:scripts                               # node:test specs for the gate scripts in scripts/ — no jest project there
-yarn lint:workflows                             # release job graph and dependabot group invariants — guards that only fail in a real tag push or dependabot run
+yarn lint:workflows                             # release job graph, dependabot group invariants, @types/node against the engines floor — guards that only fail in a real tag push or dependabot run
 yarn knip                                       # dead code and unused deps — after refactors and deletions
 yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 yarn build                                      # production build — the type check the unit tests cannot do
