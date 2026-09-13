@@ -34,75 +34,75 @@ test.describe('Article rename', () => {
         });
 
         test('title is clickable and opens input', async () => {
-            await layout.pageTitle.click();
+            await layout.titleHeading.click();
 
-            await expect(layout.pageTitleInput).toBeVisible();
-            await expect(layout.pageTitleInput).toHaveValue('Старое название');
+            await expect(layout.titleInput).toBeVisible();
+            await expect(layout.titleInput).toHaveValue('Старое название');
         });
 
         test('Enter saves and updates title', async ({ authenticatedPage: page }) => {
             await mockArticleRename(page, ARTICLE_ID, 'Новое название', 'Старое название');
 
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Новое название');
-            await layout.pageTitleInput.press('Enter');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Новое название');
+            await layout.titleInput.press('Enter');
 
-            await expect(layout.pageTitleInput).toBeHidden();
-            await expect(layout.pageTitle).toHaveText('Новое название');
+            await expect(layout.titleInput).toBeHidden();
+            await expect(layout.titleHeading).toHaveText('Новое название');
             await expect(getNotification(page, 'success')).toBeVisible();
         });
 
         test('Escape cancels without saving', async () => {
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Изменённое');
-            await layout.pageTitleInput.press('Escape');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Изменённое');
+            await layout.titleInput.press('Escape');
 
-            await expect(layout.pageTitleInput).toBeHidden();
-            await expect(layout.pageTitle).toHaveText('Старое название');
+            await expect(layout.titleInput).toBeHidden();
+            await expect(layout.titleHeading).toHaveText('Старое название');
         });
 
         test('blur saves the title', async ({ authenticatedPage: page }) => {
             await mockArticleRename(page, ARTICLE_ID, 'Новое', 'Старое название');
 
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Новое');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Новое');
             await layout.hamburgerButton.click();
 
-            await expect(layout.pageTitleInput).toBeHidden();
+            await expect(layout.titleInput).toBeHidden();
             await expect(getNotification(page, 'success')).toBeVisible();
         });
 
         test('shows error for duplicate title', async ({ authenticatedPage: page }) => {
             await mockArticleRenameConflict(page, ARTICLE_ID);
 
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Дубликат');
-            await layout.pageTitleInput.press('Enter');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Дубликат');
+            await layout.titleInput.press('Enter');
 
             await expect(getNotification(page, 'error')).toBeVisible();
-            await expect(layout.pageTitleInput).toBeVisible();
+            await expect(layout.titleInput).toBeVisible();
         });
 
         test('shows server message for VALIDATION_ERROR', async ({ authenticatedPage: page }) => {
             await mockArticleRenameValidationError(page, ARTICLE_ID, 'Название совпадает с текущим');
 
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Новое');
-            await layout.pageTitleInput.press('Enter');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Новое');
+            await layout.titleInput.press('Enter');
 
             const notification = getNotification(page, 'error');
             await expect(notification).toBeVisible();
             await expect(notification).toContainText('Название совпадает с текущим');
-            await expect(layout.pageTitleInput).toBeVisible();
+            await expect(layout.titleInput).toBeVisible();
         });
 
         test('updates document title after rename', async ({ authenticatedPage: page }) => {
             await mockArticleRename(page, ARTICLE_ID, 'Новое название', 'Старое название');
             await expect(page).toHaveTitle('Старое название - Древо');
 
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Новое название');
-            await layout.pageTitleInput.press('Enter');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Новое название');
+            await layout.titleInput.press('Enter');
 
             await expect(page).toHaveTitle('Новое название - Древо');
         });
@@ -111,33 +111,33 @@ test.describe('Article rename', () => {
             await mockArticleRename(page, ARTICLE_ID, 'Новое название', 'Старое название');
             await mockArticleHistory(page, ARTICLE_ID, createArticleHistoryResponse([]));
 
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('Новое название');
-            await layout.pageTitleInput.press('Enter');
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('Новое название');
+            await layout.titleInput.press('Enter');
             await expect(page).toHaveTitle('Новое название - Древо');
 
             const article = new ArticlePage(page);
             await article.tabHistory.click();
 
-            await expect(layout.pageTitle).toHaveText('История версий: Новое название');
+            await expect(layout.titleHeading).toHaveText('История версий: Новое название');
             await expect(page).toHaveTitle('История версий: Новое название - Древо');
         });
 
         test('focuses and selects input content on open', async () => {
-            await layout.pageTitle.click();
+            await layout.titleHeading.click();
 
-            await expect(layout.pageTitleInput).toBeFocused();
+            await expect(layout.titleInput).toBeFocused();
             // Typing replaces selection — input now holds only the new char
-            await layout.pageTitleInput.pressSequentially('X');
-            await expect(layout.pageTitleInput).toHaveValue('X');
+            await layout.titleInput.pressSequentially('X');
+            await expect(layout.titleInput).toHaveValue('X');
         });
 
         test('browser enforces maxlength on input', async () => {
-            await layout.pageTitle.click();
-            await layout.pageTitleInput.fill('A'.repeat(300));
+            await layout.titleHeading.click();
+            await layout.titleInput.fill('A'.repeat(300));
 
-            const value = await layout.pageTitleInput.inputValue();
-            expect(value.length).toBe(255);
+            const value = await layout.titleInput.inputValue();
+            expect(value).toHaveLength(255);
         });
 
         test('title is not editable on an article tab', async ({ authenticatedPage: page }) => {
@@ -145,27 +145,27 @@ test.describe('Article rename', () => {
 
             const article = new ArticlePage(page);
             await article.tabHistory.click();
-            await expect(layout.pageTitle).toHaveText('История версий: Старое название');
-            await expect(layout.pageTitle).not.toHaveClass(/page-title--editable/);
+            await expect(layout.titleHeading).toHaveText('История версий: Старое название');
+            await expect(layout.titleHeading).not.toHaveClass(/page-title--editable/);
 
-            await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).toBeHidden();
+            await layout.titleHeading.click();
+            await expect(layout.titleInput).toBeHidden();
         });
 
         test('editing disappears after navigating away from article', async ({ authenticatedPage: page }) => {
             await mockArticlesApi(page);
 
-            await expect(layout.pageTitle).toHaveText('Старое название');
-            await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).toBeVisible();
-            await layout.pageTitleInput.press('Escape');
+            await expect(layout.titleHeading).toHaveText('Старое название');
+            await layout.titleHeading.click();
+            await expect(layout.titleInput).toBeVisible();
+            await layout.titleInput.press('Escape');
 
             await page.goto('/');
             await expect(page).toHaveURL('/');
-            await expect(layout.pageTitle).toHaveText('Главная');
+            await expect(layout.titleHeading).toHaveText('Главная');
 
-            await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).toBeHidden();
+            await layout.titleHeading.click();
+            await expect(layout.titleInput).toBeHidden();
         });
     });
 
@@ -178,9 +178,9 @@ test.describe('Article rename', () => {
             await layout.waitForReady();
             await layout.waitForAuthReady();
 
-            await expect(layout.pageTitle).toHaveText('Старое название');
-            await layout.pageTitle.click();
-            await expect(layout.pageTitleInput).toBeHidden();
+            await expect(layout.titleHeading).toHaveText('Старое название');
+            await layout.titleHeading.click();
+            await expect(layout.titleInput).toBeHidden();
         });
     });
 });
