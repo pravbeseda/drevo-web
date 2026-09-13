@@ -116,7 +116,7 @@
         "jest-environment-node": "^30.0.0",
         "jest-preset-angular": "17.0.0",
         "js-yaml": "^5.2.3",
-        "jsonc-eslint-parser": "^2.1.0",
+        "jsonc-eslint-parser": "^3.3.0",
         "knip": "^6.29.0",
         "lint-staged": "16",
         "monocart-reporter": "^2.10.0",
