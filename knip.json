@@ -30,6 +30,9 @@
         "angular-eslint",
         "jest-environment-node",
         "modern-normalize",
+        "@fontsource/roboto",
+        "material-icons",
+        "material-symbols",
         "tslib"
     ],
     "jest": {

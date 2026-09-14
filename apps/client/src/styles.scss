@@ -1,5 +1,13 @@
 @use 'modern-normalize';
 
+// Fonts are bundled rather than linked from Google Fonts: a render-blocking third-party
+// stylesheet holds back the first paint whenever that host is slow.
+@use '@fontsource/roboto/300' as *;
+@use '@fontsource/roboto/400' as *;
+@use '@fontsource/roboto/500' as *;
+@use 'material-icons/iconfont/filled';
+@use 'material-symbols/rounded';
+
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
