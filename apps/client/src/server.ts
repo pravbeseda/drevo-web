@@ -11,10 +11,6 @@ import { fileURLToPath } from 'node:url';
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
-// Get base path from environment variable or default to '/'
-const BASE_PATH = process.env['BASE_PATH'] || '/';
-const normalizedBasePath = BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
-
 const app = express();
 // Node serves plain HTTP behind the reverse proxy, so without this the SSR request URL would
 // carry `http` while the site is served over `https`. `x-forwarded-host` is deliberately not
@@ -24,15 +20,13 @@ const angularApp = new AngularNodeAppEngine({
     trustProxyHeaders: ['x-forwarded-proto'],
 });
 
-console.log(`Server configured with BASE_PATH: ${BASE_PATH}`);
-
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.
  *
  * Example:
  * ```ts
- * app.get('/api/**', (req, res) => {
+ * app.get('/api/{*splat}', (req, res) => {
  *   // Handle API request
  * });
  * ```
@@ -40,21 +34,7 @@ console.log(`Server configured with BASE_PATH: ${BASE_PATH}`);
 
 /**
  * Serve static files from /browser
- * Dynamically handle base path based on environment
  */
-if (normalizedBasePath) {
-    // Serve static files at the configured base path
-    app.use(
-        normalizedBasePath,
-        express.static(browserDistFolder, {
-            maxAge: '1y',
-            index: false,
-            redirect: false,
-        }),
-    );
-}
-
-// Always serve static files at root for direct asset access
 app.use(
     express.static(browserDistFolder, {
         maxAge: '1y',
@@ -65,36 +45,13 @@ app.use(
 
 /**
  * Handle all other requests by rendering the Angular application.
- * Dynamically handle routing based on configured base path
  */
-if (normalizedBasePath) {
-    // Redirect root to configured base path
-    app.get('/', (req, res) => {
-        res.redirect(BASE_PATH);
-    });
-
-    // Handle all requests under the base path with Angular SSR
-    app.use(`${normalizedBasePath}/*`, (req, res, next) => {
-        angularApp
-            .handle(req)
-            .then(response => (response ? writeResponseToNodeResponse(response, res) : next()))
-            .catch(next);
-    });
-
-    // Fallback for any other routes - redirect to base path
-    app.use('/*', (req, res) => {
-        const targetPath = normalizedBasePath + req.path;
-        res.redirect(targetPath);
-    });
-} else {
-    // Handle requests at root level when BASE_PATH is '/'
-    app.use('/*', (req, res, next) => {
-        angularApp
-            .handle(req)
-            .then(response => (response ? writeResponseToNodeResponse(response, res) : next()))
-            .catch(next);
-    });
-}
+app.use((req, res, next) => {
+    angularApp
+        .handle(req)
+        .then(response => (response ? writeResponseToNodeResponse(response, res) : next()))
+        .catch(next);
+});
 
 /**
  * Start the server if this module is the main entry point.
@@ -109,7 +66,14 @@ const shouldStartServer = isMainModule(import.meta.url) || process.env['PM2_HOME
 if (shouldStartServer) {
     const port = process.env['PORT'] || 4000;
 
-    app.listen(port, () => {
+    app.listen(port, error => {
+        if (error) {
+            // Not `throw`: AngularNodeAppEngine installs an `uncaughtException` handler that only
+            // logs, so the process would exit with code 0 after a failed start.
+            console.error(error);
+            process.exit(1);
+        }
+
         console.log(`Node Express server listening on http://localhost:${port}`);
 
         // Send ready signal to PM2 if running under PM2
