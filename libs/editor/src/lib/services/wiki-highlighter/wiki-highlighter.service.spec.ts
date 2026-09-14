@@ -12,8 +12,6 @@ const QUADRATIC_SCAN_RATIO = 10;
 // Floor for the ratio, so a sub-millisecond baseline on a fast machine cannot make the
 // comparison fire on timing noise alone.
 const SCAN_FLOOR_MS = 20;
-// Runs behind each measurement; the fastest one is kept. See `fastestRunMs`.
-const SCAN_SAMPLES = 5;
 
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
@@ -73,8 +71,8 @@ describe('WikiHighlighterService', () => {
         // is an order of magnitude of noise. Discard it before either measurement.
         getView(benign);
 
-        const benignMs = fastestRunMs(SCAN_SAMPLES, () => getView(benign));
-        const pathologicalMs = fastestRunMs(SCAN_SAMPLES, () => getView(pathological));
+        const benignMs = fastestRunMs(() => getView(benign));
+        const pathologicalMs = fastestRunMs(() => getView(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });
@@ -86,8 +84,8 @@ describe('WikiHighlighterService', () => {
 
         buildState(benign);
 
-        const benignMs = fastestRunMs(SCAN_SAMPLES, () => buildState(benign));
-        const pathologicalMs = fastestRunMs(SCAN_SAMPLES, () => buildState(pathological));
+        const benignMs = fastestRunMs(() => buildState(benign));
+        const pathologicalMs = fastestRunMs(() => buildState(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });
@@ -99,8 +97,8 @@ describe('WikiHighlighterService', () => {
 
         buildState(benign);
 
-        const benignMs = fastestRunMs(SCAN_SAMPLES, () => buildState(benign));
-        const pathologicalMs = fastestRunMs(SCAN_SAMPLES, () => buildState(pathological));
+        const benignMs = fastestRunMs(() => buildState(benign));
+        const pathologicalMs = fastestRunMs(() => buildState(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });

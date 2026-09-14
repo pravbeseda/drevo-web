@@ -5,23 +5,18 @@ describe('fastestRunMs', () => {
         jest.restoreAllMocks();
     });
 
-    it('should run the callback once per sample', () => {
+    it('should run the callback five times', () => {
         const run = jest.fn();
 
-        fastestRunMs(3, run);
+        fastestRunMs(run);
 
-        expect(run).toHaveBeenCalledTimes(3);
+        expect(run).toHaveBeenCalledTimes(5);
     });
 
     it('should return the shortest of the sampled durations', () => {
-        jest.spyOn(performance, 'now')
-            .mockReturnValueOnce(0)
-            .mockReturnValueOnce(30)
-            .mockReturnValueOnce(100)
-            .mockReturnValueOnce(108)
-            .mockReturnValueOnce(200)
-            .mockReturnValueOnce(215);
+        const readings = [0, 30, 100, 108, 200, 215, 300, 320, 400, 412];
+        jest.spyOn(performance, 'now').mockImplementation(() => readings.shift() ?? 0);
 
-        expect(fastestRunMs(3, () => undefined)).toBe(8);
+        expect(fastestRunMs(() => undefined)).toBe(8);
     });
 });

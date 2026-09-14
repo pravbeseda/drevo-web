@@ -10,8 +10,6 @@ import { stripMapElements } from './strip-map-elements';
 const RESCAN_RATIO = 10;
 // Floor for the ratio, so a sub-millisecond baseline cannot make the comparison fire on noise.
 const SCAN_FLOOR_MS = 20;
-// Runs behind each measurement; the fastest one is kept, so one pause cannot decide the ratio.
-const SCAN_SAMPLES = 5;
 
 describe('stripMapElements', () => {
     it('should return empty string for empty input', () => {
@@ -160,8 +158,8 @@ describe('stripMapElements', () => {
 
         stripMapElements(benign);
 
-        const benignMs = fastestRunMs(SCAN_SAMPLES, () => stripMapElements(benign));
-        const pathologicalMs = fastestRunMs(SCAN_SAMPLES, () => stripMapElements(pathological));
+        const benignMs = fastestRunMs(() => stripMapElements(benign));
+        const pathologicalMs = fastestRunMs(() => stripMapElements(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * RESCAN_RATIO, SCAN_FLOOR_MS));
     });
