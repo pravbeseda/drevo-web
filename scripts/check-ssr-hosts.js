@@ -195,7 +195,9 @@ run().then(
 
         if (startupFailure) {
             console.error(`the production server started on a taken port and ${startupFailure}`);
-            console.error('\nfix: rethrow the error the `app.listen` callback receives in apps/client/src/server.ts');
+            console.error(
+                '\nfix: exit with a non-zero code on the error the `app.listen` callback receives in apps/client/src/server.ts — a rethrow only gets logged by the `uncaughtException` handler AngularNodeAppEngine installs',
+            );
         }
 
         if (hostFailures.length > 0 || startupFailure) {
