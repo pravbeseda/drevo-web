@@ -1,5 +1,4 @@
 import { BasePage } from './base.page';
-import { Page } from '@playwright/test';
 
 export class ArticlePage extends BasePage {
     readonly root = this.page.getByTestId('article-page');
@@ -50,12 +49,26 @@ export class ArticlePage extends BasePage {
         await this.pictureImage.click();
     }
 
-    /** Middle-click the article picture link — returns the page opened in the new tab */
-    async openPictureInNewTab(): Promise<Page> {
-        const newPagePromise = this.page.context().waitForEvent('page');
+    /**
+     * Middle-click the article picture link; resolves to whether the app cancelled
+     * the browser's native "open in a new tab". The probe cancels it afterwards, so
+     * no second tab opens — a background tab can stall in headless Chromium (#333).
+     */
+    async middleClickPicture(): Promise<boolean> {
+        const defaultPrevented = this.page.evaluate(
+            () =>
+                new Promise<boolean>(resolve => {
+                    window.addEventListener(
+                        'auxclick',
+                        event => {
+                            resolve(event.defaultPrevented);
+                            event.preventDefault();
+                        },
+                        { once: true },
+                    );
+                }),
+        );
         await this.pictureLink.click({ button: 'middle' });
-        const newPage = await newPagePromise;
-        await newPage.waitForLoadState();
-        return newPage;
+        return defaultPrevented;
     }
 }

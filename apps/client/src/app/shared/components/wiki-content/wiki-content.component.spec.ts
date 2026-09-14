@@ -174,6 +174,22 @@ describe('WikiContentComponent', () => {
             expect(preventSpy).not.toHaveBeenCalled();
         });
 
+        it('should not intercept non-primary button clicks on pictures so the browser opens a new tab', () => {
+            spectator.setInput(
+                'content',
+                '<table class="pic"><tr><td><a href="/pictures/123"><img src="/test.jpg" /></a></td></tr></table>',
+            );
+            spectator.detectChanges();
+
+            const img = spectator.query('.pic img') as HTMLImageElement;
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 1 });
+            const preventSpy = jest.spyOn(event, 'preventDefault');
+            img.dispatchEvent(event);
+
+            expect(lightboxService.open).not.toHaveBeenCalled();
+            expect(preventSpy).not.toHaveBeenCalled();
+        });
+
         it('should not intercept external links', () => {
             spectator.setInput('content', '<a href="https://example.com">External</a>');
             spectator.detectChanges();
