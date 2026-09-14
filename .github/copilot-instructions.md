@@ -134,7 +134,7 @@ A dynamic `import()` through `ModalService` is exempt: it creates no compile-tim
 import { ... } from '@drevo-web/core';
 import { ... } from '@drevo-web/core/testing';    // test mocks
 import { ... } from '@drevo-web/shared';
-import { ... } from '@drevo-web/shared/testing';  // createMockUser, expectAny, expectObjectLike
+import { ... } from '@drevo-web/shared/testing';  // createMockUser, expectAny, expectObjectLike, fastestRunMs
 import { ... } from '@drevo-web/ui';
 import { ... } from '@drevo-web/editor';
 ```

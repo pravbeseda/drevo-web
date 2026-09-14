@@ -1,3 +1,4 @@
+import { fastestRunMs } from '@drevo-web/shared/testing';
 import { resolveFragmentLinks } from './resolve-fragment-links';
 import { sanitizeOnclickAttributes } from './sanitize-onclick-attributes';
 import { stripMapElements } from './strip-map-elements';
@@ -9,12 +10,8 @@ import { stripMapElements } from './strip-map-elements';
 const RESCAN_RATIO = 10;
 // Floor for the ratio, so a sub-millisecond baseline cannot make the comparison fire on noise.
 const SCAN_FLOOR_MS = 20;
-
-function elapsed(run: () => void): number {
-    const started = performance.now();
-    run();
-    return performance.now() - started;
-}
+// Runs behind each measurement; the fastest one is kept, so one pause cannot decide the ratio.
+const SCAN_SAMPLES = 5;
 
 describe('stripMapElements', () => {
     it('should return empty string for empty input', () => {
@@ -163,8 +160,8 @@ describe('stripMapElements', () => {
 
         stripMapElements(benign);
 
-        const benignMs = elapsed(() => stripMapElements(benign));
-        const pathologicalMs = elapsed(() => stripMapElements(pathological));
+        const benignMs = fastestRunMs(SCAN_SAMPLES, () => stripMapElements(benign));
+        const pathologicalMs = fastestRunMs(SCAN_SAMPLES, () => stripMapElements(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * RESCAN_RATIO, SCAN_FLOOR_MS));
     });
