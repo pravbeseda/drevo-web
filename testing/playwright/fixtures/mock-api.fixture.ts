@@ -44,21 +44,14 @@ import {
     User,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
-import { BrowserContext, Page } from '@playwright/test';
-
-/**
- * A Playwright routing target. Both Page and BrowserContext expose an identical
- * `route()` API — use a BrowserContext when the mock must also apply to pages
- * opened later (e.g. tabs opened via middle-click).
- */
-type RouteTarget = Page | BrowserContext;
+import { Page } from '@playwright/test';
 
 /**
  * Bypass SSR for a specific route pattern by serving a client-only HTML shell.
  * Use this when testing error states on SSR-enabled routes, since page.route()
  * only intercepts browser-level requests (not server-side HTTP calls from SSR).
  */
-export async function bypassSsr(page: RouteTarget, urlPattern: string): Promise<void> {
+export async function bypassSsr(page: Page, urlPattern: string): Promise<void> {
     await page.route(urlPattern, async (route, request) => {
         if (request.resourceType() === 'document') {
             const baseUrl = new URL(request.url()).origin;
@@ -71,7 +64,7 @@ export async function bypassSsr(page: RouteTarget, urlPattern: string): Promise<
 }
 
 /** Mock auth endpoints for an authenticated user */
-export async function mockAuthApi(page: RouteTarget, user: User = mockUsers.authenticated): Promise<void> {
+export async function mockAuthApi(page: Page, user: User = mockUsers.authenticated): Promise<void> {
     await page.route('**/api/auth/me', route =>
         route.fulfill({
             json: apiSuccess({ isAuthenticated: true, user }),
@@ -174,7 +167,7 @@ export async function mockPicturesSearch(page: Page, response: PicturesListRespo
 
 /** Mock GET /api/pictures/:id — single picture detail */
 export async function mockPictureDetail(
-    page: RouteTarget,
+    page: Page,
     id: number,
     picture: PictureDto = mockPictureData.single,
 ): Promise<void> {
@@ -205,7 +198,7 @@ export async function mockPictureDetailError(page: Page, id: number, status = 50
 
 /** Mock GET /api/pictures/:id/articles */
 export async function mockPictureArticles(
-    page: RouteTarget,
+    page: Page,
     pictureId: number,
     articles = mockPictureData.articles,
 ): Promise<void> {
@@ -216,7 +209,7 @@ export async function mockPictureArticles(
 
 /** Mock GET /api/pictures/:id/pending */
 export async function mockPicturePending(
-    page: RouteTarget,
+    page: Page,
     pictureId: number,
     pending: readonly PicturePendingDto[] = [],
 ): Promise<void> {
@@ -397,7 +390,7 @@ export async function mockPictureRejectPendingNotFound(page: Page, pendingId: nu
 }
 
 /** Mock /images/**\/*.jpg — return a 1x1 transparent PNG placeholder (covers thumbs, full, pending) */
-export async function mockPictureImages(page: RouteTarget): Promise<void> {
+export async function mockPictureImages(page: Page): Promise<void> {
     // 1x1 transparent PNG
     const pixel = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==',
@@ -539,14 +532,14 @@ const FORUM_TOPICS_LIST_RE = /\/api\/forum\/topics(\?.*)?$/;
  * from here.
  */
 export async function mockForumTopicsApi(
-    page: RouteTarget,
+    page: Page,
     response: ForumTopicListResponseDto = createForumTopicListResponse([]),
 ): Promise<void> {
     await page.route(FORUM_TOPICS_LIST_RE, route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 /** Mock GET /api/forum/topics — the 400 the backend answers for a section that is not in its table */
-export async function mockForumTopicsUnknownPart(page: RouteTarget): Promise<void> {
+export async function mockForumTopicsUnknownPart(page: Page): Promise<void> {
     await page.route(FORUM_TOPICS_LIST_RE, route =>
         route.fulfill({ status: 400, json: apiError('Unknown forum part', 'INVALID_PART') }),
     );
@@ -557,7 +550,7 @@ const FORUM_SECTIONS_RE = /\/api\/forum\/sections(\?.*)?$/;
 
 /** Mock GET /api/forum/sections — the sections the forum's front page lists */
 export async function mockForumSectionsApi(
-    page: RouteTarget,
+    page: Page,
     sections: readonly ForumSectionDto[] = mockForumSections,
 ): Promise<void> {
     await page.route(FORUM_SECTIONS_RE, route => route.fulfill({ json: apiSuccess(sections) }));
@@ -572,12 +565,12 @@ function forumTopicRe(id: number): RegExp {
 }
 
 /** Mock GET /api/forum/topics/:id — a topic and a page of its messages */
-export async function mockForumTopicApi(page: RouteTarget, id: number, response: ForumTopicPageDto): Promise<void> {
+export async function mockForumTopicApi(page: Page, id: number, response: ForumTopicPageDto): Promise<void> {
     await page.route(forumTopicRe(id), route => route.fulfill({ json: apiSuccess(response) }));
 }
 
 /** Mock GET /api/forum/topics/:id — 404 */
-export async function mockForumTopicNotFound(page: RouteTarget, id: number): Promise<void> {
+export async function mockForumTopicNotFound(page: Page, id: number): Promise<void> {
     await page.route(forumTopicRe(id), route => route.fulfill({ status: 404, json: apiError('Topic not found') }));
 }
 
