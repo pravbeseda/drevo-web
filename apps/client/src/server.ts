@@ -68,7 +68,10 @@ if (shouldStartServer) {
 
     app.listen(port, error => {
         if (error) {
-            throw error;
+            // Not `throw`: AngularNodeAppEngine installs an `uncaughtException` handler that only
+            // logs, so the process would exit with code 0 after a failed start.
+            console.error(error);
+            process.exit(1);
         }
 
         console.log(`Node Express server listening on http://localhost:${port}`);

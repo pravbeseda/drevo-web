@@ -10,6 +10,11 @@
  * The check boots the built server instead of reading `project.json`, so it
  * keeps holding if Angular moves where the list comes from.
  *
+ * It also boots the server on a port that is already taken: Express 5 hands the
+ * listen error to the listen callback, so a callback that ignores it reports PM2
+ * `ready` for a process that serves nothing, and `wait_ready` marks the deploy
+ * healthy.
+ *
  * Usage: yarn build && node scripts/check-ssr-hosts.js
  */
 
@@ -92,6 +97,50 @@ const isHostRejected = (port, host) =>
         request.end();
     });
 
+const occupyPort = () =>
+    new Promise((resolve, reject) => {
+        const blocker = net.createServer();
+        blocker.on('error', reject);
+        blocker.listen(0, () => resolve(blocker));
+    });
+
+/**
+ * The IPC channel is what gives the child a `process.send`, the same way PM2 does;
+ * without it the server skips the `ready` signal and a broken callback would pass.
+ */
+const startOnOccupiedPort = async () => {
+    const blocker = await occupyPort();
+    const child = spawn(process.execPath, [serverEntry], {
+        env: { ...process.env, PORT: String(blocker.address().port) },
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+    });
+
+    try {
+        return await new Promise(resolve => {
+            const timer = setTimeout(() => resolve('timeout'), STARTUP_TIMEOUT_MS);
+            child.on('message', message => {
+                if (message === 'ready') {
+                    clearTimeout(timer);
+                    resolve('ready');
+                }
+            });
+            child.on('exit', code => {
+                clearTimeout(timer);
+                resolve(code === 0 ? 'clean exit' : 'failed');
+            });
+        });
+    } finally {
+        child.kill();
+        blocker.close();
+    }
+};
+
+const STARTUP_OUTCOME_FAILURES = {
+    ready: 'reported PM2 "ready" without listening',
+    'clean exit': 'exited with code 0',
+    timeout: `neither exited nor reported within ${STARTUP_TIMEOUT_MS}ms`,
+};
+
 const run = async () => {
     if (!fs.existsSync(serverEntry)) {
         throw new Error(`${serverEntry} is missing — run \`yarn build\` first`);
@@ -109,44 +158,55 @@ const run = async () => {
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', chunk => (serverErrors += chunk));
 
-    const failures = [];
+    const hostFailures = [];
     try {
         await waitForServer(port, child);
 
         for (const host of DEPLOYED_HOSTS) {
             if (await isHostRejected(port, host)) {
-                failures.push(`"${host}" is rejected but the deployment serves it`);
+                hostFailures.push(`"${host}" is rejected but the deployment serves it`);
             }
         }
 
         // Opposite in sign to the loop above, and load-bearing for it: a verdict that inverts,
         // or a probe that stops varying `Host`, fails one of the two rather than passing both.
         if (!(await isHostRejected(port, FOREIGN_HOST))) {
-            failures.push(`"${FOREIGN_HOST}" is accepted — the host check is disabled`);
+            hostFailures.push(`"${FOREIGN_HOST}" is accepted — the host check is disabled`);
         }
     } finally {
         child.kill();
     }
 
-    return { failures, serverErrors };
+    const startupOutcome = await startOnOccupiedPort();
+
+    return { hostFailures, serverErrors, startupFailure: STARTUP_OUTCOME_FAILURES[startupOutcome] };
 };
 
 run().then(
-    ({ failures, serverErrors }) => {
-        if (failures.length > 0) {
+    ({ hostFailures, serverErrors, startupFailure }) => {
+        if (hostFailures.length > 0) {
             console.error('the production server lost its SSR host allow-list\n');
-            for (const failure of failures) {
+            for (const failure of hostFailures) {
                 console.error(`  ✗ ${failure}`);
             }
             console.error('\nfix: `security.allowedHosts` under the `build` target in apps/client/project.json');
             console.error(`\nserver log:\n${serverErrors}`);
+        }
+
+        if (startupFailure) {
+            console.error(`the production server started on a taken port and ${startupFailure}`);
+            console.error('\nfix: rethrow the error the `app.listen` callback receives in apps/client/src/server.ts');
+        }
+
+        if (hostFailures.length > 0 || startupFailure) {
             process.exit(1);
         }
 
         console.log(`SSR host allow-list OK: ${DEPLOYED_HOSTS.join(', ')}`);
+        console.log('SSR startup on a taken port fails OK');
     },
     error => {
-        console.error(`SSR host check could not run: ${error.message}`);
+        console.error(`SSR server check could not run: ${error.message}`);
         process.exit(1);
     },
 );
