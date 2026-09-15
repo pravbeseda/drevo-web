@@ -21,7 +21,7 @@ const historyItems = [
 ];
 
 test.describe('History review badge', () => {
-    test('shows a chip per verdict, marks the viewer vote and lists the voters in a tooltip', async ({
+    test('shows a chip per verdict, marks the viewer vote and names each verdict voters in its tooltip', async ({
         authenticatedPage: page,
         isMobile,
     }) => {
@@ -49,8 +49,14 @@ test.describe('History review badge', () => {
         await expect(history.reviewBadge(plainRow)).toHaveCount(0);
 
         test.skip(isMobile, 'Hover tooltips are not available on mobile');
-        await history.reviewBadge(votedRow).hover();
-        await expect(getTooltip(page)).toHaveText('Одобряю: Анна, Иван Возражаю: Вера');
+        const chips = history.reviewBadgeChips(votedRow);
+        await chips.nth(0).hover();
+        await expect(getTooltip(page)).toHaveText('Одобряю: Анна, Иван');
+
+        await page.mouse.move(0, 0);
+        await expect(getTooltip(page)).toHaveCount(0);
+        await chips.nth(1).hover();
+        await expect(getTooltip(page)).toHaveText('Возражаю: Вера');
     });
 
     test('shows the "Нужен ваш голос" pill after the chips when the version awaits the user vote', async ({

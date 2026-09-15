@@ -15,6 +15,7 @@ interface ReviewChip {
     readonly statusClass: ReviewStatusClass;
     readonly icon: string;
     readonly text: string;
+    readonly tooltip: string;
 }
 
 function chipText(count: number, holdsMyVote: boolean): string {
@@ -28,7 +29,7 @@ function chipText(count: number, holdsMyVote: boolean): string {
 /**
  * People's review badge for a history row: one chip per verdict with votes, the
  * viewer's own chip reading "вы" / "вы +N", then the "Нужен ваш голос" pill.
- * The tooltip lists the voters per verdict as plain text.
+ * Each chip's tooltip names its verdict and that verdict's voters.
  */
 @Component({
     selector: 'app-review-badge',
@@ -42,27 +43,22 @@ export class ReviewBadgeComponent {
 
     readonly needsMyVote = computed<boolean>(() => this.summary().needsMyVote);
 
-    private readonly verdicts = computed(() => {
-        const { voters } = this.summary();
+    readonly chips = computed<readonly ReviewChip[]>(() => {
+        const { voters, myVote } = this.summary();
         return REVIEW_TALLY_STATUSES.flatMap(status => {
             const names = voters[status] ?? [];
-            return names.length > 0 ? [{ status, names }] : [];
+            if (names.length === 0) {
+                return [];
+            }
+            return [
+                {
+                    status,
+                    statusClass: REVIEW_STATUS_CLASS[status],
+                    icon: REVIEW_STATUS_ICONS[status],
+                    text: chipText(names.length, status === myVote),
+                    tooltip: `${REVIEW_STATUS_LABELS[status]}: ${names.join(', ')}`,
+                },
+            ];
         });
     });
-
-    readonly chips = computed<readonly ReviewChip[]>(() => {
-        const { myVote } = this.summary();
-        return this.verdicts().map(({ status, names }) => ({
-            status,
-            statusClass: REVIEW_STATUS_CLASS[status],
-            icon: REVIEW_STATUS_ICONS[status],
-            text: chipText(names.length, status === myVote),
-        }));
-    });
-
-    readonly tooltip = computed<string>(() =>
-        this.verdicts()
-            .map(({ status, names }) => `${REVIEW_STATUS_LABELS[status]}: ${names.join(', ')}`)
-            .join('\n'),
-    );
 }

@@ -8,7 +8,6 @@ import { TooltipDirective } from './tooltip.directive';
     template: `
         <span
             uiTooltip="Подсказка"
-            uiTooltipClass="multiline-tooltip"
             data-testid="host"
         >
             Текст
@@ -37,11 +36,5 @@ describe('TooltipDirective', () => {
 
         expect(tooltip).toBeTruthy();
         expect(tooltip?.message).toBe('Подсказка');
-    });
-
-    it('should pass the tooltip class through to MatTooltip', () => {
-        const tooltip = spectator.query('[data-testid="host"]', { read: MatTooltip });
-
-        expect(tooltip?.tooltipClass).toBe('multiline-tooltip');
     });
 });

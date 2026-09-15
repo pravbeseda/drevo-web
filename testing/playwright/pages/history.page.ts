@@ -33,6 +33,11 @@ export class HistoryPage extends BasePage {
         return row.getByTestId('review-badge');
     }
 
+    /** Verdict chips within a history row, each with its own voters tooltip. */
+    reviewBadgeChips(row: Locator): Locator {
+        return row.getByTestId('review-badge-chip');
+    }
+
     /** Text of each verdict chip within a history row: a count, "вы" or "вы +N". */
     reviewBadgeChipTexts(row: Locator): Locator {
         return row.getByTestId('review-badge-chip-text');

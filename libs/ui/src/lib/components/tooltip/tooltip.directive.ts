@@ -6,11 +6,7 @@ import { MatTooltip } from '@angular/material/tooltip';
     hostDirectives: [
         {
             directive: MatTooltip,
-            inputs: [
-                'matTooltip: uiTooltip',
-                'matTooltipPosition: uiTooltipPosition',
-                'matTooltipClass: uiTooltipClass',
-            ],
+            inputs: ['matTooltip: uiTooltip', 'matTooltipPosition: uiTooltipPosition'],
         },
     ],
 })

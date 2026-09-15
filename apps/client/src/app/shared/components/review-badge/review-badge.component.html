@@ -2,13 +2,12 @@
     <span
         class="review-badge"
         data-testid="review-badge"
-        uiTooltipClass="multiline-tooltip"
-        [uiTooltip]="tooltip()"
     >
         @for (chip of chips(); track chip.status) {
             <span
                 class="review-chip review-chip--{{ chip.statusClass }}"
                 data-testid="review-badge-chip"
+                [uiTooltip]="chip.tooltip"
             >
                 <ui-icon
                     size="small"
