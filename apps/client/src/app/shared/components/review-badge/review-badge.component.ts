@@ -1,38 +1,39 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { ReviewStatus, ReviewSummary } from '@drevo-web/shared';
-import { IconComponent } from '@drevo-web/ui';
+import {
+    REVIEW_STATUS_CLASS,
+    REVIEW_STATUS_ICONS,
+    REVIEW_STATUS_LABELS,
+    REVIEW_TALLY_STATUSES,
+    ReviewStatus,
+    ReviewStatusClass,
+    ReviewSummary,
+} from '@drevo-web/shared';
+import { IconComponent, TooltipDirective } from '@drevo-web/ui';
 
-type ReviewBadgeClass = 'approve' | 'suggest' | 'disagree';
+interface ReviewChip {
+    readonly status: ReviewStatus;
+    readonly statusClass: ReviewStatusClass;
+    readonly icon: string;
+    readonly text: string;
+    readonly tooltip: string;
+}
+
+function chipText(count: number, holdsMyVote: boolean): string {
+    if (!holdsMyVote) {
+        return String(count);
+    }
+    const others = count - 1;
+    return others > 0 ? `вы +${others}` : 'вы';
+}
 
 /**
- * Verdict → pill css modifier (priority is already resolved on the server via
- * `status`). Undecided has no pill, so it is intentionally absent here.
- */
-const REVIEW_STATUS_CLASS: Record<Exclude<ReviewStatus, typeof ReviewStatus.Undecided>, ReviewBadgeClass> = {
-    [ReviewStatus.Approve]: 'approve',
-    [ReviewStatus.Suggest]: 'suggest',
-    [ReviewStatus.Disagree]: 'disagree',
-};
-
-/**
- * Verdict → pill label. Mirrors the legacy AGGREGATE_META labels.
- */
-const REVIEW_STATUS_LABEL: Record<Exclude<ReviewStatus, typeof ReviewStatus.Undecided>, string> = {
-    [ReviewStatus.Approve]: 'Одобрено',
-    [ReviewStatus.Suggest]: 'Нужны правки',
-    [ReviewStatus.Disagree]: 'Возражения',
-};
-
-/**
- * People's review indicator pill for a history row.
- *
- * `needsMyVote` → blue "Нужен ваш голос" pill (highest priority); otherwise a
- * colored verdict pill (Одобрено / Нужны правки / Возражения) with a neutral
- * total-votes counter. Renders nothing when there is neither.
+ * People's review badge for a history row: one chip per verdict with votes, the
+ * viewer's own chip reading "вы" / "вы +N", then the "Нужен ваш голос" pill.
+ * Each chip's tooltip names its verdict and that verdict's voters.
  */
 @Component({
     selector: 'app-review-badge',
-    imports: [IconComponent],
+    imports: [IconComponent, TooltipDirective],
     templateUrl: './review-badge.component.html',
     styleUrl: './review-badge.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,24 +41,24 @@ const REVIEW_STATUS_LABEL: Record<Exclude<ReviewStatus, typeof ReviewStatus.Unde
 export class ReviewBadgeComponent {
     readonly summary = input.required<ReviewSummary>();
 
-    readonly needsMyVote = computed(() => this.summary().needsMyVote);
+    readonly needsMyVote = computed<boolean>(() => this.summary().needsMyVote);
 
-    private readonly status = computed(() => this.summary().status);
-
-    private readonly verdict = computed<Exclude<ReviewStatus, typeof ReviewStatus.Undecided> | undefined>(() => {
-        const status = this.status();
-        return status === undefined || status === ReviewStatus.Undecided ? undefined : status;
+    readonly chips = computed<readonly ReviewChip[]>(() => {
+        const { voters, myVote } = this.summary();
+        return REVIEW_TALLY_STATUSES.flatMap(status => {
+            const names = voters[status] ?? [];
+            if (names.length === 0) {
+                return [];
+            }
+            return [
+                {
+                    status,
+                    statusClass: REVIEW_STATUS_CLASS[status],
+                    icon: REVIEW_STATUS_ICONS[status],
+                    text: chipText(names.length, status === myVote),
+                    tooltip: `${REVIEW_STATUS_LABELS[status]}: ${names.join(', ')}`,
+                },
+            ];
+        });
     });
-
-    readonly badgeClass = computed<ReviewBadgeClass | undefined>(() => {
-        const verdict = this.verdict();
-        return verdict === undefined ? undefined : REVIEW_STATUS_CLASS[verdict];
-    });
-
-    readonly label = computed(() => {
-        const verdict = this.verdict();
-        return verdict === undefined ? undefined : REVIEW_STATUS_LABEL[verdict];
-    });
-
-    readonly total = computed(() => this.summary().total);
 }

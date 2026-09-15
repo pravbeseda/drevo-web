@@ -1,13 +1,14 @@
 import { ReviewBadgeComponent } from './review-badge.component';
+import { MatTooltip } from '@angular/material/tooltip';
 import { ReviewStatus, ReviewSummary } from '@drevo-web/shared';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
 function createSummary(overrides: Partial<ReviewSummary> = {}): ReviewSummary {
     return {
         versionId: 1,
-        status: ReviewStatus.Approve,
         total: 0,
         needsMyVote: false,
+        voters: {},
         ...overrides,
     };
 }
@@ -17,62 +18,85 @@ describe('ReviewBadgeComponent', () => {
 
     const createComponent = createComponentFactory(ReviewBadgeComponent);
 
-    const getVotePill = () => spectator.query('[data-testid="review-badge-vote"]');
     const getBadge = () => spectator.query('[data-testid="review-badge"]');
-    const getLabel = () => spectator.query('[data-testid="review-badge-label"]');
-    const getCount = () => spectator.query('[data-testid="review-badge-count"]');
+    const getChips = () => spectator.queryAll('[data-testid="review-badge-chip"]');
+    const getChipTexts = () =>
+        spectator.queryAll('[data-testid="review-badge-chip-text"]').map(text => text.textContent?.trim());
+    const getVotePill = () => spectator.query('[data-testid="review-badge-vote"]');
+    const getChipTooltips = () =>
+        spectator.queryAll('[data-testid="review-badge-chip"]', { read: MatTooltip }).map(tooltip => tooltip.message);
 
-    it('renders the approve verdict with label', () => {
-        spectator = createComponent({ props: { summary: createSummary({ status: ReviewStatus.Approve }) } });
-
-        expect(getBadge()).toHaveClass('review-pill--approve');
-        expect(getLabel()?.textContent?.trim()).toBe('Одобрено');
-    });
-
-    it('renders the suggest verdict with label', () => {
-        spectator = createComponent({ props: { summary: createSummary({ status: ReviewStatus.Suggest }) } });
-
-        expect(getBadge()).toHaveClass('review-pill--suggest');
-        expect(getLabel()?.textContent?.trim()).toBe('Нужны правки');
-    });
-
-    it('renders the disagree verdict with label', () => {
-        spectator = createComponent({ props: { summary: createSummary({ status: ReviewStatus.Disagree }) } });
-
-        expect(getBadge()).toHaveClass('review-pill--disagree');
-        expect(getLabel()?.textContent?.trim()).toBe('Возражения');
-    });
-
-    it('shows the total counter when total > 0', () => {
-        spectator = createComponent({ props: { summary: createSummary({ status: ReviewStatus.Approve, total: 5 }) } });
-
-        expect(getCount()?.textContent).toContain('5');
-        expect(getCount()?.getAttribute('aria-label')).toBe('Всего проголосовало: 5');
-    });
-
-    it('hides the total counter when total is 0', () => {
-        spectator = createComponent({ props: { summary: createSummary({ status: ReviewStatus.Approve, total: 0 }) } });
-
-        expect(getCount()).toBeFalsy();
-    });
-
-    it('renders the blue "needs my vote" pill regardless of status', () => {
+    it('renders one chip per verdict with votes, approve → suggest → disagree, with counts', () => {
         spectator = createComponent({
-            props: { summary: createSummary({ status: ReviewStatus.Disagree, total: 3, needsMyVote: true }) },
+            props: {
+                summary: createSummary({
+                    voters: { [ReviewStatus.Disagree]: ['Вера'], [ReviewStatus.Approve]: ['Анна', 'Борис'] },
+                }),
+            },
         });
 
-        expect(getVotePill()).toBeTruthy();
-        expect(getVotePill()).toHaveClass('review-pill--vote');
+        expect(getChipTexts()).toEqual(['2', '1']);
+        expect(getChips()[0]).toHaveClass('review-chip--success');
+        expect(getChips()[1]).toHaveClass('review-chip--error');
+    });
+
+    it('reads "вы" on the chip holding the only vote of the viewer', () => {
+        spectator = createComponent({
+            props: {
+                summary: createSummary({ voters: { [ReviewStatus.Suggest]: ['Иван'] }, myVote: ReviewStatus.Suggest }),
+            },
+        });
+
+        expect(getChipTexts()).toEqual(['вы']);
+    });
+
+    it('reads "вы +N" on the chip holding the viewer vote among others', () => {
+        spectator = createComponent({
+            props: {
+                summary: createSummary({
+                    voters: { [ReviewStatus.Approve]: ['Анна', 'Иван', 'Борис'], [ReviewStatus.Disagree]: ['Вера'] },
+                    myVote: ReviewStatus.Approve,
+                }),
+            },
+        });
+
+        expect(getChipTexts()).toEqual(['вы +2', '1']);
+    });
+
+    it('renders the "Нужен ваш голос" pill after the chips', () => {
+        spectator = createComponent({
+            props: {
+                summary: createSummary({ voters: { [ReviewStatus.Disagree]: ['Вера'] }, needsMyVote: true }),
+            },
+        });
+
+        expect(getChipTexts()).toEqual(['1']);
         expect(getVotePill()?.textContent?.trim()).toBe('Нужен ваш голос');
-        expect(getBadge()).toBeFalsy();
+        expect(getBadge()?.lastElementChild).toBe(getVotePill());
     });
 
-    it('renders nothing when there is no verdict and no vote needed', () => {
+    it('renders only the vote pill when nobody has voted yet', () => {
+        spectator = createComponent({ props: { summary: createSummary({ needsMyVote: true }) } });
+
+        expect(getChips()).toHaveLength(0);
+        expect(getVotePill()).toBeTruthy();
+    });
+
+    it('names its verdict and only that verdict voters in each chip tooltip', () => {
         spectator = createComponent({
-            props: { summary: createSummary({ status: undefined, total: 0, needsMyVote: false }) },
+            props: {
+                summary: createSummary({
+                    voters: { [ReviewStatus.Approve]: ['Анна', 'Борис'], [ReviewStatus.Disagree]: ['Вера'] },
+                }),
+            },
         });
 
-        expect(getVotePill()).toBeFalsy();
+        expect(getChipTooltips()).toEqual(['Одобряю: Анна, Борис', 'Возражаю: Вера']);
+    });
+
+    it('renders nothing when there are no votes and no vote is needed', () => {
+        spectator = createComponent({ props: { summary: createSummary() } });
+
         expect(getBadge()).toBeFalsy();
     });
 });

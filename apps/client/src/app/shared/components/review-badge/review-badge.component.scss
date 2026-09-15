@@ -2,72 +2,46 @@
     display: inline-flex;
 }
 
+.review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.review-chip,
 .review-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     font-size: 11px;
     font-weight: 700;
     line-height: 1.6;
-    padding: 2px 9px;
-    border-radius: 20px;
-    white-space: nowrap;
+    border-radius: 10px;
+}
 
-    &::before {
-        content: '';
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-    }
+.review-chip {
+    padding: 1px 7px 1px 6px;
 
-    &--approve {
+    &--success {
         background: var(--themed-review-approve-bg);
         color: var(--themed-review-approve-text);
-
-        &::before {
-            background: var(--themed-review-approve-dot);
-        }
     }
 
-    &--suggest {
+    &--warning {
         background: var(--themed-review-suggest-bg);
+        box-shadow: inset 0 0 0 1px var(--themed-review-suggest-border);
         color: var(--themed-review-suggest-text);
-
-        &::before {
-            background: var(--themed-review-suggest-dot);
-        }
     }
 
-    &--disagree {
+    &--error {
         background: var(--themed-review-disagree-bg);
         color: var(--themed-review-disagree-text);
-
-        &::before {
-            background: var(--themed-review-disagree-dot);
-        }
-    }
-
-    &--vote {
-        background: var(--themed-review-vote-bg);
-        color: var(--themed-review-vote-text);
-
-        &::before {
-            display: none;
-        }
     }
 }
 
-.review-pill__sep {
-    width: 1px;
-    height: 11px;
-    background: var(--themed-text-muted);
-    opacity: 0.7;
-}
-
-.review-pill__count {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-weight: 600;
-    color: var(--themed-text-secondary);
+.review-pill {
+    padding: 1px 9px;
+    background: var(--themed-review-vote-bg);
+    color: var(--themed-review-vote-text);
 }

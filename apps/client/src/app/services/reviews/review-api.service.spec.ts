@@ -30,8 +30,15 @@ describe('ReviewApiService', () => {
     describe('getSummary', () => {
         it('requests summary with comma-separated versionIds and unwraps data', done => {
             const summaries: ReviewSummaryDto[] = [
-                { versionId: 5, status: 1, total: 3, needsMyVote: false },
-                { versionId: 6, status: null, total: 0, needsMyVote: true },
+                {
+                    versionId: 5,
+                    status: 1,
+                    total: 3,
+                    needsMyVote: false,
+                    voters: { 1: ['Анна', 'Борис', 'Вера'] },
+                    myVote: 1,
+                },
+                { versionId: 6, status: null, total: 0, needsMyVote: true, voters: {}, myVote: null },
             ];
 
             spectator.service.getSummary('article', [5, 6]).subscribe(result => {
