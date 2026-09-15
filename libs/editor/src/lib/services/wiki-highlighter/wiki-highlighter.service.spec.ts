@@ -1,5 +1,6 @@
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import { fastestRunMs } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { WikiHighlighterService } from './wiki-highlighter.service';
@@ -11,8 +12,6 @@ const QUADRATIC_SCAN_RATIO = 10;
 // Floor for the ratio, so a sub-millisecond baseline on a fast machine cannot make the
 // comparison fire on timing noise alone.
 const SCAN_FLOOR_MS = 20;
-// Runs behind each measurement; the fastest one is kept. See `elapsed`.
-const SCAN_SAMPLES = 5;
 
 const pendingSelector = '.cm-link-pending';
 const existsSelector = '.cm-link-exists';
@@ -72,8 +71,8 @@ describe('WikiHighlighterService', () => {
         // is an order of magnitude of noise. Discard it before either measurement.
         getView(benign);
 
-        const benignMs = elapsed(() => getView(benign));
-        const pathologicalMs = elapsed(() => getView(pathological));
+        const benignMs = fastestRunMs(() => getView(benign));
+        const pathologicalMs = fastestRunMs(() => getView(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });
@@ -85,8 +84,8 @@ describe('WikiHighlighterService', () => {
 
         buildState(benign);
 
-        const benignMs = elapsed(() => buildState(benign));
-        const pathologicalMs = elapsed(() => buildState(pathological));
+        const benignMs = fastestRunMs(() => buildState(benign));
+        const pathologicalMs = fastestRunMs(() => buildState(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });
@@ -98,8 +97,8 @@ describe('WikiHighlighterService', () => {
 
         buildState(benign);
 
-        const benignMs = elapsed(() => buildState(benign));
-        const pathologicalMs = elapsed(() => buildState(pathological));
+        const benignMs = fastestRunMs(() => buildState(benign));
+        const pathologicalMs = fastestRunMs(() => buildState(pathological));
 
         expect(pathologicalMs).toBeLessThan(Math.max(benignMs * QUADRATIC_SCAN_RATIO, SCAN_FLOOR_MS));
     });
@@ -171,22 +170,6 @@ describe('WikiHighlighterService', () => {
     // scan without paying for the view's DOM construction.
     function buildState(text: string) {
         return EditorState.create({ doc: text, extensions: [service.wikiHighlighter] });
-    }
-
-    // Best of N rather than a single reading: interference — a GC pause, a busy CI runner —
-    // only ever adds time, so the fastest run is the closest estimate of what the scan costs.
-    // A single reading of the benign side sets the threshold for the other one, which is how
-    // one unlucky pause used to fail the comparison on timing alone.
-    function elapsed(run: () => void): number {
-        let best = Infinity;
-
-        for (let i = 0; i < SCAN_SAMPLES; i++) {
-            const started = performance.now();
-            run();
-            best = Math.min(best, performance.now() - started);
-        }
-
-        return best;
     }
 
     describe('Link Normalization', () => {
