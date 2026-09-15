@@ -9,6 +9,8 @@ import {
     ReviewSummary,
     ReviewSummaryDto,
     ReviewTarget,
+    ReviewVoters,
+    ReviewVotersDto,
     SetReviewRequestDto,
     parseDate,
 } from '@drevo-web/shared';
@@ -25,6 +27,8 @@ const DTO_TO_REVIEW_STATUS: Record<ReviewStatusDto, ReviewStatus> = {
     2: ReviewStatus.Suggest,
     3: ReviewStatus.Disagree,
 };
+
+const VERDICT_STATUS_DTOS: readonly ReviewStatusDto[] = [1, 2, 3];
 
 /**
  * Domain service for people's review (premoderation).
@@ -88,12 +92,26 @@ export class ReviewService {
 
     private mapSummary(dto: ReviewSummaryDto): ReviewSummary {
         const status = dto.status ?? undefined;
+        const myVote = dto.myVote ?? undefined;
         return {
             versionId: dto.versionId,
             status: status === undefined ? undefined : DTO_TO_REVIEW_STATUS[status],
             total: dto.total,
             needsMyVote: dto.needsMyVote,
+            voters: this.mapVoters(dto.voters),
+            myVote: myVote === undefined ? undefined : DTO_TO_REVIEW_STATUS[myVote],
         };
+    }
+
+    private mapVoters(dto: ReviewVotersDto): ReviewVoters {
+        const voters: Partial<Record<ReviewStatus, readonly string[]>> = {};
+        for (const dtoStatus of VERDICT_STATUS_DTOS) {
+            const names = dto[dtoStatus];
+            if (names !== undefined) {
+                voters[DTO_TO_REVIEW_STATUS[dtoStatus]] = names;
+            }
+        }
+        return voters;
     }
 
     private mapReview(dto: ReviewDto): Review {

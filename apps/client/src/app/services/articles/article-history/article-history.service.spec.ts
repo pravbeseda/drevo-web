@@ -789,6 +789,7 @@ describe('ArticleHistoryService', () => {
                 status: ReviewStatus.Approve,
                 total: 1,
                 needsMyVote: false,
+                voters: {},
                 ...overrides,
             };
         }

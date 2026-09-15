@@ -28,19 +28,14 @@ export class HistoryPage extends BasePage {
             .filter({ has: this.page.getByTestId('title').filter({ hasText: title }) });
     }
 
-    /** Verdict pill (Одобрено / Нужны правки / Возражения) within a history row. */
+    /** Review badge (verdict chips and the vote pill) within a history row. */
     reviewBadge(row: Locator): Locator {
         return row.getByTestId('review-badge');
     }
 
-    /** Verdict pill label text within a history row. */
-    reviewBadgeLabel(row: Locator): Locator {
-        return row.getByTestId('review-badge-label');
-    }
-
-    /** Verdict pill total-votes counter within a history row. */
-    reviewBadgeCount(row: Locator): Locator {
-        return row.getByTestId('review-badge-count');
+    /** Text of each verdict chip within a history row: a count, "вы" or "вы +N". */
+    reviewBadgeChipTexts(row: Locator): Locator {
+        return row.getByTestId('review-badge-chip-text');
     }
 
     /** Blue "Нужен ваш голос" pill within a history row. */

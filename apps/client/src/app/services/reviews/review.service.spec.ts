@@ -20,23 +20,60 @@ describe('ReviewService', () => {
 
     describe('getSummary', () => {
         it('maps status and passes through total/needsMyVote', done => {
-            const dtos: ReviewSummaryDto[] = [{ versionId: 5, status: 3, total: 4, needsMyVote: false }];
+            const dtos: ReviewSummaryDto[] = [
+                { versionId: 5, status: 3, total: 4, needsMyVote: false, voters: { 3: ['Анна'] }, myVote: null },
+            ];
             api.getSummary.mockReturnValue(of(dtos));
 
             spectator.service.getSummary('article', [5]).subscribe(result => {
                 expect(api.getSummary).toHaveBeenCalledWith('article', [5]);
-                expect(result).toEqual([{ versionId: 5, status: ReviewStatus.Disagree, total: 4, needsMyVote: false }]);
+                expect(result).toEqual([
+                    {
+                        versionId: 5,
+                        status: ReviewStatus.Disagree,
+                        total: 4,
+                        needsMyVote: false,
+                        voters: { [ReviewStatus.Disagree]: ['Анна'] },
+                    },
+                ]);
                 done();
             });
         });
 
-        it('maps null status to undefined', done => {
-            const dtos: ReviewSummaryDto[] = [{ versionId: 6, status: null, total: 0, needsMyVote: true }];
+        it('maps null status and null myVote to undefined', done => {
+            const dtos: ReviewSummaryDto[] = [
+                { versionId: 6, status: null, total: 0, needsMyVote: true, voters: {}, myVote: null },
+            ];
             api.getSummary.mockReturnValue(of(dtos));
 
             spectator.service.getSummary('news', [6]).subscribe(result => {
                 expect(result[0].status).toBeUndefined();
+                expect(result[0].myVote).toBeUndefined();
+                expect(result[0].voters).toEqual({});
                 expect(result[0].needsMyVote).toBe(true);
+                done();
+            });
+        });
+
+        it('maps voters by verdict and the viewer own vote', done => {
+            const dtos: ReviewSummaryDto[] = [
+                {
+                    versionId: 7,
+                    status: 1,
+                    total: 3,
+                    needsMyVote: false,
+                    voters: { 1: ['Иван', 'Анна'], 3: ['Борис'] },
+                    myVote: 1,
+                },
+            ];
+            api.getSummary.mockReturnValue(of(dtos));
+
+            spectator.service.getSummary('article', [7]).subscribe(result => {
+                expect(result[0].voters).toEqual({
+                    [ReviewStatus.Approve]: ['Иван', 'Анна'],
+                    [ReviewStatus.Disagree]: ['Борис'],
+                });
+                expect(result[0].myVote).toBe(ReviewStatus.Approve);
                 done();
             });
         });

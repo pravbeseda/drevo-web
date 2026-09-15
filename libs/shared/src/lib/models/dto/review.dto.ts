@@ -26,14 +26,22 @@ export interface ReviewDto {
 }
 
 /**
+ * Voter names per verdict, in vote order. Only verdicts with votes are present.
+ */
+export type ReviewVotersDto = Readonly<Partial<Record<ReviewStatusDto, readonly string[]>>>;
+
+/**
  * Aggregated summary for a single version (batch summary endpoint).
- * `status` is null when there is no significant verdict to display.
+ * `status` is null when there is no significant verdict to display;
+ * `myVote` is null when the current user has not voted.
  */
 export interface ReviewSummaryDto {
     readonly versionId: number;
     readonly status: ReviewStatusDto | null;
     readonly total: number;
     readonly needsMyVote: boolean;
+    readonly voters: ReviewVotersDto;
+    readonly myVote: ReviewStatusDto | null;
 }
 
 /**

@@ -7,6 +7,8 @@ export function createReviewSummaryDto(overrides: Partial<ReviewSummaryDto> = {}
         status: 1,
         total: 1,
         needsMyVote: false,
+        voters: { 1: ['Анна'] },
+        myVote: null,
         ...overrides,
     };
 }
