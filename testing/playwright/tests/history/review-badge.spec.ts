@@ -51,7 +51,8 @@ test.describe('History review badge', () => {
         test.skip(isMobile, 'Hover tooltips are not available on mobile');
         const chips = history.reviewBadgeChips(votedRow);
         await chips.nth(0).hover();
-        await expect(getTooltip(page)).toHaveText('Одобряю: Анна, Иван');
+        await expect(getTooltip(page)).toHaveText('Одобряю: Анна Иван');
+        await expect(getTooltip(page).locator('.mdc-tooltip__surface')).toHaveCSS('white-space', 'pre-line');
 
         await page.mouse.move(0, 0);
         await expect(getTooltip(page)).toHaveCount(0);

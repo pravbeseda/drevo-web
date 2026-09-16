@@ -24,6 +24,10 @@ describe('ReviewBadgeComponent', () => {
     const getVotePill = () => spectator.query('[data-testid="review-badge-vote"]');
     const getChipTooltips = () =>
         spectator.queryAll('[data-testid="review-badge-chip"]', { read: MatTooltip }).map(tooltip => tooltip.message);
+    const getChipTooltipClasses = () =>
+        spectator
+            .queryAll('[data-testid="review-badge-chip"]', { read: MatTooltip })
+            .map(tooltip => tooltip.tooltipClass);
 
     it('renders one chip per verdict with votes, approve → suggest → disagree, with counts', () => {
         spectator = createComponent({
@@ -81,7 +85,7 @@ describe('ReviewBadgeComponent', () => {
         expect(getVotePill()).toBeTruthy();
     });
 
-    it('names its verdict and only that verdict voters in each chip tooltip', () => {
+    it('names its verdict and only that verdict voters in each chip tooltip, one voter per line', () => {
         spectator = createComponent({
             props: {
                 summary: createSummary({
@@ -90,7 +94,17 @@ describe('ReviewBadgeComponent', () => {
             },
         });
 
-        expect(getChipTooltips()).toEqual(['Одобряю: Анна, Борис', 'Возражаю: Вера']);
+        expect(getChipTooltips()).toEqual(['Одобряю:\nАнна\nБорис', 'Возражаю:\nВера']);
+    });
+
+    it('marks each chip tooltip as multiline so the line breaks survive', () => {
+        spectator = createComponent({
+            props: {
+                summary: createSummary({ voters: { [ReviewStatus.Approve]: ['Анна'] } }),
+            },
+        });
+
+        expect(getChipTooltipClasses()).toEqual(['multiline-tooltip']);
     });
 
     it('renders nothing when there are no votes and no vote is needed', () => {

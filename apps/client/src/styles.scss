@@ -208,8 +208,9 @@ mark {
 // TOOLTIP STYLES
 // ============================================================================
 
-// Multi-line tooltip for action buttons (applied via matTooltipClass)
-.action-button-tooltip .mdc-tooltip__surface {
+// Multi-line tooltips (applied via matTooltipClass / uiTooltipClass)
+.action-button-tooltip .mdc-tooltip__surface,
+.multiline-tooltip .mdc-tooltip__surface {
     white-space: pre-line;
     text-align: left;
 }

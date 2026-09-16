@@ -29,7 +29,7 @@ function chipText(count: number, holdsMyVote: boolean): string {
 /**
  * People's review badge for a history row: one chip per verdict with votes, the
  * viewer's own chip reading "Вы" / "Вы +N", then the "Нужен ваш голос" pill.
- * Each chip's tooltip names its verdict and that verdict's voters.
+ * Each chip's tooltip names its verdict and that verdict's voters, one per line.
  */
 @Component({
     selector: 'app-review-badge',
@@ -56,7 +56,7 @@ export class ReviewBadgeComponent {
                     statusClass: REVIEW_STATUS_CLASS[status],
                     icon: REVIEW_STATUS_ICONS[status],
                     text: chipText(names.length, status === myVote),
-                    tooltip: `${REVIEW_STATUS_LABELS[status]}: ${names.join(', ')}`,
+                    tooltip: `${REVIEW_STATUS_LABELS[status]}:\n${names.join('\n')}`,
                 },
             ];
         });
