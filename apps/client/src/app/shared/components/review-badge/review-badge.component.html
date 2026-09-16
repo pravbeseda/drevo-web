@@ -1,33 +1,28 @@
-@if (needsMyVote()) {
+@if (chips().length > 0 || needsMyVote()) {
     <span
-        class="review-pill review-pill--vote"
-        data-testid="review-badge-vote"
-    >
-        Нужен ваш голос
-    </span>
-} @else if (label(); as text) {
-    <span
-        class="review-pill review-pill--{{ badgeClass() }}"
+        class="review-badge"
         data-testid="review-badge"
     >
-        <span
-            class="review-pill__label"
-            data-testid="review-badge-label"
-        >
-            {{ text }}
-        </span>
-        @if (total() > 0) {
-            <span class="review-pill__sep"></span>
+        @for (chip of chips(); track chip.status) {
             <span
-                class="review-pill__count"
-                data-testid="review-badge-count"
-                [attr.aria-label]="'Всего проголосовало: ' + total()"
+                class="review-chip review-chip--{{ chip.statusClass }}"
+                data-testid="review-badge-chip"
+                uiTooltipClass="multiline-tooltip"
+                [uiTooltip]="chip.tooltip"
             >
                 <ui-icon
-                    name="group"
                     size="small"
+                    [name]="chip.icon"
                 />
-                {{ total() }}
+                <span data-testid="review-badge-chip-text">{{ chip.text }}</span>
+            </span>
+        }
+        @if (needsMyVote()) {
+            <span
+                class="review-pill"
+                data-testid="review-badge-vote"
+            >
+                Нужен ваш голос
             </span>
         }
     </span>

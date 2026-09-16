@@ -16,6 +16,10 @@ export class HistoryPage extends BasePage {
     readonly confirmDialogConfirmButton: Locator = this.page.getByTestId('confirmation-dialog-confirm');
     readonly filtersButton: Locator = this.page.getByRole('button', { name: 'Фильтры' });
     readonly uncheckedFilter: Locator = this.page.getByTestId('filter-item').filter({ hasText: 'Непроверенные' });
+    /** Every review badge on the page, whichever row it belongs to. */
+    readonly reviewBadges: Locator = this.page.getByTestId('review-badge');
+    /** Every "Нужен ваш голос" pill on the page, whichever row it belongs to. */
+    readonly reviewBadgeVotes: Locator = this.page.getByTestId('review-badge-vote');
 
     badgeFor(tab: Locator): Locator {
         return tab.locator('ui-badge');
@@ -28,19 +32,19 @@ export class HistoryPage extends BasePage {
             .filter({ has: this.page.getByTestId('title').filter({ hasText: title }) });
     }
 
-    /** Verdict pill (Одобрено / Нужны правки / Возражения) within a history row. */
+    /** Review badge (verdict chips and the vote pill) within a history row. */
     reviewBadge(row: Locator): Locator {
         return row.getByTestId('review-badge');
     }
 
-    /** Verdict pill label text within a history row. */
-    reviewBadgeLabel(row: Locator): Locator {
-        return row.getByTestId('review-badge-label');
+    /** Verdict chips within a history row, each with its own voters tooltip. */
+    reviewBadgeChips(row: Locator): Locator {
+        return row.getByTestId('review-badge-chip');
     }
 
-    /** Verdict pill total-votes counter within a history row. */
-    reviewBadgeCount(row: Locator): Locator {
-        return row.getByTestId('review-badge-count');
+    /** Text of each verdict chip within a history row: a count, "Вы" or "Вы +N". */
+    reviewBadgeChipTexts(row: Locator): Locator {
+        return row.getByTestId('review-badge-chip-text');
     }
 
     /** Blue "Нужен ваш голос" pill within a history row. */

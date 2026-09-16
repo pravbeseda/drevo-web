@@ -84,17 +84,20 @@ export interface Review {
 }
 
 /**
+ * Voter names per verdict, in vote order. Only verdicts with votes are present.
+ */
+export type ReviewVoters = Readonly<Partial<Record<ReviewStatus, readonly string[]>>>;
+
+/**
  * Aggregated review summary for one version, used by the history badge.
  *
- * - `status` — verdict to display (priority disagree > suggest > approve), or
- *   undefined when there is no significant verdict to show.
- * - `total` — total number of significant votes (status > 0) on the version,
- *   independent of `status`.
  * - `needsMyVote` — the version is awaiting the current user's vote.
+ * - `voters` — who voted for each verdict.
+ * - `myVote` — the current user's verdict, or undefined when they have not voted.
  */
 export interface ReviewSummary {
     readonly versionId: number;
-    readonly status?: ReviewStatus;
-    readonly total: number;
     readonly needsMyVote: boolean;
+    readonly voters: ReviewVoters;
+    readonly myVote?: ReviewStatus;
 }

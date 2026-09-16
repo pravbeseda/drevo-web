@@ -278,7 +278,13 @@ describe('ArticlesHistoryItemComponent', () => {
     });
 
     describe('review badge', () => {
-        const summary = { versionId: 1, status: ReviewStatus.Approve, total: 2, needsMyVote: false };
+        const summary = {
+            versionId: 1,
+            status: ReviewStatus.Approve,
+            total: 2,
+            needsMyVote: false,
+            voters: { [ReviewStatus.Approve]: ['Анна', 'Борис'] },
+        };
         const getBadge = () => spectator.query('[data-testid="review-badge"]');
         const getBadgeLink = () => spectator.query('[data-testid="review-badge-link"]');
 

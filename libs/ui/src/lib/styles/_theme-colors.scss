@@ -429,50 +429,42 @@ $theme-colors: (
         dark: $md-grey-400,
     ),
 
-    /* Review badge (people's review pill) — tinted bg + text + dot per verdict.*/
-    /* Palette mirrors the legacy review_history_indicator pill.*/
+    /* Review badge (people's review chips) — tinted bg + text per verdict.*/
+    /* Light values are the legacy site's Bootstrap alert colours, shared with review_history_indicator.*/
     review-approve-bg: (
-        light: $md-green-50,
+        light: #dff0d8,
         dark: rgba($md-green-400, 0.15),
     ),
     review-approve-text: (
-        light: $md-green-800,
+        light: #3c763d,
         dark: $md-green-300,
     ),
-    review-approve-dot: (
-        light: $md-green-600,
-        dark: $md-green-400,
-    ),
     review-suggest-bg: (
-        light: $md-orange-50,
+        light: #fcf8e3,
         dark: rgba($md-orange-400, 0.15),
     ),
+    review-suggest-border: (
+        light: #faebcc,
+        dark: rgba($md-orange-400, 0.3),
+    ),
     review-suggest-text: (
-        light: $md-orange-800,
+        light: #8a6d3b,
         dark: $md-orange-300,
     ),
-    review-suggest-dot: (
-        light: $md-orange-600,
-        dark: $md-orange-400,
-    ),
     review-disagree-bg: (
-        light: $md-red-50,
+        light: #f2dede,
         dark: rgba($md-red-400, 0.15),
     ),
     review-disagree-text: (
-        light: $md-red-800,
+        light: #a94442,
         dark: $md-red-300,
     ),
-    review-disagree-dot: (
-        light: $md-red-600,
-        dark: $md-red-400,
-    ),
     review-vote-bg: (
-        light: $md-blue-50,
+        light: #d9edf7,
         dark: rgba($md-cyan-600, 0.15),
     ),
     review-vote-text: (
-        light: $md-blue-700,
+        light: #31708f,
         dark: $md-cyan-600,
     ),
 
