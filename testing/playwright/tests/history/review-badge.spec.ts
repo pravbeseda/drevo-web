@@ -43,7 +43,7 @@ test.describe('History review badge', () => {
         await history.waitForReady();
 
         const votedRow = history.historyItemByTitle(VOTED_TITLE);
-        await expect(history.reviewBadgeChipTexts(votedRow)).toHaveText(['вы +1', '1']);
+        await expect(history.reviewBadgeChipTexts(votedRow)).toHaveText(['Вы +1', '1']);
 
         const plainRow = history.historyItemByTitle(PLAIN_TITLE);
         await expect(history.reviewBadge(plainRow)).toHaveCount(0);

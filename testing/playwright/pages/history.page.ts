@@ -38,7 +38,7 @@ export class HistoryPage extends BasePage {
         return row.getByTestId('review-badge-chip');
     }
 
-    /** Text of each verdict chip within a history row: a count, "вы" or "вы +N". */
+    /** Text of each verdict chip within a history row: a count, "Вы" or "Вы +N". */
     reviewBadgeChipTexts(row: Locator): Locator {
         return row.getByTestId('review-badge-chip-text');
     }

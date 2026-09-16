@@ -23,12 +23,12 @@ function chipText(count: number, holdsMyVote: boolean): string {
         return String(count);
     }
     const others = count - 1;
-    return others > 0 ? `вы +${others}` : 'вы';
+    return others > 0 ? `Вы +${others}` : 'Вы';
 }
 
 /**
  * People's review badge for a history row: one chip per verdict with votes, the
- * viewer's own chip reading "вы" / "вы +N", then the "Нужен ваш голос" pill.
+ * viewer's own chip reading "Вы" / "Вы +N", then the "Нужен ваш голос" pill.
  * Each chip's tooltip names its verdict and that verdict's voters.
  */
 @Component({

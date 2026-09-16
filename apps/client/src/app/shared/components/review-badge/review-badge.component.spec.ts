@@ -40,17 +40,17 @@ describe('ReviewBadgeComponent', () => {
         expect(getChips()[1]).toHaveClass('review-chip--error');
     });
 
-    it('reads "вы" on the chip holding the only vote of the viewer', () => {
+    it('reads "Вы" on the chip holding the only vote of the viewer', () => {
         spectator = createComponent({
             props: {
                 summary: createSummary({ voters: { [ReviewStatus.Suggest]: ['Иван'] }, myVote: ReviewStatus.Suggest }),
             },
         });
 
-        expect(getChipTexts()).toEqual(['вы']);
+        expect(getChipTexts()).toEqual(['Вы']);
     });
 
-    it('reads "вы +N" on the chip holding the viewer vote among others', () => {
+    it('reads "Вы +N" on the chip holding the viewer vote among others', () => {
         spectator = createComponent({
             props: {
                 summary: createSummary({
@@ -60,7 +60,7 @@ describe('ReviewBadgeComponent', () => {
             },
         });
 
-        expect(getChipTexts()).toEqual(['вы +2', '1']);
+        expect(getChipTexts()).toEqual(['Вы +2', '1']);
     });
 
     it('renders the "Нужен ваш голос" pill after the chips', () => {
