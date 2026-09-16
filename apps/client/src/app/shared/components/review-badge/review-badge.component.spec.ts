@@ -6,7 +6,6 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 function createSummary(overrides: Partial<ReviewSummary> = {}): ReviewSummary {
     return {
         versionId: 1,
-        total: 0,
         needsMyVote: false,
         voters: {},
         ...overrides,

@@ -786,8 +786,6 @@ describe('ArticleHistoryService', () => {
         function createSummary(overrides: Partial<ReviewSummary> = {}): ReviewSummary {
             return {
                 versionId: 1,
-                status: ReviewStatus.Approve,
-                total: 1,
                 needsMyVote: false,
                 voters: {},
                 ...overrides,
@@ -797,7 +795,7 @@ describe('ArticleHistoryService', () => {
         it('fetches summaries for loaded version ids and exposes them by id', () => {
             const items = [createMockHistoryItem({ versionId: 1 }), createMockHistoryItem({ versionId: 2 })];
             articleService.getArticlesHistory.mockReturnValue(of(createMockResponse(items, 2)));
-            const summary = createSummary({ versionId: 1, status: ReviewStatus.Disagree, total: 3 });
+            const summary = createSummary({ versionId: 1, voters: { [ReviewStatus.Disagree]: ['Анна'] } });
             reviewService.getSummary.mockReturnValue(of([summary]));
 
             spectator.service.init();
@@ -847,17 +845,16 @@ describe('ArticleHistoryService', () => {
 
             // Switching the filter resets and issues a fresh request that resolves now.
             reviewService.getSummary.mockReturnValueOnce(
-                of([createSummary({ versionId: 1, status: ReviewStatus.Approve, total: 5 })]),
+                of([createSummary({ versionId: 1, voters: { [ReviewStatus.Approve]: ['Анна'] } })]),
             );
             spectator.service.onFilterChange('unchecked');
 
             // The stale request from the previous filter resolves late.
-            staleSummary.next([createSummary({ versionId: 1, status: ReviewStatus.Disagree, total: 99 })]);
+            staleSummary.next([createSummary({ versionId: 1, voters: { [ReviewStatus.Disagree]: ['Борис'] } })]);
             staleSummary.complete();
 
             const summary = spectator.service.reviewSummaries().get(1);
-            expect(summary?.status).toBe(ReviewStatus.Approve);
-            expect(summary?.total).toBe(5);
+            expect(summary?.voters).toEqual({ [ReviewStatus.Approve]: ['Анна'] });
         });
 
         it('degrades to no badges when the summary request fails', () => {

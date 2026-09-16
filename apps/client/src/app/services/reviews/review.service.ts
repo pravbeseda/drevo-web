@@ -91,12 +91,9 @@ export class ReviewService {
     }
 
     private mapSummary(dto: ReviewSummaryDto): ReviewSummary {
-        const status = dto.status ?? undefined;
         const myVote = dto.myVote ?? undefined;
         return {
             versionId: dto.versionId,
-            status: status === undefined ? undefined : DTO_TO_REVIEW_STATUS[status],
-            total: dto.total,
             needsMyVote: dto.needsMyVote,
             voters: this.mapVoters(dto.voters),
             myVote: myVote === undefined ? undefined : DTO_TO_REVIEW_STATUS[myVote],
