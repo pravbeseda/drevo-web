@@ -96,7 +96,7 @@ test.describe('History review badge', () => {
         await history.waitForReady();
 
         await expect(history.historyItemByTitle(VOTED_TITLE)).toBeVisible();
-        await expect(page.getByTestId('review-badge')).toHaveCount(0);
-        await expect(page.getByTestId('review-badge-vote')).toHaveCount(0);
+        await expect(history.reviewBadges).toHaveCount(0);
+        await expect(history.reviewBadgeVotes).toHaveCount(0);
     });
 });

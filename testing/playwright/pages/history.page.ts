@@ -16,6 +16,10 @@ export class HistoryPage extends BasePage {
     readonly confirmDialogConfirmButton: Locator = this.page.getByTestId('confirmation-dialog-confirm');
     readonly filtersButton: Locator = this.page.getByRole('button', { name: 'Фильтры' });
     readonly uncheckedFilter: Locator = this.page.getByTestId('filter-item').filter({ hasText: 'Непроверенные' });
+    /** Every review badge on the page, whichever row it belongs to. */
+    readonly reviewBadges: Locator = this.page.getByTestId('review-badge');
+    /** Every "Нужен ваш голос" pill on the page, whichever row it belongs to. */
+    readonly reviewBadgeVotes: Locator = this.page.getByTestId('review-badge-vote');
 
     badgeFor(tab: Locator): Locator {
         return tab.locator('ui-badge');
