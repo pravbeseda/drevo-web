@@ -6,7 +6,7 @@ import {
     mockReviewsSummary,
     mockReviewsSummaryFeatureOff,
 } from '../../fixtures';
-import { getTooltip } from '../../helpers/tooltip';
+import { getTooltip, getTooltipSurface } from '../../helpers/tooltip';
 import { createArticleHistoryItemDto, createArticleHistoryResponse, createReviewSummaryDto } from '../../mocks';
 import { HistoryPage } from '../../pages/history.page';
 
@@ -52,7 +52,7 @@ test.describe('History review badge', () => {
         const chips = history.reviewBadgeChips(votedRow);
         await chips.nth(0).hover();
         await expect(getTooltip(page)).toHaveText('Одобряю: Анна Иван');
-        await expect(getTooltip(page).locator('.mdc-tooltip__surface')).toHaveCSS('white-space', 'pre-line');
+        await expect(getTooltipSurface(page)).toHaveCSS('white-space', 'pre-line');
 
         await page.mouse.move(0, 0);
         await expect(getTooltip(page)).toHaveCount(0);
