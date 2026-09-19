@@ -96,6 +96,16 @@ describe('ButtonComponent', () => {
         expect(button?.classList).toContain('full-width');
     });
 
+    it('should put testId on the button itself, so a consumer test can click it', () => {
+        spectator.setInput('testId', 'save');
+
+        expect(spectator.query('button')?.getAttribute('data-testid')).toBe('save');
+    });
+
+    it('should not render data-testid when testId is not set', () => {
+        expect(spectator.query('button')?.hasAttribute('data-testid')).toBe(false);
+    });
+
     describe('accent', () => {
         it('should apply accent-secondary class by default', () => {
             const button = spectator.query('button');
@@ -242,6 +252,13 @@ describe('ButtonComponent', () => {
 
             const anchor = spectator.query('a');
             expect(anchor?.classList).toContain('accent-danger');
+        });
+
+        it('should put testId on the anchor', () => {
+            spectator.setInput('link', '/test-link');
+            spectator.setInput('testId', 'open');
+
+            expect(spectator.query('a')?.getAttribute('data-testid')).toBe('open');
         });
     });
 });

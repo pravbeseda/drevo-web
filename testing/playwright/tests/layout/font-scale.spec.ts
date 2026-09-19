@@ -78,8 +78,7 @@ test.describe('Font scale control', () => {
         });
 
         test('reset button is disabled at default scale', async () => {
-            // ui-button renders a native <button> inside — check that for disabled state
-            await expect(layout.fontScaleResetButton).toBeDisabled();
+            await expect(layout.fontScaleReset).toBeDisabled();
         });
     });
 

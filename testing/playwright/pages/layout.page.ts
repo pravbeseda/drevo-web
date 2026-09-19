@@ -22,7 +22,7 @@ export class LayoutPage extends BasePage {
     readonly themeToggle = this.page.getByTestId('theme-toggle');
     readonly htmlElement = this.page.locator('html');
 
-    // Font scale — component host elements (for clicks)
+    // Font scale — elements to click
     readonly fontScaleToggle = this.page.getByTestId('font-scale-toggle');
     readonly fontScalePopup = this.page.getByTestId('font-scale-popup');
     readonly fontScaleValue = this.page.getByTestId('font-scale-value');
@@ -31,12 +31,11 @@ export class LayoutPage extends BasePage {
     readonly fontScaleReset = this.page.getByTestId('font-scale-reset');
 
     // Font scale — inner <button> elements for toBeDisabled() checks.
-    // ui-icon-button / ui-button render a native <button> inside; the host
-    // component element is not a form element so Playwright's toBeDisabled()
-    // must target the inner <button>.
+    // ui-icon-button renders a native <button> inside; the host component
+    // element is not a form element so Playwright's toBeDisabled() must
+    // target the inner <button>.
     readonly fontScaleDecreaseButton = this.page.getByTestId('font-scale-decrease').locator('button');
     readonly fontScaleIncreaseButton = this.page.getByTestId('font-scale-increase').locator('button');
-    readonly fontScaleResetButton = this.page.getByTestId('font-scale-reset').locator('button');
 
     // Sidebar
     readonly sidebar = this.page.getByTestId('sidebar');

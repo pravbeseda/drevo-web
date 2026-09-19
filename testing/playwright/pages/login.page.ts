@@ -5,7 +5,7 @@ export class LoginPage extends BasePage {
     readonly usernameInput = this.page.getByTestId('username-input').locator('input');
     readonly passwordInput = this.page.getByTestId('password-input').locator('input');
     readonly rememberMeCheckbox = this.page.getByTestId('remember-me-checkbox').locator('input');
-    readonly submitButton = this.page.getByTestId('submit-button').locator('button');
+    readonly submitButton = this.page.getByTestId('submit-button');
     readonly errorMessage = this.page.getByTestId('error-message');
 
     async waitForReady(): Promise<void> {

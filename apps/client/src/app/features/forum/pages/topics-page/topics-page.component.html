@@ -12,7 +12,7 @@
     @if (hasMore()) {
         <div class="topics-page__more">
             <ui-button
-                data-testid="topics-load-more"
+                testId="topics-load-more"
                 variant="outlined"
                 [loading]="isLoadingMore()"
                 (click)="onLoadMore()"
