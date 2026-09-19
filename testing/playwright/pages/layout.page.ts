@@ -30,13 +30,6 @@ export class LayoutPage extends BasePage {
     readonly fontScaleIncrease = this.page.getByTestId('font-scale-increase');
     readonly fontScaleReset = this.page.getByTestId('font-scale-reset');
 
-    // Font scale — inner <button> elements for toBeDisabled() checks.
-    // ui-icon-button renders a native <button> inside; the host component
-    // element is not a form element so Playwright's toBeDisabled() must
-    // target the inner <button>.
-    readonly fontScaleDecreaseButton = this.page.getByTestId('font-scale-decrease').locator('button');
-    readonly fontScaleIncreaseButton = this.page.getByTestId('font-scale-increase').locator('button');
-
     // Sidebar
     readonly sidebar = this.page.getByTestId('sidebar');
     readonly navItems = this.sidebar.getByTestId('nav-item');

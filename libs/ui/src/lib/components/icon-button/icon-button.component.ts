@@ -10,10 +10,15 @@ import { RouterLink } from '@angular/router';
     templateUrl: './icon-button.component.html',
     styleUrl: './icon-button.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[attr.aria-label]': 'null',
+    },
 })
 export class IconButtonComponent {
     readonly icon = input.required<string>();
     readonly label = input('');
+    /** Names the control without the tooltip `label` brings; wins over `label`. */
+    readonly ariaLabel = input<string>(undefined, { alias: 'aria-label' });
     readonly disabled = input(false);
     readonly link = input<string | readonly (string | number)[]>();
     /**

@@ -1,7 +1,7 @@
 <ui-icon-button
     cdkOverlayOrigin
     #trigger="cdkOverlayOrigin"
-    data-testid="font-scale-toggle"
+    testId="font-scale-toggle"
     icon="text_fields"
     label="Размер шрифта"
     (clicked)="toggle()"
@@ -22,7 +22,7 @@
     >
         <div class="font-scale-stepper">
             <ui-icon-button
-                data-testid="font-scale-decrease"
+                testId="font-scale-decrease"
                 icon="remove"
                 label="Уменьшить"
                 [disabled]="!canDecrease()"
@@ -35,7 +35,7 @@
                 {{ scalePercent() }}%
             </span>
             <ui-icon-button
-                data-testid="font-scale-increase"
+                testId="font-scale-increase"
                 icon="add"
                 label="Увеличить"
                 [disabled]="!canIncrease()"

@@ -79,6 +79,8 @@ test.describe('Picture lightbox', () => {
         await detail.image.click();
         await lightbox.waitForReady();
 
+        await expect(lightbox.close).toHaveRole('button');
+        await expect(lightbox.close).toHaveAccessibleName('Закрыть');
         await lightbox.close.click();
 
         await expect(lightbox.backdrop).toBeHidden();

@@ -58,8 +58,7 @@ test.describe('Font scale control', () => {
                 await layout.fontScaleDecrease.click();
             }
             await expect(layout.fontScaleValue).toHaveText('80%');
-            // ui-icon-button renders a native <button> inside — check that for disabled state
-            await expect(layout.fontScaleDecreaseButton).toBeDisabled();
+            await expect(layout.fontScaleDecrease).toBeDisabled();
         });
 
         test('increase button is disabled at maximum (150%)', async () => {
@@ -67,8 +66,7 @@ test.describe('Font scale control', () => {
                 await layout.fontScaleIncrease.click();
             }
             await expect(layout.fontScaleValue).toHaveText('150%');
-            // ui-icon-button renders a native <button> inside — check that for disabled state
-            await expect(layout.fontScaleIncreaseButton).toBeDisabled();
+            await expect(layout.fontScaleIncrease).toBeDisabled();
         });
 
         test('reset returns to 100%', async () => {

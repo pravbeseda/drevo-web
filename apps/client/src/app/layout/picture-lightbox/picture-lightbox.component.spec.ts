@@ -143,6 +143,20 @@ describe('PictureLightboxComponent', () => {
         expect(mockLightboxService.close).toHaveBeenCalled();
     });
 
+    it('should close via the close button, named «Закрыть» for screen readers', () => {
+        isOpen.set(true);
+        currentPicture.set(mockPicture);
+        spectator.detectChanges();
+
+        const close = spectator.query('[data-testid="lightbox-close"]');
+        expect(close?.tagName).toBe('BUTTON');
+        expect(close?.getAttribute('aria-label')).toBe('Закрыть');
+
+        spectator.click('[data-testid="lightbox-close"]');
+
+        expect(mockLightboxService.close).toHaveBeenCalledTimes(1);
+    });
+
     it('should toggle zoom on image click', () => {
         isOpen.set(true);
         currentPicture.set(mockPicture);

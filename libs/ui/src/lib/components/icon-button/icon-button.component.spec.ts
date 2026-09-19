@@ -1,6 +1,6 @@
 import { MatTooltip } from '@angular/material/tooltip';
 import { provideRouter } from '@angular/router';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, createHostFactory, Spectator, SpectatorHost } from '@ngneat/spectator/jest';
 import { IconButtonComponent } from './icon-button.component';
 
 describe('IconButtonComponent', () => {
@@ -150,6 +150,47 @@ describe('IconButtonComponent', () => {
             expect(spectator.query('a')).toBeFalsy();
             expect(spectator.query('button')).toBeTruthy();
             expect(spectator.query('button')?.hasAttribute('disabled')).toBe(true);
+        });
+    });
+
+    describe('aria-label on the host', () => {
+        let host: SpectatorHost<IconButtonComponent>;
+
+        const createHost = createHostFactory({
+            component: IconButtonComponent,
+            providers: [provideRouter([])],
+        });
+
+        const tooltip = (): MatTooltip | null => host.query('span', { read: MatTooltip });
+
+        it('should name the button with it, without a tooltip', () => {
+            host = createHost('<ui-icon-button icon="close" aria-label="Закрыть" testId="close" />');
+
+            expect(host.query('[data-testid="close"]')?.getAttribute('aria-label')).toBe('Закрыть');
+            expect(tooltip()?.message).toBe('');
+        });
+
+        it('should not leave it on the host, where no role reads it', () => {
+            host = createHost('<ui-icon-button icon="close" aria-label="Закрыть" />');
+
+            expect(host.element.hasAttribute('aria-label')).toBe(false);
+        });
+
+        it('should take precedence over label, which still drives the tooltip', () => {
+            host = createHost(
+                '<ui-icon-button icon="close" label="Закрыть окно" aria-label="Закрыть" testId="close" />',
+            );
+
+            expect(host.query('[data-testid="close"]')?.getAttribute('aria-label')).toBe('Закрыть');
+            expect(tooltip()?.message).toBe('Закрыть окно');
+        });
+
+        it('should name the anchor with it', () => {
+            host = createHost(
+                '<ui-icon-button icon="open_in_new" link="/pictures" aria-label="Открыть" testId="open" />',
+            );
+
+            expect(host.query('[data-testid="open"]')?.getAttribute('aria-label')).toBe('Открыть');
         });
     });
 });

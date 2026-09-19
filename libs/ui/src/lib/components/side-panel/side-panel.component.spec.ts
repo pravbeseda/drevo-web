@@ -50,7 +50,7 @@ describe('SidePanelComponent', () => {
         const closedSpy = jest.fn();
         spectator.component.closed.subscribe(closedSpy);
 
-        spectator.click('ui-icon-button button');
+        spectator.click('[data-testid="side-panel-close"]');
 
         expect(closedSpy).toHaveBeenCalled();
     });
