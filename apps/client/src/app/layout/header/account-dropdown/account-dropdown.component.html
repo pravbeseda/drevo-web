@@ -2,13 +2,14 @@
     <ui-icon-button
         icon="account_circle"
         label="Загрузка..."
+        testId="account-loading"
         [disabled]="true"
     />
 } @else {
     <ui-icon-button
         icon="account_circle"
         label="Аккаунт"
-        data-testid="account-button"
+        testId="account-button"
         [uiDropdownMenuTriggerFor]="menuContent"
     />
 

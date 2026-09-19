@@ -12,7 +12,7 @@ export class HistoryPage extends BasePage {
     readonly inworkHeader: Locator = this.page.getByTestId('history-inwork-header');
     readonly inworkItems: Locator = this.page.getByTestId('inwork-item');
     readonly inworkMarker: Locator = this.page.getByTestId('inwork-marker');
-    readonly cancelInworkButton: Locator = this.page.getByTestId('cancel-inwork-button').getByRole('button');
+    readonly cancelInworkButton: Locator = this.page.getByTestId('cancel-inwork-button');
     readonly confirmDialogConfirmButton: Locator = this.page.getByTestId('confirmation-dialog-confirm');
     readonly filtersButton: Locator = this.page.getByRole('button', { name: 'Фильтры' });
     readonly uncheckedFilter: Locator = this.page.getByTestId('filter-item').filter({ hasText: 'Непроверенные' });

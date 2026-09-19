@@ -62,8 +62,8 @@ describe('AccountDropdownComponent', () => {
             isLoadingSubject.next(true);
             spectator = createComponent();
 
-            const button = spectator.query('ui-icon-button button') as HTMLButtonElement;
-            expect(button.disabled).toBe(true);
+            const button = spectator.query<HTMLButtonElement>('[data-testid="account-loading"]');
+            expect(button?.disabled).toBe(true);
         });
 
         it('should not render trigger when loading', () => {
@@ -240,8 +240,8 @@ describe('AccountDropdownComponent', () => {
 
             expect(spectator.query('[aria-haspopup="menu"]')).toBeFalsy();
 
-            const button = spectator.query('ui-icon-button button') as HTMLButtonElement;
-            expect(button.disabled).toBe(true);
+            const button = spectator.query<HTMLButtonElement>('[data-testid="account-loading"]');
+            expect(button?.disabled).toBe(true);
         });
     });
 });

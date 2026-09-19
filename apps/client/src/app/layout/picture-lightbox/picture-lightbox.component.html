@@ -14,8 +14,8 @@
             [class.lightbox__close--hidden]="lightboxService.isZoomed()"
             icon="close"
             aria-label="Закрыть"
-            (click)="lightboxService.close()"
-            data-testid="lightbox-close"
+            (clicked)="lightboxService.close()"
+            testId="lightbox-close"
         />
 
         @if (lightboxService.isLoading()) {
