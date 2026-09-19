@@ -50,7 +50,7 @@ test.describe('Article pictures', () => {
         await article.clickPicture();
         await lightbox.waitForReady();
 
-        await page.keyboard.press('Escape');
+        await lightbox.closeWithEscape();
 
         await expect(lightbox.backdrop).toBeHidden();
         await expect(article.content).toBeVisible();

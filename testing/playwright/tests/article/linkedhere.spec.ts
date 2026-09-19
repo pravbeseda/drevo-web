@@ -77,7 +77,7 @@ test.describe('LinkedHere tab', () => {
         await linkedhere.filter('Drevo');
 
         await expect(linkedhere.items).toHaveCount(1);
-        await expect(linkedhere.items.locator('mark')).toHaveText('Drevo');
+        await expect(linkedhere.highlights).toHaveText('Drevo');
     });
 
     test('clicking an item navigates to the corresponding article', async ({ authenticatedPage: page }) => {

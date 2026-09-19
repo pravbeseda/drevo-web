@@ -45,6 +45,31 @@ export default [
         },
     },
     {
+        // docs/testing.md: no selector ever appears in a spec. Matched by property name on any
+        // object, so narrowing a locator a Page Object returned is caught as well as `page.*`.
+        // `no-restricted-syntax` is taken by the root config, and redeclaring it would replace
+        // its RxJS entries rather than extend them.
+        files: ['tests/**/*.spec.ts'],
+        rules: {
+            'no-restricted-properties': [
+                'error',
+                ...[
+                    'locator',
+                    'getByTestId',
+                    'getByRole',
+                    'getByText',
+                    'getByLabel',
+                    'getByPlaceholder',
+                    'keyboard',
+                    'mouse',
+                ].map(property => ({
+                    property,
+                    message: 'Selectors and input devices belong in a Page Object (pages/) or a helper (helpers/).',
+                })),
+            ],
+        },
+    },
+    {
         // Mocks and fixtures reproduce the backend wire format, where the DTO types spell
         // absence as `null` (`PicturePendingDto.pp_title: string | null`) and the API envelope
         // carries `data: null`. `undefined` would not typecheck against those contracts.

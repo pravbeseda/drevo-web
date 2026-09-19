@@ -35,9 +35,8 @@ test.describe('Picture gallery', () => {
 
         test('picture cards have thumbnail images', async () => {
             await gallery.waitForGallery();
-            const firstCard = gallery.cards.first();
-            await expect(firstCard).toBeVisible();
-            await expect(firstCard.locator('img')).toBeVisible();
+            await expect(gallery.cards.first()).toBeVisible();
+            await expect(gallery.cardImages.first()).toBeVisible();
         });
     });
 

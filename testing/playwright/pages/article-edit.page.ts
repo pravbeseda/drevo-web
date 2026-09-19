@@ -7,6 +7,16 @@ export class ArticleEditPage extends BasePage {
     readonly editorContainer = this.page.getByTestId('editor-container');
     /** CodeMirror editable content — its text is the current editor value */
     readonly editorContent = this.editorContainer.locator('.cm-content');
+    /** CodeMirror gutter markers for warnings only */
+    readonly lintWarningMarkers = this.editorContainer.locator('.cm-lint-marker-warning');
+    /** CodeMirror gutter markers for warnings and errors */
+    readonly lintMarkers = this.editorContainer.locator('.cm-lint-marker-warning, .cm-lint-marker-error');
+    /** CodeMirror lint panel listing the problems */
+    readonly lintPanel = this.editorContainer.locator('.cm-panel-lint');
+    /** Validation status indicator; clicking it toggles the lint panel */
+    readonly validationIndicator = this.page.getByTestId('validation-indicator');
+    /** Warning count inside the validation indicator */
+    readonly validationWarning = this.validationIndicator.locator('.validation-indicator__warning');
     /** Save sidebar action button (desktop sidebar or mobile FAB) */
     readonly saveAction = this.sidebarAction('save-action');
     /** Cancel sidebar action button (desktop sidebar or mobile FAB) */
@@ -44,9 +54,15 @@ export class ArticleEditPage extends BasePage {
      * Selects all with Ctrl+A then types the new text.
      */
     async typeInEditor(text: string): Promise<void> {
-        const cmContent = this.editorContainer.locator('.cm-content');
-        await cmContent.click();
+        await this.editorContent.click();
         await this.page.keyboard.press('ControlOrMeta+a');
+        await this.page.keyboard.type(text);
+    }
+
+    /** Type text at the end of the current editor line, keeping the existing content */
+    async appendToEditor(text: string): Promise<void> {
+        await this.editorContent.click();
+        await this.page.keyboard.press('End');
         await this.page.keyboard.type(text);
     }
 }
