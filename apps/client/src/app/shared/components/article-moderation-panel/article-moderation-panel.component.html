@@ -25,7 +25,7 @@
 <div class="moderation-panel-actions">
     @if (!isApproved()) {
         <ui-button
-            data-testid="moderation-approve-button"
+            testId="moderation-approve-button"
             variant="filled"
             accent="success"
             [disabled]="isLoading()"
@@ -37,7 +37,7 @@
     }
     @if (!isPending()) {
         <ui-button
-            data-testid="moderation-review-button"
+            testId="moderation-review-button"
             variant="outlined"
             [disabled]="isLoading()"
             [loading]="isLoading()"
@@ -48,7 +48,7 @@
     }
     @if (!isRejected()) {
         <ui-button
-            data-testid="moderation-reject-button"
+            testId="moderation-reject-button"
             variant="outlined"
             accent="danger"
             [disabled]="isLoading()"

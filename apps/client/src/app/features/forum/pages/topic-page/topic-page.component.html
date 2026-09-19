@@ -26,7 +26,7 @@
     @if (hasPrevious()) {
         <div class="topic-page__more">
             <ui-button
-                data-testid="topic-load-previous"
+                testId="topic-load-previous"
                 variant="outlined"
                 [loading]="isLoadingPrevious()"
                 (click)="onLoadPrevious()"
@@ -47,7 +47,7 @@
     @if (hasNext()) {
         <div class="topic-page__more">
             <ui-button
-                data-testid="topic-load-next"
+                testId="topic-load-next"
                 variant="outlined"
                 [loading]="isLoadingNext()"
                 (click)="onLoadNext()"

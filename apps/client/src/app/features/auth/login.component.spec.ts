@@ -112,8 +112,8 @@ describe('LoginComponent', () => {
         it('should disable submit button when form is invalid', () => {
             spectator = createComponent();
 
-            const button = spectator.query('ui-button button') as HTMLButtonElement;
-            expect(button.disabled).toBe(true);
+            const button = spectator.query<HTMLButtonElement>('[data-testid="submit-button"]');
+            expect(button?.disabled).toBe(true);
         });
 
         it('should enable submit button when form is valid', () => {
@@ -123,8 +123,8 @@ describe('LoginComponent', () => {
             spectator.component.loginForm.controls.password.setValue('password123');
             spectator.detectChanges();
 
-            const button = spectator.query('ui-button button') as HTMLButtonElement;
-            expect(button.disabled).toBe(false);
+            const button = spectator.query<HTMLButtonElement>('[data-testid="submit-button"]');
+            expect(button?.disabled).toBe(false);
         });
     });
 

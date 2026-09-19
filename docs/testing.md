@@ -33,6 +33,8 @@ const createComponent = createComponentFactory({
 - Build `User` mocks with `createMockUser()` from `@drevo-web/shared/testing`, not hand-written literals. One default covers a newly required field, so adding one does not break every spec. `permissions` is shallow-merged, so `createMockUser({ permissions: { canModerate: true } })` works. Playwright uses its own `User` objects and may not resolve the alias — add new fields to those literals directly
 - With `detectChanges: false`, set the mocks up before calling `spectator.detectChanges()`
 - Query elements only via `[data-testid="name"]`; add the attribute to a template only when a test actually needs it
+    - On `ui-button` and `ui-icon-button` pass `testId`, not `data-testid`: it lands on the native `button` or `a`, so the selector hits the clickable, disableable element rather than the host
+    - The one exception is an element that Angular Material renders and no attribute of ours reaches, such as the `button` inside `mat-button-toggle`: select it as `[data-testid="name"] button`
 - `import/order` is off in `*.spec.ts`
 
 ### HTTP services

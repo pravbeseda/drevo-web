@@ -54,11 +54,16 @@ describe('ConfirmationDialogComponent', () => {
         expect(buttons).toHaveLength(2);
     });
 
+    it('should put the button key test id on the native button', () => {
+        setup();
+
+        expect(spectator.query('[data-testid="confirmation-dialog-confirm"]')?.tagName).toBe('BUTTON');
+    });
+
     it('should call close with button key on click', () => {
         setup();
 
-        const buttons = spectator.queryAll('ui-button button');
-        spectator.click(buttons[0]);
+        spectator.click('[data-testid="confirmation-dialog-cancel"]');
 
         expect(closeFn).toHaveBeenCalledWith('cancel');
     });
@@ -66,8 +71,7 @@ describe('ConfirmationDialogComponent', () => {
     it('should call close with correct key for second button', () => {
         setup();
 
-        const buttons = spectator.queryAll('ui-button button');
-        spectator.click(buttons[1]);
+        spectator.click('[data-testid="confirmation-dialog-confirm"]');
 
         expect(closeFn).toHaveBeenCalledWith('confirm');
     });

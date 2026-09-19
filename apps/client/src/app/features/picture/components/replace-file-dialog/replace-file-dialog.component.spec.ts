@@ -56,7 +56,7 @@ describe('ReplaceFileDialogComponent', () => {
         spectator.component.titleControl.setValue('Ab');
         spectator.detectChanges();
 
-        const confirmBtn = spectator.query<HTMLButtonElement>('[data-testid="replace-file-dialog-confirm"] button');
+        const confirmBtn = spectator.query<HTMLButtonElement>('[data-testid="replace-file-dialog-confirm"]');
         expect(confirmBtn?.disabled).toBe(true);
     });
 
@@ -64,7 +64,7 @@ describe('ReplaceFileDialogComponent', () => {
         setup();
         spectator.detectChanges();
 
-        const confirmBtn = spectator.query<HTMLButtonElement>('[data-testid="replace-file-dialog-confirm"] button');
+        const confirmBtn = spectator.query<HTMLButtonElement>('[data-testid="replace-file-dialog-confirm"]');
         expect(confirmBtn?.disabled).toBe(false);
     });
 
@@ -101,7 +101,7 @@ describe('ReplaceFileDialogComponent', () => {
         spectator.component.titleControl.setValue('Новое описание');
         spectator.detectChanges();
 
-        spectator.click('[data-testid="replace-file-dialog-confirm"] button');
+        spectator.click('[data-testid="replace-file-dialog-confirm"]');
 
         expect(closeFn).toHaveBeenCalledWith({ title: 'Новое описание' });
     });
@@ -111,7 +111,7 @@ describe('ReplaceFileDialogComponent', () => {
         spectator.component.titleControl.setValue('  Новое описание  ');
         spectator.detectChanges();
 
-        spectator.click('[data-testid="replace-file-dialog-confirm"] button');
+        spectator.click('[data-testid="replace-file-dialog-confirm"]');
 
         expect(closeFn).toHaveBeenCalledWith({ title: 'Новое описание' });
     });
@@ -129,7 +129,7 @@ describe('ReplaceFileDialogComponent', () => {
     it('should close without result on cancel', () => {
         setup();
 
-        spectator.click('[data-testid="replace-file-dialog-cancel"] button');
+        spectator.click('[data-testid="replace-file-dialog-cancel"]');
 
         expect(closeFn).toHaveBeenCalledWith();
     });
