@@ -70,7 +70,7 @@ test.describe('Article view', () => {
             await page.goto('/articles/5');
             await article.waitForReady();
 
-            await article.content.locator('a[href="/articles/9;id=5"]').click();
+            await article.contentLink('/articles/9;id=5').click();
             await article.waitForError();
 
             await expect(article.error).toBeVisible();
@@ -129,7 +129,7 @@ test.describe('Article view', () => {
         });
 
         test('shows link to current article version', async () => {
-            const link = article.versionBanner.getByRole('link', { name: 'Перейти к текущей версии статьи' });
+            const link = article.versionBannerCurrentLink;
             await expect(link).toBeVisible();
             await expect(link).toHaveAttribute('href', `/articles/${ARTICLE_ID}`);
         });

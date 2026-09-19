@@ -9,4 +9,8 @@ export class LightboxPage extends BasePage {
     async waitForReady(): Promise<void> {
         await this.image.waitFor({ state: 'visible' });
     }
+
+    async closeWithEscape(): Promise<void> {
+        await this.page.keyboard.press('Escape');
+    }
 }

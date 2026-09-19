@@ -1,4 +1,5 @@
 import { BasePage } from './base.page';
+import { Locator } from '@playwright/test';
 
 export class ArticlePage extends BasePage {
     readonly root = this.page.getByTestId('article-page');
@@ -15,6 +16,9 @@ export class ArticlePage extends BasePage {
     readonly pictureLink = this.content.locator('.pic a');
     readonly stub = this.page.getByTestId('article-stub');
     readonly versionBanner = this.page.getByTestId('version-banner');
+    readonly versionBannerCurrentLink = this.versionBanner.getByRole('link', {
+        name: 'Перейти к текущей версии статьи',
+    });
     readonly historyEmpty = this.page.getByTestId('history-empty');
     readonly historyError = this.page.getByTestId('history-error');
     readonly forumTopics = this.page.getByTestId('topic-item');
@@ -42,6 +46,11 @@ export class ArticlePage extends BasePage {
 
     async waitForError(): Promise<void> {
         await this.error.waitFor({ state: 'visible' });
+    }
+
+    /** A link inside the legacy article HTML, found by its exact `href` */
+    contentLink(href: string): Locator {
+        return this.content.locator(`a[href="${href}"]`);
     }
 
     /** Left-click the article picture — expected to open the lightbox */

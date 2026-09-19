@@ -8,6 +8,7 @@ export class PictureGalleryPage extends BasePage {
     readonly gallery = this.page.getByTestId('pictures-gallery');
     readonly empty = this.page.getByTestId('pictures-empty');
     readonly cards = this.page.getByTestId('picture-card');
+    readonly firstCardImage = this.cards.first().locator('img');
 
     async waitForReady(): Promise<void> {
         await this.root.waitFor({ state: 'visible' });

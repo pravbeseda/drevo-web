@@ -11,7 +11,11 @@ import {
 } from '../../fixtures';
 import { createArticleVersionDto, mockArticleViewData } from '../../mocks/articles';
 import { ArticleEditPage } from '../../pages/article-edit.page';
-import { getConfirmationDialogTitle } from '../../helpers/confirmation-dialog';
+import {
+    getConfirmationDialogCancel,
+    getConfirmationDialogConfirm,
+    getConfirmationDialogTitle,
+} from '../../helpers/confirmation-dialog';
 
 const ARTICLE_ID = 42;
 const VERSION_ID = 420;
@@ -43,43 +47,40 @@ async function setupEditPage(page: import('@playwright/test').Page, content: str
 test.describe('Article edit — validation', () => {
     test.describe('Validation indicator', () => {
         test('shows check icon when content is valid', async ({ authenticatedPage: page }) => {
-            await setupEditPage(page, 'Обычный текст');
-            const indicator = page.getByTestId('validation-indicator');
+            const editPage = await setupEditPage(page, 'Обычный текст');
+            const indicator = editPage.validationIndicator;
 
             await expect(indicator).toBeVisible();
             await expect(indicator).toHaveClass(/validation-indicator--ok/);
         });
 
         test('shows warning count when content has warnings', async ({ authenticatedPage: page }) => {
-            await setupEditPage(page, '== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const editPage = await setupEditPage(page, '== ((ссылка)) ==');
 
-            await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
-            const warningSpan = indicator.locator('.validation-indicator__warning');
+            await expect(editPage.validationIndicator).not.toHaveClass(/validation-indicator--ok/);
+            const warningSpan = editPage.validationWarning;
             await expect(warningSpan).toBeVisible();
             await expect(warningSpan).toContainText('1');
         });
 
         test('updates count for multiple warnings', async ({ authenticatedPage: page }) => {
-            await setupEditPage(page, '== ((one)) ((two)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const editPage = await setupEditPage(page, '== ((one)) ((two)) ==');
 
-            const warningSpan = indicator.locator('.validation-indicator__warning');
+            const warningSpan = editPage.validationWarning;
             await expect(warningSpan).toBeVisible();
             await expect(warningSpan).toContainText('2');
         });
 
         test('shows warning count for bracket issues', async ({ authenticatedPage: page }) => {
-            await setupEditPage(page, 'текст (без закрытия');
-            const indicator = page.getByTestId('validation-indicator');
+            const editPage = await setupEditPage(page, 'текст (без закрытия');
 
-            const warningSpan = indicator.locator('.validation-indicator__warning');
+            const warningSpan = editPage.validationWarning;
             await expect(warningSpan).toBeVisible();
         });
 
         test('returns to ok state when content is fixed', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await editPage.typeInEditor('Чистый текст без проблем');
@@ -91,7 +92,7 @@ test.describe('Article edit — validation', () => {
         test('shows confirmation dialog when saving content with warnings', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, 'Чистый текст');
             await editPage.typeInEditor('== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await editPage.clickSave();
@@ -105,13 +106,12 @@ test.describe('Article edit — validation', () => {
             await mockArticleSave(page);
             const editPage = await setupEditPage(page, 'Чистый текст');
             await editPage.typeInEditor('== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await editPage.clickSave();
 
-            const confirmButton = page.getByTestId('confirmation-dialog-confirm');
-            await confirmButton.click();
+            await getConfirmationDialogConfirm(page).click();
 
             await expect(page).toHaveURL(`/articles/${ARTICLE_ID}`);
         });
@@ -120,13 +120,12 @@ test.describe('Article edit — validation', () => {
             await mockArticleSave(page);
             const editPage = await setupEditPage(page, 'Чистый текст');
             await editPage.typeInEditor('== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await editPage.clickSave();
 
-            const cancelButton = page.getByTestId('confirmation-dialog-cancel');
-            await cancelButton.click();
+            await getConfirmationDialogCancel(page).click();
 
             await expect(page).toHaveURL(/\/edit/);
         });
@@ -134,11 +133,8 @@ test.describe('Article edit — validation', () => {
         test('shows confirmation for bracket warnings on save', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, 'текст (без закрытия');
             // Type a space at the end to make content differ from version
-            const cmContent = editPage.editorContainer.locator('.cm-content');
-            await cmContent.click();
-            await page.keyboard.press('End');
-            await page.keyboard.type(' ');
-            const indicator = page.getByTestId('validation-indicator');
+            await editPage.appendToEditor(' ');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await editPage.clickSave();
@@ -153,38 +149,36 @@ test.describe('Article edit — validation', () => {
         test('shows lint marker in gutter for invalid content', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
 
-            const lintMarker = editPage.editorContainer.locator('.cm-lint-marker-warning');
-            await expect(lintMarker.first()).toBeVisible();
+            await expect(editPage.lintWarningMarkers.first()).toBeVisible();
         });
 
         test('does not show lint markers for valid content', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== Чистый заголовок ==');
 
-            const lintMarkers = editPage.editorContainer.locator('.cm-lint-marker-warning, .cm-lint-marker-error');
-            await expect(lintMarkers).toHaveCount(0);
+            await expect(editPage.lintMarkers).toHaveCount(0);
         });
     });
 
     test.describe('Lint panel', () => {
         test('opens lint panel on indicator click', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await indicator.click();
 
-            const lintPanel = editPage.editorContainer.locator('.cm-panel-lint');
+            const lintPanel = editPage.lintPanel;
             await expect(lintPanel).toBeVisible();
         });
 
         test('displays problem list in lint panel', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) *bold* ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await indicator.click();
 
-            const lintPanel = editPage.editorContainer.locator('.cm-panel-lint');
+            const lintPanel = editPage.lintPanel;
             await expect(lintPanel).toBeVisible();
             await expect(lintPanel).toContainText('Ссылки запрещены в заголовках');
             await expect(lintPanel).toContainText('Жирный текст запрещён в заголовках');
@@ -192,11 +186,11 @@ test.describe('Article edit — validation', () => {
 
         test('closes lint panel on second indicator click', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
-            const indicator = page.getByTestId('validation-indicator');
+            const indicator = editPage.validationIndicator;
             await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
 
             await indicator.click();
-            const lintPanel = editPage.editorContainer.locator('.cm-panel-lint');
+            const lintPanel = editPage.lintPanel;
             await expect(lintPanel).toBeVisible();
 
             await indicator.click();

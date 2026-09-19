@@ -8,3 +8,8 @@ export function getTooltip(page: Page): Locator {
 export function getTooltipSurface(page: Page): Locator {
     return getTooltip(page).locator('.mdc-tooltip__surface');
 }
+
+/** Move the pointer to the page corner so an open hover tooltip closes. */
+export async function dismissTooltip(page: Page): Promise<void> {
+    await page.mouse.move(0, 0);
+}
