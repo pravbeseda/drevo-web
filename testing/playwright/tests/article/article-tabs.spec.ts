@@ -61,9 +61,16 @@ test.describe('Article tabs', () => {
             await mockForumTopicApi(
                 page,
                 TOPIC_ID,
-                createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
-                    createForumMessageDto({ id: 11 }),
-                ]),
+                createForumTopicPage(
+                    createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }),
+                    // Long enough that the panel has to scroll something.
+                    Array.from({ length: 20 }, (_, index) =>
+                        createForumMessageDto(
+                            { html: `<p>${'Текст сообщения. '.repeat(20)}</p>`, parentId: index === 0 ? 0 : 1 },
+                            index + 1,
+                        ),
+                    ),
+                ),
             );
             const topic = new ForumTopicPage(page);
 
@@ -74,6 +81,16 @@ test.describe('Article tabs', () => {
             // The topic is addressed under the article, so the tab and the list stay.
             await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_ID}/forum/topic/${TOPIC_ID}$`));
             await expect(article.forumTopics).toHaveCount(1);
+
+            // The panes are bounded by the screen and scroll inside themselves; an
+            // unbounded pane grows with the topic and takes the tab's scroll instead.
+            const panes = await article.forumPanes.boundingBox();
+            const viewport = page.viewportSize();
+            expect(panes?.height ?? 0).toBeLessThanOrEqual(viewport?.height ?? 0);
+
+            // «в ответ на» is a link inside the topic, and it stays inside the article too.
+            await topic.replyTo.first().click();
+            await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_ID}/forum/topic/${TOPIC_ID}/1$`));
         });
 
         test('states that the article has no discussions yet', async ({ authenticatedPage: page }) => {

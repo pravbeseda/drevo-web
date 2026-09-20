@@ -38,7 +38,8 @@ describe('TopicsPageComponent', () => {
     let spectator: Spectator<TopicsPageComponent>;
     let forumService: { getTopics: jest.Mock };
     let routeData: BehaviorSubject<{ topics: ForumTopicsResolveResult; withPanel: boolean }>;
-    let routeMock: { firstChild?: ActivatedRoute };
+    let routeMock: { firstChild?: ActivatedRoute; snapshot: ReturnType<typeof createRouteSnapshot> };
+    let routeParams: BehaviorSubject<Record<string, string>>;
 
     interface RouteExtras {
         readonly hasOpenTopic?: boolean;
@@ -61,18 +62,27 @@ describe('TopicsPageComponent', () => {
         extras: RouteExtras = {},
     ): void => {
         routeData = new BehaviorSubject({ topics: result, withPanel: extras.withPanel ?? true });
+        routeParams = new BehaviorSubject(params);
         routeMock = {
             data: routeData.asObservable(),
+            params: routeParams.asObservable(),
             snapshot: createRouteSnapshot(params),
             firstChild: extras.hasOpenTopic ? ({} as ActivatedRoute) : undefined,
             parent: extras.sections ? { data: of({ sections: extras.sections }) } : undefined,
-        } as unknown as { firstChild?: ActivatedRoute };
+        } as unknown as typeof routeMock;
         spectator = createComponent({
             providers: [
                 { provide: ForumService, useValue: forumService },
                 { provide: ActivatedRoute, useValue: routeMock },
             ],
         });
+    };
+
+    /** The reader switching tabs: one address of the same route config replaces another. */
+    const switchSection = (part: string): void => {
+        routeMock.snapshot = createRouteSnapshot({ part });
+        routeParams.next({ part });
+        spectator.detectChanges();
     };
 
     /** The router activating the topic route under this page. */
@@ -113,6 +123,23 @@ describe('TopicsPageComponent', () => {
             );
 
             expect(spectator.query('[data-testid="topic-placeholder-description"]')).toHaveText('Общие вопросы');
+        });
+
+        it('follows the section the reader switches to', () => {
+            render(
+                createPage(),
+                { part: 'common' },
+                {
+                    sections: [
+                        { id: 'common', name: 'Общий', description: 'Общие вопросы' },
+                        { id: 'articles', name: 'Статьи', description: 'Обсуждение статей' },
+                    ],
+                },
+            );
+
+            switchSection('articles');
+
+            expect(spectator.query('[data-testid="topic-placeholder-description"]')).toHaveText('Обсуждение статей');
         });
 
         it('drops the invitation when the address already names a topic', () => {

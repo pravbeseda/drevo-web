@@ -1,12 +1,17 @@
 @use 'index' as *;
 
+/*
+ * The query container is the host, not `.topic-panes`: a container query is
+ * resolved against an element's ancestor containers, never against the element
+ * that declares one, so a rule laying the panes out has to sit below it.
+ */
 :host {
     display: block;
     height: 100%;
+    container-type: inline-size;
 }
 
 .topic-panes {
-    container-type: inline-size;
     display: flex;
     flex-direction: column;
     height: 100%;

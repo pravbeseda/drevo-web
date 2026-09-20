@@ -1,10 +1,12 @@
 @use 'index' as *;
 
-// When the history tab is active, lock `:host` and `.article` to a fixed height
-// so the virtual scroller can fill the remaining space via flex.
+// When a tab that scrolls inside itself is active, lock `:host` and `.article`
+// to a fixed height so the virtual scroller — or the discussion's two panes —
+// can fill the remaining space via flex.
 // Other tabs keep normal flow — `.main` scrolls their content as before.
 :host:has(app-article-versions),
 :host:has(app-article-edit),
+:host:has(app-article-forum-tab),
 :host:has(app-article-linkedhere-tab) {
     height: 100%;
     overflow: hidden;

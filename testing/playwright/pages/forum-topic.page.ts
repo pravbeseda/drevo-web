@@ -4,6 +4,7 @@ import { Locator } from '@playwright/test';
 export class ForumTopicPage extends BasePage {
     readonly title = this.page.getByTestId('topic-page-title');
     readonly author = this.page.getByTestId('topic-page-author');
+    readonly replyTo = this.page.getByTestId('message-reply-to');
     readonly notFound = this.page.getByTestId('topic-not-found');
     readonly loadError = this.page.getByTestId('topic-load-error');
 

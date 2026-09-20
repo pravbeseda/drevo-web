@@ -57,12 +57,24 @@ export class TopicsPageComponent {
     readonly isLoadError = computed(() => this._resolveResult() === 'load-error');
     readonly hasMore = computed(() => this._lastPage() < this._totalPages());
 
-    /** The section's own description, resolved by the tabbed shell above. */
+    /**
+     * The section's own description, resolved by the tabbed shell above.
+     *
+     * The section comes from the params rather than from the snapshot alone:
+     * switching tabs reuses this component, and a snapshot read inside a
+     * `computed` is not a dependency, so the description would stay on the
+     * section the reader arrived at.
+     */
     readonly sectionDescription = computed(() => {
-        const part = readForumSectionParams(this.route.snapshot)?.part;
+        const part = this.part();
 
         return part ? this.sections().find(section => section.id === part)?.description : undefined;
     });
+
+    private readonly part = toSignal(
+        this.route.params.pipe(map(() => readForumSectionParams(this.route.snapshot)?.part)),
+        { initialValue: readForumSectionParams(this.route.snapshot)?.part },
+    );
 
     private readonly sections = toSignal(
         this.route.parent?.data.pipe(

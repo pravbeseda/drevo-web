@@ -78,6 +78,11 @@ test.describe('Forum navigation', () => {
         // and the row stay on screen at desktop width.
         await expect(tabs.tab(SECTION.id)).toBeVisible();
         await expect(topics.title(TOPIC_TITLE)).toBeVisible();
+
+        // Beside, not above: a visible row says nothing about which way the panes run.
+        const row = await topics.items.first().boundingBox();
+        const heading = await topic.title.boundingBox();
+        expect(heading?.x ?? 0).toBeGreaterThan((row?.x ?? 0) + (row?.width ?? 0));
     });
 
     test('replaces the list with the topic on a phone', async ({ authenticatedPage: page }) => {

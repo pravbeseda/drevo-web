@@ -34,6 +34,7 @@ export class TopicPageComponent {
     private readonly _resolveResult = signal<ForumTopicResolveResult | undefined>(undefined);
     private readonly _messages = signal<readonly ForumMessage[]>([]);
     private readonly _anchorId = signal<number | undefined>(undefined);
+    private readonly _topicPath = signal<readonly string[]>([]);
     private readonly _firstPage = signal(1);
     private readonly _lastPage = signal(1);
     private readonly _totalPages = signal(0);
@@ -42,6 +43,14 @@ export class TopicPageComponent {
 
     readonly messages = this._messages.asReadonly();
     readonly anchorId = this._anchorId.asReadonly();
+
+    /**
+     * The topic's own address, which is where the panel is mounted rather than
+     * a fixed one: `/forum/topic/:id` in the forum, and under the article when
+     * its discussion tab opened the topic. The cards build their «in reply to»
+     * links on it.
+     */
+    readonly topicPath = this._topicPath.asReadonly();
     readonly isLoadingPrevious = this._isLoadingPrevious.asReadonly();
     readonly isLoadingNext = this._isLoadingNext.asReadonly();
 
@@ -93,7 +102,19 @@ export class TopicPageComponent {
         // produced this data by the time the resolved data reaches here.
         const anchor = readForumAnchor(this.route.snapshot);
         this._anchorId.set(typeof anchor === 'number' ? anchor : undefined);
+        this._topicPath.set(this.readTopicPath());
         this.scrollToAnchor();
+    }
+
+    /**
+     * The address of this topic, taken from the route rather than assembled:
+     * the anchored address carries one segment more, and it names a message
+     * rather than the topic.
+     */
+    private readTopicPath(): readonly string[] {
+        const segments = this.route.snapshot.pathFromRoot.flatMap(route => route.url.map(segment => segment.path));
+
+        return readForumAnchor(this.route.snapshot) === undefined ? segments : segments.slice(0, -1);
     }
 
     private canLoad(direction: LoadDirection): boolean {

@@ -39,7 +39,7 @@
     @for (message of messages(); track message.id) {
         <app-message-card
             [message]="message"
-            [topicId]="topic.id"
+            [topicPath]="topicPath()"
             [anchored]="message.id === anchorId()"
         />
     }
