@@ -1,28 +1,33 @@
-@if (topics(); as items) {
-    @if (items.length === 0) {
+<app-topic-panes>
+    @if (topics(); as items) {
+        @if (items.length === 0) {
+            <p
+                class="article-forum__message"
+                data-testid="article-forum-empty"
+            >
+                Обсуждений этой статьи пока нет.
+            </p>
+        } @else {
+            <app-topic-list
+                [items]="items"
+                [relativeLinks]="true"
+            />
+            <a
+                class="article-forum__all"
+                data-testid="article-forum-all"
+                [routerLink]="sectionUrl()"
+            >
+                Все обсуждения
+            </a>
+        }
+    } @else if (isLoadError()) {
         <p
             class="article-forum__message"
-            data-testid="article-forum-empty"
+            data-testid="article-forum-error"
         >
-            Обсуждений этой статьи пока нет.
+            Не удалось загрузить обсуждения. Попробуйте обновить страницу.
         </p>
     } @else {
-        <app-topic-list [items]="items" />
-        <a
-            class="article-forum__all"
-            data-testid="article-forum-all"
-            [routerLink]="sectionUrl()"
-        >
-            Все обсуждения
-        </a>
+        <ui-spinner />
     }
-} @else if (isLoadError()) {
-    <p
-        class="article-forum__message"
-        data-testid="article-forum-error"
-    >
-        Не удалось загрузить обсуждения. Попробуйте обновить страницу.
-    </p>
-} @else {
-    <ui-spinner />
-}
+</app-topic-panes>

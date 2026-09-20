@@ -5,6 +5,11 @@ export interface ForumSectionDto {
     readonly description: string;
 }
 
+export interface ForumTopicArticleDto {
+    readonly id: number;
+    readonly title: string;
+}
+
 export interface ForumTopicListItemDto {
     readonly id: number;
     readonly title: string;
@@ -14,6 +19,9 @@ export interface ForumTopicListItemDto {
     readonly lastPostId: number;
     readonly lastPostAt: string | null;
     readonly pinned: boolean;
+    /** Absent when `lastPostId` resolves to no row, not when nobody replied. */
+    readonly lastAuthor?: string;
+    readonly article: ForumTopicArticleDto | null;
 }
 
 export interface ForumTopicListResponseDto {
@@ -22,11 +30,6 @@ export interface ForumTopicListResponseDto {
     readonly page: number;
     readonly pageSize: number;
     readonly totalPages: number;
-}
-
-export interface ForumTopicArticleDto {
-    readonly id: number;
-    readonly title: string;
 }
 
 export interface ForumTopicDto {

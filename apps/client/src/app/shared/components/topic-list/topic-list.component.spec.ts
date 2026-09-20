@@ -13,6 +13,8 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
         lastPostId: 21,
         lastPostAt: new Date('2025-03-16T12:30:00Z'),
         pinned: false,
+        lastAuthor: 'Петров П.П.',
+        article: { id: 15, title: 'Статья' },
         ...overrides,
     };
 }
@@ -41,11 +43,43 @@ describe('TopicListComponent', () => {
         expect(spectator.query('[data-testid="topic-title"]')?.getAttribute('href')).toBe('/forum/topic/42');
     });
 
+    it('addresses a topic under the current route where the list asks for it', () => {
+        spectator = createComponent({ props: { items: [createItem({ id: 42 })], relativeLinks: true } });
+
+        expect(spectator.query('[data-testid="topic-title"]')?.getAttribute('href')).toBe('/topic/42');
+    });
+
     it('shows the author and the replies count', () => {
         render([createItem({ author: 'Петров П.П.', repliesCount: 12 })]);
 
         expect(spectator.query('[data-testid="topic-author"]')).toHaveText('Петров П.П.');
         expect(spectator.query('[data-testid="topic-replies"]')).toHaveText('12');
+    });
+
+    it('names the article the topic discusses and links it', () => {
+        render([createItem({ article: { id: 15, title: 'БОГ' } })]);
+
+        const article = spectator.query('[data-testid="topic-article"]');
+        expect(article).toHaveText('БОГ');
+        expect(article?.getAttribute('href')).toBe('/articles/15');
+    });
+
+    it('names no article for a topic attached to none', () => {
+        render([createItem({ article: undefined })]);
+
+        expect(spectator.query('[data-testid="topic-article"]')).not.toExist();
+    });
+
+    it('names who wrote the last post', () => {
+        render([createItem({ lastAuthor: 'Валентин100' })]);
+
+        expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Валентин100');
+    });
+
+    it('names no last author when the last post resolved to no row', () => {
+        render([createItem({ lastAuthor: undefined })]);
+
+        expect(spectator.query('[data-testid="topic-last-author"]')).not.toExist();
     });
 
     it('links the last post to its place in the topic', () => {

@@ -25,6 +25,11 @@ export class ArticlePage extends BasePage {
     readonly forumEmpty = this.page.getByTestId('article-forum-empty');
     readonly forumAllTopics = this.page.getByTestId('article-forum-all');
 
+    /** One discussion of this article, by its title. */
+    forumTopic(title: string): Locator {
+        return this.page.getByTestId('topic-title').filter({ hasText: title });
+    }
+
     readonly tabArticle = this.page.getByTestId('tab-article');
     readonly tabNews = this.page.getByTestId('tab-news');
     readonly tabForum = this.page.getByTestId('tab-forum');

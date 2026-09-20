@@ -2,9 +2,9 @@ import { ForumService } from '../../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { TopicsPageComponent } from './topics-page.component';
-import { ActivatedRoute, Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Event, NavigationEnd, Router, provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
+import { ForumSection, ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 
@@ -18,6 +18,8 @@ function createItem(id: number): ForumTopicListItem {
         lastPostId: undefined,
         lastPostAt: undefined,
         pinned: false,
+        lastAuthor: undefined,
+        article: undefined,
     };
 }
 
@@ -35,7 +37,14 @@ function createPage(overrides: Partial<ForumTopicListResponse> = {}): ForumTopic
 describe('TopicsPageComponent', () => {
     let spectator: Spectator<TopicsPageComponent>;
     let forumService: { getTopics: jest.Mock };
-    let routeData: BehaviorSubject<{ topics: ForumTopicsResolveResult }>;
+    let routeData: BehaviorSubject<{ topics: ForumTopicsResolveResult; withPanel: boolean }>;
+    let routeMock: { firstChild?: ActivatedRoute };
+
+    interface RouteExtras {
+        readonly hasOpenTopic?: boolean;
+        readonly sections?: readonly ForumSection[];
+        readonly withPanel?: boolean;
+    }
 
     const createComponent = createComponentFactory({
         component: TopicsPageComponent,
@@ -46,22 +55,38 @@ describe('TopicsPageComponent', () => {
         forumService = { getTopics: jest.fn() };
     });
 
-    const render = (result: ForumTopicsResolveResult, params: Record<string, string> = {}): void => {
-        routeData = new BehaviorSubject({ topics: result });
+    const render = (
+        result: ForumTopicsResolveResult,
+        params: Record<string, string> = {},
+        extras: RouteExtras = {},
+    ): void => {
+        routeData = new BehaviorSubject({ topics: result, withPanel: extras.withPanel ?? true });
+        routeMock = {
+            data: routeData.asObservable(),
+            snapshot: createRouteSnapshot(params),
+            firstChild: extras.hasOpenTopic ? ({} as ActivatedRoute) : undefined,
+            parent: extras.sections ? { data: of({ sections: extras.sections }) } : undefined,
+        } as unknown as { firstChild?: ActivatedRoute };
         spectator = createComponent({
             providers: [
                 { provide: ForumService, useValue: forumService },
-                {
-                    provide: ActivatedRoute,
-                    useValue: { data: routeData.asObservable(), snapshot: createRouteSnapshot(params) },
-                },
+                { provide: ActivatedRoute, useValue: routeMock },
             ],
         });
     };
 
+    /** The router activating the topic route under this page. */
+    const openTopic = (): void => {
+        routeMock.firstChild = {} as ActivatedRoute;
+        (spectator.inject(Router).events as Subject<Event>).next(
+            new NavigationEnd(1, '/forum/topic/42', '/forum/topic/42'),
+        );
+        spectator.detectChanges();
+    };
+
     /** A second navigation into the same route config, which reuses the component. */
     const resolveAgain = (result: ForumTopicsResolveResult): void => {
-        routeData.next({ topics: result });
+        routeData.next({ topics: result, withPanel: true });
         spectator.detectChanges();
     };
 
@@ -72,6 +97,46 @@ describe('TopicsPageComponent', () => {
 
     const titles = (): (string | undefined)[] =>
         spectator.queryAll('[data-testid="topic-title"]').map(element => element.textContent?.trim());
+
+    describe('the topic panel', () => {
+        it('invites the reader to pick a topic while none is open', () => {
+            render(createPage());
+
+            expect(spectator.query('[data-testid="topic-placeholder-hint"]')).toExist();
+        });
+
+        it('describes the open section in the invitation', () => {
+            render(
+                createPage(),
+                { part: 'common' },
+                { sections: [{ id: 'common', name: 'Общий', description: 'Общие вопросы' }] },
+            );
+
+            expect(spectator.query('[data-testid="topic-placeholder-description"]')).toHaveText('Общие вопросы');
+        });
+
+        it('drops the invitation when the address already names a topic', () => {
+            render(createPage(), {}, { hasOpenTopic: true });
+
+            expect(spectator.query('[data-testid="topic-placeholder-hint"]')).not.toExist();
+        });
+
+        it('renders no panel where the route carries no topic child', () => {
+            render(createPage(), {}, { withPanel: false });
+
+            expect(spectator.query('[data-testid="topic-placeholder-hint"]')).not.toExist();
+            expect(spectator.query('[data-testid="forum-panes"]')).toHaveClass('topic-panes--single');
+        });
+
+        it('opens the panel when a navigation activates the topic route', () => {
+            render(createPage());
+
+            openTopic();
+
+            expect(spectator.query('[data-testid="topic-placeholder-hint"]')).not.toExist();
+            expect(spectator.query('[data-testid="forum-panes"]')).toHaveClass('topic-panes--topic-open');
+        });
+    });
 
     it('renders the resolved page as a topic list', () => {
         render(createPage({ items: [createItem(1), createItem(2)] }));

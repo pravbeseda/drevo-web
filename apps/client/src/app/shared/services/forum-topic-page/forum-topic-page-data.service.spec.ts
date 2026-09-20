@@ -1,6 +1,6 @@
 import { ForumTopicPageDataService, ForumTopicResolveResult } from './forum-topic-page-data.service';
 import { ForumService } from '../../../services/forum/forum.service';
-import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
+import { createRouteSnapshot } from '../../testing/route-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, UrlSegment } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';

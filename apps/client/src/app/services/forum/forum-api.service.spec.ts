@@ -29,6 +29,7 @@ describe('ForumApiService', () => {
                 lastPostId: 99,
                 lastPostAt: '2026-01-03T03:04:05+03:00',
                 pinned: false,
+                article: null,
             },
         ],
         total: 1,

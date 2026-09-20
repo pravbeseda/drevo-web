@@ -72,6 +72,13 @@ $font-scale-value-width: 48px;
 // Article
 $article-max-width: 1000px;
 
+// Forum
+$forum-list-column-width: 320px;
+
+// Below this the topic panel is narrower than a message card's meta row, which
+// then wraps to three lines — so the panes stack instead.
+$forum-panes-min-width: 800px;
+
 // Main page
 $main-panel-min-height: 140px;
 $main-calendar-min-height: 260px;

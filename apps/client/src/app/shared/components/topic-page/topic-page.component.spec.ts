@@ -1,6 +1,6 @@
-import { ForumService } from '../../../../services/forum/forum.service';
-import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
-import { ForumTopicResolveResult } from '../../services/forum-topic-page-data.service';
+import { ForumService } from '../../../services/forum/forum.service';
+import { createRouteSnapshot } from '../../testing/route-testing.helper';
+import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { TopicPageComponent } from './topic-page.component';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -101,14 +101,14 @@ describe('TopicPageComponent', () => {
             render(createTopicPage([createMessage(1)], 1, 1));
 
             expect(spectator.query('[data-testid="topic-page-title"]')).toHaveText('Тема о святых');
-            expect(spectator.query('[data-testid="topic-author"]')).toHaveText('Иванов И.И.');
-            expect(spectator.query('[data-testid="topic-created"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="topic-page-author"]')).toHaveText('Иванов И.И.');
+            expect(spectator.query('[data-testid="topic-page-created"]')).toBeTruthy();
         });
 
         it('links to the article the topic hangs off', () => {
             render(createTopicPage([createMessage(1)], 1, 1, { article: { id: 7, title: 'Москва' } }));
 
-            const link = spectator.query('[data-testid="topic-article"]');
+            const link = spectator.query('[data-testid="topic-page-article"]');
             expect(link).toHaveText('Москва');
             expect(link?.getAttribute('href')).toBe('/articles/7');
         });
@@ -116,7 +116,7 @@ describe('TopicPageComponent', () => {
         it('offers no article link for a topic that hangs off none', () => {
             render(createTopicPage([createMessage(1)], 1, 1));
 
-            expect(spectator.query('[data-testid="topic-article"]')).toBeNull();
+            expect(spectator.query('[data-testid="topic-page-article"]')).toBeNull();
         });
     });
 

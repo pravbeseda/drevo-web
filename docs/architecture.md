@@ -39,7 +39,7 @@ app/features/
 ## `shared/` rules
 
 - **Two consumers make something shared** — code moves here when the second feature needs it, and moves back into a feature when it is down to one consumer again
-- Contains `components/` and `models/` subdirectories
+- Contains `components/`, `models/`, `helpers/`, `constants/`, `services/` and `testing/` subdirectories, plus `resolvers/` and `routes/` for a screen two features mount: the forum topic is opened both by the forum's own list and by an article's discussion tab, so its resolvers and its route config live here rather than in either feature
 
 ## Layout structure
 

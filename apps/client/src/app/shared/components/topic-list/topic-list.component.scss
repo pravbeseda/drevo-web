@@ -26,6 +26,8 @@
 }
 
 .topic-list__title {
+    flex: 1;
+    min-width: 0;
     color: var(--themed-link-color);
     text-decoration: none;
 
@@ -35,12 +37,28 @@
     }
 }
 
+/* The count is what the list is sorted around, so it keeps its own column. */
+.topic-list__replies {
+    flex: none;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+    font-variant-numeric: tabular-nums;
+}
+
 .topic-list__meta {
     display: flex;
     flex-wrap: wrap;
     gap: $dropdown-item-gap;
     color: var(--themed-text-secondary);
     font-size: $font-size-sm;
+
+    a {
+        color: var(--themed-link-color);
+
+        &:hover {
+            color: var(--themed-link-hover);
+        }
+    }
 }
 
 .topic-list__last-post {
@@ -49,10 +67,4 @@
     &:hover {
         color: var(--themed-link-hover);
     }
-}
-
-.topic-list__empty {
-    margin: 0;
-    padding: $dropdown-item-padding-v $dropdown-item-padding-h;
-    color: var(--themed-text-secondary);
 }

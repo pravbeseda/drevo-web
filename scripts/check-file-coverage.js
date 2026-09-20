@@ -44,6 +44,7 @@ const EXCEPTIONS = {
     'apps/client/src/app/features/history/history.routes.ts': 0,
     'apps/client/src/app/features/picture/picture.routes.ts': 0,
     'apps/client/src/app/features/calendar/calendar.routes.ts': 0,
+    'apps/client/src/app/shared/routes/forum-topic.routes.ts': 0,
 
     // Partially covered rather than untested: 178 lines with a spec of its own. The floor is
     // its measured figure, so it cannot regress while the rest is worked out in #267.

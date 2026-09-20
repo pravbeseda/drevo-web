@@ -1,6 +1,6 @@
 import { ForumService } from '../../../services/forum/forum.service';
-import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
-import { INVALID_ANCHOR, readForumAnchor, readForumPage } from '../forum-route-params';
+import { INVALID_ANCHOR, readForumAnchor, readForumPage } from '../../helpers/forum-route-params';
+import { parsePositiveIntParam, readRouteParam } from '../../helpers/route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';

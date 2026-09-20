@@ -1,5 +1,11 @@
-import { expect, mockForumTopicApi, test } from '../../fixtures';
-import { createForumMessageDto, createForumTopicDto, createForumTopicPage } from '../../mocks/forum';
+import { expect, mockForumSectionsApi, mockForumTopicApi, mockForumTopicsApi, test } from '../../fixtures';
+import {
+    createForumMessageDto,
+    createForumTopicDto,
+    createForumTopicListItemDto,
+    createForumTopicListResponse,
+    createForumTopicPage,
+} from '../../mocks/forum';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
 
 const TOPIC_ID = 7;
@@ -17,6 +23,9 @@ const MESSAGES = Array.from({ length: MESSAGE_COUNT }, (_, index) =>
 test.describe('Forum deep link to a message', () => {
     test.beforeEach(async ({ authenticatedPage: page }) => {
         await mockForumTopicApi(page, TOPIC_ID, createForumTopicPage(createForumTopicDto({ id: TOPIC_ID }), MESSAGES));
+        // The topic opens beside the list now, so its address loads the shell too.
+        await mockForumSectionsApi(page);
+        await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
     });
 
     test('scrolls to the message the address names and highlights it', async ({ authenticatedPage: page }) => {

@@ -1,6 +1,9 @@
 import { forumTopicTitleResolver } from './forum-topic-title.resolver';
-import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
-import { ForumTopicPageDataService, ForumTopicResolveResult } from '../services/forum-topic-page-data.service';
+import { createRouteSnapshot } from '../testing/route-testing.helper';
+import {
+    ForumTopicPageDataService,
+    ForumTopicResolveResult,
+} from '../services/forum-topic-page/forum-topic-page-data.service';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { ForumTopicPage } from '@drevo-web/shared';

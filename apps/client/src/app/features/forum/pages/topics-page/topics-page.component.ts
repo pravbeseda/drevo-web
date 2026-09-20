@@ -1,20 +1,25 @@
 import { ForumService } from '../../../../services/forum/forum.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { TopicListComponent } from '../../../../shared/components/topic-list/topic-list.component';
-import { readForumSectionParams } from '../../forum-route-params';
+import { TopicPanesComponent } from '../../../../shared/components/topic-panes/topic-panes.component';
+import { readForumSectionParams } from '../../../../shared/helpers/forum-route-params';
+import { ForumSectionsResolveResult } from '../../resolvers/forum-sections.resolver';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
+import { ForumSection, ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
 import { ButtonComponent } from '@drevo-web/ui';
 import { Observable, Subject, of } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 
+/** The tabs above resolve the sections; a list reached without them has none. */
+const NO_SECTIONS: readonly ForumSection[] = [];
+
 @Component({
     selector: 'app-topics-page',
-    imports: [ButtonComponent, ErrorComponent, TopicListComponent],
+    imports: [ButtonComponent, ErrorComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './topics-page.component.html',
     styleUrl: './topics-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +29,19 @@ export class TopicsPageComponent {
     private readonly forumService = inject(ForumService);
     private readonly logger = inject(LoggerService).withContext('ForumTopicsPage');
     private readonly loadMoreSubject = new Subject<void>();
+
+    /**
+     * Whether this list carries the topic panel. `/forum/:part/:partId` — one
+     * article's discussions — turns it off through its route data: a topic
+     * opened from there belongs to `/forum/topic/:id`, not to a third address.
+     *
+     * Read from the data rather than bound as an input: `withComponentInputBinding`
+     * writes every declared input on every navigation, and a route that names
+     * no `withPanel` would hand the component `undefined` over its default.
+     */
+    readonly withPanel = toSignal(this.route.data.pipe(map(data => data['withPanel'] !== false)), {
+        initialValue: true,
+    });
 
     private readonly _resolveResult = signal<ForumTopicsResolveResult | undefined>(undefined);
     private readonly _topics = signal<readonly ForumTopicListItem[]>([]);
@@ -38,6 +56,24 @@ export class TopicsPageComponent {
     readonly isNotFound = computed(() => this._resolveResult() === 'not-found');
     readonly isLoadError = computed(() => this._resolveResult() === 'load-error');
     readonly hasMore = computed(() => this._lastPage() < this._totalPages());
+
+    /** The section's own description, resolved by the tabbed shell above. */
+    readonly sectionDescription = computed(() => {
+        const part = readForumSectionParams(this.route.snapshot)?.part;
+
+        return part ? this.sections().find(section => section.id === part)?.description : undefined;
+    });
+
+    private readonly sections = toSignal(
+        this.route.parent?.data.pipe(
+            map((data): readonly ForumSection[] => {
+                const result = data['sections'] as ForumSectionsResolveResult | undefined;
+
+                return typeof result === 'object' ? result : NO_SECTIONS;
+            }),
+        ) ?? of(NO_SECTIONS),
+        { initialValue: NO_SECTIONS },
+    );
 
     constructor() {
         this.route.data

@@ -74,8 +74,38 @@ test.describe('Forum navigation', () => {
         await expect(topic.message(MESSAGE_ID)).toContainText(MESSAGE_AUTHOR);
         // The topic's own title names the tab — the route resolves it, nothing on the page does.
         await expect(page).toHaveTitle(`${TOPIC_TITLE} - Древо`);
-        // A topic is not a section, so the section tabs are gone.
-        await expect(tabs.tabs).toHaveCount(0);
+        // The topic opens beside the list it was picked from, so both the tabs
+        // and the row stay on screen at desktop width.
+        await expect(tabs.tab(SECTION.id)).toBeVisible();
+        await expect(topics.title(TOPIC_TITLE)).toBeVisible();
+    });
+
+    test('replaces the list with the topic on a phone', async ({ authenticatedPage: page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await mockForumSectionsApi(page);
+        await mockForumTopicsApi(
+            page,
+            createForumTopicListResponse([createForumTopicListItemDto({ id: TOPIC_ID, title: TOPIC_TITLE })]),
+        );
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
+                createForumMessageDto({ id: MESSAGE_ID }),
+            ]),
+        );
+
+        const topics = new ForumTopicsPage(page);
+        const topic = new ForumTopicPage(page);
+
+        await page.goto('/forum');
+        await topics.waitForReady();
+        await topics.open(TOPIC_TITLE);
+        await topic.waitForReady();
+
+        // One pane at a time: the panel took the list's place rather than sitting beside it.
+        await expect(topic.title).toBeVisible();
+        await expect(topics.items.first()).toBeHidden();
     });
 
     test('loads the topic again when the reader comes back to it', async ({ authenticatedPage: page }) => {
@@ -119,6 +149,7 @@ test.describe('Forum navigation', () => {
     });
 
     test('answers a topic that is gone with the topic not-found page', async ({ authenticatedPage: page }) => {
+        await mockForumSectionsApi(page);
         await mockForumTopicNotFound(page, TOPIC_ID);
         // A route table that let `:part` match first would serve this list here instead.
         await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
@@ -127,7 +158,9 @@ test.describe('Forum navigation', () => {
 
         const topic = new ForumTopicPage(page);
         await expect(topic.notFound).toBeVisible();
-        await expect(new ForumTopicsPage(page).items).toHaveCount(0);
+        // The list renders beside the panel, so a row here proves the topic
+        // address reached the topic route rather than the section's list.
+        await expect(new ForumTopicsPage(page).items).toHaveCount(1);
     });
 
     test('answers an unknown section with the section not-found page', async ({ authenticatedPage: page }) => {

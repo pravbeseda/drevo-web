@@ -6,10 +6,18 @@ import {
     mockArticleHistory,
     mockArticleHistoryError,
     mockForumTopicsApi,
+    mockForumTopicApi,
 } from '../../fixtures';
 import { createArticleHistoryResponse, mockArticleViewData } from '../../mocks/articles';
-import { createForumTopicListItemDto, createForumTopicListResponse } from '../../mocks/forum';
+import {
+    createForumMessageDto,
+    createForumTopicDto,
+    createForumTopicListItemDto,
+    createForumTopicListResponse,
+    createForumTopicPage,
+} from '../../mocks/forum';
 import { ArticlePage } from '../../pages/article.page';
+import { ForumTopicPage } from '../../pages/forum-topic.page';
 
 const ARTICLE_ID = 42;
 const VERSION_ID = 99;
@@ -41,6 +49,31 @@ test.describe('Article tabs', () => {
 
             await expect(article.forumTopics).toHaveCount(1);
             await expect(article.forumAllTopics).toHaveAttribute('href', `/forum/articles/${ARTICLE_ID}`);
+        });
+
+        test('opens a discussion beside the list without leaving the article', async ({ authenticatedPage: page }) => {
+            const TOPIC_ID = 7;
+            const TOPIC_TITLE = 'Обсуждение статьи';
+            await mockForumTopicsApi(
+                page,
+                createForumTopicListResponse([createForumTopicListItemDto({ id: TOPIC_ID, title: TOPIC_TITLE })]),
+            );
+            await mockForumTopicApi(
+                page,
+                TOPIC_ID,
+                createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
+                    createForumMessageDto({ id: 11 }),
+                ]),
+            );
+            const topic = new ForumTopicPage(page);
+
+            await article.tabForum.click();
+            await article.forumTopic(TOPIC_TITLE).click();
+            await topic.waitForReady();
+
+            // The topic is addressed under the article, so the tab and the list stay.
+            await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_ID}/forum/topic/${TOPIC_ID}$`));
+            await expect(article.forumTopics).toHaveCount(1);
         });
 
         test('states that the article has no discussions yet', async ({ authenticatedPage: page }) => {

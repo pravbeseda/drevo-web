@@ -1,4 +1,4 @@
-import { WikiContentComponent } from '../../../../shared/components/wiki-content/wiki-content.component';
+import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ForumMessage } from '@drevo-web/shared';

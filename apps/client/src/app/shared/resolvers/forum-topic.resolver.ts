@@ -1,4 +1,7 @@
-import { ForumTopicPageDataService, ForumTopicResolveResult } from '../services/forum-topic-page-data.service';
+import {
+    ForumTopicPageDataService,
+    ForumTopicResolveResult,
+} from '../services/forum-topic-page/forum-topic-page-data.service';
 import { inject } from '@angular/core';
 import { ResolveFn } from '@angular/router';
 

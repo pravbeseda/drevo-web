@@ -1,8 +1,8 @@
-import { ForumService } from '../../../../services/forum/forum.service';
-import { ErrorComponent } from '../../../../shared/components/error/error.component';
-import { MessageCardComponent } from '../../components/message-card/message-card.component';
-import { readForumAnchor } from '../../forum-route-params';
-import { ForumTopicResolveResult } from '../../services/forum-topic-page-data.service';
+import { ForumService } from '../../../services/forum/forum.service';
+import { readForumAnchor } from '../../helpers/forum-route-params';
+import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
+import { ErrorComponent } from '../error/error.component';
+import { MessageCardComponent } from '../message-card/message-card.component';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
