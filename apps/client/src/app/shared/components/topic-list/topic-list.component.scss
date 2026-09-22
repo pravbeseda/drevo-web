@@ -11,60 +11,80 @@
 }
 
 .topic-list__item {
-    padding: $dropdown-item-padding-v $dropdown-item-padding-h;
-    border-bottom: 1px solid var(--themed-menu-border-color);
+    position: relative;
+
+    /* Inset like a chat list, so the divider does not read as a table border. */
+    & + &::before {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: $forum-topic-row-padding-h;
+        border-top: 1px solid var(--themed-divider-color);
+        content: '';
+    }
 }
 
-.topic-list__title-row {
+.topic-list__link {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: $forum-topic-row-line-gap;
+    padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+    text-decoration: none;
+
+    &:hover {
+        background: var(--themed-menu-hover-background);
+    }
+
+    &[aria-current='page'] {
+        background: var(--themed-list-selected-background);
+    }
+
+    &:focus-visible {
+        outline: $forum-topic-row-focus-width solid var(--themed-link-color);
+        outline-offset: -$forum-topic-row-focus-width;
+    }
+}
+
+.topic-list__line {
+    display: flex;
+    align-items: baseline;
     gap: $dropdown-item-gap;
+    min-width: 0;
 }
 
 .topic-list__pin {
+    flex: none;
+    align-self: center;
     color: var(--themed-text-muted);
 }
 
 .topic-list__title {
     flex: 1;
     min-width: 0;
-    color: var(--themed-link-color);
-    text-decoration: none;
-
-    &:hover {
-        color: var(--themed-link-hover);
-        text-decoration: underline;
-    }
+    overflow: hidden;
+    color: var(--themed-text-primary);
+    font-size: $root-font-size;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* The count is what the list is sorted around, so it keeps its own column. */
-.topic-list__replies {
+.topic-list__time {
     flex: none;
-    color: var(--themed-text-secondary);
-    font-size: $font-size-sm;
+    color: var(--themed-text-muted);
     font-variant-numeric: tabular-nums;
 }
 
-.topic-list__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $dropdown-item-gap;
-    color: var(--themed-text-secondary);
-    font-size: $font-size-sm;
-
-    a {
-        color: var(--themed-link-color);
-
-        &:hover {
-            color: var(--themed-link-hover);
-        }
-    }
+.topic-list__meta,
+.topic-list__author {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.topic-list__last-post {
-    color: var(--themed-text-secondary);
-
-    &:hover {
-        color: var(--themed-link-hover);
-    }
+.topic-list__author {
+    color: var(--themed-text-primary);
 }

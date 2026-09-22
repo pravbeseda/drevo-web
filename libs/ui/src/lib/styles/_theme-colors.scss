@@ -80,6 +80,11 @@ $theme-colors: (
         light: $md-grey-300,
         dark: $md-grey-900,
     ),
+    /* List row selected on primary-bg — menu-selected-background matches that ground in dark*/
+    list-selected-background: (
+        light: $md-grey-300,
+        dark: rgb(white, 0.1),
+    ),
     menu-border-color: (
         light: $md-grey-300,
         dark: $md-grey-900,

@@ -74,6 +74,10 @@ $article-max-width: 1000px;
 
 // Forum
 $forum-list-column-width: 320px;
+$forum-topic-row-padding-v: 10px;
+$forum-topic-row-padding-h: 16px;
+$forum-topic-row-line-gap: 2px;
+$forum-topic-row-focus-width: 2px;
 
 // Below this the topic panel is narrower than a message card's meta row, which
 // then wraps to three lines — so the panes stack instead.

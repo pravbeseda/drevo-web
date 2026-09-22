@@ -15,6 +15,15 @@ export class ForumTopicsPage extends BasePage {
         return this.page.getByTestId('topic-title').filter({ hasText: text });
     }
 
+    /** The row's link, found by the topic it opens. */
+    link(text: string): Locator {
+        return this.page.getByTestId('topic-link').filter({ has: this.title(text) });
+    }
+
+    article(text: string): Locator {
+        return this.link(text).getByTestId('topic-article');
+    }
+
     async open(text: string): Promise<void> {
         await this.title(text).click();
     }

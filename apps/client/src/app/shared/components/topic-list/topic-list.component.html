@@ -4,63 +4,56 @@
             class="topic-list__item"
             data-testid="topic-item"
         >
-            <div class="topic-list__title-row">
-                @if (topic.pinned) {
-                    <ui-icon
-                        class="topic-list__pin"
-                        data-testid="topic-pinned"
-                        name="push_pin"
-                        size="small"
-                        tooltip="Закреплённая тема"
-                    />
-                }
-                <a
-                    class="topic-list__title"
-                    data-testid="topic-title"
-                    [routerLink]="topicLink(topic.id)"
-                >
-                    {{ topic.title }}
-                </a>
-                <span
-                    class="topic-list__replies"
-                    data-testid="topic-replies"
-                    [attr.aria-label]="'Ответов: ' + topic.repliesCount"
-                >
-                    {{ topic.repliesCount }}
-                </span>
-            </div>
-            <div class="topic-list__meta">
-                <span data-testid="topic-author">{{ topic.author }}</span>
-                @if (topic.article; as article) {
-                    <span>
-                        к статье
-                        <a
-                            data-testid="topic-article"
-                            [routerLink]="['/articles', article.id]"
+            <a
+                class="topic-list__link"
+                ariaCurrentWhenActive="page"
+                data-testid="topic-link"
+                routerLinkActive
+                [routerLink]="topicLink(topic.id)"
+            >
+                <span class="topic-list__line">
+                    @if (topic.pinned) {
+                        <ui-icon
+                            class="topic-list__pin"
+                            data-testid="topic-pinned"
+                            name="push_pin"
+                            size="small"
+                            tooltip="Закреплённая тема"
+                        />
+                    }
+                    <span
+                        class="topic-list__title"
+                        data-testid="topic-title"
+                    >
+                        {{ topic.title }}
+                    </span>
+                    @if (topic.lastPostAt) {
+                        <span
+                            class="topic-list__time"
+                            data-testid="topic-last-post"
+                            [attr.aria-label]="topic.lastPostAt | formatDate"
                         >
-                            {{ article.title }}
-                        </a>
+                            {{ topic.lastPostAt | shortDate }}
+                        </span>
+                    }
+                </span>
+                @if (topic.article; as article) {
+                    <span
+                        class="topic-list__meta"
+                        data-testid="topic-article"
+                    >
+                        к статье {{ article.title }}
                     </span>
                 }
-            </div>
-            @if (topic.lastPostAt) {
-                <div class="topic-list__meta">
-                    @if (topic.lastPostId; as lastPostId) {
-                        <a
-                            class="topic-list__last-post"
-                            data-testid="topic-last-post"
-                            [routerLink]="lastPostLink(topic.id, lastPostId)"
-                        >
-                            {{ topic.lastPostAt | formatDate }}
-                        </a>
-                    } @else {
-                        <span data-testid="topic-last-post">{{ topic.lastPostAt | formatDate }}</span>
-                    }
-                    @if (topic.lastAuthor; as lastAuthor) {
-                        <span data-testid="topic-last-author">{{ lastAuthor }}</span>
-                    }
-                </div>
-            }
+                @if (topic.lastAuthor; as lastAuthor) {
+                    <span
+                        class="topic-list__author"
+                        data-testid="topic-last-author"
+                    >
+                        {{ lastAuthor }}
+                    </span>
+                }
+            </a>
         </li>
     }
 </ul>
