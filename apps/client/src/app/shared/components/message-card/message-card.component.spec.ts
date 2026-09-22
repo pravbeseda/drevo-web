@@ -23,7 +23,7 @@ describe('MessageCardComponent', () => {
     });
 
     const render = (message: ForumMessage, topicId = 42, anchored = false): void => {
-        spectator = createComponent({ props: { message, topicId, anchored } });
+        spectator = createComponent({ props: { message, topicPath: ['forum', 'topic', String(topicId)], anchored } });
     };
 
     it('names the card after the message it shows', () => {
@@ -58,6 +58,19 @@ describe('MessageCardComponent', () => {
         const link = spectator.query('[data-testid="message-reply-to"]');
         expect(link).toHaveText('в ответ на');
         expect(link?.getAttribute('href')).toBe('/forum/topic/42/3');
+    });
+
+    it('addresses the answered message under the topic wherever the topic is mounted', () => {
+        spectator = createComponent({
+            props: {
+                message: createMessage({ id: 7, parentId: 3 }),
+                topicPath: ['articles', '15', 'forum', 'topic', '42'],
+            },
+        });
+
+        expect(spectator.query('[data-testid="message-reply-to"]')?.getAttribute('href')).toBe(
+            '/articles/15/forum/topic/42/3',
+        );
     });
 
     it('offers no reply link on a root message', () => {

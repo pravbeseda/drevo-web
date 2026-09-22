@@ -1,8 +1,9 @@
 @use 'index' as *;
 
+// The gutter belongs to the panes' own list pane; a padding here would double it.
 :host {
     display: block;
-    padding: $gap-md;
+    height: 100%;
 }
 
 .article-forum__message {

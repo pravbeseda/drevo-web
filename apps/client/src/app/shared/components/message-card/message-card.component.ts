@@ -1,10 +1,10 @@
-import { WikiContentComponent } from '../../../../shared/components/wiki-content/wiki-content.component';
+import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ForumMessage } from '@drevo-web/shared';
 import { FormatDatePipe } from '@drevo-web/ui';
 
-/** What `routerLink` takes for `/forum/topic/:id/:messageId`. */
+/** What `routerLink` takes for the topic's address plus the message it anchors on. */
 type MessageLink = readonly (string | number)[];
 
 @Component({
@@ -24,7 +24,14 @@ type MessageLink = readonly (string | number)[];
 })
 export class MessageCardComponent {
     readonly message = input.required<ForumMessage>();
-    readonly topicId = input.required<number>();
+
+    /**
+     * The topic's own address, as path segments — `['forum', 'topic', '42']` in the
+     * forum, `['articles', '7', 'forum', 'topic', '42']` inside an article. The
+     * card appends the answered message to it rather than knowing where topics
+     * live, which differs between the two places this card is mounted.
+     */
+    readonly topicPath = input.required<readonly string[]>();
     readonly anchored = input(false);
 
     /**
@@ -33,7 +40,8 @@ export class MessageCardComponent {
      */
     readonly replyLink = computed<MessageLink | undefined>(() => {
         const parentId = this.message().parentId;
-        return parentId === undefined ? undefined : ['/forum/topic', this.topicId(), parentId];
+
+        return parentId === undefined ? undefined : ['/', ...this.topicPath(), parentId];
     });
 
     protected readonly elementId = computed(() => `message-${this.message().id}`);

@@ -1,0 +1,19 @@
+<div
+    class="topic-panes"
+    [class.topic-panes--topic-open]="withPanel() && hasOpenTopic()"
+    [class.topic-panes--single]="!withPanel()"
+    data-testid="forum-panes"
+>
+    <div class="topic-panes__list">
+        <ng-content />
+    </div>
+
+    @if (withPanel()) {
+        <div class="topic-panes__panel">
+            <router-outlet />
+            @if (!hasOpenTopic()) {
+                <app-topic-placeholder [description]="description()" />
+            }
+        </div>
+    }
+</div>

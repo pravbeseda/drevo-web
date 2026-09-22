@@ -5,6 +5,11 @@ export interface ForumSection {
     readonly description: string;
 }
 
+export interface ForumTopicArticle {
+    readonly id: number;
+    readonly title: string;
+}
+
 export interface ForumTopicListItem {
     readonly id: number;
     readonly title: string;
@@ -15,6 +20,13 @@ export interface ForumTopicListItem {
     readonly lastPostId: number | undefined;
     readonly lastPostAt: Date | undefined;
     readonly pinned: boolean;
+    /**
+     * Who wrote the last post. An unanswered topic points at its own root
+     * message, so this is its author rather than absent.
+     */
+    readonly lastAuthor: string | undefined;
+    /** Absent for a topic that hangs off no article or news item. */
+    readonly article: ForumTopicArticle | undefined;
 }
 
 export interface ForumTopicListResponse {
@@ -23,11 +35,6 @@ export interface ForumTopicListResponse {
     readonly page: number;
     readonly pageSize: number;
     readonly totalPages: number;
-}
-
-export interface ForumTopicArticle {
-    readonly id: number;
-    readonly title: string;
 }
 
 export interface ForumTopic {

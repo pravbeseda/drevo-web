@@ -1,5 +1,5 @@
 import { ForumService } from '../../../services/forum/forum.service';
-import { readForumPage, readForumSectionParams } from '../forum-route-params';
+import { readForumPage, readForumSectionParams } from '../../../shared/helpers/forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';

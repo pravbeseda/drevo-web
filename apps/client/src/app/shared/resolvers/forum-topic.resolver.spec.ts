@@ -1,6 +1,6 @@
 import { forumTopicResolver } from './forum-topic.resolver';
-import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
-import { ForumTopicPageDataService } from '../services/forum-topic-page-data.service';
+import { createRouteSnapshot } from '../testing/route-testing.helper';
+import { ForumTopicPageDataService } from '../services/forum-topic-page/forum-topic-page-data.service';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';

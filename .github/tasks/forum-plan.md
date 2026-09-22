@@ -101,6 +101,8 @@ apps/client/src/app/features/forum/
     pages/forum-page/             # the section tabs around /forum and /forum/:part
     pages/topics-page/            # /forum, /forum/:part, /forum/:part/:partId
     pages/topic-page/             # /forum/topic/:id, /forum/topic/:id/:messageId
+                                  # (moved to app/shared/components/topic-page/ by forum-master-detail.md:
+                                  #  the article's discussion tab mounts the same panel)
     components/message-card/      # author, date, «in reply to» link, app-wiki-content
 apps/client/src/app/features/article/pages/article-page/tabs/article-forum-tab/
 ```
@@ -134,7 +136,7 @@ Behaviour:
 | F4 | Empty and error copy | The repository's own shapes: `ErrorComponent` with «Не удалось загрузить … Попробуйте обновить страницу» (`picture-detail.component.html:183`) for a failed load, inline «Ничего не найдено» (`picture-page.component.html:44`) for an empty list |
 | F5 | Page size | The front never sends `size`; the server's `listPerPage` decides and the response's `pageSize` is what the pager reads |
 | F6 | Model names | `ForumSection`, `ForumTopic`, `ForumTopicListItem`, `ForumMessage`. `libs/shared` already exports `Topic` — the article rubrics of `models/topic.ts` — and a bare `Topic` would collide in `models/index.ts` |
-| F7 | Entry point | `/forum` is the topic list of every section (`ForumService::topics('')`), wrapped in the section tabs of `ui-tabs`: «Все темы» first, then one tab per section, its description on a tooltip. A page that only lists the sections was a click the reader had to spend before seeing any content, so `pages/sections-page/` is gone; the tabs stop at the section lists — the topic page and `/forum/:part/:partId`, a filtered list rather than a section, render without them |
+| F7 | Entry point | **Superseded in part by [`forum-master-detail.md`](forum-master-detail.md): the topic no longer renders without the tabs — it opens as a child of the list, beside it on a wide container.**  `/forum` is the topic list of every section (`ForumService::topics('')`), wrapped in the section tabs of `ui-tabs`: «Все темы» first, then one tab per section, its description on a tooltip. A page that only lists the sections was a click the reader had to spend before seeing any content, so `pages/sections-page/` is gone; the tabs stop at the section lists — the topic page and `/forum/:part/:partId`, a filtered list rather than a section, render without them |
 
 #### Steps (red → green → refactor)
 

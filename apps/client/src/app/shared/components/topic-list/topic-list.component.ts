@@ -15,5 +15,20 @@ import { FormatDatePipe, IconComponent } from '@drevo-web/ui';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopicListComponent {
+    /**
+     * Whether a topic is addressed under the list's own route. The article's
+     * discussion tab opens topics inside the article; the forum keeps them at
+     * the canonical `/forum/topic/:id`.
+     */
+    readonly relativeLinks = input(false);
+
+    topicLink(topicId: number): readonly (string | number)[] {
+        return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
+    }
+
+    lastPostLink(topicId: number, messageId: number): readonly (string | number)[] {
+        return [...this.topicLink(topicId), messageId];
+    }
+
     readonly items = input.required<readonly ForumTopicListItem[]>();
 }

@@ -70,6 +70,8 @@ export class ForumService {
             lastPostId: this.mapId(dto.lastPostId),
             lastPostAt: this.mapDate(dto.lastPostAt),
             pinned: dto.pinned,
+            lastAuthor: dto.lastAuthor,
+            article: dto.article ?? undefined,
         };
     }
 

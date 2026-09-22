@@ -17,28 +17,50 @@
                 <a
                     class="topic-list__title"
                     data-testid="topic-title"
-                    [routerLink]="['/forum/topic', topic.id]"
+                    [routerLink]="topicLink(topic.id)"
                 >
                     {{ topic.title }}
                 </a>
+                <span
+                    class="topic-list__replies"
+                    data-testid="topic-replies"
+                    [attr.aria-label]="'Ответов: ' + topic.repliesCount"
+                >
+                    {{ topic.repliesCount }}
+                </span>
             </div>
             <div class="topic-list__meta">
                 <span data-testid="topic-author">{{ topic.author }}</span>
-                <span data-testid="topic-replies">Ответов: {{ topic.repliesCount }}</span>
-                @if (topic.lastPostAt) {
+                @if (topic.article; as article) {
+                    <span>
+                        к статье
+                        <a
+                            data-testid="topic-article"
+                            [routerLink]="['/articles', article.id]"
+                        >
+                            {{ article.title }}
+                        </a>
+                    </span>
+                }
+            </div>
+            @if (topic.lastPostAt) {
+                <div class="topic-list__meta">
                     @if (topic.lastPostId; as lastPostId) {
                         <a
                             class="topic-list__last-post"
                             data-testid="topic-last-post"
-                            [routerLink]="['/forum/topic', topic.id, lastPostId]"
+                            [routerLink]="lastPostLink(topic.id, lastPostId)"
                         >
                             {{ topic.lastPostAt | formatDate }}
                         </a>
                     } @else {
                         <span data-testid="topic-last-post">{{ topic.lastPostAt | formatDate }}</span>
                     }
-                }
-            </div>
+                    @if (topic.lastAuthor; as lastAuthor) {
+                        <span data-testid="topic-last-author">{{ lastAuthor }}</span>
+                    }
+                </div>
+            }
         </li>
     }
 </ul>

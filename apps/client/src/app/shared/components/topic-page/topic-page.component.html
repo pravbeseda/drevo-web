@@ -7,14 +7,14 @@
             {{ topic.title }}
         </h1>
         <div class="topic-page__meta">
-            <span data-testid="topic-author">{{ topic.author }}</span>
+            <span data-testid="topic-page-author">{{ topic.author }}</span>
             @if (topic.createdAt; as createdAt) {
-                <span data-testid="topic-created">{{ createdAt | formatDate }}</span>
+                <span data-testid="topic-page-created">{{ createdAt | formatDate }}</span>
             }
             @if (topic.article; as article) {
                 <a
                     class="topic-page__article"
-                    data-testid="topic-article"
+                    data-testid="topic-page-article"
                     [routerLink]="['/articles', article.id]"
                 >
                     {{ article.title }}
@@ -39,7 +39,7 @@
     @for (message of messages(); track message.id) {
         <app-message-card
             [message]="message"
-            [topicId]="topic.id"
+            [topicPath]="topicPath()"
             [anchored]="message.id === anchorId()"
         />
     }

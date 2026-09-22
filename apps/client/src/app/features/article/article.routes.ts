@@ -5,6 +5,7 @@ import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
 import { readRouteParam } from '../../shared/helpers/route-params';
+import { forumTopicRoutes } from '../../shared/routes/forum-topic.routes';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
 
@@ -164,6 +165,9 @@ export const ARTICLE_ROUTES: Route[] = [
                     import('./pages/article-page/tabs/article-forum-tab/article-forum-tab.component').then(
                         m => m.ArticleForumTabComponent,
                     ),
+                // A topic opened from the tab stays inside the article, so it
+                // is addressed under it rather than at `/forum/topic/:id`.
+                children: forumTopicRoutes(),
             },
             {
                 path: 'history',

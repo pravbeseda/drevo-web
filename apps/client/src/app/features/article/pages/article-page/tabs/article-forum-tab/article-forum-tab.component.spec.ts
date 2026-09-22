@@ -22,6 +22,8 @@ function createItem(id: number): ForumTopicListItem {
         lastPostId: undefined,
         lastPostAt: undefined,
         pinned: false,
+        lastAuthor: undefined,
+        article: undefined,
     };
 }
 
@@ -58,6 +60,13 @@ describe('ArticleForumTabComponent', () => {
 
     const titles = (): (string | undefined)[] =>
         spectator.queryAll('[data-testid="topic-title"]').map(element => element.textContent?.trim());
+
+    it('carries the topic panel beside the list', () => {
+        render();
+
+        expect(spectator.query('[data-testid="forum-panes"]')).toExist();
+        expect(spectator.query('[data-testid="topic-placeholder-hint"]')).toExist();
+    });
 
     it('asks the forum for the topics of this article', () => {
         render();

@@ -1,5 +1,6 @@
 import { ForumService } from '../../../../../../services/forum/forum.service';
 import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
+import { TopicPanesComponent } from '../../../../../../shared/components/topic-panes/topic-panes.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -17,7 +18,7 @@ type TopicsResult = readonly ForumTopicListItem[] | 'load-error';
 
 @Component({
     selector: 'app-article-forum-tab',
-    imports: [RouterLink, SpinnerComponent, TopicListComponent],
+    imports: [RouterLink, SpinnerComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './article-forum-tab.component.html',
     styleUrl: './article-forum-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,7 +1,12 @@
 import { ForumApiService } from './forum-api.service';
 import { ForumService } from './forum.service';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
-import { ForumSectionDto, ForumTopicListResponseDto, ForumTopicPageDto } from '@drevo-web/shared';
+import {
+    ForumSectionDto,
+    ForumTopicListItemDto,
+    ForumTopicListResponseDto,
+    ForumTopicPageDto,
+} from '@drevo-web/shared';
 import { of } from 'rxjs';
 
 describe('ForumService', () => {
@@ -31,6 +36,8 @@ describe('ForumService', () => {
                 lastPostId: 99,
                 lastPostAt: '2026-01-03T03:04:05+03:00',
                 pinned: true,
+                lastAuthor: 'Пётр Петров',
+                article: { id: 15, title: 'Статья' },
             },
         ],
         total: 7,
@@ -102,6 +109,8 @@ describe('ForumService', () => {
                             lastPostId: 99,
                             lastPostAt: new Date('2026-01-03T03:04:05+03:00'),
                             pinned: true,
+                            lastAuthor: 'Пётр Петров',
+                            article: { id: 15, title: 'Статья' },
                         },
                     ],
                     total: 7,
@@ -113,13 +122,19 @@ describe('ForumService', () => {
             });
         });
 
-        it('should map missing dates and the lastPostId sentinel to undefined', done => {
-            forumApiService.getTopics.mockReturnValue(
-                of({
-                    ...topicList,
-                    items: [{ ...topicList.items[0], createdAt: null, lastPostId: 0, lastPostAt: null, pinned: false }],
-                }),
-            );
+        it('should map missing dates, the id sentinel, a missing article and an absent lastAuthor to undefined', done => {
+            const bareItem: ForumTopicListItemDto = {
+                id: 42,
+                title: 'Тема',
+                author: 'Иван Иванов',
+                createdAt: null,
+                repliesCount: 3,
+                lastPostId: 0,
+                lastPostAt: null,
+                pinned: false,
+                article: null,
+            };
+            forumApiService.getTopics.mockReturnValue(of({ ...topicList, items: [bareItem] }));
 
             spectator.service.getTopics().subscribe(result => {
                 expect(result.items[0]).toStrictEqual({
@@ -131,6 +146,8 @@ describe('ForumService', () => {
                     lastPostId: undefined,
                     lastPostAt: undefined,
                     pinned: false,
+                    lastAuthor: undefined,
+                    article: undefined,
                 });
                 done();
             });

@@ -1,0 +1,70 @@
+@use 'index' as *;
+
+/*
+ * The query container is the host, not `.topic-panes`: a container query is
+ * resolved against an element's ancestor containers, never against the element
+ * that declares one, so a rule laying the panes out has to sit below it.
+ */
+:host {
+    display: block;
+    height: 100%;
+    container-type: inline-size;
+}
+
+.topic-panes {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.topic-panes__list {
+    min-height: 0;
+    padding: $gap-md;
+    overflow-y: auto;
+}
+
+/* Narrow: one pane at a time — the list, or the topic that replaced it. */
+.topic-panes__panel {
+    display: none;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.topic-panes--topic-open {
+    .topic-panes__list {
+        display: none;
+    }
+
+    .topic-panes__panel {
+        display: block;
+    }
+}
+
+@container (min-width: #{$forum-panes-min-width}) {
+    .topic-panes {
+        flex-direction: row;
+    }
+
+    .topic-panes__list {
+        width: $forum-list-column-width;
+        flex: none;
+        border-right: 1px solid var(--themed-border-color);
+    }
+
+    .topic-panes__panel {
+        display: block;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .topic-panes--topic-open .topic-panes__list {
+        display: block;
+    }
+
+    .topic-panes--single .topic-panes__list {
+        width: auto;
+        flex: 1;
+        border-right: 0;
+    }
+}

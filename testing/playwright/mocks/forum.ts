@@ -19,6 +19,7 @@ export function createForumTopicListItemDto(overrides: Partial<ForumTopicListIte
         lastPostId: 0,
         lastPostAt: null,
         pinned: false,
+        article: null,
         ...overrides,
     };
 }
