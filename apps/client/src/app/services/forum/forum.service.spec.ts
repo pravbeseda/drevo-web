@@ -38,6 +38,7 @@ describe('ForumService', () => {
                 pinned: true,
                 lastAuthor: 'Пётр Петров',
                 article: { id: 15, title: 'Статья' },
+                section: { id: 'articles', name: 'О статьях' },
             },
         ],
         total: 7,
@@ -111,6 +112,7 @@ describe('ForumService', () => {
                             pinned: true,
                             lastAuthor: 'Пётр Петров',
                             article: { id: 15, title: 'Статья' },
+                            section: { id: 'articles', name: 'О статьях' },
                         },
                     ],
                     total: 7,
@@ -122,7 +124,7 @@ describe('ForumService', () => {
             });
         });
 
-        it('should map missing dates, the id sentinel, a missing article and an absent lastAuthor to undefined', done => {
+        it('should map missing dates, the id sentinel, a missing article and section and an absent lastAuthor to undefined', done => {
             const bareItem: ForumTopicListItemDto = {
                 id: 42,
                 title: 'Тема',
@@ -133,6 +135,7 @@ describe('ForumService', () => {
                 lastPostAt: null,
                 pinned: false,
                 article: null,
+                section: null,
             };
             forumApiService.getTopics.mockReturnValue(of({ ...topicList, items: [bareItem] }));
 
@@ -148,6 +151,7 @@ describe('ForumService', () => {
                     pinned: false,
                     lastAuthor: undefined,
                     article: undefined,
+                    section: undefined,
                 });
                 done();
             });

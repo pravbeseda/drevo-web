@@ -72,6 +72,7 @@ export class ForumService {
             pinned: dto.pinned,
             lastAuthor: dto.lastAuthor,
             article: dto.article ?? undefined,
+            section: dto.section ?? undefined,
         };
     }
 

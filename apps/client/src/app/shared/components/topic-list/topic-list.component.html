@@ -37,22 +37,22 @@
                         </span>
                     }
                 </span>
-                @if (topic.article; as article) {
-                    <span
-                        class="topic-list__meta"
-                        data-testid="topic-article"
-                    >
-                        к статье {{ article.title }}
-                    </span>
-                }
-                @if (topic.lastAuthor; as lastAuthor) {
-                    <span
-                        class="topic-list__author"
-                        data-testid="topic-last-author"
-                    >
-                        {{ lastAuthor }}
-                    </span>
-                }
+                <span
+                    class="topic-list__context"
+                    data-testid="topic-context"
+                >
+                    @if (topic.article; as article) {
+                        {{ topic.section?.id === newsSectionId ? 'к новости' : 'к статье' }} {{ article.title }}
+                    } @else {
+                        {{ topic.section?.name }}
+                    }
+                </span>
+                <span
+                    class="topic-list__author"
+                    data-testid="topic-last-author"
+                >
+                    {{ topic.lastAuthor }}
+                </span>
             </a>
         </li>
     }

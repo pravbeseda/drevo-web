@@ -16,6 +16,7 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
         pinned: false,
         lastAuthor: 'Петров П.П.',
         article: { id: 15, title: 'Статья' },
+        section: { id: 'articles', name: 'О статьях' },
         ...overrides,
     };
 }
@@ -70,30 +71,39 @@ describe('TopicListComponent', () => {
         expect(spectator.query('[data-testid="topic-replies"]')).not.toExist();
     });
 
-    it('names the article the topic discusses as text', () => {
+    it('names the article the topic discusses as text inside the link', () => {
         render([createItem({ article: { id: 15, title: 'БОГ' } })]);
 
-        const article = spectator.query('[data-testid="topic-article"]');
-        expect(article).toHaveText('к статье БОГ');
-        expect(article?.closest('a')).toBe(spectator.query('[data-testid="topic-link"]'));
+        const context = spectator.query('[data-testid="topic-context"]');
+        expect(context).toHaveText('к статье БОГ');
+        expect(context?.closest('a')).toBe(spectator.query('[data-testid="topic-link"]'));
     });
 
-    it('drops the article line for a topic attached to none', () => {
-        render([createItem({ article: undefined })]);
+    it('names a news item as news', () => {
+        render([
+            createItem({ article: { id: 3, title: 'Освящение храма' }, section: { id: 'news', name: 'О новостях' } }),
+        ]);
 
-        expect(spectator.query('[data-testid="topic-article"]')).not.toExist();
+        expect(spectator.query('[data-testid="topic-context"]')).toHaveText('к новости Освящение храма');
+    });
+
+    it('names the section of a topic attached to no article', () => {
+        render([createItem({ article: undefined, section: { id: 'common', name: 'Общие темы' } })]);
+
+        expect(spectator.query('[data-testid="topic-context"]')).toHaveText('Общие темы');
+    });
+
+    it('keeps all three lines when the row has nothing to put on them', () => {
+        render([createItem({ article: undefined, section: undefined, lastAuthor: undefined, lastPostAt: undefined })]);
+
+        expect(spectator.query('[data-testid="topic-context"]')).toExist();
+        expect(spectator.query('[data-testid="topic-last-author"]')).toExist();
     });
 
     it('names who wrote the last post', () => {
         render([createItem({ lastAuthor: 'Валентин100' })]);
 
         expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Валентин100');
-    });
-
-    it('names no last author when the last post resolved to no row', () => {
-        render([createItem({ lastAuthor: undefined })]);
-
-        expect(spectator.query('[data-testid="topic-last-author"]')).not.toExist();
     });
 
     it('shows the last-post time short, with the full date for assistive technology', () => {

@@ -10,6 +10,12 @@ export interface ForumTopicArticle {
     readonly title: string;
 }
 
+export interface ForumTopicSection {
+    /** Text id of a forum part, e.g. "news". */
+    readonly id: string;
+    readonly name: string;
+}
+
 export interface ForumTopicListItem {
     readonly id: number;
     readonly title: string;
@@ -27,6 +33,7 @@ export interface ForumTopicListItem {
     readonly lastAuthor: string | undefined;
     /** Absent for a topic that hangs off no article or news item. */
     readonly article: ForumTopicArticle | undefined;
+    readonly section: ForumTopicSection | undefined;
 }
 
 export interface ForumTopicListResponse {

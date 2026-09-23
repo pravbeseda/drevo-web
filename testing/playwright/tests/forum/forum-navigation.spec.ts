@@ -96,6 +96,7 @@ test.describe('Forum navigation', () => {
                     id: TOPIC_ID,
                     title: TOPIC_TITLE,
                     article: { id: 15, title: 'Сергий Радонежский' },
+                    section: { id: 'articles', name: 'Обсуждение статей' },
                 }),
             ]),
         );
@@ -113,7 +114,7 @@ test.describe('Forum navigation', () => {
         await page.goto('/forum');
         await topics.waitForReady();
         // The article line is part of the row's one link, not a way to the article.
-        await topics.article(TOPIC_TITLE).click();
+        await topics.context(TOPIC_TITLE).click();
         await topic.waitForReady();
 
         await expect(page).toHaveURL(new RegExp(`/forum/topic/${TOPIC_ID}$`));

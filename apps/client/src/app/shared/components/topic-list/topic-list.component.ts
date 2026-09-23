@@ -22,6 +22,8 @@ export class TopicListComponent {
      */
     readonly relativeLinks = input(false);
 
+    protected readonly newsSectionId = 'news';
+
     topicLink(topicId: number): readonly (string | number)[] {
         return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
     }

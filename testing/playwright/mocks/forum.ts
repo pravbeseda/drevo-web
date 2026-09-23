@@ -20,6 +20,7 @@ export function createForumTopicListItemDto(overrides: Partial<ForumTopicListIte
         lastPostAt: null,
         pinned: false,
         article: null,
+        section: { id: 'common', name: 'Общий раздел' },
         ...overrides,
     };
 }

@@ -20,6 +20,7 @@ function createItem(id: number): ForumTopicListItem {
         pinned: false,
         lastAuthor: undefined,
         article: undefined,
+        section: undefined,
     };
 }
 

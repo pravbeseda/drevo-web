@@ -20,8 +20,8 @@ export class ForumTopicsPage extends BasePage {
         return this.page.getByTestId('topic-link').filter({ has: this.title(text) });
     }
 
-    article(text: string): Locator {
-        return this.link(text).getByTestId('topic-article');
+    context(text: string): Locator {
+        return this.link(text).getByTestId('topic-context');
     }
 
     async open(text: string): Promise<void> {
