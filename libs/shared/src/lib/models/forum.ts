@@ -19,11 +19,6 @@ export interface ForumTopicSection {
 export interface ForumTopicListItem {
     readonly id: number;
     readonly title: string;
-    readonly author: string;
-    readonly createdAt: Date | undefined;
-    readonly repliesCount: number;
-    /** Absent when the topic has no last post — the wire's `0`. */
-    readonly lastPostId: number | undefined;
     readonly lastPostAt: Date | undefined;
     readonly pinned: boolean;
     /**

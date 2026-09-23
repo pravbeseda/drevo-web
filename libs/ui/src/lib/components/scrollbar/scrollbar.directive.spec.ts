@@ -85,4 +85,16 @@ describe('ScrollbarDirective', () => {
         const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
         expect(logger.error).toHaveBeenCalledWith('Failed to draw the custom scrollbar', failure);
     });
+
+    it('should give the native scrollbar back when the custom one fails to draw', async () => {
+        jest.mocked(OverlayScrollbars).mockImplementation(() => {
+            throw new Error('boom');
+        });
+        render();
+
+        await loadLibrary();
+        spectator.detectChanges();
+
+        expect(host()).not.toHaveAttribute('data-overlayscrollbars-initialize');
+    });
 });

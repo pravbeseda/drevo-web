@@ -104,10 +104,6 @@ describe('ForumService', () => {
                         {
                             id: 42,
                             title: 'Тема',
-                            author: 'Иван Иванов',
-                            createdAt: new Date('2026-01-02T03:04:05+03:00'),
-                            repliesCount: 3,
-                            lastPostId: 99,
                             lastPostAt: new Date('2026-01-03T03:04:05+03:00'),
                             pinned: true,
                             lastAuthor: 'Пётр Петров',
@@ -124,7 +120,7 @@ describe('ForumService', () => {
             });
         });
 
-        it('should map missing dates, the id sentinel, a missing article and section and an absent lastAuthor to undefined', done => {
+        it('should map a missing date, a missing article and section and an absent lastAuthor to undefined', done => {
             const bareItem: ForumTopicListItemDto = {
                 id: 42,
                 title: 'Тема',
@@ -143,10 +139,6 @@ describe('ForumService', () => {
                 expect(result.items[0]).toStrictEqual({
                     id: 42,
                     title: 'Тема',
-                    author: 'Иван Иванов',
-                    createdAt: undefined,
-                    repliesCount: 3,
-                    lastPostId: undefined,
                     lastPostAt: undefined,
                     pinned: false,
                     lastAuthor: undefined,

@@ -1,4 +1,4 @@
-import { afterNextRender, DestroyRef, Directive, ElementRef, inject } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, ElementRef, inject, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 
 const HIDE_DELAY_MS = 200;
@@ -9,9 +9,12 @@ const HIDE_DELAY_MS = 200;
  */
 @Directive({
     selector: '[uiScrollbar]',
-    host: { 'data-overlayscrollbars-initialize': '' },
+    // Hides the native scrollbar until the custom one is drawn, and hands it back if that fails.
+    host: { '[attr.data-overlayscrollbars-initialize]': 'nativeScrollbarHidden() ? "" : null' },
 })
 export class ScrollbarDirective {
+    protected readonly nativeScrollbarHidden = signal(true);
+
     constructor() {
         const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
         const destroyRef = inject(DestroyRef);
@@ -38,7 +41,10 @@ export class ScrollbarDirective {
                     );
                     destroyRef.onDestroy(() => scrollbar.destroy());
                 })
-                .catch((err: unknown) => logger.error('Failed to draw the custom scrollbar', err));
+                .catch((err: unknown) => {
+                    logger.error('Failed to draw the custom scrollbar', err);
+                    this.nativeScrollbarHidden.set(false);
+                });
         });
     }
 }

@@ -64,10 +64,6 @@ export class ForumService {
         return {
             id: dto.id,
             title: dto.title,
-            author: dto.author,
-            createdAt: this.mapDate(dto.createdAt),
-            repliesCount: dto.repliesCount,
-            lastPostId: this.mapId(dto.lastPostId),
             lastPostAt: this.mapDate(dto.lastPostAt),
             pinned: dto.pinned,
             lastAuthor: dto.lastAuthor,

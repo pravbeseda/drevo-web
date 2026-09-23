@@ -8,10 +8,6 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
     return {
         id: 7,
         title: 'Первая тема',
-        author: 'Иванов И.И.',
-        createdAt: new Date('2025-03-15T10:00:00Z'),
-        repliesCount: 3,
-        lastPostId: 21,
         lastPostAt: new Date('2025-03-16T12:30:00Z'),
         pinned: false,
         lastAuthor: 'Петров П.П.',
@@ -115,7 +111,7 @@ describe('TopicListComponent', () => {
     });
 
     it('omits the time when the topic has no date for its last post', () => {
-        render([createItem({ lastPostId: undefined, lastPostAt: undefined })]);
+        render([createItem({ lastPostAt: undefined })]);
 
         expect(spectator.query('[data-testid="topic-last-post"]')).toBeNull();
     });
