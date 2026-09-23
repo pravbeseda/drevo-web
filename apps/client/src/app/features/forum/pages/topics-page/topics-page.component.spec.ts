@@ -156,6 +156,14 @@ describe('TopicsPageComponent', () => {
             expect(spectator.query('[data-testid="forum-panes"]')).toHaveClass('topic-panes--single');
         });
 
+        it('scrolls the topic list with the custom scrollbar', () => {
+            render(createPage());
+
+            expect(spectator.query('[data-testid="forum-panes-list"]')).toHaveAttribute(
+                'data-overlayscrollbars-initialize',
+            );
+        });
+
         it('opens the panel when a navigation activates the topic route', () => {
             render(createPage());
 

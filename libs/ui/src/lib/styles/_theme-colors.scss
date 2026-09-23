@@ -110,6 +110,19 @@ $theme-colors: (
         light: rgb(0 0 0 / 12%),
         dark: rgb(255 255 255 / 12%),
     ),
+    /* Scrollbar — translucent, since it is drawn over the text */
+    scrollbar-handle-background: (
+        light: rgb(0 0 0 / 35%),
+        dark: rgb(255 255 255 / 35%),
+    ),
+    scrollbar-handle-hover-background: (
+        light: rgb(0 0 0 / 50%),
+        dark: rgb(255 255 255 / 50%),
+    ),
+    scrollbar-track-background: (
+        light: rgb(0 0 0 / 10%),
+        dark: rgb(255 255 255 / 12%),
+    ),
     /* Links*/
     link-color: (
         light: $md-blue-700,

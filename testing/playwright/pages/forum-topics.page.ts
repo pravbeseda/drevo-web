@@ -5,6 +5,10 @@ export class ForumTopicsPage extends BasePage {
     readonly items = this.page.getByTestId('topic-item');
     readonly empty = this.page.getByTestId('topics-empty');
     readonly notFound = this.page.getByTestId('topics-not-found');
+    readonly list = this.page.getByTestId('forum-panes-list');
+    /** OverlayScrollbars draws the scrollbar and takes no test id, so its own classes are the only hook. */
+    readonly scrollbarTrack = this.list.locator('.os-scrollbar-vertical .os-scrollbar-track');
+    readonly scrollbarHandle = this.scrollbarTrack.locator('.os-scrollbar-handle');
 
     /** A topic row is the first thing the resolved section puts on screen. */
     async waitForReady(): Promise<void> {

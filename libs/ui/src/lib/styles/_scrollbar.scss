@@ -1,0 +1,20 @@
+@use 'overlayscrollbars/styles/overlayscrollbars';
+@use 'tokens' as *;
+
+// The theme the `uiScrollbar` directive hands to OverlayScrollbars: a thin
+// translucent thumb drawn over the content, shown while the pointer is over the
+// container; the pointer on the bar widens it and reveals the clickable track.
+.ui-scrollbar {
+    --os-size: #{$scrollbar-wide-width};
+    --os-handle-perpendicular-size: #{$scrollbar-thin-width};
+    --os-handle-perpendicular-size-hover: 100%;
+    --os-handle-perpendicular-size-active: 100%;
+    --os-handle-interactive-area-offset: #{$scrollbar-reach};
+    --os-handle-border-radius: #{$scrollbar-wide-width};
+    --os-handle-bg: var(--themed-scrollbar-handle-background);
+    --os-handle-bg-hover: var(--themed-scrollbar-handle-hover-background);
+    --os-handle-bg-active: var(--themed-scrollbar-handle-hover-background);
+    --os-track-border-radius: #{$scrollbar-wide-width};
+    --os-track-bg-hover: var(--themed-scrollbar-track-background);
+    --os-track-bg-active: var(--themed-scrollbar-track-background);
+}

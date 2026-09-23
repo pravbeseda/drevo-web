@@ -4,7 +4,11 @@
     [class.topic-panes--single]="!withPanel()"
     data-testid="forum-panes"
 >
-    <div class="topic-panes__list">
+    <div
+        class="topic-panes__list"
+        uiScrollbar
+        data-testid="forum-panes-list"
+    >
         <ng-content />
     </div>
 

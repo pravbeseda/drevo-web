@@ -21,6 +21,7 @@
 @use 'theme-colors';
 @use 'tokens' as *;
 @use 'modal';
+@use 'scrollbar';
 
 // Global overrides for third-party / innerHTML DOM inside diff views,
 // scoped by the component element selector (app-cm-diff-view / app-diff-view).
