@@ -10,14 +10,15 @@ export interface ForumTopicArticle {
     readonly title: string;
 }
 
+export interface ForumTopicSection {
+    /** Text id of a forum part, e.g. "news". */
+    readonly id: string;
+    readonly name: string;
+}
+
 export interface ForumTopicListItem {
     readonly id: number;
     readonly title: string;
-    readonly author: string;
-    readonly createdAt: Date | undefined;
-    readonly repliesCount: number;
-    /** Absent when the topic has no last post — the wire's `0`. */
-    readonly lastPostId: number | undefined;
     readonly lastPostAt: Date | undefined;
     readonly pinned: boolean;
     /**
@@ -27,6 +28,7 @@ export interface ForumTopicListItem {
     readonly lastAuthor: string | undefined;
     /** Absent for a topic that hangs off no article or news item. */
     readonly article: ForumTopicArticle | undefined;
+    readonly section: ForumTopicSection | undefined;
 }
 
 export interface ForumTopicListResponse {

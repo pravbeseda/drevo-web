@@ -30,6 +30,7 @@ describe('ForumApiService', () => {
                 lastPostAt: '2026-01-03T03:04:05+03:00',
                 pinned: false,
                 article: null,
+                section: { id: 'common', name: 'Общий' },
             },
         ],
         total: 1,

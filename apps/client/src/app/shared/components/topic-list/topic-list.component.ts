@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ForumTopicListItem } from '@drevo-web/shared';
-import { FormatDatePipe, IconComponent } from '@drevo-web/ui';
+import { FormatDatePipe, IconComponent, ShortDatePipe } from '@drevo-web/ui';
 
 /**
  * A page of forum topics. Presentational: the forum section pages and the
@@ -9,7 +9,7 @@ import { FormatDatePipe, IconComponent } from '@drevo-web/ui';
  */
 @Component({
     selector: 'app-topic-list',
-    imports: [FormatDatePipe, IconComponent, RouterLink],
+    imports: [FormatDatePipe, IconComponent, RouterLink, RouterLinkActive, ShortDatePipe],
     templateUrl: './topic-list.component.html',
     styleUrl: './topic-list.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,12 +22,10 @@ export class TopicListComponent {
      */
     readonly relativeLinks = input(false);
 
+    protected readonly newsSectionId = 'news';
+
     topicLink(topicId: number): readonly (string | number)[] {
         return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
-    }
-
-    lastPostLink(topicId: number, messageId: number): readonly (string | number)[] {
-        return [...this.topicLink(topicId), messageId];
     }
 
     readonly items = input.required<readonly ForumTopicListItem[]>();

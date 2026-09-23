@@ -1,19 +1,20 @@
 @use 'index' as *;
 
-// The gutter belongs to the panes' own list pane; a padding here would double it.
 :host {
     display: block;
     height: 100%;
 }
 
+// The list pane has no gutter of its own: what sits beside the rows lines up with their text.
 .article-forum__message {
     margin: 0;
+    padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
     color: var(--themed-text-secondary);
 }
 
 .article-forum__all {
     display: inline-block;
-    margin-top: $gap-md;
+    margin: $gap-md $forum-topic-row-padding-h 0;
     color: var(--themed-link-color);
     text-decoration: none;
 

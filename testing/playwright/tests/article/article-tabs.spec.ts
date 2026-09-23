@@ -18,6 +18,15 @@ import {
 } from '../../mocks/forum';
 import { ArticlePage } from '../../pages/article.page';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
+import { Locator } from '@playwright/test';
+
+/** Where the element's text starts on screen — past its own padding, unlike its box. */
+const textLeft = (locator: Locator): Promise<number> =>
+    locator.evaluate(element => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return range.getBoundingClientRect().left;
+    });
 
 const ARTICLE_ID = 42;
 const VERSION_ID = 99;
@@ -49,6 +58,8 @@ test.describe('Article tabs', () => {
 
             await expect(article.forumTopics).toHaveCount(1);
             await expect(article.forumAllTopics).toHaveAttribute('href', `/forum/articles/${ARTICLE_ID}`);
+            // The link under the list lines up with the rows' text rather than the pane's edge.
+            expect(await textLeft(article.forumAllTopics)).toBe(await textLeft(article.forumTopic('Тема 1')));
         });
 
         test('opens a discussion beside the list without leaving the article', async ({ authenticatedPage: page }) => {
@@ -99,6 +110,8 @@ test.describe('Article tabs', () => {
             await article.tabForum.click();
 
             await expect(article.forumEmpty).toBeVisible();
+            const list = await article.forumList.boundingBox();
+            expect(await textLeft(article.forumEmpty)).toBeGreaterThan(list?.x ?? Number.POSITIVE_INFINITY);
         });
     });
 

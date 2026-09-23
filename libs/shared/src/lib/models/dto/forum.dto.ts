@@ -10,6 +10,11 @@ export interface ForumTopicArticleDto {
     readonly title: string;
 }
 
+export interface ForumTopicSectionDto {
+    readonly id: string;
+    readonly name: string;
+}
+
 export interface ForumTopicListItemDto {
     readonly id: number;
     readonly title: string;
@@ -22,6 +27,8 @@ export interface ForumTopicListItemDto {
     /** Absent when `lastPostId` resolves to no row, not when nobody replied. */
     readonly lastAuthor?: string;
     readonly article: ForumTopicArticleDto | null;
+    /** Null only for a part that names no forum section. */
+    readonly section: ForumTopicSectionDto | null;
 }
 
 export interface ForumTopicListResponseDto {

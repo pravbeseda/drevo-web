@@ -80,6 +80,11 @@ $theme-colors: (
         light: $md-grey-300,
         dark: $md-grey-900,
     ),
+    /* List row selected on primary-bg — menu-selected-background matches that ground in dark*/
+    list-selected-background: (
+        light: $md-grey-300,
+        dark: rgb(white, 0.1),
+    ),
     menu-border-color: (
         light: $md-grey-300,
         dark: $md-grey-900,
@@ -103,6 +108,19 @@ $theme-colors: (
     ),
     divider-color: (
         light: rgb(0 0 0 / 12%),
+        dark: rgb(255 255 255 / 12%),
+    ),
+    /* Scrollbar — translucent, since it is drawn over the text */
+    scrollbar-handle-background: (
+        light: rgb(0 0 0 / 35%),
+        dark: rgb(255 255 255 / 35%),
+    ),
+    scrollbar-handle-hover-background: (
+        light: rgb(0 0 0 / 50%),
+        dark: rgb(255 255 255 / 50%),
+    ),
+    scrollbar-track-background: (
+        light: rgb(0 0 0 / 10%),
         dark: rgb(255 255 255 / 12%),
     ),
     /* Links*/

@@ -12,14 +12,11 @@ function createItem(id: number): ForumTopicListItem {
     return {
         id,
         title: `Тема ${id}`,
-        author: 'Иванов И.И.',
-        createdAt: new Date('2025-03-15T10:00:00Z'),
-        repliesCount: 0,
-        lastPostId: undefined,
         lastPostAt: undefined,
         pinned: false,
         lastAuthor: undefined,
         article: undefined,
+        section: undefined,
     };
 }
 
@@ -153,6 +150,14 @@ describe('TopicsPageComponent', () => {
 
             expect(spectator.query('[data-testid="topic-placeholder-hint"]')).not.toExist();
             expect(spectator.query('[data-testid="forum-panes"]')).toHaveClass('topic-panes--single');
+        });
+
+        it('scrolls the topic list with the custom scrollbar', () => {
+            render(createPage());
+
+            expect(spectator.query('[data-testid="forum-panes-list"]')).toHaveAttribute(
+                'data-overlayscrollbars-initialize',
+            );
         });
 
         it('opens the panel when a navigation activates the topic route', () => {

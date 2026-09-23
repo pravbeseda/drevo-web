@@ -19,7 +19,7 @@ are added to the topic list item. Backend work lands in
 | 3 | Article tab | Same two-pane shell, on the same terms. `.article` is `rem($article-max-width)` = 1000 px, which holds a 320 px list plus a 680 px panel |
 | 4 | Empty right pane | A placeholder: the section's `description` (already fetched for the tab tooltips and shown nowhere) plus «Выберите тему». No auto-opening of the first topic — it would rewrite the address on arrival and make «back» a loop |
 | 5 | Scrolling | Two independent scroll containers, the page locked to the viewport height. The precedent is `article.component.scss:6-17`, which already locks height for the virtual-scroller tabs |
-| 6 | List row | Title, «к статье X», «время · имя последнего». The article title is what identifies a topic in Drevo — half the live titles («МОДЕРАТОРУ: техническое») mean nothing without it |
+| 6 | List row | Title, «к статье X», «время · имя последнего». The article title is what identifies a topic in Drevo — half the live titles («МОДЕРАТОРУ: техническое») mean nothing without it. How the row reads: [`forum-topic-rows.md`](forum-topic-rows.md) |
 | 7 | New API fields | `article` and `lastAuthor` on the topic list item. `part` is already in the topic response (`ForumService.php:186`), so a direct link can open the right section on the left |
 
 ## Backend (drevo-yii)

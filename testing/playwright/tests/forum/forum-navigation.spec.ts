@@ -85,6 +85,43 @@ test.describe('Forum navigation', () => {
         expect(heading?.x ?? 0).toBeGreaterThan((row?.x ?? 0) + (row?.width ?? 0));
     });
 
+    test('opens a topic from anywhere on its row and marks the row as open', async ({ authenticatedPage: page }) => {
+        const otherTitle = 'Другая тема';
+        await mockForumSectionsApi(page);
+        await mockForumTopicsApi(
+            page,
+            createForumTopicListResponse([
+                createForumTopicListItemDto({ id: 3, title: otherTitle }),
+                createForumTopicListItemDto({
+                    id: TOPIC_ID,
+                    title: TOPIC_TITLE,
+                    article: { id: 15, title: 'Сергий Радонежский' },
+                    section: { id: 'articles', name: 'Обсуждение статей' },
+                }),
+            ]),
+        );
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
+                createForumMessageDto({ id: MESSAGE_ID }),
+            ]),
+        );
+
+        const topics = new ForumTopicsPage(page);
+        const topic = new ForumTopicPage(page);
+
+        await page.goto('/forum');
+        await topics.waitForReady();
+        // The article line is part of the row's one link, not a way to the article.
+        await topics.context(TOPIC_TITLE).click();
+        await topic.waitForReady();
+
+        await expect(page).toHaveURL(new RegExp(`/forum/topic/${TOPIC_ID}$`));
+        await expect(topics.link(TOPIC_TITLE)).toHaveAttribute('aria-current', 'page');
+        await expect(topics.link(otherTitle)).not.toHaveAttribute('aria-current');
+    });
+
     test('replaces the list with the topic on a phone', async ({ authenticatedPage: page }) => {
         await page.setViewportSize({ width: 390, height: 844 });
         await mockForumSectionsApi(page);

@@ -28,6 +28,8 @@ Never define local CSS custom properties for sizes in component styles — add a
 
 Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_modal.scss`. What a modal accepts is the `ModalConfig` interface in `libs/ui/src/lib/modal/models/modal.types.ts` — read it there rather than from a list here. Two things that interface does not tell you: `maxHeight` is absent from it because `ModalService` sets it from `position` alone (`90vh` for a centered dialog, `66.67vh` for a bottom sheet), and `position: 'bottom'` also changes the width defaults to `100vw` instead of `500px` / `90vw` and adds the `ui-modal-bottom-sheet` class. Size a bottom sheet against those, not against the centered ones.
 
+A scroll container gets the app's scrollbar — narrow, drawn over the content by OverlayScrollbars, shown while the pointer is over it and widened as the pointer reaches it — from the `uiScrollbar` directive, never from scrollbar rules of its own. The directive and `libs/ui/src/lib/styles/_scrollbar.scss` are the one place that decides how that scrollbar is drawn, so a change there reaches every consumer at once. The host stays the scrolling element, so `scrollTop` and `scrollTo()` keep working on it.
+
 ## UI library (`libs/ui`)
 
 Everything is exported from `@drevo-web/ui`, and `libs/ui/src/index.ts` is the live list — read it before building a component by hand. The library covers more than the obvious set: a tooltip, a line clamp, a side panel and a navigation progress bar are already there.
