@@ -41,6 +41,7 @@ const PERCENT = 100;
         '(pointerup)': 'endDrag($event)',
         '(pointercancel)': 'endDrag($event)',
         '(keydown)': 'step($event)',
+        '(focus)': 'sync()',
     },
 })
 export class ResizeHandleDirective {
@@ -62,12 +63,11 @@ export class ResizeHandleDirective {
         afterNextRender(() => {
             const key = this.storageKey();
             const stored = key ? this.storage.get<number>(key) : undefined;
+            // Written as it was: the target's CSS bounds it, so it grows back when there is room again.
             if (typeof stored === 'number') {
-                this.resize(stored);
-            } else {
-                this.size.set(this.measure());
-                this.bounds.set(this.readBounds());
+                this.write(stored);
             }
+            this.sync();
         });
     }
 
@@ -107,16 +107,26 @@ export class ResizeHandleDirective {
             return;
         }
         event.preventDefault();
-        this.resize((this.size() ?? this.measure()) + delta);
+        this.resize(this.measure() + delta);
         this.remember();
+    }
+
+    /** Reads the size and bounds afresh: a layout may have hidden or reshaped the target since. */
+    protected sync(): void {
+        this.size.set(this.measure());
+        this.bounds.set(this.readBounds());
     }
 
     private resize(requested: number): void {
         const bounds = this.readBounds();
         const size = Math.round(Math.min(Math.max(requested, bounds.min), bounds.max ?? Number.POSITIVE_INFINITY));
-        this.target().style.setProperty(SIZE_PROPERTY, `${size}px`);
+        this.write(size);
         this.size.set(size);
         this.bounds.set(bounds);
+    }
+
+    private write(size: number): void {
+        this.target().style.setProperty(SIZE_PROPERTY, `${size}px`);
     }
 
     private remember(): void {

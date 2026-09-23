@@ -19,16 +19,22 @@ describe('ResizeHandleDirective', () => {
     const pane = (): HTMLElement => spectator.query('[data-testid="pane"]') as HTMLElement;
     const handle = (): HTMLElement => spectator.query('[data-testid="handle"]') as HTMLElement;
     const paneSize = (): string => pane().style.getPropertyValue('--ui-resize-size');
+    const measurePane = (size: number): void => {
+        jest.spyOn(pane(), 'getBoundingClientRect').mockReturnValue({ width: size, height: size } as DOMRect);
+    };
 
     /** Lays the panes out the way a browser would, since jsdom measures nothing. */
     const render = ({
         orientation = 'horizontal',
         storageKey = STORAGE_KEY,
         stored,
+        initialPaneSize = PANE_SIZE,
     }: {
         readonly orientation?: 'horizontal' | 'vertical';
         readonly storageKey?: string;
         readonly stored?: number;
+        /** What the target measures when the handle first renders — 0 while a layout hides it. */
+        readonly initialPaneSize?: number;
     } = {}): void => {
         const [min, max] = orientation === 'horizontal' ? ['min-width', 'max-width'] : ['min-height', 'max-height'];
         spectator = createDirective(
@@ -47,10 +53,7 @@ describe('ResizeHandleDirective', () => {
         Object.defineProperty(parent, orientation === 'horizontal' ? 'clientWidth' : 'clientHeight', {
             value: PARENT_SIZE,
         });
-        jest.spyOn(pane(), 'getBoundingClientRect').mockReturnValue({
-            width: PANE_SIZE,
-            height: PANE_SIZE,
-        } as DOMRect);
+        measurePane(initialPaneSize);
         handle().setPointerCapture = jest.fn();
         handle().releasePointerCapture = jest.fn();
         spectator.inject(StorageService).get.mockReturnValue(stored);
@@ -109,11 +112,13 @@ describe('ResizeHandleDirective', () => {
         expect(spectator.inject(StorageService).set).toHaveBeenCalledWith(STORAGE_KEY, 360);
     });
 
-    it('should restore the remembered size, kept within the current bounds', () => {
+    it("should restore the remembered size as it was, leaving the bounds to the target's CSS", () => {
         render({ stored: 900 });
+        spectator.detectChanges();
 
         expect(spectator.inject(StorageService).get).toHaveBeenCalledWith(STORAGE_KEY);
-        expect(paneSize()).toBe(`${MAX_SIZE}px`);
+        expect(paneSize()).toBe('900px');
+        expect(handle()).toHaveAttribute('aria-valuenow', `${PANE_SIZE}`);
     });
 
     it('should step the size with the arrow keys along its axis and remember it', () => {
@@ -129,6 +134,27 @@ describe('ResizeHandleDirective', () => {
         spectator.dispatchKeyboardEvent(handle(), 'keydown', 'ArrowDown');
         expect(paneSize()).toBe('284px');
         expect(spectator.inject(StorageService).set).toHaveBeenLastCalledWith(STORAGE_KEY, 284);
+    });
+
+    describe('once a layout that hid the target shows it', () => {
+        beforeEach(() => {
+            render({ initialPaneSize: 0 });
+            measurePane(PANE_SIZE);
+        });
+
+        it('should step from the size the target has now', () => {
+            spectator.dispatchKeyboardEvent(handle(), 'keydown', 'ArrowRight');
+
+            expect(paneSize()).toBe('316px');
+        });
+
+        it('should announce the current size and bounds when focused', () => {
+            spectator.dispatchFakeEvent(handle(), 'focus');
+            spectator.detectChanges();
+
+            expect(handle()).toHaveAttribute('aria-valuenow', `${PANE_SIZE}`);
+            expect(handle()).toHaveAttribute('aria-valuemax', `${MAX_SIZE}`);
+        });
     });
 
     it('should resize the height of stacked panes', () => {
