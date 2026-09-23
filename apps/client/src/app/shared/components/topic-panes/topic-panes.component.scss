@@ -25,6 +25,10 @@
 }
 
 /* Narrow: one pane at a time — the list, or the topic that replaced it. */
+.topic-panes__handle {
+    display: none;
+}
+
 .topic-panes__panel {
     display: none;
     min-height: 0;
@@ -47,9 +51,14 @@
     }
 
     .topic-panes__list {
-        width: $forum-list-column-width;
+        width: var(--ui-resize-size, #{$forum-list-column-width});
+        min-width: $forum-list-column-min-width;
+        max-width: $forum-list-column-max-share;
         flex: none;
-        border-right: 1px solid var(--themed-border-color);
+    }
+
+    .topic-panes__handle {
+        display: block;
     }
 
     .topic-panes__panel {
@@ -64,7 +73,8 @@
 
     .topic-panes--single .topic-panes__list {
         width: auto;
+        min-width: 0;
+        max-width: none;
         flex: 1;
-        border-right: 0;
     }
 }

@@ -13,6 +13,7 @@ export * from './lib/components/icon/icon.component';
 export * from './lib/components/icon-button/icon-button.component';
 export * from './lib/components/line-clamp/line-clamp.component';
 export * from './lib/components/navigation-progress/navigation-progress.component';
+export * from './lib/components/resize-handle/resize-handle.directive';
 export * from './lib/components/scrollbar/scrollbar.directive';
 export * from './lib/components/spinner/spinner.component';
 export * from './lib/components/status-icon/status-icon.component';

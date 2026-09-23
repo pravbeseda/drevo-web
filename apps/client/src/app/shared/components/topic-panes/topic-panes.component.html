@@ -5,6 +5,7 @@
     data-testid="forum-panes"
 >
     <div
+        #list
         class="topic-panes__list"
         uiScrollbar
         data-testid="forum-panes-list"
@@ -13,6 +14,12 @@
     </div>
 
     @if (withPanel()) {
+        <div
+            class="topic-panes__handle"
+            data-testid="forum-panes-handle"
+            storageKey="drevo-forum-list-width"
+            [uiResizeHandle]="list"
+        ></div>
         <div class="topic-panes__panel">
             <router-outlet />
             @if (!hasOpenTopic()) {
