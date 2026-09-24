@@ -16,9 +16,10 @@ export class CalendarPage extends BasePage {
         name: 'Церковные праздники в 2026 году',
     });
     readonly disclaimer: Locator = this.page.getByText('может содержать неточности');
+    readonly legend: Locator = this.page.getByTestId('calendar-legend');
     /** Markers inside the server-formatted legend, which carries no test ids of ours. */
-    readonly legendFastMarker: Locator = this.page.locator('.legend .post').first();
-    readonly legendFeastMarker: Locator = this.page.locator('.legend .holyday').first();
+    readonly legendFastMarker: Locator = this.legend.locator('.post').first();
+    readonly legendFeastMarker: Locator = this.legend.locator('.holyday').first();
 
     async waitForReady(): Promise<void> {
         await this.grid.waitFor({ state: 'visible' });
