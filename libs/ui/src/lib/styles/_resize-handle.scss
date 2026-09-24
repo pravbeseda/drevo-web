@@ -1,0 +1,47 @@
+@use 'tokens' as *;
+
+// The `uiResizeHandle` directive's look: a 1px border between the panes that
+// lights up under the pointer and while dragged. The grab area is wider than the
+// line and reaches into the pane after it only, clear of the resized pane's own
+// scrollbar.
+.ui-resize-handle {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    background: var(--themed-border-color);
+    touch-action: none;
+
+    &::after {
+        position: absolute;
+        inset: 0;
+        content: '';
+    }
+
+    &[aria-orientation='vertical'] {
+        width: 1px;
+        cursor: col-resize;
+
+        &::after {
+            right: -$resize-handle-reach;
+        }
+    }
+
+    &[aria-orientation='horizontal'] {
+        height: 1px;
+        cursor: row-resize;
+
+        &::after {
+            bottom: -$resize-handle-reach;
+        }
+    }
+
+    &:hover,
+    &:active,
+    &:focus-visible {
+        background: var(--themed-link-color);
+    }
+
+    &:focus-visible {
+        outline: none;
+    }
+}

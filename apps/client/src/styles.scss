@@ -21,6 +21,7 @@
 @use 'theme-colors';
 @use 'tokens' as *;
 @use 'modal';
+@use 'resize-handle';
 @use 'scrollbar';
 
 // Global overrides for third-party / innerHTML DOM inside diff views,

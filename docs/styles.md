@@ -30,6 +30,8 @@ Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_
 
 A scroll container gets the app's scrollbar — narrow, drawn over the content by OverlayScrollbars, shown while the pointer is over it and widened as the pointer reaches it — from the `uiScrollbar` directive, never from scrollbar rules of its own. The directive and `libs/ui/src/lib/styles/_scrollbar.scss` are the one place that decides how that scrollbar is drawn, so a change there reaches every consumer at once. The host stays the scrolling element, so `scrollTop` and `scrollTo()` keep working on it.
 
+Two panes the reader can resize share a `uiResizeHandle` placed between them: `[uiResizeHandle]="target"` on the handle resizes the element before it by drag or arrow keys, and remembers the size under `storageKey`. The size lands in `--ui-resize-size` on the target, so the target's own CSS decides where it applies — `width: var(--ui-resize-size, <default>)` — and its `min-*`/`max-*` (a percentage `max-*` included) bound the drag. The look is `libs/ui/src/lib/styles/_resize-handle.scss`; a layout that stacks the panes hides the handle itself.
+
 ## UI library (`libs/ui`)
 
 Everything is exported from `@drevo-web/ui`, and `libs/ui/src/index.ts` is the live list — read it before building a component by hand. The library covers more than the obvious set: a tooltip, a line clamp, a side panel and a navigation progress bar are already there.

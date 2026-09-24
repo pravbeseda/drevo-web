@@ -6,6 +6,8 @@ export class ForumTopicsPage extends BasePage {
     readonly empty = this.page.getByTestId('topics-empty');
     readonly notFound = this.page.getByTestId('topics-not-found');
     readonly list = this.page.getByTestId('forum-panes-list');
+    readonly panes = this.page.getByTestId('forum-panes');
+    readonly resizeHandle = this.page.getByTestId('forum-panes-handle');
     /** OverlayScrollbars draws the scrollbar and takes no test id, so its own classes are the only hook. */
     readonly scrollbarTrack = this.list.locator('.os-scrollbar-vertical .os-scrollbar-track');
     readonly scrollbarHandle = this.scrollbarTrack.locator('.os-scrollbar-handle');
@@ -26,6 +28,17 @@ export class ForumTopicsPage extends BasePage {
 
     context(text: string): Locator {
         return this.link(text).getByTestId('topic-context');
+    }
+
+    /** Drags the border between the list and the topic by `distance` pixels, right being positive. */
+    async dragColumnBorder(distance: number): Promise<void> {
+        const box = await this.resizeHandle.boundingBox();
+        const x = (box?.x ?? 0) + (box?.width ?? 0) / 2;
+        const y = (box?.y ?? 0) + (box?.height ?? 0) / 2;
+        await this.page.mouse.move(x, y);
+        await this.page.mouse.down();
+        await this.page.mouse.move(x + distance, y);
+        await this.page.mouse.up();
     }
 
     async open(text: string): Promise<void> {

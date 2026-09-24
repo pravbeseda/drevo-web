@@ -2,7 +2,7 @@ import { TopicPlaceholderComponent } from '../topic-placeholder/topic-placeholde
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { ScrollbarDirective } from '@drevo-web/ui';
+import { ResizeHandleDirective, ScrollbarDirective } from '@drevo-web/ui';
 import { filter, map } from 'rxjs/operators';
 
 /**
@@ -12,7 +12,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
     selector: 'app-topic-panes',
-    imports: [RouterOutlet, ScrollbarDirective, TopicPlaceholderComponent],
+    imports: [ResizeHandleDirective, RouterOutlet, ScrollbarDirective, TopicPlaceholderComponent],
     templateUrl: './topic-panes.component.html',
     styleUrl: './topic-panes.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

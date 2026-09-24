@@ -77,8 +77,13 @@ $scrollbar-thin-width: 4px;
 $scrollbar-wide-width: 8px;
 $scrollbar-reach: 4px;
 
+// Resize handle
+$resize-handle-reach: 6px;
+
 // Forum
 $forum-list-column-width: 320px;
+$forum-list-column-min-width: 240px;
+$forum-list-column-max-share: 70%;
 $forum-topic-row-padding-v: 10px;
 $forum-topic-row-padding-h: 16px;
 $forum-topic-row-line-gap: 2px;
