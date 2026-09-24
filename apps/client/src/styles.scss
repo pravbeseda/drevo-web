@@ -28,6 +28,9 @@
 // scoped by the component element selector (app-cm-diff-view / app-diff-view).
 @use './styles/diff-view-overrides';
 
+// The calendar legend, formatted wiki HTML from the API, in the grid's colours.
+@use './styles/calendar-legend-overrides';
+
 // ============================================================================
 // THEMED CSS CUSTOM PROPERTIES (emitted once, globally)
 // ============================================================================
@@ -55,6 +58,28 @@ html {
             ),
             typography: Roboto,
             density: 0,
+        )
+    );
+
+    // Paint Material's neutral surfaces with the paper palette instead of azure's cool
+    // greys. The dark theme re-emits these system tokens and keeps Material's own values.
+    @include mat.theme-overrides(
+        (
+            background: var(--themed-primary-bg),
+            surface: var(--themed-primary-bg),
+            surface-bright: var(--themed-primary-bg),
+            surface-container-lowest: var(--themed-primary-bg),
+            surface-container-low: var(--themed-primary-bg),
+            surface-container: var(--themed-secondary-bg),
+            surface-container-high: var(--themed-secondary-bg),
+            surface-container-highest: var(--themed-border-color),
+            surface-variant: var(--themed-border-color),
+            surface-dim: var(--themed-border-color),
+            on-background: var(--themed-text-primary),
+            on-surface: var(--themed-text-primary),
+            on-surface-variant: var(--themed-text-secondary),
+            outline: var(--themed-text-muted),
+            outline-variant: var(--themed-border-color),
         )
     );
 }

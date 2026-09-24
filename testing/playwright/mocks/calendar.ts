@@ -50,7 +50,10 @@ export function createCalendarYearDto(overrides: Partial<CalendarYearDto> = {}):
         prev: 2025,
         next: 2027,
         months: Array.from({ length: 12 }, (_unused, index) => createCalendarMonthDto(index + 1)),
-        legend: '<h2>Церковные праздники в 2026 году</h2><p>Пасха — 12 апреля</p>',
+        legend:
+            '<h2>Церковные праздники в 2026 году</h2><p>Пасха — 12 апреля</p>' +
+            '<p class="holyday">Великие праздники:</p>' +
+            '<p><span class="post">Многодневные посты</span></p>',
         disclaimer: '<p><b>Внимание!</b> Этот церковный календарь может содержать неточности.</p>',
         ...overrides,
     };

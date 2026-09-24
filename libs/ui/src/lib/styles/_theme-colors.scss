@@ -17,32 +17,32 @@
 $theme-colors: (
     /* Background colors*/
     primary-bg: (
-        light: white,
+        light: $paper-50,
         dark: $md-grey-900,
     ),
     secondary-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: $md-grey-800,
     ),
     header-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: $md-grey-800,
     ),
     sidebar-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: $md-grey-800,
     ),
     /* Text colors*/
     text-primary: (
-        light: $md-grey-900,
+        light: $md-brown-900,
         dark: $md-grey-300,
     ),
     text-secondary: (
-        light: $md-grey-700,
+        light: $md-brown-700,
         dark: $md-grey-400,
     ),
     text-muted: (
-        light: $md-grey-500,
+        light: $md-brown-500,
         dark: $md-grey-600,
     ),
     text-success: (
@@ -73,20 +73,20 @@ $theme-colors: (
     ),
     /* Menu*/
     menu-hover-background: (
-        light: $md-grey-200,
+        light: $paper-200,
         dark: rgb(white, 0.06),
     ),
     menu-selected-background: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: $md-grey-900,
     ),
     /* List row selected on primary-bg — menu-selected-background matches that ground in dark*/
     list-selected-background: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: rgb(white, 0.1),
     ),
     menu-border-color: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: $md-grey-900,
     ),
     search-highlighted-bg: (
@@ -99,15 +99,15 @@ $theme-colors: (
     ),
     /* Border & Shadow*/
     border-color: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: $md-grey-600,
     ),
     shadow-color: (
-        light: rgb(0 0 0 / 10%),
+        light: rgb($md-brown-900, 0.12),
         dark: rgb(0 0 0 / 40%),
     ),
     divider-color: (
-        light: rgb(0 0 0 / 12%),
+        light: rgb($md-brown-900, 0.14),
         dark: rgb(255 255 255 / 12%),
     ),
     /* Scrollbar — translucent, since it is drawn over the text */
@@ -125,11 +125,11 @@ $theme-colors: (
     ),
     /* Links*/
     link-color: (
-        light: $md-blue-700,
+        light: $md-blue-800,
         dark: $md-blue-300,
     ),
     link-hover: (
-        light: $md-blue-800,
+        light: $md-blue-900,
         dark: $md-blue-200,
     ),
 
@@ -151,15 +151,15 @@ $theme-colors: (
         dark: $md-red-200,
     ),
     wiki-bible-bg: (
-        light: $md-grey-200,
+        light: $paper-200,
         dark: $md-grey-800,
     ),
     wiki-verse: (
-        light: $md-cyan-800,
+        light: $md-cyan-900,
         dark: $md-cyan-300,
     ),
     wiki-image-bg: (
-        light: $md-grey-200,
+        light: $paper-200,
         dark: $md-grey-800,
     ),
 
@@ -167,7 +167,7 @@ $theme-colors: (
     /* A feast outranks the weekend, which is why the two are distinct reds*/
     /* rather than one with an opacity.*/
     calendar-feast: (
-        light: $md-red-700,
+        light: $md-red-800,
         dark: $md-red-300,
     ),
     calendar-weekend: (
@@ -175,7 +175,7 @@ $theme-colors: (
         dark: $md-red-200,
     ),
     calendar-fast-bg: (
-        light: $md-green-50,
+        light: rgb($md-light-green-900, 0.12),
         dark: rgb($md-green-200, 0.12),
     ),
     calendar-today-border: (
@@ -189,27 +189,27 @@ $theme-colors: (
         dark: rgb(white, 0.1),
     ),
     editor-active-line-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: rgb(white, 0.05),
     ),
     editor-panel-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: $md-grey-800,
     ),
     editor-panel-border: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: $md-grey-700,
     ),
     editor-button-bg: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: $md-grey-900,
     ),
     editor-active-button-bg: (
-        light: $md-grey-400,
+        light: $paper-400,
         dark: $md-grey-700,
     ),
     editor-skeleton-base: (
-        light: white,
+        light: $paper-50,
         dark: white,
     ),
     editor-skeleton-offset: (
@@ -284,7 +284,7 @@ $theme-colors: (
         dark: currentcolor,
     ),
     editor-footnote-bg: (
-        light: $md-grey-300,
+        light: $paper-300,
         dark: transparent,
     ),
     editor-quote: (
@@ -292,11 +292,11 @@ $theme-colors: (
         dark: $md-deep-purple-200,
     ),
     editor-picture-pending: (
-        light: $md-grey-600,
+        light: $md-brown-500,
         dark: $md-grey-400,
     ),
     editor-picture-pending-bg: (
-        light: $md-grey-200,
+        light: $paper-200,
         dark: transparent,
     ),
     editor-picture-resolved: (
@@ -345,25 +345,25 @@ $theme-colors: (
         dark: $md-grey-900,
     ),
     fab-secondary-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: $md-grey-800,
     ),
     fab-secondary: (
-        light: $md-grey-600,
+        light: $md-brown-500,
         dark: $md-grey-400,
     ),
 
     /* Button accents*/
     button-secondary-bg: (
-        light: $md-grey-200,
+        light: $paper-200,
         dark: $md-grey-700,
     ),
     button-secondary-text: (
-        light: $md-grey-900,
+        light: $md-brown-900,
         dark: $md-grey-200,
     ),
     button-secondary-border: (
-        light: $md-grey-400,
+        light: $paper-400,
         dark: $md-grey-500,
     ),
     button-success-bg: (
@@ -405,17 +405,17 @@ $theme-colors: (
 
     /* Tab badge*/
     tab-badge-bg: (
-        light: $md-grey-200,
+        light: $paper-200,
         dark: $md-grey-700,
     ),
     tab-badge-text: (
-        light: $md-grey-800,
+        light: $md-brown-800,
         dark: $md-grey-200,
     ),
 
     /* Dropdown*/
     dropdown-panel-bg: (
-        light: $md-white,
+        light: $paper-50,
         dark: $md-grey-800,
     ),
 
@@ -443,12 +443,13 @@ $theme-colors: (
         dark: $md-red-400,
     ),
     status-cancelled: (
-        light: $md-grey-600,
+        light: $md-brown-500,
         dark: $md-grey-400,
     ),
 
     /* Review badge (people's review chips) — tinted bg + text per verdict.*/
-    /* Light values are the legacy site's Bootstrap alert colours, shared with review_history_indicator.*/
+    /* Light values are the legacy site's Bootstrap alert colours, shared with review_history_indicator —*/
+    /* except the suggestion, whose pale yellow vanished on the paper ground.*/
     review-approve-bg: (
         light: #dff0d8,
         dark: rgba($md-green-400, 0.15),
@@ -458,15 +459,15 @@ $theme-colors: (
         dark: $md-green-300,
     ),
     review-suggest-bg: (
-        light: #fcf8e3,
+        light: $md-amber-100,
         dark: rgba($md-orange-400, 0.15),
     ),
     review-suggest-border: (
-        light: #faebcc,
+        light: $md-amber-300,
         dark: rgba($md-orange-400, 0.3),
     ),
     review-suggest-text: (
-        light: #8a6d3b,
+        light: $md-brown-600,
         dark: $md-orange-300,
     ),
     review-disagree-bg: (
@@ -488,7 +489,7 @@ $theme-colors: (
 
     /* Moderator comment*/
     moderator-comment-bg: (
-        light: $md-amber-50,
+        light: $md-amber-100,
         dark: $md-blue-grey-900,
     ),
     moderator-comment-border: (
@@ -502,7 +503,7 @@ $theme-colors: (
 
     /* Selection*/
     hover-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: rgb(white, 0.05),
     ),
     selected-bg: (
@@ -510,18 +511,18 @@ $theme-colors: (
         dark: rgba($md-blue-400, 0.15),
     ),
     selection-overlay-bg: (
-        light: rgba($md-grey-400, 0.5),
+        light: rgba($paper-400, 0.5),
         dark: rgba($md-grey-800, 0.5),
     ),
     selection-hint-bg: (
-        light: $md-yellow-100,
+        light: $md-yellow-200,
         dark: $md-blue-grey-800,
     ),
 
     /* Forum*/
     /* The card a deep link anchors on, so the reader sees where they landed.*/
     forum-anchor-bg: (
-        light: $md-yellow-100,
+        light: $md-yellow-200,
         dark: rgba($md-yellow-600, 0.15),
     ),
 
@@ -543,7 +544,7 @@ $theme-colors: (
         dark: $md-red-300,
     ),
     diff-collapsed-bg: (
-        light: $md-grey-100,
+        light: $paper-100,
         dark: $md-grey-800,
     ),
 );

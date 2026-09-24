@@ -13,7 +13,7 @@ background: var(--themed-primary-bg);
 color: var(--themed-text-secondary);
 ```
 
-Stylelint enforces this in `yarn lint:styles`: hex values, named colours and `rgb()`/`hsl()`-family functions fail anywhere, properties ending in `color` plus `fill`/`stroke` take nothing but a `--themed-*` variable, and reading a `var(--mat-*)` fails in any property. Material tokens are only ever written to — `libs/ui` assigns them `--themed-*` values, which is how the theme reaches Material. A colour with no token yet gets one added to `_theme-colors.scss` in the same change.
+Stylelint enforces this in `yarn lint:styles`: hex values, named colours and `rgb()`/`hsl()`-family functions fail anywhere, properties ending in `color` plus `fill`/`stroke` take nothing but a `--themed-*` variable, and reading a `var(--mat-*)` fails in any property. Material tokens are only ever written to — `libs/ui` assigns them `--themed-*` values, which is how the theme reaches Material. The light theme's neutral surfaces go the same way: `apps/client/src/styles.scss` points Material's `surface*`, `on-surface` and `outline*` system tokens at the `--themed-*` paper palette, and the Playwright spec `tests/layout/theme.spec.ts` checks that they agree and that the text clears WCAG AA. A colour with no token yet gets one added to `_theme-colors.scss` in the same change.
 
 The palette sources and the image overlays are the exceptions, listed as overrides in `.stylelintrc.json`. An overlay sits on top of a picture and needs a fixed dark translucent background so white text stays readable over any image, whatever the theme — those hard-coded colours are intentional and carry an `// Intentional:` comment. Do not "fix" them.
 
