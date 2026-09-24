@@ -34,7 +34,7 @@ const createComponent = createComponentFactory({
 - With `detectChanges: false`, set the mocks up before calling `spectator.detectChanges()`
 - Query elements only via `[data-testid="name"]`; add the attribute to a template only when a test actually needs it
     - On `ui-button` and `ui-icon-button` pass `testId`, not `data-testid`: it lands on the native `button` or `a`, so the selector hits the clickable, disableable element rather than the host
-    - The one exception is an element that Angular Material renders and no attribute of ours reaches, such as the `button` inside `mat-button-toggle`: select it as `[data-testid="name"] button`
+    - The one exception is an element that no attribute of ours reaches — one Angular Material renders, such as the `button` inside `mat-button-toggle`, or one in HTML the API formats, such as a marker in the calendar legend: narrow from our own test id, as `[data-testid="name"] button` or `[data-testid="calendar-legend"] .post`
 - `import/order` is off in `*.spec.ts`
 
 ### HTTP services

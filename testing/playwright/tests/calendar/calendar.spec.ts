@@ -43,6 +43,15 @@ test.describe('Calendar page', () => {
             await expect(calendar.day('Январь', 3)).toHaveClass(/holyday/);
         });
 
+        test('the legend marks fasts and feasts in the grid colours', async () => {
+            expect(await calendar.backgroundOf(calendar.legendFastMarker)).toBe(
+                await calendar.backgroundOf(calendar.day('Январь', 2)),
+            );
+            expect(await calendar.colorOf(calendar.legendFeastMarker)).toBe(
+                await calendar.colorOf(calendar.day('Январь', 3)),
+            );
+        });
+
         test('a day opens its article without a full page load', async ({ authenticatedPage: page }) => {
             await calendar.dayLink('Январь', 1).click();
 

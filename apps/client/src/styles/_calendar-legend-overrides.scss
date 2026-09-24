@@ -1,0 +1,14 @@
+// The calendar legend arrives from the API as formatted wiki HTML, so the
+// calendar page's encapsulated styles cannot reach it. Its fast and feast
+// markers take the colours the grid gives fast and feast days, which is what
+// ties the legend's lists to the cells they explain.
+app-calendar-page .legend {
+    .post {
+        background: var(--themed-calendar-fast-bg);
+    }
+
+    .holyday,
+    .holyday a {
+        color: var(--themed-calendar-feast);
+    }
+}

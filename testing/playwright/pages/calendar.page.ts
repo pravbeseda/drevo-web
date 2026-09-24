@@ -16,6 +16,10 @@ export class CalendarPage extends BasePage {
         name: 'Церковные праздники в 2026 году',
     });
     readonly disclaimer: Locator = this.page.getByText('может содержать неточности');
+    readonly legend: Locator = this.page.getByTestId('calendar-legend');
+    /** Markers inside the server-formatted legend, which carries no test ids of ours. */
+    readonly legendFastMarker: Locator = this.legend.locator('.post').first();
+    readonly legendFeastMarker: Locator = this.legend.locator('.holyday').first();
 
     async waitForReady(): Promise<void> {
         await this.grid.waitFor({ state: 'visible' });
@@ -28,6 +32,14 @@ export class CalendarPage extends BasePage {
             .filter({ has: this.page.getByTestId('month-name').filter({ hasText: monthName }) })
             .getByTestId('calendar-day')
             .filter({ hasText: new RegExp(`^\\s*${dayOfMonth}\\s*$`) });
+    }
+
+    async backgroundOf(locator: Locator): Promise<string> {
+        return locator.evaluate(element => getComputedStyle(element).backgroundColor);
+    }
+
+    async colorOf(locator: Locator): Promise<string> {
+        return locator.evaluate(element => getComputedStyle(element).color);
     }
 
     /** The link a day cell carries — to the article, written or not. */

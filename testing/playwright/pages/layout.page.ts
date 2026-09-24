@@ -95,6 +95,25 @@ export class LayoutPage extends BasePage {
         await expect(this.htmlElement).toHaveClass(/light-theme/);
     }
 
+    /**
+     * Resolve CSS custom properties to the `rgb()` colours the browser paints, so a
+     * token and a Material system token that points at it compare equal.
+     */
+    async readColors(properties: readonly string[]): Promise<Record<string, string>> {
+        return this.page.evaluate(names => {
+            const probe = document.createElement('div');
+            document.body.append(probe);
+            const colors = Object.fromEntries(
+                names.map(name => {
+                    probe.style.color = `var(${name})`;
+                    return [name, getComputedStyle(probe).color];
+                }),
+            );
+            probe.remove();
+            return colors;
+        }, properties);
+    }
+
     /** Open the account dropdown menu */
     async openAccountMenu(): Promise<void> {
         await this.accountButton.click();
