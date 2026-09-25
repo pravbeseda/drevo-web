@@ -1,0 +1,12 @@
+// A forum message is wiki HTML from the API, so the card's encapsulated styles
+// cannot reach its paragraphs. Inside a chat bubble the outer margins of the
+// first and last block only pad the bubble twice.
+app-message-card app-wiki-content > div {
+    > :first-child {
+        margin-top: 0;
+    }
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+}

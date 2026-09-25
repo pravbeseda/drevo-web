@@ -1,0 +1,20 @@
+@use 'index' as *;
+
+:host {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $dropdown-item-gap;
+    min-height: $gap-xl;
+    padding: $forum-feed-padding-v 0;
+}
+
+.topic-feed-edge__error {
+    color: var(--themed-text-muted);
+    font-size: $font-size-sm;
+}
+
+.topic-feed-edge__watch {
+    align-self: stretch;
+    width: 100%;
+}

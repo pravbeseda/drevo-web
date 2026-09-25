@@ -588,6 +588,39 @@ $theme-colors: (
         light: $md-yellow-200,
         dark: rgba($md-yellow-600, 0.15),
     ),
+    /* The message feed, drawn as a chat: bubbles on a dotted wallpaper.*/
+    forum-feed-bg: (
+        light: $paper-200,
+        dark: rgb(black, 0.25),
+    ),
+    forum-feed-pattern: (
+        light: rgb($md-brown-900, 0.07),
+        dark: rgb(white, 0.04),
+    ),
+    forum-bubble-bg: (
+        light: $paper-50,
+        dark: rgb(white, 0.08),
+    ),
+    forum-bubble-own-bg: (
+        light: $md-light-green-100,
+        dark: rgb($md-blue-400, 0.22),
+    ),
+    forum-bubble-own-meta: (
+        light: $md-green-800,
+        dark: $md-blue-200,
+    ),
+    forum-quote-bg: (
+        light: rgb($md-brown-900, 0.06),
+        dark: rgb(white, 0.06),
+    ),
+    forum-day-bg: (
+        light: rgb($md-brown-900, 0.38),
+        dark: rgb(white, 0.12),
+    ),
+    forum-day-text: (
+        light: white,
+        dark: $md-grey-300,
+    ),
 
     /* Diff colors*/
     diff-insert-bg: (

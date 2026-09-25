@@ -1,15 +1,19 @@
+import { AuthService } from '../../../services/auth/auth.service';
 import { ForumService } from '../../../services/forum/forum.service';
+import { buildForumFeed } from '../../helpers/forum-feed';
 import { readForumAnchor } from '../../helpers/forum-route-params';
+import { scrollableAncestor } from '../../helpers/scrollable-ancestor';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { ErrorComponent } from '../error/error.component';
 import { MessageCardComponent } from '../message-card/message-card.component';
+import { TopicFeedEdgeComponent, TopicFeedEdgeState } from '../topic-feed-edge/topic-feed-edge.component';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, inject, Injector, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ForumMessage, ForumTopicPage } from '@drevo-web/shared';
-import { ButtonComponent, FormatDatePipe } from '@drevo-web/ui';
+import { FormatDatePipe } from '@drevo-web/ui';
 import { EMPTY, Observable, Subject, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 
@@ -18,7 +22,7 @@ type LoadDirection = 'previous' | 'next';
 
 @Component({
     selector: 'app-topic-page',
-    imports: [ButtonComponent, ErrorComponent, FormatDatePipe, MessageCardComponent, RouterLink],
+    imports: [ErrorComponent, FormatDatePipe, MessageCardComponent, RouterLink, TopicFeedEdgeComponent],
     templateUrl: './topic-page.component.html',
     styleUrl: './topic-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,10 +42,12 @@ export class TopicPageComponent {
     private readonly _firstPage = signal(1);
     private readonly _lastPage = signal(1);
     private readonly _totalPages = signal(0);
-    private readonly _isLoadingPrevious = signal(false);
-    private readonly _isLoadingNext = signal(false);
+    private readonly _loadState = {
+        previous: signal<TopicFeedEdgeState>('idle'),
+        next: signal<TopicFeedEdgeState>('idle'),
+    };
+    private readonly ownLogin = toSignal(inject(AuthService).user$.pipe(map(user => user?.login)));
 
-    readonly messages = this._messages.asReadonly();
     readonly anchorId = this._anchorId.asReadonly();
 
     /**
@@ -51,8 +57,9 @@ export class TopicPageComponent {
      * links on it.
      */
     readonly topicPath = this._topicPath.asReadonly();
-    readonly isLoadingPrevious = this._isLoadingPrevious.asReadonly();
-    readonly isLoadingNext = this._isLoadingNext.asReadonly();
+    readonly previousState = this._loadState.previous.asReadonly();
+    readonly nextState = this._loadState.next.asReadonly();
+    readonly feed = computed(() => buildForumFeed(this._messages(), this.ownLogin()));
 
     readonly topic = computed(() => {
         const result = this._resolveResult();
@@ -92,8 +99,8 @@ export class TopicPageComponent {
     private applyResolved(result: ForumTopicResolveResult): void {
         this._resolveResult.set(result);
         const resolved = typeof result === 'object' ? result : undefined;
-        this._isLoadingPrevious.set(false);
-        this._isLoadingNext.set(false);
+        this._loadState.previous.set('idle');
+        this._loadState.next.set('idle');
         this._messages.set(resolved?.messages.items ?? []);
         this._firstPage.set(resolved?.messages.page ?? 1);
         this._lastPage.set(resolved?.messages.page ?? 1);
@@ -118,23 +125,18 @@ export class TopicPageComponent {
     }
 
     private canLoad(direction: LoadDirection): boolean {
-        return direction === 'previous'
-            ? this.hasPrevious() && !this._isLoadingPrevious()
-            : this.hasNext() && !this._isLoadingNext();
-    }
+        const hasMore = direction === 'previous' ? this.hasPrevious() : this.hasNext();
 
-    private setLoading(direction: LoadDirection, loading: boolean): void {
-        const flag = direction === 'previous' ? this._isLoadingPrevious : this._isLoadingNext;
-        flag.set(loading);
+        return hasMore && this._loadState[direction]() !== 'loading';
     }
 
     private loadMore(topicId: number): Observable<{ direction: LoadDirection; page: ForumTopicPage | undefined }> {
         return this.loadMoreSubject.pipe(
             filter(direction => this.canLoad(direction)),
-            tap(direction => this.setLoading(direction, true)),
+            tap(direction => this._loadState[direction].set('loading')),
             // One direction must not cancel the other, so the two requests run
-            // side by side; a second click in the same direction is already
-            // refused by the loading flag the `filter` reads.
+            // side by side; a second trigger in the same direction is already
+            // refused by the loading state the `filter` reads.
             mergeMap(direction => this.fetchPage(topicId, direction).pipe(map(page => ({ direction, page })))),
         );
     }
@@ -151,12 +153,13 @@ export class TopicPageComponent {
     }
 
     private mergePage(direction: LoadDirection, page: ForumTopicPage | undefined): void {
-        this.setLoading(direction, false);
+        this._loadState[direction].set(page ? 'idle' : 'failed');
         if (!page) {
             return;
         }
 
         if (direction === 'previous') {
+            this.keepInPlace(this._messages()[0]);
             this._messages.set([...page.messages.items, ...this._messages()]);
             this._firstPage.set(page.messages.page);
         } else {
@@ -168,7 +171,9 @@ export class TopicPageComponent {
 
     /**
      * The resolver already asked for the page holding the anchored message, so
-     * the card is in the list this render puts on screen.
+     * the card is in the list this render puts on screen. The jump is instant:
+     * the earlier page may arrive above the card while a smooth scroll is still
+     * heading for the old position, and the animation would then overshoot.
      */
     private scrollToAnchor(): void {
         const anchorId = this._anchorId();
@@ -179,7 +184,27 @@ export class TopicPageComponent {
         afterNextRender(
             () => {
                 const card = this.document.getElementById(`message-${anchorId}`);
-                card?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                card?.scrollIntoView({ block: 'start' });
+            },
+            { injector: this.injector },
+        );
+    }
+
+    /**
+     * Prepending grows the feed above what the reader is looking at; the scroll
+     * follows by the same amount so the message they were on stays put.
+     */
+    private keepInPlace(firstMessage: ForumMessage | undefined): void {
+        const card = firstMessage && this.document.getElementById(`message-${firstMessage.id}`);
+        if (!card) {
+            return;
+        }
+        const topBefore = card.getBoundingClientRect().top;
+
+        afterNextRender(
+            () => {
+                const shift = card.getBoundingClientRect().top - topBefore;
+                scrollableAncestor(card).scrollTop += shift;
             },
             { injector: this.injector },
         );

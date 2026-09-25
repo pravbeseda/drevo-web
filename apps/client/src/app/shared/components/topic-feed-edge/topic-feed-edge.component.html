@@ -1,0 +1,30 @@
+@switch (state()) {
+    @case ('loading') {
+        <ui-spinner
+            [attr.data-testid]="'topic-loading-' + end()"
+            [diameter]="spinnerDiameter"
+        />
+    }
+    @case ('failed') {
+        <span
+            class="topic-feed-edge__error"
+            data-testid="topic-edge-error"
+        >
+            Не удалось загрузить
+        </span>
+        <ui-button
+            variant="text"
+            [testId]="'topic-retry-' + end()"
+            (click)="loadMore.emit()"
+        >
+            Повторить
+        </ui-button>
+    }
+    @default {
+        <div
+            class="topic-feed-edge__watch"
+            [attr.data-testid]="'topic-load-' + end()"
+            (uiInView)="loadMore.emit()"
+        ></div>
+    }
+}

@@ -1,12 +1,16 @@
 @use 'index' as *;
 
+// The scroll position is kept by hand when a page is prepended, so the
+// browser's own anchoring must not shift it a second time.
 :host {
-    display: block;
-    padding: $gap-md;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    overflow-anchor: none;
 }
 
 .topic-page__header {
-    margin-bottom: $gap-md;
+    padding: $gap-md;
 }
 
 .topic-page__title {
@@ -31,8 +35,30 @@
     }
 }
 
-.topic-page__more {
+.topic-page__feed {
+    flex: 1;
+    padding: $forum-feed-padding-v 0;
+    background-color: var(--themed-forum-feed-bg);
+    background-image:
+        radial-gradient(var(--themed-forum-feed-pattern) $forum-feed-pattern-dot, transparent $forum-feed-pattern-dot),
+        radial-gradient(var(--themed-forum-feed-pattern) $forum-feed-pattern-dot, transparent $forum-feed-pattern-dot);
+    background-position:
+        0 0,
+        calc($forum-feed-pattern-step / 2) calc($forum-feed-pattern-step / 2);
+    background-size: $forum-feed-pattern-step $forum-feed-pattern-step;
+}
+
+.topic-page__day {
     display: flex;
     justify-content: center;
-    padding: $gap-md 0;
+    padding: $forum-feed-padding-v 0;
+}
+
+.topic-page__pill {
+    padding: $forum-day-padding-v $forum-day-padding-h;
+    border-radius: $forum-bubble-radius;
+    background-color: var(--themed-forum-day-bg);
+    color: var(--themed-forum-day-text);
+    font-size: $font-size-xs;
+    font-weight: 500;
 }

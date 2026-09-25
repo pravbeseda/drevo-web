@@ -48,6 +48,7 @@ export {
     mockForumTopicsUnknownPart,
     mockForumSectionsApi,
     mockForumTopicApi,
+    mockForumTopicPagedApi,
     mockForumTopicNotFound,
     mockArticleVersion,
     mockArticleFindFound,

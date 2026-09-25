@@ -92,3 +92,22 @@ export function createForumTopicPage(topic: ForumTopicDto, messages: readonly Fo
         },
     };
 }
+
+/** One page of a topic whose messages span several pages of `pageSize`. */
+export function createForumTopicPageOf(
+    topic: ForumTopicDto,
+    messages: readonly ForumMessageDto[],
+    page: number,
+    pageSize: number,
+): ForumTopicPageDto {
+    return {
+        topic,
+        messages: {
+            items: messages.slice((page - 1) * pageSize, page * pageSize),
+            total: messages.length,
+            page,
+            pageSize,
+            totalPages: Math.ceil(messages.length / pageSize),
+        },
+    };
+}

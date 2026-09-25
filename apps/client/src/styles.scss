@@ -31,6 +31,9 @@
 // The calendar legend, formatted wiki HTML from the API, in the grid's colours.
 @use './styles/calendar-legend-overrides';
 
+// Forum message bodies, wiki HTML from the API, fitted into chat bubbles.
+@use './styles/message-card-overrides';
+
 // ============================================================================
 // THEMED CSS CUSTOM PROPERTIES (emitted once, globally)
 // ============================================================================
