@@ -519,6 +519,69 @@ $theme-colors: (
         dark: $md-blue-grey-800,
     ),
 
+    /* Avatars — one saturated circle per tone in both themes, so the white*/
+    /* initials stay legible; the name beside it takes the tone's text shade.*/
+    avatar-text: (
+        light: white,
+        dark: white,
+    ),
+    avatar-bg-1: (
+        light: $md-red-600,
+        dark: $md-red-600,
+    ),
+    avatar-name-1: (
+        light: $md-red-800,
+        dark: $md-red-300,
+    ),
+    avatar-bg-2: (
+        light: $md-orange-800,
+        dark: $md-orange-800,
+    ),
+    avatar-name-2: (
+        light: $md-orange-900,
+        dark: $md-orange-300,
+    ),
+    avatar-bg-3: (
+        light: $md-deep-purple-600,
+        dark: $md-deep-purple-600,
+    ),
+    avatar-name-3: (
+        light: $md-deep-purple-600,
+        dark: $md-deep-purple-200,
+    ),
+    avatar-bg-4: (
+        light: $md-green-600,
+        dark: $md-green-600,
+    ),
+    avatar-name-4: (
+        light: $md-green-800,
+        dark: $md-green-300,
+    ),
+    avatar-bg-5: (
+        light: $md-teal-600,
+        dark: $md-teal-600,
+    ),
+    avatar-name-5: (
+        light: $md-teal-800,
+        dark: $md-teal-200,
+    ),
+    avatar-bg-6: (
+        light: $md-blue-600,
+        dark: $md-blue-600,
+    ),
+    avatar-name-6: (
+        light: $md-blue-800,
+        dark: $md-blue-300,
+    ),
+    avatar-bg-7: (
+        light: $md-pink-600,
+        dark: $md-pink-600,
+    ),
+    avatar-name-7: (
+        light: $md-pink-800,
+        dark: $md-pink-200,
+    ),
+
     /* Forum*/
     /* The card a deep link anchors on, so the reader sees where they landed.*/
     forum-anchor-bg: (
