@@ -1,6 +1,6 @@
 export * from './lib/components/action-button/action-button.component';
 export * from './lib/components/avatar/avatar.component';
-export * from './lib/components/avatar/avatar-color';
+export { avatarNameColor } from './lib/components/avatar/avatar-color';
 export * from './lib/components/badge/badge.component';
 export * from './lib/components/banner/banner.component';
 export * from './lib/components/button/button.component';

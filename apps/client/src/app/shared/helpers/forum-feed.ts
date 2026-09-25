@@ -4,6 +4,14 @@ import { formatDateHeader, ForumMessage, isSameDay } from '@drevo-web/shared';
 /** Messages of one author closer than this, on one day, read as one series. */
 const SERIES_GAP_MS = 5 * 60 * 1000;
 
+/**
+ * The login is the only thing that tells one person from another: display
+ * names repeat, and a guest has none, so guests never share a series.
+ */
+function sameAuthor(a: ForumMessage, b: ForumMessage): boolean {
+    return a.author.login !== undefined && a.author.login === b.author.login;
+}
+
 function sameSeries(previous: ForumMessage | undefined, current: ForumMessage | undefined): boolean {
     const from = previous?.createdAt;
     const to = current?.createdAt;
@@ -11,11 +19,7 @@ function sameSeries(previous: ForumMessage | undefined, current: ForumMessage | 
         return false;
     }
 
-    return (
-        previous.author.name === current.author.name &&
-        to.getTime() - from.getTime() < SERIES_GAP_MS &&
-        isSameDay(from, to)
-    );
+    return sameAuthor(previous, current) && to.getTime() - from.getTime() < SERIES_GAP_MS && isSameDay(from, to);
 }
 
 function dayHeading(

@@ -67,6 +67,33 @@ describe('buildForumFeed', () => {
             ]);
         });
 
+        it('keeps apart two people who share a display name', () => {
+            const feed = buildForumFeed(
+                [
+                    message('Андрей', at(12, 10, 0), { author: { name: 'Андрей', login: 'andrey' } }),
+                    message('Андрей', at(12, 10, 1), { author: { name: 'Андрей', login: 'andrey2' } }),
+                ],
+                undefined,
+                REFERENCE_DATE,
+            );
+
+            expect(feed.map(item => item.seriesStart && item.seriesEnd)).toEqual([true, true]);
+        });
+
+        it('never joins guests, since nothing tells one guest from another', () => {
+            const guest = { name: 'Гость', login: undefined };
+            const feed = buildForumFeed(
+                [
+                    message('Гость', at(12, 10, 0), { author: guest }),
+                    message('Гость', at(12, 10, 1), { author: guest }),
+                ],
+                undefined,
+                REFERENCE_DATE,
+            );
+
+            expect(feed.map(item => item.seriesStart && item.seriesEnd)).toEqual([true, true]);
+        });
+
         it('starts a new series when another author speaks', () => {
             const feed = buildForumFeed(
                 [message('Андрей', at(12, 10, 0)), message('Мария', at(12, 10, 1))],

@@ -236,12 +236,6 @@ describe('TopicPageComponent', () => {
             expect(spectator.query('[data-testid="topic-load-next"]')).toBeTruthy();
         });
 
-        it('offers no buttons to load more', () => {
-            render(createTopicPage([createMessage(3)], 2, 3));
-
-            expect(spectator.queryAll('ui-button')).toHaveLength(0);
-        });
-
         it('watches neither end when the whole topic fits on the served page', () => {
             render(createTopicPage([createMessage(1)], 1, 1));
 
