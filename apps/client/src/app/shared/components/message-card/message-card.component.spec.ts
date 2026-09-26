@@ -1,6 +1,7 @@
 import { MessageCardComponent } from './message-card.component';
 import { provideRouter } from '@angular/router';
 import { ForumMessage } from '@drevo-web/shared';
+import { avatarNameColor } from '@drevo-web/ui';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 
 function createMessage(overrides: Partial<ForumMessage> = {}): ForumMessage {
@@ -40,10 +41,11 @@ describe('MessageCardComponent', () => {
         expect(author?.tagName).not.toBe('A');
     });
 
-    it('shows the date the message was posted', () => {
-        render(createMessage());
+    it('shows the time the message was posted', () => {
+        const createdAt = new Date(2025, 2, 15, 9, 5);
+        render(createMessage({ createdAt }));
 
-        expect(spectator.query('[data-testid="message-date"]')).toBeTruthy();
+        expect(spectator.query('[data-testid="message-date"]')).toHaveExactTrimmedText('09:05');
     });
 
     it('omits the date when the message carries none', () => {
@@ -55,9 +57,41 @@ describe('MessageCardComponent', () => {
     it('links a reply to the message it answers', () => {
         render(createMessage({ id: 7, parentId: 3 }), 42);
 
-        const link = spectator.query('[data-testid="message-reply-to"]');
-        expect(link).toHaveText('в ответ на');
-        expect(link?.getAttribute('href')).toBe('/forum/topic/42/3');
+        expect(spectator.query('[data-testid="message-reply-to"]')?.getAttribute('href')).toBe('/forum/topic/42/3');
+    });
+
+    it('quotes the author and the text of the answered message when it is loaded', () => {
+        const parent = createMessage({
+            id: 3,
+            author: { name: 'Андрей Петров', login: 'andrey' },
+            html: '<p>Есть и <a href="#">другая</a> датировка.</p><p>Упомянуть обе?</p>',
+        });
+        spectator = createComponent({
+            props: { message: createMessage({ id: 7, parentId: 3 }), topicPath: ['forum', 'topic', '42'], parent },
+        });
+
+        expect(spectator.query('[data-testid="message-quote-author"]')).toHaveExactTrimmedText('Андрей Петров');
+        expect(spectator.query('[data-testid="message-quote-text"]')).toHaveExactTrimmedText(
+            'Есть и другая датировка. Упомянуть обе?',
+        );
+    });
+
+    it('draws the quote in the tone of the answered author', () => {
+        const parent = createMessage({ id: 3, author: { name: 'Андрей Петров', login: 'andrey' } });
+        spectator = createComponent({
+            props: { message: createMessage({ id: 7, parentId: 3 }), topicPath: ['forum', 'topic', '42'], parent },
+        });
+
+        expect(spectator.query<HTMLElement>('[data-testid="message-reply-to"]')?.style.color).toBe(
+            avatarNameColor('Андрей Петров'),
+        );
+    });
+
+    it('falls back to a plain reply label when the answered message is on a page not loaded yet', () => {
+        render(createMessage({ id: 7, parentId: 3 }), 42);
+
+        expect(spectator.query('[data-testid="message-reply-to"]')).toHaveExactTrimmedText('в ответ на сообщение');
+        expect(spectator.query('[data-testid="message-quote-author"]')).toBeNull();
     });
 
     it('addresses the answered message under the topic wherever the topic is mounted', () => {
@@ -95,5 +129,66 @@ describe('MessageCardComponent', () => {
         render(createMessage(), 42, false);
 
         expect(spectator.element).not.toHaveClass('message-card--anchored');
+    });
+
+    it('colours the author in the tone of their avatar', () => {
+        render(createMessage({ author: { name: 'Петров П.П.', login: 'petrov' } }));
+
+        expect(spectator.query<HTMLElement>('[data-testid="message-author"]')?.style.color).toBe(
+            avatarNameColor('Петров П.П.'),
+        );
+    });
+
+    describe('within a series of one author', () => {
+        const renderInSeries = (props: { seriesStart?: boolean; seriesEnd?: boolean; own?: boolean }): void => {
+            spectator = createComponent({
+                props: { message: createMessage(), topicPath: ['forum', 'topic', '42'], ...props },
+            });
+        };
+
+        it('names the author on the first message only', () => {
+            renderInSeries({ seriesStart: false });
+
+            expect(spectator.query('[data-testid="message-author"]')).toBeNull();
+        });
+
+        it('shows the avatar beside the last message only', () => {
+            renderInSeries({ seriesEnd: true });
+            expect(spectator.query('[data-testid="message-avatar"]')).toBeTruthy();
+
+            renderInSeries({ seriesEnd: false });
+            expect(spectator.query('[data-testid="message-avatar"]')).toBeNull();
+        });
+
+        it('draws the bubble tail on the last message only', () => {
+            renderInSeries({ seriesEnd: true });
+            expect(spectator.element).toHaveClass('message-card--series-end');
+
+            renderInSeries({ seriesEnd: false });
+            expect(spectator.element).not.toHaveClass('message-card--series-end');
+        });
+    });
+
+    describe('a message of the reader', () => {
+        beforeEach(() => {
+            spectator = createComponent({
+                props: { message: createMessage(), topicPath: ['forum', 'topic', '42'], own: true },
+            });
+        });
+
+        it('is set apart as their own', () => {
+            expect(spectator.element).toHaveClass('message-card--own');
+        });
+
+        it('carries neither the name nor the avatar', () => {
+            expect(spectator.query('[data-testid="message-author"]')).toBeNull();
+            expect(spectator.query('[data-testid="message-avatar"]')).toBeNull();
+        });
+    });
+
+    it('leaves a message of someone else unmarked', () => {
+        render(createMessage());
+
+        expect(spectator.element).not.toHaveClass('message-card--own');
     });
 });

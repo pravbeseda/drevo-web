@@ -1,15 +1,20 @@
+import { htmlToText } from '../../helpers/html-to-text';
 import { WikiContentComponent } from '../wiki-content/wiki-content.component';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ForumMessage } from '@drevo-web/shared';
-import { FormatDatePipe } from '@drevo-web/ui';
+import { AvatarComponent, avatarNameColor, FormatDatePipe, FormatTimePipe, TooltipDirective } from '@drevo-web/ui';
 
 /** What `routerLink` takes for the topic's address plus the message it anchors on. */
 type MessageLink = readonly (string | number)[];
 
+/** The quote shows one line; the rest of a long parent is never on screen. */
+const QUOTE_MAX_LENGTH = 200;
+
 @Component({
     selector: 'app-message-card',
-    imports: [FormatDatePipe, RouterLink, WikiContentComponent],
+    imports: [AvatarComponent, FormatDatePipe, FormatTimePipe, RouterLink, TooltipDirective, WikiContentComponent],
     templateUrl: './message-card.component.html',
     styleUrl: './message-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,9 +25,13 @@ type MessageLink = readonly (string | number)[];
         '[attr.id]': 'elementId()',
         '[attr.data-testid]': 'elementId()',
         '[class.message-card--anchored]': 'anchored()',
+        '[class.message-card--own]': 'own()',
+        '[class.message-card--series-end]': 'seriesEnd()',
     },
 })
 export class MessageCardComponent {
+    private readonly document = inject(DOCUMENT);
+
     readonly message = input.required<ForumMessage>();
 
     /**
@@ -33,6 +42,16 @@ export class MessageCardComponent {
      */
     readonly topicPath = input.required<readonly string[]>();
     readonly anchored = input(false);
+
+    /** Written by the reader, so drawn on the other side and without a name. */
+    readonly own = input(false);
+
+    /** Consecutive messages of one author form a series: the name heads it, the avatar closes it. */
+    readonly seriesStart = input(true);
+    readonly seriesEnd = input(true);
+
+    /** The answered message, when it is among the loaded ones; the quote falls back to a label otherwise. */
+    readonly parent = input<ForumMessage | undefined>(undefined);
 
     /**
      * `parentId` is absent on a root message, and absence is what decides
@@ -45,4 +64,17 @@ export class MessageCardComponent {
     });
 
     protected readonly elementId = computed(() => `message-${this.message().id}`);
+    protected readonly showAuthor = computed(() => this.seriesStart() && !this.own());
+    protected readonly showAvatar = computed(() => this.seriesEnd() && !this.own());
+    protected readonly authorColor = computed(() => avatarNameColor(this.message().author.name));
+
+    protected readonly quoteColor = computed(() => {
+        const parent = this.parent();
+        return parent ? avatarNameColor(parent.author.name) : undefined;
+    });
+
+    protected readonly quoteText = computed(() => {
+        const parent = this.parent();
+        return parent ? htmlToText(parent.html, this.document).slice(0, QUOTE_MAX_LENGTH) : undefined;
+    });
 }

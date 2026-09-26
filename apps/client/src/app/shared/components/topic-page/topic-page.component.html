@@ -23,39 +23,45 @@
         </div>
     </header>
 
-    @if (hasPrevious()) {
-        <div class="topic-page__more">
-            <ui-button
-                testId="topic-load-previous"
-                variant="outlined"
-                [loading]="isLoadingPrevious()"
-                (click)="onLoadPrevious()"
-            >
-                Показать предыдущие
-            </ui-button>
-        </div>
-    }
+    <div class="topic-page__feed">
+        @if (hasPrevious()) {
+            <app-topic-feed-edge
+                end="previous"
+                [state]="previousState()"
+                (loadMore)="onLoadPrevious()"
+            />
+        }
 
-    @for (message of messages(); track message.id) {
-        <app-message-card
-            [message]="message"
-            [topicPath]="topicPath()"
-            [anchored]="message.id === anchorId()"
-        />
-    }
+        @for (item of feed(); track item.message.id) {
+            @if (item.day; as day) {
+                <div class="topic-page__day">
+                    <span
+                        class="topic-page__pill"
+                        data-testid="topic-day"
+                    >
+                        {{ day }}
+                    </span>
+                </div>
+            }
+            <app-message-card
+                [message]="item.message"
+                [topicPath]="topicPath()"
+                [anchored]="item.message.id === anchorId()"
+                [own]="item.own"
+                [seriesStart]="item.seriesStart"
+                [seriesEnd]="item.seriesEnd"
+                [parent]="item.parent"
+            />
+        }
 
-    @if (hasNext()) {
-        <div class="topic-page__more">
-            <ui-button
-                testId="topic-load-next"
-                variant="outlined"
-                [loading]="isLoadingNext()"
-                (click)="onLoadNext()"
-            >
-                Показать следующие
-            </ui-button>
-        </div>
-    }
+        @if (hasNext()) {
+            <app-topic-feed-edge
+                end="next"
+                [state]="nextState()"
+                (loadMore)="onLoadNext()"
+            />
+        }
+    </div>
 } @else if (isNotFound()) {
     <app-error
         title="Тема не найдена"

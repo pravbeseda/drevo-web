@@ -1,0 +1,22 @@
+@use 'index' as *;
+
+:host {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: $avatar-size-md;
+    height: $avatar-size-md;
+    border-radius: 50%;
+    color: var(--themed-avatar-text);
+    font-size: $avatar-font-size-md;
+    font-weight: 600;
+    line-height: 1;
+    user-select: none;
+}
+
+:host(.ui-avatar--sm) {
+    width: $avatar-size-sm;
+    height: $avatar-size-sm;
+    font-size: $avatar-font-size-sm;
+}

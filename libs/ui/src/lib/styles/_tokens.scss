@@ -80,6 +80,12 @@ $scrollbar-reach: 4px;
 // Resize handle
 $resize-handle-reach: 6px;
 
+// Avatar
+$avatar-size-sm: 26px;
+$avatar-size-md: 34px;
+$avatar-font-size-sm: 11px;
+$avatar-font-size-md: 13px;
+
 // Forum
 $forum-list-column-width: 320px;
 $forum-list-column-min-width: 240px;
@@ -88,9 +94,30 @@ $forum-topic-row-padding-v: 10px;
 $forum-topic-row-padding-h: 16px;
 $forum-topic-row-line-gap: 2px;
 $forum-topic-row-focus-width: 2px;
+$forum-feed-padding-v: 8px;
+$forum-feed-padding-h: 12px;
+$forum-feed-pattern-step: 22px;
+$forum-feed-pattern-dot: 1.2px;
+$forum-message-gap: 2px;
+$forum-series-gap: 8px;
+$forum-avatar-gap: 8px;
+$forum-bubble-max-width: 560px;
+$forum-bubble-max-share: 85%;
+$forum-bubble-radius: 14px;
+$forum-bubble-tail-radius: 4px;
+$forum-bubble-tail-width: 10px;
+$forum-bubble-tail-height: 14px;
+$forum-bubble-padding-v: 6px;
+$forum-bubble-padding-h: 10px;
+$forum-quote-bar-width: 3px;
+$forum-quote-radius: 4px;
+$forum-quote-padding-v: 3px;
+$forum-quote-padding-h: 8px;
+$forum-day-padding-v: 2px;
+$forum-day-padding-h: 10px;
 
-// Below this the topic panel is narrower than a message card's meta row, which
-// then wraps to three lines — so the panes stack instead.
+// Below this the topic panel beside the list leaves a message bubble too narrow
+// to read — so the panes stack instead.
 $forum-panes-min-width: 800px;
 
 // Main page

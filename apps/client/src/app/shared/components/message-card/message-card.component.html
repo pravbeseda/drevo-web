@@ -1,21 +1,54 @@
-<div class="message-card__meta">
-    <span
-        class="message-card__author"
-        data-testid="message-author"
-    >
-        {{ message().author.name }}
-    </span>
-    @if (message().createdAt; as createdAt) {
-        <span data-testid="message-date">{{ createdAt | formatDate }}</span>
+@if (showAvatar()) {
+    <ui-avatar
+        data-testid="message-avatar"
+        [name]="message().author.name"
+    />
+} @else if (!own()) {
+    <span class="message-card__avatar-gap"></span>
+}
+<div class="message-card__bubble">
+    @if (showAuthor()) {
+        <span
+            class="message-card__author"
+            data-testid="message-author"
+            [style.color]="authorColor()"
+        >
+            {{ message().author.name }}
+        </span>
     }
     @if (replyLink(); as link) {
         <a
-            class="message-card__reply-to"
+            class="message-card__quote"
             data-testid="message-reply-to"
             [routerLink]="link"
+            [style.color]="quoteColor()"
         >
-            в ответ на
+            @if (parent(); as parent) {
+                <span
+                    class="message-card__quote-author"
+                    data-testid="message-quote-author"
+                >
+                    {{ parent.author.name }}
+                </span>
+                <span
+                    class="message-card__quote-text"
+                    data-testid="message-quote-text"
+                >
+                    {{ quoteText() }}
+                </span>
+            } @else {
+                <span class="message-card__quote-text">в ответ на сообщение</span>
+            }
         </a>
     }
+    <app-wiki-content [content]="message().html" />
+    @if (message().createdAt; as createdAt) {
+        <span
+            class="message-card__time"
+            data-testid="message-date"
+            [uiTooltip]="createdAt | formatDate"
+        >
+            {{ createdAt | formatTime }}
+        </span>
+    }
 </div>
-<app-wiki-content [content]="message().html" />

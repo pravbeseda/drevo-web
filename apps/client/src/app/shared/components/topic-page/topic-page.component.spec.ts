@@ -1,10 +1,12 @@
+import { AuthService } from '../../../services/auth/auth.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../testing/route-testing.helper';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { TopicPageComponent } from './topic-page.component';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ForumMessage, ForumTopic, ForumTopicPage } from '@drevo-web/shared';
+import { ForumMessage, ForumTopic, ForumTopicPage, User } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 
@@ -46,6 +48,7 @@ describe('TopicPageComponent', () => {
     let spectator: Spectator<TopicPageComponent>;
     let forumService: { getTopic: jest.Mock };
     let routeData: BehaviorSubject<{ topic: ForumTopicResolveResult }>;
+    let user: BehaviorSubject<User | undefined>;
     let scrolled: Element[];
     let originalScrollIntoView: typeof Element.prototype.scrollIntoView;
 
@@ -57,6 +60,7 @@ describe('TopicPageComponent', () => {
 
     beforeEach(() => {
         forumService = { getTopic: jest.fn() };
+        user = new BehaviorSubject<User | undefined>(undefined);
         scrolled = [];
         originalScrollIntoView = Element.prototype.scrollIntoView;
         Element.prototype.scrollIntoView = function (this: Element): void {
@@ -73,6 +77,7 @@ describe('TopicPageComponent', () => {
         spectator = createComponent({
             providers: [
                 { provide: ForumService, useValue: forumService },
+                { provide: AuthService, useValue: { user$: user.asObservable() } },
                 {
                     provide: ActivatedRoute,
                     useValue: { data: routeData.asObservable(), snapshot: createRouteSnapshot(params) },
@@ -91,8 +96,14 @@ describe('TopicPageComponent', () => {
     const cardIds = (): (string | null)[] =>
         spectator.queryAll('app-message-card').map(element => element.getAttribute('data-testid'));
 
-    const click = (testId: string): void => {
-        spectator.click(`[data-testid="${testId}"]`);
+    /** The reader scrolled one end of the feed into view. */
+    const reach = (end: 'previous' | 'next'): void => {
+        spectator.triggerEventHandler(`[data-testid="topic-load-${end}"]`, 'uiInView', undefined);
+        spectator.detectChanges();
+    };
+
+    const retry = (end: 'previous' | 'next'): void => {
+        spectator.click(`[data-testid="topic-retry-${end}"]`);
         spectator.detectChanges();
     };
 
@@ -126,6 +137,67 @@ describe('TopicPageComponent', () => {
 
             expect(cardIds()).toEqual(['message-1', 'message-2']);
         });
+
+        it('heads the first message of each day with that day', () => {
+            render(
+                createTopicPage(
+                    [
+                        createMessage(1, { createdAt: new Date(2025, 2, 15, 10, 0) }),
+                        createMessage(2, { createdAt: new Date(2025, 2, 15, 11, 0) }),
+                        createMessage(3, { createdAt: new Date(2025, 2, 16, 9, 0) }),
+                    ],
+                    1,
+                    1,
+                ),
+            );
+
+            expect(spectator.queryAll('[data-testid="topic-day"]').map(day => day.textContent?.trim())).toEqual([
+                '15 марта 2025 г.',
+                '16 марта 2025 г.',
+            ]);
+        });
+
+        it('joins consecutive messages of one author into a series', () => {
+            const author = { name: 'Андрей Петров', login: 'andrey' };
+            render(
+                createTopicPage(
+                    [
+                        createMessage(1, { author, createdAt: new Date(2025, 2, 15, 10, 0) }),
+                        createMessage(2, { author, createdAt: new Date(2025, 2, 15, 10, 1) }),
+                    ],
+                    1,
+                    1,
+                ),
+            );
+
+            expect(spectator.query('[data-testid="message-1"]')).not.toHaveClass('message-card--series-end');
+            expect(spectator.query('[data-testid="message-2"]')).toHaveClass('message-card--series-end');
+        });
+
+        it('quotes the answered message when it is loaded', () => {
+            render(createTopicPage([createMessage(1), createMessage(2, { parentId: 1 })], 1, 1));
+
+            expect(
+                spectator.query('[data-testid="message-2"] [data-testid="message-quote-author"]'),
+            ).toHaveExactTrimmedText('Автор 1');
+        });
+
+        it("sets the reader's own messages apart once the reader is known", () => {
+            render(
+                createTopicPage(
+                    [createMessage(1, { author: { name: 'Автор 1', login: 'reader' } }), createMessage(2)],
+                    1,
+                    1,
+                ),
+            );
+            expect(spectator.query('[data-testid="message-1"]')).not.toHaveClass('message-card--own');
+
+            user.next(createMockUser({ login: 'reader' }));
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="message-1"]')).toHaveClass('message-card--own');
+            expect(spectator.query('[data-testid="message-2"]')).not.toHaveClass('message-card--own');
+        });
     });
 
     describe('the anchor', () => {
@@ -157,14 +229,14 @@ describe('TopicPageComponent', () => {
     });
 
     describe('loading more', () => {
-        it('offers the earlier messages when the served page is not the first', () => {
+        it('watches both ends of the feed when the served page is in the middle', () => {
             render(createTopicPage([createMessage(3)], 2, 3));
 
-            expect(spectator.query('[data-testid="topic-load-previous"]')).toHaveText('Показать предыдущие');
-            expect(spectator.query('[data-testid="topic-load-next"]')).toHaveText('Показать следующие');
+            expect(spectator.query('[data-testid="topic-load-previous"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="topic-load-next"]')).toBeTruthy();
         });
 
-        it('offers neither direction when the whole topic fits on the served page', () => {
+        it('watches neither end when the whole topic fits on the served page', () => {
             render(createTopicPage([createMessage(1)], 1, 1));
 
             expect(spectator.query('[data-testid="topic-load-previous"]')).toBeNull();
@@ -175,7 +247,7 @@ describe('TopicPageComponent', () => {
             render(createTopicPage([createMessage(3)], 2, 3));
             forumService.getTopic.mockReturnValue(of(createTopicPage([createMessage(2)], 1, 3)));
 
-            click('topic-load-previous');
+            reach('previous');
 
             expect(forumService.getTopic).toHaveBeenCalledWith(42, 1);
             expect(cardIds()).toEqual(['message-2', 'message-3']);
@@ -186,7 +258,7 @@ describe('TopicPageComponent', () => {
             render(createTopicPage([createMessage(3)], 2, 3));
             forumService.getTopic.mockReturnValue(of(createTopicPage([createMessage(4)], 3, 3)));
 
-            click('topic-load-next');
+            reach('next');
 
             expect(forumService.getTopic).toHaveBeenCalledWith(42, 3);
             expect(cardIds()).toEqual(['message-3', 'message-4']);
@@ -203,8 +275,8 @@ describe('TopicPageComponent', () => {
             const next = new Subject<ForumTopicPage>();
             forumService.getTopic.mockReturnValueOnce(previous).mockReturnValueOnce(next);
 
-            click('topic-load-previous');
-            click('topic-load-next');
+            reach('previous');
+            reach('next');
             previous.next(createTopicPage([createMessage(2)], 1, 3));
             next.next(createTopicPage([createMessage(4)], 3, 3));
             spectator.detectChanges();
@@ -219,7 +291,7 @@ describe('TopicPageComponent', () => {
             const navigateByUrl = jest.spyOn(router, 'navigateByUrl');
             forumService.getTopic.mockReturnValue(of(createTopicPage([createMessage(4)], 3, 3)));
 
-            click('topic-load-next');
+            reach('next');
 
             expect(navigate).not.toHaveBeenCalled();
             expect(navigateByUrl).not.toHaveBeenCalled();
@@ -235,7 +307,7 @@ describe('TopicPageComponent', () => {
             const inFlight = new Subject<ForumTopicPage>();
             forumService.getTopic.mockReturnValue(inFlight);
 
-            click('topic-load-next');
+            reach('next');
             resolveAgain(createTopicPage([createMessage(9)], 2, 3));
             inFlight.next(createTopicPage([createMessage(4)], 3, 3));
             spectator.detectChanges();
@@ -247,22 +319,48 @@ describe('TopicPageComponent', () => {
             render(createTopicPage([createMessage(3)], 2, 3));
             forumService.getTopic.mockReturnValue(new Subject<ForumTopicPage>());
 
-            click('topic-load-next');
+            reach('next');
             resolveAgain(createTopicPage([createMessage(9)], 2, 3));
             forumService.getTopic.mockReturnValue(of(createTopicPage([createMessage(10)], 3, 3)));
-            click('topic-load-next');
+            reach('next');
 
             expect(cardIds()).toEqual(['message-9', 'message-10']);
         });
 
-        it('keeps the messages it has and reports a failed load-more', () => {
+        it('shows a spinner in place of the end it is loading', () => {
+            render(createTopicPage([createMessage(3)], 2, 3));
+            forumService.getTopic.mockReturnValue(new Subject<ForumTopicPage>());
+
+            reach('previous');
+
+            expect(spectator.query('[data-testid="topic-loading-previous"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="topic-load-previous"]')).toBeNull();
+        });
+
+        /**
+         * The end is still on screen after a failure, so retrying on sight
+         * would hammer a failing backend in a loop.
+         */
+        it('keeps the messages it has and offers a retry instead of retrying on its own', () => {
             render(createTopicPage([createMessage(3)], 2, 3));
             forumService.getTopic.mockReturnValue(throwError(() => new Error('Network error')));
 
-            click('topic-load-next');
+            reach('next');
 
             expect(cardIds()).toEqual(['message-3']);
-            expect(spectator.query('[data-testid="topic-load-next"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="topic-load-next"]')).toBeNull();
+            expect(spectator.query('[data-testid="topic-retry-next"]')).toBeTruthy();
+        });
+
+        it('loads the page again on retry', () => {
+            render(createTopicPage([createMessage(3)], 2, 3));
+            forumService.getTopic.mockReturnValueOnce(throwError(() => new Error('Network error')));
+            reach('next');
+            forumService.getTopic.mockReturnValue(of(createTopicPage([createMessage(4)], 3, 3)));
+
+            retry('next');
+
+            expect(cardIds()).toEqual(['message-3', 'message-4']);
         });
     });
 

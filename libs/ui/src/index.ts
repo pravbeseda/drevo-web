@@ -1,4 +1,6 @@
 export * from './lib/components/action-button/action-button.component';
+export * from './lib/components/avatar/avatar.component';
+export { avatarNameColor } from './lib/components/avatar/avatar-color';
 export * from './lib/components/badge/badge.component';
 export * from './lib/components/banner/banner.component';
 export * from './lib/components/button/button.component';
@@ -11,6 +13,7 @@ export * from './lib/components/dropdown-menu/dropdown-menu-item.component';
 export * from './lib/components/dropdown-menu/dropdown-menu-trigger.directive';
 export * from './lib/components/icon/icon.component';
 export * from './lib/components/icon-button/icon-button.component';
+export * from './lib/components/in-view/in-view.directive';
 export * from './lib/components/line-clamp/line-clamp.component';
 export * from './lib/components/navigation-progress/navigation-progress.component';
 export * from './lib/components/resize-handle/resize-handle.directive';

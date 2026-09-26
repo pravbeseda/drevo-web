@@ -569,6 +569,28 @@ export async function mockForumTopicApi(page: Page, id: number, response: ForumT
     await page.route(forumTopicRe(id), route => route.fulfill({ json: apiSuccess(response) }));
 }
 
+/** The page a topic request asks for — `anchor` overrides `page` on the backend. */
+interface ForumTopicPageRequest {
+    readonly page: number | undefined;
+    readonly anchor: number | undefined;
+}
+
+/** Mock GET /api/forum/topics/:id — answers each request with the page it asks for */
+export async function mockForumTopicPagedApi(
+    page: Page,
+    id: number,
+    respond: (request: ForumTopicPageRequest) => ForumTopicPageDto | Promise<ForumTopicPageDto>,
+): Promise<void> {
+    await page.route(forumTopicRe(id), async route => {
+        const params = new URL(route.request().url()).searchParams;
+        const number = (name: string): number | undefined => {
+            const value = params.get(name);
+            return value === null ? undefined : Number(value);
+        };
+        await route.fulfill({ json: apiSuccess(await respond({ page: number('page'), anchor: number('anchor') })) });
+    });
+}
+
 /** Mock GET /api/forum/topics/:id — 404 */
 export async function mockForumTopicNotFound(page: Page, id: number): Promise<void> {
     await page.route(forumTopicRe(id), route => route.fulfill({ status: 404, json: apiError('Topic not found') }));

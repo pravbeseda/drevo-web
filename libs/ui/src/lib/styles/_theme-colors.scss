@@ -519,11 +519,107 @@ $theme-colors: (
         dark: $md-blue-grey-800,
     ),
 
+    /* Avatars — one saturated circle per tone in both themes, so the white*/
+    /* initials stay legible; the name beside it takes the tone's text shade.*/
+    avatar-text: (
+        light: white,
+        dark: white,
+    ),
+    avatar-bg-1: (
+        light: $md-red-600,
+        dark: $md-red-600,
+    ),
+    avatar-name-1: (
+        light: $md-red-800,
+        dark: $md-red-300,
+    ),
+    avatar-bg-2: (
+        light: $md-orange-800,
+        dark: $md-orange-800,
+    ),
+    avatar-name-2: (
+        light: $md-orange-900,
+        dark: $md-orange-300,
+    ),
+    avatar-bg-3: (
+        light: $md-deep-purple-600,
+        dark: $md-deep-purple-600,
+    ),
+    avatar-name-3: (
+        light: $md-deep-purple-600,
+        dark: $md-deep-purple-200,
+    ),
+    avatar-bg-4: (
+        light: $md-green-600,
+        dark: $md-green-600,
+    ),
+    avatar-name-4: (
+        light: $md-green-800,
+        dark: $md-green-300,
+    ),
+    avatar-bg-5: (
+        light: $md-teal-600,
+        dark: $md-teal-600,
+    ),
+    avatar-name-5: (
+        light: $md-teal-800,
+        dark: $md-teal-200,
+    ),
+    avatar-bg-6: (
+        light: $md-blue-600,
+        dark: $md-blue-600,
+    ),
+    avatar-name-6: (
+        light: $md-blue-800,
+        dark: $md-blue-300,
+    ),
+    avatar-bg-7: (
+        light: $md-pink-600,
+        dark: $md-pink-600,
+    ),
+    avatar-name-7: (
+        light: $md-pink-800,
+        dark: $md-pink-200,
+    ),
+
     /* Forum*/
     /* The card a deep link anchors on, so the reader sees where they landed.*/
     forum-anchor-bg: (
         light: $md-yellow-200,
         dark: rgba($md-yellow-600, 0.15),
+    ),
+    /* The message feed, drawn as a chat: bubbles on a dotted wallpaper.*/
+    forum-feed-bg: (
+        light: $paper-200,
+        dark: rgb(black, 0.25),
+    ),
+    forum-feed-pattern: (
+        light: rgb($md-brown-900, 0.07),
+        dark: rgb(white, 0.04),
+    ),
+    forum-bubble-bg: (
+        light: $paper-50,
+        dark: rgb(white, 0.08),
+    ),
+    forum-bubble-own-bg: (
+        light: $md-light-green-100,
+        dark: rgb($md-blue-400, 0.22),
+    ),
+    forum-bubble-own-meta: (
+        light: $md-green-800,
+        dark: $md-blue-200,
+    ),
+    forum-quote-bg: (
+        light: rgb($md-brown-900, 0.06),
+        dark: rgb(white, 0.06),
+    ),
+    forum-day-bg: (
+        light: rgb($md-brown-900, 0.38),
+        dark: rgb(white, 0.12),
+    ),
+    forum-day-text: (
+        light: white,
+        dark: $md-grey-300,
     ),
 
     /* Diff colors*/

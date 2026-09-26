@@ -40,7 +40,9 @@ What the export names alone do not tell you:
 
 | Component | Notes |
 |-----------|-------|
+| `ui-avatar` | Inputs: `name`, `size: 'sm' \| 'md'`. Initials and a tone derived from the full name; `avatarNameColor(name)` colours that name's text in the same tone |
 | `ui-badge` | Input: `value: number \| string` |
+| `uiInView` | Emits each time its element scrolls into view; browser only |
 | `ui-banner` | Content projection wrapper (flex column, border, background) |
 | `ui-status-icon` | Input: `ApprovalStatus` (`-1`/`0`/`1`) |
 | `ui-tabs-group` | Ships the `TabGroup` and `TabGroupItem` interfaces |
