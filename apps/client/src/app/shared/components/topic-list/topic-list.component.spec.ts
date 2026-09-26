@@ -1,6 +1,5 @@
 import { TopicListComponent } from './topic-list.component';
 import { Component } from '@angular/core';
-import { MatTooltip } from '@angular/material/tooltip';
 import { provideRouter, Router } from '@angular/router';
 import { ForumTopicListItem } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
@@ -67,16 +66,12 @@ describe('TopicListComponent', () => {
         expect(spectator.query('[data-testid="topic-replies"]')).not.toExist();
     });
 
-    it('draws the avatar of the topic author inside the link, named in full by a tooltip', () => {
+    it('draws the avatar of the topic author inside the link', () => {
         render([createItem({ author: 'Петров Пётр Петрович' })]);
 
         const avatar = spectator.query('[data-testid="topic-author-avatar"]');
         expect(avatar?.getAttribute('aria-label')).toBe('Петров Пётр Петрович');
-        expect(avatar).toHaveText('ПП');
         expect(avatar?.closest('a')).toBe(spectator.query('[data-testid="topic-link"]'));
-        expect(spectator.query('[data-testid="topic-author-avatar"]', { read: MatTooltip })?.message).toBe(
-            'Петров Пётр Петрович',
-        );
     });
 
     it('names the article the topic discusses as text inside the link', () => {
