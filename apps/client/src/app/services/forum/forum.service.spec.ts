@@ -106,7 +106,7 @@ describe('ForumService', () => {
                             title: 'Тема',
                             lastPostAt: new Date('2026-01-03T03:04:05+03:00'),
                             pinned: true,
-                            lastAuthor: 'Пётр Петров',
+                            author: 'Иван Иванов',
                             article: { id: 15, title: 'Статья' },
                             section: { id: 'articles', name: 'О статьях' },
                         },
@@ -120,7 +120,7 @@ describe('ForumService', () => {
             });
         });
 
-        it('should map a missing date, a missing article and section and an absent lastAuthor to undefined', done => {
+        it('should map a missing date, a missing article and section to undefined', done => {
             const bareItem: ForumTopicListItemDto = {
                 id: 42,
                 title: 'Тема',
@@ -141,7 +141,7 @@ describe('ForumService', () => {
                     title: 'Тема',
                     lastPostAt: undefined,
                     pinned: false,
-                    lastAuthor: undefined,
+                    author: 'Иван Иванов',
                     article: undefined,
                     section: undefined,
                 });

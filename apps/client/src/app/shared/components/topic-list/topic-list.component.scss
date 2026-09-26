@@ -13,12 +13,12 @@
 .topic-list__item {
     position: relative;
 
-    /* Inset like a chat list, so the divider does not read as a table border. */
+    /* Inset past the avatar like a chat list, so the divider does not read as a table border. */
     & + &::before {
         position: absolute;
         top: 0;
         right: 0;
-        left: $forum-topic-row-padding-h;
+        left: $forum-topic-text-inset;
         border-top: 1px solid var(--themed-divider-color);
         content: '';
     }
@@ -26,8 +26,8 @@
 
 .topic-list__link {
     display: flex;
-    flex-direction: column;
-    gap: $forum-topic-row-line-gap;
+    align-items: center;
+    gap: $forum-avatar-gap;
     padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
     color: var(--themed-text-secondary);
     font-size: $font-size-sm;
@@ -45,6 +45,14 @@
         outline: $forum-topic-row-focus-width solid var(--themed-link-color);
         outline-offset: -$forum-topic-row-focus-width;
     }
+}
+
+.topic-list__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: $forum-topic-row-line-gap;
+    min-width: 0;
 }
 
 .topic-list__line {
@@ -77,17 +85,12 @@
     font-variant-numeric: tabular-nums;
 }
 
-.topic-list__context,
-.topic-list__author {
+.topic-list__context {
     display: block;
 
-    /* An empty line keeps its height, so every row is three lines. */
+    /* An empty line keeps its height, so every row is two lines. */
     min-height: 1lh;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.topic-list__author {
-    color: var(--themed-text-primary);
 }

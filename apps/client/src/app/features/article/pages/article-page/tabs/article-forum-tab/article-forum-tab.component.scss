@@ -14,7 +14,7 @@
 
 .article-forum__all {
     display: inline-block;
-    margin: $gap-md $forum-topic-row-padding-h 0;
+    margin: $gap-md $forum-topic-row-padding-h 0 $forum-topic-text-inset;
     color: var(--themed-link-color);
     text-decoration: none;
 

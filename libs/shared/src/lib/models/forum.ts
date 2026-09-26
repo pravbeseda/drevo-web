@@ -21,11 +21,8 @@ export interface ForumTopicListItem {
     readonly title: string;
     readonly lastPostAt: Date | undefined;
     readonly pinned: boolean;
-    /**
-     * Who wrote the last post. An unanswered topic points at its own root
-     * message, so this is its author rather than absent.
-     */
-    readonly lastAuthor: string | undefined;
+    /** Full name of who opened the topic. */
+    readonly author: string;
     /** Absent for a topic that hangs off no article or news item. */
     readonly article: ForumTopicArticle | undefined;
     readonly section: ForumTopicSection | undefined;

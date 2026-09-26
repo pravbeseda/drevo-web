@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ForumTopicListItem } from '@drevo-web/shared';
-import { FormatDatePipe, IconComponent, ShortDatePipe } from '@drevo-web/ui';
+import { AvatarComponent, FormatDatePipe, IconComponent, ShortDatePipe, TooltipDirective } from '@drevo-web/ui';
 
 /**
  * A page of forum topics. Presentational: the forum section pages and the
@@ -9,7 +9,15 @@ import { FormatDatePipe, IconComponent, ShortDatePipe } from '@drevo-web/ui';
  */
 @Component({
     selector: 'app-topic-list',
-    imports: [FormatDatePipe, IconComponent, RouterLink, RouterLinkActive, ShortDatePipe],
+    imports: [
+        AvatarComponent,
+        FormatDatePipe,
+        IconComponent,
+        RouterLink,
+        RouterLinkActive,
+        ShortDatePipe,
+        TooltipDirective,
+    ],
     templateUrl: './topic-list.component.html',
     styleUrl: './topic-list.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

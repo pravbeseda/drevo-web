@@ -101,6 +101,7 @@ $forum-feed-pattern-dot: 1.2px;
 $forum-message-gap: 2px;
 $forum-series-gap: 8px;
 $forum-avatar-gap: 8px;
+$forum-topic-text-inset: $forum-topic-row-padding-h + $avatar-size-md + $forum-avatar-gap;
 $forum-bubble-max-width: 560px;
 $forum-bubble-max-share: 85%;
 $forum-bubble-radius: 14px;

@@ -66,7 +66,7 @@ export class ForumService {
             title: dto.title,
             lastPostAt: this.mapDate(dto.lastPostAt),
             pinned: dto.pinned,
-            lastAuthor: dto.lastAuthor,
+            author: dto.author,
             article: dto.article ?? undefined,
             section: dto.section ?? undefined,
         };

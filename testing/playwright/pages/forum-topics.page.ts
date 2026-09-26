@@ -26,6 +26,10 @@ export class ForumTopicsPage extends BasePage {
         return this.page.getByTestId('topic-link').filter({ has: this.title(text) });
     }
 
+    avatar(text: string): Locator {
+        return this.link(text).getByTestId('topic-author-avatar');
+    }
+
     context(text: string): Locator {
         return this.link(text).getByTestId('topic-context');
     }

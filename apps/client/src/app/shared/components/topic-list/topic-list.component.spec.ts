@@ -10,7 +10,7 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
         title: 'Первая тема',
         lastPostAt: new Date('2025-03-16T12:30:00Z'),
         pinned: false,
-        lastAuthor: 'Петров П.П.',
+        author: 'Петров Пётр Петрович',
         article: { id: 15, title: 'Статья' },
         section: { id: 'articles', name: 'О статьях' },
         ...overrides,
@@ -60,11 +60,18 @@ describe('TopicListComponent', () => {
         );
     });
 
-    it('shows neither the topic author nor the replies count', () => {
+    it('shows no replies count', () => {
         render([createItem()]);
 
-        expect(spectator.query('[data-testid="topic-author"]')).not.toExist();
         expect(spectator.query('[data-testid="topic-replies"]')).not.toExist();
+    });
+
+    it('draws the avatar of the topic author inside the link', () => {
+        render([createItem({ author: 'Петров Пётр Петрович' })]);
+
+        const avatar = spectator.query('[data-testid="topic-author-avatar"]');
+        expect(avatar?.getAttribute('aria-label')).toBe('Петров Пётр Петрович');
+        expect(avatar?.closest('a')).toBe(spectator.query('[data-testid="topic-link"]'));
     });
 
     it('names the article the topic discusses as text inside the link', () => {
@@ -89,17 +96,16 @@ describe('TopicListComponent', () => {
         expect(spectator.query('[data-testid="topic-context"]')).toHaveText('Общие темы');
     });
 
-    it('keeps all three lines when the row has nothing to put on them', () => {
-        render([createItem({ article: undefined, section: undefined, lastAuthor: undefined, lastPostAt: undefined })]);
+    it('keeps the context line when the row has nothing to put on it', () => {
+        render([createItem({ article: undefined, section: undefined, lastPostAt: undefined })]);
 
         expect(spectator.query('[data-testid="topic-context"]')).toExist();
-        expect(spectator.query('[data-testid="topic-last-author"]')).toExist();
     });
 
-    it('names who wrote the last post', () => {
-        render([createItem({ lastAuthor: 'Валентин100' })]);
+    it('no longer names who wrote the last post', () => {
+        render([createItem()]);
 
-        expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Валентин100');
+        expect(spectator.query('[data-testid="topic-last-author"]')).not.toExist();
     });
 
     it('shows the last-post time short, with the full date for assistive technology', () => {
