@@ -11,47 +11,48 @@
                 routerLinkActive
                 [routerLink]="topicLink(topic.id)"
             >
-                <span class="topic-list__line">
-                    @if (topic.pinned) {
-                        <ui-icon
-                            class="topic-list__pin"
-                            data-testid="topic-pinned"
-                            name="push_pin"
-                            size="small"
-                            tooltip="Закреплённая тема"
-                        />
-                    }
-                    <span
-                        class="topic-list__title"
-                        data-testid="topic-title"
-                    >
-                        {{ topic.title }}
-                    </span>
-                    @if (topic.lastPostAt) {
+                <ui-avatar
+                    data-testid="topic-author-avatar"
+                    [name]="topic.author"
+                    [uiTooltip]="topic.author"
+                />
+                <span class="topic-list__body">
+                    <span class="topic-list__line">
+                        @if (topic.pinned) {
+                            <ui-icon
+                                class="topic-list__pin"
+                                data-testid="topic-pinned"
+                                name="push_pin"
+                                size="small"
+                                tooltip="Закреплённая тема"
+                            />
+                        }
                         <span
-                            class="topic-list__time"
-                            data-testid="topic-last-post"
-                            [attr.aria-label]="topic.lastPostAt | formatDate"
+                            class="topic-list__title"
+                            data-testid="topic-title"
                         >
-                            {{ topic.lastPostAt | shortDate }}
+                            {{ topic.title }}
                         </span>
-                    }
-                </span>
-                <span
-                    class="topic-list__context"
-                    data-testid="topic-context"
-                >
-                    @if (topic.article; as article) {
-                        {{ topic.section?.id === newsSectionId ? 'к новости' : 'к статье' }} {{ article.title }}
-                    } @else {
-                        {{ topic.section?.name }}
-                    }
-                </span>
-                <span
-                    class="topic-list__author"
-                    data-testid="topic-last-author"
-                >
-                    {{ topic.lastAuthor }}
+                        @if (topic.lastPostAt) {
+                            <span
+                                class="topic-list__time"
+                                data-testid="topic-last-post"
+                                [attr.aria-label]="topic.lastPostAt | formatDate"
+                            >
+                                {{ topic.lastPostAt | shortDate }}
+                            </span>
+                        }
+                    </span>
+                    <span
+                        class="topic-list__context"
+                        data-testid="topic-context"
+                    >
+                        @if (topic.article; as article) {
+                            {{ topic.section?.id === newsSectionId ? 'к новости' : 'к статье' }} {{ article.title }}
+                        } @else {
+                            {{ topic.section?.name }}
+                        }
+                    </span>
                 </span>
             </a>
         </li>
