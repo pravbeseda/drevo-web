@@ -18,7 +18,7 @@
         position: absolute;
         top: 0;
         right: 0;
-        left: $forum-topic-row-padding-h + $avatar-size-md + $forum-avatar-gap;
+        left: $forum-topic-text-inset;
         border-top: 1px solid var(--themed-divider-color);
         content: '';
     }
