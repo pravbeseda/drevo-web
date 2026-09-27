@@ -123,27 +123,53 @@ describe('TabsGroupComponent', () => {
         expect(link).not.toHaveAttribute('data-testid');
     });
 
-    it('should mark the tab the router shows as the current page', async () => {
-        await spectator.inject(Router).navigateByUrl('/articles/1/news');
-        spectator.detectChanges();
+    describe('current page', () => {
+        const tab = (testId: string): Element | null => spectator.query(`[data-testid="${testId}"]`);
 
-        const links = spectator.queryAll('.tab-link');
-        expect(links[1]).toHaveAttribute('aria-current', 'page');
-        expect(links[0]).not.toHaveAttribute('aria-current');
-    });
+        const navigate = async (url: string): Promise<void> => {
+            spectator.setInput('groups', [
+                {
+                    items: [
+                        {
+                            label: 'Статья',
+                            route: '/articles/1',
+                            icon: 'article',
+                            exactRouteMatch: true,
+                            testId: 'tab-article',
+                        },
+                        { label: 'Новости', route: '/articles/1/news', icon: 'newspaper', testId: 'tab-news' },
+                    ],
+                },
+            ]);
+            await spectator.inject(Router).navigateByUrl(url);
+            spectator.detectChanges();
+        };
 
-    it('should let isActive decide which tab is the current page', () => {
-        spectator.setInput('groups', [
-            {
-                items: [
-                    { label: 'On', route: '/on', icon: 'article', isActive: signal(true) },
-                    { label: 'Off', route: '/off', icon: 'article', isActive: signal(false) },
-                ],
-            },
-        ]);
+        it('should mark the tab the router shows', async () => {
+            await navigate('/articles/1/news');
 
-        const links = spectator.queryAll('.tab-link');
-        expect(links[0]).toHaveAttribute('aria-current', 'page');
-        expect(links[1]).not.toHaveAttribute('aria-current');
+            expect(tab('tab-news')).toHaveAttribute('aria-current', 'page');
+            expect(tab('tab-article')).not.toHaveAttribute('aria-current');
+        });
+
+        it('should keep an exact tab current when its address carries a query string', async () => {
+            await navigate('/articles/1?page=2');
+
+            expect(tab('tab-article')).toHaveAttribute('aria-current', 'page');
+        });
+
+        it('should let isActive decide', () => {
+            spectator.setInput('groups', [
+                {
+                    items: [
+                        { label: 'On', route: '/on', icon: 'article', isActive: signal(true), testId: 'tab-on' },
+                        { label: 'Off', route: '/off', icon: 'article', isActive: signal(false), testId: 'tab-off' },
+                    ],
+                },
+            ]);
+
+            expect(tab('tab-on')).toHaveAttribute('aria-current', 'page');
+            expect(tab('tab-off')).not.toHaveAttribute('aria-current');
+        });
     });
 });
