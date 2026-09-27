@@ -52,7 +52,7 @@ test.describe('Forum navigation', () => {
 
         // The forum opens on the topics of every section, not on a list of sections.
         await expect(tabs.tabs).toHaveCount(mockForumSections.length + 1);
-        await expect(tabs.allTopics).toHaveAttribute('aria-selected', 'true');
+        await expect(tabs.allTopics).toHaveAttribute('aria-current', 'page');
         await expect(topics.title(TOPIC_TITLE)).toBeVisible();
 
         await tabs.open(SECTION.id);
@@ -60,8 +60,8 @@ test.describe('Forum navigation', () => {
 
         await expect(page).toHaveURL(new RegExp(`/forum/${SECTION.id}$`));
         // «All topics» is the prefix of every section address and must not stay active with it.
-        await expect(tabs.tab(SECTION.id)).toHaveAttribute('aria-selected', 'true');
-        await expect(tabs.allTopics).toHaveAttribute('aria-selected', 'false');
+        await expect(tabs.tab(SECTION.id)).toHaveAttribute('aria-current', 'page');
+        await expect(tabs.allTopics).not.toHaveAttribute('aria-current');
 
         await topics.open(TOPIC_TITLE);
 

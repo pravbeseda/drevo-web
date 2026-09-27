@@ -1,4 +1,5 @@
-import { provideRouter } from '@angular/router';
+import { signal } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconComponent } from '../icon/icon.component';
 import { TabGroup, TabsGroupComponent } from './tabs-group.component';
@@ -120,5 +121,55 @@ describe('TabsGroupComponent', () => {
     it('should not render data-testid when testId is not provided', () => {
         const link = spectator.query('.tab-link');
         expect(link).not.toHaveAttribute('data-testid');
+    });
+
+    describe('current page', () => {
+        const tab = (testId: string): Element | null => spectator.query(`[data-testid="${testId}"]`);
+
+        const navigate = async (url: string): Promise<void> => {
+            spectator.setInput('groups', [
+                {
+                    items: [
+                        {
+                            label: 'Статья',
+                            route: '/articles/1',
+                            icon: 'article',
+                            exactRouteMatch: true,
+                            testId: 'tab-article',
+                        },
+                        { label: 'Новости', route: '/articles/1/news', icon: 'newspaper', testId: 'tab-news' },
+                    ],
+                },
+            ]);
+            await spectator.inject(Router).navigateByUrl(url);
+            spectator.detectChanges();
+        };
+
+        it('should mark the tab the router shows', async () => {
+            await navigate('/articles/1/news');
+
+            expect(tab('tab-news')).toHaveAttribute('aria-current', 'page');
+            expect(tab('tab-article')).not.toHaveAttribute('aria-current');
+        });
+
+        it('should keep an exact tab current when its address carries a query string', async () => {
+            await navigate('/articles/1?page=2');
+
+            expect(tab('tab-article')).toHaveAttribute('aria-current', 'page');
+        });
+
+        it('should let isActive decide', () => {
+            spectator.setInput('groups', [
+                {
+                    items: [
+                        { label: 'On', route: '/on', icon: 'article', isActive: signal(true), testId: 'tab-on' },
+                        { label: 'Off', route: '/off', icon: 'article', isActive: signal(false), testId: 'tab-off' },
+                    ],
+                },
+            ]);
+
+            expect(tab('tab-on')).toHaveAttribute('aria-current', 'page');
+            expect(tab('tab-off')).not.toHaveAttribute('aria-current');
+        });
     });
 });
