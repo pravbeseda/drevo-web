@@ -65,6 +65,8 @@ describe('ApiService', () => {
 
 Standalone suite in `testing/playwright/` — **separate from** `apps/client-e2e/`. Tests run against the dev server with a **mocked API**, so no real backend is required.
 
+Locally the suite starts its own `--no-hmr` dev server on port 4210, not `yarn serve`'s 4200: HMR re-creates components after the first render and breaks timing-sensitive specs. A server already listening on 4210 is reused, so start one there by hand (`yarn nx run client:serve --no-hmr --port 4210`) to skip the rebuild between runs; `BASE_URL` points the suite at any other server.
+
 Structure: `fixtures/` (auth, mock-api, coverage), `pages/` (Page Objects), `mocks/` (data factories), `helpers/`, `tests/` (specs, one subdirectory per feature). `playwright.config.ts` defines 5 browser projects: chromium, firefox, webkit, mobile-chrome, mobile-safari.
 
 1. **Always import `test` and `expect` from `fixtures/`** — not from `@playwright/test` directly. The custom `test` provides the `authenticatedPage` / `unauthenticatedPage` fixtures with pre-configured API mocks
