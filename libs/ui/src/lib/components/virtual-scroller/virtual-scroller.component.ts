@@ -1,15 +1,23 @@
 import { FlexibleVirtualScrollStrategy } from './flexible-virtual-scroll-strategy';
 import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
+import { ScrollbarDirective } from '../scrollbar/scrollbar.directive';
 import { SpinnerComponent } from '../spinner/spinner.component';
-import { CdkVirtualForOf, CdkVirtualScrollViewport, VIRTUAL_SCROLL_STRATEGY } from '@angular/cdk/scrolling';
+import {
+    CdkVirtualForOf,
+    CdkVirtualScrollableElement,
+    CdkVirtualScrollViewport,
+    VIRTUAL_SCROLL_STRATEGY,
+} from '@angular/cdk/scrolling';
 import { NgTemplateOutlet } from '@angular/common';
 import {
+    afterNextRender,
     AfterViewInit,
     ChangeDetectionStrategy,
     Component,
     computed,
     contentChild,
     DestroyRef,
+    ElementRef,
     inject,
     input,
     OnInit,
@@ -34,12 +42,18 @@ export interface VirtualScrollerItemContext<T> {
     index: number;
 }
 
+/**
+ * A lazily rendered list. The host is the scroll container and carries the
+ * app's scrollbar; content projected next to the item template follows the
+ * rows inside the scrolled area.
+ */
 @Component({
     selector: 'ui-virtual-scroller',
     imports: [NgTemplateOutlet, CdkVirtualScrollViewport, CdkVirtualForOf, SpinnerComponent],
     templateUrl: './virtual-scroller.component.html',
     styleUrl: './virtual-scroller.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    hostDirectives: [CdkVirtualScrollableElement, ScrollbarDirective],
     providers: [
         FlexibleVirtualScrollStrategy,
         { provide: VIRTUAL_SCROLL_STRATEGY, useExisting: FlexibleVirtualScrollStrategy },
@@ -47,6 +61,8 @@ export interface VirtualScrollerItemContext<T> {
 })
 export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     private readonly destroyRef = inject(DestroyRef);
+    private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    private readonly scrollable = inject(CdkVirtualScrollableElement);
     private readonly scrollStrategy = inject(FlexibleVirtualScrollStrategy);
 
     /** Items to display in the virtual scroll */
@@ -86,8 +102,15 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
         return total > 0 && currentCount >= total;
     });
 
+    /** The size of the whole collection for assistive technology, which sees only the rendered rows. */
+    readonly setSize = computed(() => this.totalItems() || this.items().length);
+
     /** Whether the loading indicator should be shown */
     readonly showLoadingIndicator = computed(() => this.isLoading() && this.items().length > 0);
+
+    constructor() {
+        afterNextRender(() => this.watchOwnSize());
+    }
 
     ngOnInit(): void {
         this.scrollStrategy.configure(this.itemSize());
@@ -97,10 +120,24 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
         this.setupScrollListener();
     }
 
+    /**
+     * The viewport measures itself on window resizes only, so a list shown
+     * again after `display: none`, or squeezed by a neighbour, would keep
+     * rendering for its old height.
+     */
+    private watchOwnSize(): void {
+        if (typeof ResizeObserver === 'undefined') {
+            return;
+        }
+        const observer = new ResizeObserver(() => this.viewport().checkViewportSize());
+        observer.observe(this.host);
+        this.destroyRef.onDestroy(() => observer.disconnect());
+    }
+
     private setupScrollListener(): void {
         const viewport = this.viewport();
 
-        const scroll$ = viewport
+        const scroll$ = this.scrollable
             .elementScrolled()
             .pipe(throttleTime(100, undefined, { leading: true, trailing: true }));
 

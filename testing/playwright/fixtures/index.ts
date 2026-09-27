@@ -49,6 +49,7 @@ export {
     mockForumSectionsApi,
     mockForumTopicApi,
     mockForumTopicPagedApi,
+    mockForumTopicsPagedApi,
     mockForumTopicNotFound,
     mockArticleVersion,
     mockArticleFindFound,

@@ -2,19 +2,14 @@
 
 :host {
     display: block;
-}
-
-.topic-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    height: 100%;
 }
 
 .topic-list__item {
     position: relative;
 
     /* Inset past the avatar like a chat list, so the divider does not read as a table border. */
-    & + &::before {
+    &--divided::before {
         position: absolute;
         top: 0;
         right: 0;
@@ -26,6 +21,10 @@
 
 .topic-list__link {
     display: flex;
+    box-sizing: border-box;
+
+    /* The scroller places rows by this height rather than measuring them. */
+    height: $forum-topic-row-height;
     align-items: center;
     gap: $forum-avatar-gap;
     padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
@@ -93,4 +92,17 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.topic-list__failed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $dropdown-item-gap;
+    padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
+}
+
+.topic-list__error {
+    color: var(--themed-text-muted);
+    font-size: $font-size-sm;
 }

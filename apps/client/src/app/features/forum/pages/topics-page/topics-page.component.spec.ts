@@ -1,4 +1,5 @@
 import { ForumService } from '../../../../services/forum/forum.service';
+import { TopicListComponent } from '../../../../shared/components/topic-list/topic-list.component';
 import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { TopicsPageComponent } from './topics-page.component';
@@ -97,13 +98,19 @@ describe('TopicsPageComponent', () => {
         spectator.detectChanges();
     };
 
+    const topicList = (): TopicListComponent | null => spectator.query(TopicListComponent);
+
+    /** The reader scrolling near the end of the loaded rows. */
     const loadMore = (): void => {
-        spectator.click('[data-testid="topics-load-more"]');
+        topicList()?.loadMore.emit();
         spectator.detectChanges();
     };
 
-    const titles = (): (string | undefined)[] =>
-        spectator.queryAll('[data-testid="topic-title"]').map(element => element.textContent?.trim());
+    /** What the page hands the list; which of them are drawn is the list's own business. */
+    const titles = (): string[] =>
+        topicList()
+            ?.items()
+            .map(item => item.title) ?? [];
 
     describe('the topic panel', () => {
         it('invites the reader to pick a topic while none is open', () => {
@@ -155,9 +162,7 @@ describe('TopicsPageComponent', () => {
         it('scrolls the topic list with the custom scrollbar', () => {
             render(createPage());
 
-            expect(spectator.query('[data-testid="forum-panes-list"]')).toHaveAttribute(
-                'data-overlayscrollbars-initialize',
-            );
+            expect(spectator.query('[data-testid="topic-list"]')).toHaveAttribute('data-overlayscrollbars-initialize');
         });
 
         it('opens the panel when a navigation activates the topic route', () => {
@@ -177,16 +182,24 @@ describe('TopicsPageComponent', () => {
         expect(titles()).toEqual(['Тема 1', 'Тема 2']);
     });
 
-    it('offers to load more while pages remain', () => {
-        render(createPage({ page: 1, totalPages: 3 }));
+    it('tells the list how many topics the section holds', () => {
+        render(createPage({ total: 57 }));
 
-        expect(spectator.query('[data-testid="topics-load-more"]')).toHaveText('Показать следующие');
+        expect(topicList()?.total()).toBe(57);
     });
 
-    it('offers nothing more on the last page', () => {
+    it('offers no button to load more: the list loads as the reader scrolls', () => {
+        render(createPage({ page: 1, totalPages: 3 }));
+
+        expect(spectator.query('[data-testid="topics-load-more"]')).not.toExist();
+    });
+
+    it('asks for nothing past the last page', () => {
         render(createPage({ page: 3, totalPages: 3 }));
 
-        expect(spectator.query('[data-testid="topics-load-more"]')).toBeNull();
+        loadMore();
+
+        expect(forumService.getTopics).not.toHaveBeenCalled();
     });
 
     it('appends the next page below the served one', () => {
@@ -236,7 +249,20 @@ describe('TopicsPageComponent', () => {
         loadMore();
 
         expect(titles()).toEqual(['Тема 1']);
-        expect(spectator.query('[data-testid="topics-load-more"]')).toBeTruthy();
+        expect(topicList()?.loadState()).toBe('failed');
+    });
+
+    it('loads the failed page again when the reader retries', () => {
+        render(createPage({ items: [createItem(1)], page: 1, totalPages: 3 }));
+        forumService.getTopics.mockReturnValue(throwError(() => new Error('Network error')));
+        loadMore();
+        forumService.getTopics.mockReturnValue(of(createPage({ items: [createItem(2)], page: 2, totalPages: 3 })));
+
+        topicList()?.retry.emit();
+        spectator.detectChanges();
+
+        expect(forumService.getTopics).toHaveBeenLastCalledWith(undefined, undefined, 2);
+        expect(titles()).toEqual(['Тема 1', 'Тема 2']);
     });
 
     /**

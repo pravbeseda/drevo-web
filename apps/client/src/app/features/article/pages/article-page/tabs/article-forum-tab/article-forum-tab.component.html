@@ -1,6 +1,6 @@
 <app-topic-panes>
-    @if (topics(); as items) {
-        @if (items.length === 0) {
+    @if (isLoaded()) {
+        @if (pages.items().length === 0) {
             <p
                 class="article-forum__message"
                 data-testid="article-forum-empty"
@@ -9,16 +9,13 @@
             </p>
         } @else {
             <app-topic-list
-                [items]="items"
+                [items]="pages.items()"
+                [total]="pages.total()"
+                [loadState]="pages.loadState()"
                 [relativeLinks]="true"
+                (loadMore)="pages.loadMore()"
+                (retry)="pages.retry()"
             />
-            <a
-                class="article-forum__all"
-                data-testid="article-forum-all"
-                [routerLink]="sectionUrl()"
-            >
-                Все обсуждения
-            </a>
         }
     } @else if (isLoadError()) {
         <p

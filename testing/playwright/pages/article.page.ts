@@ -23,7 +23,8 @@ export class ArticlePage extends BasePage {
     readonly historyError = this.page.getByTestId('history-error');
     readonly forumTopics = this.page.getByTestId('topic-item');
     readonly forumEmpty = this.page.getByTestId('article-forum-empty');
-    readonly forumAllTopics = this.page.getByTestId('article-forum-all');
+    /** The list of discussions scrolls itself, inside the pane that holds it. */
+    readonly forumScroller = this.page.getByTestId('topic-list');
 
     readonly forumPanes = this.page.getByTestId('forum-panes');
     readonly forumList = this.page.getByTestId('forum-panes-list');

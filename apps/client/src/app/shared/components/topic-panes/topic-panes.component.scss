@@ -19,8 +19,11 @@
 }
 
 .topic-panes__list {
+    flex: 1;
     min-height: 0;
     padding: 0;
+
+    /* Only what is not a list — an error, an empty state — ever overflows the pane. */
     overflow-y: auto;
 }
 

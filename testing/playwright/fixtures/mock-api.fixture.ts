@@ -538,6 +538,23 @@ export async function mockForumTopicsApi(
     await page.route(FORUM_TOPICS_LIST_RE, route => route.fulfill({ json: apiSuccess(response) }));
 }
 
+/** What the paged mock answers: a page of the list, or the server failing that request. */
+export type ForumTopicListReply = ForumTopicListResponseDto | 'server-error';
+
+/** Mock GET /api/forum/topics — answers each request with the page it asks for */
+export async function mockForumTopicsPagedApi(
+    page: Page,
+    respond: (requestedPage: number) => ForumTopicListReply | Promise<ForumTopicListReply>,
+): Promise<void> {
+    await page.route(FORUM_TOPICS_LIST_RE, async route => {
+        const requestedPage = Number(new URL(route.request().url()).searchParams.get('page') ?? 1);
+        const reply = await respond(requestedPage);
+        await (reply === 'server-error'
+            ? route.fulfill({ status: 500, json: apiError('Internal server error') })
+            : route.fulfill({ json: apiSuccess(reply) }));
+    });
+}
+
 /** Mock GET /api/forum/topics — the 400 the backend answers for a section that is not in its table */
 export async function mockForumTopicsUnknownPart(page: Page): Promise<void> {
     await page.route(FORUM_TOPICS_LIST_RE, route =>

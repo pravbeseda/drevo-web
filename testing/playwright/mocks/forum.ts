@@ -35,6 +35,26 @@ export function createForumTopicListResponse(items: readonly ForumTopicListItemD
     };
 }
 
+/** One page of a list of `total` numbered topics, `Тема 1` first. */
+export function createForumTopicListPage(
+    page: number,
+    total: number,
+    pageSize = DEFAULT_PAGE_SIZE,
+): ForumTopicListResponseDto {
+    const first = (page - 1) * pageSize + 1;
+    const last = Math.min(page * pageSize, total);
+
+    return {
+        items: Array.from({ length: Math.max(last - first + 1, 0) }, (_, index) =>
+            createForumTopicListItemDto({ id: first + index, title: `Тема ${first + index}` }),
+        ),
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+    };
+}
+
 /** The sections the backend serves; the text ids are the ones `/forum/:part` addresses. */
 export const mockForumSections: readonly ForumSectionDto[] = [
     {

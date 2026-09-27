@@ -5,11 +5,15 @@ export class ForumTopicsPage extends BasePage {
     readonly items = this.page.getByTestId('topic-item');
     readonly empty = this.page.getByTestId('topics-empty');
     readonly notFound = this.page.getByTestId('topics-not-found');
+    /** The pane that holds the list; the list inside it is what scrolls. */
     readonly list = this.page.getByTestId('forum-panes-list');
+    readonly scroller = this.page.getByTestId('topic-list');
+    readonly loadError = this.page.getByTestId('topic-list-error');
+    readonly retry = this.page.getByTestId('topic-list-retry');
     readonly panes = this.page.getByTestId('forum-panes');
     readonly resizeHandle = this.page.getByTestId('forum-panes-handle');
     /** OverlayScrollbars draws the scrollbar and takes no test id, so its own classes are the only hook. */
-    readonly scrollbarTrack = this.list.locator('.os-scrollbar-vertical .os-scrollbar-track');
+    readonly scrollbarTrack = this.scroller.locator('.os-scrollbar-vertical .os-scrollbar-track');
     readonly scrollbarHandle = this.scrollbarTrack.locator('.os-scrollbar-handle');
 
     /** A topic row is the first thing the resolved section puts on screen. */
@@ -19,6 +23,11 @@ export class ForumTopicsPage extends BasePage {
 
     title(text: string): Locator {
         return this.page.getByTestId('topic-title').filter({ hasText: text });
+    }
+
+    /** The title that reads exactly `text` — `title('Тема 1')` also finds «Тема 10». */
+    exactTitle(text: string): Locator {
+        return this.page.getByTestId('topic-title').filter({ hasText: new RegExp(`^\\s*${text}\\s*$`) });
     }
 
     /** The row's link, found by the topic it opens. */
@@ -43,6 +52,11 @@ export class ForumTopicsPage extends BasePage {
         await this.page.mouse.down();
         await this.page.mouse.move(x + distance, y);
         await this.page.mouse.up();
+    }
+
+    /** Scrolls the list to its end, as far as the rows loaded so far reach. */
+    async scrollToEnd(): Promise<void> {
+        await this.scroller.evaluate(scroller => scroller.scrollTo({ top: scroller.scrollHeight }));
     }
 
     async open(text: string): Promise<void> {

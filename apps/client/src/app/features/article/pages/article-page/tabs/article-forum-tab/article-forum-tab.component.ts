@@ -1,41 +1,46 @@
 import { ForumService } from '../../../../../../services/forum/forum.service';
 import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
 import { TopicPanesComponent } from '../../../../../../shared/components/topic-panes/topic-panes.component';
+import {
+    TopicListPagesService,
+    TopicPageFetch,
+} from '../../../../../../shared/services/topic-list-pages/topic-list-pages.service';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ForumTopicListItem } from '@drevo-web/shared';
+import { ForumTopicListResponse } from '@drevo-web/shared';
 import { SpinnerComponent } from '@drevo-web/ui';
 import { Observable, of } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 
 /** The forum section that holds the discussions of an article. */
 const ARTICLE_SECTION = 'articles';
 
-type TopicsResult = readonly ForumTopicListItem[] | 'load-error';
+type TopicsResult = ForumTopicListResponse | 'load-error';
 
 @Component({
     selector: 'app-article-forum-tab',
-    imports: [RouterLink, SpinnerComponent, TopicListComponent, TopicPanesComponent],
+    imports: [SpinnerComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './article-forum-tab.component.html',
     styleUrl: './article-forum-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [TopicListPagesService],
 })
 export class ArticleForumTabComponent {
     private readonly forumService = inject(ForumService);
     private readonly pageService = inject(ArticlePageService);
     private readonly logger = inject(LoggerService).withContext('ArticleForumTab');
+    protected readonly pages = inject(TopicListPagesService);
 
-    private readonly _topics = signal<readonly ForumTopicListItem[] | undefined>(undefined);
-    private readonly _isLoadError = signal(false);
+    private readonly _firstPage = signal<TopicsResult | undefined>(undefined);
 
-    readonly topics = this._topics.asReadonly();
-    readonly isLoadError = this._isLoadError.asReadonly();
+    readonly isLoaded = computed(() => typeof this._firstPage() === 'object');
+    readonly isLoadError = computed(() => this._firstPage() === 'load-error');
 
-    /** The section's own address, where the whole list lives — the tab shows the first page only. */
-    readonly sectionUrl = computed(() => `/forum/${ARTICLE_SECTION}/${this.pageService.articleId()}`);
+    /** The article is read when the page is asked for: a list of the previous one is gone by then. */
+    private readonly fetchPage: TopicPageFetch = page =>
+        this.forumService.getTopics(ARTICLE_SECTION, this.pageService.articleId(), page);
 
     constructor() {
         // The article the page holds is what decides which discussions belong
@@ -46,25 +51,27 @@ export class ArticleForumTabComponent {
                 filter((articleId): articleId is number => articleId !== undefined),
                 distinctUntilChanged(),
                 tap(() => this.startLoad()),
-                switchMap(articleId => this.loadTopics(articleId)),
+                switchMap(articleId => this.loadFirstPage(articleId)),
                 takeUntilDestroyed(),
             )
-            .subscribe(result => this.applyResult(result));
+            .subscribe(result => this.applyFirstPage(result));
     }
 
     private startLoad(): void {
-        this._topics.set(undefined);
-        this._isLoadError.set(false);
+        this._firstPage.set(undefined);
+        // Drops a page of the previous article still in flight.
+        this.pages.reset(undefined, this.fetchPage);
     }
 
-    private applyResult(result: TopicsResult): void {
-        this._isLoadError.set(result === 'load-error');
-        this._topics.set(result === 'load-error' ? undefined : result);
+    private applyFirstPage(result: TopicsResult): void {
+        this._firstPage.set(result);
+        if (result !== 'load-error') {
+            this.pages.reset(result, this.fetchPage);
+        }
     }
 
-    private loadTopics(articleId: number): Observable<TopicsResult> {
+    private loadFirstPage(articleId: number): Observable<TopicsResult> {
         return this.forumService.getTopics(ARTICLE_SECTION, articleId).pipe(
-            map(response => response.items),
             catchError((error: unknown) => {
                 this.logger.error(`Failed to load the discussions of the article ${articleId}`, error);
                 return of('load-error' as const);

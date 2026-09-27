@@ -3,7 +3,7 @@
     [withPanel]="withPanel()"
 >
     @if (hasTopicList()) {
-        @if (topics().length === 0) {
+        @if (pages.items().length === 0) {
             <p
                 class="topics-page__empty"
                 data-testid="topics-empty"
@@ -11,19 +11,13 @@
                 Тем пока нет.
             </p>
         } @else {
-            <app-topic-list [items]="topics()" />
-        }
-        @if (hasMore()) {
-            <div class="topics-page__more">
-                <ui-button
-                    testId="topics-load-more"
-                    variant="outlined"
-                    [loading]="isLoadingMore()"
-                    (click)="onLoadMore()"
-                >
-                    Показать следующие
-                </ui-button>
-            </div>
+            <app-topic-list
+                [items]="pages.items()"
+                [total]="pages.total()"
+                [loadState]="pages.loadState()"
+                (loadMore)="pages.loadMore()"
+                (retry)="pages.retry()"
+            />
         }
     } @else if (isNotFound()) {
         <app-error

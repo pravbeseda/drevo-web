@@ -28,7 +28,7 @@ Never define local CSS custom properties for sizes in component styles — add a
 
 Modals get their flex layout from `.ui-modal-panel` in `libs/ui/src/lib/styles/_modal.scss`. What a modal accepts is the `ModalConfig` interface in `libs/ui/src/lib/modal/models/modal.types.ts` — read it there rather than from a list here. Two things that interface does not tell you: `maxHeight` is absent from it because `ModalService` sets it from `position` alone (`90vh` for a centered dialog, `66.67vh` for a bottom sheet), and `position: 'bottom'` also changes the width defaults to `100vw` instead of `500px` / `90vw` and adds the `ui-modal-bottom-sheet` class. Size a bottom sheet against those, not against the centered ones.
 
-A scroll container gets the app's scrollbar — narrow, drawn over the content by OverlayScrollbars, shown while the pointer is over it and widened as the pointer reaches it — from the `uiScrollbar` directive, never from scrollbar rules of its own. The directive and `libs/ui/src/lib/styles/_scrollbar.scss` are the one place that decides how that scrollbar is drawn, so a change there reaches every consumer at once. The host stays the scrolling element, so `scrollTop` and `scrollTo()` keep working on it.
+A scroll container gets the app's scrollbar — narrow, drawn over the content by OverlayScrollbars, shown while the pointer is over it and widened as the pointer reaches it — from the `uiScrollbar` directive, never from scrollbar rules of its own. The directive and `libs/ui/src/lib/styles/_scrollbar.scss` are the one place that decides how that scrollbar is drawn, so a change there reaches every consumer at once. The host stays the scrolling element, so `scrollTop` and `scrollTo()` keep working on it. `ui-virtual-scroller` carries the directive itself, so a virtual list never needs it added.
 
 Two panes the reader can resize share a `uiResizeHandle` placed between them: `[uiResizeHandle]="target"` on the handle resizes the element before it by drag or arrow keys, and remembers the size under `storageKey`. The size lands in `--ui-resize-size` on the target, so the target's own CSS decides where it applies — `width: var(--ui-resize-size, <default>)` — and its `min-*`/`max-*` (a percentage `max-*` included) bound the drag. The look is `libs/ui/src/lib/styles/_resize-handle.scss`; a layout that stacks the panes hides the handle itself.
 
@@ -47,7 +47,7 @@ What the export names alone do not tell you:
 | `ui-status-icon` | Input: `ApprovalStatus` (`-1`/`0`/`1`) |
 | `ui-tabs-group` | Ships the `TabGroup` and `TabGroupItem` interfaces |
 | `ui-dropdown-menu` | Ships `uiDropdownMenuTrigger` and `ui-dropdown-menu-item` |
-| `ui-virtual-scroller` | Ships the `uiVirtualScrollerItem` directive |
+| `ui-virtual-scroller` | Ships the `uiVirtualScrollerItem` directive. The host is the scroll container, with the app scrollbar: give it a height and scroll it, not an ancestor. Content projected beside the item template follows the rows — a footer such as a retry. Rows of one fixed height go through `itemSize`, and that value must match the CSS height. It re-measures itself on its own resize, so a list shown again after `display: none` fills its height |
 | Modal | No selector — opened through `ModalService` |
 | `formatDate` pipe | Date and time: "15 января 2025, 14:30" |
 

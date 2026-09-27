@@ -1,5 +1,6 @@
 import { ArticleForumTabComponent } from './article-forum-tab.component';
 import { ForumService } from '../../../../../../services/forum/forum.service';
+import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { createMockArticle } from '../../../../testing/article-testing.helper';
 import { computed, signal } from '@angular/core';
@@ -24,8 +25,11 @@ function createItem(id: number): ForumTopicListItem {
     };
 }
 
-function createPage(items: readonly ForumTopicListItem[]): ForumTopicListResponse {
-    return { items, total: items.length, page: 1, pageSize: 20, totalPages: 1 };
+function createPage(
+    items: readonly ForumTopicListItem[],
+    overrides: Partial<ForumTopicListResponse> = {},
+): ForumTopicListResponse {
+    return { items, total: items.length, page: 1, pageSize: 20, totalPages: 1, ...overrides };
 }
 
 describe('ArticleForumTabComponent', () => {
@@ -55,8 +59,19 @@ describe('ArticleForumTabComponent', () => {
         });
     };
 
-    const titles = (): (string | undefined)[] =>
-        spectator.queryAll('[data-testid="topic-title"]').map(element => element.textContent?.trim());
+    const topicList = (): TopicListComponent | null => spectator.query(TopicListComponent);
+
+    /** What the tab hands the list; which of them are drawn is the list's own business. */
+    const titles = (): string[] =>
+        topicList()
+            ?.items()
+            .map(item => item.title) ?? [];
+
+    /** The reader scrolling near the end of the loaded rows. */
+    const loadMore = (): void => {
+        topicList()?.loadMore.emit();
+        spectator.detectChanges();
+    };
 
     it('carries the topic panel beside the list', () => {
         render();
@@ -80,13 +95,61 @@ describe('ArticleForumTabComponent', () => {
         expect(titles()).toEqual(['Тема 1', 'Тема 2']);
     });
 
-    it('links to the section holding every topic of this article', () => {
-        render();
+    describe('paging', () => {
+        beforeEach(() => {
+            forumService.getTopics.mockReturnValue(of(createPage([createItem(1)], { total: 2, totalPages: 2 })));
+        });
 
-        expect(spectator.query('[data-testid="article-forum-all"]')).toHaveAttribute(
-            'href',
-            `/forum/articles/${ARTICLE_ID}`,
-        );
+        it('tells the list how many discussions the article has', () => {
+            render();
+
+            expect(topicList()?.total()).toBe(2);
+        });
+
+        it('appends the next page of this article discussions as the reader scrolls', () => {
+            render();
+            forumService.getTopics.mockReturnValue(
+                of(createPage([createItem(2)], { page: 2, total: 2, totalPages: 2 })),
+            );
+
+            loadMore();
+
+            expect(forumService.getTopics).toHaveBeenLastCalledWith('articles', ARTICLE_ID, 2);
+            expect(titles()).toEqual(['Тема 1', 'Тема 2']);
+        });
+
+        it('pages through the article the page moved to', () => {
+            render();
+            forumService.getTopics.mockReturnValue(of(createPage([createItem(7)], { total: 2, totalPages: 2 })));
+            article.set(createMockArticle({ articleId: 456 }));
+            spectator.detectChanges();
+
+            loadMore();
+
+            expect(forumService.getTopics).toHaveBeenLastCalledWith('articles', 456, 2);
+        });
+
+        it('reports a failed page to the list and loads it again on retry', () => {
+            render();
+            forumService.getTopics.mockReturnValue(throwError(() => new Error('boom')));
+            loadMore();
+
+            expect(topicList()?.loadState()).toBe('failed');
+
+            forumService.getTopics.mockReturnValue(
+                of(createPage([createItem(2)], { page: 2, total: 2, totalPages: 2 })),
+            );
+            topicList()?.retry.emit();
+            spectator.detectChanges();
+
+            expect(titles()).toEqual(['Тема 1', 'Тема 2']);
+        });
+
+        it('leaves the whole list to the tab rather than linking to the section', () => {
+            render();
+
+            expect(spectator.query('[data-testid="article-forum-all"]')).not.toExist();
+        });
     });
 
     it('shows the spinner while the request is in flight', () => {
