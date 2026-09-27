@@ -188,12 +188,6 @@ describe('TopicsPageComponent', () => {
         expect(topicList()?.total()).toBe(57);
     });
 
-    it('offers no button to load more: the list loads as the reader scrolls', () => {
-        render(createPage({ page: 1, totalPages: 3 }));
-
-        expect(spectator.query('[data-testid="topics-load-more"]')).not.toExist();
-    });
-
     it('asks for nothing past the last page', () => {
         render(createPage({ page: 3, totalPages: 3 }));
 

@@ -13,9 +13,6 @@ import {
     VirtualScrollerItemDirective,
 } from '@drevo-web/ui';
 
-/** Every row is two lines high; matches `$forum-topic-row-height`. */
-const TOPIC_ROW_HEIGHT_PX = 57;
-
 /**
  * The loaded forum topics, rendered as the reader scrolls to them.
  * Presentational: the forum section pages and the article's discussion tab
@@ -61,7 +58,6 @@ export class TopicListComponent {
     readonly retry = output();
 
     protected readonly newsSectionId = 'news';
-    protected readonly rowHeight = TOPIC_ROW_HEIGHT_PX;
 
     protected readonly trackById = (_index: number, topic: ForumTopicListItem): number => topic.id;
 

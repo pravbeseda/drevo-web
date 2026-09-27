@@ -21,10 +21,6 @@
 
 .topic-list__link {
     display: flex;
-    box-sizing: border-box;
-
-    /* The scroller places rows by this height rather than measuring them. */
-    height: $forum-topic-row-height;
     align-items: center;
     gap: $forum-avatar-gap;
     padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;

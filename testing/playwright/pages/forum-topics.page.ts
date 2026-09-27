@@ -54,6 +54,21 @@ export class ForumTopicsPage extends BasePage {
         await this.page.mouse.up();
     }
 
+    /** How many rendered rows leave their content less room than it takes, so it eats into the row's padding. */
+    crampedRowCount(): Promise<number> {
+        return this.page.getByTestId('topic-link').evaluateAll(
+            links =>
+                links.filter(link => {
+                    const style = getComputedStyle(link);
+                    const room = link.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+                    const content = Math.max(
+                        ...Array.from(link.children, child => child.getBoundingClientRect().height),
+                    );
+                    return content > room;
+                }).length,
+        );
+    }
+
     /** Scrolls the list to its end, as far as the rows loaded so far reach. */
     async scrollToEnd(): Promise<void> {
         await this.scroller.evaluate(scroller => scroller.scrollTo({ top: scroller.scrollHeight }));

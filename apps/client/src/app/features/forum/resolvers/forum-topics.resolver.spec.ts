@@ -34,36 +34,30 @@ describe('resolveForumTopics', () => {
 
     it('loads every section when the address names none', () => {
         expect(resolve({})).toBe(topics);
-        expect(forumService.getTopics).toHaveBeenCalledWith(undefined, undefined, undefined);
+        expect(forumService.getTopics).toHaveBeenCalledWith(undefined, undefined);
     });
 
     it('loads the section the address names', () => {
         resolve({ part: 'common' });
 
-        expect(forumService.getTopics).toHaveBeenCalledWith('common', undefined, undefined);
+        expect(forumService.getTopics).toHaveBeenCalledWith('common', undefined);
     });
 
     it('loads the section bound to the id the address names', () => {
         resolve({ part: 'articles', partId: '42' });
 
-        expect(forumService.getTopics).toHaveBeenCalledWith('articles', 42, undefined);
+        expect(forumService.getTopics).toHaveBeenCalledWith('articles', 42);
     });
 
-    it('reads the page from the query', () => {
+    /**
+     * The list loads the pages after the first as the reader scrolls, so a
+     * list started further on could never show its first topics, and would
+     * number its rows from the wrong place.
+     */
+    it('starts from the first page whatever page the query names', () => {
         resolve({ part: 'common' }, { page: '3' });
 
-        expect(forumService.getTopics).toHaveBeenCalledWith('common', undefined, 3);
-    });
-
-    it.each([
-        ['not a number', 'abc'],
-        ['zero', '0'],
-        ['negative', '-1'],
-        ['fractional', '1.5'],
-    ])('asks for the first page when the query page is %s', (_case, page) => {
-        resolve({ part: 'common' }, { page });
-
-        expect(forumService.getTopics).toHaveBeenCalledWith('common', undefined, undefined);
+        expect(forumService.getTopics).toHaveBeenCalledWith('common', undefined);
     });
 
     it.each([

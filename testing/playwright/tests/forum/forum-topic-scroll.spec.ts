@@ -8,11 +8,14 @@ import {
 import { ForumTabsPage } from '../../pages/forum-tabs.page';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
+import { LayoutPage } from '../../pages/layout.page';
 import { Page } from '@playwright/test';
 
 const PAGE_SIZE = 30;
 const TOTAL = 90;
 const TOPIC_ID = 7;
+/** From the default 100% to the largest scale the reader can pick, 150%, in steps of 10%. */
+const FONT_SCALE_STEPS_TO_MAX = 5;
 
 async function openForum(page: Page, total = TOTAL): Promise<ForumTopicsPage> {
     await mockForumSectionsApi(page);
@@ -56,12 +59,17 @@ test.describe('Forum topic list scrolling', () => {
         expect(await topics.items.count()).toBeLessThan(TOTAL);
     });
 
-    test('places every row by the height it is drawn with', async ({ authenticatedPage: page }) => {
-        const topics = await openForum(page, PAGE_SIZE);
-        const rowHeight = (await topics.items.first().boundingBox())?.height ?? 0;
+    test('keeps the padding of every row around its text at the largest font', async ({ authenticatedPage: page }) => {
+        const topics = await openForum(page);
+        const layout = new LayoutPage(page);
 
-        // The scroller sizes the scrolled area from the row height it is told, not from the rows it measures.
-        expect(await topics.scroller.evaluate(scroller => scroller.scrollHeight)).toBe(rowHeight * PAGE_SIZE);
+        await layout.openFontScalePopup();
+        for (let step = 0; step < FONT_SCALE_STEPS_TO_MAX; step++) {
+            await layout.fontScaleIncrease.click();
+        }
+        await layout.closeFontScalePopup();
+
+        expect(await topics.crampedRowCount()).toBe(0);
     });
 
     test('reports a failed page below the rows and loads it again on retry', async ({ authenticatedPage: page }) => {

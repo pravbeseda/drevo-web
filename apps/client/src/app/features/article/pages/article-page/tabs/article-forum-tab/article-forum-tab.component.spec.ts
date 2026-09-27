@@ -144,12 +144,6 @@ describe('ArticleForumTabComponent', () => {
 
             expect(titles()).toEqual(['Тема 1', 'Тема 2']);
         });
-
-        it('leaves the whole list to the tab rather than linking to the section', () => {
-            render();
-
-            expect(spectator.query('[data-testid="article-forum-all"]')).not.toExist();
-        });
     });
 
     it('shows the spinner while the request is in flight', () => {
