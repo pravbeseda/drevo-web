@@ -2,19 +2,14 @@
 
 :host {
     display: block;
-}
-
-.topic-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    height: 100%;
 }
 
 .topic-list__item {
     position: relative;
 
     /* Inset past the avatar like a chat list, so the divider does not read as a table border. */
-    & + &::before {
+    &--divided::before {
         position: absolute;
         top: 0;
         right: 0;
@@ -93,4 +88,17 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.topic-list__failed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $dropdown-item-gap;
+    padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
+}
+
+.topic-list__error {
+    color: var(--themed-text-muted);
+    font-size: $font-size-sm;
 }

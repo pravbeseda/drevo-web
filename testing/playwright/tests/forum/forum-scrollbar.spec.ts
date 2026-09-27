@@ -22,7 +22,7 @@ async function openLongList(page: Page): Promise<ForumTopicsPage> {
     const topics = new ForumTopicsPage(page);
     await page.goto('/forum');
     await topics.waitForReady();
-    await topics.list.hover();
+    await topics.scroller.hover();
     return topics;
 }
 
@@ -44,7 +44,7 @@ test.describe('Forum topic list scrollbar', () => {
 
         // Drawn over the rows: the list keeps its whole width for them.
         expect(
-            await topics.list.evaluate(
+            await topics.scroller.evaluate(
                 (list: HTMLElement) =>
                     list.offsetWidth - list.clientWidth - parseFloat(getComputedStyle(list).borderRightWidth),
             ),
@@ -74,6 +74,6 @@ test.describe('Forum topic list scrollbar', () => {
 
         await topics.scrollbarTrack.click({ position: clear });
 
-        await expect.poll(() => topics.list.evaluate(list => list.scrollTop)).toBeGreaterThan(0);
+        await expect.poll(() => topics.scroller.evaluate(scroller => scroller.scrollTop)).toBeGreaterThan(0);
     });
 });

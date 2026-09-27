@@ -6,6 +6,7 @@ import {
     mockArticleHistory,
     mockArticleHistoryError,
     mockForumTopicsApi,
+    mockForumTopicsPagedApi,
     mockForumTopicApi,
 } from '../../fixtures';
 import { createArticleHistoryResponse, mockArticleViewData } from '../../mocks/articles';
@@ -13,6 +14,7 @@ import {
     createForumMessageDto,
     createForumTopicDto,
     createForumTopicListItemDto,
+    createForumTopicListPage,
     createForumTopicListResponse,
     createForumTopicPage,
 } from '../../mocks/forum';
@@ -57,9 +59,19 @@ test.describe('Article tabs', () => {
             await article.tabForum.click();
 
             await expect(article.forumTopics).toHaveCount(1);
-            await expect(article.forumAllTopics).toHaveAttribute('href', `/forum/articles/${ARTICLE_ID}`);
-            // The link under the list lines up with the rows' text rather than the pane's edge.
-            expect(await textLeft(article.forumAllTopics)).toBe(await textLeft(article.forumTopic('Тема 1')));
+        });
+
+        test('loads the next discussions as the reader scrolls', async ({ authenticatedPage: page }) => {
+            const PAGE_SIZE = 20;
+            await mockForumTopicsPagedApi(page, requested => createForumTopicListPage(requested, PAGE_SIZE * 2));
+
+            await article.tabForum.click();
+            await expect(article.forumTopics.first()).toBeVisible();
+
+            await expect(async () => {
+                await article.forumScroller.evaluate(scroller => scroller.scrollTo({ top: scroller.scrollHeight }));
+                await expect(article.forumTopic(`Тема ${PAGE_SIZE * 2}`)).toBeVisible({ timeout: 500 });
+            }).toPass();
         });
 
         test('opens a discussion beside the list without leaving the article', async ({ authenticatedPage: page }) => {

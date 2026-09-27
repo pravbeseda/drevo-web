@@ -44,9 +44,9 @@ export function readForumAnchor(route: ActivatedRouteSnapshot): number | undefin
 }
 
 /**
- * The page an address asks for, `undefined` when it names none or names
- * something that is not a page. Shared for the same reason as the readers
- * above: what `?page` means is one decision, not one per reader.
+ * The page of a topic's messages an address asks for, `undefined` when it
+ * names none or names something that is not a page. A topic list reads no
+ * page: it always starts from its first one and loads the rest on scroll.
  */
 export function readForumPage(route: ActivatedRouteSnapshot): number | undefined {
     return parsePositiveIntParam(route.queryParamMap.get('page') ?? undefined);

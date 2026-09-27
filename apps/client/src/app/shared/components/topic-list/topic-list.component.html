@@ -1,8 +1,20 @@
-<ul class="topic-list">
-    @for (topic of items(); track topic.id) {
-        <li
+<ui-virtual-scroller
+    data-testid="topic-list"
+    [items]="items()"
+    [totalItems]="total()"
+    [isLoading]="loadState() === 'loading'"
+    [trackByFn]="trackById"
+    (loadMore)="loadMore.emit()"
+>
+    <ng-template
+        uiVirtualScrollerItem
+        let-topic
+        let-index="index"
+    >
+        <div
             class="topic-list__item"
             data-testid="topic-item"
+            [class.topic-list__item--divided]="index > 0"
         >
             <a
                 class="topic-list__link"
@@ -55,6 +67,24 @@
                     </span>
                 </span>
             </a>
-        </li>
+        </div>
+    </ng-template>
+
+    @if (loadState() === 'failed') {
+        <div class="topic-list__failed">
+            <span
+                class="topic-list__error"
+                data-testid="topic-list-error"
+            >
+                Не удалось загрузить
+            </span>
+            <ui-button
+                testId="topic-list-retry"
+                variant="text"
+                (click)="retry.emit()"
+            >
+                Повторить
+            </ui-button>
+        </div>
     }
-</ul>
+</ui-virtual-scroller>

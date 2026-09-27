@@ -107,7 +107,8 @@ export class PicturePageComponent implements OnInit {
             return;
         }
 
-        // Observe the CDK viewport element — its contentRect.width excludes the scrollbar
+        // Observe the CDK viewport inside the scrolling host: its width leaves out the native
+        // scrollbar the host falls back to when the overlay one cannot be drawn
         const viewport = element.querySelector('cdk-virtual-scroll-viewport') ?? element;
 
         this.resizeObserver = new ResizeObserver(entries => {

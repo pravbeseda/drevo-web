@@ -33,7 +33,7 @@ export class PictureGalleryPage extends BasePage {
 
     /** Scroll virtual scroller to the bottom */
     async scrollToBottom(): Promise<void> {
-        await this.page.locator('cdk-virtual-scroll-viewport').evaluate(el => {
+        await this.page.getByTestId('pictures-scroller').evaluate(el => {
             el.scrollTop = el.scrollHeight;
         });
     }

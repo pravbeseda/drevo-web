@@ -2,17 +2,20 @@ import { TopicPlaceholderComponent } from '../topic-placeholder/topic-placeholde
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { ResizeHandleDirective, ScrollbarDirective } from '@drevo-web/ui';
+import { ResizeHandleDirective } from '@drevo-web/ui';
 import { filter, map } from 'rxjs/operators';
 
 /**
  * A topic list beside the topic it opens. The list is projected, the panel is
  * this component's own child route: a wide container shows both, a narrow one
  * shows whichever the address names.
+ *
+ * The list pane only gives the list its height: the list scrolls itself, since
+ * a virtual list has to own the element it scrolls.
  */
 @Component({
     selector: 'app-topic-panes',
-    imports: [ResizeHandleDirective, RouterOutlet, ScrollbarDirective, TopicPlaceholderComponent],
+    imports: [ResizeHandleDirective, RouterOutlet, TopicPlaceholderComponent],
     templateUrl: './topic-panes.component.html',
     styleUrl: './topic-panes.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

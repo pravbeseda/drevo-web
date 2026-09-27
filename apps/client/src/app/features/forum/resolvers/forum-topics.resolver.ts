@@ -1,5 +1,5 @@
 import { ForumService } from '../../../services/forum/forum.service';
-import { readForumPage, readForumSectionParams } from '../../../shared/helpers/forum-route-params';
+import { readForumSectionParams } from '../../../shared/helpers/forum-route-params';
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
@@ -15,12 +15,16 @@ const UNKNOWN_PART_STATUS = 400;
 export type ForumTopicsResolveResult = ForumTopicListResponse | 'not-found' | 'load-error';
 
 /**
- * Pure function for resolving a page of forum topics from route params.
+ * Pure function for resolving the first page of forum topics from route params.
  * Extracted for testability without injection context.
  *
  * `/forum` names no section and means every one; an address naming one the
  * readers refuse is not that page. `readForumSectionParams` is shared with the
  * page, which pages through the same section.
+ *
+ * A `?page` in the address is ignored: the list loads the following pages as
+ * the reader scrolls, and one started further on could never reach its first
+ * topics.
  */
 export function resolveForumTopics(
     forumService: ForumService,
@@ -32,9 +36,7 @@ export function resolveForumTopics(
         return of('not-found' as const);
     }
 
-    const page = readForumPage(route);
-
-    return forumService.getTopics(section.part, section.partId, page).pipe(
+    return forumService.getTopics(section.part, section.partId).pipe(
         catchError((error: unknown) => {
             // A section that does not exist is a stale link, not a fault, so it
             // is answered without a log entry. Anything else is reported:

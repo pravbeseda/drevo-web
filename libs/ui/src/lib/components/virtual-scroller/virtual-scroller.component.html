@@ -1,8 +1,14 @@
-<cdk-virtual-scroll-viewport class="virtual-scroller-viewport">
+<cdk-virtual-scroll-viewport
+    class="virtual-scroller-viewport"
+    role="list"
+>
     @if (itemTemplate(); as template) {
         <div
             *cdkVirtualFor="let item of items(); let i = index; trackBy: trackByFn()"
             class="virtual-scroller-item"
+            role="listitem"
+            [attr.aria-posinset]="i + 1"
+            [attr.aria-setsize]="setSize()"
         >
             <ng-container
                 [ngTemplateOutlet]="template"
@@ -11,19 +17,23 @@
         </div>
     } @else {
         <div
-            *cdkVirtualFor="let item of items(); trackBy: trackByFn()"
+            *cdkVirtualFor="let item of items(); let i = index; trackBy: trackByFn()"
             class="virtual-scroller-item virtual-scroller-item--default"
+            role="listitem"
+            [attr.aria-posinset]="i + 1"
+            [attr.aria-setsize]="setSize()"
         >
             {{ item }}
         </div>
     }
-
-    @if (showLoadingIndicator()) {
-        <div class="virtual-scroller-loading">
-            <ui-spinner
-                [diameter]="24"
-                [strokeWidth]="3"
-            />
-        </div>
-    }
 </cdk-virtual-scroll-viewport>
+
+@if (showLoadingIndicator()) {
+    <div class="virtual-scroller-loading">
+        <ui-spinner
+            [diameter]="24"
+            [strokeWidth]="3"
+        />
+    </div>
+}
+<ng-content />
