@@ -11,7 +11,8 @@
                     routerLinkActive
                     #rla="routerLinkActive"
                     [routerLinkActiveOptions]="{ exact: !!tab.exactRouteMatch }"
-                    [class.tab-link--active]="tab.isActive ? tab.isActive() : rla.isActive"
+                    [class.tab-link--active]="isCurrent(tab, rla.isActive)"
+                    [attr.aria-current]="isCurrent(tab, rla.isActive) ? 'page' : null"
                     [attr.aria-label]="tab.label"
                     [attr.data-testid]="tab.testId ?? null"
                 >

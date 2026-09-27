@@ -1,4 +1,5 @@
-import { provideRouter } from '@angular/router';
+import { signal } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { IconComponent } from '../icon/icon.component';
 import { TabGroup, TabsGroupComponent } from './tabs-group.component';
@@ -120,5 +121,29 @@ describe('TabsGroupComponent', () => {
     it('should not render data-testid when testId is not provided', () => {
         const link = spectator.query('.tab-link');
         expect(link).not.toHaveAttribute('data-testid');
+    });
+
+    it('should mark the tab the router shows as the current page', async () => {
+        await spectator.inject(Router).navigateByUrl('/articles/1/news');
+        spectator.detectChanges();
+
+        const links = spectator.queryAll('.tab-link');
+        expect(links[1]).toHaveAttribute('aria-current', 'page');
+        expect(links[0]).not.toHaveAttribute('aria-current');
+    });
+
+    it('should let isActive decide which tab is the current page', () => {
+        spectator.setInput('groups', [
+            {
+                items: [
+                    { label: 'On', route: '/on', icon: 'article', isActive: signal(true) },
+                    { label: 'Off', route: '/off', icon: 'article', isActive: signal(false) },
+                ],
+            },
+        ]);
+
+        const links = spectator.queryAll('.tab-link');
+        expect(links[0]).toHaveAttribute('aria-current', 'page');
+        expect(links[1]).not.toHaveAttribute('aria-current');
     });
 });

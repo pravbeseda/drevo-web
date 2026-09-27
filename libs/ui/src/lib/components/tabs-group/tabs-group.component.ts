@@ -27,4 +27,8 @@ export interface TabGroup {
 })
 export class TabsGroupComponent {
     readonly groups = input.required<TabGroup[]>();
+
+    protected isCurrent(tab: TabGroupItem, routerActive: boolean): boolean {
+        return tab.isActive ? tab.isActive() : routerActive;
+    }
 }
