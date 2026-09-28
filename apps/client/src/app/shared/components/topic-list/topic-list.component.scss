@@ -22,7 +22,7 @@
 .topic-list__link {
     display: flex;
     align-items: center;
-    gap: $forum-avatar-gap;
+    gap: $forum-topic-avatar-gap;
     padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
     color: var(--themed-text-secondary);
     font-size: $font-size-sm;
@@ -68,7 +68,7 @@
     min-width: 0;
     overflow: hidden;
     color: var(--themed-text-primary);
-    font-size: $root-font-size;
+    font-size: $font-size-base;
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;

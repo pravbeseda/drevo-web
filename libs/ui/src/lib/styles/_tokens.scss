@@ -33,6 +33,7 @@ $z-app-blocker: 1000;
 $font-size-xs: 0.75rem;
 $font-size-sm: 0.85rem;
 $font-size-md: 0.9rem;
+$font-size-base: 1rem;
 $font-size-lg: 1.1rem;
 $brand-font-size: 18px;
 
@@ -101,7 +102,8 @@ $forum-feed-pattern-dot: 1.2px;
 $forum-message-gap: 2px;
 $forum-series-gap: 8px;
 $forum-avatar-gap: 8px;
-$forum-topic-text-inset: $forum-topic-row-padding-h + $avatar-size-md + $forum-avatar-gap;
+$forum-topic-avatar-gap: 12px;
+$forum-topic-text-inset: $forum-topic-row-padding-h + $avatar-size-md + $forum-topic-avatar-gap;
 $forum-bubble-max-width: 560px;
 $forum-bubble-max-share: 85%;
 $forum-bubble-radius: 14px;
