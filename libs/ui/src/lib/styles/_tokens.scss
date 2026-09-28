@@ -81,6 +81,10 @@ $scrollbar-reach: 4px;
 // Resize handle
 $resize-handle-reach: 6px;
 
+// Editor — the auto-height mode, which grows with its text between the two
+$editor-auto-height-min: 80px;
+$editor-auto-height-max: 40vh;
+
 // Avatar
 $avatar-size-sm: 26px;
 $avatar-size-md: 34px;
@@ -118,6 +122,7 @@ $forum-quote-padding-v: 3px;
 $forum-quote-padding-h: 8px;
 $forum-day-padding-v: 2px;
 $forum-day-padding-h: 10px;
+$forum-composer-gap: 8px;
 
 // Below this the topic panel beside the list leaves a message bubble too narrow
 // to read — so the panes stack instead.

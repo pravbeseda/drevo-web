@@ -1,4 +1,6 @@
 import { ForumService } from '../../../../../../services/forum/forum.service';
+import { NEW_TOPIC_TARGET, NewTopicTarget } from '../../../../../../shared/components/new-topic-page/new-topic-target';
+import { SidebarActionComponent } from '../../../../../../shared/components/sidebar-action/sidebar-action.component';
 import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
 import { TopicPanesComponent } from '../../../../../../shared/components/topic-panes/topic-panes.component';
 import {
@@ -21,11 +23,15 @@ type TopicsResult = ForumTopicListResponse | 'load-error';
 
 @Component({
     selector: 'app-article-forum-tab',
-    imports: [SpinnerComponent, TopicListComponent, TopicPanesComponent],
+    imports: [SidebarActionComponent, SpinnerComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './article-forum-tab.component.html',
     styleUrl: './article-forum-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [TopicListPagesService],
+    providers: [
+        TopicListPagesService,
+        // The form opens in this tab's panel, so the topic it starts is one about the article.
+        { provide: NEW_TOPIC_TARGET, useFactory: () => inject(ArticleForumTabComponent).newTopicTarget },
+    ],
 })
 export class ArticleForumTabComponent {
     private readonly forumService = inject(ForumService);
@@ -37,6 +43,17 @@ export class ArticleForumTabComponent {
 
     readonly isLoaded = computed(() => typeof this._firstPage() === 'object');
     readonly isLoadError = computed(() => this._firstPage() === 'load-error');
+
+    readonly newTopicTarget = computed<NewTopicTarget>(() => ({
+        part: ARTICLE_SECTION,
+        partId: this.pageService.articleId(),
+    }));
+
+    /** The sidebar renders outside this route, so the link is absolute. */
+    readonly newTopicLink = computed(() => {
+        const articleId = this.pageService.articleId();
+        return articleId === undefined ? undefined : `/articles/${articleId}/forum/new`;
+    });
 
     /** The article is read when the page is asked for: a list of the previous one is gone by then. */
     private readonly fetchPage: TopicPageFetch = page =>

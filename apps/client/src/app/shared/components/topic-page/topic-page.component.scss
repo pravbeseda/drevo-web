@@ -62,3 +62,9 @@
     font-size: $font-size-xs;
     font-weight: 500;
 }
+
+/* Stays in reach while the reader scrolls the feed. */
+.topic-page__composer {
+    position: sticky;
+    bottom: 0;
+}

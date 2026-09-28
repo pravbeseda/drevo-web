@@ -7,6 +7,13 @@ export class ForumTopicPage extends BasePage {
     readonly replyTo = this.page.getByTestId('message-reply-to');
     readonly notFound = this.page.getByTestId('topic-not-found');
     readonly loadError = this.page.getByTestId('topic-load-error');
+    readonly composerText = this.page.getByTestId('composer-editor').locator('.cm-content');
+    readonly send = this.page.getByTestId('composer-send');
+    readonly replyChip = this.page.getByTestId('composer-reply');
+    readonly replyChipAuthor = this.page.getByTestId('composer-reply-author');
+    readonly cancelReply = this.page.getByTestId('composer-reply-cancel');
+    readonly composerError = this.page.getByTestId('composer-error');
+    readonly composerPending = this.page.getByTestId('composer-pending');
 
     /** The heading carries the resolved topic, so it is absent until the data is. */
     async waitForReady(): Promise<void> {
@@ -40,5 +47,28 @@ export class ForumTopicPage extends BasePage {
                 scroller.scrollTop = to === 'top' ? 0 : scroller.scrollHeight;
             }
         }, end);
+    }
+
+    /** The ↩ of a card, which shows on hover. */
+    async answer(id: number): Promise<void> {
+        await this.message(id).hover();
+        await this.message(id).getByTestId('message-reply').click();
+    }
+
+    /** «Цитировать» from the ⋯ menu of a card. */
+    async quote(id: number): Promise<void> {
+        await this.message(id).hover();
+        await this.message(id).getByTestId('message-more').click();
+        await this.page.getByTestId('message-quote').click();
+    }
+
+    async write(text: string): Promise<void> {
+        await this.composerText.click();
+        await this.page.keyboard.type(text);
+    }
+
+    /** Ctrl+Enter, ⌘+Enter on a Mac. */
+    async sendByShortcut(): Promise<void> {
+        await this.page.keyboard.press('ControlOrMeta+Enter');
     }
 }

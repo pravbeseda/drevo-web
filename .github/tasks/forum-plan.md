@@ -171,32 +171,39 @@ Behaviour:
 - Edit rule as today (`PostsController.php:237`): own message, within 24 h,
   no replies — or `moder`.
 
-Contract:
+Contract — what shipped in pravbeseda/drevo-yii#300; edit, quote and preview
+are not built yet:
 
 ```
-POST  /api/forum/topics                   {part, partId?, title, text} → topic
-POST  /api/forum/topics/<id>/messages     {parentId?, text}           → message
-PATCH /api/forum/messages/<id>            {title?, text}              → message
-GET   /api/forum/messages/<id>/quote      → {title, text}   # prefilled reply
-POST  /api/forum/preview                  {text}            → {html}
+POST  /api/forum/topics                   {part, partId?, title, text} → {topicId, message, approved}
+POST  /api/forum/topics/<id>/messages     {text, parentId?}           → {message, approved}
 ```
 
-All require auth; `readonly` is refused with 403 as in `accessRules()`.
-Validation failures answer 400 `VALIDATION_ERROR` with the field errors in
-`data`, the shape of `ArticlesApiController::actionSave`.
+Both need the `user` role (403 otherwise). A post held for a moderator is a
+success with `approved: false`. Validation failures answer 400
+`VALIDATION_ERROR`, the field errors in `data.errors` keyed by the request's
+field names.
 
 ### Front
 
-- Reply form at the bottom of the topic page: `lib-editor` compact (short
-  toolbar, autosize), «Текст | Превью» tabs, preview through the API.
-  «Ответить» on a card fetches the quote and inserts it into the form.
-- `/forum/:part/new` (and from the article tab, with `partId`) for a new
-  topic. Editing is inline in the card, same editor, shown only when the API
-  says the message is editable (`message.editable`, added to the DTO here).
-- On success: the new message is appended, the URL moves to its deep link,
-  the form clears; `NotificationService` on error.
-- Playwright: post a reply against the mocked API and see it appended; open
-  the preview tab; create a topic from an article tab.
+Built in #399 ([`399-forum-posting.md`](399-forum-posting.md) holds the decisions):
+
+- Reply form (`app-forum-composer`) sticky at the bottom of the topic page:
+  `lib-editor` without a toolbar in its `autoHeight` mode, Ctrl/⌘+Enter sends.
+  Each card has a hover toolbar — ↩ answers the message, ⋯ offers «Цитировать»
+  (the message as `> ` lines, built from its HTML) and «Ссылка на сообщение»;
+  a tap on the card reveals it on a touch screen. The answered message shows as
+  a chip above the field.
+- New topic: the `new` child route beside `topic/:id` (`/forum/new`,
+  `/forum/:part/new`, `/articles/:id/forum/new`), opened by a primary sidebar
+  action (the FAB on a phone). The list provides `NEW_TOPIC_TARGET` — the
+  section, or none in «Все темы», where the form asks — and reloads once the
+  topic exists.
+- After a reply: appended and scrolled to when the feed reaches the last page,
+  otherwise the topic opens on the message's deep link. `approved: false`
+  shows a moderation notice instead; a refusal shows under its field.
+- Not yet: preview (needs the endpoint), inline editing, link-status checks in
+  the forum editor.
 
 ## Slice 3 — moderate, subscribe, read position
 

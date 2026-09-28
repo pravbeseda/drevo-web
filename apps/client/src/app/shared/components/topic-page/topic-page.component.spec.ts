@@ -2,8 +2,11 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../testing/route-testing.helper';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
+import { ForumComposerComponent } from '../forum-composer/forum-composer.component';
+import { MessageCardComponent } from '../message-card/message-card.component';
 import { TopicPageComponent } from './topic-page.component';
-import { ActivatedRoute, Router, provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { ActivatedRoute, Router, UrlSegment, provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumMessage, ForumTopic, ForumTopicPage, User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
@@ -46,7 +49,7 @@ function createTopicPage(
 
 describe('TopicPageComponent', () => {
     let spectator: Spectator<TopicPageComponent>;
-    let forumService: { getTopic: jest.Mock };
+    let forumService: { getTopic: jest.Mock; reply: jest.Mock };
     let routeData: BehaviorSubject<{ topic: ForumTopicResolveResult }>;
     let user: BehaviorSubject<User | undefined>;
     let scrolled: Element[];
@@ -59,7 +62,7 @@ describe('TopicPageComponent', () => {
     });
 
     beforeEach(() => {
-        forumService = { getTopic: jest.fn() };
+        forumService = { getTopic: jest.fn(), reply: jest.fn() };
         user = new BehaviorSubject<User | undefined>(undefined);
         scrolled = [];
         originalScrollIntoView = Element.prototype.scrollIntoView;
@@ -72,7 +75,11 @@ describe('TopicPageComponent', () => {
         Element.prototype.scrollIntoView = originalScrollIntoView;
     });
 
-    const render = (result: ForumTopicResolveResult, params: Record<string, string> = { id: '42' }): void => {
+    const render = (
+        result: ForumTopicResolveResult,
+        params: Record<string, string> = { id: '42' },
+        segments?: UrlSegment[],
+    ): void => {
         routeData = new BehaviorSubject({ topic: result });
         spectator = createComponent({
             providers: [
@@ -80,7 +87,7 @@ describe('TopicPageComponent', () => {
                 { provide: AuthService, useValue: { user$: user.asObservable() } },
                 {
                     provide: ActivatedRoute,
-                    useValue: { data: routeData.asObservable(), snapshot: createRouteSnapshot(params) },
+                    useValue: { data: routeData.asObservable(), snapshot: createRouteSnapshot(params, segments) },
                 },
             ],
         });
@@ -361,6 +368,61 @@ describe('TopicPageComponent', () => {
             retry('next');
 
             expect(cardIds()).toEqual(['message-3', 'message-4']);
+        });
+    });
+
+    describe('replying', () => {
+        const composer = (): ForumComposerComponent | null => spectator.query(ForumComposerComponent);
+
+        /** The composer handed on a message the server approved. */
+        const post = (message: ForumMessage): void => {
+            spectator.triggerEventHandler(ForumComposerComponent, 'posted', message);
+            spectator.detectChanges();
+        };
+
+        it('offers the reply form below the messages of the topic', () => {
+            render(createTopicPage([createMessage(1)], 1, 1));
+
+            expect(composer()?.topicId()).toBe(42);
+        });
+
+        it('answers the message whose reply action was chosen', () => {
+            render(createTopicPage([createMessage(1), createMessage(2)], 1, 1));
+
+            const secondCard = spectator.debugElement.queryAll(By.directive(MessageCardComponent))[1];
+            spectator.triggerEventHandler(secondCard, 'reply', undefined);
+
+            expect(composer()?.replyTarget()?.id).toBe(2);
+        });
+
+        it('quotes the message whose quote action was chosen', () => {
+            render(createTopicPage([createMessage(1)], 1, 1));
+
+            spectator.triggerEventHandler(MessageCardComponent, 'quote', undefined);
+
+            expect(composer()?.replyTarget()?.id).toBe(1);
+            expect(composer()?.draft()).toContain('> Сообщение 1');
+        });
+
+        it('appends the new message and scrolls to it when the feed already reaches the end', () => {
+            render(createTopicPage([createMessage(1)], 1, 1));
+            scrolled = [];
+
+            post(createMessage(100));
+
+            expect(cardIds()).toEqual(['message-1', 'message-100']);
+            expect(scrolled.map(element => element.id)).toEqual(['message-100']);
+        });
+
+        it('opens the topic on the new message when pages below are not loaded, rather than leave a gap', () => {
+            const segments = ['forum', 'topic', '42'].map(path => new UrlSegment(path, {}));
+            render(createTopicPage([createMessage(3)], 2, 3), { id: '42' }, segments);
+            const navigate = jest.spyOn(spectator.inject(Router), 'navigate').mockResolvedValue(true);
+
+            post(createMessage(100));
+
+            expect(navigate).toHaveBeenCalledWith(['/', 'forum', 'topic', '42', 100]);
+            expect(cardIds()).toEqual(['message-3']);
         });
     });
 

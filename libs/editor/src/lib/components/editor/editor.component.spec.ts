@@ -38,6 +38,21 @@ describe('EditorComponent', () => {
         expect(createStateSpy).toHaveBeenCalledWith('', []);
     });
 
+    describe('height', () => {
+        it('should fill its container by default', () => {
+            spectator.detectChanges();
+
+            expect(spectator.element).not.toHaveClass('editor--auto-height');
+        });
+
+        it('should grow with its content when autoHeight is set', () => {
+            spectator.setInput('autoHeight', true);
+            spectator.detectChanges();
+
+            expect(spectator.element).toHaveClass('editor--auto-height');
+        });
+    });
+
     describe('toolbar', () => {
         it('should render toolbar by default', () => {
             spectator.detectChanges();

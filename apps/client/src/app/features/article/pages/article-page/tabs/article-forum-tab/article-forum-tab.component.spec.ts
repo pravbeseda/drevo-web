@@ -1,11 +1,12 @@
 import { ArticleForumTabComponent } from './article-forum-tab.component';
 import { ForumService } from '../../../../../../services/forum/forum.service';
+import { NEW_TOPIC_TARGET } from '../../../../../../shared/components/new-topic-page/new-topic-target';
 import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { createMockArticle } from '../../../../testing/article-testing.helper';
 import { computed, signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, SidebarService } from '@drevo-web/core';
 import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ArticleVersion, ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
@@ -198,5 +199,25 @@ describe('ArticleForumTabComponent', () => {
 
         expect(forumService.getTopics).not.toHaveBeenCalled();
         expect(spectator.query('ui-spinner')).toBeTruthy();
+    });
+
+    describe('starting a topic', () => {
+        it('offers a new topic on the article, in the sidebar or as the button of a phone', () => {
+            render();
+
+            const action = spectator
+                .inject(SidebarService)
+                .actions()
+                .find(candidate => candidate.label === 'Новая тема');
+            expect(action).toEqual(
+                expect.objectContaining({ link: `/articles/${ARTICLE_ID}/forum/new`, priority: 'primary' }),
+            );
+        });
+
+        it('binds the topic to the article the page holds', () => {
+            render();
+
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: 'articles', partId: ARTICLE_ID });
+        });
     });
 });

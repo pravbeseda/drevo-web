@@ -51,6 +51,8 @@ export {
     mockForumTopicPagedApi,
     mockForumTopicsPagedApi,
     mockForumTopicNotFound,
+    mockForumCreateTopicApi,
+    mockForumReplyApi,
     mockArticleVersion,
     mockArticleFindFound,
     mockArticleFindMissing,

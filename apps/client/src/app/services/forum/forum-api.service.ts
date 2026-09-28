@@ -1,8 +1,13 @@
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import {
     ApiResponse,
+    ForumCreatedTopicDto,
+    ForumCreateTopicRequestDto,
+    ForumPostedMessageDto,
+    ForumReplyRequestDto,
     ForumSectionDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
@@ -19,8 +24,13 @@ import { map } from 'rxjs/operators';
  * the query would say something the caller did not mean. `size` is never
  * sent — the server's own page size decides, and the response carries it.
  *
+ * A post the forum's rules refuse is a 400 whose field errors the form shows,
+ * so the writes keep that status away from the error toast.
+ *
  * @internal Use ForumService instead
  */
+const VALIDATION_FAILURE_STATUS = 400;
+
 @Injectable({
     providedIn: 'root',
 })
@@ -103,5 +113,43 @@ export class ForumApiService {
                     return response.data;
                 }),
             );
+    }
+
+    /**
+     * Start a topic with its first message.
+     */
+    createTopic(request: ForumCreateTopicRequestDto): Observable<ForumCreatedTopicDto> {
+        return this.http
+            .post<ApiResponse<ForumCreatedTopicDto>>(`${this.apiUrl}/api/forum/topics`, request, {
+                withCredentials: true,
+                context: this.writeContext(),
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Reply in a topic, to one of its messages or to the topic itself.
+     */
+    reply(topicId: number, request: ForumReplyRequestDto): Observable<ForumPostedMessageDto> {
+        return this.http
+            .post<ApiResponse<ForumPostedMessageDto>>(`${this.apiUrl}/api/forum/topics/${topicId}/messages`, request, {
+                withCredentials: true,
+                context: this.writeContext(),
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    private writeContext(): HttpContext {
+        return new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [VALIDATION_FAILURE_STATUS]);
     }
 }

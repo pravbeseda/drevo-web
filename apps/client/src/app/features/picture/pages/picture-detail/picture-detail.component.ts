@@ -1,4 +1,5 @@
 import { AuthService } from '../../../../services/auth/auth.service';
+import { ClipboardService } from '../../../../services/clipboard/clipboard.service';
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PictureService } from '../../../../services/pictures/picture.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
@@ -28,7 +29,7 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { LoggerService, NotificationService, WINDOW } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
 import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
 import { merge, Observable, of, startWith, Subject, switchMap } from 'rxjs';
@@ -62,7 +63,7 @@ export class PictureDetailComponent {
     private readonly confirmationService = inject(ConfirmationService);
     private readonly router = inject(Router);
     private readonly logger = inject(LoggerService).withContext('PictureDetail');
-    private readonly window = inject(WINDOW);
+    private readonly clipboard = inject(ClipboardService);
     private readonly platformId = inject(PLATFORM_ID);
     private readonly destroyRef = inject(DestroyRef);
 
@@ -440,25 +441,16 @@ export class PictureDetailComponent {
         }
 
         const code = `@${pic.id}@`;
-        // lib.dom types `navigator.clipboard` as always present; it is missing
-        // in non-secure contexts.
-        const clipboard: Clipboard | undefined = this.window?.navigator.clipboard;
-        if (!clipboard) {
-            this.logger.warn('Clipboard API unavailable', { id: pic.id });
-            this.notificationService.error(`Не удалось скопировать код ${code}`);
-            return;
-        }
-
-        clipboard
-            .writeText(code)
-            .then(() => {
+        this.clipboard.copy(code).subscribe({
+            complete: () => {
                 this.notificationService.success('Код скопирован');
                 this.logger.info('Insert code copied', { id: pic.id, code });
-            })
-            .catch((error: unknown) => {
+            },
+            error: (error: unknown) => {
                 this.logger.error('Failed to copy insert code', error);
                 this.notificationService.error(`Не удалось скопировать код ${code}`);
-            });
+            },
+        });
     }
 
     private refreshPending(): void {

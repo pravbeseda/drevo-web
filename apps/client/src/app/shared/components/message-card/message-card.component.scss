@@ -108,3 +108,31 @@
         color: var(--themed-forum-bubble-own-meta);
     }
 }
+
+.message-card__actions {
+    display: flex;
+    flex: none;
+    align-self: center;
+    color: var(--themed-text-muted);
+    opacity: 0;
+    transition: opacity 0.15s;
+
+    :host(.message-card--own) & {
+        order: -1;
+    }
+
+    :host(:hover) &,
+    :host(:focus-within) & {
+        opacity: 1;
+    }
+
+    /* Without hover a tap on the bubble is what reveals them, and until then they take no taps. */
+    @media (hover: none) {
+        visibility: hidden;
+
+        :host(.message-card--actions-shown) & {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+}

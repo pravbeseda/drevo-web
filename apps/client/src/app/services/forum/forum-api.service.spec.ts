@@ -2,7 +2,14 @@ import { ForumApiService } from './forum-api.service';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
-import { ForumSectionDto, ForumTopicListResponseDto, ForumTopicPageDto } from '@drevo-web/shared';
+import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
+import {
+    ForumCreatedTopicDto,
+    ForumPostedMessageDto,
+    ForumSectionDto,
+    ForumTopicListResponseDto,
+    ForumTopicPageDto,
+} from '@drevo-web/shared';
 
 describe('ForumApiService', () => {
     let spectator: SpectatorService<ForumApiService>;
@@ -152,6 +159,55 @@ describe('ForumApiService', () => {
 
             const req = httpController.expectOne('/api/forum/topics/42?anchor=99');
             req.flush({ success: true, data: topicPage });
+        });
+    });
+
+    describe('createTopic', () => {
+        const created: ForumCreatedTopicDto = {
+            topicId: 43,
+            message: topicPage.messages.items[0],
+            approved: true,
+        };
+
+        it('should POST the request to /api/forum/topics and unwrap data', () => {
+            let result: ForumCreatedTopicDto | undefined;
+            spectator.service
+                .createTopic({ part: 'articles', partId: 7, title: 'Тема', text: 'Текст' })
+                .subscribe(dto => (result = dto));
+
+            const req = httpController.expectOne('/api/forum/topics');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual({ part: 'articles', partId: 7, title: 'Тема', text: 'Текст' });
+            req.flush({ success: true, data: created });
+
+            expect(result).toEqual(created);
+        });
+
+        it('should leave the validation failure to the caller rather than to the error toast', () => {
+            spectator.service.createTopic({ part: 'common', title: 'Тема', text: 'Текст' }).subscribe();
+
+            const req = httpController.expectOne('/api/forum/topics');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([400]);
+            req.flush({ success: true, data: created });
+        });
+    });
+
+    describe('reply', () => {
+        const posted: ForumPostedMessageDto = { message: topicPage.messages.items[0], approved: false };
+
+        it('should POST the text and the parent to /api/forum/topics/<id>/messages and unwrap data', () => {
+            let result: ForumPostedMessageDto | undefined;
+            spectator.service.reply(42, { text: 'Ответ', parentId: 99 }).subscribe(dto => (result = dto));
+
+            const req = httpController.expectOne('/api/forum/topics/42/messages');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual({ text: 'Ответ', parentId: 99 });
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([400]);
+            req.flush({ success: true, data: posted });
+
+            expect(result).toEqual(posted);
         });
     });
 });

@@ -1,9 +1,11 @@
 import { ForumService } from '../../../../services/forum/forum.service';
+import { NEW_TOPIC_TARGET } from '../../../../shared/components/new-topic-page/new-topic-target';
 import { TopicListComponent } from '../../../../shared/components/topic-list/topic-list.component';
 import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { TopicsPageComponent } from './topics-page.component';
 import { ActivatedRoute, Event, NavigationEnd, Router, provideRouter } from '@angular/router';
+import { SidebarService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumSection, ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
@@ -311,5 +313,37 @@ describe('TopicsPageComponent', () => {
         render(createPage({ items: [], total: 0, page: 1, totalPages: 0 }));
 
         expect(spectator.query('[data-testid="topics-empty"]')).toHaveText('Тем пока нет.');
+    });
+
+    describe('starting a topic', () => {
+        const newTopicAction = () =>
+            spectator
+                .inject(SidebarService)
+                .actions()
+                .find(action => action.label === 'Новая тема');
+
+        it('offers a new topic among every section, the section left to pick', () => {
+            render(createPage());
+
+            expect(newTopicAction()).toEqual(expect.objectContaining({ link: '/forum/new', priority: 'primary' }));
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: undefined, partId: undefined });
+        });
+
+        it('starts the topic in the section the tab shows, and follows the tabs', () => {
+            render(createPage(), { part: 'common' });
+            expect(newTopicAction()?.link).toBe('/forum/common/new');
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: 'common', partId: undefined });
+
+            switchSection('news');
+
+            expect(newTopicAction()?.link).toBe('/forum/news/new');
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)().part).toBe('news');
+        });
+
+        it('offers none on a list without the panel the form opens in', () => {
+            render(createPage(), { part: 'articles', partId: '7' }, { withPanel: false });
+
+            expect(newTopicAction()).toBeUndefined();
+        });
     });
 });

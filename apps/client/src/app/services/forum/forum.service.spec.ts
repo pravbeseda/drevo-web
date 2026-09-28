@@ -1,13 +1,17 @@
 import { ForumApiService } from './forum-api.service';
 import { ForumService } from './forum.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import {
+    ForumCreatedTopic,
+    ForumPostedMessage,
+    ForumPostOutcome,
     ForumSectionDto,
     ForumTopicListItemDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
 } from '@drevo-web/shared';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 describe('ForumService', () => {
     let spectator: SpectatorService<ForumService>;
@@ -246,6 +250,132 @@ describe('ForumService', () => {
                 });
                 done();
             });
+        });
+    });
+
+    describe('posting', () => {
+        const messageDto = {
+            id: 100,
+            parentId: 99,
+            author: { name: 'Иван Иванов', login: 'ivan' },
+            createdAt: '2026-01-03T03:04:05+03:00',
+            html: '<p>Ответ</p>',
+        };
+
+        function validationFailure(body: unknown): HttpErrorResponse {
+            return new HttpErrorResponse({ status: 400, error: body });
+        }
+
+        it('should start a topic, leaving out a partId there is none of, and map what was posted', () => {
+            forumApiService.createTopic.mockReturnValue(of({ topicId: 43, message: messageDto, approved: true }));
+            let outcome: ForumPostOutcome<ForumCreatedTopic> | undefined;
+
+            spectator.service
+                .createTopic({ part: 'common', partId: undefined, title: 'Тема', text: 'Текст' })
+                .subscribe(result => (outcome = result));
+
+            expect(forumApiService.createTopic).toHaveBeenCalledWith({ part: 'common', title: 'Тема', text: 'Текст' });
+            expect(outcome).toEqual({
+                status: 'posted',
+                result: {
+                    topicId: 43,
+                    approved: true,
+                    message: {
+                        id: 100,
+                        parentId: 99,
+                        author: { name: 'Иван Иванов', login: 'ivan' },
+                        createdAt: new Date('2026-01-03T03:04:05+03:00'),
+                        html: '<p>Ответ</p>',
+                    },
+                },
+            });
+        });
+
+        it('should send the partId of a topic bound to an article', () => {
+            forumApiService.createTopic.mockReturnValue(of({ topicId: 43, message: messageDto, approved: false }));
+
+            spectator.service.createTopic({ part: 'articles', partId: 15, title: 'Тема', text: 'Текст' }).subscribe();
+
+            expect(forumApiService.createTopic).toHaveBeenCalledWith({
+                part: 'articles',
+                partId: 15,
+                title: 'Тема',
+                text: 'Текст',
+            });
+        });
+
+        it('should reply to a message and map what was posted', () => {
+            forumApiService.reply.mockReturnValue(of({ message: messageDto, approved: false }));
+            let outcome: ForumPostOutcome<ForumPostedMessage> | undefined;
+
+            spectator.service.reply(42, 'Ответ', 99).subscribe(result => (outcome = result));
+
+            expect(forumApiService.reply).toHaveBeenCalledWith(42, { text: 'Ответ', parentId: 99 });
+            expect(outcome).toEqual(expect.objectContaining({ status: 'posted' }));
+            expect(outcome?.status === 'posted' && outcome.result.approved).toBe(false);
+        });
+
+        it('should reply to the topic itself when no message is answered', () => {
+            forumApiService.reply.mockReturnValue(of({ message: messageDto, approved: true }));
+
+            spectator.service.reply(42, 'Ответ', undefined).subscribe();
+
+            expect(forumApiService.reply).toHaveBeenCalledWith(42, { text: 'Ответ' });
+        });
+
+        it('should turn a validation failure into the first message of each field', () => {
+            forumApiService.reply.mockReturnValue(
+                throwError(() =>
+                    validationFailure({
+                        success: false,
+                        error: 'Излишнее цитирование!',
+                        errorCode: 'VALIDATION_ERROR',
+                        data: {
+                            errors: {
+                                text: ['Излишнее цитирование!', 'Второе'],
+                                title: ['Заполните заголовок'],
+                                f_author: ['Неизвестный автор'],
+                            },
+                        },
+                    }),
+                ),
+            );
+            let outcome: ForumPostOutcome<ForumPostedMessage> | undefined;
+
+            spectator.service.reply(42, '> цитата', 99).subscribe(result => (outcome = result));
+
+            expect(outcome).toEqual({
+                status: 'rejected',
+                errors: { title: 'Заполните заголовок', text: 'Излишнее цитирование!', other: 'Неизвестный автор' },
+            });
+        });
+
+        it('should report a refused request the fields do not explain through its message', () => {
+            forumApiService.createTopic.mockReturnValue(
+                throwError(() =>
+                    validationFailure({ success: false, error: 'Unknown forum section', errorCode: 'INVALID_PART' }),
+                ),
+            );
+            let outcome: ForumPostOutcome<ForumCreatedTopic> | undefined;
+
+            spectator.service
+                .createTopic({ part: 'nope', partId: undefined, title: 'Тема', text: 'Текст' })
+                .subscribe(result => (outcome = result));
+
+            expect(outcome).toEqual({
+                status: 'rejected',
+                errors: { title: undefined, text: undefined, other: 'Unknown forum section' },
+            });
+        });
+
+        it('should pass any other failure on', () => {
+            const failure = new HttpErrorResponse({ status: 403 });
+            forumApiService.reply.mockReturnValue(throwError(() => failure));
+            let error: unknown;
+
+            spectator.service.reply(42, 'Ответ', undefined).subscribe({ error: (err: unknown) => (error = err) });
+
+            expect(error).toBe(failure);
         });
     });
 });

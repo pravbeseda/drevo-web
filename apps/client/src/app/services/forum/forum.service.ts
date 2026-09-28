@@ -1,8 +1,16 @@
 import { ForumApiService } from './forum-api.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { readApiErrorBody } from '@drevo-web/core';
 import {
+    ForumCreatedTopic,
     ForumMessage,
     ForumMessageDto,
+    ForumNewTopic,
+    ForumPostedMessage,
+    ForumPostedMessageDto,
+    ForumPostErrors,
+    ForumPostOutcome,
     ForumSection,
     ForumTopic,
     ForumTopicDto,
@@ -14,8 +22,11 @@ import {
     ForumTopicPageDto,
     parseDate,
 } from '@drevo-web/shared';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
+/** The status the forum answers a post its rules refuse with. */
+const REFUSED_STATUS = 400;
 
 /**
  * Domain service for the forum.
@@ -48,6 +59,79 @@ export class ForumService {
      */
     getTopic(id: number, page?: number, anchor?: number): Observable<ForumTopicPage> {
         return this.forumApiService.getTopic(id, page, anchor).pipe(map(dto => this.mapTopicPage(dto)));
+    }
+
+    /**
+     * Start a topic. A post the forum refuses is an outcome the form shows,
+     * not a failure; anything else still fails the stream.
+     */
+    createTopic(topic: ForumNewTopic): Observable<ForumPostOutcome<ForumCreatedTopic>> {
+        const { partId, ...request } = topic;
+
+        return this.forumApiService.createTopic(partId === undefined ? request : { ...request, partId }).pipe(
+            map(dto => this.posted({ ...this.mapPosted(dto), topicId: dto.topicId })),
+            catchError((error: unknown) => this.refused<ForumCreatedTopic>(error)),
+        );
+    }
+
+    /**
+     * Reply to a message of the topic, or to the topic itself when `parentId`
+     * is absent. Refusals are outcomes, as in `createTopic`.
+     */
+    reply(
+        topicId: number,
+        text: string,
+        parentId: number | undefined,
+    ): Observable<ForumPostOutcome<ForumPostedMessage>> {
+        return this.forumApiService.reply(topicId, parentId === undefined ? { text } : { text, parentId }).pipe(
+            map(dto => this.posted(this.mapPosted(dto))),
+            catchError((error: unknown) => this.refused<ForumPostedMessage>(error)),
+        );
+    }
+
+    private posted<T>(result: T): ForumPostOutcome<T> {
+        return { status: 'posted', result };
+    }
+
+    private refused<T>(error: unknown): Observable<ForumPostOutcome<T>> {
+        if (!(error instanceof HttpErrorResponse) || error.status !== REFUSED_STATUS) {
+            return throwError(() => error);
+        }
+
+        return of({ status: 'rejected', errors: this.mapPostErrors(error) });
+    }
+
+    /**
+     * `data.errors` is keyed by the request's field names, a list of messages
+     * each; a refusal without it — an unknown section, a malformed body — is
+     * explained by its message alone.
+     */
+    private mapPostErrors(response: HttpErrorResponse): ForumPostErrors {
+        const fieldErrors = this.readFieldErrors(response.error);
+        const { title, text, ...others } = fieldErrors;
+        const otherField = Object.values(others).find(message => message !== undefined);
+        const hasFieldErrors = Object.keys(fieldErrors).length > 0;
+
+        return { title, text, other: hasFieldErrors ? otherField : readApiErrorBody(response)?.error };
+    }
+
+    private readFieldErrors(body: unknown): Readonly<Record<string, string | undefined>> {
+        const data: unknown = typeof body === 'object' && body && 'data' in body ? body.data : undefined;
+        const errors: unknown = typeof data === 'object' && data && 'errors' in data ? data.errors : undefined;
+        if (typeof errors !== 'object' || !errors) {
+            return {};
+        }
+
+        return Object.fromEntries(
+            Object.entries(errors).map(([field, messages]: [string, unknown]) => [
+                field,
+                Array.isArray(messages) && typeof messages[0] === 'string' ? messages[0] : undefined,
+            ]),
+        );
+    }
+
+    private mapPosted(dto: ForumPostedMessageDto): ForumPostedMessage {
+        return { message: this.mapMessage(dto.message), approved: dto.approved };
     }
 
     private mapTopicListResponse(response: ForumTopicListResponseDto): ForumTopicListResponse {

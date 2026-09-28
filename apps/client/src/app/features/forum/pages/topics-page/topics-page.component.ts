@@ -1,5 +1,7 @@
 import { ForumService } from '../../../../services/forum/forum.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
+import { NEW_TOPIC_TARGET, NewTopicTarget } from '../../../../shared/components/new-topic-page/new-topic-target';
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { TopicListComponent } from '../../../../shared/components/topic-list/topic-list.component';
 import { TopicPanesComponent } from '../../../../shared/components/topic-panes/topic-panes.component';
 import { readForumSectionParams } from '../../../../shared/helpers/forum-route-params';
@@ -18,11 +20,15 @@ const NO_SECTIONS: readonly ForumSection[] = [];
 
 @Component({
     selector: 'app-topics-page',
-    imports: [ErrorComponent, TopicListComponent, TopicPanesComponent],
+    imports: [ErrorComponent, SidebarActionComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './topics-page.component.html',
     styleUrl: './topics-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [TopicListPagesService],
+    providers: [
+        TopicListPagesService,
+        // The form opens in this list's panel, so it starts the topic in the section the list shows.
+        { provide: NEW_TOPIC_TARGET, useFactory: () => inject(TopicsPageComponent).newTopicTarget },
+    ],
 })
 export class TopicsPageComponent {
     private readonly route = inject(ActivatedRoute);
@@ -60,6 +66,14 @@ export class TopicsPageComponent {
         const part = this.part();
 
         return part ? this.sections().find(section => section.id === part)?.description : undefined;
+    });
+
+    readonly newTopicTarget = computed<NewTopicTarget>(() => ({ part: this.part(), partId: undefined }));
+
+    /** The sidebar renders outside this route, so the link is absolute. */
+    readonly newTopicLink = computed(() => {
+        const part = this.part();
+        return part ? `/forum/${part}/new` : '/forum/new';
     });
 
     private readonly part = toSignal(

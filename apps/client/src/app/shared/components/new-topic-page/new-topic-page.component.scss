@@ -1,0 +1,48 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+.new-topic-page__heading {
+    margin: 0 0 $gap-md;
+    color: var(--themed-text-primary);
+    font-size: $font-size-lg;
+}
+
+.new-topic-page__form,
+.new-topic-page__field {
+    display: flex;
+    flex-direction: column;
+    gap: $forum-composer-gap;
+}
+
+.new-topic-page__form {
+    gap: $gap-md;
+}
+
+.new-topic-page__editor {
+    border: 1px solid var(--themed-border-color);
+    border-radius: $forum-quote-radius;
+    overflow: hidden;
+}
+
+.new-topic-page__error,
+.new-topic-page__pending {
+    margin: 0;
+    font-size: $font-size-sm;
+}
+
+.new-topic-page__error {
+    color: var(--themed-text-error);
+}
+
+.new-topic-page__pending {
+    color: var(--themed-text-secondary);
+}
+
+.new-topic-page__actions {
+    display: flex;
+    justify-content: flex-end;
+}

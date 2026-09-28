@@ -1,5 +1,7 @@
 import {
+    ForumCreatedTopicDto,
     ForumMessageDto,
+    ForumPostedMessageDto,
     ForumSectionDto,
     ForumTopicDto,
     ForumTopicListItemDto,
@@ -130,4 +132,18 @@ export function createForumTopicPageOf(
             totalPages: Math.ceil(messages.length / pageSize),
         },
     };
+}
+
+/** What the server answers a reply with: the message as it was stored, approved unless said otherwise. */
+export function createForumPostedMessageDto(message: ForumMessageDto, approved = true): ForumPostedMessageDto {
+    return { message, approved };
+}
+
+/** What the server answers a new topic with. */
+export function createForumCreatedTopicDto(
+    topicId: number,
+    message: ForumMessageDto,
+    approved = true,
+): ForumCreatedTopicDto {
+    return { topicId, message, approved };
 }

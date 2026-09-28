@@ -2,8 +2,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
-import { Observable, Subject, of } from 'rxjs';
-import { catchError, concatMap, switchMap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject, of } from 'rxjs';
+import { catchError, concatMap, map, switchMap } from 'rxjs/operators';
 
 /**
  * Where the end of the list stands. A failed end waits for the reader's retry:
@@ -25,12 +25,15 @@ export class TopicListPagesService {
     private readonly logger = inject(LoggerService).withContext('TopicListPagesService');
     private readonly resetSubject = new Subject<TopicPageFetch>();
     private readonly nextPageSubject = new Subject<void>();
+    private readonly reloadSubject = new Subject<TopicPageFetch>();
 
     private readonly _items = signal<readonly ForumTopicListItem[]>([]);
     private readonly _total = signal(0);
     private readonly _loadState = signal<TopicListLoadState>('idle');
     private lastPage = 0;
     private totalPages = 0;
+    /** How the list on screen pages; absent while there is no list. */
+    private fetchPage: TopicPageFetch | undefined;
 
     readonly items = this._items.asReadonly();
     readonly total = this._total.asReadonly();
@@ -44,6 +47,21 @@ export class TopicListPagesService {
                 takeUntilDestroyed(),
             )
             .subscribe(response => this.appendPage(response));
+
+        this.reloadSubject
+            .pipe(
+                switchMap(fetchPage =>
+                    fetchPage(1).pipe(
+                        map(firstPage => ({ firstPage, fetchPage })),
+                        catchError((error: unknown) => {
+                            this.logger.error('Failed to reload forum topics', error);
+                            return EMPTY;
+                        }),
+                    ),
+                ),
+                takeUntilDestroyed(),
+            )
+            .subscribe(({ firstPage, fetchPage }) => this.reset(firstPage, fetchPage));
     }
 
     /** Starts over from the first page, or from nothing when there is no list to page through. */
@@ -53,7 +71,15 @@ export class TopicListPagesService {
         this._loadState.set('idle');
         this.lastPage = firstPage?.page ?? 0;
         this.totalPages = firstPage?.totalPages ?? 0;
+        this.fetchPage = firstPage ? fetchPage : undefined;
         this.resetSubject.next(fetchPage);
+    }
+
+    /** Loads the list again from its first page — after the reader started a topic, which heads it. */
+    reload(): void {
+        if (this.fetchPage) {
+            this.reloadSubject.next(this.fetchPage);
+        }
     }
 
     loadMore(): void {

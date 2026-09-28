@@ -5,12 +5,13 @@ import { readForumAnchor } from '../../helpers/forum-route-params';
 import { scrollableAncestor } from '../../helpers/scrollable-ancestor';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { ErrorComponent } from '../error/error.component';
+import { ForumComposerComponent } from '../forum-composer/forum-composer.component';
 import { MessageCardComponent } from '../message-card/message-card.component';
 import { TopicFeedEdgeComponent, TopicFeedEdgeState } from '../topic-feed-edge/topic-feed-edge.component';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ForumMessage, ForumTopicPage } from '@drevo-web/shared';
 import { FormatDatePipe } from '@drevo-web/ui';
@@ -22,13 +23,21 @@ type LoadDirection = 'previous' | 'next';
 
 @Component({
     selector: 'app-topic-page',
-    imports: [ErrorComponent, FormatDatePipe, MessageCardComponent, RouterLink, TopicFeedEdgeComponent],
+    imports: [
+        ErrorComponent,
+        ForumComposerComponent,
+        FormatDatePipe,
+        MessageCardComponent,
+        RouterLink,
+        TopicFeedEdgeComponent,
+    ],
     templateUrl: './topic-page.component.html',
     styleUrl: './topic-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopicPageComponent {
     private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly forumService = inject(ForumService);
     private readonly document = inject(DOCUMENT);
     private readonly injector = inject(Injector);
@@ -94,6 +103,24 @@ export class TopicPageComponent {
 
     onLoadNext(): void {
         this.loadMoreSubject.next('next');
+    }
+
+    /**
+     * A feed that reaches the last page takes the new message at its end. One
+     * that stops short of it opens on the message instead: appended there, it
+     * would sit above pages not loaded yet, and loading them would put it out of order.
+     */
+    onPosted(message: ForumMessage): void {
+        if (this.hasNext()) {
+            void this.router.navigate(['/', ...this._topicPath(), message.id]);
+            return;
+        }
+
+        this._messages.update(messages => [...messages, message]);
+        afterNextRender(
+            () => this.document.getElementById(`message-${message.id}`)?.scrollIntoView({ block: 'nearest' }),
+            { injector: this.injector },
+        );
     }
 
     private applyResolved(result: ForumTopicResolveResult): void {
