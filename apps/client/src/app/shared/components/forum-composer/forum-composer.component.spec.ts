@@ -108,7 +108,7 @@ describe('ForumComposerComponent', () => {
         spectator.detectChanges();
 
         expect(spectator.query('[data-testid="composer-reply-author"]')).toHaveText('Иванов И.И.');
-        expect(spectator.query(EditorComponent)?.content()).toBe('> Первая строка Вторая\n\nУже написано');
+        expect(spectator.query(EditorComponent)?.content()).toBe('> Первая строка\n> Вторая\n\nУже написано');
     });
 
     it('hands an approved message on and starts over', () => {

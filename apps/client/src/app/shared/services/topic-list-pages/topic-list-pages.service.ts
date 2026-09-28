@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
 import { EMPTY, Observable, Subject, of } from 'rxjs';
-import { catchError, concatMap, map, switchMap } from 'rxjs/operators';
+import { catchError, concatMap, map, switchMap, takeUntil } from 'rxjs/operators';
 
 /**
  * Where the end of the list stands. A failed end waits for the reader's retry:
@@ -52,6 +52,8 @@ export class TopicListPagesService {
             .pipe(
                 switchMap(fetchPage =>
                     fetchPage(1).pipe(
+                        // A list reset in the meantime — the reader moved on — is not this reload's to overwrite.
+                        takeUntil(this.resetSubject),
                         map(firstPage => ({ firstPage, fetchPage })),
                         catchError((error: unknown) => {
                             this.logger.error('Failed to reload forum topics', error);

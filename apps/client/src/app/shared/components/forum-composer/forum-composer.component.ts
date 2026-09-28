@@ -1,7 +1,7 @@
 import { ForumService } from '../../../services/forum/forum.service';
 import { forumEditorExtensions } from '../../helpers/forum-editor-extensions';
 import { quoteForumText } from '../../helpers/forum-quote';
-import { htmlToText } from '../../helpers/html-to-text';
+import { htmlToLines } from '../../helpers/html-to-text';
 import { messageExcerpt } from '../../helpers/message-excerpt';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
@@ -59,7 +59,7 @@ export class ForumComposerComponent {
     }
 
     quote(message: ForumMessage): void {
-        const quoted = quoteForumText(htmlToText(message.html, this.document));
+        const quoted = quoteForumText(htmlToLines(message.html, this.document));
         this._replyTarget.set(message);
         this._draft.update(draft => `${quoted}\n\n${draft}`);
     }

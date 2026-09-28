@@ -368,8 +368,22 @@ describe('ForumService', () => {
             });
         });
 
+        it('should explain a refusal of a restricted account under the form', () => {
+            forumApiService.reply.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 403, error: { errorCode: 'FORBIDDEN' } })),
+            );
+            let outcome: ForumPostOutcome<ForumPostedMessage> | undefined;
+
+            spectator.service.reply(42, 'Ответ', undefined).subscribe(result => (outcome = result));
+
+            expect(outcome).toEqual({
+                status: 'rejected',
+                errors: { title: undefined, text: undefined, other: 'Ваш аккаунт ограничен: писать на форуме нельзя.' },
+            });
+        });
+
         it('should pass any other failure on', () => {
-            const failure = new HttpErrorResponse({ status: 403 });
+            const failure = new HttpErrorResponse({ status: 500 });
             forumApiService.reply.mockReturnValue(throwError(() => failure));
             let error: unknown;
 

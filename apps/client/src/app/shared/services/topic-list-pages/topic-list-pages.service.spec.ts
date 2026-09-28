@@ -172,6 +172,18 @@ describe('TopicListPagesService', () => {
             expect(logger.error).toHaveBeenCalled();
         });
 
+        it('drops a reload that a new list replaced before it arrived', () => {
+            spectator.service.reset(createPage(1, [1]), fetchPage);
+            const slowReload = new Subject<ForumTopicListResponse>();
+            fetchPage.mockReturnValue(slowReload);
+            spectator.service.reload();
+
+            spectator.service.reset(createPage(1, [5]), jest.fn());
+            slowReload.next(createPage(1, [9, 1]));
+
+            expect(ids()).toEqual([5]);
+        });
+
         it('does nothing before there is a list', () => {
             spectator.service.reload();
 

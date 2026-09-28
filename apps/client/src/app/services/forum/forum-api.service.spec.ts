@@ -184,11 +184,11 @@ describe('ForumApiService', () => {
             expect(result).toEqual(created);
         });
 
-        it('should leave the validation failure to the caller rather than to the error toast', () => {
+        it('should leave a refused post to the caller rather than to the error toast', () => {
             spectator.service.createTopic({ part: 'common', title: 'Тема', text: 'Текст' }).subscribe();
 
             const req = httpController.expectOne('/api/forum/topics');
-            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([400]);
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([400, 403]);
             req.flush({ success: true, data: created });
         });
     });
@@ -204,7 +204,7 @@ describe('ForumApiService', () => {
             expect(req.request.method).toBe('POST');
             expect(req.request.withCredentials).toBe(true);
             expect(req.request.body).toEqual({ text: 'Ответ', parentId: 99 });
-            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([400]);
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([400, 403]);
             req.flush({ success: true, data: posted });
 
             expect(result).toEqual(posted);

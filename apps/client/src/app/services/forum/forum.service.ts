@@ -27,6 +27,9 @@ import { catchError, map } from 'rxjs/operators';
 
 /** The status the forum answers a post its rules refuse with. */
 const REFUSED_STATUS = 400;
+/** The status a `readonly` — banned — account is refused any post with. */
+const FORBIDDEN_STATUS = 403;
+const FORBIDDEN_MESSAGE = 'Ваш аккаунт ограничен: писать на форуме нельзя.';
 
 /**
  * Domain service for the forum.
@@ -94,7 +97,13 @@ export class ForumService {
     }
 
     private refused<T>(error: unknown): Observable<ForumPostOutcome<T>> {
-        if (!(error instanceof HttpErrorResponse) || error.status !== REFUSED_STATUS) {
+        if (!(error instanceof HttpErrorResponse)) {
+            return throwError(() => error);
+        }
+        if (error.status === FORBIDDEN_STATUS) {
+            return of({ status: 'rejected', errors: { title: undefined, text: undefined, other: FORBIDDEN_MESSAGE } });
+        }
+        if (error.status !== REFUSED_STATUS) {
             return throwError(() => error);
         }
 

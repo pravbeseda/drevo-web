@@ -16,6 +16,9 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+const VALIDATION_FAILURE_STATUS = 400;
+const FORBIDDEN_STATUS = 403;
+
 /**
  * Low-level API service for forum-related HTTP requests.
  *
@@ -24,13 +27,12 @@ import { map } from 'rxjs/operators';
  * the query would say something the caller did not mean. `size` is never
  * sent — the server's own page size decides, and the response carries it.
  *
- * A post the forum's rules refuse is a 400 whose field errors the form shows,
- * so the writes keep that status away from the error toast.
+ * A post the forum's rules refuse (400) or a restricted account may not make
+ * (403) is explained under the form, so the writes keep both statuses away
+ * from the error toast.
  *
  * @internal Use ForumService instead
  */
-const VALIDATION_FAILURE_STATUS = 400;
-
 @Injectable({
     providedIn: 'root',
 })
@@ -150,6 +152,6 @@ export class ForumApiService {
     }
 
     private writeContext(): HttpContext {
-        return new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [VALIDATION_FAILURE_STATUS]);
+        return new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [VALIDATION_FAILURE_STATUS, FORBIDDEN_STATUS]);
     }
 }
