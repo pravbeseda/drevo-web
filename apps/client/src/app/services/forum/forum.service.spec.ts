@@ -382,6 +382,26 @@ describe('ForumService', () => {
             });
         });
 
+        it('should not take a 403 of another cause for a restricted account', () => {
+            forumApiService.reply.mockReturnValue(
+                throwError(
+                    () => new HttpErrorResponse({ status: 403, error: { errorCode: 'CSRF_VALIDATION_FAILED' } }),
+                ),
+            );
+            let outcome: ForumPostOutcome<ForumPostedMessage> | undefined;
+
+            spectator.service.reply(42, 'Ответ', undefined).subscribe(result => (outcome = result));
+
+            expect(outcome).toEqual({
+                status: 'rejected',
+                errors: {
+                    title: undefined,
+                    text: undefined,
+                    other: 'Не удалось отправить. Обновите страницу и попробуйте снова.',
+                },
+            });
+        });
+
         it('should pass any other failure on', () => {
             const failure = new HttpErrorResponse({ status: 500 });
             forumApiService.reply.mockReturnValue(throwError(() => failure));

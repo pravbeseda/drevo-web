@@ -27,9 +27,16 @@ import { catchError, map } from 'rxjs/operators';
 
 /** The status the forum answers a post its rules refuse with. */
 const REFUSED_STATUS = 400;
-/** The status a `readonly` — banned — account is refused any post with. */
+/**
+ * The status of a post refused before the forum's rules — the toast stays
+ * silent for it, so every cause gets a message under the form.
+ */
 const FORBIDDEN_STATUS = 403;
-const FORBIDDEN_MESSAGE = 'Ваш аккаунт ограничен: писать на форуме нельзя.';
+/** The code `requireRole` answers a `readonly` — banned — account with. */
+const RESTRICTED_ACCOUNT_CODE = 'FORBIDDEN';
+const RESTRICTED_ACCOUNT_MESSAGE = 'Ваш аккаунт ограничен: писать на форуме нельзя.';
+/** Any other 403 — a CSRF token the interceptor's retry could not renew, say. */
+const FORBIDDEN_MESSAGE = 'Не удалось отправить. Обновите страницу и попробуйте снова.';
 
 /**
  * Domain service for the forum.
@@ -101,7 +108,9 @@ export class ForumService {
             return throwError(() => error);
         }
         if (error.status === FORBIDDEN_STATUS) {
-            return of({ status: 'rejected', errors: { title: undefined, text: undefined, other: FORBIDDEN_MESSAGE } });
+            const restricted = readApiErrorBody(error)?.errorCode === RESTRICTED_ACCOUNT_CODE;
+            const other = restricted ? RESTRICTED_ACCOUNT_MESSAGE : FORBIDDEN_MESSAGE;
+            return of({ status: 'rejected', errors: { title: undefined, text: undefined, other } });
         }
         if (error.status !== REFUSED_STATUS) {
             return throwError(() => error);
