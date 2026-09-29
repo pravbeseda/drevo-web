@@ -10,9 +10,8 @@ export class ForumNewTopicPage extends BasePage {
     readonly text = this.page.getByTestId('new-topic-text').locator('.cm-content');
     readonly editor = this.page.getByTestId('new-topic-text');
     readonly gutter = this.editor.locator('.cm-gutters');
-    readonly submit = this.sidebarAction('new-topic-submit');
-    readonly cancel = this.sidebarAction('new-topic-cancel');
-    readonly discard = this.page.getByTestId('confirmation-dialog-confirm');
+    readonly actions = this.page.getByTestId('new-topic-actions');
+    readonly submit = this.page.getByTestId('forum-send');
     readonly titleError = this.page.getByTestId('new-topic-title-error');
     readonly pending = this.page.getByTestId('new-topic-pending');
 

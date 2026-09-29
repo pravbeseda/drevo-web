@@ -53,29 +53,9 @@
     </p>
 }
 
-<div
-    class="forum-composer__actions"
+<app-forum-send-bar
     data-testid="composer-actions"
->
-    <ui-button
-        variant="text"
-        testId="composer-attach"
-        [disabled]="true"
-    >
-        <ui-icon
-            name="attach_file"
-            size="small"
-        />
-        Прикрепить
-    </ui-button>
-    <ui-button
-        variant="filled"
-        accent="primary"
-        testId="composer-send"
-        [disabled]="!canSend()"
-        [loading]="sending()"
-        (click)="send()"
-    >
-        Отправить
-    </ui-button>
-</div>
+    [disabled]="!canSend()"
+    [loading]="sending()"
+    (send)="send()"
+/>

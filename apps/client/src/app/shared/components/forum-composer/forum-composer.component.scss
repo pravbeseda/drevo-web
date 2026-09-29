@@ -54,10 +54,3 @@
 .forum-composer__pending {
     color: var(--themed-text-secondary);
 }
-
-.forum-composer__actions {
-    display: flex;
-    justify-content: space-between;
-    padding: $forum-feed-padding-v $forum-feed-padding-h;
-    border-top: 1px solid var(--themed-divider-color);
-}

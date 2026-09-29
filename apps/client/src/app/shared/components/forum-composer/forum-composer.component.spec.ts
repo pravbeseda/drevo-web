@@ -36,7 +36,7 @@ describe('ForumComposerComponent', () => {
     const type = (text: string): void => {
         spectator.triggerEventHandler(EditorComponent, 'contentChanged', text);
     };
-    const sendButton = (): HTMLButtonElement | null => spectator.query('[data-testid="composer-send"]');
+    const sendButton = (): HTMLButtonElement | null => spectator.query('[data-testid="forum-send"]');
 
     beforeEach(() => {
         spectator = createComponent({ props: { topicId: 42 } });
@@ -49,10 +49,6 @@ describe('ForumComposerComponent', () => {
         expect(editor?.autoHeight()).toBe(true);
         expect(editor?.showToolbar()).toBe(false);
         expect(editor?.frameless()).toBe(true);
-    });
-
-    it('shows attaching, not yet available', () => {
-        expect(spectator.query('[data-testid="composer-attach"]')).toBeDisabled();
     });
 
     it('offers nothing to send until there is text', () => {

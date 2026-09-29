@@ -10,7 +10,7 @@ export class ForumTopicPage extends BasePage {
     readonly composerEditor = this.page.getByTestId('composer-editor');
     readonly composerText = this.composerEditor.locator('.cm-content');
     readonly composerGutter = this.composerEditor.locator('.cm-gutters');
-    readonly send = this.page.getByTestId('composer-send');
+    readonly send = this.page.getByTestId('forum-send');
     readonly replyChip = this.page.getByTestId('composer-reply');
     readonly replyChipAuthor = this.page.getByTestId('composer-reply-author');
     readonly cancelReply = this.page.getByTestId('composer-reply-cancel');

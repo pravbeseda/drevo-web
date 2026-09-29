@@ -3,13 +3,14 @@ import { forumEditorExtensions } from '../../helpers/forum-editor-extensions';
 import { quoteForumText } from '../../helpers/forum-quote';
 import { htmlToLines } from '../../helpers/html-to-text';
 import { messageExcerpt } from '../../helpers/message-excerpt';
+import { ForumSendBarComponent } from '../forum-send-bar/forum-send-bar.component';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
-import { ButtonComponent, IconButtonComponent, IconComponent } from '@drevo-web/ui';
+import { IconButtonComponent } from '@drevo-web/ui';
 import { finalize } from 'rxjs/operators';
 
 /**
@@ -18,7 +19,7 @@ import { finalize } from 'rxjs/operators';
  */
 @Component({
     selector: 'app-forum-composer',
-    imports: [ButtonComponent, EditorComponent, IconButtonComponent, IconComponent],
+    imports: [EditorComponent, ForumSendBarComponent, IconButtonComponent],
     templateUrl: './forum-composer.component.html',
     styleUrl: './forum-composer.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,9 @@
+@use 'index' as *;
+
+:host {
+    display: flex;
+    flex: none;
+    justify-content: space-between;
+    padding: $forum-feed-padding-v $forum-feed-padding-h;
+    border-top: 1px solid var(--themed-divider-color);
+}
