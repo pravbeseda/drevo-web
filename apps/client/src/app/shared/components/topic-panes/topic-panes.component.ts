@@ -34,7 +34,10 @@ export class TopicPanesComponent {
      */
     readonly withPanel = input(true);
 
-    /** Where «new topic» above the list leads; a list that offers none has no such row. */
+    /**
+     * Where «new topic» above the list leads; a list that offers none has no
+     * such row, and neither has a list without the panel the form opens in.
+     */
     readonly newTopicLink = input<string | undefined>(undefined);
 
     /**

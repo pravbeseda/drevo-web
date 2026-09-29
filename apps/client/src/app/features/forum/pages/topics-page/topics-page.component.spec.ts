@@ -316,7 +316,7 @@ describe('TopicsPageComponent', () => {
     });
 
     describe('starting a topic', () => {
-        const newTopicLink = () => spectator.query('[data-testid="forum-new-topic"] a')?.getAttribute('href');
+        const newTopicLink = () => spectator.query('[data-testid="forum-new-topic"]')?.getAttribute('href');
 
         it('offers a new topic above the list, among every section, the section left to pick', () => {
             render(createPage());

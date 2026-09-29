@@ -3,7 +3,7 @@ import { Locator } from '@playwright/test';
 
 export class ForumNewTopicPage extends BasePage {
     /** The button above a topic list — of a forum section or of an article's discussions. */
-    readonly start: Locator = this.page.getByTestId('forum-new-topic').locator('a');
+    readonly start: Locator = this.page.getByTestId('forum-new-topic');
     readonly section = this.page.getByTestId('new-topic-section');
     readonly title = this.page.getByTestId('new-topic-title').locator('input');
     readonly text = this.page.getByTestId('new-topic-text').locator('.cm-content');

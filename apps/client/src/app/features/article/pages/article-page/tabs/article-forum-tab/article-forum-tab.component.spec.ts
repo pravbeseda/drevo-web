@@ -205,7 +205,7 @@ describe('ArticleForumTabComponent', () => {
         it('offers a new topic on the article above its discussions', () => {
             render();
 
-            expect(spectator.query('[data-testid="forum-new-topic"] a')?.getAttribute('href')).toBe(
+            expect(spectator.query('[data-testid="forum-new-topic"]')?.getAttribute('href')).toBe(
                 `/articles/${ARTICLE_ID}/forum/new`,
             );
             expect(spectator.inject(SidebarService).actions()).toEqual([]);

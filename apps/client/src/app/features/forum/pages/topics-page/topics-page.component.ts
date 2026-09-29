@@ -69,11 +69,7 @@ export class TopicsPageComponent {
 
     readonly newTopicTarget = computed<NewTopicTarget>(() => ({ part: this.part(), partId: undefined }));
 
-    /** A list without the panel has nowhere to open the form, so it offers none. */
     readonly newTopicLink = computed(() => {
-        if (!this.withPanel()) {
-            return undefined;
-        }
         const part = this.part();
         return part ? `/forum/${part}/new` : '/forum/new';
     });

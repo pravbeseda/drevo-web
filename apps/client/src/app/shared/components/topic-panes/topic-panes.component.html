@@ -9,13 +9,13 @@
         class="topic-panes__list"
         data-testid="forum-panes-list"
     >
-        @if (newTopicLink(); as link) {
+        @if (withPanel() && newTopicLink(); as link) {
             <div class="topic-panes__toolbar">
                 <ui-button
                     variant="text"
                     accent="primary"
+                    testId="forum-new-topic"
                     [link]="link"
-                    data-testid="forum-new-topic"
                 >
                     <ui-icon
                         name="add"
