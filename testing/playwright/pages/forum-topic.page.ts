@@ -16,6 +16,7 @@ export class ForumTopicPage extends BasePage {
     readonly cancelReply = this.page.getByTestId('composer-reply-cancel');
     readonly composerError = this.page.getByTestId('composer-error');
     readonly composerPending = this.page.getByTestId('composer-pending');
+    readonly composerActions = this.page.getByTestId('composer-actions');
 
     /** The heading carries the resolved topic, so it is absent until the data is. */
     async waitForReady(): Promise<void> {
@@ -77,6 +78,17 @@ export class ForumTopicPage extends BasePage {
                 ? Math.round(editor.getBoundingClientRect().height - content.getBoundingClientRect().height)
                 : Number.NaN;
         });
+    }
+
+    /** Space between the last line of the composer's error and the action bar under it — the text, not its box. */
+    async composerErrorClearance(): Promise<number | undefined> {
+        const actions = await this.composerActions.boundingBox();
+        const textBottom = await this.composerError.evaluate(error => {
+            const range = error.ownerDocument.createRange();
+            range.selectNodeContents(error);
+            return range.getBoundingClientRect().bottom;
+        });
+        return actions ? Math.round(actions.y - textBottom) : undefined;
     }
 
     async write(text: string): Promise<void> {

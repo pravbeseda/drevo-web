@@ -43,7 +43,7 @@
 .forum-composer__error,
 .forum-composer__pending {
     margin: 0;
-    padding: 0 $forum-feed-padding-h;
+    padding: 0 $forum-feed-padding-h $forum-feed-padding-v;
     font-size: $font-size-sm;
 }
 

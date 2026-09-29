@@ -28,6 +28,8 @@ const TOPIC_ID = 7;
 const NEW_TOPIC_ID = 43;
 const NEW_MESSAGE_ID = 100;
 const ARTICLE_ID = 42;
+/** `$forum-feed-padding-v` — the inset that keeps each part of the composer apart. */
+const FEED_INSET_V = 8;
 const TOPIC = createForumTopicDto({ id: TOPIC_ID });
 const MESSAGES = [
     createForumMessageDto({ author: { name: 'Петров П.П.', login: 'petrov' } }, 1),
@@ -132,6 +134,8 @@ test.describe('Forum posting', () => {
 
             await expect(topic.composerError).toHaveText('Излишнее цитирование!');
             await expect(topic.composerText).toHaveText('> цитата');
+            // Kept off the action bar's divider by the feed's inset rather than written onto it.
+            expect(await topic.composerErrorClearance()).toBeGreaterThanOrEqual(FEED_INSET_V);
         });
     });
 
