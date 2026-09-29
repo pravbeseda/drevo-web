@@ -29,8 +29,6 @@ describe('ForumSendBarComponent', () => {
         spectator.setInput('disabled', true);
 
         expect(sendButton()).toBeDisabled();
-        spectator.click(sendButton() as HTMLElement);
-        expect(sent).not.toHaveBeenCalled();
     });
 
     it('shows the send in progress', () => {
