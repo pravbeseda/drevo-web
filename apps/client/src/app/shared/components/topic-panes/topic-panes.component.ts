@@ -2,7 +2,7 @@ import { TopicPlaceholderComponent } from '../topic-placeholder/topic-placeholde
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { ResizeHandleDirective } from '@drevo-web/ui';
+import { ButtonComponent, IconComponent, ResizeHandleDirective } from '@drevo-web/ui';
 import { filter, map } from 'rxjs/operators';
 
 /**
@@ -15,7 +15,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
     selector: 'app-topic-panes',
-    imports: [ResizeHandleDirective, RouterOutlet, TopicPlaceholderComponent],
+    imports: [ButtonComponent, IconComponent, ResizeHandleDirective, RouterOutlet, TopicPlaceholderComponent],
     templateUrl: './topic-panes.component.html',
     styleUrl: './topic-panes.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +33,12 @@ export class TopicPanesComponent {
      * to `/forum/topic/:id`, not to a third address.
      */
     readonly withPanel = input(true);
+
+    /**
+     * Where «new topic» above the list leads; a list that offers none has no
+     * such row, and neither has a list without the panel the form opens in.
+     */
+    readonly newTopicLink = input<string | undefined>(undefined);
 
     /**
      * Whether the topic route under this list is activated. The outlet cannot

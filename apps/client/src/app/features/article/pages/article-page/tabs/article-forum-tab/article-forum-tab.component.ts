@@ -1,6 +1,5 @@
 import { ForumService } from '../../../../../../services/forum/forum.service';
 import { NEW_TOPIC_TARGET, NewTopicTarget } from '../../../../../../shared/components/new-topic-page/new-topic-target';
-import { SidebarActionComponent } from '../../../../../../shared/components/sidebar-action/sidebar-action.component';
 import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
 import { TopicPanesComponent } from '../../../../../../shared/components/topic-panes/topic-panes.component';
 import {
@@ -23,7 +22,7 @@ type TopicsResult = ForumTopicListResponse | 'load-error';
 
 @Component({
     selector: 'app-article-forum-tab',
-    imports: [SidebarActionComponent, SpinnerComponent, TopicListComponent, TopicPanesComponent],
+    imports: [SpinnerComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './article-forum-tab.component.html',
     styleUrl: './article-forum-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,7 +48,6 @@ export class ArticleForumTabComponent {
         partId: this.pageService.articleId(),
     }));
 
-    /** The sidebar renders outside this route, so the link is absolute. */
     readonly newTopicLink = computed(() => {
         const articleId = this.pageService.articleId();
         return articleId === undefined ? undefined : `/articles/${articleId}/forum/new`;

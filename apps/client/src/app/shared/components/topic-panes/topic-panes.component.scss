@@ -19,9 +19,22 @@
 }
 
 .topic-panes__list {
+    display: flex;
     flex: 1;
+    flex-direction: column;
     min-height: 0;
     padding: 0;
+}
+
+.topic-panes__toolbar {
+    flex: none;
+    padding: $forum-list-toolbar-padding;
+    border-bottom: 1px solid var(--themed-divider-color);
+}
+
+.topic-panes__list-body {
+    flex: 1;
+    min-height: 0;
 
     /* Only what is not a list — an error, an empty state — ever overflows the pane. */
     overflow-y: auto;
@@ -71,7 +84,7 @@
     }
 
     .topic-panes--topic-open .topic-panes__list {
-        display: block;
+        display: flex;
     }
 
     .topic-panes--single .topic-panes__list {

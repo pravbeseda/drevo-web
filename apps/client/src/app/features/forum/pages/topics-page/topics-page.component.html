@@ -1,16 +1,7 @@
-@if (withPanel()) {
-    <app-sidebar-action
-        priority="primary"
-        icon="add"
-        label="Новая тема"
-        testId="forum-new-topic"
-        [link]="newTopicLink()"
-    />
-}
-
 <app-topic-panes
     [description]="sectionDescription()"
     [withPanel]="withPanel()"
+    [newTopicLink]="newTopicLink()"
 >
     @if (hasTopicList()) {
         @if (pages.items().length === 0) {
