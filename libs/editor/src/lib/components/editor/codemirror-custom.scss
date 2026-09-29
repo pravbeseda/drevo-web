@@ -1,5 +1,11 @@
 @use 'tokens' as *;
 
+:host(.editor--auto-height) ::ng-deep .cm-editor {
+    height: auto;
+    min-height: $editor-auto-height-min;
+    max-height: $editor-auto-height-max;
+}
+
 :host ::ng-deep {
     .cm-editor {
         height: 100%;

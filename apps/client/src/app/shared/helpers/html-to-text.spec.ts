@@ -1,4 +1,4 @@
-import { htmlToText } from './html-to-text';
+import { htmlToLines, htmlToText } from './html-to-text';
 
 describe('htmlToText', () => {
     it('keeps the text of inline markup and drops the tags', () => {
@@ -23,5 +23,21 @@ describe('htmlToText', () => {
 
     it('collapses the whitespace the markup was formatted with', () => {
         expect(htmlToText('<p>\n    Текст\n    сообщения\n</p>', document)).toBe('Текст сообщения');
+    });
+});
+
+describe('htmlToLines', () => {
+    it('puts each block on a line of its own', () => {
+        expect(
+            htmlToLines('<p>Согласен.</p><blockquote>Цитата</blockquote><ul><li>один</li><li>два</li></ul>', document),
+        ).toBe('Согласен.\nЦитата\nодин\nдва');
+    });
+
+    it('breaks the line where the markup does', () => {
+        expect(htmlToLines('первая<br>вторая', document)).toBe('первая\nвторая');
+    });
+
+    it('keeps the whitespace the markup was formatted with inside the line', () => {
+        expect(htmlToLines('<p>\n    Текст\n    сообщения\n</p>\n<p>Ещё</p>', document)).toBe('Текст сообщения\nЕщё');
     });
 });

@@ -145,4 +145,49 @@ describe('TopicListPagesService', () => {
         expect(spectator.service.total()).toBe(0);
         expect(fetchPage).not.toHaveBeenCalled();
     });
+
+    describe('reload', () => {
+        it('loads the first page again and starts the list over from it — a new topic heads it', () => {
+            spectator.service.reset(createPage(1, [1]), fetchPage);
+            spectator.service.loadMore();
+            fetchPage.mockReturnValue(of(createPage(1, [9, 1])));
+
+            spectator.service.reload();
+
+            expect(fetchPage).toHaveBeenLastCalledWith(1);
+            expect(ids()).toEqual([9, 1]);
+
+            fetchPage.mockReturnValue(of(createPage(2, [2])));
+            spectator.service.loadMore();
+            expect(ids()).toEqual([9, 1, 2]);
+        });
+
+        it('keeps the list it has when the first page fails to load', () => {
+            spectator.service.reset(createPage(1, [1]), fetchPage);
+            fetchPage.mockReturnValue(throwError(() => new Error('offline')));
+
+            spectator.service.reload();
+
+            expect(ids()).toEqual([1]);
+            expect(logger.error).toHaveBeenCalled();
+        });
+
+        it('drops a reload that a new list replaced before it arrived', () => {
+            spectator.service.reset(createPage(1, [1]), fetchPage);
+            const slowReload = new Subject<ForumTopicListResponse>();
+            fetchPage.mockReturnValue(slowReload);
+            spectator.service.reload();
+
+            spectator.service.reset(createPage(1, [5]), jest.fn());
+            slowReload.next(createPage(1, [9, 1]));
+
+            expect(ids()).toEqual([5]);
+        });
+
+        it('does nothing before there is a list', () => {
+            spectator.service.reload();
+
+            expect(fetchPage).not.toHaveBeenCalled();
+        });
+    });
 });

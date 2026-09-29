@@ -77,3 +77,27 @@ export interface ForumTopicPageDto {
     readonly topic: ForumTopicDto;
     readonly messages: ForumMessageListResponseDto;
 }
+
+export interface ForumCreateTopicRequestDto {
+    readonly part: string;
+    /** The article or news item the topic hangs off; left out for a plain section topic. */
+    readonly partId?: number;
+    readonly title: string;
+    readonly text: string;
+}
+
+export interface ForumReplyRequestDto {
+    readonly text: string;
+    /** The answered message; left out to answer the topic itself. */
+    readonly parentId?: number;
+}
+
+export interface ForumPostedMessageDto {
+    readonly message: ForumMessageDto;
+    /** False while the post waits for a moderator. */
+    readonly approved: boolean;
+}
+
+export interface ForumCreatedTopicDto extends ForumPostedMessageDto {
+    readonly topicId: number;
+}

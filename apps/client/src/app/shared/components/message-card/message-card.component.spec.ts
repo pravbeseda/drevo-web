@@ -1,8 +1,12 @@
 import { MessageCardComponent } from './message-card.component';
+import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { provideRouter } from '@angular/router';
+import { NotificationService } from '@drevo-web/core';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumMessage } from '@drevo-web/shared';
 import { avatarNameColor } from '@drevo-web/ui';
-import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
+import { EMPTY, throwError } from 'rxjs';
 
 function createMessage(overrides: Partial<ForumMessage> = {}): ForumMessage {
     return {
@@ -20,7 +24,12 @@ describe('MessageCardComponent', () => {
 
     const createComponent = createComponentFactory({
         component: MessageCardComponent,
-        providers: [provideRouter([])],
+        providers: [
+            provideRouter([]),
+            mockLoggerProvider(),
+            mockProvider(NotificationService),
+            mockProvider(ClipboardService, { copy: jest.fn().mockReturnValue(EMPTY) }),
+        ],
     });
 
     const render = (message: ForumMessage, topicId = 42, anchored = false): void => {
@@ -190,5 +199,78 @@ describe('MessageCardComponent', () => {
         render(createMessage());
 
         expect(spectator.element).not.toHaveClass('message-card--own');
+    });
+
+    describe('actions', () => {
+        function openMenu(): void {
+            spectator.click('[data-testid="message-more"]');
+            spectator.detectChanges();
+        }
+
+        function menuItem(testId: string): HTMLElement {
+            const item = document.querySelector<HTMLElement>(`.cdk-overlay-container [data-testid="${testId}"]`);
+            if (!item) {
+                throw new Error(`No menu item ${testId}`);
+            }
+            return item;
+        }
+
+        beforeEach(() => render(createMessage({ id: 7 })));
+
+        it('answers the message in one click', () => {
+            const replies: unknown[] = [];
+            spectator.output('reply').subscribe(() => replies.push(true));
+
+            spectator.click('[data-testid="message-reply"]');
+
+            expect(replies).toHaveLength(1);
+        });
+
+        it('quotes the message from its menu', () => {
+            const quotes: unknown[] = [];
+            spectator.output('quote').subscribe(() => quotes.push(true));
+
+            openMenu();
+            menuItem('message-quote').click();
+
+            expect(quotes).toHaveLength(1);
+        });
+
+        it('copies the absolute link to the message from its menu', () => {
+            const clipboard = spectator.inject(ClipboardService);
+
+            openMenu();
+            menuItem('message-copy-link').click();
+
+            expect(clipboard.copy).toHaveBeenCalledWith(`${document.location.origin}/forum/topic/42/7`);
+            expect(spectator.inject(NotificationService).success).toHaveBeenCalledWith('Ссылка скопирована');
+        });
+
+        it('says so when the link could not be copied', () => {
+            spectator.inject(ClipboardService).copy.mockReturnValue(throwError(() => new Error('denied')));
+
+            openMenu();
+            menuItem('message-copy-link').click();
+
+            expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('Не удалось скопировать ссылку');
+        });
+
+        it('keeps the actions shown after a tap on the message, for a screen without hover', () => {
+            expect(spectator.element).not.toHaveClass('message-card--actions-shown');
+
+            spectator.click(spectator.element);
+            expect(spectator.element).toHaveClass('message-card--actions-shown');
+
+            spectator.click(spectator.element);
+            expect(spectator.element).not.toHaveClass('message-card--actions-shown');
+        });
+
+        it('keeps the actions shown while one of them is tapped', () => {
+            spectator.click(spectator.element);
+
+            spectator.click('[data-testid="message-reply"]');
+
+            expect(spectator.element).toHaveClass('message-card--actions-shown');
+        });
     });
 });

@@ -60,6 +60,10 @@
     }
 }
 
+:host(.editor--auto-height) {
+    flex: none;
+}
+
 .editor-container {
     display: flex;
     flex: 1;

@@ -1,0 +1,66 @@
+@use 'index' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: $forum-composer-gap;
+    padding: $forum-feed-padding-v $forum-feed-padding-h;
+    border-top: 1px solid var(--themed-border-color);
+    background-color: var(--themed-primary-bg);
+}
+
+/* Drawn like the quote in a message card, which is what the reply turns into. */
+.forum-composer__reply {
+    display: flex;
+    align-items: center;
+    gap: $forum-composer-gap;
+    padding: $forum-quote-padding-v $forum-quote-padding-h;
+    border-left: $forum-quote-bar-width solid var(--themed-link-color);
+    border-radius: $forum-quote-radius;
+    background-color: var(--themed-forum-quote-bg);
+    font-size: $font-size-sm;
+}
+
+.forum-composer__reply-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.forum-composer__reply-author {
+    display: block;
+    color: var(--themed-link-color);
+    font-weight: 600;
+}
+
+.forum-composer__reply-text {
+    display: block;
+    overflow: hidden;
+    color: var(--themed-text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.forum-composer__editor {
+    border: 1px solid var(--themed-border-color);
+    border-radius: $forum-quote-radius;
+    overflow: hidden;
+}
+
+.forum-composer__error,
+.forum-composer__pending {
+    margin: 0;
+    font-size: $font-size-sm;
+}
+
+.forum-composer__error {
+    color: var(--themed-text-error);
+}
+
+.forum-composer__pending {
+    color: var(--themed-text-secondary);
+}
+
+.forum-composer__actions {
+    display: flex;
+    justify-content: flex-end;
+}

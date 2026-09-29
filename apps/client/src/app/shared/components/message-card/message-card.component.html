@@ -52,3 +52,36 @@
         </span>
     }
 </div>
+<div class="message-card__actions">
+    <ui-icon-button
+        icon="reply"
+        label="Ответить"
+        testId="message-reply"
+        (clicked)="reply.emit()"
+    />
+    <ui-icon-button
+        icon="more_horiz"
+        label="Ещё"
+        testId="message-more"
+        [uiDropdownMenuTriggerFor]="menu"
+    />
+</div>
+
+<ng-template #menu>
+    <ui-dropdown-menu>
+        <ui-dropdown-menu-item
+            icon="format_quote"
+            data-testid="message-quote"
+            (clicked)="quote.emit()"
+        >
+            Цитировать
+        </ui-dropdown-menu-item>
+        <ui-dropdown-menu-item
+            icon="link"
+            data-testid="message-copy-link"
+            (clicked)="copyLink()"
+        >
+            Ссылка на сообщение
+        </ui-dropdown-menu-item>
+    </ui-dropdown-menu>
+</ng-template>

@@ -28,6 +28,8 @@ import {
     ArticleVersionDto,
     CalendarYearDto,
     CreateArticleResponseDto,
+    ForumCreatedTopicDto,
+    ForumPostedMessageDto,
     ForumSectionDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
@@ -605,6 +607,42 @@ export async function mockForumTopicPagedApi(
             return value === null ? undefined : Number(value);
         };
         await route.fulfill({ json: apiSuccess(await respond({ page: number('page'), anchor: number('anchor') })) });
+    });
+}
+
+/** The field errors a refused forum post answers with, keyed by the request's field names. */
+export type ForumFieldErrors = Readonly<Record<string, readonly string[]>>;
+
+/** The 400 the backend answers a forum post its rules refuse with. */
+function forumPostRefusal(errors: ForumFieldErrors): object {
+    const first = Object.values(errors)[0]?.[0] ?? 'Validation failed';
+    return { success: false, error: first, errorCode: 'VALIDATION_ERROR', data: { errors } };
+}
+
+/** Mock POST /api/forum/topics — the list endpoint's GET falls through to the list mock. */
+export async function mockForumCreateTopicApi(
+    page: Page,
+    reply: ForumCreatedTopicDto | { readonly refused: ForumFieldErrors },
+): Promise<void> {
+    await page.route(FORUM_TOPICS_LIST_RE, route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return 'refused' in reply
+            ? route.fulfill({ status: 400, json: forumPostRefusal(reply.refused) })
+            : route.fulfill({ json: apiSuccess(reply) });
+    });
+}
+
+/** Mock POST /api/forum/topics/:id/messages */
+export async function mockForumReplyApi(
+    page: Page,
+    topicId: number,
+    reply: ForumPostedMessageDto | { readonly refused: ForumFieldErrors },
+): Promise<void> {
+    await page.route(new RegExp(`/api/forum/topics/${topicId}/messages$`), route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return 'refused' in reply
+            ? route.fulfill({ status: 400, json: forumPostRefusal(reply.refused) })
+            : route.fulfill({ json: apiSuccess(reply) });
     });
 }
 

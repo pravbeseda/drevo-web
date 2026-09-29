@@ -51,4 +51,10 @@ test.describe('Forum topic list', () => {
 
         await expect.poll(titleFontSize).toBeGreaterThan(defaultSize);
     });
+
+    test('sets the topic title in the regular weight', async ({ authenticatedPage: page }) => {
+        const topics = await openForum(page);
+
+        await expect(topics.title(TOPIC_TITLE)).toHaveCSS('font-weight', '400');
+    });
 });

@@ -1,20 +1,40 @@
-import { htmlToText } from '../../helpers/html-to-text';
+import { ClipboardService } from '../../../services/clipboard/clipboard.service';
+import { messageExcerpt } from '../../helpers/message-excerpt';
 import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { ForumMessage } from '@drevo-web/shared';
-import { AvatarComponent, avatarNameColor, FormatDatePipe, FormatTimePipe, TooltipDirective } from '@drevo-web/ui';
+import {
+    AvatarComponent,
+    avatarNameColor,
+    DropdownMenuComponent,
+    DropdownMenuItemComponent,
+    DropdownMenuTriggerDirective,
+    FormatDatePipe,
+    FormatTimePipe,
+    IconButtonComponent,
+    TooltipDirective,
+} from '@drevo-web/ui';
 
 /** What `routerLink` takes for the topic's address plus the message it anchors on. */
 type MessageLink = readonly (string | number)[];
 
-/** The quote shows one line; the rest of a long parent is never on screen. */
-const QUOTE_MAX_LENGTH = 200;
-
 @Component({
     selector: 'app-message-card',
-    imports: [AvatarComponent, FormatDatePipe, FormatTimePipe, RouterLink, TooltipDirective, WikiContentComponent],
+    imports: [
+        AvatarComponent,
+        DropdownMenuComponent,
+        DropdownMenuItemComponent,
+        DropdownMenuTriggerDirective,
+        FormatDatePipe,
+        FormatTimePipe,
+        IconButtonComponent,
+        RouterLink,
+        TooltipDirective,
+        WikiContentComponent,
+    ],
     templateUrl: './message-card.component.html',
     styleUrl: './message-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,10 +47,18 @@ const QUOTE_MAX_LENGTH = 200;
         '[class.message-card--anchored]': 'anchored()',
         '[class.message-card--own]': 'own()',
         '[class.message-card--series-end]': 'seriesEnd()',
+        '[class.message-card--actions-shown]': 'actionsShown()',
+        // A tap is how a screen without hover reveals the actions; the keyboard
+        // reaches them by focus instead, which `:focus-within` shows.
+        '(click)': 'toggleActions($event)',
     },
 })
 export class MessageCardComponent {
     private readonly document = inject(DOCUMENT);
+    private readonly clipboard = inject(ClipboardService);
+    private readonly notification = inject(NotificationService);
+    private readonly logger = inject(LoggerService).withContext('MessageCard');
+    private readonly _actionsShown = signal(false);
 
     readonly message = input.required<ForumMessage>();
 
@@ -63,6 +91,12 @@ export class MessageCardComponent {
         return parentId === undefined ? undefined : ['/', ...this.topicPath(), parentId];
     });
 
+    readonly reply = output();
+    readonly quote = output();
+
+    /** A screen without hover shows the actions on a tap on the message instead. */
+    readonly actionsShown = this._actionsShown.asReadonly();
+
     protected readonly elementId = computed(() => `message-${this.message().id}`);
     protected readonly showAuthor = computed(() => this.seriesStart() && !this.own());
     protected readonly showAvatar = computed(() => this.seriesEnd() && !this.own());
@@ -75,6 +109,30 @@ export class MessageCardComponent {
 
     protected readonly quoteText = computed(() => {
         const parent = this.parent();
-        return parent ? htmlToText(parent.html, this.document).slice(0, QUOTE_MAX_LENGTH) : undefined;
+        return parent ? messageExcerpt(parent, this.document) : undefined;
     });
+
+    /** A tap on an action is that action, not a tap that hides the actions. */
+    toggleActions(event: Event): void {
+        if (event.target instanceof Element && event.target.closest('.message-card__actions')) {
+            return;
+        }
+        this._actionsShown.update(shown => !shown);
+    }
+
+    copyLink(): void {
+        const path = ['', ...this.topicPath(), this.message().id].join('/');
+        const link = `${this.document.location.origin}${path}`;
+
+        this.clipboard.copy(link).subscribe({
+            complete: () => {
+                this.notification.success('Ссылка скопирована');
+                this.logger.info('Message link copied', { link });
+            },
+            error: (error: unknown) => {
+                this.logger.error('Failed to copy the message link', error);
+                this.notification.error('Не удалось скопировать ссылку');
+            },
+        });
+    }
 }

@@ -4,7 +4,8 @@ import { ForumTopicPageDataService } from '../services/forum-topic-page/forum-to
 import { Route } from '@angular/router';
 
 /**
- * The topic, addressed with and without the message it anchors on. Both the
+ * The topic, addressed with and without the message it anchors on, and the
+ * form that starts one — the panel beside a list holds either. Both the
  * forum's own list and an article's discussion tab mount it as their children,
  * so the config lives here rather than in either feature.
  *
@@ -29,5 +30,11 @@ export function forumTopicRoutes(): Route[] {
     return [
         { path: 'topic/:id', ...topicRoute() },
         { path: 'topic/:id/:messageId', ...topicRoute() },
+        {
+            path: 'new',
+            title: 'Новая тема',
+            loadComponent: () =>
+                import('../components/new-topic-page/new-topic-page.component').then(m => m.NewTopicPageComponent),
+        },
     ];
 }

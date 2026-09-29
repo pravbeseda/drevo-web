@@ -51,6 +51,8 @@
                 [seriesStart]="item.seriesStart"
                 [seriesEnd]="item.seriesEnd"
                 [parent]="item.parent"
+                (reply)="composer.replyTo(item.message)"
+                (quote)="composer.quote(item.message)"
             />
         }
 
@@ -62,6 +64,13 @@
             />
         }
     </div>
+
+    <app-forum-composer
+        #composer
+        class="topic-page__composer"
+        [topicId]="topic.id"
+        (posted)="onPosted($event)"
+    />
 } @else if (isNotFound()) {
     <app-error
         title="Тема не найдена"

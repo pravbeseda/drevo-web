@@ -69,6 +69,9 @@ function buildToolbarGroups(isMac: boolean): readonly ToolbarGroupView[] {
     templateUrl: './editor.component.html',
     styleUrls: ['./editor.component.scss', 'codemirror-custom.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class.editor--auto-height]': 'autoHeight()',
+    },
 })
 export class EditorComponent implements OnInit, AfterViewInit {
     private linksSubject = new BehaviorSubject<Record<string, boolean>>({});
@@ -79,6 +82,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     readonly content = input.required<string>();
     readonly customExtensions = input<Extension[]>([]);
     readonly showToolbar = input(true);
+    /** Grow with the text, within bounds, instead of filling the container — for a form field rather than a page. */
+    readonly autoHeight = input(false);
     readonly customActions = input<CustomToolbarAction[]>([]);
 
     @Input()
