@@ -21,6 +21,7 @@ import {
 import { ArticlePage } from '../../pages/article.page';
 import { ForumNewTopicPage } from '../../pages/forum-new-topic.page';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
+import { ForumTopicsPage } from '../../pages/forum-topics.page';
 import { Page, Request } from '@playwright/test';
 
 const TOPIC_ID = 7;
@@ -136,7 +137,7 @@ test.describe('Forum posting', () => {
             await form.start.click();
             await form.waitForReady();
 
-            await expect(form.section).toHaveCount(0);
+            await expect(form.sectionOption('common')).toHaveClass(/mat-button-toggle-checked/);
             await form.fill('Новая тема о храме', 'Первое сообщение');
             const sent = nextPost(page, /\/api\/forum\/topics$/);
             await form.submit.click();
@@ -144,6 +145,53 @@ test.describe('Forum posting', () => {
             expect(await sent).toEqual({ part: 'common', title: 'Новая тема о храме', text: 'Первое сообщение' });
             await expect(page).toHaveURL(new RegExp(`/forum/common/topic/${NEW_TOPIC_ID}$`));
             await expect(new ForumTopicPage(page).title).toHaveText('Новая тема о храме');
+        });
+
+        test('opens a topic moved to another section in that section’s list', async ({ authenticatedPage: page }) => {
+            await mockForumSectionsApi(page);
+            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
+            await mockForumCreateTopicApi(page, createForumCreatedTopicDto(NEW_TOPIC_ID, NEW_MESSAGE));
+            await mockForumTopicApi(
+                page,
+                NEW_TOPIC_ID,
+                createForumTopicPage(createForumTopicDto({ id: NEW_TOPIC_ID }), [NEW_MESSAGE]),
+            );
+            const form = new ForumNewTopicPage(page);
+            await page.goto('/forum/common/new');
+            await form.waitForReady();
+
+            await form.pickSection('Обсуждение новостей');
+            await form.fill('Тема', 'Текст');
+            const sent = nextPost(page, /\/api\/forum\/topics$/);
+            await form.submit.click();
+
+            expect(await sent).toEqual(expect.objectContaining({ part: 'news' }));
+            await expect(page).toHaveURL(new RegExp(`/forum/news/topic/${NEW_TOPIC_ID}$`));
+        });
+
+        test('asks before dropping what was written, then returns to the list', async ({ authenticatedPage: page }) => {
+            await mockForumSectionsApi(page);
+            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
+            const form = new ForumNewTopicPage(page);
+            await page.goto('/forum/common/new');
+            await form.waitForReady();
+
+            await form.fill('Тема', 'Текст');
+            await form.cancel.click();
+            await form.discard.click();
+
+            await expect(page).toHaveURL(/\/forum\/common$/);
+        });
+
+        test('fills the panel down to the bottom on a phone', async ({ authenticatedPage: page }) => {
+            await page.setViewportSize({ width: 390, height: 844 });
+            await mockForumSectionsApi(page);
+            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
+            const form = new ForumNewTopicPage(page);
+            await page.goto('/forum/common/new');
+            await form.waitForReady();
+
+            expect(await new ForumTopicsPage(page).gapBelow(form.editor)).toBe(0);
         });
 
         test('asks for the section among every section', async ({ authenticatedPage: page }) => {
@@ -193,6 +241,8 @@ test.describe('Forum posting', () => {
 
             await form.start.click();
             await form.waitForReady();
+            await expect(form.owner).toBeVisible();
+            await expect(form.section).toHaveCount(0);
             await form.fill('Вопрос по статье', 'Текст');
             const sent = nextPost(page, /\/api\/forum\/topics$/);
             await form.submit.click();

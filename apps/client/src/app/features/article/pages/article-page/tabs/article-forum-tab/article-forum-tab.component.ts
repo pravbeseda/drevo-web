@@ -46,6 +46,7 @@ export class ArticleForumTabComponent {
     readonly newTopicTarget = computed<NewTopicTarget>(() => ({
         part: ARTICLE_SECTION,
         partId: this.pageService.articleId(),
+        ownerTitle: this.pageService.title(),
     }));
 
     readonly newTopicLink = computed(() => {

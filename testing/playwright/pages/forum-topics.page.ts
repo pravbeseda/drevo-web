@@ -11,6 +11,7 @@ export class ForumTopicsPage extends BasePage {
     readonly loadError = this.page.getByTestId('topic-list-error');
     readonly retry = this.page.getByTestId('topic-list-retry');
     readonly panes = this.page.getByTestId('forum-panes');
+    readonly panel = this.page.getByTestId('forum-panes-panel');
     readonly resizeHandle = this.page.getByTestId('forum-panes-handle');
     /** OverlayScrollbars draws the scrollbar and takes no test id, so its own classes are the only hook. */
     readonly scrollbarTrack = this.scroller.locator('.os-scrollbar-vertical .os-scrollbar-track');
@@ -76,5 +77,11 @@ export class ForumTopicsPage extends BasePage {
 
     async open(text: string): Promise<void> {
         await this.title(text).click();
+    }
+
+    /** How far above the bottom of the panes an element ends — zero when it reaches down to it. */
+    async gapBelow(element: Locator): Promise<number | undefined> {
+        const [box, panes] = await Promise.all([element.boundingBox(), this.panes.boundingBox()]);
+        return box && panes ? Math.round(panes.y + panes.height - (box.y + box.height)) : undefined;
     }
 }

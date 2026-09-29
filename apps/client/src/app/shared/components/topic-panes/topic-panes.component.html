@@ -37,7 +37,10 @@
             storageKey="drevo-forum-list-width"
             [uiResizeHandle]="list"
         ></div>
-        <div class="topic-panes__panel">
+        <div
+            class="topic-panes__panel"
+            data-testid="forum-panes-panel"
+        >
             <router-outlet />
             @if (!hasOpenTopic()) {
                 <app-topic-placeholder [description]="description()" />

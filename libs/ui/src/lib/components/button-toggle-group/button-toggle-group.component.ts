@@ -11,6 +11,9 @@ export interface ButtonToggleOption {
     readonly iconFilled?: boolean;
 }
 
+/** `pills` — separate rounded toggles; `segmented` — one compact connected control. */
+export type ButtonToggleAppearance = 'pills' | 'segmented';
+
 /** Emitted on every user click on an option, including re-clicks of the active one. */
 export interface ButtonToggleClick {
     readonly value: string | number;
@@ -24,6 +27,9 @@ export interface ButtonToggleClick {
     templateUrl: './button-toggle-group.component.html',
     styleUrl: './button-toggle-group.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class.ui-button-toggle-group--segmented]': 'appearance() === "segmented"',
+    },
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -35,6 +41,7 @@ export interface ButtonToggleClick {
 export class ButtonToggleGroupComponent implements ControlValueAccessor {
     readonly options = input.required<readonly ButtonToggleOption[]>();
     readonly ariaLabel = input<string>();
+    readonly appearance = input<ButtonToggleAppearance>('pills');
 
     readonly optionClick = output<ButtonToggleClick>();
 

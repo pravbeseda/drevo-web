@@ -54,7 +54,11 @@ describe('ArticleForumTabComponent', () => {
                 { provide: ForumService, useValue: forumService },
                 {
                     provide: ArticlePageService,
-                    useValue: { article, articleId: computed(() => article()?.articleId) },
+                    useValue: {
+                        article,
+                        articleId: computed(() => article()?.articleId),
+                        title: computed(() => article()?.title),
+                    },
                 },
             ],
         });
@@ -211,10 +215,15 @@ describe('ArticleForumTabComponent', () => {
             expect(spectator.inject(SidebarService).actions()).toEqual([]);
         });
 
-        it('binds the topic to the article the page holds', () => {
+        it('binds the topic to the article the page holds, named by its title', () => {
+            article.set(createMockArticle({ articleId: ARTICLE_ID, title: 'Макарий Великий' }));
             render();
 
-            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: 'articles', partId: ARTICLE_ID });
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({
+                part: 'articles',
+                partId: ARTICLE_ID,
+                ownerTitle: 'Макарий Великий',
+            });
         });
     });
 });

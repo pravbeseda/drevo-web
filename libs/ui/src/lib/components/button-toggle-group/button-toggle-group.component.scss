@@ -67,3 +67,44 @@ $pill-radius: 20px;
     font-weight: 600;
     white-space: nowrap;
 }
+
+// Segmented: one compact control — a single outer border, dividers between the
+// toggles and the selection shown by fill rather than by a border of its own.
+$segment-radius: 8px;
+
+:host(.ui-button-toggle-group--segmented) {
+    .mat-button-toggle-group {
+        gap: 0;
+        flex-wrap: nowrap;
+        border: 1px solid var(--themed-divider-color);
+        border-radius: $segment-radius;
+        overflow: hidden;
+
+        --mat-button-toggle-height: 30px;
+        --mat-button-toggle-shape: #{$segment-radius};
+    }
+
+    .mat-button-toggle,
+    .mat-button-toggle-checked {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .mat-button-toggle + .mat-button-toggle,
+    .mat-button-toggle + .mat-button-toggle-checked {
+        border-left: 1px solid var(--themed-divider-color);
+    }
+
+    .mat-button-toggle-checked {
+        background: var(--themed-list-selected-background);
+    }
+
+    .toggle-label {
+        font-weight: 400;
+    }
+
+    .mat-button-toggle-checked .toggle-label {
+        font-weight: 500;
+    }
+}

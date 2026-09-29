@@ -1,47 +1,82 @@
-<h1 class="new-topic-page__heading">Новая тема</h1>
+<app-sidebar-action
+    [order]="30"
+    icon="send"
+    label="Опубликовать"
+    priority="primary"
+    testId="new-topic-submit"
+    [disabled]="!canSubmit()"
+    (activated)="submit()"
+/>
+<app-sidebar-action
+    [order]="20"
+    icon="close"
+    label="Отменить"
+    testId="new-topic-cancel"
+    [disabled]="sending()"
+    (activated)="cancel()"
+/>
 
-<form
-    class="new-topic-page__form"
-    (submit)="$event.preventDefault(); submit()"
->
+@if (pending()) {
+    <p
+        class="new-topic-page__pending"
+        data-testid="new-topic-pending"
+    >
+        Тема отправлена на модерацию и появится после проверки.
+    </p>
+}
+
+<div class="new-topic-page__row">
     @if (asksForSection()) {
+        <span class="new-topic-page__label">Раздел</span>
         <ui-button-toggle-group
             ariaLabel="Раздел"
+            appearance="segmented"
             data-testid="new-topic-section"
             name="section"
             [options]="sectionOptions()"
             [ngModel]="pickedSection()"
             (ngModelChange)="onSectionPicked($event)"
         />
+    } @else {
+        <span class="new-topic-page__label">К статье</span>
+        <span
+            class="new-topic-page__owner"
+            data-testid="new-topic-owner"
+        >
+            {{ ownerTitle() }}
+        </span>
     }
+</div>
 
-    <div class="new-topic-page__field">
-        <ui-text-input
-            label="Заголовок"
-            data-testid="new-topic-title"
-            [value]="title()"
-            (valueChanged)="onTitleChanged($event)"
-        />
-        @if (errors().title; as error) {
-            <p
-                class="new-topic-page__error"
-                data-testid="new-topic-title-error"
-            >
-                {{ error }}
-            </p>
-        }
-    </div>
+<div class="new-topic-page__row">
+    <ui-inline-input
+        class="new-topic-page__title"
+        placeholder="Заголовок"
+        data-testid="new-topic-title"
+        [value]="title()"
+        (valueChanged)="onTitleChanged($event)"
+    />
+    @if (errors().title; as error) {
+        <span
+            class="new-topic-page__error"
+            data-testid="new-topic-title-error"
+        >
+            {{ error }}
+        </span>
+    }
+</div>
 
-    <div class="new-topic-page__field">
-        <lib-editor
-            class="new-topic-page__editor"
-            data-testid="new-topic-text"
-            [content]="text()"
-            [showToolbar]="false"
-            [autoHeight]="true"
-            [customExtensions]="editorExtensions"
-            (contentChanged)="onTextChanged($event)"
-        />
+<lib-editor
+    class="new-topic-page__editor"
+    data-testid="new-topic-text"
+    [content]="text()"
+    [showToolbar]="false"
+    [customExtensions]="editorExtensions"
+    (contentChanged)="onTextChanged($event)"
+/>
+
+@if (errors().text || errors().other) {
+    <div class="new-topic-page__errors">
         @if (errors().text; as error) {
             <p
                 class="new-topic-page__error"
@@ -50,35 +85,13 @@
                 {{ error }}
             </p>
         }
+        @if (errors().other; as error) {
+            <p
+                class="new-topic-page__error"
+                data-testid="new-topic-error"
+            >
+                {{ error }}
+            </p>
+        }
     </div>
-
-    @if (errors().other; as error) {
-        <p
-            class="new-topic-page__error"
-            data-testid="new-topic-error"
-        >
-            {{ error }}
-        </p>
-    }
-    @if (pending()) {
-        <p
-            class="new-topic-page__pending"
-            data-testid="new-topic-pending"
-        >
-            Тема отправлена на модерацию и появится после проверки.
-        </p>
-    }
-
-    <div class="new-topic-page__actions">
-        <ui-button
-            type="submit"
-            variant="filled"
-            accent="primary"
-            testId="new-topic-submit"
-            [disabled]="!canSubmit()"
-            [loading]="sending()"
-        >
-            Создать тему
-        </ui-button>
-    </div>
-</form>
+}
