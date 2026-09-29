@@ -67,7 +67,11 @@ export class TopicsPageComponent {
         return part ? this.sections().find(section => section.id === part)?.description : undefined;
     });
 
-    readonly newTopicTarget = computed<NewTopicTarget>(() => ({ part: this.part(), partId: undefined }));
+    readonly newTopicTarget = computed<NewTopicTarget>(() => ({
+        part: this.part(),
+        partId: undefined,
+        ownerTitle: undefined,
+    }));
 
     readonly newTopicLink = computed(() => {
         const part = this.part();

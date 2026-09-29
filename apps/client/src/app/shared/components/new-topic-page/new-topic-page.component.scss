@@ -1,31 +1,51 @@
 @use 'index' as *;
 
+// Fills the panel: the section and title rows on top, the editor down to the bottom.
 :host {
-    display: block;
-    padding: $gap-md;
-}
-
-.new-topic-page__heading {
-    margin: 0 0 $gap-md;
-    color: var(--themed-text-primary);
-    font-size: $font-size-lg;
-}
-
-.new-topic-page__form,
-.new-topic-page__field {
     display: flex;
     flex-direction: column;
-    gap: $forum-composer-gap;
+    height: 100%;
+    min-height: 0;
 }
 
-.new-topic-page__form {
-    gap: $gap-md;
+.new-topic-page__row {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: $forum-composer-gap;
+    min-height: $forum-form-row-min-height;
+    padding: 0 $forum-topic-row-padding-h;
+    border-bottom: 1px solid var(--themed-divider-color);
+}
+
+.new-topic-page__label {
+    flex: none;
+    width: $forum-form-label-width;
+    color: var(--themed-text-muted);
+    font-size: $font-size-sm;
+}
+
+.new-topic-page__owner {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--themed-text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.new-topic-page__title {
+    flex: 1;
+    font-size: $font-size-base;
 }
 
 .new-topic-page__editor {
-    border: 1px solid var(--themed-border-color);
-    border-radius: $forum-quote-radius;
-    overflow: hidden;
+    flex: 1;
+}
+
+.new-topic-page__errors {
+    flex: none;
+    padding: $forum-feed-padding-v $forum-topic-row-padding-h;
+    border-top: 1px solid var(--themed-divider-color);
 }
 
 .new-topic-page__error,
@@ -35,14 +55,14 @@
 }
 
 .new-topic-page__error {
+    flex: none;
     color: var(--themed-text-error);
 }
 
 .new-topic-page__pending {
+    flex: none;
+    padding: $forum-feed-padding-v $forum-topic-row-padding-h;
+    border-bottom: 1px solid var(--themed-divider-color);
+    background: var(--themed-menu-hover-background);
     color: var(--themed-text-secondary);
-}
-
-.new-topic-page__actions {
-    display: flex;
-    justify-content: flex-end;
 }

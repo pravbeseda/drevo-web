@@ -2,27 +2,34 @@ import { NEW_TOPIC_TARGET } from './new-topic-target';
 import { ForumService } from '../../../services/forum/forum.service';
 import { forumEditorExtensions } from '../../helpers/forum-editor-extensions';
 import { TopicListPagesService } from '../../services/topic-list-pages/topic-list-pages.service';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumCreatedTopic, ForumPostErrors, ForumPostOutcome, ForumSection } from '@drevo-web/shared';
-import { ButtonComponent, ButtonToggleGroupComponent, ButtonToggleOption, TextInputComponent } from '@drevo-web/ui';
-import { EMPTY, Observable } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import {
+    ButtonToggleGroupComponent,
+    ButtonToggleOption,
+    ConfirmationService,
+    InlineInputComponent,
+} from '@drevo-web/ui';
+import { EMPTY, Observable, of } from 'rxjs';
+import { catchError, filter, finalize } from 'rxjs/operators';
 
 const NO_ERRORS: ForumPostErrors = { title: undefined, text: undefined, other: undefined };
 
 /**
  * The form that starts a topic, opened in the panel beside the list it belongs
- * to. The list names the section — or leaves it to the reader, when it spans
- * every one — and is told to reload once the topic exists.
+ * to. The list's section comes picked and the reader may pick another; a topic
+ * about an article is bound to it instead. Publishing and cancelling live in
+ * the sidebar.
  */
 @Component({
     selector: 'app-new-topic-page',
-    imports: [ButtonComponent, ButtonToggleGroupComponent, EditorComponent, FormsModule, TextInputComponent],
+    imports: [ButtonToggleGroupComponent, EditorComponent, FormsModule, InlineInputComponent, SidebarActionComponent],
     templateUrl: './new-topic-page.component.html',
     styleUrl: './new-topic-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,16 +41,19 @@ export class NewTopicPageComponent {
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('NewTopicPage');
     private readonly pages = inject(TopicListPagesService);
+    private readonly confirmation = inject(ConfirmationService);
     private readonly target = inject(NEW_TOPIC_TARGET);
 
-    private readonly _pickedSection = signal<string | undefined>(undefined);
+    private readonly _pickedSection = linkedSignal(() => this.target().part);
     private readonly _title = signal('');
     private readonly _text = signal('');
     private readonly _sending = signal(false);
     private readonly _errors = signal<ForumPostErrors>(NO_ERRORS);
     private readonly _pending = signal(false);
 
-    readonly asksForSection = computed(() => this.target().part === undefined);
+    /** A topic about an article or news item stays in that one's section. */
+    readonly asksForSection = computed(() => this.target().partId === undefined);
+    readonly ownerTitle = computed(() => this.target().ownerTitle);
     readonly title = this._title.asReadonly();
     readonly text = this._text.asReadonly();
     readonly pickedSection = this._pickedSection.asReadonly();
@@ -58,14 +68,12 @@ export class NewTopicPageComponent {
     readonly canSubmit = computed(
         () =>
             !this._sending() &&
-            this.part() !== undefined &&
+            this._pickedSection() !== undefined &&
             this._title().trim().length > 0 &&
             this._text().trim().length > 0,
     );
 
     protected readonly editorExtensions = forumEditorExtensions('Текст первого сообщения', () => this.submit());
-
-    private readonly part = computed(() => this.target().part ?? this._pickedSection());
 
     private readonly sections = toSignal(this.loadSections(), { initialValue: [] });
 
@@ -90,7 +98,7 @@ export class NewTopicPageComponent {
     }
 
     submit(): void {
-        const part = this.part();
+        const part = this._pickedSection();
         if (!this.canSubmit() || part === undefined) {
             return;
         }
@@ -110,6 +118,15 @@ export class NewTopicPageComponent {
             });
     }
 
+    cancel(): void {
+        this.confirmLeaving()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.logger.info('New topic cancelled');
+                void this.router.navigate(['..'], { relativeTo: this.route });
+            });
+    }
+
     private applyOutcome(outcome: ForumPostOutcome<ForumCreatedTopic>, part: string): void {
         if (outcome.status === 'rejected') {
             this._errors.set(outcome.errors);
@@ -126,11 +143,36 @@ export class NewTopicPageComponent {
             return;
         }
 
+        const listPart = this.target().part;
+        if (listPart !== undefined && part !== listPart) {
+            // The list beside the form would not hold it: open it in its own section's list.
+            void this.router.navigate(['/forum', part, 'topic', topicId]);
+            return;
+        }
+
         this.pages.reload();
         void this.router.navigate(['../topic', topicId], { relativeTo: this.route });
     }
 
-    /** Only a list that spans every section leaves the choice to the reader. */
+    /** Emits once the reader may leave: at once over an empty form, after a yes otherwise. */
+    private confirmLeaving(): Observable<unknown> {
+        if (!this._title().trim() && !this._text().trim()) {
+            return of(true);
+        }
+
+        return this.confirmation
+            .open({
+                title: 'Отменить новую тему?',
+                message: 'Заголовок и текст будут потеряны.',
+                buttons: [
+                    { key: 'cancel', label: 'Остаться' },
+                    { key: 'confirm', label: 'Удалить', accent: 'danger' },
+                ],
+            })
+            .pipe(filter(answer => answer === 'confirm'));
+    }
+
+    /** A topic bound to an owner has no section to pick. */
     private loadSections(): Observable<readonly ForumSection[]> {
         if (!this.asksForSection()) {
             return EMPTY;

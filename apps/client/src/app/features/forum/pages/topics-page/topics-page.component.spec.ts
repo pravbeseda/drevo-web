@@ -323,13 +323,21 @@ describe('TopicsPageComponent', () => {
 
             expect(newTopicLink()).toBe('/forum/new');
             expect(spectator.inject(SidebarService).actions()).toEqual([]);
-            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: undefined, partId: undefined });
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({
+                part: undefined,
+                partId: undefined,
+                ownerTitle: undefined,
+            });
         });
 
         it('starts the topic in the section the tab shows, and follows the tabs', () => {
             render(createPage(), { part: 'common' });
             expect(newTopicLink()).toBe('/forum/common/new');
-            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: 'common', partId: undefined });
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({
+                part: 'common',
+                partId: undefined,
+                ownerTitle: undefined,
+            });
 
             switchSection('news');
 

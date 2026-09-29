@@ -148,6 +148,9 @@ test.describe('Forum navigation', () => {
         // One pane at a time: the panel took the list's place rather than sitting beside it.
         await expect(topic.title).toBeVisible();
         await expect(topics.items.first()).toBeHidden();
+
+        // …and all of its height, so the composer sits at the bottom.
+        expect(await topics.gapBelow(topics.panel)).toBe(0);
     });
 
     test('loads the topic again when the reader comes back to it', async ({ authenticatedPage: page }) => {

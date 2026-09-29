@@ -20,8 +20,8 @@ describe('ButtonToggleGroupComponent', () => {
     beforeEach(() => {
         control = new FormControl<number>(0, { nonNullable: true });
         spectator = createHost(
-            `<ui-button-toggle-group [formControl]="control" [options]="options" ariaLabel="Test" />`,
-            { hostProps: { control, options } },
+            `<ui-button-toggle-group [formControl]="control" [options]="options" [appearance]="appearance" ariaLabel="Test" />`,
+            { hostProps: { control, options, appearance: 'pills' } },
         );
     });
 
@@ -79,5 +79,15 @@ describe('ButtonToggleGroupComponent', () => {
         const buttons = spectator.queryAll<HTMLButtonElement>('mat-button-toggle button');
         expect(buttons.length).toBe(options.length);
         expect(buttons.every(button => button.disabled)).toBe(true);
+    });
+
+    it('renders separate pills by default', () => {
+        expect(spectator.element).not.toHaveClass('ui-button-toggle-group--segmented');
+    });
+
+    it('renders one connected control when the appearance is segmented', () => {
+        spectator.setHostInput({ appearance: 'segmented' });
+
+        expect(spectator.element).toHaveClass('ui-button-toggle-group--segmented');
     });
 });

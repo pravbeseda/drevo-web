@@ -2,10 +2,15 @@ import { InjectionToken, Signal } from '@angular/core';
 
 /** Where a new topic goes, as the list it is started from knows it. */
 export interface NewTopicTarget {
-    /** The section; absent where the list spans every one and the reader picks it. */
+    /**
+     * The section the list shows, picked in advance; the reader may pick another
+     * unless the topic hangs off an owner. Absent where the list spans every one.
+     */
     readonly part: string | undefined;
-    /** The article or news item the topic hangs off; absent for a plain section topic. */
+    /** The article or news item the topic hangs off, which fixes the section; absent for a plain section topic. */
     readonly partId: number | undefined;
+    /** What the form names the owner by. */
+    readonly ownerTitle: string | undefined;
 }
 
 /**

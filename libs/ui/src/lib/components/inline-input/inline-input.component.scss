@@ -1,0 +1,20 @@
+@use 'index' as *;
+
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.inline-input {
+    width: 100%;
+    padding: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--themed-text-primary);
+    font: inherit;
+
+    &::placeholder {
+        color: var(--themed-text-muted);
+    }
+}

@@ -1,0 +1,9 @@
+<input
+    class="inline-input"
+    type="text"
+    autocomplete="off"
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [attr.aria-label]="ariaLabel() ?? placeholder()"
+    (input)="onInput($event)"
+/>
