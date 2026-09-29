@@ -1,14 +1,4 @@
-@if (newTopicLink(); as link) {
-    <app-sidebar-action
-        priority="primary"
-        icon="add"
-        label="Новая тема"
-        testId="article-forum-new-topic"
-        [link]="link"
-    />
-}
-
-<app-topic-panes>
+<app-topic-panes [newTopicLink]="newTopicLink()">
     @if (isLoaded()) {
         @if (pages.items().length === 0) {
             <p

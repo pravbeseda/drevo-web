@@ -316,34 +316,31 @@ describe('TopicsPageComponent', () => {
     });
 
     describe('starting a topic', () => {
-        const newTopicAction = () =>
-            spectator
-                .inject(SidebarService)
-                .actions()
-                .find(action => action.label === 'Новая тема');
+        const newTopicLink = () => spectator.query('[data-testid="forum-new-topic"] a')?.getAttribute('href');
 
-        it('offers a new topic among every section, the section left to pick', () => {
+        it('offers a new topic above the list, among every section, the section left to pick', () => {
             render(createPage());
 
-            expect(newTopicAction()).toEqual(expect.objectContaining({ link: '/forum/new', priority: 'primary' }));
+            expect(newTopicLink()).toBe('/forum/new');
+            expect(spectator.inject(SidebarService).actions()).toEqual([]);
             expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: undefined, partId: undefined });
         });
 
         it('starts the topic in the section the tab shows, and follows the tabs', () => {
             render(createPage(), { part: 'common' });
-            expect(newTopicAction()?.link).toBe('/forum/common/new');
+            expect(newTopicLink()).toBe('/forum/common/new');
             expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({ part: 'common', partId: undefined });
 
             switchSection('news');
 
-            expect(newTopicAction()?.link).toBe('/forum/news/new');
+            expect(newTopicLink()).toBe('/forum/news/new');
             expect(spectator.inject(NEW_TOPIC_TARGET, true)().part).toBe('news');
         });
 
         it('offers none on a list without the panel the form opens in', () => {
             render(createPage(), { part: 'articles', partId: '7' }, { withPanel: false });
 
-            expect(newTopicAction()).toBeUndefined();
+            expect(spectator.query('[data-testid="forum-new-topic"]')).toBeNull();
         });
     });
 });

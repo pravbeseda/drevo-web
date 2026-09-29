@@ -202,16 +202,13 @@ describe('ArticleForumTabComponent', () => {
     });
 
     describe('starting a topic', () => {
-        it('offers a new topic on the article, in the sidebar or as the button of a phone', () => {
+        it('offers a new topic on the article above its discussions', () => {
             render();
 
-            const action = spectator
-                .inject(SidebarService)
-                .actions()
-                .find(candidate => candidate.label === 'Новая тема');
-            expect(action).toEqual(
-                expect.objectContaining({ link: `/articles/${ARTICLE_ID}/forum/new`, priority: 'primary' }),
+            expect(spectator.query('[data-testid="forum-new-topic"] a')?.getAttribute('href')).toBe(
+                `/articles/${ARTICLE_ID}/forum/new`,
             );
+            expect(spectator.inject(SidebarService).actions()).toEqual([]);
         });
 
         it('binds the topic to the article the page holds', () => {

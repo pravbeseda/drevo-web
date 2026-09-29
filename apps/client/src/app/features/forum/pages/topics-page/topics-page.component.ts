@@ -1,7 +1,6 @@
 import { ForumService } from '../../../../services/forum/forum.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { NEW_TOPIC_TARGET, NewTopicTarget } from '../../../../shared/components/new-topic-page/new-topic-target';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { TopicListComponent } from '../../../../shared/components/topic-list/topic-list.component';
 import { TopicPanesComponent } from '../../../../shared/components/topic-panes/topic-panes.component';
 import { readForumSectionParams } from '../../../../shared/helpers/forum-route-params';
@@ -20,7 +19,7 @@ const NO_SECTIONS: readonly ForumSection[] = [];
 
 @Component({
     selector: 'app-topics-page',
-    imports: [ErrorComponent, SidebarActionComponent, TopicListComponent, TopicPanesComponent],
+    imports: [ErrorComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './topics-page.component.html',
     styleUrl: './topics-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,8 +69,11 @@ export class TopicsPageComponent {
 
     readonly newTopicTarget = computed<NewTopicTarget>(() => ({ part: this.part(), partId: undefined }));
 
-    /** The sidebar renders outside this route, so the link is absolute. */
+    /** A list without the panel has nowhere to open the form, so it offers none. */
     readonly newTopicLink = computed(() => {
+        if (!this.withPanel()) {
+            return undefined;
+        }
         const part = this.part();
         return part ? `/forum/${part}/new` : '/forum/new';
     });

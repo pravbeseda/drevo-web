@@ -9,7 +9,25 @@
         class="topic-panes__list"
         data-testid="forum-panes-list"
     >
-        <ng-content />
+        @if (newTopicLink(); as link) {
+            <div class="topic-panes__toolbar">
+                <ui-button
+                    variant="text"
+                    accent="primary"
+                    [link]="link"
+                    data-testid="forum-new-topic"
+                >
+                    <ui-icon
+                        name="add"
+                        size="small"
+                    />
+                    Новая тема
+                </ui-button>
+            </div>
+        }
+        <div class="topic-panes__list-body">
+            <ng-content />
+        </div>
     </div>
 
     @if (withPanel()) {

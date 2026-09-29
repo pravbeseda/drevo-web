@@ -2,9 +2,8 @@ import { BasePage } from './base.page';
 import { Locator } from '@playwright/test';
 
 export class ForumNewTopicPage extends BasePage {
-    /** The sidebar action on desktop, the floating button on a phone. */
-    readonly start: Locator = this.sidebarAction('forum-new-topic');
-    readonly startFromArticle: Locator = this.sidebarAction('article-forum-new-topic');
+    /** The button above a topic list — of a forum section or of an article's discussions. */
+    readonly start: Locator = this.page.getByTestId('forum-new-topic').locator('a');
     readonly section = this.page.getByTestId('new-topic-section');
     readonly title = this.page.getByTestId('new-topic-title').locator('input');
     readonly text = this.page.getByTestId('new-topic-text').locator('.cm-content');

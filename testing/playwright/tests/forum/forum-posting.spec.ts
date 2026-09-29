@@ -191,7 +191,7 @@ test.describe('Forum posting', () => {
             await page.goto(`/articles/${ARTICLE_ID}/forum`);
             await article.waitForReady();
 
-            await form.startFromArticle.click();
+            await form.start.click();
             await form.waitForReady();
             await form.fill('Вопрос по статье', 'Текст');
             const sent = nextPost(page, /\/api\/forum\/topics$/);
