@@ -50,6 +50,10 @@ describe('ForumComposerComponent', () => {
         expect(editor?.showToolbar()).toBe(false);
     });
 
+    it('shows attaching, not yet available', () => {
+        expect(spectator.query('[data-testid="composer-attach"]')).toBeDisabled();
+    });
+
     it('offers nothing to send until there is text', () => {
         expect(sendButton()).toBeDisabled();
 

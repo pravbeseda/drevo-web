@@ -9,7 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
-import { ButtonComponent, IconButtonComponent } from '@drevo-web/ui';
+import { ButtonComponent, IconButtonComponent, IconComponent } from '@drevo-web/ui';
 import { finalize } from 'rxjs/operators';
 
 /**
@@ -18,7 +18,7 @@ import { finalize } from 'rxjs/operators';
  */
 @Component({
     selector: 'app-forum-composer',
-    imports: [ButtonComponent, EditorComponent, IconButtonComponent],
+    imports: [ButtonComponent, EditorComponent, IconButtonComponent, IconComponent],
     templateUrl: './forum-composer.component.html',
     styleUrl: './forum-composer.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

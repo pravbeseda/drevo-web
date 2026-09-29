@@ -27,7 +27,6 @@
 }
 
 <lib-editor
-    class="forum-composer__editor"
     data-testid="composer-editor"
     [content]="draft()"
     [showToolbar]="false"
@@ -54,6 +53,17 @@
 }
 
 <div class="forum-composer__actions">
+    <ui-button
+        variant="text"
+        testId="composer-attach"
+        [disabled]="true"
+    >
+        <ui-icon
+            name="attach_file"
+            size="small"
+        />
+        Прикрепить
+    </ui-button>
     <ui-button
         variant="filled"
         accent="primary"
