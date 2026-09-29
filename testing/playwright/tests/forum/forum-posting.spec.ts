@@ -190,20 +190,6 @@ test.describe('Forum posting', () => {
             await expect(page).toHaveURL(new RegExp(`/forum/news/topic/${NEW_TOPIC_ID}$`));
         });
 
-        test('asks before dropping what was written, then returns to the list', async ({ authenticatedPage: page }) => {
-            await mockForumSectionsApi(page);
-            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
-            const form = new ForumNewTopicPage(page);
-            await page.goto('/forum/common/new');
-            await form.waitForReady();
-
-            await form.fill('Тема', 'Текст');
-            await form.cancel.click();
-            await form.discard.click();
-
-            await expect(page).toHaveURL(/\/forum\/common$/);
-        });
-
         test('fills the panel down to the bottom on a phone', async ({ authenticatedPage: page }) => {
             await page.setViewportSize({ width: 390, height: 844 });
             await mockForumSectionsApi(page);
@@ -212,7 +198,7 @@ test.describe('Forum posting', () => {
             await page.goto('/forum/common/new');
             await form.waitForReady();
 
-            expect(await new ForumTopicsPage(page).gapBelow(form.editor)).toBe(0);
+            expect(await new ForumTopicsPage(page).gapBelow(form.actions)).toBe(0);
         });
 
         test('writes the text with no frame or lint column', async ({ authenticatedPage: page }) => {

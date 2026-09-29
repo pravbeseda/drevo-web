@@ -2,7 +2,7 @@ import { NEW_TOPIC_TARGET } from './new-topic-target';
 import { ForumService } from '../../../services/forum/forum.service';
 import { forumEditorExtensions } from '../../helpers/forum-editor-extensions';
 import { TopicListPagesService } from '../../services/topic-list-pages/topic-list-pages.service';
-import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
+import { ForumSendBarComponent } from '../forum-send-bar/forum-send-bar.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -10,26 +10,20 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumCreatedTopic, ForumPostErrors, ForumPostOutcome, ForumSection } from '@drevo-web/shared';
-import {
-    ButtonToggleGroupComponent,
-    ButtonToggleOption,
-    ConfirmationService,
-    InlineInputComponent,
-} from '@drevo-web/ui';
-import { EMPTY, Observable, of } from 'rxjs';
-import { catchError, filter, finalize } from 'rxjs/operators';
+import { ButtonToggleGroupComponent, ButtonToggleOption, InlineInputComponent } from '@drevo-web/ui';
+import { EMPTY, Observable } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
 const NO_ERRORS: ForumPostErrors = { title: undefined, text: undefined, other: undefined };
 
 /**
  * The form that starts a topic, opened in the panel beside the list it belongs
  * to. The list's section comes picked and the reader may pick another; a topic
- * about an article is bound to it instead. Publishing and cancelling live in
- * the sidebar.
+ * about an article is bound to it instead.
  */
 @Component({
     selector: 'app-new-topic-page',
-    imports: [ButtonToggleGroupComponent, EditorComponent, FormsModule, InlineInputComponent, SidebarActionComponent],
+    imports: [ButtonToggleGroupComponent, EditorComponent, ForumSendBarComponent, FormsModule, InlineInputComponent],
     templateUrl: './new-topic-page.component.html',
     styleUrl: './new-topic-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,7 +35,6 @@ export class NewTopicPageComponent {
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('NewTopicPage');
     private readonly pages = inject(TopicListPagesService);
-    private readonly confirmation = inject(ConfirmationService);
     private readonly target = inject(NEW_TOPIC_TARGET);
 
     private readonly _pickedSection = linkedSignal(() => this.target().part);
@@ -118,15 +111,6 @@ export class NewTopicPageComponent {
             });
     }
 
-    cancel(): void {
-        this.confirmLeaving()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-                this.logger.info('New topic cancelled');
-                void this.router.navigate(['..'], { relativeTo: this.route });
-            });
-    }
-
     private applyOutcome(outcome: ForumPostOutcome<ForumCreatedTopic>, part: string): void {
         if (outcome.status === 'rejected') {
             this._errors.set(outcome.errors);
@@ -152,24 +136,6 @@ export class NewTopicPageComponent {
 
         this.pages.reload();
         void this.router.navigate(['../topic', topicId], { relativeTo: this.route });
-    }
-
-    /** Emits once the reader may leave: at once over an empty form, after a yes otherwise. */
-    private confirmLeaving(): Observable<unknown> {
-        if (!this._title().trim() && !this._text().trim()) {
-            return of(true);
-        }
-
-        return this.confirmation
-            .open({
-                title: 'Отменить новую тему?',
-                message: 'Заголовок и текст будут потеряны.',
-                buttons: [
-                    { key: 'cancel', label: 'Остаться' },
-                    { key: 'confirm', label: 'Удалить', accent: 'danger' },
-                ],
-            })
-            .pipe(filter(answer => answer === 'confirm'));
     }
 
     /** A topic bound to an owner has no section to pick. */

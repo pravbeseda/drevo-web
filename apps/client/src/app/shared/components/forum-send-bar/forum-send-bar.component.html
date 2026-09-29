@@ -1,0 +1,21 @@
+<ui-button
+    variant="text"
+    testId="forum-attach"
+    [disabled]="true"
+>
+    <ui-icon
+        name="attach_file"
+        size="small"
+    />
+    Прикрепить
+</ui-button>
+<ui-button
+    variant="filled"
+    accent="primary"
+    testId="forum-send"
+    [disabled]="disabled()"
+    [loading]="loading()"
+    (click)="send.emit()"
+>
+    Отправить
+</ui-button>

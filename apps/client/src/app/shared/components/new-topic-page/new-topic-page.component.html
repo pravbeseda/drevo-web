@@ -1,21 +1,3 @@
-<app-sidebar-action
-    [order]="30"
-    icon="send"
-    label="Опубликовать"
-    priority="primary"
-    testId="new-topic-submit"
-    [disabled]="!canSubmit()"
-    (activated)="submit()"
-/>
-<app-sidebar-action
-    [order]="20"
-    icon="close"
-    label="Отменить"
-    testId="new-topic-cancel"
-    [disabled]="sending()"
-    (activated)="cancel()"
-/>
-
 @if (pending()) {
     <p
         class="new-topic-page__pending"
@@ -96,3 +78,10 @@
         }
     </div>
 }
+
+<app-forum-send-bar
+    data-testid="new-topic-actions"
+    [disabled]="!canSubmit()"
+    [loading]="sending()"
+    (send)="submit()"
+/>
