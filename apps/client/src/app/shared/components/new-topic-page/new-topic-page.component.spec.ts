@@ -103,6 +103,10 @@ describe('NewTopicPageComponent', () => {
             expect(spectator.query('[data-testid="toggle-common"]')).toHaveClass('mat-button-toggle-checked');
         });
 
+        it('writes the text in the wiki editor without its frame', () => {
+            expect(spectator.query(EditorComponent)?.frameless()).toBe(true);
+        });
+
         it('offers nothing to publish until both the title and the text are there', () => {
             expect(action('new-topic-submit')?.disabled).toBe(true);
 

@@ -86,6 +86,23 @@ test.describe('Forum posting', () => {
             await expect(topic.message(NEW_MESSAGE_ID)).toBeVisible();
         });
 
+        test('writes in a field one line high, with no frame or lint column, that grows with the text', async ({
+            authenticatedPage: page,
+        }) => {
+            const topic = await openTopic(page);
+
+            await expect(topic.composerGutter).toBeHidden();
+            await expect(topic.composerEditor).toHaveCSS('border-left-width', '0px');
+            await expect(topic.composerEditor).toHaveCSS('border-right-width', '0px');
+            expect(await topic.composerSpareHeight()).toBe(0);
+            const oneLine = await topic.composerHeight();
+
+            await topic.write('Первая строка\nВторая строка');
+
+            expect(await topic.composerSpareHeight()).toBe(0);
+            expect(await topic.composerHeight()).toBeGreaterThan(oneLine);
+        });
+
         test('quotes a message from the ⋯ menu of its card', async ({ authenticatedPage: page }) => {
             const topic = await openTopic(page);
 
@@ -192,6 +209,19 @@ test.describe('Forum posting', () => {
             await form.waitForReady();
 
             expect(await new ForumTopicsPage(page).gapBelow(form.editor)).toBe(0);
+        });
+
+        test('writes the text with no frame or lint column', async ({ authenticatedPage: page }) => {
+            await mockForumSectionsApi(page);
+            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
+            const form = new ForumNewTopicPage(page);
+            await page.goto('/forum/common/new');
+            await form.waitForReady();
+
+            await expect(form.text).toBeVisible();
+            await expect(form.gutter).toBeHidden();
+            await expect(form.editor).toHaveCSS('border-left-width', '0px');
+            await expect(form.editor).toHaveCSS('border-right-width', '0px');
         });
 
         test('keeps the section picker inside its row on a narrow phone', async ({ authenticatedPage: page }) => {

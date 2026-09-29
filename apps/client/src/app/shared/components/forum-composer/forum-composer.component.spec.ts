@@ -43,11 +43,12 @@ describe('ForumComposerComponent', () => {
         forumService = spectator.inject(ForumService);
     });
 
-    it('writes in the wiki editor, grown to its text and without the toolbar', () => {
+    it('writes in the wiki editor, grown to its text and without the toolbar or frame', () => {
         const editor = spectator.query(EditorComponent);
 
         expect(editor?.autoHeight()).toBe(true);
         expect(editor?.showToolbar()).toBe(false);
+        expect(editor?.frameless()).toBe(true);
     });
 
     it('shows attaching, not yet available', () => {
