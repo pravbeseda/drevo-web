@@ -7,13 +7,16 @@ export class ForumTopicPage extends BasePage {
     readonly replyTo = this.page.getByTestId('message-reply-to');
     readonly notFound = this.page.getByTestId('topic-not-found');
     readonly loadError = this.page.getByTestId('topic-load-error');
-    readonly composerText = this.page.getByTestId('composer-editor').locator('.cm-content');
+    readonly composerEditor = this.page.getByTestId('composer-editor');
+    readonly composerText = this.composerEditor.locator('.cm-content');
+    readonly composerGutter = this.composerEditor.locator('.cm-gutters');
     readonly send = this.page.getByTestId('composer-send');
     readonly replyChip = this.page.getByTestId('composer-reply');
     readonly replyChipAuthor = this.page.getByTestId('composer-reply-author');
     readonly cancelReply = this.page.getByTestId('composer-reply-cancel');
     readonly composerError = this.page.getByTestId('composer-error');
     readonly composerPending = this.page.getByTestId('composer-pending');
+    readonly composerActions = this.page.getByTestId('composer-actions');
 
     /** The heading carries the resolved topic, so it is absent until the data is. */
     async waitForReady(): Promise<void> {
@@ -60,6 +63,32 @@ export class ForumTopicPage extends BasePage {
         await this.message(id).hover();
         await this.message(id).getByTestId('message-more').click();
         await this.page.getByTestId('message-quote').click();
+    }
+
+    composerHeight(): Promise<number> {
+        return this.composerEditor.evaluate(host => host.getBoundingClientRect().height);
+    }
+
+    /** Height the composer's editor keeps beyond its text — none when the field is sized to what it holds. */
+    composerSpareHeight(): Promise<number> {
+        return this.composerEditor.evaluate(host => {
+            const editor = host.querySelector('.cm-editor');
+            const content = host.querySelector('.cm-content');
+            return editor && content
+                ? Math.round(editor.getBoundingClientRect().height - content.getBoundingClientRect().height)
+                : Number.NaN;
+        });
+    }
+
+    /** Space between the last line of the composer's error and the action bar under it — the text, not its box. */
+    async composerErrorClearance(): Promise<number | undefined> {
+        const actions = await this.composerActions.boundingBox();
+        const textBottom = await this.composerError.evaluate(error => {
+            const range = error.ownerDocument.createRange();
+            range.selectNodeContents(error);
+            return range.getBoundingClientRect().bottom;
+        });
+        return actions ? Math.round(actions.y - textBottom) : undefined;
     }
 
     async write(text: string): Promise<void> {

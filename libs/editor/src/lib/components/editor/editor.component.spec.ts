@@ -53,6 +53,21 @@ describe('EditorComponent', () => {
         });
     });
 
+    describe('frame', () => {
+        it('should keep its side borders, lint gutter and focus outline by default', () => {
+            spectator.detectChanges();
+
+            expect(spectator.element).not.toHaveClass('editor--frameless');
+        });
+
+        it('should drop them when frameless is set', () => {
+            spectator.setInput('frameless', true);
+            spectator.detectChanges();
+
+            expect(spectator.element).toHaveClass('editor--frameless');
+        });
+    });
+
     describe('toolbar', () => {
         it('should render toolbar by default', () => {
             spectator.detectChanges();

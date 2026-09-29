@@ -1,10 +1,9 @@
 @use 'index' as *;
 
+// The editor runs edge to edge; everything around it keeps the feed's inset.
 :host {
     display: flex;
     flex-direction: column;
-    gap: $forum-composer-gap;
-    padding: $forum-feed-padding-v $forum-feed-padding-h;
     border-top: 1px solid var(--themed-border-color);
     background-color: var(--themed-primary-bg);
 }
@@ -14,6 +13,7 @@
     display: flex;
     align-items: center;
     gap: $forum-composer-gap;
+    margin: $forum-feed-padding-v $forum-feed-padding-h 0;
     padding: $forum-quote-padding-v $forum-quote-padding-h;
     border-left: $forum-quote-bar-width solid var(--themed-link-color);
     border-radius: $forum-quote-radius;
@@ -40,15 +40,10 @@
     white-space: nowrap;
 }
 
-.forum-composer__editor {
-    border: 1px solid var(--themed-border-color);
-    border-radius: $forum-quote-radius;
-    overflow: hidden;
-}
-
 .forum-composer__error,
 .forum-composer__pending {
     margin: 0;
+    padding: 0 $forum-feed-padding-h $forum-feed-padding-v;
     font-size: $font-size-sm;
 }
 
@@ -62,5 +57,7 @@
 
 .forum-composer__actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    padding: $forum-feed-padding-v $forum-feed-padding-h;
+    border-top: 1px solid var(--themed-divider-color);
 }

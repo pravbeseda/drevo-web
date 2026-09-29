@@ -71,6 +71,7 @@ function buildToolbarGroups(isMac: boolean): readonly ToolbarGroupView[] {
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         '[class.editor--auto-height]': 'autoHeight()',
+        '[class.editor--frameless]': 'frameless()',
     },
 })
 export class EditorComponent implements OnInit, AfterViewInit {
@@ -84,6 +85,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     readonly showToolbar = input(true);
     /** Grow with the text, within bounds, instead of filling the container — for a form field rather than a page. */
     readonly autoHeight = input(false);
+    /** No side borders, lint gutter or focus outline — for a field set into a form that draws its own edges. */
+    readonly frameless = input(false);
     readonly customActions = input<CustomToolbarAction[]>([]);
 
     @Input()

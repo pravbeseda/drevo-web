@@ -2,8 +2,17 @@
 
 :host(.editor--auto-height) ::ng-deep .cm-editor {
     height: auto;
-    min-height: $editor-auto-height-min;
     max-height: $editor-auto-height-max;
+}
+
+:host(.editor--frameless) ::ng-deep {
+    .cm-editor.cm-focused {
+        outline: none;
+    }
+
+    .cm-gutters {
+        display: none;
+    }
 }
 
 :host ::ng-deep {

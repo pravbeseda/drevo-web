@@ -64,6 +64,11 @@
     flex: none;
 }
 
+:host(.editor--frameless) {
+    border-left: none;
+    border-right: none;
+}
+
 .editor-container {
     display: flex;
     flex: 1;
