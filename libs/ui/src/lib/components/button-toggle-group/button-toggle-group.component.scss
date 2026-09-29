@@ -73,6 +73,12 @@ $pill-radius: 20px;
 $segment-radius: 8px;
 
 :host(.ui-button-toggle-group--segmented) {
+    // A connected control does not wrap: what does not fit scrolls inside it,
+    // rather than widening every ancestor up to the nearest scroll container.
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+
     .mat-button-toggle-group {
         gap: 0;
         flex-wrap: nowrap;

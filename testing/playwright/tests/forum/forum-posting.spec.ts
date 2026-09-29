@@ -194,6 +194,17 @@ test.describe('Forum posting', () => {
             expect(await new ForumTopicsPage(page).gapBelow(form.editor)).toBe(0);
         });
 
+        test('keeps the section picker inside its row on a narrow phone', async ({ authenticatedPage: page }) => {
+            await page.setViewportSize({ width: 360, height: 780 });
+            await mockForumSectionsApi(page);
+            await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
+            const form = new ForumNewTopicPage(page);
+            await page.goto('/forum/common/new');
+            await form.waitForReady();
+
+            expect(await new ForumTopicsPage(page).panelScrollsSideways()).toBe(false);
+        });
+
         test('asks for the section among every section', async ({ authenticatedPage: page }) => {
             await mockForumSectionsApi(page);
             await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));

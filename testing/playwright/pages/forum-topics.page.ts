@@ -84,4 +84,9 @@ export class ForumTopicsPage extends BasePage {
         const [box, panes] = await Promise.all([element.boundingBox(), this.panes.boundingBox()]);
         return box && panes ? Math.round(panes.y + panes.height - (box.y + box.height)) : undefined;
     }
+
+    /** Whether the panel beside the list has content wider than itself, so it scrolls sideways. */
+    panelScrollsSideways(): Promise<boolean> {
+        return this.panel.evaluate(panel => panel.scrollWidth > panel.clientWidth);
+    }
 }
