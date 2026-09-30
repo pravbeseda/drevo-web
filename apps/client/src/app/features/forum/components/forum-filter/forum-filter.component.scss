@@ -1,0 +1,15 @@
+@use 'index' as *;
+
+:host {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.forum-filter__current {
+    overflow: hidden;
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

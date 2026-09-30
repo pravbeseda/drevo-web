@@ -1,3 +1,4 @@
+import { forumOwnerPrefix } from '../../helpers/forum-owner';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -57,7 +58,7 @@ export class TopicListComponent {
     /** The reader asked to load the failed page again. */
     readonly retry = output();
 
-    protected readonly newsSectionId = 'news';
+    protected readonly ownerPrefix = forumOwnerPrefix;
 
     protected readonly trackById = (_index: number, topic: ForumTopicListItem): number => topic.id;
 

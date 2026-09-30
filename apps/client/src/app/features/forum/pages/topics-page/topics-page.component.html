@@ -3,6 +3,13 @@
     [withPanel]="withPanel()"
     [newTopicLink]="newTopicLink()"
 >
+    @if (sections().length > 0) {
+        <app-forum-filter
+            panesToolbarEnd
+            [sections]="sections()"
+            [current]="part()"
+        />
+    }
     @if (hasTopicList()) {
         @if (pages.items().length === 0) {
             <p

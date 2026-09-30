@@ -2,8 +2,11 @@ import { BasePage } from './base.page';
 import { Locator } from '@playwright/test';
 
 export class ForumTopicPage extends BasePage {
-    readonly title = this.page.getByTestId('topic-page-title');
-    readonly author = this.page.getByTestId('topic-page-author');
+    /** The topic's title and what it hangs off live in the app header, not on the topic itself. */
+    readonly title = this.page.getByTestId('page-title');
+    readonly subtitle = this.page.getByTestId('page-subtitle');
+    readonly subtitleLink = this.page.getByTestId('page-subtitle-link');
+    readonly feed = this.page.getByTestId('topic-feed');
     readonly replyTo = this.page.getByTestId('message-reply-to');
     readonly notFound = this.page.getByTestId('topic-not-found');
     readonly loadError = this.page.getByTestId('topic-load-error');
@@ -18,9 +21,9 @@ export class ForumTopicPage extends BasePage {
     readonly composerPending = this.page.getByTestId('composer-pending');
     readonly composerActions = this.page.getByTestId('composer-actions');
 
-    /** The heading carries the resolved topic, so it is absent until the data is. */
+    /** The feed renders only once the topic has resolved. */
     async waitForReady(): Promise<void> {
-        await this.title.waitFor({ state: 'visible' });
+        await this.feed.waitFor({ state: 'visible' });
     }
 
     /** A message card names the message rather than its position in the list. */
@@ -35,8 +38,8 @@ export class ForumTopicPage extends BasePage {
 
     /** Moves the pane the topic scrolls in to one of its ends, as far as a reader's wheel would. */
     scrollTo(end: 'top' | 'bottom'): Promise<void> {
-        return this.title.evaluate((title, to) => {
-            let scroller = title.parentElement;
+        return this.feed.evaluate((feed, to) => {
+            let scroller = feed.parentElement;
             while (
                 scroller &&
                 !(

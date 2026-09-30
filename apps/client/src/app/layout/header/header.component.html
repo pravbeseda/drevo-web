@@ -1,10 +1,19 @@
 <div class="header-brand">
     <ui-icon-button
+        [class.menu-button--has-back]="!!backLink()"
         testId="hamburger-button"
         icon="menu"
         label="Меню"
         (clicked)="toggleDrawer()"
     />
+    @if (backLink(); as link) {
+        <ui-icon-button
+            testId="back-button"
+            icon="arrow_back"
+            label="К списку"
+            [link]="link"
+        />
+    }
 
     @if (isEditingTitle()) {
         <input
@@ -20,15 +29,33 @@
             data-testid="page-title-input"
         />
     } @else {
-        <ui-line-clamp
-            class="page-title"
-            [class.page-title--editable]="canRename()"
-            data-testid="page-title"
-            [tooltip]="pageTitle()"
-            (click)="onTitleClick()"
-        >
-            {{ pageTitle() }}
-        </ui-line-clamp>
+        <div class="page-heading">
+            <ui-line-clamp
+                class="page-title"
+                [class.page-title--editable]="canRename()"
+                data-testid="page-title"
+                [lines]="pageSubtitle() ? 1 : 2"
+                [tooltip]="pageTitle()"
+                (click)="onTitleClick()"
+            >
+                {{ pageTitle() }}
+            </ui-line-clamp>
+            @if (pageSubtitle(); as subtitle) {
+                <span
+                    class="page-subtitle"
+                    data-testid="page-subtitle"
+                >
+                    {{ subtitle.prefix }}
+                    <a
+                        class="page-subtitle__link"
+                        data-testid="page-subtitle-link"
+                        [routerLink]="subtitle.link"
+                    >
+                        {{ subtitle.label }}
+                    </a>
+                </span>
+            }
+        </div>
     }
 </div>
 

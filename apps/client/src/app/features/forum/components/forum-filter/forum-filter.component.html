@@ -1,0 +1,35 @@
+@if (currentName(); as name) {
+    <span
+        class="forum-filter__current"
+        data-testid="forum-filter-current"
+    >
+        {{ name }}
+    </span>
+}
+<ui-icon-button
+    icon="filter_list"
+    label="Разделы форума"
+    testId="forum-filter-button"
+    [uiDropdownMenuTriggerFor]="menu"
+/>
+
+<ng-template #menu>
+    <ui-dropdown-menu>
+        <ui-dropdown-menu-item
+            data-testid="forum-filter-all"
+            [icon]="current() === undefined ? 'check' : ''"
+            (clicked)="select(undefined)"
+        >
+            <span data-testid="forum-filter-label">Все темы</span>
+        </ui-dropdown-menu-item>
+        @for (section of sections(); track section.id) {
+            <ui-dropdown-menu-item
+                [attr.data-testid]="'forum-filter-' + section.id"
+                [icon]="section.id === current() ? 'check' : ''"
+                (clicked)="select(section.id)"
+            >
+                <span data-testid="forum-filter-label">{{ section.name }}</span>
+            </ui-dropdown-menu-item>
+        }
+    </ui-dropdown-menu>
+</ng-template>

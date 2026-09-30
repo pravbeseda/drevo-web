@@ -7,6 +7,8 @@ export class LayoutPage extends BasePage {
     readonly titleHeading = this.page.getByTestId('page-title');
     readonly titleInput = this.page.getByTestId('page-title-input');
     readonly hamburgerButton = this.page.getByTestId('hamburger-button');
+    /** Stands in for the menu on a phone, on a page that replaced its list. */
+    readonly backButton = this.page.getByTestId('back-button');
 
     // Search
     readonly searchButton = this.page.getByTestId('search-button');

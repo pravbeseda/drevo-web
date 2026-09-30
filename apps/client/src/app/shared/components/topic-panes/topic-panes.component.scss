@@ -27,7 +27,10 @@
 }
 
 .topic-panes__toolbar {
+    display: flex;
     flex: none;
+    align-items: center;
+    justify-content: space-between;
     padding: $forum-list-toolbar-padding;
     border-bottom: 1px solid var(--themed-divider-color);
 }

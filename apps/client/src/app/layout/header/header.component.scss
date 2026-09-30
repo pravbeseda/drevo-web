@@ -15,6 +15,20 @@
     min-width: 0;
 }
 
+// The arrow shows while a page hides its list. Below the tablet breakpoint it takes the menu's
+// place; wider, the menu stays, because there it collapses the sidebar rather than opening a drawer.
+@media (max-width: #{$breakpoint-tablet - 1px}) {
+    .menu-button--has-back {
+        display: none;
+    }
+}
+
+.page-heading {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .page-title {
     font-size: $brand-font-size;
     font-weight: 500;
@@ -24,6 +38,24 @@
 
     &--editable {
         cursor: text;
+    }
+}
+
+.page-subtitle {
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.page-subtitle__link {
+    color: var(--themed-link-color);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+        text-decoration: underline;
     }
 }
 

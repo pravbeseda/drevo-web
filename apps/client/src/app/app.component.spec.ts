@@ -21,6 +21,7 @@ describe('AppComponent', () => {
                 pageTitle: signal('Древо'),
                 titleContext: signal(undefined),
                 tabTitle: signal(undefined),
+                pageSubtitle: signal(undefined),
             }),
             MockProvider(AppUpdateService, {
                 chunkLoadFailed: signal(false).asReadonly(),

@@ -5,7 +5,6 @@ import {
     createForumTopicListPage,
     createForumTopicPage,
 } from '../../mocks/forum';
-import { ForumTabsPage } from '../../pages/forum-tabs.page';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
 import { LayoutPage } from '../../pages/layout.page';
@@ -105,14 +104,14 @@ test.describe('Forum topic list scrolling', () => {
             TOPIC_ID,
             createForumTopicPage(createForumTopicDto({ id: TOPIC_ID }), [createForumMessageDto({ id: 11 })]),
         );
-        const tabs = new ForumTabsPage(page);
+        const layout = new LayoutPage(page);
         const topic = new ForumTopicPage(page);
         const topics = new ForumTopicsPage(page);
 
         // The list is laid out while the topic hides it, so it first measures itself as having no height.
         await page.goto(`/forum/topic/${TOPIC_ID}`);
         await topic.waitForReady();
-        await tabs.allTopics.click();
+        await layout.backButton.click();
         await topics.waitForReady();
 
         const listHeight = (await topics.scroller.boundingBox())?.height ?? 0;

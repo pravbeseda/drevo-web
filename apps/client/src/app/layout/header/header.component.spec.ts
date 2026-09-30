@@ -10,7 +10,8 @@ import { createMockUser } from '@drevo-web/shared/testing';
 import { ModalService } from '@drevo-web/ui';
 import { ArticleService } from '../../services/articles/article.service';
 import { AuthService } from '../../services/auth/auth.service';
-import { PageTitleStrategy, TitleContext } from '../../services/page-title.strategy';
+import { BackLinkService } from '../../services/back-link/back-link.service';
+import { PageSubtitle, PageTitleStrategy, TitleContext } from '../../services/page-title.strategy';
 import { HeaderComponent } from './header.component';
 
 const mockWindowObj = {
@@ -33,6 +34,7 @@ describe('HeaderComponent', () => {
     const titleContextSignal = signal<TitleContext | undefined>(undefined);
     const tabTitleSignal = signal<string | undefined>(undefined);
     const pageTitleSignal = signal('Древо');
+    const pageSubtitleSignal = signal<PageSubtitle | undefined>(undefined);
     const renameArticleMock = jest.fn();
     const successMock = jest.fn();
     const errorMock = jest.fn();
@@ -48,6 +50,7 @@ describe('HeaderComponent', () => {
                 pageTitle: pageTitleSignal,
                 titleContext: titleContextSignal,
                 tabTitle: tabTitleSignal,
+                pageSubtitle: pageSubtitleSignal,
             }),
             MockProvider(DrawerService, {
                 isOpen: signal(true),
@@ -75,6 +78,7 @@ describe('HeaderComponent', () => {
         titleContextSignal.set(undefined);
         tabTitleSignal.set(undefined);
         pageTitleSignal.set('Древо');
+        pageSubtitleSignal.set(undefined);
         mockWindowObj.getSelection.mockReturnValue({ isCollapsed: true });
         renameArticleMock.mockClear();
         successMock.mockClear();
@@ -100,6 +104,43 @@ describe('HeaderComponent', () => {
         spectator = createComponent();
 
         expect(spectator.query('[data-testid="page-title"]')?.textContent?.trim()).toBe('Древо');
+    });
+
+    describe('back link', () => {
+        it('should offer no way back when the page names none', () => {
+            spectator = createComponent();
+
+            expect(spectator.query('[data-testid="back-button"]')).toBeNull();
+        });
+
+        it('should lead back to the list the page shows it hides', () => {
+            spectator = createComponent();
+            spectator.inject(BackLinkService).show('/forum/common');
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="back-button"]')?.getAttribute('href')).toBe('/forum/common');
+            expect(spectator.query('[data-testid="hamburger-button"]')).toBeTruthy();
+        });
+    });
+
+    describe('subtitle', () => {
+        it('should show no subtitle when the page has none', () => {
+            spectator = createComponent();
+
+            expect(spectator.query('[data-testid="page-subtitle"]')).toBeNull();
+        });
+
+        it('should show the subtitle with its label linked', () => {
+            pageTitleSignal.set('Модератору — о переименовании');
+            pageSubtitleSignal.set({ prefix: 'к статье', label: 'Макарий Великий', link: '/articles/7' });
+            spectator = createComponent();
+
+            const subtitle = spectator.query('[data-testid="page-subtitle"]');
+            const link = spectator.query<HTMLAnchorElement>('[data-testid="page-subtitle-link"]');
+            expect(subtitle?.textContent?.replace(/\s+/g, ' ').trim()).toBe('к статье Макарий Великий');
+            expect(link?.textContent?.trim()).toBe('Макарий Великий');
+            expect(link?.getAttribute('href')).toBe('/articles/7');
+        });
     });
 
     describe('canRename', () => {

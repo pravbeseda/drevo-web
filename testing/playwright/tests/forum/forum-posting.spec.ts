@@ -140,7 +140,7 @@ test.describe('Forum posting', () => {
     });
 
     test.describe('starting a topic', () => {
-        test('starts a topic in the section the tab shows and opens it beside the list', async ({
+        test('starts a topic in the section the list shows and opens it beside the list', async ({
             authenticatedPage: page,
         }) => {
             await mockForumSectionsApi(page);

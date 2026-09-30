@@ -119,6 +119,58 @@ describe('PageTitleStrategy', () => {
         });
     });
 
+    describe('pageSubtitle', () => {
+        const subtitle = { prefix: 'к статье', label: 'Макарий Великий', link: '/articles/7' };
+        let buildTitle: jest.SpyInstance;
+
+        beforeEach(() => {
+            buildTitle = jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+        });
+
+        it('should be undefined by default', () => {
+            expect(spectator.service.pageSubtitle()).toBeUndefined();
+        });
+
+        it('should expose the subtitle the leaf route resolves', () => {
+            buildTitle.mockReturnValue('Переименование');
+
+            spectator.service.updateTitle(makeSnapshot(makeRoute(), makeRoute({ subtitle })));
+
+            expect(spectator.service.pageSubtitle()).toEqual(subtitle);
+            expect(spectator.service.pageTitle()).toBe('Переименование');
+        });
+
+        it('should not inherit the subtitle from a parent route', () => {
+            spectator.service.updateTitle(makeSnapshot(makeRoute({ subtitle }), makeRoute()));
+
+            expect(spectator.service.pageSubtitle()).toBeUndefined();
+        });
+
+        it('should ignore a subtitle of the wrong shape', () => {
+            spectator.service.updateTitle(makeSnapshot(makeRoute({ subtitle: { label: 'Макарий Великий' } })));
+
+            expect(spectator.service.pageSubtitle()).toBeUndefined();
+        });
+
+        it('should drop the subtitle when an article is the title context', () => {
+            spectator.service.updateTitle(
+                makeSnapshot(
+                    makeRoute({ titleSource: 'article', article: { articleId: 7, title: 'Макарий Великий' } }),
+                    makeRoute({ subtitle }),
+                ),
+            );
+
+            expect(spectator.service.pageSubtitle()).toBeUndefined();
+        });
+
+        it('should clear the subtitle on the next navigation', () => {
+            spectator.service.updateTitle(makeSnapshot(makeRoute({ subtitle })));
+            spectator.service.updateTitle(makeSnapshot(makeRoute()));
+
+            expect(spectator.service.pageSubtitle()).toBeUndefined();
+        });
+    });
+
     describe('titleSource', () => {
         it('should read title from resolved article data when titleSource is set', () => {
             const titleService = spectator.inject(Title);

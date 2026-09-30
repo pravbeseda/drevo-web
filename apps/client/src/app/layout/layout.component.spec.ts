@@ -93,6 +93,7 @@ describe('LayoutComponent', () => {
                 pageTitle: signal('Древо'),
                 titleContext: signal(undefined),
                 tabTitle: signal(undefined),
+                pageSubtitle: signal(undefined),
             }),
         ],
     });
@@ -294,6 +295,7 @@ describe('LayoutComponent', () => {
                         pageTitle: signal('Древо'),
                         titleContext: signal(undefined),
                         tabTitle: signal(undefined),
+                        pageSubtitle: signal(undefined),
                     }),
                 ],
             });

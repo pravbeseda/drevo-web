@@ -9,32 +9,6 @@
     overflow-anchor: none;
 }
 
-.topic-page__header {
-    padding: $gap-md;
-}
-
-.topic-page__title {
-    margin: 0;
-    color: var(--themed-text-primary);
-    font-size: $font-size-lg;
-}
-
-.topic-page__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $dropdown-item-gap;
-    color: var(--themed-text-secondary);
-    font-size: $font-size-sm;
-}
-
-.topic-page__article {
-    color: var(--themed-link-color);
-
-    &:hover {
-        color: var(--themed-link-hover);
-    }
-}
-
 .topic-page__feed {
     flex: 1;
     padding: $forum-feed-padding-v 0;
