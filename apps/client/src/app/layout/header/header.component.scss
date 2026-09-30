@@ -15,6 +15,27 @@
     min-width: 0;
 }
 
+// A page that replaced its list on a phone offers the way back where the menu was.
+.back-button {
+    display: none;
+}
+
+@media (max-width: #{$breakpoint-tablet - 1px}) {
+    .back-button {
+        display: inline-block;
+    }
+
+    .menu-button--has-back {
+        display: none;
+    }
+}
+
+.page-heading {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .page-title {
     font-size: $brand-font-size;
     font-weight: 500;
@@ -24,6 +45,24 @@
 
     &--editable {
         cursor: text;
+    }
+}
+
+.page-subtitle {
+    font-size: $font-size-sm;
+    color: var(--themed-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.page-subtitle__link {
+    color: var(--themed-link-color);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+        text-decoration: underline;
     }
 }
 

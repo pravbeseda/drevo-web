@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /**
  * The right pane before a topic is opened. It carries the section's own
- * description, which the forum fetches for the tabs and shows nowhere else.
+ * description, which the forum fetches for the section filter and shows
+ * nowhere else.
  */
 @Component({
     selector: 'app-topic-placeholder',

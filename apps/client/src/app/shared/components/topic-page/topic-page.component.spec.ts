@@ -114,28 +114,11 @@ describe('TopicPageComponent', () => {
         spectator.detectChanges();
     };
 
-    describe('the topic header', () => {
-        it('shows the title, the author and the date', () => {
-            render(createTopicPage([createMessage(1)], 1, 1));
+    it('leaves the title to the app header and opens straight on the feed', () => {
+        render(createTopicPage([createMessage(1)], 1, 1, { article: { id: 7, title: 'Москва' } }));
 
-            expect(spectator.query('[data-testid="topic-page-title"]')).toHaveText('Тема о святых');
-            expect(spectator.query('[data-testid="topic-page-author"]')).toHaveText('Иванов И.И.');
-            expect(spectator.query('[data-testid="topic-page-created"]')).toBeTruthy();
-        });
-
-        it('links to the article the topic hangs off', () => {
-            render(createTopicPage([createMessage(1)], 1, 1, { article: { id: 7, title: 'Москва' } }));
-
-            const link = spectator.query('[data-testid="topic-page-article"]');
-            expect(link).toHaveText('Москва');
-            expect(link?.getAttribute('href')).toBe('/articles/7');
-        });
-
-        it('offers no article link for a topic that hangs off none', () => {
-            render(createTopicPage([createMessage(1)], 1, 1));
-
-            expect(spectator.query('[data-testid="topic-page-article"]')).toBeNull();
-        });
+        expect(spectator.query('header')).toBeNull();
+        expect(spectator.query('[data-testid="topic-page-title"]')).toBeNull();
     });
 
     describe('the messages', () => {

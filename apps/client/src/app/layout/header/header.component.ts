@@ -19,6 +19,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DrawerService, LoggerService, NotificationService, readApiErrorBody, WINDOW } from '@drevo-web/core';
 import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-web/ui';
 
@@ -29,6 +30,7 @@ import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-we
         FontScaleControlComponent,
         LineClampComponent,
         ReactiveFormsModule,
+        RouterLink,
         ThemeToggleComponent,
         IconButtonComponent,
     ],
@@ -48,6 +50,8 @@ export class HeaderComponent {
     private readonly notificationService = inject(NotificationService);
 
     readonly pageTitle = this.pageTitleStrategy.pageTitle;
+    readonly pageSubtitle = this.pageTitleStrategy.pageSubtitle;
+    readonly pageBackLink = this.pageTitleStrategy.pageBackLink;
 
     private readonly _isEditingTitle = signal(false);
     private readonly _isSavingTitle = signal(false);

@@ -10,6 +10,9 @@ import { filter, map } from 'rxjs/operators';
  * this component's own child route: a wide container shows both, a narrow one
  * shows whichever the address names.
  *
+ * The list's toolbar carries «new topic» and, projected as `[panesToolbarEnd]`,
+ * whatever the host adds at its other end.
+ *
  * The list pane only gives the list its height: the list scrolls itself, since
  * a virtual list has to own the element it scrolls.
  */

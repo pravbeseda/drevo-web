@@ -1,29 +1,8 @@
 @if (topic(); as topic) {
-    <header class="topic-page__header">
-        <h1
-            class="topic-page__title"
-            data-testid="topic-page-title"
-        >
-            {{ topic.title }}
-        </h1>
-        <div class="topic-page__meta">
-            <span data-testid="topic-page-author">{{ topic.author }}</span>
-            @if (topic.createdAt; as createdAt) {
-                <span data-testid="topic-page-created">{{ createdAt | formatDate }}</span>
-            }
-            @if (topic.article; as article) {
-                <a
-                    class="topic-page__article"
-                    data-testid="topic-page-article"
-                    [routerLink]="['/articles', article.id]"
-                >
-                    {{ article.title }}
-                </a>
-            }
-        </div>
-    </header>
-
-    <div class="topic-page__feed">
+    <div
+        class="topic-page__feed"
+        data-testid="topic-feed"
+    >
         @if (hasPrevious()) {
             <app-topic-feed-edge
                 end="previous"

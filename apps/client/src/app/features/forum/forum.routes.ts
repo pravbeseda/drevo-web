@@ -19,18 +19,18 @@ function topicsRoute(children: Route[] = forumTopicRoutes()): Omit<Route, 'path'
 
 export const FORUM_ROUTES: Route[] = [
     {
+        // Componentless: the sections resolve once for the section filter of every list below.
         path: '',
         resolve: { sections: forumSectionsResolver },
-        loadComponent: () => import('./pages/forum-page/forum-page.component').then(m => m.ForumPageComponent),
         children: [
-            // No section named: every section's topics, the tab the forum opens
+            // No section named: every section's topics, the list the forum opens
             // on, and the list a bare `/forum/topic/:id` opens beside.
             { path: '', ...topicsRoute() },
             { path: ':part', ...topicsRoute() },
         ],
     },
     // One article's or news item's discussion, the legacy address. Its list is a
-    // filtered one, not a section, so the section tabs would name the wrong page
+    // filtered one, not a section, so the section filter would name the wrong list
     // and a topic opened from it belongs to `/forum/topic/:id` — hence no panel.
     // It sits last: `:part/:partId` would otherwise swallow `topic/:id`.
     { path: ':part/:partId', ...topicsRoute([]), data: { withPanel: false } },

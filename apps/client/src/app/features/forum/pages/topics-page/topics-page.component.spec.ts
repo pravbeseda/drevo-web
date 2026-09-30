@@ -4,6 +4,7 @@ import { TopicListComponent } from '../../../../shared/components/topic-list/top
 import { createRouteSnapshot } from '../../../../shared/testing/route-testing.helper';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { TopicsPageComponent } from './topics-page.component';
+import { ForumFilterComponent } from '../../components/forum-filter/forum-filter.component';
 import { ActivatedRoute, Event, NavigationEnd, Router, provideRouter } from '@angular/router';
 import { SidebarService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -78,7 +79,7 @@ describe('TopicsPageComponent', () => {
         });
     };
 
-    /** The reader switching tabs: one address of the same route config replaces another. */
+    /** The reader switching sections: one address of the same route config replaces another. */
     const switchSection = (part: string): void => {
         routeMock.snapshot = createRouteSnapshot({ part });
         routeParams.next({ part });
@@ -330,7 +331,7 @@ describe('TopicsPageComponent', () => {
             });
         });
 
-        it('starts the topic in the section the tab shows, and follows the tabs', () => {
+        it('starts the topic in the section the list shows, and follows the filter', () => {
             render(createPage(), { part: 'common' });
             expect(newTopicLink()).toBe('/forum/common/new');
             expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({
@@ -349,6 +350,43 @@ describe('TopicsPageComponent', () => {
             render(createPage(), { part: 'articles', partId: '7' }, { withPanel: false });
 
             expect(spectator.query('[data-testid="forum-new-topic"]')).toBeNull();
+        });
+    });
+
+    describe('the section filter', () => {
+        const sections: readonly ForumSection[] = [
+            { id: 'common', name: 'Общие темы', description: 'Обо всём' },
+            { id: 'news', name: 'О новостях', description: 'Обсуждение новостей' },
+        ];
+        const filter = (): ForumFilterComponent | null => spectator.query(ForumFilterComponent);
+
+        it('sits in the list toolbar with the sections, none picked on every topic', () => {
+            render(createPage(), {}, { sections });
+
+            expect(spectator.query('[data-testid="forum-panes-list"] app-forum-filter')).toBeTruthy();
+            expect(filter()?.sections()).toEqual(sections);
+            expect(filter()?.current()).toBeUndefined();
+        });
+
+        it('follows the section the list shows', () => {
+            render(createPage(), { part: 'common' }, { sections });
+            expect(filter()?.current()).toBe('common');
+
+            switchSection('news');
+
+            expect(filter()?.current()).toBe('news');
+        });
+
+        it('is left out when the sections failed to load', () => {
+            render(createPage());
+
+            expect(filter()).toBeNull();
+        });
+
+        it('is left out of one article’s list', () => {
+            render(createPage(), { part: 'articles', partId: '7' }, { sections, withPanel: false });
+
+            expect(filter()).toBeNull();
         });
     });
 });

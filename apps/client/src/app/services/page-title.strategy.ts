@@ -24,6 +24,23 @@ export interface TitleContext {
     readonly title: string;
 }
 
+/** A line under the page title naming what the page hangs off, e.g. «к статье X». */
+export interface PageSubtitle {
+    readonly prefix: string;
+    readonly label: string;
+    readonly link: string;
+}
+
+function isPageSubtitle(value: unknown): value is PageSubtitle {
+    return (
+        typeof value === 'object' &&
+        !!value &&
+        typeof (value as PageSubtitle).prefix === 'string' &&
+        typeof (value as PageSubtitle).label === 'string' &&
+        typeof (value as PageSubtitle).link === 'string'
+    );
+}
+
 @Injectable()
 export class PageTitleStrategy extends TitleStrategy {
     private readonly title = inject(Title);
@@ -33,9 +50,14 @@ export class PageTitleStrategy extends TitleStrategy {
     private readonly _tabTitle = signal<string | undefined>(undefined);
     private readonly _titleContext = signal<TitleContext | undefined>(undefined);
     private readonly _titlePrefix = signal<string | undefined>(undefined);
+    private readonly _pageSubtitle = signal<PageSubtitle | undefined>(undefined);
+    private readonly _pageBackLink = signal<string | undefined>(undefined);
 
     readonly titleContext = this._titleContext.asReadonly();
     readonly tabTitle = this._tabTitle.asReadonly();
+    readonly pageSubtitle = this._pageSubtitle.asReadonly();
+    /** Where a page that replaced its list on a narrow screen goes back to. */
+    readonly pageBackLink = this._pageBackLink.asReadonly();
 
     readonly pageTitle = computed(() => {
         const tab = this._tabTitle();
@@ -95,12 +117,22 @@ export class PageTitleStrategy extends TitleStrategy {
             this._tabTitle.set(this.buildTitle(snapshot));
         }
 
-        const leaf = chain.at(-1);
+        this.applyLeafData(chain.at(-1));
+        this.applyDocumentTitle();
+        this.logger.debug('Title updated', { title: this.pageTitle() });
+    }
+
+    /** What only the page itself names: the document title's prefix, the line under the title, the way back. */
+    private applyLeafData(leaf: ActivatedRouteSnapshot | undefined): void {
         const titlePrefix: unknown = leaf?.data['titlePrefix'];
         this._titlePrefix.set(typeof titlePrefix === 'string' ? titlePrefix : undefined);
 
-        this.applyDocumentTitle();
-        this.logger.debug('Title updated', { title: this.pageTitle() });
+        // Under an article the article already heads the page, so a line naming it again is dropped.
+        const subtitle: unknown = leaf?.data['subtitle'];
+        this._pageSubtitle.set(isPageSubtitle(subtitle) && !this._titleContext() ? subtitle : undefined);
+
+        const backLink: unknown = leaf?.data['backLink'];
+        this._pageBackLink.set(typeof backLink === 'string' ? backLink : undefined);
     }
 
     private applyDocumentTitle(): void {

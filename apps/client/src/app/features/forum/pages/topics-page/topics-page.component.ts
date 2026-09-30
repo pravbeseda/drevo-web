@@ -5,6 +5,7 @@ import { TopicListComponent } from '../../../../shared/components/topic-list/top
 import { TopicPanesComponent } from '../../../../shared/components/topic-panes/topic-panes.component';
 import { readForumSectionParams } from '../../../../shared/helpers/forum-route-params';
 import { TopicListPagesService } from '../../../../shared/services/topic-list-pages/topic-list-pages.service';
+import { ForumFilterComponent } from '../../components/forum-filter/forum-filter.component';
 import { ForumSectionsResolveResult } from '../../resolvers/forum-sections.resolver';
 import { ForumTopicsResolveResult } from '../../resolvers/forum-topics.resolver';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
@@ -14,12 +15,12 @@ import { ForumSection, ForumTopicListResponse } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-/** The tabs above resolve the sections; a list reached without them has none. */
+/** The parent route resolves the sections; a list reached without it has none. */
 const NO_SECTIONS: readonly ForumSection[] = [];
 
 @Component({
     selector: 'app-topics-page',
-    imports: [ErrorComponent, TopicListComponent, TopicPanesComponent],
+    imports: [ErrorComponent, ForumFilterComponent, TopicListComponent, TopicPanesComponent],
     templateUrl: './topics-page.component.html',
     styleUrl: './topics-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,10 +55,10 @@ export class TopicsPageComponent {
     readonly isLoadError = computed(() => this._resolveResult() === 'load-error');
 
     /**
-     * The section's own description, resolved by the tabbed shell above.
+     * The section's own description, resolved by the parent route.
      *
      * The section comes from the params rather than from the snapshot alone:
-     * switching tabs reuses this component, and a snapshot read inside a
+     * switching sections reuses this component, and a snapshot read inside a
      * `computed` is not a dependency, so the description would stay on the
      * section the reader arrived at.
      */
@@ -78,12 +79,12 @@ export class TopicsPageComponent {
         return part ? `/forum/${part}/new` : '/forum/new';
     });
 
-    private readonly part = toSignal(
-        this.route.params.pipe(map(() => readForumSectionParams(this.route.snapshot)?.part)),
-        { initialValue: readForumSectionParams(this.route.snapshot)?.part },
-    );
+    /** The section the list shows; absent while it shows every topic. */
+    readonly part = toSignal(this.route.params.pipe(map(() => readForumSectionParams(this.route.snapshot)?.part)), {
+        initialValue: readForumSectionParams(this.route.snapshot)?.part,
+    });
 
-    private readonly sections = toSignal(
+    readonly sections = toSignal(
         this.route.parent?.data.pipe(
             map((data): readonly ForumSection[] => {
                 const result = data['sections'] as ForumSectionsResolveResult | undefined;

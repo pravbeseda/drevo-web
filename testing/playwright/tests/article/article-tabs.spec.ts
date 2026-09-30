@@ -85,7 +85,13 @@ test.describe('Article tabs', () => {
                 page,
                 TOPIC_ID,
                 createForumTopicPage(
-                    createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }),
+                    createForumTopicDto({
+                        id: TOPIC_ID,
+                        title: TOPIC_TITLE,
+                        part: 'articles',
+                        partId: ARTICLE_ID,
+                        article: { id: ARTICLE_ID, title: 'Статья' },
+                    }),
                     // Long enough that the panel has to scroll something.
                     Array.from({ length: 20 }, (_, index) =>
                         createForumMessageDto(
@@ -104,6 +110,8 @@ test.describe('Article tabs', () => {
             // The topic is addressed under the article, so the tab and the list stay.
             await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_ID}/forum/topic/${TOPIC_ID}$`));
             await expect(article.forumTopics).toHaveCount(1);
+            // The article already heads the page, so the topic names no article under its title.
+            await expect(topic.subtitle).toBeHidden();
 
             // The panes are bounded by the screen and scroll inside themselves; an
             // unbounded pane grows with the topic and takes the tab's scroll instead.
