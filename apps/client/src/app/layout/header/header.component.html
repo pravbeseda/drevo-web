@@ -1,20 +1,19 @@
 <div class="header-brand">
-    @if (pageBackLink(); as backLink) {
-        <ui-icon-button
-            class="back-button"
-            testId="back-button"
-            icon="arrow_back"
-            label="К списку"
-            [link]="backLink"
-        />
-    }
     <ui-icon-button
-        [class.menu-button--has-back]="!!pageBackLink()"
+        [class.menu-button--has-back]="!!backLink()"
         testId="hamburger-button"
         icon="menu"
         label="Меню"
         (clicked)="toggleDrawer()"
     />
+    @if (backLink(); as link) {
+        <ui-icon-button
+            testId="back-button"
+            icon="arrow_back"
+            label="К списку"
+            [link]="link"
+        />
+    }
 
     @if (isEditingTitle()) {
         <input

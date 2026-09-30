@@ -94,7 +94,6 @@ describe('LayoutComponent', () => {
                 titleContext: signal(undefined),
                 tabTitle: signal(undefined),
                 pageSubtitle: signal(undefined),
-                pageBackLink: signal(undefined),
             }),
         ],
     });
@@ -297,7 +296,6 @@ describe('LayoutComponent', () => {
                         titleContext: signal(undefined),
                         tabTitle: signal(undefined),
                         pageSubtitle: signal(undefined),
-                        pageBackLink: signal(undefined),
                     }),
                 ],
             });

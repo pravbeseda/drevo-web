@@ -3,6 +3,7 @@ import { FontScaleControlComponent } from './font-scale-control/font-scale-contr
 import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { ARTICLE_TITLE_MAX_LENGTH, ArticleService } from '../../services/articles';
 import { AuthService } from '../../services/auth/auth.service';
+import { BackLinkService } from '../../services/back-link/back-link.service';
 import { PageTitleStrategy } from '../../services/page-title.strategy';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -51,7 +52,7 @@ export class HeaderComponent {
 
     readonly pageTitle = this.pageTitleStrategy.pageTitle;
     readonly pageSubtitle = this.pageTitleStrategy.pageSubtitle;
-    readonly pageBackLink = this.pageTitleStrategy.pageBackLink;
+    readonly backLink = inject(BackLinkService).link;
 
     private readonly _isEditingTitle = signal(false);
     private readonly _isSavingTitle = signal(false);

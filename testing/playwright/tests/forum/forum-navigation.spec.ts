@@ -23,7 +23,6 @@ import { LayoutPage } from '../../pages/layout.page';
 const SECTION = mockForumSections[0];
 const TOPIC_ID = 7;
 const TOPIC_TITLE = 'Тема о преподобном Сергии';
-const TOPIC_AUTHOR = 'Петров П.П.';
 const MESSAGE_ID = 11;
 const MESSAGE_AUTHOR = 'Сидоров С.С.';
 const ARTICLE_ID = 15;
@@ -41,7 +40,7 @@ test.describe('Forum navigation', () => {
         await mockForumTopicApi(
             page,
             TOPIC_ID,
-            createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE, author: TOPIC_AUTHOR }), [
+            createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
                 createForumMessageDto({ id: MESSAGE_ID, author: { name: MESSAGE_AUTHOR } }),
             ]),
         );
@@ -249,6 +248,39 @@ test.describe('Forum navigation', () => {
         await expect(page).toHaveURL(/\/forum$/);
         await expect(topics.items.first()).toBeVisible();
         await expect(layout.hamburgerButton).toBeVisible();
+        await expect(layout.backButton).toBeHidden();
+    });
+
+    test('offers the way back beside the menu on a tablet, where the sidebar leaves the topic no room for the list', async ({
+        authenticatedPage: page,
+    }) => {
+        // Past the tablet breakpoint the sidebar is a column, so the panes get less than their two-column width.
+        await page.setViewportSize({ width: 820, height: 900 });
+        await mockForumSectionsApi(page);
+        await mockForumTopicsApi(
+            page,
+            createForumTopicListResponse([createForumTopicListItemDto({ id: TOPIC_ID, title: TOPIC_TITLE })]),
+        );
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(createForumTopicDto({ id: TOPIC_ID, title: TOPIC_TITLE }), [
+                createForumMessageDto({ id: MESSAGE_ID }),
+            ]),
+        );
+        const layout = new LayoutPage(page);
+        const topics = new ForumTopicsPage(page);
+
+        await page.goto(`/forum/${SECTION.id}/topic/${TOPIC_ID}`);
+        await new ForumTopicPage(page).waitForReady();
+
+        await expect(topics.items.first()).toBeHidden();
+        // The menu still collapses the sidebar here, so the arrow joins it rather than replacing it.
+        await expect(layout.hamburgerButton).toBeVisible();
+        await layout.backButton.click();
+
+        await expect(page).toHaveURL(new RegExp(`/forum/${SECTION.id}$`));
+        await expect(topics.items.first()).toBeVisible();
         await expect(layout.backButton).toBeHidden();
     });
 

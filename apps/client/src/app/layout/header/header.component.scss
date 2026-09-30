@@ -15,16 +15,9 @@
     min-width: 0;
 }
 
-// A page that replaced its list on a phone offers the way back where the menu was.
-.back-button {
-    display: none;
-}
-
+// The arrow shows while a page hides its list. Below the tablet breakpoint it takes the menu's
+// place; wider, the menu stays, because there it collapses the sidebar rather than opening a drawer.
 @media (max-width: #{$breakpoint-tablet - 1px}) {
-    .back-button {
-        display: inline-block;
-    }
-
     .menu-button--has-back {
         display: none;
     }

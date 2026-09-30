@@ -60,7 +60,7 @@
                         data-testid="topic-context"
                     >
                         @if (topic.article; as article) {
-                            {{ topic.section?.id === newsSectionId ? 'к новости' : 'к статье' }} {{ article.title }}
+                            {{ ownerPrefix(topic.section?.id) }} {{ article.title }}
                         } @else {
                             {{ topic.section?.name }}
                         }

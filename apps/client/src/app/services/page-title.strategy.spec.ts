@@ -171,39 +171,6 @@ describe('PageTitleStrategy', () => {
         });
     });
 
-    describe('pageBackLink', () => {
-        beforeEach(() => {
-            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
-        });
-
-        it('should be undefined by default', () => {
-            expect(spectator.service.pageBackLink()).toBeUndefined();
-        });
-
-        it('should expose the back link the leaf route resolves', () => {
-            spectator.service.updateTitle(makeSnapshot(makeRoute(), makeRoute({ backLink: '/forum/common' })));
-
-            expect(spectator.service.pageBackLink()).toBe('/forum/common');
-        });
-
-        it('should keep the back link under an article', () => {
-            spectator.service.updateTitle(
-                makeSnapshot(
-                    makeRoute({ titleSource: 'article', article: { articleId: 7, title: 'Макарий Великий' } }),
-                    makeRoute({ backLink: '/articles/7/forum' }),
-                ),
-            );
-
-            expect(spectator.service.pageBackLink()).toBe('/articles/7/forum');
-        });
-
-        it('should ignore a non-string back link and one on a parent route', () => {
-            spectator.service.updateTitle(makeSnapshot(makeRoute({ backLink: '/forum' }), makeRoute({ backLink: 3 })));
-
-            expect(spectator.service.pageBackLink()).toBeUndefined();
-        });
-    });
-
     describe('titleSource', () => {
         it('should read title from resolved article data when titleSource is set', () => {
             const titleService = spectator.inject(Title);

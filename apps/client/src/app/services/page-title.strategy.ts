@@ -51,13 +51,10 @@ export class PageTitleStrategy extends TitleStrategy {
     private readonly _titleContext = signal<TitleContext | undefined>(undefined);
     private readonly _titlePrefix = signal<string | undefined>(undefined);
     private readonly _pageSubtitle = signal<PageSubtitle | undefined>(undefined);
-    private readonly _pageBackLink = signal<string | undefined>(undefined);
 
     readonly titleContext = this._titleContext.asReadonly();
     readonly tabTitle = this._tabTitle.asReadonly();
     readonly pageSubtitle = this._pageSubtitle.asReadonly();
-    /** Where a page that replaced its list on a narrow screen goes back to. */
-    readonly pageBackLink = this._pageBackLink.asReadonly();
 
     readonly pageTitle = computed(() => {
         const tab = this._tabTitle();
@@ -122,7 +119,7 @@ export class PageTitleStrategy extends TitleStrategy {
         this.logger.debug('Title updated', { title: this.pageTitle() });
     }
 
-    /** What only the page itself names: the document title's prefix, the line under the title, the way back. */
+    /** What only the page itself names: the document title's prefix and the line under the title. */
     private applyLeafData(leaf: ActivatedRouteSnapshot | undefined): void {
         const titlePrefix: unknown = leaf?.data['titlePrefix'];
         this._titlePrefix.set(typeof titlePrefix === 'string' ? titlePrefix : undefined);
@@ -130,9 +127,6 @@ export class PageTitleStrategy extends TitleStrategy {
         // Under an article the article already heads the page, so a line naming it again is dropped.
         const subtitle: unknown = leaf?.data['subtitle'];
         this._pageSubtitle.set(isPageSubtitle(subtitle) && !this._titleContext() ? subtitle : undefined);
-
-        const backLink: unknown = leaf?.data['backLink'];
-        this._pageBackLink.set(typeof backLink === 'string' ? backLink : undefined);
     }
 
     private applyDocumentTitle(): void {

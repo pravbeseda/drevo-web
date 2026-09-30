@@ -35,14 +35,9 @@ function createMessage(id: number, overrides: Partial<ForumMessage> = {}): Forum
     };
 }
 
-function createTopicPage(
-    messages: readonly ForumMessage[],
-    page: number,
-    totalPages: number,
-    topicOverrides: Partial<ForumTopic> = {},
-): ForumTopicPage {
+function createTopicPage(messages: readonly ForumMessage[], page: number, totalPages: number): ForumTopicPage {
     return {
-        topic: { ...topic, ...topicOverrides },
+        topic,
         messages: { items: messages, total: totalPages, page, pageSize: 1, totalPages },
     };
 }
@@ -115,7 +110,7 @@ describe('TopicPageComponent', () => {
     };
 
     it('leaves the title to the app header and opens straight on the feed', () => {
-        render(createTopicPage([createMessage(1)], 1, 1, { article: { id: 7, title: 'Москва' } }));
+        render(createTopicPage([createMessage(1)], 1, 1));
 
         expect(spectator.query('header')).toBeNull();
         expect(spectator.query('[data-testid="topic-page-title"]')).toBeNull();

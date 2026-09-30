@@ -10,6 +10,7 @@ import { createMockUser } from '@drevo-web/shared/testing';
 import { ModalService } from '@drevo-web/ui';
 import { ArticleService } from '../../services/articles/article.service';
 import { AuthService } from '../../services/auth/auth.service';
+import { BackLinkService } from '../../services/back-link/back-link.service';
 import { PageSubtitle, PageTitleStrategy, TitleContext } from '../../services/page-title.strategy';
 import { HeaderComponent } from './header.component';
 
@@ -34,7 +35,6 @@ describe('HeaderComponent', () => {
     const tabTitleSignal = signal<string | undefined>(undefined);
     const pageTitleSignal = signal('Древо');
     const pageSubtitleSignal = signal<PageSubtitle | undefined>(undefined);
-    const pageBackLinkSignal = signal<string | undefined>(undefined);
     const renameArticleMock = jest.fn();
     const successMock = jest.fn();
     const errorMock = jest.fn();
@@ -51,7 +51,6 @@ describe('HeaderComponent', () => {
                 titleContext: titleContextSignal,
                 tabTitle: tabTitleSignal,
                 pageSubtitle: pageSubtitleSignal,
-                pageBackLink: pageBackLinkSignal,
             }),
             MockProvider(DrawerService, {
                 isOpen: signal(true),
@@ -80,7 +79,6 @@ describe('HeaderComponent', () => {
         tabTitleSignal.set(undefined);
         pageTitleSignal.set('Древо');
         pageSubtitleSignal.set(undefined);
-        pageBackLinkSignal.set(undefined);
         mockWindowObj.getSelection.mockReturnValue({ isCollapsed: true });
         renameArticleMock.mockClear();
         successMock.mockClear();
@@ -115,9 +113,10 @@ describe('HeaderComponent', () => {
             expect(spectator.query('[data-testid="back-button"]')).toBeNull();
         });
 
-        it('should lead back to the list the page names', () => {
-            pageBackLinkSignal.set('/forum/common');
+        it('should lead back to the list the page shows it hides', () => {
             spectator = createComponent();
+            spectator.inject(BackLinkService).show('/forum/common');
+            spectator.detectChanges();
 
             expect(spectator.query('[data-testid="back-button"]')?.getAttribute('href')).toBe('/forum/common');
             expect(spectator.query('[data-testid="hamburger-button"]')).toBeTruthy();
