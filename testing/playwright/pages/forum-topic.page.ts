@@ -17,6 +17,8 @@ export class ForumTopicPage extends BasePage {
     readonly composerEditor = this.page.getByTestId('composer-editor');
     readonly composerText = this.composerEditor.locator('.cm-content');
     readonly composerGutter = this.composerEditor.locator('.cm-gutters');
+    /** CodeMirror's own box inside the field, which paints the field's fill. */
+    readonly composerField = this.composerEditor.locator('.cm-editor');
     readonly send = this.page.getByTestId('forum-send');
     readonly replyChip = this.page.getByTestId('composer-reply');
     readonly replyChipAuthor = this.page.getByTestId('composer-reply-author');

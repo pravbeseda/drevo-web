@@ -84,7 +84,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     readonly showToolbar = input(true);
     /** Grow with the text, within bounds, instead of filling the container — for a form field rather than a page. */
     readonly autoHeight = input(false);
-    /** No side borders, lint gutter or focus outline — for a field set into a form that draws its own edges. */
+    /** No side borders, fill, lint gutter or focus outline — for a field set into a form that draws its own edges. */
     readonly frameless = input(false);
     readonly customActions = input<CustomToolbarAction[]>([]);
 

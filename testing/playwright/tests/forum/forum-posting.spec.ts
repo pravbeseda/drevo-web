@@ -158,6 +158,13 @@ test.describe('Forum posting', () => {
             await expect(topic.composerActions).toBeVisible();
         });
 
+        test('lets the frame’s rounded corners show through the field', async ({ authenticatedPage: page }) => {
+            const topic = await openTopic(page);
+
+            // An opaque field is square and paints over the frame's curve wherever the inset is smaller than the radius.
+            await expect(topic.composerField).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+        });
+
         test('keeps the send button inside the frame on the narrowest phone', async ({ authenticatedPage: page }) => {
             await page.setViewportSize({ width: 320, height: 640 });
             const topic = await openTopic(page);

@@ -57,6 +57,15 @@
         (contentChanged)="onDraftChanged($event)"
     />
 
+    @if (!open()) {
+        <ui-icon
+            class="forum-composer__folded-send"
+            name="send"
+            aria-hidden="true"
+            data-testid="composer-folded-send"
+        />
+    }
+
     @if (open()) {
         <!-- Safari gives a pressed button no focus, so the press would blur the field and fold the bar away before the click lands. -->
         <app-forum-send-bar

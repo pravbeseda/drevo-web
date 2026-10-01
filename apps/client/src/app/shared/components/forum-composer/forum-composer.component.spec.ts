@@ -80,6 +80,20 @@ describe('ForumComposerComponent', () => {
             expect(actions()).toBeNull();
         });
 
+        it('marks where sending goes with an arrow that is a picture, not a control', () => {
+            const arrow = spectator.query('[data-testid="composer-folded-send"]');
+
+            expect(arrow).toExist();
+            expect(arrow).toHaveAttribute('aria-hidden', 'true');
+            expect(arrow?.closest('button')).toBeNull();
+        });
+
+        it('trades the arrow for the bar once unfolded', () => {
+            focusField();
+
+            expect(spectator.query('[data-testid="composer-folded-send"]')).toBeNull();
+        });
+
         it('unfolds the bar once the field takes focus', () => {
             focusField();
 
