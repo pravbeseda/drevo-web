@@ -1,9 +1,23 @@
 @use 'index' as *;
 
+// The host that sets the bar into its layout gives it its insets and edges.
 :host {
     display: flex;
     flex: none;
-    justify-content: space-between;
-    padding: $forum-feed-padding-v $forum-feed-padding-h;
-    border-top: 1px solid var(--themed-divider-color);
+    align-items: center;
+    gap: $forum-composer-gap;
+}
+
+.forum-send-bar__hint {
+    margin-left: auto;
+    color: var(--themed-text-muted);
+    font-size: $font-size-xs;
+    white-space: nowrap;
+}
+
+/* A shortcut means nothing to a touch screen, and the room goes to the tools. */
+@media (hover: none) {
+    .forum-send-bar__hint {
+        visibility: hidden;
+    }
 }

@@ -8,6 +8,7 @@ import {
     mockForumTopicsApi,
     test,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import { mockArticleViewData } from '../../mocks/articles';
 import {
     createForumCreatedTopicDto,
@@ -28,8 +29,10 @@ const TOPIC_ID = 7;
 const NEW_TOPIC_ID = 43;
 const NEW_MESSAGE_ID = 100;
 const ARTICLE_ID = 42;
-/** `$forum-feed-padding-v` — the inset that keeps each part of the composer apart. */
-const FEED_INSET_V = 8;
+/** Sub-pixel rounding of the refusal's box against the frame's edge. */
+const EDGE_TOLERANCE_PX = 1;
+/** The share of the window the expanded field takes at least. */
+const EXPANDED_SHARE = 0.4;
 const TOPIC = createForumTopicDto({ id: TOPIC_ID });
 const MESSAGES = [
     createForumMessageDto({ author: { name: 'Петров П.П.', login: 'petrov' } }, 1),
@@ -114,15 +117,18 @@ test.describe('Forum posting', () => {
             await expect(topic.composerText).toContainText('> Сообщение 1');
         });
 
-        test('says a reply waits for a moderator instead of showing it', async ({ authenticatedPage: page }) => {
+        test('announces a reply held for a moderator in a toast instead of showing it', async ({
+            authenticatedPage: page,
+        }) => {
             await mockForumReplyApi(page, TOPIC_ID, createForumPostedMessageDto(NEW_MESSAGE, false));
             const topic = await openTopic(page);
 
             await topic.write('Мой ответ');
             await topic.send.click();
 
-            await expect(topic.composerPending).toBeVisible();
+            await expect(getNotification(page, 'info')).toContainText('на модерацию');
             await expect(topic.message(NEW_MESSAGE_ID)).toHaveCount(0);
+            await expect(topic.composerText).not.toContainText('Мой ответ');
         });
 
         test('shows why the forum refused a reply and keeps the text', async ({ authenticatedPage: page }) => {
@@ -134,8 +140,39 @@ test.describe('Forum posting', () => {
 
             await expect(topic.composerError).toHaveText('Излишнее цитирование!');
             await expect(topic.composerText).toHaveText('> цитата');
-            // Kept off the action bar's divider by the feed's inset rather than written onto it.
-            expect(await topic.composerErrorClearance()).toBeGreaterThanOrEqual(FEED_INSET_V);
+            // Cut into the frame's top edge, and the frame drawn in the refusal's colour.
+            expect(await topic.composerErrorOffset()).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+            const errorColour = await topic.composerError.evaluate(error => getComputedStyle(error).color);
+            await expect(topic.composerFrame).toHaveCSS('border-top-color', errorColour);
+        });
+
+        test('rests folded to the field alone and unfolds its bar once the field takes focus', async ({
+            authenticatedPage: page,
+        }) => {
+            const topic = await openTopic(page);
+
+            await expect(topic.composerActions).toHaveCount(0);
+
+            await topic.composerText.click();
+
+            await expect(topic.composerActions).toBeVisible();
+        });
+
+        test('expands the field for a long post and shrinks it back', async ({ authenticatedPage: page }) => {
+            const topic = await openTopic(page);
+            await topic.write('Начало длинного поста');
+            const viewport = page.viewportSize();
+
+            const expandedHeight = (viewport?.height ?? 0) * EXPANDED_SHARE;
+
+            await topic.composerExpand.click();
+
+            await expect.poll(() => topic.composerHeight()).toBeGreaterThanOrEqual(expandedHeight);
+            await expect(topic.composerText).toBeInViewport();
+
+            await topic.composerExpand.click();
+
+            await expect.poll(() => topic.composerHeight()).toBeLessThan(expandedHeight);
         });
     });
 
@@ -239,7 +276,7 @@ test.describe('Forum posting', () => {
             await form.submit.click();
 
             expect(await sent).toEqual(expect.objectContaining({ part: 'news' }));
-            await expect(form.pending).toBeVisible();
+            await expect(getNotification(page, 'info')).toContainText('на модерацию');
         });
 
         test('shows a refusal under its field', async ({ authenticatedPage: page }) => {

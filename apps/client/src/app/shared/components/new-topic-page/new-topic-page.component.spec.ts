@@ -4,7 +4,7 @@ import { ForumService } from '../../../services/forum/forum.service';
 import { TopicListPagesService } from '../../services/topic-list-pages/topic-list-pages.service';
 import { signal } from '@angular/core';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { SidebarService } from '@drevo-web/core';
+import { NotificationService, SidebarService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumCreatedTopic, ForumPostOutcome, ForumSection } from '@drevo-web/shared';
@@ -42,7 +42,12 @@ describe('NewTopicPageComponent', () => {
 
     const createComponent = createComponentFactory({
         component: NewTopicPageComponent,
-        providers: [provideRouter([]), mockLoggerProvider(), mockProvider(TopicListPagesService)],
+        providers: [
+            provideRouter([]),
+            mockLoggerProvider(),
+            mockProvider(TopicListPagesService),
+            mockProvider(NotificationService),
+        ],
         detectChanges: false,
     });
 
@@ -150,7 +155,9 @@ describe('NewTopicPageComponent', () => {
 
             submit();
 
-            expect(spectator.query('[data-testid="new-topic-pending"]')).toHaveText('на модерацию');
+            expect(spectator.inject(NotificationService).info).toHaveBeenCalledWith(
+                'Тема отправлена на модерацию и появится после проверки.',
+            );
             expect(spectator.query(EditorComponent)?.content()).toBe('');
             expect(spectator.query(InlineInputComponent)?.value()).toBe('');
             expect(navigate).not.toHaveBeenCalled();

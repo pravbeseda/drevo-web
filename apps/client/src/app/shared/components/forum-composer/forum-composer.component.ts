@@ -7,46 +7,63 @@ import { ForumSendBarComponent } from '../forum-send-bar/forum-send-bar.componen
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
-import { IconButtonComponent } from '@drevo-web/ui';
+import { IconButtonComponent, IconComponent } from '@drevo-web/ui';
 import { finalize } from 'rxjs/operators';
 
 /**
  * The reply form at the bottom of a topic. Without a chosen message the reply
  * answers the topic itself; the cards choose one through `replyTo` and `quote`.
+ * It rests folded to the field alone and unfolds its bar while in use.
  */
 @Component({
     selector: 'app-forum-composer',
-    imports: [EditorComponent, ForumSendBarComponent, IconButtonComponent],
+    imports: [EditorComponent, ForumSendBarComponent, IconButtonComponent, IconComponent],
     templateUrl: './forum-composer.component.html',
     styleUrl: './forum-composer.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '(focusin)': 'onFocusIn()',
+        '(focusout)': 'onFocusOut($event)',
+    },
 })
 export class ForumComposerComponent {
     private readonly forumService = inject(ForumService);
     private readonly document = inject(DOCUMENT);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ForumComposer');
+    private readonly notification = inject(NotificationService);
 
     private readonly _draft = signal('');
     private readonly _replyTarget = signal<ForumMessage | undefined>(undefined);
     private readonly _sending = signal(false);
     private readonly _error = signal<string | undefined>(undefined);
-    private readonly _pending = signal(false);
+    private readonly _focused = signal(false);
+    private readonly _expanded = signal(false);
 
     readonly topicId = input.required<number>();
 
-    /** An approved message; one held for a moderator stays here as a notice. */
+    /** An approved message; one held for a moderator is only announced. */
     readonly posted = output<ForumMessage>();
 
     readonly draft = this._draft.asReadonly();
     readonly replyTarget = this._replyTarget.asReadonly();
     readonly sending = this._sending.asReadonly();
     readonly error = this._error.asReadonly();
-    readonly pending = this._pending.asReadonly();
+    readonly expanded = this._expanded.asReadonly();
     readonly canSend = computed(() => !this._sending() && this._draft().trim().length > 0);
+
+    /** Anything the reader has started, or is about to, keeps the bar on screen. */
+    protected readonly open = computed(
+        () =>
+            this._focused() ||
+            this._expanded() ||
+            this._draft().length > 0 ||
+            this._replyTarget() !== undefined ||
+            this._error() !== undefined,
+    );
 
     protected readonly replyExcerpt = computed(() => {
         const target = this._replyTarget();
@@ -69,14 +86,30 @@ export class ForumComposerComponent {
         this._replyTarget.set(undefined);
     }
 
+    toggleExpanded(): void {
+        this._expanded.update(expanded => !expanded);
+    }
+
+    onFocusIn(): void {
+        this._focused.set(true);
+    }
+
+    /** Focus moving between the field and the composer's own buttons does not leave it. */
+    onFocusOut(event: FocusEvent): void {
+        const { currentTarget, relatedTarget } = event;
+        if (currentTarget instanceof Node && relatedTarget instanceof Node && currentTarget.contains(relatedTarget)) {
+            return;
+        }
+        this._focused.set(false);
+    }
+
     onDraftChanged(text: string): void {
-        // The editor echoes the text this component put into it; only the reader's typing clears the notices.
+        // The editor echoes the text this component put into it; only the reader's typing clears the refusal.
         if (text === this._draft()) {
             return;
         }
         this._draft.set(text);
         this._error.set(undefined);
-        this._pending.set(false);
     }
 
     send(): void {
@@ -112,10 +145,12 @@ export class ForumComposerComponent {
         const { message, approved } = outcome.result;
         this._draft.set('');
         this._replyTarget.set(undefined);
-        this._pending.set(!approved);
+        this._expanded.set(false);
         this.logger.info('Reply posted', { topicId, messageId: message.id, approved });
         if (approved) {
             this.posted.emit(message);
+        } else {
+            this.notification.info('Сообщение отправлено на модерацию и появится после проверки.');
         }
     }
 }

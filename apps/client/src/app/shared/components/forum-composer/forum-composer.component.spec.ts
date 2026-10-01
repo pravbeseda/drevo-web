@@ -1,5 +1,6 @@
 import { ForumComposerComponent } from './forum-composer.component';
 import { ForumService } from '../../../services/forum/forum.service';
+import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
@@ -30,13 +31,24 @@ describe('ForumComposerComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ForumComposerComponent,
-        providers: [mockLoggerProvider(), mockProvider(ForumService)],
+        providers: [mockLoggerProvider(), mockProvider(ForumService), mockProvider(NotificationService)],
     });
 
     const type = (text: string): void => {
         spectator.triggerEventHandler(EditorComponent, 'contentChanged', text);
     };
     const sendButton = (): HTMLButtonElement | null => spectator.query('[data-testid="forum-send"]');
+    const actions = (): Element | null => spectator.query('[data-testid="composer-actions"]');
+    const editorHost = (): Element => spectator.query('[data-testid="composer-editor"]') as Element;
+    const focusField = (): void => {
+        editorHost().dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+        spectator.detectChanges();
+    };
+    /** Focus leaving the field for `to`; nothing at all when the reader clicked away from the page's controls. */
+    const blurField = (to: Element | null = null): void => {
+        editorHost().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: to }));
+        spectator.detectChanges();
+    };
 
     beforeEach(() => {
         spectator = createComponent({ props: { topicId: 42 } });
@@ -52,6 +64,7 @@ describe('ForumComposerComponent', () => {
     });
 
     it('offers nothing to send until there is text', () => {
+        focusField();
         expect(sendButton()).toBeDisabled();
 
         type('   ');
@@ -59,6 +72,91 @@ describe('ForumComposerComponent', () => {
 
         type('Ответ');
         expect(sendButton()).not.toBeDisabled();
+    });
+
+    describe('folding', () => {
+        it('starts folded to the field alone', () => {
+            expect(spectator.query('[data-testid="composer-editor"]')).toExist();
+            expect(actions()).toBeNull();
+        });
+
+        it('unfolds the bar once the field takes focus', () => {
+            focusField();
+
+            expect(actions()).toExist();
+        });
+
+        it('folds back when focus leaves an empty field', () => {
+            focusField();
+
+            blurField();
+
+            expect(actions()).toBeNull();
+        });
+
+        it('stays unfolded while focus moves to its own controls', () => {
+            focusField();
+
+            blurField(sendButton());
+
+            expect(actions()).toExist();
+        });
+
+        it('stays unfolded while the field holds text', () => {
+            focusField();
+            type('Ответ');
+
+            blurField();
+
+            expect(actions()).toExist();
+        });
+
+        it('stays unfolded while it answers a message', () => {
+            spectator.component.replyTo(createMessage());
+            spectator.detectChanges();
+
+            expect(actions()).toExist();
+        });
+    });
+
+    describe('expanding', () => {
+        const expandButton = (): HTMLButtonElement | null => spectator.query('[data-testid="composer-expand"]');
+
+        beforeEach(() => focusField());
+
+        it('grows the field with its text until the reader expands it', () => {
+            expect(spectator.query(EditorComponent)?.autoHeight()).toBe(true);
+            expect(expandButton()).toHaveAttribute('aria-label', 'Развернуть');
+        });
+
+        it('gives the field a fixed tall height when expanded, and back', () => {
+            spectator.click(expandButton() as HTMLElement);
+
+            expect(spectator.query(EditorComponent)?.autoHeight()).toBe(false);
+            expect(expandButton()).toHaveAttribute('aria-label', 'Свернуть');
+
+            spectator.click(expandButton() as HTMLElement);
+
+            expect(spectator.query(EditorComponent)?.autoHeight()).toBe(true);
+        });
+
+        it('stays unfolded while expanded, even with the field empty and out of focus', () => {
+            spectator.click(expandButton() as HTMLElement);
+
+            blurField();
+
+            expect(actions()).toExist();
+        });
+
+        it('shrinks back once the message is sent', () => {
+            forumService.reply.mockReturnValue(posted(true));
+            spectator.click(expandButton() as HTMLElement);
+            type('Ответ');
+
+            spectator.click(sendButton() as HTMLElement);
+
+            expect(spectator.query(EditorComponent)?.autoHeight()).toBe(true);
+        });
     });
 
     it('answers the topic itself when no message is chosen', () => {
@@ -136,7 +234,9 @@ describe('ForumComposerComponent', () => {
         spectator.click(sendButton() as HTMLElement);
 
         expect(sent).toEqual([]);
-        expect(spectator.query('[data-testid="composer-pending"]')).toHaveText('на модерацию');
+        expect(spectator.inject(NotificationService).info).toHaveBeenCalledWith(
+            'Сообщение отправлено на модерацию и появится после проверки.',
+        );
         expect(spectator.query(EditorComponent)?.content()).toBe('');
     });
 

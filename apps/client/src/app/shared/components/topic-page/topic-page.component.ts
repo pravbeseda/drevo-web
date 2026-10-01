@@ -14,6 +14,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ForumMessage, ForumTopicPage } from '@drevo-web/shared';
+import { ScrollbarDirective } from '@drevo-web/ui';
 import { EMPTY, Observable, Subject, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 
@@ -22,7 +23,7 @@ type LoadDirection = 'previous' | 'next';
 
 @Component({
     selector: 'app-topic-page',
-    imports: [ErrorComponent, ForumComposerComponent, MessageCardComponent, TopicFeedEdgeComponent],
+    imports: [ErrorComponent, ForumComposerComponent, MessageCardComponent, ScrollbarDirective, TopicFeedEdgeComponent],
     templateUrl: './topic-page.component.html',
     styleUrl: './topic-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

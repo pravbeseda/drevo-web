@@ -1,14 +1,16 @@
-<ui-button
-    variant="text"
+<ui-icon-button
+    icon="attach_file"
+    label="Прикрепить"
     testId="forum-attach"
     [disabled]="true"
+/>
+<ng-content />
+<span
+    class="forum-send-bar__hint"
+    data-testid="forum-send-hint"
 >
-    <ui-icon
-        name="attach_file"
-        size="small"
-    />
-    Прикрепить
-</ui-button>
+    {{ sendKey }}+Enter — отправить
+</span>
 <ui-button
     variant="filled"
     accent="primary"

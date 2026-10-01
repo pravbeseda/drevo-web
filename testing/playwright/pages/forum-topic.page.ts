@@ -6,7 +6,11 @@ export class ForumTopicPage extends BasePage {
     readonly title = this.page.getByTestId('page-title');
     readonly subtitle = this.page.getByTestId('page-subtitle');
     readonly subtitleLink = this.page.getByTestId('page-subtitle-link');
+    /** The messages, and the element they scroll in. */
     readonly feed = this.page.getByTestId('topic-feed');
+    /** OverlayScrollbars draws the scrollbar and takes no test id, so its own classes are the only hook. */
+    readonly feedScrollbarHandle = this.feed.locator('.os-scrollbar-vertical .os-scrollbar-handle');
+    readonly composer = this.page.getByTestId('topic-composer');
     readonly replyTo = this.page.getByTestId('message-reply-to');
     readonly notFound = this.page.getByTestId('topic-not-found');
     readonly loadError = this.page.getByTestId('topic-load-error');
@@ -18,8 +22,9 @@ export class ForumTopicPage extends BasePage {
     readonly replyChipAuthor = this.page.getByTestId('composer-reply-author');
     readonly cancelReply = this.page.getByTestId('composer-reply-cancel');
     readonly composerError = this.page.getByTestId('composer-error');
-    readonly composerPending = this.page.getByTestId('composer-pending');
     readonly composerActions = this.page.getByTestId('composer-actions');
+    readonly composerFrame = this.page.getByTestId('composer-frame');
+    readonly composerExpand = this.page.getByTestId('composer-expand');
 
     /** The feed renders only once the topic has resolved. */
     async waitForReady(): Promise<void> {
@@ -36,22 +41,10 @@ export class ForumTopicPage extends BasePage {
         return this.message(id).evaluate(element => getComputedStyle(element).backgroundColor);
     }
 
-    /** Moves the pane the topic scrolls in to one of its ends, as far as a reader's wheel would. */
+    /** Moves the feed to one of its ends, as far as a reader's wheel would. */
     scrollTo(end: 'top' | 'bottom'): Promise<void> {
         return this.feed.evaluate((feed, to) => {
-            let scroller = feed.parentElement;
-            while (
-                scroller &&
-                !(
-                    scroller.scrollHeight > scroller.clientHeight &&
-                    /auto|scroll/.test(getComputedStyle(scroller).overflowY)
-                )
-            ) {
-                scroller = scroller.parentElement;
-            }
-            if (scroller) {
-                scroller.scrollTop = to === 'top' ? 0 : scroller.scrollHeight;
-            }
+            feed.scrollTop = to === 'top' ? 0 : feed.scrollHeight;
         }, end);
     }
 
@@ -83,15 +76,10 @@ export class ForumTopicPage extends BasePage {
         });
     }
 
-    /** Space between the last line of the composer's error and the action bar under it — the text, not its box. */
-    async composerErrorClearance(): Promise<number | undefined> {
-        const actions = await this.composerActions.boundingBox();
-        const textBottom = await this.composerError.evaluate(error => {
-            const range = error.ownerDocument.createRange();
-            range.selectNodeContents(error);
-            return range.getBoundingClientRect().bottom;
-        });
-        return actions ? Math.round(actions.y - textBottom) : undefined;
+    /** How far the middle of the refusal sits from the frame's top edge — none when it is cut into that edge. */
+    async composerErrorOffset(): Promise<number | undefined> {
+        const [frame, error] = await Promise.all([this.composerFrame.boundingBox(), this.composerError.boundingBox()]);
+        return frame && error ? Math.round(Math.abs(error.y + error.height / 2 - frame.y)) : undefined;
     }
 
     async write(text: string): Promise<void> {
