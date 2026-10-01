@@ -1,5 +1,7 @@
+import { FORUM_SEND_KEY } from '../../helpers/forum-editor-extensions';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { WINDOW } from '@drevo-web/core';
+import { formatKeyBinding, isMacPlatform } from '@drevo-web/shared';
 import { ButtonComponent, IconButtonComponent } from '@drevo-web/ui';
 
 /**
@@ -19,6 +21,5 @@ export class ForumSendBarComponent {
 
     readonly send = output();
 
-    /** The editor binds `Mod-Enter`, which is ⌘ on a Mac. */
-    protected readonly sendKey = /Mac|iPhone|iPad/.test(inject(WINDOW)?.navigator.userAgent ?? '') ? '⌘' : 'Ctrl';
+    protected readonly sendKey = formatKeyBinding(FORUM_SEND_KEY, isMacPlatform(inject(WINDOW)));
 }

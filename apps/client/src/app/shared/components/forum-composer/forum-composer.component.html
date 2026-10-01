@@ -58,11 +58,13 @@
     />
 
     @if (open()) {
+        <!-- Safari gives a pressed button no focus, so the press would blur the field and fold the bar away before the click lands. -->
         <app-forum-send-bar
             class="forum-composer__actions"
             data-testid="composer-actions"
             [disabled]="!canSend()"
             [loading]="sending()"
+            (mousedown)="$event.preventDefault()"
             (send)="send()"
         >
             <ui-icon-button

@@ -158,6 +158,30 @@ test.describe('Forum posting', () => {
             await expect(topic.composerActions).toBeVisible();
         });
 
+        test('keeps the send button inside the frame on the narrowest phone', async ({ authenticatedPage: page }) => {
+            await page.setViewportSize({ width: 320, height: 640 });
+            const topic = await openTopic(page);
+
+            await topic.composerText.click();
+
+            const [frame, send] = await Promise.all([topic.composerFrame.boundingBox(), topic.send.boundingBox()]);
+            expect(Math.round((send?.x ?? 0) + (send?.width ?? 0))).toBeLessThanOrEqual(
+                Math.round((frame?.x ?? 0) + (frame?.width ?? 0)),
+            );
+        });
+
+        test('expands the empty field from its own button', async ({ authenticatedPage: page }) => {
+            const topic = await openTopic(page);
+            await topic.composerText.click();
+            const viewport = page.viewportSize();
+
+            await topic.composerExpand.click();
+
+            await expect
+                .poll(() => topic.composerHeight())
+                .toBeGreaterThanOrEqual((viewport?.height ?? 0) * EXPANDED_SHARE);
+        });
+
         test('expands the field for a long post and shrinks it back', async ({ authenticatedPage: page }) => {
             const topic = await openTopic(page);
             await topic.write('Начало длинного поста');

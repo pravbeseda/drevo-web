@@ -102,6 +102,15 @@ describe('ForumComposerComponent', () => {
             expect(actions()).toExist();
         });
 
+        it('keeps focus in the field when its bar is pressed, where Safari would drop it', () => {
+            focusField();
+            const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+
+            actions()?.dispatchEvent(press);
+
+            expect(press.defaultPrevented).toBe(true);
+        });
+
         it('stays unfolded while the field holds text', () => {
             focusField();
             type('Ответ');

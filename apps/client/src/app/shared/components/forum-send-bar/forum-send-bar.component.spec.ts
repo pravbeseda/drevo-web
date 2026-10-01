@@ -60,10 +60,10 @@ describe('ForumSendBarComponent', () => {
             expect(hint()).toBe('Ctrl+Enter — отправить');
         });
 
-        it('names ⌘+Enter on a Mac', () => {
+        it('names ⌘Enter on a Mac, spelled as the editor’s toolbar spells it', () => {
             spectator = createOn(MAC_AGENT);
 
-            expect(hint()).toBe('⌘+Enter — отправить');
+            expect(hint()).toBe('⌘Enter — отправить');
         });
     });
 });

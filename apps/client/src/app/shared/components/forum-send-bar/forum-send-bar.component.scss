@@ -8,14 +8,19 @@
     gap: $forum-composer-gap;
 }
 
+/* Takes the room the controls leave and gives it back on a narrow screen, so sending stays inside the bar. */
 .forum-send-bar__hint {
-    margin-left: auto;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
     color: var(--themed-text-muted);
     font-size: $font-size-xs;
+    text-align: right;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* A shortcut means nothing to a touch screen, and the room goes to the tools. */
+/* A shortcut means nothing to a touch screen. */
 @media (hover: none) {
     .forum-send-bar__hint {
         visibility: hidden;
