@@ -1,61 +1,88 @@
-@if (replyTarget(); as target) {
-    <div
-        class="forum-composer__reply"
-        data-testid="composer-reply"
-    >
-        <span class="forum-composer__reply-body">
-            <span
-                class="forum-composer__reply-author"
-                data-testid="composer-reply-author"
-            >
-                {{ target.author.name }}
+<!-- Safari gives a pressed button no focus, so a press on the frame's controls would blur the field and fold the frame before the click lands. -->
+<div
+    class="forum-composer__frame"
+    data-testid="composer-frame"
+    (mousedown)="keepFieldFocus($event)"
+    [class.forum-composer__frame--open]="open()"
+    [class.forum-composer__frame--error]="error()"
+>
+    @if (error(); as error) {
+        <p
+            class="forum-composer__error"
+            role="alert"
+        >
+            <ui-icon
+                name="error"
+                size="small"
+            />
+            <span data-testid="composer-error">{{ error }}</span>
+        </p>
+    }
+
+    @if (replyTarget(); as target) {
+        <div
+            class="forum-composer__reply"
+            data-testid="composer-reply"
+        >
+            <span class="forum-composer__reply-body">
+                <span
+                    class="forum-composer__reply-author"
+                    data-testid="composer-reply-author"
+                >
+                    {{ target.author.name }}
+                </span>
+                <span
+                    class="forum-composer__reply-text"
+                    data-testid="composer-reply-text"
+                >
+                    {{ replyExcerpt() }}
+                </span>
             </span>
-            <span
-                class="forum-composer__reply-text"
-                data-testid="composer-reply-text"
-            >
-                {{ replyExcerpt() }}
-            </span>
-        </span>
-        <ui-icon-button
-            icon="close"
-            label="Не отвечать на это сообщение"
-            testId="composer-reply-cancel"
-            (clicked)="cancelReply()"
+            <ui-icon-button
+                icon="close"
+                label="Не отвечать на это сообщение"
+                testId="composer-reply-cancel"
+                (clicked)="cancelReply()"
+            />
+        </div>
+    }
+
+    <lib-editor
+        #field
+        class="forum-composer__editor"
+        data-testid="composer-editor"
+        [class.forum-composer__editor--expanded]="expanded()"
+        [content]="draft()"
+        [showToolbar]="false"
+        [autoHeight]="!expanded()"
+        [frameless]="true"
+        [customExtensions]="editorExtensions"
+        (contentChanged)="onDraftChanged($event)"
+    />
+
+    @if (!open()) {
+        <ui-icon
+            class="forum-composer__folded-send"
+            name="send"
+            aria-hidden="true"
+            data-testid="composer-folded-send"
         />
-    </div>
-}
+    }
 
-<lib-editor
-    data-testid="composer-editor"
-    [content]="draft()"
-    [showToolbar]="false"
-    [autoHeight]="true"
-    [frameless]="true"
-    [customExtensions]="editorExtensions"
-    (contentChanged)="onDraftChanged($event)"
-/>
-
-@if (error(); as error) {
-    <p
-        class="forum-composer__error"
-        data-testid="composer-error"
-    >
-        {{ error }}
-    </p>
-}
-@if (pending()) {
-    <p
-        class="forum-composer__pending"
-        data-testid="composer-pending"
-    >
-        Сообщение отправлено на модерацию и появится после проверки.
-    </p>
-}
-
-<app-forum-send-bar
-    data-testid="composer-actions"
-    [disabled]="!canSend()"
-    [loading]="sending()"
-    (send)="send()"
-/>
+    @if (open()) {
+        <app-forum-send-bar
+            class="forum-composer__actions"
+            data-testid="composer-actions"
+            [disabled]="!canSend()"
+            [loading]="sending()"
+            (send)="send()"
+        >
+            <ui-icon-button
+                testId="composer-expand"
+                [icon]="expanded() ? 'close_fullscreen' : 'open_in_full'"
+                [label]="expanded() ? 'Свернуть' : 'Развернуть'"
+                (clicked)="toggleExpanded()"
+            />
+        </app-forum-send-bar>
+    }
+</div>

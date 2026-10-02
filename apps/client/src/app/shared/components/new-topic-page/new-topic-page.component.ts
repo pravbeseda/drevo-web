@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, linke
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumCreatedTopic, ForumPostErrors, ForumPostOutcome, ForumSection } from '@drevo-web/shared';
 import { ButtonToggleGroupComponent, ButtonToggleOption, InlineInputComponent } from '@drevo-web/ui';
@@ -34,6 +34,7 @@ export class NewTopicPageComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('NewTopicPage');
+    private readonly notification = inject(NotificationService);
     private readonly pages = inject(TopicListPagesService);
     private readonly target = inject(NEW_TOPIC_TARGET);
 
@@ -42,7 +43,6 @@ export class NewTopicPageComponent {
     private readonly _text = signal('');
     private readonly _sending = signal(false);
     private readonly _errors = signal<ForumPostErrors>(NO_ERRORS);
-    private readonly _pending = signal(false);
 
     /** A topic about an article or news item stays in that one's section. */
     readonly asksForSection = computed(() => this.target().partId === undefined);
@@ -52,7 +52,6 @@ export class NewTopicPageComponent {
     readonly pickedSection = this._pickedSection.asReadonly();
     readonly sending = this._sending.asReadonly();
     readonly errors = this._errors.asReadonly();
-    readonly pending = this._pending.asReadonly();
 
     readonly sectionOptions = computed<readonly ButtonToggleOption[]>(() =>
         this.sections().map(section => ({ value: section.id, label: section.name })),
@@ -77,7 +76,6 @@ export class NewTopicPageComponent {
     onTitleChanged(title: string): void {
         this._title.set(title);
         this._errors.update(errors => ({ ...errors, title: undefined }));
-        this._pending.set(false);
     }
 
     onTextChanged(text: string): void {
@@ -87,7 +85,6 @@ export class NewTopicPageComponent {
         }
         this._text.set(text);
         this._errors.update(errors => ({ ...errors, text: undefined }));
-        this._pending.set(false);
     }
 
     submit(): void {
@@ -123,7 +120,7 @@ export class NewTopicPageComponent {
         if (!approved) {
             this._title.set('');
             this._text.set('');
-            this._pending.set(true);
+            this.notification.info('Тема отправлена на модерацию и появится после проверки.');
             return;
         }
 

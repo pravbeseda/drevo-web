@@ -2,6 +2,7 @@
     <div
         class="topic-page__feed"
         data-testid="topic-feed"
+        uiScrollbar
     >
         @if (hasPrevious()) {
             <app-topic-feed-edge
@@ -47,6 +48,7 @@
     <app-forum-composer
         #composer
         class="topic-page__composer"
+        data-testid="topic-composer"
         [topicId]="topic.id"
         (posted)="onPosted($event)"
     />

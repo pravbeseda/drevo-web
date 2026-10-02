@@ -13,7 +13,6 @@ export class ForumNewTopicPage extends BasePage {
     readonly actions = this.page.getByTestId('new-topic-actions');
     readonly submit = this.page.getByTestId('forum-send');
     readonly titleError = this.page.getByTestId('new-topic-title-error');
-    readonly pending = this.page.getByTestId('new-topic-pending');
 
     async waitForReady(): Promise<void> {
         await this.title.waitFor({ state: 'visible' });

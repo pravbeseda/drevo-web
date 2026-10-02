@@ -1,9 +1,28 @@
 @use 'index' as *;
 
+// The host that sets the bar into its layout gives it its insets and edges.
 :host {
     display: flex;
     flex: none;
-    justify-content: space-between;
-    padding: $forum-feed-padding-v $forum-feed-padding-h;
-    border-top: 1px solid var(--themed-divider-color);
+    align-items: center;
+    gap: $forum-composer-gap;
+}
+
+/* Takes the room the controls leave and gives it back on a narrow screen, so sending stays inside the bar. */
+.forum-send-bar__hint {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--themed-text-muted);
+    font-size: $font-size-xs;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* A shortcut means nothing to a touch screen. */
+@media (hover: none) {
+    .forum-send-bar__hint {
+        visibility: hidden;
+    }
 }
