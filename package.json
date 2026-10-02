@@ -67,7 +67,7 @@
         "@codemirror/state": "^6.7.1",
         "@codemirror/view": "^6.43.7",
         "@fontsource/roboto": "^5.3.0",
-        "@sentry/angular": "^10.34.0",
+        "@sentry/angular": "^11.1.0",
         "dexie": "^4.2.1",
         "diff": "^9.0.0",
         "diff-match-patch": "^1.0.5",
