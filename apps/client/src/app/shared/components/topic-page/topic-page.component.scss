@@ -1,16 +1,19 @@
 @use 'index' as *;
 
-// The scroll position is kept by hand when a page is prepended, so the
-// browser's own anchoring must not shift it a second time.
+// The feed scrolls on its own; the composer stays under it.
 :host {
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-    overflow-anchor: none;
+    height: 100%;
 }
 
+// The scroll position is kept by hand when a page is prepended, so the
+// browser's own anchoring must not shift it a second time.
 .topic-page__feed {
     flex: 1;
+    min-height: 0;
+    overflow-anchor: none;
+    overflow-y: auto;
     padding: $forum-feed-padding-v 0;
     background-color: var(--themed-forum-feed-bg);
     background-image:
@@ -37,8 +40,6 @@
     font-weight: 500;
 }
 
-/* Stays in reach while the reader scrolls the feed. */
 .topic-page__composer {
-    position: sticky;
-    bottom: 0;
+    flex: none;
 }

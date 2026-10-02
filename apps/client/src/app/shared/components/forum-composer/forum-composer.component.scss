@@ -1,11 +1,59 @@
 @use 'index' as *;
 
-// The editor runs edge to edge; everything around it keeps the feed's inset.
 :host {
+    display: block;
+    padding: $forum-feed-padding-v $forum-feed-padding-h;
+    border-top: 1px solid var(--themed-divider-color);
+    background-color: var(--themed-primary-bg);
+}
+
+/* Folded, a pill holding the field alone; unfolded, a frame round the field and its bar. */
+.forum-composer__frame {
+    position: relative;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--themed-border-color);
+    border: 1px solid var(--themed-border-color);
+    border-radius: $forum-composer-folded-radius;
+    padding: 0 $forum-composer-inset;
+    transition:
+        border-color 0.15s,
+        border-radius 0.15s;
+
+    &:focus-within {
+        border-color: var(--themed-text-accent);
+    }
+}
+
+.forum-composer__frame--open {
+    border-radius: $forum-composer-radius;
+}
+
+.forum-composer__frame--error,
+.forum-composer__frame--error:focus-within {
+    border-color: var(--themed-text-error);
+}
+
+/* Cut into the frame's top edge, like the label of an outlined field: the bar's own background hides the line under it. */
+.forum-composer__error {
+    position: absolute;
+    top: 0;
+    left: $forum-feed-padding-h;
+    display: flex;
+    align-items: center;
+    gap: $forum-composer-legend-spacing;
+    max-width: calc(100% - 2 * #{$forum-feed-padding-h});
+    margin: 0;
+    padding: 0 $forum-composer-legend-spacing;
     background-color: var(--themed-primary-bg);
+    color: var(--themed-text-error);
+    font-size: $font-size-xs;
+    transform: translateY(-50%);
+
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 /* Drawn like the quote in a message card, which is what the reply turns into. */
@@ -13,7 +61,7 @@
     display: flex;
     align-items: center;
     gap: $forum-composer-gap;
-    margin: $forum-feed-padding-v $forum-feed-padding-h 0;
+    margin-top: $forum-feed-padding-v;
     padding: $forum-quote-padding-v $forum-quote-padding-h;
     border-left: $forum-quote-bar-width solid var(--themed-link-color);
     border-radius: $forum-quote-radius;
@@ -40,17 +88,21 @@
     white-space: nowrap;
 }
 
-.forum-composer__error,
-.forum-composer__pending {
-    margin: 0;
-    padding: 0 $forum-feed-padding-h $forum-feed-padding-v;
-    font-size: $font-size-sm;
+/* Folded, the field is empty and there is nothing to send: the arrow only shows where sending will be. */
+.forum-composer__folded-send {
+    position: absolute;
+    top: 50%;
+    right: $forum-feed-padding-h;
+    color: var(--themed-text-muted);
+    pointer-events: none;
+    transform: translateY(-50%);
 }
 
-.forum-composer__error {
-    color: var(--themed-text-error);
+.forum-composer__editor--expanded {
+    flex: none;
+    height: $forum-composer-expanded-height;
 }
 
-.forum-composer__pending {
-    color: var(--themed-text-secondary);
+.forum-composer__actions {
+    padding-bottom: $forum-feed-padding-v;
 }

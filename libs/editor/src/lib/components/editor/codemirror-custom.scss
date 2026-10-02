@@ -6,6 +6,10 @@
 }
 
 :host(.editor--frameless) ::ng-deep {
+    .cm-editor {
+        background-color: transparent;
+    }
+
     .cm-editor.cm-focused {
         outline: none;
     }

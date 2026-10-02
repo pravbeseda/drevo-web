@@ -38,6 +38,16 @@ describe('EditorComponent', () => {
         expect(createStateSpy).toHaveBeenCalledWith('', []);
     });
 
+    it('should put the cursor in the field on focus()', () => {
+        const focus = jest.spyOn(EditorView.prototype, 'focus');
+        spectator.detectChanges();
+
+        spectator.component.focus();
+
+        expect(focus).toHaveBeenCalledTimes(1);
+        focus.mockRestore();
+    });
+
     describe('height', () => {
         it('should fill its container by default', () => {
             spectator.detectChanges();

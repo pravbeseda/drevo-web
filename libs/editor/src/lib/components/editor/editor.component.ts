@@ -24,7 +24,7 @@ import { openLintPanel, closeLintPanel } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { WINDOW } from '@drevo-web/core';
-import { InsertTagCommand } from '@drevo-web/shared';
+import { formatKeyBinding, InsertTagCommand, isMacPlatform } from '@drevo-web/shared';
 import { IconComponent } from '@drevo-web/ui';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
 
@@ -46,8 +46,7 @@ function buildTooltip(action: ToolbarAction, isMac: boolean): string {
     if (!action.keyBinding) {
         return action.tooltip;
     }
-    const key = action.keyBinding.replace('Mod', isMac ? '⌘' : 'Ctrl').replace(/-/g, isMac ? '' : '+');
-    return `${action.tooltip} (${key})`;
+    return `${action.tooltip} (${formatKeyBinding(action.keyBinding, isMac)})`;
 }
 
 function buildToolbarGroups(isMac: boolean): readonly ToolbarGroupView[] {
@@ -85,7 +84,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     readonly showToolbar = input(true);
     /** Grow with the text, within bounds, instead of filling the container — for a form field rather than a page. */
     readonly autoHeight = input(false);
-    /** No side borders, lint gutter or focus outline — for a field set into a form that draws its own edges. */
+    /** No side borders, fill, lint gutter or focus outline — for a field set into a form that draws its own edges. */
     readonly frameless = input(false);
     readonly customActions = input<CustomToolbarAction[]>([]);
 
@@ -131,8 +130,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     private readonly windowRef = inject(WINDOW, { optional: true });
 
     constructor() {
-        const isMac = !!this.windowRef && /Mac|iPhone|iPad/.test(this.windowRef.navigator.userAgent);
-        this.toolbarGroups = buildToolbarGroups(isMac);
+        this.toolbarGroups = buildToolbarGroups(isMacPlatform(this.windowRef ?? undefined));
 
         effect(() => {
             const newContent = this.content();
@@ -180,6 +178,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     requestMeasure(): void {
         this.editor?.requestMeasure();
+    }
+
+    focus(): void {
+        this.editor?.focus();
     }
 
     toggleLintPanel(): boolean {
