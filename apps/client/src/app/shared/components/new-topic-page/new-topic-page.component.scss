@@ -48,21 +48,14 @@
     border-top: 1px solid var(--themed-divider-color);
 }
 
-.new-topic-page__error,
-.new-topic-page__pending {
-    margin: 0;
-    font-size: $font-size-sm;
+.new-topic-page__actions {
+    padding: $forum-feed-padding-v $forum-feed-padding-h;
+    border-top: 1px solid var(--themed-divider-color);
 }
 
 .new-topic-page__error {
     flex: none;
+    margin: 0;
     color: var(--themed-text-error);
-}
-
-.new-topic-page__pending {
-    flex: none;
-    padding: $forum-feed-padding-v $forum-topic-row-padding-h;
-    border-bottom: 1px solid var(--themed-divider-color);
-    background: var(--themed-menu-hover-background);
-    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
 }

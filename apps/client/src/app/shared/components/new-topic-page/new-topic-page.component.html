@@ -1,12 +1,3 @@
-@if (pending()) {
-    <p
-        class="new-topic-page__pending"
-        data-testid="new-topic-pending"
-    >
-        Тема отправлена на модерацию и появится после проверки.
-    </p>
-}
-
 <div class="new-topic-page__row">
     @if (asksForSection()) {
         <span class="new-topic-page__label">Раздел</span>
@@ -80,6 +71,7 @@
 }
 
 <app-forum-send-bar
+    class="new-topic-page__actions"
     data-testid="new-topic-actions"
     [disabled]="!canSubmit()"
     [loading]="sending()"

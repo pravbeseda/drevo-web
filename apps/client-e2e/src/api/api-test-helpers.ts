@@ -188,7 +188,6 @@ export function expectSecurityHeaders(response: Awaited<ReturnType<APIRequestCon
  */
 export const INVALID_CREDENTIALS = {
     username: 'nonexistent_user_12345',
-    // eslint-disable-next-line sonarjs/no-hardcoded-passwords -- deliberately not a working password
     password: 'wrong_password',
 };
 
