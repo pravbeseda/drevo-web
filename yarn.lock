@@ -8228,9 +8228,9 @@ detect-port@^2.1.0:
     address "^2.0.1"
 
 dexie@^4.2.1:
-  version "4.4.5"
-  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.4.5.tgz#0af5132d36ee4212d099dad0c1fa327fbadb1685"
-  integrity sha512-wWCHdihT3dmlUSuNhn5mMZDWSpG0suxjAni7YjjiZdzabZcKmy3uNZGZ7AeYYXBoLbpSXX35fikPLkPC44Osiw==
+  version "4.4.6"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.4.6.tgz#aba734b9ed251c637073d2715ed8c89d6da5f43e"
+  integrity sha512-hJP/BO6mjB+tX6hToIO1kmxYLNmun90wYbfcoAoLpKEyDYal/k33dg0TAfoUe2TDsbbLoVIzljJ3BN2UbR5EOg==
 
 diff-match-patch@^1.0.5:
   version "1.0.5"
@@ -11762,9 +11762,9 @@ material-icons@^1.13.14:
   integrity sha512-kZOfc7xCC0rAT8Q3DQixYAeT+tBqZnxkseQtp2bxBxz7q5pMAC+wmit7vJn1g/l7wRU+HEPq23gER4iPjGs5Cg==
 
 material-symbols@^0.47.2:
-  version "0.47.2"
-  resolved "https://registry.yarnpkg.com/material-symbols/-/material-symbols-0.47.2.tgz#164bf6b24cf313bbd4910fd4ff66140958317768"
-  integrity sha512-+IWfgccIy3A7OFX+2LzI9LNXCkg3m8h+FhuNyNNOdL+uOQxw8zaP2nsuj2MOQmapND8OnmlHZ1XWrQFc4/9ZKw==
+  version "0.47.5"
+  resolved "https://registry.yarnpkg.com/material-symbols/-/material-symbols-0.47.5.tgz#71502691ae22f07bd432b5282542a6d1115c5b3d"
+  integrity sha512-bry9rHVqF7HewbSK9Yb77obFoDvQsEot8IrW9+F179iEkcg7P/zYv2zuwBRU1oFkA5Ez0MpDAintffdtqL70Eg==
 
 math-intrinsics@1.1.0, math-intrinsics@^1.1.0:
   version "1.1.0"
