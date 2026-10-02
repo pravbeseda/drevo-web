@@ -125,6 +125,25 @@ describe('ForumComposerComponent', () => {
             expect(press.defaultPrevented).toBe(true);
         });
 
+        it('keeps focus in the field when the reply is cancelled, where Safari would drop it', () => {
+            spectator.component.replyTo(createMessage());
+            focusField();
+            const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+
+            spectator.query('[data-testid="composer-reply-cancel"]')?.dispatchEvent(press);
+
+            expect(press.defaultPrevented).toBe(true);
+        });
+
+        it('leaves a press in the field to the field', () => {
+            focusField();
+            const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+
+            editorHost().dispatchEvent(press);
+
+            expect(press.defaultPrevented).toBe(false);
+        });
+
         it('stays unfolded while the field holds text', () => {
             focusField();
             type('Ответ');

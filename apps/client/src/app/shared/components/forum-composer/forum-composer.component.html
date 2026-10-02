@@ -1,6 +1,8 @@
+<!-- Safari gives a pressed button no focus, so a press on the frame's controls would blur the field and fold the frame before the click lands. -->
 <div
     class="forum-composer__frame"
     data-testid="composer-frame"
+    (mousedown)="keepFieldFocus($event)"
     [class.forum-composer__frame--open]="open()"
     [class.forum-composer__frame--error]="error()"
 >
@@ -46,6 +48,7 @@
     }
 
     <lib-editor
+        #field
         class="forum-composer__editor"
         data-testid="composer-editor"
         [class.forum-composer__editor--expanded]="expanded()"
@@ -67,13 +70,11 @@
     }
 
     @if (open()) {
-        <!-- Safari gives a pressed button no focus, so the press would blur the field and fold the bar away before the click lands. -->
         <app-forum-send-bar
             class="forum-composer__actions"
             data-testid="composer-actions"
             [disabled]="!canSend()"
             [loading]="sending()"
-            (mousedown)="$event.preventDefault()"
             (send)="send()"
         >
             <ui-icon-button

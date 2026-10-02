@@ -5,7 +5,18 @@ import { htmlToLines } from '../../helpers/html-to-text';
 import { messageExcerpt } from '../../helpers/message-excerpt';
 import { ForumSendBarComponent } from '../forum-send-bar/forum-send-bar.component';
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    ElementRef,
+    computed,
+    inject,
+    input,
+    output,
+    signal,
+    viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
@@ -42,6 +53,8 @@ export class ForumComposerComponent {
     private readonly _error = signal<string | undefined>(undefined);
     private readonly _focused = signal(false);
     private readonly _expanded = signal(false);
+
+    private readonly field = viewChild.required<string, ElementRef<HTMLElement>>('field', { read: ElementRef });
 
     readonly topicId = input.required<number>();
 
@@ -92,6 +105,15 @@ export class ForumComposerComponent {
 
     onFocusIn(): void {
         this._focused.set(true);
+    }
+
+    /** A press anywhere in the frame but the field itself leaves the focus where it is. */
+    protected keepFieldFocus(event: MouseEvent): void {
+        const { target } = event;
+        if (target instanceof Node && this.field().nativeElement.contains(target)) {
+            return;
+        }
+        event.preventDefault();
     }
 
     /** Focus moving between the field and the composer's own buttons does not leave it. */

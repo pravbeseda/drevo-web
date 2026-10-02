@@ -177,6 +177,18 @@ test.describe('Forum posting', () => {
             );
         });
 
+        test('keeps writing in the field after the reply is cancelled', async ({ authenticatedPage: page }) => {
+            const topic = await openTopic(page);
+            await topic.answer(2);
+            await topic.composerText.click();
+
+            await topic.cancelReply.click();
+
+            await expect(topic.replyChip).toHaveCount(0);
+            await expect(topic.composerActions).toBeVisible();
+            await expect(topic.composerText).toBeFocused();
+        });
+
         test('expands the empty field from its own button', async ({ authenticatedPage: page }) => {
             const topic = await openTopic(page);
             await topic.composerText.click();
