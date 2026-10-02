@@ -242,6 +242,15 @@ describe('ForumComposerComponent', () => {
         });
     });
 
+    it('puts the cursor in the field once a message is chosen to answer or quote', () => {
+        const focus = jest.spyOn(spectator.query(EditorComponent) as EditorComponent, 'focus');
+
+        spectator.component.replyTo(createMessage());
+        spectator.component.quote(createMessage());
+
+        expect(focus).toHaveBeenCalledTimes(2);
+    });
+
     it('quotes a message: answers it and puts its text into the field as quoted lines', () => {
         type('Уже написано');
 

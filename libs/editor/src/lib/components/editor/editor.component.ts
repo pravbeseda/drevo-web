@@ -180,6 +180,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.editor?.requestMeasure();
     }
 
+    focus(): void {
+        this.editor?.focus();
+    }
+
     toggleLintPanel(): boolean {
         if (!this.editor) return false;
 

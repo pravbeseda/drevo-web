@@ -177,6 +177,19 @@ test.describe('Forum posting', () => {
             );
         });
 
+        test('puts the cursor in the field once a message is chosen to answer', async ({ authenticatedPage: page }) => {
+            const topic = await openTopic(page);
+
+            await topic.answer(2);
+
+            await expect(topic.composerText).toBeFocused();
+
+            await topic.cancelReply.click();
+
+            await expect(topic.composerActions).toBeVisible();
+            await expect(topic.composerText).toBeFocused();
+        });
+
         test('keeps writing in the field after the reply is cancelled', async ({ authenticatedPage: page }) => {
             const topic = await openTopic(page);
             await topic.answer(2);

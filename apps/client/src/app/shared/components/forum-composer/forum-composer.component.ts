@@ -55,6 +55,7 @@ export class ForumComposerComponent {
     private readonly _expanded = signal(false);
 
     private readonly field = viewChild.required<string, ElementRef<HTMLElement>>('field', { read: ElementRef });
+    private readonly editor = viewChild.required(EditorComponent);
 
     readonly topicId = input.required<number>();
 
@@ -85,14 +86,17 @@ export class ForumComposerComponent {
 
     protected readonly editorExtensions = forumEditorExtensions('Сообщение', () => this.send());
 
+    /** Chosen from a card, the answer is written next, so the cursor goes to the field. */
     replyTo(message: ForumMessage): void {
         this._replyTarget.set(message);
+        this.editor().focus();
     }
 
     quote(message: ForumMessage): void {
         const quoted = quoteForumText(htmlToLines(message.html, this.document));
         this._replyTarget.set(message);
         this._draft.update(draft => `${quoted}\n\n${draft}`);
+        this.editor().focus();
     }
 
     cancelReply(): void {
