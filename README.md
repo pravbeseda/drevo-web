@@ -3,13 +3,13 @@
 
 # Drevo-Web
 
-Nx monorepo with Angular 21 application for the Drevo project. Gradual migration from a legacy Yii1 app to a modern stack
+Nx monorepo with Angular 22 application for the Drevo project. Gradual migration from a legacy Yii1 app to a modern stack
 
 ## Tech Stack
 
 | Category | Technology |
 |----------|------------|
-| Frontend | Angular 21, RxJS 7.8, Angular Material 21 (M3) |
+| Frontend | Angular 22, RxJS 7.8, Angular Material 22 (M3) |
 | State | Angular Signals |
 | Editor | CodeMirror 6 |
 | SSR | Express + Angular SSR |
