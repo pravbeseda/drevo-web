@@ -39,9 +39,11 @@ function dayHeading(
 /**
  * Lays the loaded messages out as a chat: which are the reader's, where each
  * author's series starts and ends, which day heads which message, and which
- * answered message a reply can quote.
+ * answered message a reply can quote. A reply to the topic itself is stored
+ * as a reply to its root, so it quotes nothing.
  */
 export function buildForumFeed(
+    topicId: number,
     messages: readonly ForumMessage[],
     ownLogin: string | undefined,
     referenceDate = new Date(),
@@ -54,7 +56,8 @@ export function buildForumFeed(
 
         return {
             message,
-            parent: message.parentId === undefined ? undefined : byId.get(message.parentId),
+            parent:
+                message.parentId === undefined || message.parentId === topicId ? undefined : byId.get(message.parentId),
             own: ownLogin !== undefined && message.author.login === ownLogin,
             seriesStart: !sameSeries(previous, message),
             seriesEnd: !sameSeries(message, next),
