@@ -79,7 +79,9 @@ test.describe('Forum posting', () => {
 
         test('answers the topic itself when no message is chosen, sending on Ctrl/⌘+Enter', async ({
             authenticatedPage: page,
+            isMobile,
         }) => {
+            test.skip(isMobile, 'A phone has no Ctrl/⌘+Enter, and CodeMirror drops the modifier of Enter on Android');
             await mockForumReplyApi(page, TOPIC_ID, createForumPostedMessageDto(NEW_MESSAGE));
             const topic = await openTopic(page);
 
