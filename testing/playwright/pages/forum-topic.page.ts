@@ -50,17 +50,27 @@ export class ForumTopicPage extends BasePage {
         }, end);
     }
 
-    /** The ↩ of a card, which shows on hover. */
+    /** The ↩ of a card. */
     async answer(id: number): Promise<void> {
-        await this.message(id).hover();
+        await this.revealActions(id);
         await this.message(id).getByTestId('message-reply').click();
     }
 
     /** «Цитировать» from the ⋯ menu of a card. */
     async quote(id: number): Promise<void> {
-        await this.message(id).hover();
+        await this.revealActions(id);
         await this.message(id).getByTestId('message-more').click();
         await this.page.getByTestId('message-quote').click();
+    }
+
+    /** A card shows its actions on hover, or on a tap on a screen without hover. */
+    private async revealActions(id: number): Promise<void> {
+        const canHover = await this.page.evaluate(() => matchMedia('(hover: hover)').matches);
+        if (canHover) {
+            await this.message(id).hover();
+        } else {
+            await this.message(id).tap();
+        }
     }
 
     composerHeight(): Promise<number> {
@@ -87,6 +97,16 @@ export class ForumTopicPage extends BasePage {
     async write(text: string): Promise<void> {
         await this.composerText.click();
         await this.page.keyboard.type(text);
+    }
+
+    /**
+     * Puts the text in as one input rather than key by key, so a line break gets
+     * through on a phone too: on Android CodeMirror leaves Enter to the on-screen
+     * keyboard, which device emulation does not have.
+     */
+    async insert(text: string): Promise<void> {
+        await this.composerText.click();
+        await this.page.keyboard.insertText(text);
     }
 
     /** Ctrl+Enter, ⌘+Enter on a Mac. */
