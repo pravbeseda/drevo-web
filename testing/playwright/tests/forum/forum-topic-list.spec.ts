@@ -24,7 +24,9 @@ async function openForum(page: Page): Promise<ForumTopicsPage> {
 test.describe('Forum topic list', () => {
     test('puts the author avatar left of the title and names the author in full on hover', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
+        test.skip(isMobile, 'Hover tooltips are not available on mobile');
         const topics = await openForum(page);
 
         const avatarBox = await topics.avatar(TOPIC_TITLE).boundingBox();

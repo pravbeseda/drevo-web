@@ -27,10 +27,13 @@ const MESSAGE_ID = 11;
 const MESSAGE_AUTHOR = 'Сидоров С.С.';
 const ARTICLE_ID = 15;
 const ARTICLE_TITLE = 'Сергий Радонежский';
+const TWO_PANES_ONLY =
+    'A phone replaces the list with the topic, which «replaces the list with the topic on a phone» covers';
 
 test.describe('Forum navigation', () => {
     test('opens on every section, narrows to one through the filter and walks into a topic', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
@@ -72,6 +75,7 @@ test.describe('Forum navigation', () => {
         await expect(topic.message(MESSAGE_ID)).toContainText(MESSAGE_AUTHOR);
         // The topic's own title names the tab — the route resolves it, nothing on the page does.
         await expect(page).toHaveTitle(`${TOPIC_TITLE} - Древо`);
+        test.skip(isMobile, TWO_PANES_ONLY);
         // The topic opens beside the list it was picked from, so both the filter
         // and the row stay on screen at desktop width.
         await expect(filter.button).toBeVisible();
@@ -129,6 +133,7 @@ test.describe('Forum navigation', () => {
 
     test('names a news item as one, and gives a topic that hangs off nothing no subtitle', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
         const newsTopicId = TOPIC_ID + 1;
         await mockForumSectionsApi(page);
@@ -168,6 +173,8 @@ test.describe('Forum navigation', () => {
         await expect(topic.subtitle).toHaveText('к новости Престольный праздник');
         await expect(topic.subtitleLink).toHaveAttribute('href', '/articles/9');
 
+        // The second topic is picked from the list beside the first one.
+        test.skip(isMobile, TWO_PANES_ONLY);
         await topics.open(TOPIC_TITLE);
         await expect(topic.title).toHaveText(TOPIC_TITLE);
         await expect(topic.subtitle).toBeHidden();
@@ -286,7 +293,9 @@ test.describe('Forum navigation', () => {
 
     test('keeps the menu at desktop width, where the list stays beside the topic', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
+        test.skip(isMobile, TWO_PANES_ONLY);
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
             page,
