@@ -22,6 +22,8 @@ async function openForum(page: Page): Promise<ForumTopicsPage> {
 const width = async (locator: Locator): Promise<number> => (await locator.boundingBox())?.width ?? 0;
 
 test.describe('Forum topic column width', () => {
+    test.skip(({ isMobile }) => isMobile, 'A phone shows one pane at a time, so there is no column border to drag');
+
     test('follows a drag of its border and survives a reload', async ({ authenticatedPage: page }) => {
         const topics = await openForum(page);
         expect(await width(topics.list)).toBe(DEFAULT_WIDTH_PX);

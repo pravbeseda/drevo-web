@@ -27,11 +27,15 @@ const MESSAGE_ID = 11;
 const MESSAGE_AUTHOR = 'Сидоров С.С.';
 const ARTICLE_ID = 15;
 const ARTICLE_TITLE = 'Сергий Радонежский';
+const TWO_PANES_ONLY =
+    'A phone replaces the list with the topic, which «replaces the list with the topic on a phone» covers';
 
 test.describe('Forum navigation', () => {
     test('opens on every section, narrows to one through the filter and walks into a topic', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
+        test.skip(isMobile, TWO_PANES_ONLY);
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
             page,
@@ -129,7 +133,10 @@ test.describe('Forum navigation', () => {
 
     test('names a news item as one, and gives a topic that hangs off nothing no subtitle', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
+        // The second topic is picked from the list beside the first one.
+        test.skip(isMobile, TWO_PANES_ONLY);
         const newsTopicId = TOPIC_ID + 1;
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
@@ -286,7 +293,9 @@ test.describe('Forum navigation', () => {
 
     test('keeps the menu at desktop width, where the list stays beside the topic', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
+        test.skip(isMobile, TWO_PANES_ONLY);
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
             page,
