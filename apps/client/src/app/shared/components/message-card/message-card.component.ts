@@ -78,17 +78,20 @@ export class MessageCardComponent {
     readonly seriesStart = input(true);
     readonly seriesEnd = input(true);
 
+    /**
+     * The id of the answered message. Its absence, not `message.parentId`,
+     * decides whether the «in reply to» link exists: a reply to the topic
+     * itself carries the root's id there.
+     */
+    readonly replyTo = input<number | undefined>(undefined);
+
     /** The answered message, when it is among the loaded ones; the quote falls back to a label otherwise. */
     readonly parent = input<ForumMessage | undefined>(undefined);
 
-    /**
-     * `parentId` is absent on a root message, and absence is what decides
-     * whether the «in reply to» link exists at all.
-     */
     readonly replyLink = computed<MessageLink | undefined>(() => {
-        const parentId = this.message().parentId;
+        const replyTo = this.replyTo();
 
-        return parentId === undefined ? undefined : ['/', ...this.topicPath(), parentId];
+        return replyTo === undefined ? undefined : ['/', ...this.topicPath(), replyTo];
     });
 
     readonly reply = output();

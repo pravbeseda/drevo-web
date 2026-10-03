@@ -170,7 +170,7 @@ describe('TopicPageComponent', () => {
         it('quotes nothing for a reply to the topic itself', () => {
             render(createTopicPage([createMessage(topic.id), createMessage(2, { parentId: topic.id })], 1, 1));
 
-            expect(spectator.query('[data-testid="message-2"] [data-testid="message-quote-author"]')).toBeNull();
+            expect(spectator.query('[data-testid="message-2"] [data-testid="message-reply-to"]')).toBeNull();
         });
 
         it("sets the reader's own messages apart once the reader is known", () => {

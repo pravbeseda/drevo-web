@@ -165,7 +165,15 @@ describe('buildForumFeed', () => {
             const root = message('Андрей', at(12, 10, 0), { id: TOPIC_ID });
             const reply = message('Мария', at(12, 11, 0), { parentId: TOPIC_ID });
 
-            expect(buildForumFeed(TOPIC_ID, [root, reply], undefined, REFERENCE_DATE)[1].parent).toBeUndefined();
+            expect(buildForumFeed(TOPIC_ID, [root, reply], undefined, REFERENCE_DATE)[1]).toEqual(
+                expect.objectContaining({ replyTo: undefined, parent: undefined }),
+            );
+        });
+
+        it('names the answered message even when it is on a page not loaded yet', () => {
+            const reply = message('Мария', at(12, 11, 0), { parentId: 999 });
+
+            expect(buildForumFeed(TOPIC_ID, [reply], undefined, REFERENCE_DATE)[0].replyTo).toBe(999);
         });
 
         it('carries nothing when the answered message is on a page not loaded yet', () => {
