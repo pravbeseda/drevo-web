@@ -64,7 +64,9 @@ describe('MessageCardComponent', () => {
     });
 
     it('links a reply to the message it answers', () => {
-        render(createMessage({ id: 7, parentId: 3 }), 42);
+        spectator = createComponent({
+            props: { message: createMessage({ id: 7, parentId: 3 }), topicPath: ['forum', 'topic', '42'], replyTo: 3 },
+        });
 
         expect(spectator.query('[data-testid="message-reply-to"]')?.getAttribute('href')).toBe('/forum/topic/42/3');
     });
@@ -76,7 +78,12 @@ describe('MessageCardComponent', () => {
             html: '<p>Есть и <a href="#">другая</a> датировка.</p><p>Упомянуть обе?</p>',
         });
         spectator = createComponent({
-            props: { message: createMessage({ id: 7, parentId: 3 }), topicPath: ['forum', 'topic', '42'], parent },
+            props: {
+                message: createMessage({ id: 7, parentId: 3 }),
+                topicPath: ['forum', 'topic', '42'],
+                replyTo: 3,
+                parent,
+            },
         });
 
         expect(spectator.query('[data-testid="message-quote-author"]')).toHaveExactTrimmedText('Андрей Петров');
@@ -88,7 +95,12 @@ describe('MessageCardComponent', () => {
     it('draws the quote in the tone of the answered author', () => {
         const parent = createMessage({ id: 3, author: { name: 'Андрей Петров', login: 'andrey' } });
         spectator = createComponent({
-            props: { message: createMessage({ id: 7, parentId: 3 }), topicPath: ['forum', 'topic', '42'], parent },
+            props: {
+                message: createMessage({ id: 7, parentId: 3 }),
+                topicPath: ['forum', 'topic', '42'],
+                replyTo: 3,
+                parent,
+            },
         });
 
         expect(spectator.query<HTMLElement>('[data-testid="message-reply-to"]')?.style.color).toBe(
@@ -97,7 +109,9 @@ describe('MessageCardComponent', () => {
     });
 
     it('falls back to a plain reply label when the answered message is on a page not loaded yet', () => {
-        render(createMessage({ id: 7, parentId: 3 }), 42);
+        spectator = createComponent({
+            props: { message: createMessage({ id: 7, parentId: 3 }), topicPath: ['forum', 'topic', '42'], replyTo: 3 },
+        });
 
         expect(spectator.query('[data-testid="message-reply-to"]')).toHaveExactTrimmedText('в ответ на сообщение');
         expect(spectator.query('[data-testid="message-quote-author"]')).toBeNull();
@@ -108,6 +122,7 @@ describe('MessageCardComponent', () => {
             props: {
                 message: createMessage({ id: 7, parentId: 3 }),
                 topicPath: ['articles', '15', 'forum', 'topic', '42'],
+                replyTo: 3,
             },
         });
 
@@ -116,8 +131,8 @@ describe('MessageCardComponent', () => {
         );
     });
 
-    it('offers no reply link on a root message', () => {
-        render(createMessage({ parentId: undefined }));
+    it('offers no reply link on a message that answers no other one', () => {
+        render(createMessage({ id: 7, parentId: 42 }));
 
         expect(spectator.query('[data-testid="message-reply-to"]')).toBeNull();
     });

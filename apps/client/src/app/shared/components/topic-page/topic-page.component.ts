@@ -61,7 +61,10 @@ export class TopicPageComponent {
     readonly topicPath = this._topicPath.asReadonly();
     readonly previousState = this._loadState.previous.asReadonly();
     readonly nextState = this._loadState.next.asReadonly();
-    readonly feed = computed(() => buildForumFeed(this._messages(), this.ownLogin()));
+    readonly feed = computed(() => {
+        const topic = this.topic();
+        return topic ? buildForumFeed(topic.id, this._messages(), this.ownLogin()) : [];
+    });
 
     readonly topic = computed(() => {
         const result = this._resolveResult();
