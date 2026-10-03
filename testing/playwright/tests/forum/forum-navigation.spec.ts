@@ -35,7 +35,6 @@ test.describe('Forum navigation', () => {
         authenticatedPage: page,
         isMobile,
     }) => {
-        test.skip(isMobile, TWO_PANES_ONLY);
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
             page,
@@ -76,6 +75,7 @@ test.describe('Forum navigation', () => {
         await expect(topic.message(MESSAGE_ID)).toContainText(MESSAGE_AUTHOR);
         // The topic's own title names the tab — the route resolves it, nothing on the page does.
         await expect(page).toHaveTitle(`${TOPIC_TITLE} - Древо`);
+        test.skip(isMobile, TWO_PANES_ONLY);
         // The topic opens beside the list it was picked from, so both the filter
         // and the row stay on screen at desktop width.
         await expect(filter.button).toBeVisible();
@@ -135,8 +135,6 @@ test.describe('Forum navigation', () => {
         authenticatedPage: page,
         isMobile,
     }) => {
-        // The second topic is picked from the list beside the first one.
-        test.skip(isMobile, TWO_PANES_ONLY);
         const newsTopicId = TOPIC_ID + 1;
         await mockForumSectionsApi(page);
         await mockForumTopicsApi(
@@ -175,6 +173,8 @@ test.describe('Forum navigation', () => {
         await expect(topic.subtitle).toHaveText('к новости Престольный праздник');
         await expect(topic.subtitleLink).toHaveAttribute('href', '/articles/9');
 
+        // The second topic is picked from the list beside the first one.
+        test.skip(isMobile, TWO_PANES_ONLY);
         await topics.open(TOPIC_TITLE);
         await expect(topic.title).toHaveText(TOPIC_TITLE);
         await expect(topic.subtitle).toBeHidden();
