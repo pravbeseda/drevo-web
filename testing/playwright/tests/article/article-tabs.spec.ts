@@ -75,7 +75,11 @@ test.describe('Article tabs', () => {
         });
 
         test('opens a discussion beside the list without leaving the article', async ({ authenticatedPage: page }) => {
-            const TOPIC_ID = 7;
+            // The root message carries the topic's id, as the forum stores it.
+            const TOPIC_ID = 1;
+            const ANSWERED_ID = 2;
+            const message = (id: number, parentId: number) =>
+                createForumMessageDto({ html: `<p>${'Текст сообщения. '.repeat(20)}</p>`, parentId }, id);
             const TOPIC_TITLE = 'Обсуждение статьи';
             await mockForumTopicsApi(
                 page,
@@ -92,13 +96,14 @@ test.describe('Article tabs', () => {
                         partId: ARTICLE_ID,
                         article: { id: ARTICLE_ID, title: 'Статья' },
                     }),
-                    // Long enough that the panel has to scroll something.
-                    Array.from({ length: 20 }, (_, index) =>
-                        createForumMessageDto(
-                            { html: `<p>${'Текст сообщения. '.repeat(20)}</p>`, parentId: index === 0 ? 0 : 1 },
-                            index + 1,
-                        ),
-                    ),
+                    // Long enough that the panel has to scroll something. Every reply
+                    // but one goes to the topic itself; that one answers a message.
+                    [
+                        message(TOPIC_ID, 0),
+                        message(ANSWERED_ID, TOPIC_ID),
+                        message(3, ANSWERED_ID),
+                        ...Array.from({ length: 17 }, (_, index) => message(index + 4, TOPIC_ID)),
+                    ],
                 ),
             );
             const topic = new ForumTopicPage(page);
@@ -119,9 +124,11 @@ test.describe('Article tabs', () => {
             const viewport = page.viewportSize();
             expect(panes?.height ?? 0).toBeLessThanOrEqual(viewport?.height ?? 0);
 
+            // Only the reply to a message links back; replies to the topic quote nothing.
+            await expect(topic.replyTo).toHaveCount(1);
             // «в ответ на» is a link inside the topic, and it stays inside the article too.
-            await topic.replyTo.first().click();
-            await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_ID}/forum/topic/${TOPIC_ID}/1$`));
+            await topic.replyTo.click();
+            await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_ID}/forum/topic/${TOPIC_ID}/${ANSWERED_ID}$`));
         });
 
         test('states that the article has no discussions yet', async ({ authenticatedPage: page }) => {
