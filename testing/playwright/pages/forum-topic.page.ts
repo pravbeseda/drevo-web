@@ -94,17 +94,12 @@ export class ForumTopicPage extends BasePage {
         return frame && error ? Math.round(Math.abs(error.y + error.height / 2 - frame.y)) : undefined;
     }
 
-    async write(text: string): Promise<void> {
-        await this.composerText.click();
-        await this.page.keyboard.type(text);
-    }
-
     /**
      * Puts the text in as one input rather than key by key, so a line break gets
      * through on a phone too: on Android CodeMirror leaves Enter to the on-screen
      * keyboard, which device emulation does not have.
      */
-    async insert(text: string): Promise<void> {
+    async write(text: string): Promise<void> {
         await this.composerText.click();
         await this.page.keyboard.insertText(text);
     }

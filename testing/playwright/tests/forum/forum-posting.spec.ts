@@ -104,7 +104,7 @@ test.describe('Forum posting', () => {
             expect(await topic.composerSpareHeight()).toBe(0);
             const oneLine = await topic.composerHeight();
 
-            await topic.insert('Первая строка\nВторая строка');
+            await topic.write('Первая строка\nВторая строка');
 
             expect(await topic.composerSpareHeight()).toBe(0);
             expect(await topic.composerHeight()).toBeGreaterThan(oneLine);
