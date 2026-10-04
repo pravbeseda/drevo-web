@@ -316,3 +316,28 @@ $paper-100: #f3e4c3;
 $paper-200: #eadab3;
 $paper-300: #dcc89d;
 $paper-400: #c6ae80;
+
+// Sepia accents — not Material colours: the light theme's link, bubble and avatar tones,
+// muted and warmed so they sit on the paper ground instead of on white.
+$ink-700: #2c4a72;
+$ink-900: #1e3554;
+$olive-800: #56641c;
+$sage-100: #dfe2c4;
+$sage-800: #5a6438;
+
+// Avatar circles, each dark enough for white initials to clear WCAG AA,
+// and the darker shade of the same hue for the author's name beside it.
+$avatar-brick: #b4533f;
+$avatar-brick-dark: #8f3a2b;
+$avatar-ochre: #a8611f;
+$avatar-ochre-dark: #8a4c14;
+$avatar-violet: #6d5794;
+$avatar-violet-dark: #584478;
+$avatar-moss: #5b7b3c;
+$avatar-moss-dark: #47612c;
+$avatar-pine: #3d7f76;
+$avatar-pine-dark: #2c605a;
+$avatar-slate: #44689a;
+$avatar-slate-dark: #34507a;
+$avatar-rose: #a64d6e;
+$avatar-rose-dark: #843a56;

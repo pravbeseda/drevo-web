@@ -18,12 +18,16 @@ const PAGE_LINKS = [
     '--themed-wiki-verse',
 ];
 const CALENDAR_DAYS = ['--themed-calendar-feast', '--themed-calendar-weekend'];
+const OWN_BUBBLE_TEXT = ['--themed-link-color', '--themed-wiki-external-link', '--themed-forum-bubble-own-meta'];
+const AVATAR_TONES = 7;
+const AVATAR_BACKGROUNDS = Array.from({ length: AVATAR_TONES }, (_, i) => `--themed-avatar-bg-${i + 1}`);
 // Material components paint from these, so they must agree with the app's own tokens.
 const MATERIAL_TO_THEMED: readonly (readonly [string, string])[] = [
     ['--mat-sys-surface', '--themed-primary-bg'],
     ['--mat-sys-surface-container-high', '--themed-secondary-bg'],
     ['--mat-sys-on-surface', '--themed-text-primary'],
     ['--mat-sys-outline-variant', '--themed-border-color'],
+    ['--mat-sys-primary', '--themed-link-color'],
 ];
 
 test.describe('Light theme palette', () => {
@@ -73,6 +77,36 @@ test.describe('Light theme palette', () => {
         expect(contrastRatio(composite(colors['--themed-calendar-fast-bg'], page), page)).toBeGreaterThanOrEqual(
             MIN_TINT_CONTRAST,
         );
+    });
+
+    test('links and the timestamp meet WCAG AA in an own forum bubble', async () => {
+        const colors = await layout.readColors([...OWN_BUBBLE_TEXT, '--themed-forum-bubble-own-bg']);
+
+        for (const text of OWN_BUBBLE_TEXT) {
+            expect(contrastRatio(colors[text], colors['--themed-forum-bubble-own-bg']), text).toBeGreaterThanOrEqual(
+                WCAG_AA_TEXT,
+            );
+        }
+    });
+
+    test('the anchored forum message stands out from the feed', async () => {
+        const colors = await layout.readColors(['--themed-forum-anchor-bg', '--themed-forum-feed-bg']);
+        const feed = colors['--themed-forum-feed-bg'];
+
+        expect(contrastRatio(composite(colors['--themed-forum-anchor-bg'], feed), feed)).toBeGreaterThanOrEqual(
+            MIN_TINT_CONTRAST,
+        );
+    });
+
+    test('avatar initials meet WCAG AA on every tone', async () => {
+        const colors = await layout.readColors([...AVATAR_BACKGROUNDS, '--themed-avatar-text']);
+
+        for (const background of AVATAR_BACKGROUNDS) {
+            expect(
+                contrastRatio(colors['--themed-avatar-text'], colors[background]),
+                background,
+            ).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+        }
     });
 
     test('Material surfaces follow the themed palette', async () => {
