@@ -30,6 +30,16 @@ const MATERIAL_TO_THEMED: readonly (readonly [string, string])[] = [
     ['--mat-sys-primary', '--themed-link-color'],
 ];
 
+async function expectAvatarInitialsLegible(layout: LayoutPage): Promise<void> {
+    const colors = await layout.readColors([...AVATAR_BACKGROUNDS, '--themed-avatar-text']);
+
+    for (const background of AVATAR_BACKGROUNDS) {
+        expect(contrastRatio(colors['--themed-avatar-text'], colors[background]), background).toBeGreaterThanOrEqual(
+            WCAG_AA_TEXT,
+        );
+    }
+}
+
 test.describe('Light theme palette', () => {
     let layout: LayoutPage;
 
@@ -99,14 +109,7 @@ test.describe('Light theme palette', () => {
     });
 
     test('avatar initials meet WCAG AA on every tone', async () => {
-        const colors = await layout.readColors([...AVATAR_BACKGROUNDS, '--themed-avatar-text']);
-
-        for (const background of AVATAR_BACKGROUNDS) {
-            expect(
-                contrastRatio(colors['--themed-avatar-text'], colors[background]),
-                background,
-            ).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
-        }
+        await expectAvatarInitialsLegible(layout);
     });
 
     test('Material surfaces follow the themed palette', async () => {
@@ -115,6 +118,24 @@ test.describe('Light theme palette', () => {
         for (const [material, themed] of MATERIAL_TO_THEMED) {
             expect(colors[material], `${material} vs ${themed}`).toBe(colors[themed]);
         }
+    });
+});
+
+test.describe('Dark theme palette', () => {
+    let layout: LayoutPage;
+
+    test.beforeEach(async ({ authenticatedPage: page }) => {
+        await page.addInitScript(key => {
+            localStorage.setItem(key, 'dark');
+        }, THEME_KEY);
+        layout = new LayoutPage(page);
+        await page.goto('/');
+        await layout.waitForReady();
+        await layout.expectDarkTheme();
+    });
+
+    test('avatar initials meet WCAG AA on every tone', async () => {
+        await expectAvatarInitialsLegible(layout);
     });
 });
 
