@@ -26,6 +26,7 @@ export default [
                 'warn',
                 {
                     assertFunctionNames: [
+                        'expectAvatarInitialsLegible',
                         'expectDarkTheme',
                         'expectDeleteButtonCount',
                         'expectDeletedPictureCard',
