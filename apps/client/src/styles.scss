@@ -65,7 +65,8 @@ html {
     );
 
     // Paint Material's neutral surfaces with the paper palette instead of azure's cool
-    // greys. The dark theme re-emits these system tokens and keeps Material's own values.
+    // greys, and its primary with the link ink. The dark theme re-emits these system
+    // tokens and keeps Material's own values.
     @include mat.theme-overrides(
         (
             background: var(--themed-primary-bg),
@@ -83,6 +84,7 @@ html {
             on-surface-variant: var(--themed-text-secondary),
             outline: var(--themed-text-muted),
             outline-variant: var(--themed-border-color),
+            primary: var(--themed-link-color),
         )
     );
 }

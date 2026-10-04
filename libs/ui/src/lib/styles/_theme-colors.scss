@@ -58,7 +58,7 @@ $theme-colors: (
         dark: rgba($md-orange-400, 0.8),
     ),
     text-accent: (
-        light: $md-blue-900,
+        light: $ink-900,
         dark: $md-blue-400,
     ),
     /* Glyph color for a filled (tone-disc) icon — white in both themes for a*/
@@ -125,11 +125,11 @@ $theme-colors: (
     ),
     /* Links*/
     link-color: (
-        light: $md-blue-800,
+        light: $ink-700,
         dark: $md-blue-300,
     ),
     link-hover: (
-        light: $md-blue-900,
+        light: $ink-900,
         dark: $md-blue-200,
     ),
 
@@ -139,11 +139,11 @@ $theme-colors: (
         dark: $md-brown-300,
     ),
     wiki-external-link: (
-        light: $md-green-800,
+        light: $olive-800,
         dark: $md-green-200,
     ),
     wiki-existlink: (
-        light: $md-blue-900,
+        light: $ink-900,
         dark: $md-blue-300,
     ),
     wiki-newlink: (
@@ -179,7 +179,7 @@ $theme-colors: (
         dark: rgb($md-green-200, 0.12),
     ),
     calendar-today-border: (
-        light: $md-blue-700,
+        light: $ink-700,
         dark: $md-blue-300,
     ),
 
@@ -337,7 +337,7 @@ $theme-colors: (
 
     /* FAB (Floating Action Button)*/
     fab-primary-bg: (
-        light: $md-blue-700,
+        light: $ink-700,
         dark: $md-blue-300,
     ),
     fab-primary: (
@@ -519,73 +519,74 @@ $theme-colors: (
         dark: $md-blue-grey-800,
     ),
 
-    /* Avatars — one saturated circle per tone in both themes, so the white*/
-    /* initials stay legible; the name beside it takes the tone's text shade.*/
+    /* Avatars — one circle per tone behind white initials: muted on the paper, where*/
+    /* they clear WCAG AA, Material's saturated tones in dark; the name beside it takes*/
+    /* the tone's text shade.*/
     avatar-text: (
         light: white,
         dark: white,
     ),
     avatar-bg-1: (
-        light: $md-red-600,
+        light: $avatar-brick,
         dark: $md-red-600,
     ),
     avatar-name-1: (
-        light: $md-red-800,
+        light: $avatar-brick-dark,
         dark: $md-red-300,
     ),
     avatar-bg-2: (
-        light: $md-orange-800,
+        light: $avatar-ochre,
         dark: $md-orange-800,
     ),
     avatar-name-2: (
-        light: $md-orange-900,
+        light: $avatar-ochre-dark,
         dark: $md-orange-300,
     ),
     avatar-bg-3: (
-        light: $md-deep-purple-600,
+        light: $avatar-violet,
         dark: $md-deep-purple-600,
     ),
     avatar-name-3: (
-        light: $md-deep-purple-600,
+        light: $avatar-violet-dark,
         dark: $md-deep-purple-200,
     ),
     avatar-bg-4: (
-        light: $md-green-600,
+        light: $avatar-moss,
         dark: $md-green-600,
     ),
     avatar-name-4: (
-        light: $md-green-800,
+        light: $avatar-moss-dark,
         dark: $md-green-300,
     ),
     avatar-bg-5: (
-        light: $md-teal-600,
+        light: $avatar-pine,
         dark: $md-teal-600,
     ),
     avatar-name-5: (
-        light: $md-teal-800,
+        light: $avatar-pine-dark,
         dark: $md-teal-200,
     ),
     avatar-bg-6: (
-        light: $md-blue-600,
+        light: $avatar-slate,
         dark: $md-blue-600,
     ),
     avatar-name-6: (
-        light: $md-blue-800,
+        light: $avatar-slate-dark,
         dark: $md-blue-300,
     ),
     avatar-bg-7: (
-        light: $md-pink-600,
+        light: $avatar-rose,
         dark: $md-pink-600,
     ),
     avatar-name-7: (
-        light: $md-pink-800,
+        light: $avatar-rose-dark,
         dark: $md-pink-200,
     ),
 
     /* Forum*/
     /* The card a deep link anchors on, so the reader sees where they landed.*/
     forum-anchor-bg: (
-        light: $md-yellow-200,
+        light: rgb($md-brown-900, 0.09),
         dark: rgba($md-yellow-600, 0.15),
     ),
     /* The message feed, drawn as a chat: bubbles on a dotted wallpaper.*/
@@ -602,11 +603,11 @@ $theme-colors: (
         dark: rgb(white, 0.08),
     ),
     forum-bubble-own-bg: (
-        light: $md-light-green-100,
+        light: $sage-100,
         dark: rgb($md-blue-400, 0.22),
     ),
     forum-bubble-own-meta: (
-        light: $md-green-800,
+        light: $sage-800,
         dark: $md-blue-200,
     ),
     forum-quote-bg: (
