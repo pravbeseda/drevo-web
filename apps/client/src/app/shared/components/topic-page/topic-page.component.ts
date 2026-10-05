@@ -2,7 +2,6 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { buildForumFeed } from '../../helpers/forum-feed';
 import { readForumAnchor } from '../../helpers/forum-route-params';
-import { scrollableAncestor } from '../../helpers/scrollable-ancestor';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { ErrorComponent } from '../error/error.component';
 import { ForumComposerComponent } from '../forum-composer/forum-composer.component';
@@ -241,15 +240,15 @@ export class TopicPageComponent {
      */
     private keepInPlace(firstMessage: ForumMessage | undefined): void {
         const card = firstMessage && this.document.getElementById(`message-${firstMessage.id}`);
-        if (!card) {
+        const scroller = this.scroller()?.nativeElement;
+        if (!card || !scroller) {
             return;
         }
         const topBefore = card.getBoundingClientRect().top;
 
         afterNextRender(
             () => {
-                const shift = card.getBoundingClientRect().top - topBefore;
-                scrollableAncestor(card).scrollTop += shift;
+                scroller.scrollTop += card.getBoundingClientRect().top - topBefore;
             },
             { injector: this.injector },
         );
