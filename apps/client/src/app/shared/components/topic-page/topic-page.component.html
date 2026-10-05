@@ -5,7 +5,11 @@
         data-testid="topic-feed"
         uiScrollbar
     >
-        <div class="topic-page__messages">
+        <div
+            #messages
+            class="topic-page__messages"
+            data-testid="topic-messages"
+        >
             @if (hasPrevious()) {
                 <app-topic-feed-edge
                     end="previous"

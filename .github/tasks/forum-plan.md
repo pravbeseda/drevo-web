@@ -124,7 +124,8 @@ Behaviour:
   `[data-testid="message-<id>"]` in `afterNextRender` through the injected
   `DOCUMENT`, and highlights the card with a new `--themed-*` token.
 - Without it the topic opens on its last message, as Telegram opens a read
-  chat; a topic shorter than the feed sits at its bottom. An explicit `?page`
+  chat — on its start when it is taller than the feed; a topic shorter than
+  the feed sits at its bottom. An explicit `?page`
   short of the last opens at its top. Slice 3 moves the default to the first
   unread message.
 - «In reply to» on a message links to `/forum/topic/:id/:parentId`.
