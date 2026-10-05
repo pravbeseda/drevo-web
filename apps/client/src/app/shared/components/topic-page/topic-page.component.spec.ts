@@ -24,7 +24,9 @@ const topic: ForumTopic = {
     repliesCount: 5,
 };
 
-const FEED_SCROLL_HEIGHT = 1200;
+/** The visible height of the feed, and a message taller than it. */
+const FEED_HEIGHT = 600;
+const LONG_MESSAGE_HEIGHT = 1000;
 
 function createMessage(id: number, overrides: Partial<ForumMessage> = {}): ForumMessage {
     return {
@@ -50,7 +52,7 @@ describe('TopicPageComponent', () => {
     let routeData: BehaviorSubject<{ topic: ForumTopicResolveResult }>;
     let user: BehaviorSubject<User | undefined>;
     let scrolled: Element[];
-    let feedScrollTops: number[];
+    let scrollBlocks: (ScrollLogicalPosition | undefined)[];
     let originalScrollIntoView: typeof Element.prototype.scrollIntoView;
 
     const createComponent = createComponentFactory({
@@ -64,17 +66,13 @@ describe('TopicPageComponent', () => {
         user = new BehaviorSubject<User | undefined>(undefined);
         scrolled = [];
         originalScrollIntoView = Element.prototype.scrollIntoView;
-        Element.prototype.scrollIntoView = function (this: Element): void {
+        scrollBlocks = [];
+        Element.prototype.scrollIntoView = function (this: Element, options?: boolean | ScrollIntoViewOptions): void {
             scrolled.push(this);
+            scrollBlocks.push(typeof options === 'object' ? options.block : undefined);
         };
-        // jsdom lays nothing out, so the feed is given a height to scroll to.
-        feedScrollTops = [];
-        jest.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(FEED_SCROLL_HEIGHT);
-        jest.spyOn(Element.prototype, 'scrollTop', 'set').mockImplementation(function (this: Element, value: number) {
-            if (this.matches('[data-testid="topic-feed"]')) {
-                feedScrollTops.push(value);
-            }
-        });
+        // jsdom lays nothing out, so the feed is given a height to compare a message with.
+        jest.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(FEED_HEIGHT);
     });
 
     afterEach(() => {
@@ -222,21 +220,33 @@ describe('TopicPageComponent', () => {
             expect(spectator.query('[data-testid="message-7"]')).toHaveClass('message-card--anchored');
             expect(spectator.query('[data-testid="message-1"]')).not.toHaveClass('message-card--anchored');
         });
-
-        it('leaves the feed where it is for the anchored card', () => {
-            render(createTopicPage([createMessage(1), createMessage(7)], 1, 1), { id: '42', messageId: '7' });
-
-            expect(feedScrollTops).toEqual([]);
-        });
     });
 
     describe('the opening position', () => {
-        it('opens on the last message when the address names none', () => {
+        const scrolledIds = (): (string | null)[] => scrolled.map(element => element.getAttribute('data-testid'));
+
+        /**
+         * The end of the messages rather than the feed's own scroll height: the
+         * scrollbar drawn inside the feed still sits where the previous topic
+         * was scrolled to, and keeps that height alive.
+         */
+        it('opens on the end of the messages when the address names none', () => {
             render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
 
             expect(spectator.component.anchorId()).toBeUndefined();
-            expect(scrolled).toHaveLength(0);
-            expect(feedScrollTops).toEqual([FEED_SCROLL_HEIGHT]);
+            expect(scrolledIds()).toEqual(['topic-messages']);
+            expect(scrollBlocks).toEqual(['end']);
+        });
+
+        it('opens on the start of a last message taller than the feed', () => {
+            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+                return this.id === 'message-2' ? LONG_MESSAGE_HEIGHT : 0;
+            });
+
+            render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
+
+            expect(scrolledIds()).toEqual(['message-2']);
+            expect(scrollBlocks).toEqual(['start']);
         });
 
         /**
@@ -246,7 +256,7 @@ describe('TopicPageComponent', () => {
         it('opens at the top of a page that is not the last one', () => {
             render(createTopicPage([createMessage(1)], 1, 2));
 
-            expect(feedScrollTops).toEqual([]);
+            expect(scrolled).toEqual([]);
         });
     });
 

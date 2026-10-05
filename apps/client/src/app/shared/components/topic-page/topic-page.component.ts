@@ -59,6 +59,7 @@ export class TopicPageComponent {
     };
     private readonly ownLogin = toSignal(inject(AuthService).user$.pipe(map(user => user?.login)));
     private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
+    private readonly messagesElement = viewChild<ElementRef<HTMLElement>>('messages');
 
     readonly anchorId = this._anchorId.asReadonly();
 
@@ -204,9 +205,9 @@ export class TopicPageComponent {
 
     /**
      * The anchored message when the address names one, as Telegram opens a
-     * link to a message; otherwise the last one, as it opens a chat whose
-     * messages are all read. A served page with more below opens at its top:
-     * its end would put the next end of the feed on screen and load it at once.
+     * link to a message; otherwise the end of the topic, as it opens a chat
+     * whose messages are all read. A served page with more below opens at its
+     * top: its end would put the next end of the feed on screen and load it at once.
      *
      * The resolver already asked for the page holding the anchored message, so
      * the card is in the list this render puts on screen. The jump is instant:
@@ -221,17 +222,33 @@ export class TopicPageComponent {
 
         afterNextRender(
             () => {
-                if (anchorId !== undefined) {
+                if (anchorId === undefined) {
+                    this.scrollToEnd();
+                } else {
                     this.document.getElementById(`message-${anchorId}`)?.scrollIntoView({ block: 'start' });
-                    return;
-                }
-                const scroller = this.scroller()?.nativeElement;
-                if (scroller) {
-                    scroller.scrollTop = scroller.scrollHeight;
                 }
             },
             { injector: this.injector },
         );
+    }
+
+    /**
+     * Aims at the messages rather than at the feed's scroll height: the
+     * scrollbar is drawn inside the feed and follows its scroll position, so
+     * after a longer topic it holds the old height open below a short one.
+     * A last message taller than the feed opens on its start, where its
+     * reading begins.
+     */
+    private scrollToEnd(): void {
+        const lastMessage = this._messages().at(-1);
+        const lastCard = lastMessage && this.document.getElementById(`message-${lastMessage.id}`);
+        const feedHeight = this.scroller()?.nativeElement.clientHeight ?? 0;
+
+        if (lastCard && lastCard.offsetHeight > feedHeight) {
+            lastCard.scrollIntoView({ block: 'start' });
+        } else {
+            this.messagesElement()?.nativeElement.scrollIntoView({ block: 'end' });
+        }
     }
 
     /**

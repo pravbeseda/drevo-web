@@ -18,6 +18,8 @@ import { ForumTopicPage } from '../../pages/forum-topic.page';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
 
 const TOPIC_ID = 7;
+const SHORT_TOPIC_ID = 8;
+const SHORT_TOPIC_MESSAGE_ID = 801;
 const PAGE_SIZE = 20;
 const PAGE_COUNT = 2;
 const MESSAGE_COUNT = PAGE_COUNT * PAGE_SIZE;
@@ -32,6 +34,8 @@ const SCROLL_TOLERANCE_PX = 1;
 
 /** Long enough that one page overflows the panel, so reaching an end takes a scroll. */
 const MESSAGE_HTML = `<p>${'Текст сообщения, достаточно длинный, чтобы занять несколько строк. '.repeat(4)}</p>`;
+/** Enough paragraphs of it that one message is taller than the feed. */
+const LONG_MESSAGE_REPEATS = 20;
 
 const TOPIC = createForumTopicDto({ id: TOPIC_ID });
 const MESSAGES = Array.from({ length: MESSAGE_COUNT }, (_, index) =>
@@ -71,6 +75,57 @@ test.describe('Forum topic feed', () => {
         const gapAbove = (message?.y ?? 0) - (feed?.y ?? 0);
         const gapBelow = (feed?.y ?? 0) + (feed?.height ?? 0) - ((message?.y ?? 0) + (message?.height ?? 0));
         expect(gapBelow).toBeLessThan(gapAbove);
+    });
+
+    test('opens on the start of a last message taller than the feed', async ({ authenticatedPage: page }) => {
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [
+                createForumMessageDto({ html: MESSAGE_HTML }, 1),
+                createForumMessageDto({ html: MESSAGE_HTML.repeat(LONG_MESSAGE_REPEATS) }, 2),
+            ]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        await expect
+            .poll(async () => {
+                const [feed, message] = await Promise.all([topic.feed.boundingBox(), topic.message(2).boundingBox()]);
+                return Math.abs((message?.y ?? 0) - (feed?.y ?? 0));
+            })
+            .toBeLessThanOrEqual(POSITION_TOLERANCE_PX);
+    });
+
+    test('sits a short topic at the bottom after a long one was open', async ({ authenticatedPage: page }) => {
+        await mockForumTopicsApi(
+            page,
+            createForumTopicListResponse([
+                createForumTopicListItemDto({ id: TOPIC_ID, title: 'Длинная тема' }),
+                createForumTopicListItemDto({ id: SHORT_TOPIC_ID, title: 'Короткая тема' }),
+            ]),
+        );
+        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested }) => pageOf(requested));
+        await mockForumTopicApi(
+            page,
+            SHORT_TOPIC_ID,
+            createForumTopicPage(createForumTopicDto({ id: SHORT_TOPIC_ID }), [
+                createForumMessageDto({}, SHORT_TOPIC_MESSAGE_ID),
+            ]),
+        );
+        const topic = new ForumTopicPage(page);
+        const topics = new ForumTopicsPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+        await expect(topic.message(MESSAGE_COUNT)).toBeInViewport();
+
+        await topics.link('Короткая тема').click();
+
+        await expect(topic.message(SHORT_TOPIC_MESSAGE_ID)).toBeInViewport();
+        await expect.poll(() => topic.distanceToBottom()).toBeLessThanOrEqual(SCROLL_TOLERANCE_PX);
     });
 
     test('loads the next page once the reader scrolls to the end', async ({ authenticatedPage: page }) => {

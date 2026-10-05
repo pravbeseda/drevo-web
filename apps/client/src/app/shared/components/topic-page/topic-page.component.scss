@@ -16,7 +16,6 @@
     min-height: 0;
     overflow-anchor: none;
     overflow-y: auto;
-    padding: $forum-feed-padding-v 0;
     background-color: var(--themed-forum-feed-bg);
     background-image:
         radial-gradient(var(--themed-forum-feed-pattern) $forum-feed-pattern-dot, transparent $forum-feed-pattern-dot),
@@ -29,9 +28,11 @@
 
 // A topic shorter than the feed sits at its bottom, next to the composer, as
 // a chat does. `justify-content: flex-end` would do the same but make the top
-// of an overflowing feed unreachable.
+// of an overflowing feed unreachable. The padding is the messages' own, so
+// scrolling them into view brings it along.
 .topic-page__messages {
     margin-top: auto;
+    padding: $forum-feed-padding-v 0;
 }
 
 .topic-page__day {
