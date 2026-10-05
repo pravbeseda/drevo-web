@@ -10,6 +10,8 @@
 // The scroll position is kept by hand when a page is prepended, so the
 // browser's own anchoring must not shift it a second time.
 .topic-page__feed {
+    display: flex;
+    flex-direction: column;
     flex: 1;
     min-height: 0;
     overflow-anchor: none;
@@ -23,6 +25,13 @@
         0 0,
         calc($forum-feed-pattern-step / 2) calc($forum-feed-pattern-step / 2);
     background-size: $forum-feed-pattern-step $forum-feed-pattern-step;
+}
+
+// A topic shorter than the feed sits at its bottom, next to the composer, as
+// a chat does. `justify-content: flex-end` would do the same but make the top
+// of an overflowing feed unreachable.
+.topic-page__messages {
+    margin-top: auto;
 }
 
 .topic-page__day {

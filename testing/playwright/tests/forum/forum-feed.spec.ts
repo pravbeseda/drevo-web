@@ -1,9 +1,17 @@
-import { expect, mockForumSectionsApi, mockForumTopicPagedApi, mockForumTopicsApi, test } from '../../fixtures';
+import {
+    expect,
+    mockForumSectionsApi,
+    mockForumTopicApi,
+    mockForumTopicPagedApi,
+    mockForumTopicsApi,
+    test,
+} from '../../fixtures';
 import {
     createForumMessageDto,
     createForumTopicDto,
     createForumTopicListItemDto,
     createForumTopicListResponse,
+    createForumTopicPage,
     createForumTopicPageOf,
 } from '../../mocks/forum';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
@@ -11,13 +19,16 @@ import { ForumTopicsPage } from '../../pages/forum-topics.page';
 
 const TOPIC_ID = 7;
 const PAGE_SIZE = 20;
-const MESSAGE_COUNT = 2 * PAGE_SIZE;
+const PAGE_COUNT = 2;
+const MESSAGE_COUNT = PAGE_COUNT * PAGE_SIZE;
 const FIRST_OF_SECOND_PAGE = PAGE_SIZE + 1;
 const ANCHOR_ID = PAGE_SIZE + 5;
 /** The width of the scrollbar handle at rest, as the lists draw it. */
 const THIN_HANDLE_PX = 4;
 /** Sub-pixel rounding of a layout that moved by a whole page of cards. */
 const POSITION_TOLERANCE_PX = 2;
+/** Sub-pixel rounding of a scroll position. */
+const SCROLL_TOLERANCE_PX = 1;
 
 /** Long enough that one page overflows the panel, so reaching an end takes a scroll. */
 const MESSAGE_HTML = `<p>${'Текст сообщения, достаточно длинный, чтобы занять несколько строк. '.repeat(4)}</p>`;
@@ -27,7 +38,8 @@ const MESSAGES = Array.from({ length: MESSAGE_COUNT }, (_, index) =>
     createForumMessageDto({ html: MESSAGE_HTML }, index + 1),
 );
 
-const pageOf = (page: number) => createForumTopicPageOf(TOPIC, MESSAGES, page, PAGE_SIZE);
+/** The backend serves the last page to a request that names none. */
+const pageOf = (page = PAGE_COUNT) => createForumTopicPageOf(TOPIC, MESSAGES, page, PAGE_SIZE);
 
 test.describe('Forum topic feed', () => {
     test.beforeEach(async ({ authenticatedPage: page }) => {
@@ -35,11 +47,37 @@ test.describe('Forum topic feed', () => {
         await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
     });
 
-    test('loads the next page once the reader scrolls to the end', async ({ authenticatedPage: page }) => {
-        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested }) => pageOf(requested ?? 1));
+    test('opens on the last message when the address names none', async ({ authenticatedPage: page }) => {
+        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested }) => pageOf(requested));
         const topic = new ForumTopicPage(page);
 
         await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        await expect(topic.message(MESSAGE_COUNT)).toBeInViewport();
+        await expect.poll(() => topic.distanceToBottom()).toBeLessThanOrEqual(SCROLL_TOLERANCE_PX);
+    });
+
+    test('sits a topic shorter than the feed at its bottom, next to the composer', async ({
+        authenticatedPage: page,
+    }) => {
+        await mockForumTopicApi(page, TOPIC_ID, createForumTopicPage(TOPIC, [createForumMessageDto({}, 1)]));
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        const [feed, message] = await Promise.all([topic.feed.boundingBox(), topic.message(1).boundingBox()]);
+        const gapAbove = (message?.y ?? 0) - (feed?.y ?? 0);
+        const gapBelow = (feed?.y ?? 0) + (feed?.height ?? 0) - ((message?.y ?? 0) + (message?.height ?? 0));
+        expect(gapBelow).toBeLessThan(gapAbove);
+    });
+
+    test('loads the next page once the reader scrolls to the end', async ({ authenticatedPage: page }) => {
+        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested }) => pageOf(requested));
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}?page=1`);
         await topic.waitForReady();
         await expect(topic.message(MESSAGE_COUNT)).toHaveCount(0);
 
@@ -58,7 +96,7 @@ test.describe('Forum topic feed', () => {
                 return pageOf(2);
             }
             await firstPageHeld;
-            return pageOf(requested ?? 1);
+            return pageOf(requested);
         });
         const topic = new ForumTopicPage(page);
         // The top end may already be on screen before the anchor scroll moves it
@@ -88,7 +126,7 @@ test.describe('Forum topic feed', () => {
     test('scrolls the feed alone, under the floating scrollbar of the lists, and keeps the composer below it', async ({
         authenticatedPage: page,
     }) => {
-        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested }) => pageOf(requested ?? 1));
+        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested }) => pageOf(requested));
         const topic = new ForumTopicPage(page);
 
         await page.goto(`/forum/topic/${TOPIC_ID}`);

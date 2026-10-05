@@ -80,7 +80,8 @@ topic   = {id, title, part, partId, article: {id, title} | null, author,
 message = {id, parentId, author: {name, login?}, createdAt, html}
 ```
 
-`anchor` overrides `page`; the response carries the page actually served.
+`anchor` overrides `page`; with neither the last page is served
+(pravbeseda/drevo-yii#314). The response carries the page actually served.
 Unapproved messages are excluded (slice 3 adds them for moderators). 404 for
 a missing or unapproved topic, 400 for an unknown `part`.
 
@@ -122,6 +123,10 @@ Behaviour:
 - With `:messageId` the page passes it as `anchor`, scrolls to
   `[data-testid="message-<id>"]` in `afterNextRender` through the injected
   `DOCUMENT`, and highlights the card with a new `--themed-*` token.
+- Without it the topic opens on its last message, as Telegram opens a read
+  chat; a topic shorter than the feed sits at its bottom. An explicit `?page`
+  short of the last opens at its top. Slice 3 moves the default to the first
+  unread message.
 - «In reply to» on a message links to `/forum/topic/:id/:parentId`.
 - Topic title through a `title:` resolver, as `history.routes.ts` does.
 - Every navigation and load error goes through `LoggerService`.
