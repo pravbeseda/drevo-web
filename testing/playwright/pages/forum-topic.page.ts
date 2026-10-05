@@ -50,6 +50,11 @@ export class ForumTopicPage extends BasePage {
         }, end);
     }
 
+    /** How far the feed is from its end — 0 when the reader is at the last message. */
+    distanceToBottom(): Promise<number> {
+        return this.feed.evaluate(feed => feed.scrollHeight - feed.clientHeight - feed.scrollTop);
+    }
+
     /** The ↩ of a card. */
     async answer(id: number): Promise<void> {
         await this.revealActions(id);

@@ -24,6 +24,8 @@ const topic: ForumTopic = {
     repliesCount: 5,
 };
 
+const FEED_SCROLL_HEIGHT = 1200;
+
 function createMessage(id: number, overrides: Partial<ForumMessage> = {}): ForumMessage {
     return {
         id,
@@ -48,6 +50,7 @@ describe('TopicPageComponent', () => {
     let routeData: BehaviorSubject<{ topic: ForumTopicResolveResult }>;
     let user: BehaviorSubject<User | undefined>;
     let scrolled: Element[];
+    let feedScrollTops: number[];
     let originalScrollIntoView: typeof Element.prototype.scrollIntoView;
 
     const createComponent = createComponentFactory({
@@ -64,10 +67,19 @@ describe('TopicPageComponent', () => {
         Element.prototype.scrollIntoView = function (this: Element): void {
             scrolled.push(this);
         };
+        // jsdom lays nothing out, so the feed is given a height to scroll to.
+        feedScrollTops = [];
+        jest.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(FEED_SCROLL_HEIGHT);
+        jest.spyOn(Element.prototype, 'scrollTop', 'set').mockImplementation(function (this: Element, value: number) {
+            if (this.matches('[data-testid="topic-feed"]')) {
+                feedScrollTops.push(value);
+            }
+        });
     });
 
     afterEach(() => {
         Element.prototype.scrollIntoView = originalScrollIntoView;
+        jest.restoreAllMocks();
     });
 
     const render = (
@@ -211,11 +223,30 @@ describe('TopicPageComponent', () => {
             expect(spectator.query('[data-testid="message-1"]')).not.toHaveClass('message-card--anchored');
         });
 
-        it('scrolls nowhere when the address names no message', () => {
-            render(createTopicPage([createMessage(1)], 1, 1));
+        it('leaves the feed where it is for the anchored card', () => {
+            render(createTopicPage([createMessage(1), createMessage(7)], 1, 1), { id: '42', messageId: '7' });
+
+            expect(feedScrollTops).toEqual([]);
+        });
+    });
+
+    describe('the opening position', () => {
+        it('opens on the last message when the address names none', () => {
+            render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
 
             expect(spectator.component.anchorId()).toBeUndefined();
             expect(scrolled).toHaveLength(0);
+            expect(feedScrollTops).toEqual([FEED_SCROLL_HEIGHT]);
+        });
+
+        /**
+         * At the end of a page with more below, the next end of the feed would
+         * be on screen and load at once, leaving the reader nowhere in particular.
+         */
+        it('opens at the top of a page that is not the last one', () => {
+            render(createTopicPage([createMessage(1)], 1, 2));
+
+            expect(feedScrollTops).toEqual([]);
         });
     });
 

@@ -1,49 +1,52 @@
 @if (topic(); as topic) {
     <div
+        #scroller
         class="topic-page__feed"
         data-testid="topic-feed"
         uiScrollbar
     >
-        @if (hasPrevious()) {
-            <app-topic-feed-edge
-                end="previous"
-                [state]="previousState()"
-                (loadMore)="onLoadPrevious()"
-            />
-        }
-
-        @for (item of feed(); track item.message.id) {
-            @if (item.day; as day) {
-                <div class="topic-page__day">
-                    <span
-                        class="topic-page__pill"
-                        data-testid="topic-day"
-                    >
-                        {{ day }}
-                    </span>
-                </div>
+        <div class="topic-page__messages">
+            @if (hasPrevious()) {
+                <app-topic-feed-edge
+                    end="previous"
+                    [state]="previousState()"
+                    (loadMore)="onLoadPrevious()"
+                />
             }
-            <app-message-card
-                [message]="item.message"
-                [topicPath]="topicPath()"
-                [anchored]="item.message.id === anchorId()"
-                [own]="item.own"
-                [seriesStart]="item.seriesStart"
-                [seriesEnd]="item.seriesEnd"
-                [replyTo]="item.replyTo"
-                [parent]="item.parent"
-                (reply)="composer.replyTo(item.message)"
-                (quote)="composer.quote(item.message)"
-            />
-        }
 
-        @if (hasNext()) {
-            <app-topic-feed-edge
-                end="next"
-                [state]="nextState()"
-                (loadMore)="onLoadNext()"
-            />
-        }
+            @for (item of feed(); track item.message.id) {
+                @if (item.day; as day) {
+                    <div class="topic-page__day">
+                        <span
+                            class="topic-page__pill"
+                            data-testid="topic-day"
+                        >
+                            {{ day }}
+                        </span>
+                    </div>
+                }
+                <app-message-card
+                    [message]="item.message"
+                    [topicPath]="topicPath()"
+                    [anchored]="item.message.id === anchorId()"
+                    [own]="item.own"
+                    [seriesStart]="item.seriesStart"
+                    [seriesEnd]="item.seriesEnd"
+                    [replyTo]="item.replyTo"
+                    [parent]="item.parent"
+                    (reply)="composer.replyTo(item.message)"
+                    (quote)="composer.quote(item.message)"
+                />
+            }
+
+            @if (hasNext()) {
+                <app-topic-feed-edge
+                    end="next"
+                    [state]="nextState()"
+                    (loadMore)="onLoadNext()"
+                />
+            }
+        </div>
     </div>
 
     <app-forum-composer

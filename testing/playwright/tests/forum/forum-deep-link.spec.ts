@@ -55,7 +55,7 @@ test.describe('Forum deep link to a message', () => {
         expect(await topic.messageBackground(ANCHOR_ID)).not.toBe(await topic.messageBackground(FIRST_MESSAGE_ID));
     });
 
-    test('leaves the topic unanchored and unscrolled when the address names no message', async ({
+    test('leaves the topic unanchored, open on its last message, when the address names no message', async ({
         authenticatedPage: page,
     }) => {
         const topic = new ForumTopicPage(page);
@@ -64,6 +64,7 @@ test.describe('Forum deep link to a message', () => {
         await topic.waitForReady();
 
         await expect(topic.message(ANCHOR_ID)).not.toHaveClass(/message-card--anchored/);
-        await expect(topic.message(FIRST_MESSAGE_ID)).toBeInViewport();
+        await expect(topic.message(ANCHOR_ID)).toBeInViewport();
+        await expect(topic.message(FIRST_MESSAGE_ID)).not.toBeInViewport();
     });
 });
