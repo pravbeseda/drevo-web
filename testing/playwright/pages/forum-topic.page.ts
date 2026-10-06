@@ -38,6 +38,11 @@ export class ForumTopicPage extends BasePage {
         return this.page.getByTestId(`message-${id}`);
     }
 
+    /** When a message was posted, as the card words it. */
+    messageDate(id: number): Locator {
+        return this.message(id).getByTestId('message-date');
+    }
+
     /** What the highlight actually paints — a token that resolves to nothing would match the plain card. */
     messageBackground(id: number): Promise<string> {
         return this.message(id).evaluate(element => getComputedStyle(element).backgroundColor);

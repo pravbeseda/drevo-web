@@ -1,5 +1,5 @@
 import { ForumFeedItem } from '../models/forum-feed.model';
-import { formatDateHeader, ForumMessage, isSameDay } from '@drevo-web/shared';
+import { ForumMessage, isSameDay } from '@drevo-web/shared';
 
 /** Messages of one author closer than this, on one day, read as one series. */
 const SERIES_GAP_MS = 5 * 60 * 1000;
@@ -22,30 +22,15 @@ function sameSeries(previous: ForumMessage | undefined, current: ForumMessage | 
     return sameAuthor(previous, current) && to.getTime() - from.getTime() < SERIES_GAP_MS && isSameDay(from, to);
 }
 
-function dayHeading(
-    previous: ForumMessage | undefined,
-    current: ForumMessage,
-    referenceDate: Date,
-): string | undefined {
-    const date = current.createdAt;
-    if (!date) {
-        return undefined;
-    }
-    const previousDate = previous?.createdAt;
-
-    return previousDate && isSameDay(previousDate, date) ? undefined : formatDateHeader(date, referenceDate);
-}
-
 /**
  * Lays the loaded messages out as a chat: which are the reader's, where each
- * author's series starts and ends, which day heads which message, and which
- * message a reply answers and can quote.
+ * author's series starts and ends, and which message a reply answers and can
+ * quote.
  */
 export function buildForumFeed(
     topicId: number,
     messages: readonly ForumMessage[],
     ownLogin: string | undefined,
-    referenceDate = new Date(),
 ): readonly ForumFeedItem[] {
     const byId = new Map(messages.map(message => [message.id, message]));
 
@@ -61,7 +46,6 @@ export function buildForumFeed(
             own: ownLogin !== undefined && message.author.login === ownLogin,
             seriesStart: !sameSeries(previous, message),
             seriesEnd: !sameSeries(message, next),
-            day: dayHeading(previous, message, referenceDate),
         };
     });
 }

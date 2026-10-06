@@ -4,7 +4,7 @@ import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { ClockService, LoggerService, NotificationService } from '@drevo-web/core';
 import { ForumMessage } from '@drevo-web/shared';
 import {
     AvatarComponent,
@@ -13,8 +13,8 @@ import {
     DropdownMenuItemComponent,
     DropdownMenuTriggerDirective,
     FormatDatePipe,
-    FormatTimePipe,
     IconButtonComponent,
+    RelativeTimePipe,
     TooltipDirective,
 } from '@drevo-web/ui';
 
@@ -29,8 +29,8 @@ type MessageLink = readonly (string | number)[];
         DropdownMenuItemComponent,
         DropdownMenuTriggerDirective,
         FormatDatePipe,
-        FormatTimePipe,
         IconButtonComponent,
+        RelativeTimePipe,
         RouterLink,
         TooltipDirective,
         WikiContentComponent,
@@ -58,6 +58,7 @@ export class MessageCardComponent {
     private readonly clipboard = inject(ClipboardService);
     private readonly notification = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('MessageCard');
+    protected readonly now = inject(ClockService).now;
     private readonly _actionsShown = signal(false);
 
     readonly message = input.required<ForumMessage>();

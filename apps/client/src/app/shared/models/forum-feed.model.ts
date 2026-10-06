@@ -13,6 +13,4 @@ export interface ForumFeedItem {
     readonly own: boolean;
     readonly seriesStart: boolean;
     readonly seriesEnd: boolean;
-    /** The day heading shown above the first message of that day. */
-    readonly day: string | undefined;
 }

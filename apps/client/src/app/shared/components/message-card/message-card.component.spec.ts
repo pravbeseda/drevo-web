@@ -1,7 +1,8 @@
 import { MessageCardComponent } from './message-card.component';
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
+import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { NotificationService } from '@drevo-web/core';
+import { ClockService, NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumMessage } from '@drevo-web/shared';
 import { avatarNameColor } from '@drevo-web/ui';
@@ -19,8 +20,11 @@ function createMessage(overrides: Partial<ForumMessage> = {}): ForumMessage {
     };
 }
 
+const NOW = new Date(2025, 2, 15, 12, 0);
+
 describe('MessageCardComponent', () => {
     let spectator: Spectator<MessageCardComponent>;
+    const clockNow = signal(NOW);
 
     const createComponent = createComponentFactory({
         component: MessageCardComponent,
@@ -28,9 +32,12 @@ describe('MessageCardComponent', () => {
             provideRouter([]),
             mockLoggerProvider(),
             mockProvider(NotificationService),
+            mockProvider(ClockService, { now: clockNow }),
             mockProvider(ClipboardService, { copy: jest.fn().mockReturnValue(EMPTY) }),
         ],
     });
+
+    beforeEach(() => clockNow.set(NOW));
 
     const render = (message: ForumMessage, topicId = 42, anchored = false): void => {
         spectator = createComponent({ props: { message, topicPath: ['forum', 'topic', String(topicId)], anchored } });
@@ -50,11 +57,28 @@ describe('MessageCardComponent', () => {
         expect(author?.tagName).not.toBe('A');
     });
 
-    it('shows the time the message was posted', () => {
-        const createdAt = new Date(2025, 2, 15, 9, 5);
+    it('shows how long ago the message was posted', () => {
+        render(createMessage({ createdAt: new Date(2025, 2, 15, 11, 55) }));
+
+        expect(spectator.query('[data-testid="message-date"]')).toHaveExactTrimmedText('5 мин. назад');
+    });
+
+    it('ages the posting time as the clock moves', () => {
+        render(createMessage({ createdAt: new Date(2025, 2, 15, 11, 55) }));
+
+        clockNow.set(new Date(2025, 2, 15, 13, 0));
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="message-date"]')).toHaveExactTrimmedText('1 ч назад');
+    });
+
+    it('marks the posting moment up for machines', () => {
+        const createdAt = new Date(2025, 2, 15, 11, 55);
         render(createMessage({ createdAt }));
 
-        expect(spectator.query('[data-testid="message-date"]')).toHaveExactTrimmedText('09:05');
+        const date = spectator.query('[data-testid="message-date"]');
+        expect(date?.tagName).toBe('TIME');
+        expect(date).toHaveAttribute('datetime', createdAt.toISOString());
     });
 
     it('omits the date when the message carries none', () => {

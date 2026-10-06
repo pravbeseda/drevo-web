@@ -614,14 +614,6 @@ $theme-colors: (
         light: rgb($md-brown-900, 0.06),
         dark: rgb(white, 0.06),
     ),
-    forum-day-bg: (
-        light: rgb($md-brown-900, 0.38),
-        dark: rgb(white, 0.12),
-    ),
-    forum-day-text: (
-        light: white,
-        dark: $md-grey-300,
-    ),
 
     /* Diff colors*/
     diff-insert-bg: (

@@ -35,21 +35,6 @@
     padding: $forum-feed-padding-v 0;
 }
 
-.topic-page__day {
-    display: flex;
-    justify-content: center;
-    padding: $forum-feed-padding-v 0;
-}
-
-.topic-page__pill {
-    padding: $forum-day-padding-v $forum-day-padding-h;
-    border-radius: $forum-bubble-radius;
-    background-color: var(--themed-forum-day-bg);
-    color: var(--themed-forum-day-text);
-    font-size: $font-size-xs;
-    font-weight: 500;
-}
-
 .topic-page__composer {
     flex: none;
 }
