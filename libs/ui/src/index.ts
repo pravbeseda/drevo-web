@@ -30,6 +30,7 @@ export * from './lib/components/workspace/workspace-tab.component';
 export * from './lib/modal';
 export * from './lib/pipes/format-date/format-date.pipe';
 export * from './lib/pipes/format-time/format-time.pipe';
+export * from './lib/pipes/relative-time/relative-time.pipe';
 export * from './lib/pipes/short-date/short-date.pipe';
 export * from './lib/components/tabs/tabs.component';
 export * from './lib/components/tabs-group/tabs-group.component';

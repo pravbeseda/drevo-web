@@ -19,16 +19,6 @@
             }
 
             @for (item of feed(); track item.message.id) {
-                @if (item.day; as day) {
-                    <div class="topic-page__day">
-                        <span
-                            class="topic-page__pill"
-                            data-testid="topic-day"
-                        >
-                            {{ day }}
-                        </span>
-                    </div>
-                }
                 <app-message-card
                     [message]="item.message"
                     [topicPath]="topicPath()"

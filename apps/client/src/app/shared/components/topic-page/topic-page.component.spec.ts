@@ -133,25 +133,6 @@ describe('TopicPageComponent', () => {
             expect(cardIds()).toEqual(['message-1', 'message-2']);
         });
 
-        it('heads the first message of each day with that day', () => {
-            render(
-                createTopicPage(
-                    [
-                        createMessage(1, { createdAt: new Date(2025, 2, 15, 10, 0) }),
-                        createMessage(2, { createdAt: new Date(2025, 2, 15, 11, 0) }),
-                        createMessage(3, { createdAt: new Date(2025, 2, 16, 9, 0) }),
-                    ],
-                    1,
-                    1,
-                ),
-            );
-
-            expect(spectator.queryAll('[data-testid="topic-day"]').map(day => day.textContent?.trim())).toEqual([
-                '15 марта 2025 г.',
-                '16 марта 2025 г.',
-            ]);
-        });
-
         it('joins consecutive messages of one author into a series', () => {
             const author = { name: 'Андрей Петров', login: 'andrey' };
             render(

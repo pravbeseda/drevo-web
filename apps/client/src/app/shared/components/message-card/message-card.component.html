@@ -43,13 +43,14 @@
     }
     <app-wiki-content [content]="message().html" />
     @if (message().createdAt; as createdAt) {
-        <span
+        <time
             class="message-card__time"
             data-testid="message-date"
+            [attr.datetime]="createdAt.toISOString()"
             [uiTooltip]="createdAt | formatDate"
         >
-            {{ createdAt | formatTime }}
-        </span>
+            {{ createdAt | relativeTime: now() }}
+        </time>
     }
 </div>
 <div class="message-card__actions">

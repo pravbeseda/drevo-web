@@ -6,6 +6,7 @@ import {
     mockForumTopicsApi,
     test,
 } from '../../fixtures';
+import { getTooltip } from '../../helpers/tooltip';
 import {
     createForumMessageDto,
     createForumTopicDto,
@@ -31,6 +32,10 @@ const THIN_HANDLE_PX = 4;
 const POSITION_TOLERANCE_PX = 2;
 /** Sub-pixel rounding of a scroll position. */
 const SCROLL_TOLERANCE_PX = 1;
+/** The moment every mocked message is posted at. */
+const POSTED_AT = '2025-03-15T10:00:00+03:00';
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
 
 /** Long enough that one page overflows the panel, so reaching an end takes a scroll. */
 const MESSAGE_HTML = `<p>${'Текст сообщения, достаточно длинный, чтобы занять несколько строк. '.repeat(4)}</p>`;
@@ -195,5 +200,29 @@ test.describe('Forum topic feed', () => {
         await expect.poll(async () => (await topic.feedScrollbarHandle.boundingBox())?.width).toBe(THIN_HANDLE_PX);
         const [feed, composer] = await Promise.all([topic.feed.boundingBox(), topic.composer.boundingBox()]);
         expect(Math.round(composer?.y ?? 0)).toBeGreaterThanOrEqual(Math.round((feed?.y ?? 0) + (feed?.height ?? 0)));
+    });
+
+    test('tells how long ago a message was posted, keeps the exact moment in a tooltip, and ages', async ({
+        authenticatedPage: page,
+    }) => {
+        await page.clock.install({ time: new Date(new Date(POSTED_AT).getTime() + 5 * MINUTE_MS) });
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [createForumMessageDto({ createdAt: POSTED_AT }, 1)]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        const date = topic.messageDate(1);
+        await expect(date).toHaveText('5 мин. назад');
+
+        await date.hover();
+        await expect(getTooltip(page)).toContainText('15 марта 2025');
+
+        await page.clock.fastForward(HOUR_MS);
+        await expect(date).toHaveText('1 ч назад');
     });
 });
