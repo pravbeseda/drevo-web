@@ -7,6 +7,7 @@ import {
     test,
 } from '../../fixtures';
 import { getTooltip } from '../../helpers/tooltip';
+import { mockUsers } from '../../mocks';
 import {
     createForumMessageDto,
     createForumTopicDto,
@@ -224,5 +225,24 @@ test.describe('Forum topic feed', () => {
 
         await page.clock.fastForward(HOUR_MS);
         await expect(date).toHaveText('1 ч назад');
+    });
+
+    test('draws the tail of a bubble beside it, not over its translucent fill', async ({ authenticatedPage: page }) => {
+        await page.addInitScript(() => localStorage.setItem('drevo-theme', 'dark'));
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [
+                createForumMessageDto({}, 1),
+                createForumMessageDto({ author: mockUsers.authenticated }, 2),
+            ]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        expect(await topic.messageTailOverlap(1)).toBe(0);
+        expect(await topic.messageTailOverlap(2)).toBe(0);
     });
 });

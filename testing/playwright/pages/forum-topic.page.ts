@@ -48,6 +48,18 @@ export class ForumTopicPage extends BasePage {
         return this.message(id).evaluate(element => getComputedStyle(element).backgroundColor);
     }
 
+    /** How many whole pixels of a bubble its tail paints over — a translucent fill shows any of them twice. */
+    messageTailOverlap(id: number): Promise<number> {
+        return this.message(id)
+            .getByTestId('message-bubble')
+            .evaluate(bubble => {
+                const tail = getComputedStyle(bubble, '::before');
+                const start = parseFloat(tail.left);
+                const end = start + parseFloat(tail.width);
+                return Math.round(Math.max(0, Math.min(end, bubble.clientWidth) - Math.max(start, 0)));
+            });
+    }
+
     /** Moves the feed to one of its ends, as far as a reader's wheel would. */
     scrollTo(end: 'top' | 'bottom'): Promise<void> {
         return this.feed.evaluate((feed, to) => {
