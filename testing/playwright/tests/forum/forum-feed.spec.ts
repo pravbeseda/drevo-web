@@ -228,7 +228,6 @@ test.describe('Forum topic feed', () => {
     });
 
     test('draws the tail of a bubble beside it, not over its translucent fill', async ({ authenticatedPage: page }) => {
-        await page.addInitScript(() => localStorage.setItem('drevo-theme', 'dark'));
         await mockForumTopicApi(
             page,
             TOPIC_ID,
