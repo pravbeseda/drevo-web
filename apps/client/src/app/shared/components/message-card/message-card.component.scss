@@ -40,13 +40,13 @@
     }
 
     :host(.message-card--series-end) & {
-        border-bottom-left-radius: $forum-bubble-tail-radius;
+        border-bottom-left-radius: 0;
 
         &::before {
             content: '';
             position: absolute;
             bottom: 0;
-            left: -$forum-bubble-tail-width + $forum-bubble-tail-radius;
+            left: -$forum-bubble-tail-width;
             width: $forum-bubble-tail-width;
             height: $forum-bubble-tail-height;
             background-color: inherit;
@@ -56,10 +56,10 @@
 
     :host(.message-card--own.message-card--series-end) & {
         border-bottom-left-radius: $forum-bubble-radius;
-        border-bottom-right-radius: $forum-bubble-tail-radius;
+        border-bottom-right-radius: 0;
 
         &::before {
-            right: -$forum-bubble-tail-width + $forum-bubble-tail-radius;
+            right: -$forum-bubble-tail-width;
             left: auto;
             clip-path: path('M0 0 C0 8 4 12 10 14 L0 14 Z');
         }

@@ -6,7 +6,10 @@
 } @else if (!own()) {
     <span class="message-card__avatar-gap"></span>
 }
-<div class="message-card__bubble">
+<div
+    class="message-card__bubble"
+    data-testid="message-bubble"
+>
     @if (showAuthor()) {
         <span
             class="message-card__author"
