@@ -1,0 +1,49 @@
+{
+    $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+    extends: ['github>pravbeseda/renovate-config'],
+    // Touch a declared range only when the new version falls outside it: patches and minors stay in
+    // yarn.lock, so the root and libs/shared/package.json only move together, on a major.
+    rangeStrategy: 'update-lockfile',
+    packageRules: [
+        {
+            // A minor or major of Angular or Nx carries schematics that rewrite source; `nx migrate` runs
+            // them and a version bump does not. Patches stay in the weekly npm group.
+            matchPackageNames: [
+                '@angular/**',
+                '@angular-devkit/**',
+                '@schematics/angular',
+                '@angular-eslint/**',
+                'angular-eslint',
+                '@nx/**',
+                'nx',
+            ],
+            matchUpdateTypes: ['minor', 'major'],
+            enabled: false,
+        },
+        {
+            // `resolutions` pins eslint-plugin-sonarjs/typescript to the same version; the two move
+            // together, by hand, at every level.
+            matchPackageNames: ['typescript'],
+            enabled: false,
+        },
+        {
+            // The @types/node major and .nvmrc follow the lowest Node `engines` accepts and are raised by
+            // hand with it; scripts/check-node-types.js fails while @types/node and engines disagree.
+            matchPackageNames: ['@types/node'],
+            matchUpdateTypes: ['major'],
+            enabled: false,
+        },
+        {
+            matchManagers: ['nvm'],
+            matchUpdateTypes: ['major'],
+            enabled: false,
+        },
+        {
+            // Two copies of @codemirror/state break the production build and nothing else. Minor and patch
+            // already share the npm group; this keeps a major in one PR too.
+            matchPackageNames: ['@codemirror/**'],
+            matchUpdateTypes: ['major'],
+            groupName: 'codemirror',
+        },
+    ],
+}

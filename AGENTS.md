@@ -30,7 +30,7 @@ This file is the canon: it carries every rule you must not miss. The detail behi
 | [`docs/release-workflow.md`](docs/release-workflow.md) | Cutting a release, bump types, the manual tag fallback, `iframe` hotfixes |
 | [`docs/legacy-yii.md`](docs/legacy-yii.md) | Adding an API endpoint, the real shape of the data, running the PHP tests |
 
-One more instruction file applies only within its own scope: `legacy-drevo-yii/CLAUDE.md`, for the PHP subtree. Claude Code reads this file through the `.claude/CLAUDE.md` shim, and `.github/copilot-instructions.md` is a generated copy of it — edit the canon, never those.
+One more instruction file applies only within its own scope: `legacy-drevo-yii/CLAUDE.md`, for the PHP subtree. Claude Code reads this file through the `.claude/CLAUDE.md` shim — edit the canon, never the shim.
 
 ## Branches
 
@@ -73,7 +73,7 @@ yarn lint:types                                 # type-coverage on libs/* — im
 yarn lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
 yarn lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
 yarn test:scripts                               # node:test specs for the gate scripts in scripts/ — no jest project there
-yarn lint:workflows                             # release job graph, dependabot group invariants, @types/node against the engines floor — guards that only fail in a real tag push or dependabot run
+yarn lint:workflows                             # release job graph, @types/node against the engines floor — guards that only fail in a real tag push
 yarn knip                                       # dead code and unused deps — after refactors and deletions
 yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 yarn build                                      # production build — the type check the unit tests cannot do
