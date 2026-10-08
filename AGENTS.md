@@ -30,7 +30,7 @@ This file is the canon: it carries every rule you must not miss. The detail behi
 | [`docs/release-workflow.md`](docs/release-workflow.md) | Cutting a release, bump types, the manual tag fallback, `iframe` hotfixes |
 | [`docs/legacy-yii.md`](docs/legacy-yii.md) | Adding an API endpoint, the real shape of the data, running the PHP tests |
 
-One more instruction file applies only within its own scope: `legacy-drevo-yii/CLAUDE.md`, for the PHP subtree. Claude Code reads this file through the `.claude/CLAUDE.md` shim, and `.github/copilot-instructions.md` is a generated copy of it — edit the canon, never those.
+One more instruction file applies only within its own scope: `legacy-drevo-yii/CLAUDE.md`, for the PHP subtree. Claude Code reads this file through the `.claude/CLAUDE.md` shim — edit the canon, never the shim.
 
 ## Branches
 
