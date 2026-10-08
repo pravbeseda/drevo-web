@@ -3,7 +3,7 @@
  *
  * The typings describe one Node major. Typings above the lowest major `engines` accepts
  * type-check calls that crash on that runtime, and every other gate stays green — Dependabot
- * offered exactly such a bump in #368. `.github/dependabot.yml` ignores @types/node majors, so
+ * offered exactly such a bump in #368. `renovate.json5` disables @types/node majors, so
  * the two only move by hand, and this check keeps them together when they do.
  *
  * Usage: node scripts/check-node-types.js [path-to-package.json]
