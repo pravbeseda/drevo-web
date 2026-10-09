@@ -27,9 +27,6 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Install Playwright
-              run: pnpm exec playwright install --with-deps
-
             - uses: nrwl/nx-set-shas@v5
               with:
                   main-branch-name: 'main'

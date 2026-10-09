@@ -37,23 +37,7 @@ jobs:
 
             # --- Integration coverage ---
 
-            # TODO: extract Playwright cache+install steps into .github/actions/setup-playwright composite action
-            - name: Cache Playwright browsers
-              id: playwright-cache
-              uses: actions/cache@v6
-              with:
-                  path: ~/.cache/ms-playwright
-                  key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-                  restore-keys: |
-                      playwright-${{ runner.os }}-
-
-            - name: Install Playwright Chromium
-              if: steps.playwright-cache.outputs.cache-hit != 'true'
-              run: pnpm exec playwright install chromium --with-deps
-
-            - name: Install Playwright deps (cached)
-              if: steps.playwright-cache.outputs.cache-hit == 'true'
-              run: pnpm exec playwright install-deps chromium
+            - uses: ./.github/actions/setup-playwright
 
             # Save unit coverage before Playwright (monocart-reporter cleans coverage/ dir)
             - name: Save unit coverage

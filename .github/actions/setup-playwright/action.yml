@@ -1,0 +1,30 @@
+name: 'Set up Playwright'
+description: 'Restore cached Playwright browsers; install them on a cache miss, only their system dependencies on a hit'
+
+inputs:
+    browsers:
+        description: 'Space-separated browsers to install; part of the cache key, so each set keeps its own cache'
+        required: false
+        default: 'chromium'
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Cache Playwright browsers
+          id: playwright-cache
+          uses: actions/cache@v6
+          with:
+              path: ~/.cache/ms-playwright
+              key: playwright-${{ inputs.browsers }}-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+              restore-keys: |
+                  playwright-${{ inputs.browsers }}-${{ runner.os }}-
+
+        - name: Install Playwright browsers
+          if: steps.playwright-cache.outputs.cache-hit != 'true'
+          shell: bash
+          run: pnpm exec playwright install ${{ inputs.browsers }} --with-deps
+
+        - name: Install Playwright system dependencies
+          if: steps.playwright-cache.outputs.cache-hit == 'true'
+          shell: bash
+          run: pnpm exec playwright install-deps ${{ inputs.browsers }}
