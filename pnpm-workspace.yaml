@@ -9,27 +9,27 @@ trustPolicy: no-downgrade
 # package's long-standing maintainer, and no newer version fits the range that
 # needs it. Exact versions, so any new version is checked again.
 trustPolicyExclude:
-    # Via @babel/core. A manual 6.x ReDoS backport, published after 7.5.x had
-    # shipped with provenance from CI.
-    - semver@6.3.1
-    # Via @types/node@22, which pins ~6.21.0, and 6.21.0 is the only match.
-    # Releases 6.13.0 to 6.19.2 (Apr–Jun 2024) carry provenance; the next eight
-    # by publish date, 6.19.3 to 7.0.0 (Jul–Nov 2024), do not, all by the same
-    # maintainer. Provenance returned with 7.1.0 (7.2.0 aside) and on the 6.x
-    # line with 6.23.0.
-    - undici-types@6.21.0
+  # Via @babel/core. A manual 6.x ReDoS backport, published after 7.5.x had
+  # shipped with provenance from CI.
+  - semver@6.3.1
+  # Via @types/node@22, which pins ~6.21.0, and 6.21.0 is the only match.
+  # Releases 6.13.0 to 6.19.2 (Apr–Jun 2024) carry provenance; the next eight
+  # by publish date, 6.19.3 to 7.0.0 (Jul–Nov 2024), do not, all by the same
+  # maintainer. Provenance returned with 7.1.0 (7.2.0 aside) and on the 6.x
+  # line with 6.23.0.
+  - undici-types@6.21.0
 # Filled from the install output: only packages whose scripts the build actually needs.
 allowBuilds:
-    esbuild: true
-    # Each ships its platform binary as an optional dependency; the script is only
-    # a build-from-source or download fallback.
-    '@parcel/watcher': false
-    '@sentry/cli': false
-    '@swc/core': false
-    lmdb: false
-    msgpackr-extract: false
-    nx: false
-    unrs-resolver: false
+  esbuild: true
+  # Each ships its platform binary as an optional dependency; the script is only
+  # a build-from-source or download fallback.
+  '@parcel/watcher': false
+  '@sentry/cli': false
+  '@swc/core': false
+  lmdb: false
+  msgpackr-extract: false
+  nx: false
+  unrs-resolver: false
 # The plugin accepts >=5 <6.1.0 and would otherwise install its own TypeScript 6.x.
 # Its type-aware rules must run on the same compiler as the build, or lint results
 # silently diverge between CI, the editor's TS server and `pnpm build`. Scoped to
@@ -38,4 +38,7 @@ allowBuilds:
 # from somewhere unrelated to linting. Keep this in step with
 # `devDependencies.typescript` in package.json.
 overrides:
-    eslint-plugin-sonarjs>typescript: 6.0.3
+  eslint-plugin-sonarjs>typescript: 6.0.3
+minimumReleaseAgeExclude:
+  # Renovate security update: @angular/router@22.2.0
+  - "@angular/router@22.2.0"
