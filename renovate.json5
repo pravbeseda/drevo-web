@@ -2,8 +2,11 @@
     $schema: 'https://docs.renovatebot.com/renovate-schema.json',
     extends: ['github>pravbeseda/renovate-config'],
     // Touch a declared range only when the new version falls outside it: patches and minors stay in
-    // yarn.lock, so the root and libs/shared/package.json only move together, on a major.
+    // pnpm-lock.yaml, so the root and libs/shared/package.json only move together, on a major.
     rangeStrategy: 'update-lockfile',
+    // Renovate fixes vulnerable direct dependencies only; a weekly re-resolution of pnpm-lock.yaml
+    // reaches the transitive ones, with pnpm holding back releases younger than minimumReleaseAge.
+    lockFileMaintenance: { enabled: true },
     packageRules: [
         {
             // A minor or major of Angular or Nx carries schematics that rewrite source; `nx migrate` runs
@@ -21,8 +24,8 @@
             enabled: false,
         },
         {
-            // `resolutions` pins eslint-plugin-sonarjs/typescript to the same version; the two move
-            // together, by hand, at every level.
+            // `overrides` in pnpm-workspace.yaml pins eslint-plugin-sonarjs>typescript to the same version;
+            // the two move together, by hand, at every level.
             matchPackageNames: ['typescript'],
             enabled: false,
         },
