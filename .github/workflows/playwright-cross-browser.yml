@@ -35,22 +35,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Cache Playwright browsers
-              id: playwright-cache
-              uses: actions/cache@v6
+            - uses: ./.github/actions/setup-playwright
               with:
-                  path: ~/.cache/ms-playwright
-                  key: playwright-all-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-                  restore-keys: |
-                      playwright-all-${{ runner.os }}-
-
-            - name: Install all Playwright browsers
-              if: steps.playwright-cache.outputs.cache-hit != 'true'
-              run: pnpm exec playwright install --with-deps
-
-            - name: Install Playwright deps (cached)
-              if: steps.playwright-cache.outputs.cache-hit == 'true'
-              run: pnpm exec playwright install-deps
+                  browsers: chromium firefox webkit
 
             - name: Build application
               run: pnpm nx run client:build:coverage
