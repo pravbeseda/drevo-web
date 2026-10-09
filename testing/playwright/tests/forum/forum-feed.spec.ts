@@ -105,7 +105,11 @@ test.describe('Forum topic feed', () => {
             .toBeLessThanOrEqual(POSITION_TOLERANCE_PX);
     });
 
-    test('sits a short topic at the bottom after a long one was open', async ({ authenticatedPage: page }) => {
+    test('sits a short topic at the bottom after a long one was open', async ({
+        authenticatedPage: page,
+        isMobile,
+    }) => {
+        test.skip(isMobile, 'A phone shows one pane at a time, so the topic list is hidden while a topic is open');
         await mockForumTopicsApi(
             page,
             createForumTopicListResponse([
@@ -205,7 +209,9 @@ test.describe('Forum topic feed', () => {
 
     test('tells how long ago a message was posted, keeps the exact moment in a tooltip, and ages', async ({
         authenticatedPage: page,
+        isMobile,
     }) => {
+        test.skip(isMobile, 'Hover tooltips are not available on mobile');
         await page.clock.install({ time: new Date(new Date(POSTED_AT).getTime() + 5 * MINUTE_MS) });
         await mockForumTopicApi(
             page,

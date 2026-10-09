@@ -51,11 +51,11 @@ export class ArticleEditPage extends BasePage {
 
     /**
      * Type text in the CodeMirror editor, replacing all existing content.
-     * Selects all with Ctrl+A then types the new text.
+     * Selects through the DOM, not a shortcut: CodeMirror binds select-all to the emulated
+     * device's platform, while `ControlOrMeta` follows the host running the tests.
      */
     async typeInEditor(text: string): Promise<void> {
-        await this.editorContent.click();
-        await this.page.keyboard.press('ControlOrMeta+a');
+        await this.editorContent.selectText();
         await this.page.keyboard.type(text);
     }
 
