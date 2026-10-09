@@ -32,8 +32,7 @@
         "modern-normalize",
         "@fontsource/roboto",
         "material-icons",
-        "material-symbols",
-        "tslib"
+        "material-symbols"
     ],
     "jest": {
         "config": ["jest.config.ts", "{apps,libs}/*/jest.config.{ts,cts}"]

@@ -1,0 +1,33 @@
+# 7 days, in minutes: the same age the Renovate preset waits for.
+minimumReleaseAge: 10080
+# Defaults in pnpm 12, stated so a changed default cannot loosen them.
+blockExoticSubdeps: true
+strictDepBuilds: true
+# Fail when a package's publishing trust level drops (e.g. provenance disappears).
+trustPolicy: no-downgrade
+# Maintainer-published backports that predate or skipped the CI provenance of
+# later releases; exact versions, so any new version is checked again.
+trustPolicyExclude:
+    - semver@6.3.1 # @babel/core; manual 6.x ReDoS backport after 7.5.x shipped with provenance
+    - undici-types@6.21.0 # @types/node@22 pins ~6.21.0
+# Filled from the install output: only packages whose scripts the build actually needs.
+allowBuilds:
+    esbuild: true
+    # Each ships its platform binary as an optional dependency; the script is only
+    # a build-from-source or download fallback.
+    '@parcel/watcher': false
+    '@sentry/cli': false
+    '@swc/core': false
+    lmdb: false
+    msgpackr-extract: false
+    nx: false
+    unrs-resolver: false
+# The plugin accepts >=5 <6.1.0 and would otherwise install its own TypeScript 6.x.
+# Its type-aware rules must run on the same compiler as the build, or lint results
+# silently diverge between CI, the editor's TS server and `pnpm build`. Scoped to
+# the plugin on purpose: an unscoped `typescript` pin would apply to Angular,
+# typescript-eslint and jest too, and would then block the next TypeScript bump
+# from somewhere unrelated to linting. Keep this in step with
+# `devDependencies.typescript` in package.json.
+overrides:
+    eslint-plugin-sonarjs>typescript: 6.0.3

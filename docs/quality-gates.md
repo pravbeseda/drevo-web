@@ -10,7 +10,7 @@ Never lower a threshold to make the run pass without explicit approval, and neve
 
 ## Every file carries its own floor
 
-`yarn lint:coverage` (`scripts/check-file-coverage.js`) reads the same coverage run as the aggregate and checks each file on its own, so a new component or service with no spec fails by name instead of being absorbed by an aggregate over hundreds of files. Two things to know before touching it:
+`pnpm lint:coverage` (`scripts/check-file-coverage.js`) reads the same coverage run as the aggregate and checks each file on its own, so a new component or service with no spec fails by name instead of being absorbed by an aggregate over hundreds of files. Two things to know before touching it:
 
 - **It is a script and not a `coverageThreshold` glob for a reason.** Jest assigns every covered file to exactly one threshold group, so a glob covering a project empties `global` — and `@jest/reporters` then *skips* the global check rather than failing it ("don't error when the global threshold group doesn't match any files"). Putting a per-file floor in that object switches the project aggregate off, silently and without any output saying so
 - **Exceptions are listed by path, never by pattern.** A category reads as though its members were declarations, and several here are not: `article.routes.ts` exports predicates and has a spec, `models/topic.ts` exports two functions, `providers/svg-icons.ts` loops and calls into the registry. Each exception carries the file's measured figure as its floor, so an exempt file cannot regress either, and the script prints an exception whose file has since cleared the project floor so it can be deleted
@@ -27,7 +27,7 @@ Raise a threshold when a change improves the figure; never lower one to make the
 
 ## Dead code
 
-`yarn knip` finds exports, files and dependencies a change orphaned. It runs blocking in CI, so leaving them behind fails the PR anyway — delete them in the same change. For the "only reachable through an exported member" report, see [architecture.md](architecture.md).
+`pnpm knip` finds exports, files and dependencies a change orphaned. It runs blocking in CI, so leaving them behind fails the PR anyway — delete them in the same change. For the "only reachable through an exported member" report, see [architecture.md](architecture.md).
 
 ## Why the build is a gate
 
@@ -37,7 +37,7 @@ Raise a threshold when a change improves the figure; never lower one to make the
 
 The build compiles `tsconfig.app.json`, and that project sees less than it looks: its `files` names three entry points, so the compiler walks the import graph from `main.ts`, `main.server.ts` and `server.ts` and nothing else, while its `exclude` drops `*.spec.ts`, `*.test.ts` and `*.testing.ts`. Every spec, every test helper, every e2e file and every app module no entry point reaches is transpiled and never type-checked.
 
-`yarn lint:typecheck` runs `tsc --noEmit` over the projects that gap leaves out:
+`pnpm lint:typecheck` runs `tsc --noEmit` over the projects that gap leaves out:
 
 | project | what it adds |
 | --- | --- |
@@ -53,6 +53,6 @@ A mock that no longer matches the type it claims is what this gate is for: it ma
 
 `@angular/ssr` answers `400 Header "host" … is not allowed` to every request whose `Host` is absent from `security.allowedHosts` under the `build` target in `apps/client/project.json`. The list is baked into `dist/apps/client/server/angular-app-engine-manifest.mjs` at build time; `NG_ALLOWED_HOSTS` can extend it on the server but the artifact ships with whatever the build put there. A missing entry therefore takes the whole site down, and no other gate notices: unit tests never boot a server, and Playwright drives the dev server, which carries its own `allowedHosts` under the `serve` target.
 
-`yarn lint:ssr-hosts` closes that gap. It boots the built `server.mjs`, sends a request per deployed host, and fails if any is rejected — plus one foreign host that must still be rejected, so widening the list to `*` fails too. It reads the build output rather than `project.json`, which keeps it honest if Angular moves where the list comes from. It then boots the server a second time on a port that is already taken, with an IPC channel as PM2 gives it, and fails unless the process exits non-zero without sending `ready`: Express 5 hands the listen error to the `app.listen` callback, and `AngularNodeAppEngine` turns an uncaught exception into a log line, so a start that failed can otherwise look healthy to PM2's `wait_ready` or exit with code 0. Run `yarn build` first. In CI it runs three times, always straight after a build: in the `ci` job, so a PR fails before the merge, and in each deploy job ahead of the Sentry upload, so the artifact that ships is the one that answered. The `ci` run does not cover the other two — each job builds its own copy, and only a check on the shipped bytes says anything about them.
+`pnpm lint:ssr-hosts` closes that gap. It boots the built `server.mjs`, sends a request per deployed host, and fails if any is rejected — plus one foreign host that must still be rejected, so widening the list to `*` fails too. It reads the build output rather than `project.json`, which keeps it honest if Angular moves where the list comes from. It then boots the server a second time on a port that is already taken, with an IPC channel as PM2 gives it, and fails unless the process exits non-zero without sending `ready`: Express 5 hands the listen error to the `app.listen` callback, and `AngularNodeAppEngine` turns an uncaught exception into a log line, so a start that failed can otherwise look healthy to PM2's `wait_ready` or exit with code 0. Run `pnpm build` first. In CI it runs three times, always straight after a build: in the `ci` job, so a PR fails before the merge, and in each deploy job ahead of the Sentry upload, so the artifact that ships is the one that answered. The `ci` run does not cover the other two — each job builds its own copy, and only a check on the shipped bytes says anything about them.
 
 Adding a domain means adding it in both places: `security.allowedHosts` and `DEPLOYED_HOSTS` in `scripts/check-ssr-hosts.js`.

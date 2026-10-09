@@ -14,7 +14,7 @@ Nx monorepo migrating a legacy Yii1 PHP app to Angular. Zoneless change detectio
 | Integration tests | Playwright |
 | Styles | SCSS + Angular Material theming |
 | Monitoring | Sentry |
-| Package manager | Yarn |
+| Package manager | pnpm |
 
 ## Where the instructions live
 
@@ -42,15 +42,15 @@ One more instruction file applies only within its own scope: `legacy-drevo-yii/C
 Prefer repo scripts over ad hoc commands. Search with `rg` / `rg --files`.
 
 ```bash
-yarn serve                         # Dev server at localhost:4200 (proxies /api to the PHP backend)
-yarn build                         # Production build
-yarn build:dev                     # Development build
-yarn nx test client                # Unit tests for one project
-yarn format:fix                    # Apply Prettier
-yarn nx e2e client-e2e             # API contract tests against a running drevo-local.ru backend
+pnpm serve                         # Dev server at localhost:4200 (proxies /api to the PHP backend)
+pnpm build                         # Production build
+pnpm build:dev                     # Development build
+pnpm nx test client                # Unit tests for one project
+pnpm format:fix                    # Apply Prettier
+pnpm nx e2e client-e2e             # API contract tests against a running drevo-local.ru backend
 ```
 
-Validate narrowly first, then broaden: in Nx, run against the affected app or lib when the target is known (`yarn nx affected -t test,lint`).
+Validate narrowly first, then broaden: in Nx, run against the affected app or lib when the target is known (`pnpm nx affected -t test,lint`).
 
 Scaffolding:
 
@@ -64,20 +64,20 @@ nx g @nx/angular:service services/my-service --project=client
 Green on all of these is what "done" means (Quality rule 9), in this order — the earlier ones are the cheaper to fix. Together they are what `cd-main-beta.yml` and `playwright.yml` run on the PR:
 
 ```bash
-yarn nx affected -t lint                        # ESLint; the pre-commit hook runs it on staged apps/, libs/ and testing/ files
-yarn nx affected -t test --configuration=ci     # unit tests + per-project coverage thresholds
-yarn lint:playwright                            # ESLint on testing/playwright — no Nx project, so `affected` misses it
-yarn format:check                               # Prettier
-yarn lint:styles                                # Stylelint — when SCSS was touched
-yarn lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
-yarn lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
-yarn lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
-yarn test:scripts                               # node:test specs for the gate scripts in scripts/ — no jest project there
-yarn lint:workflows                             # release job graph, @types/node against the engines floor — guards that only fail in a real tag push
-yarn knip                                       # dead code and unused deps — after refactors and deletions
-yarn test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
-yarn build                                      # production build — the type check the unit tests cannot do
-yarn lint:ssr-hosts                             # boots the built SSR server and checks the deployed hosts — needs `yarn build` first
+pnpm nx affected -t lint                        # ESLint; the pre-commit hook runs it on staged apps/, libs/ and testing/ files
+pnpm nx affected -t test --configuration=ci     # unit tests + per-project coverage thresholds
+pnpm lint:playwright                            # ESLint on testing/playwright — no Nx project, so `affected` misses it
+pnpm format:check                               # Prettier
+pnpm lint:styles                                # Stylelint — when SCSS was touched
+pnpm lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
+pnpm lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
+pnpm lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
+pnpm test:scripts                               # node:test specs for the gate scripts in scripts/ — no jest project there
+pnpm lint:workflows                             # release job graph, @types/node against the engines floor — guards that only fail in a real tag push
+pnpm knip                                       # dead code and unused deps — after refactors and deletions
+pnpm test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
+pnpm build                                      # production build — the type check the unit tests cannot do
+pnpm lint:ssr-hosts                             # boots the built SSR server and checks the deployed hosts — needs `pnpm build` first
 ```
 
 Never lower a coverage or type-coverage threshold, and never widen the coverage excludes, to make a gate pass without explicit approval — see [`docs/quality-gates.md`](docs/quality-gates.md).
@@ -162,12 +162,12 @@ Check `apps/client/proxy.conf.json` before creating an API service — the endpo
 
 1. **Strict TypeScript** — no implicit any, strict null checks
 2. **Describe the shape** — a real type where one exists, `unknown` where the shape is genuinely open and the code narrows it. `any` is an error (`@typescript-eslint/no-explicit-any`), so it fails the commit rather than spending a warning budget
-3. **Annotate the error at the boundary** — the places `any` still enters are library signatures, not the code here: `catchError(err => …)` and `subscribe({ error: err => … })` are typed `any` by RxJS, `HttpErrorResponse.error` and `NavigationError.error` by Angular. Write `(err: unknown)` on the callback, `const error: unknown = response.error` on the read. `no-restricted-syntax` in `eslint.config.mjs` enforces the two RxJS forms everywhere; the property reads rest on convention — `yarn lint:types` measures them in `libs/*` only, and `apps/client` is outside that gate until #254 is settled, so an app-side read that skips the annotation fails nothing
+3. **Annotate the error at the boundary** — the places `any` still enters are library signatures, not the code here: `catchError(err => …)` and `subscribe({ error: err => … })` are typed `any` by RxJS, `HttpErrorResponse.error` and `NavigationError.error` by Angular. Write `(err: unknown)` on the callback, `const error: unknown = response.error` on the read. `no-restricted-syntax` in `eslint.config.mjs` enforces the two RxJS forms everywhere; the property reads rest on convention — `pnpm lint:types` measures them in `libs/*` only, and `apps/client` is outside that gate until #254 is settled, so an app-side read that skips the annotation fails nothing
 4. **`undefined` is absence** — throughout the codebase, enforced by `no-null/no-null`
 5. **Readonly interface properties** — all interface properties are `readonly` by default
 6. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components
 7. **Narrow instead of asserting** — `if`, `@if (value(); as v)`, optional chaining. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files, convention in templates
-8. **Import order** — one group, alphabetical by path, case-insensitive, no blank lines between imports; type imports sort alongside value imports. `import/order` enforces it and is off in `*.spec.ts`; check with `yarn nx lint <project>`
+8. **Import order** — one group, alphabetical by path, case-insensitive, no blank lines between imports; type imports sort alongside value imports. `import/order` enforces it and is off in `*.spec.ts`; check with `pnpm nx lint <project>`
 9. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source. The rule guards against inference that can drift with the implementation, not against signature defaults: a payload-less event is bare `output()` — its type is the fixed `void` default of Angular's signature, and `no-unnecessary-type-arguments` rejects restating it — while anything whose type would be inferred from a value (an `input()` with an initial value, a method body) still gets the annotation
 
 ### Angular
@@ -191,7 +191,7 @@ The shapes these rules describe — signals, the two HTTP layers, the context to
 
 ### Styles
 
-Every colour comes from a `--themed-*` variable in `libs/ui/src/lib/styles/_theme-colors.scss`, and every size from a token in `_tokens.scss`; a value with no token yet gets one added in the same change. Never define local CSS custom properties for sizes. `yarn lint:styles` enforces both. Details, the exceptions and the UI library: [`docs/styles.md`](docs/styles.md).
+Every colour comes from a `--themed-*` variable in `libs/ui/src/lib/styles/_theme-colors.scss`, and every size from a token in `_tokens.scss`; a value with no token yet gets one added in the same change. Never define local CSS custom properties for sizes. `pnpm lint:styles` enforces both. Details, the exceptions and the UI library: [`docs/styles.md`](docs/styles.md).
 
 ### Quality
 
@@ -212,7 +212,7 @@ Every colour comes from a `--themed-*` variable in `libs/ui/src/lib/styles/_them
 8. **Failing tests are a red flag, not an obstacle** — if a change makes an existing test fail, do NOT simply fix the test. First investigate whether the new code broke expected behavior. Only modify the test when the behavioral change is intentional and justified (a deliberate API change, not a side effect). When in doubt, fix the code, not the test
 9. **Run the quality gates before reporting done** — the block above, in that order; a task is complete when they are green, not when the code looks right. If a step fails, say so with its output rather than reporting success
 10. **No `TODO`/`FIXME` comments** — `sonarjs/todo-tag` and `sonarjs/fixme-tag` are errors, so such a comment fails lint and blocks the commit. Either finish the work now or open a GitHub issue for it; when the code needs the context, write a plain comment stating the constraint and referencing the issue number
-11. **Delete the code a change orphans** — when a refactor or a deletion leaves an export, file or dependency with no consumer, remove it in the same change. `yarn knip` finds them
+11. **Delete the code a change orphans** — when a refactor or a deletion leaves an export, file or dependency with no consumer, remove it in the same change. `pnpm knip` finds them
 12. **Update the docs a change invalidates** — when behavior or a developer workflow moves, the doc describing it moves with it in the same change
 
 ## Gotchas
@@ -222,11 +222,12 @@ Every colour comes from a `--themed-*` variable in `libs/ui/src/lib/styles/_them
 - **Duplicate `@codemirror/*` copies break only the production build** (`TS2345: EditorView is not assignable to EditorView` — two different `dist/index` paths). Adding a scoped package as a direct dependency is what splits the tree. After touching any `@codemirror/*` version, verify and build — `nx test` passes regardless:
 
   ```bash
-  find node_modules/@codemirror -path "*/node_modules/@codemirror/*" -name package.json   # must print nothing
-  yarn nx build client --configuration=production
+  ls node_modules/.pnpm | grep -E '^@codemirror\+(state|view)@'   # must print one line per package
+  pnpm nx build client --configuration=production
   ```
 
-  Fix a split by bumping `@codemirror/view` and `@codemirror/state` to versions every dependent range accepts, then `yarn install && yarn upgrade @codemirror/...`.
+  Fix a split by bumping `@codemirror/view` and `@codemirror/state` to versions every dependent range accepts, then `pnpm install && pnpm update @codemirror/...`.
+- **pnpm installs only what it has vetted** — `pnpm-workspace.yaml` holds the policy. A release younger than 7 days does not resolve; a new dependency with an install script fails `pnpm install` until it gets an `allowBuilds` entry (`true` only when the build needs the script, `false` otherwise); a publishing trust downgrade fails until reviewed. Code imports only what its `package.json` declares — nothing is hoisted to the root. Never loosen the policy to make an install pass without explicit approval
 - **`diff` v8+ ships its own types** — do not add `@types/diff`
 - **`nx migrate` drags Angular along** — an `@nx/angular` major can carry a `packageJsonUpdates` entry that bumps `@angular/core` with `alwaysAddToPackageJson`, and `--to` does not hold it back. Before any Nx major, read the plugin's manifest rather than trusting the version number: `npm pack @nx/angular@<version>`, then read `package/migrations.json` and look at `packageJsonUpdates`. Check `nx.json` afterwards too — migrations rewrite it as plain JSON and silently drop its JSONC comments, and the gitignore migrations leave the file without a trailing newline. Prettier skips extensionless files, so no gate catches either
 

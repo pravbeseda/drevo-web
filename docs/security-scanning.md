@@ -51,7 +51,7 @@ On every push and pull request, gitleaks scans:
 ### 3. Configuration
 The `.gitleaks.toml` file configures:
 - **Allowlisted patterns** (e.g., `${{ secrets.* }}` in GitHub Actions)
-- **Ignored files** (e.g., test files, yarn releases)
+- **Ignored files** (e.g., test files, lock files)
 - **Custom rules** specific to this project
 
 ## Testing the Setup

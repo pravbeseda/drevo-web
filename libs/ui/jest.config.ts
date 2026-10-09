@@ -3,7 +3,7 @@ export default {
     preset: '../../jest.preset.js',
     setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
     coverageDirectory: '../../coverage/libs/ui',
-    // Aggregate only. The per-file floor is `yarn lint:coverage`, not a glob key here: a
+    // Aggregate only. The per-file floor is `pnpm lint:coverage`, not a glob key here: a
     // glob group takes its files out of `global`, and Jest then skips the global check
     // rather than failing it, so the two cannot both live in this object.
     // Raised from 90/86/71/90 by the `provideSvgIcons` spec this change adds, keeping the

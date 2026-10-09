@@ -51,7 +51,7 @@ If issues are found, fix them or ask additional questions before presenting.
 After the user approves the plan:
 
 1. Implement the feature following the approved plan
-2. Run `yarn lint` and `yarn build` — fix any issues found
+2. Run `pnpm lint` and `pnpm build` — fix any issues found
 3. Verify the implementation complies with project conventions (CLAUDE.md)
 4. Report completion to the user
 
@@ -62,7 +62,7 @@ After the user approves the plan:
 After confirmation:
 
 1. Write unit tests (Jest + Spectator) covering the new functionality
-2. Run `yarn lint` and `yarn nx test <project>` — fix any issues found
+2. Run `pnpm lint` and `pnpm nx test <project>` — fix any issues found
 3. Report test results
 
 ## Rules

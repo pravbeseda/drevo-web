@@ -25,33 +25,35 @@ jobs:
         steps:
             - uses: actions/checkout@v7
 
+            - uses: pnpm/action-setup@v6
+
             - uses: actions/setup-node@v7
               with:
                   node-version: '22'
-                  cache: 'yarn'
+                  cache: 'pnpm'
 
             - name: Install dependencies
-              run: yarn install --frozen-lockfile
+              run: pnpm install --frozen-lockfile
 
             - name: Cache Playwright browsers
               id: playwright-cache
               uses: actions/cache@v6
               with:
                   path: ~/.cache/ms-playwright
-                  key: playwright-all-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+                  key: playwright-all-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
                   restore-keys: |
                       playwright-all-${{ runner.os }}-
 
             - name: Install all Playwright browsers
               if: steps.playwright-cache.outputs.cache-hit != 'true'
-              run: npx playwright install --with-deps
+              run: pnpm exec playwright install --with-deps
 
             - name: Install Playwright deps (cached)
               if: steps.playwright-cache.outputs.cache-hit == 'true'
-              run: npx playwright install-deps
+              run: pnpm exec playwright install-deps
 
             - name: Build application
-              run: yarn nx run client:build:coverage
+              run: pnpm nx run client:build:coverage
 
             - name: Copy index.html for SPA routing
               run: cp dist/apps/client/browser/index.csr.html dist/apps/client/browser/index.html
@@ -67,9 +69,9 @@ jobs:
 
             - name: Run cross-browser tests
               run: |
-                  npx serve dist/apps/client/browser -l 4200 -s &
-                  yarn wait-on http://localhost:4200 --timeout 30000
-                  npx playwright test --config=testing/playwright/playwright.config.ts ${{ steps.projects.outputs.flags }}
+                  pnpm exec serve dist/apps/client/browser -l 4200 -s &
+                  pnpm exec wait-on http://localhost:4200 --timeout 30000
+                  pnpm exec playwright test --config=testing/playwright/playwright.config.ts ${{ steps.projects.outputs.flags }}
               env:
                   CI: true
                   BASE_URL: http://localhost:4200

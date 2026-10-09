@@ -30,24 +30,24 @@ This guide explains the different scripts available for building, deploying, and
 
 ---
 
-### 📦 Yarn Scripts
+### 📦 pnpm Scripts
 
 #### Build Scripts
 ```bash
 # Build for production (default)
-yarn build              # Build with production configuration
+pnpm build              # Build with production configuration
 
 # Build for development
-yarn build:dev          # Build with development configuration
+pnpm build:dev          # Build with development configuration
 ```
 
 #### Start & Dev Scripts
 ```bash
 # Start production server
-yarn start              # Start the SSR server
+pnpm start              # Start the SSR server
 
 # Local development
-yarn serve                # Start Nx dev server with HMR
+pnpm serve                # Start Nx dev server with HMR
 ```
 
 ---
@@ -55,7 +55,7 @@ yarn serve                # Start Nx dev server with HMR
 ## 🎯 When to Use Which Script
 
 ### Local Development
-- **Use**: `yarn serve`
+- **Use**: `pnpm serve`
 - **For**: Active development with hot module replacement
 - **Result**: Local dev server running on port 4200
 
@@ -65,7 +65,7 @@ yarn serve                # Start Nx dev server with HMR
 - **Result**: Atomic deployment with PM2 management
 
 ### Manual Build & Test
-- **Use**: `yarn build` + `yarn start`
+- **Use**: `pnpm build` + `pnpm start`
 - **For**: Testing production build locally
 - **Result**: SSR server running on default port
 
@@ -88,14 +88,14 @@ Each environment uses different paths and ports:
 
 ```bash
 # 🔧 LOCAL DEVELOPMENT
-yarn serve                # Start dev server (http://localhost:4200)
+pnpm serve                # Start dev server (http://localhost:4200)
 
 # 🚀 DEPLOYMENT  
 ./scripts/deploy.sh "250413-1430" "drevo-beta" "~/releases/beta-current" "beta"
 ./scripts/deploy.sh "1.2.0" "drevo-release" "~/releases/release-current" "release"
 
 # 📦 MANUAL BUILD + START
-yarn build && yarn start
+pnpm build && pnpm start
 ```
 
 ---
@@ -103,6 +103,6 @@ yarn build && yarn start
 ## ⚠️ Important Notes
 
 - **deploy.sh**: Production deployment only, uses atomic symlinks and PM2
-- **yarn serve**: For local development with HMR
-- **yarn build + start**: For testing production SSR locally
+- **pnpm serve**: For local development with HMR
+- **pnpm build + start**: For testing production SSR locally
 - Beta and release use `--base-href=/` passed via CI/CD pipeline
