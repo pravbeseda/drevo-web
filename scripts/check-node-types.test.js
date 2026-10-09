@@ -5,7 +5,7 @@
  * directory, runs `node scripts/check-node-types.js <that file>` and asserts on the exit code
  * and the output.
  *
- * Usage: yarn test:scripts   (node --test scripts/)
+ * Usage: pnpm test:scripts   (node --test scripts/)
  */
 
 const assert = require('node:assert/strict');

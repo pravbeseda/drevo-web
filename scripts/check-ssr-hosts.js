@@ -15,7 +15,7 @@
  * `ready` for a process that serves nothing, and `wait_ready` marks the deploy
  * healthy.
  *
- * Usage: yarn build && node scripts/check-ssr-hosts.js
+ * Usage: pnpm build && node scripts/check-ssr-hosts.js
  */
 
 const { spawn } = require('node:child_process');
@@ -143,7 +143,7 @@ const STARTUP_OUTCOME_FAILURES = {
 
 const run = async () => {
     if (!fs.existsSync(serverEntry)) {
-        throw new Error(`${serverEntry} is missing — run \`yarn build\` first`);
+        throw new Error(`${serverEntry} is missing — run \`pnpm build\` first`);
     }
 
     const port = await findFreePort();

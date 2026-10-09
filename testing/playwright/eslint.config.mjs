@@ -2,7 +2,7 @@ import playwright from 'eslint-plugin-playwright';
 import baseConfig from '../../eslint.config.mjs';
 
 // The integration suite belongs to no Nx project, so `nx affected -t lint` never reaches it.
-// `yarn lint:playwright` runs ESLint here directly; the pre-commit hook and CI both call it.
+// `pnpm lint:playwright` runs ESLint here directly; the pre-commit hook and CI both call it.
 // The run is clean and `--max-warnings=0` in that script keeps it that way.
 export default [
     ...baseConfig,

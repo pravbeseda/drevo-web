@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 // ESLint runs only where CI already runs it: the Nx projects under apps/ and libs/, plus
-// testing/, which belongs to no project and is linted by `yarn lint:playwright` instead.
+// testing/, which belongs to no project and is linted by `pnpm lint:playwright` instead.
 // A hook stricter than CI is a hook people learn to skip with --no-verify, which drops
 // prettier and stylelint too — so this list must not grow past what CI checks.
 const ESLINT_ROOTS = ['apps', 'libs', 'testing'];

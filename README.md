@@ -17,7 +17,7 @@ Nx monorepo with Angular 22 application for the Drevo project. Gradual migration
 | E2E Tests | Playwright |
 | Styles | SCSS + Angular Material Theming |
 | Monitoring | Sentry |
-| Package Manager | Yarn |
+| Package Manager | pnpm |
 
 ## Project Structure
 
@@ -63,17 +63,17 @@ legacy-drevo-yii/            # Symlink to legacy Yii1 backend
 ### Prerequisites
 
 - Node.js 22.12+ (or 24+)
-- Yarn
+- pnpm — any install switches itself to the version pinned in `packageManager` (`npm install -g pnpm`)
 - Playwright (for E2E testing)
 
 ### Installation
 
 ```bash
 # Install dependencies
-yarn install
+pnpm install
 
 # Install Playwright browsers
-yarn playwright install --with-deps
+pnpm exec playwright install --with-deps
 
 # Set up git hooks for security scanning
 ./scripts/setup-git-hooks.sh
@@ -83,25 +83,25 @@ yarn playwright install --with-deps
 
 ```bash
 # Development server (localhost:4200)
-yarn serve
+pnpm serve
 
 # Build
-yarn build                          # Production build
-yarn build:dev                      # Development build
+pnpm build                          # Production build
+pnpm build:dev                      # Development build
 
 # Tests
-yarn test                           # All unit tests
-yarn nx test client                 # Client unit tests
-yarn e2e                            # E2E tests
-yarn nx e2e client-e2e              # E2E tests (via Nx)
+pnpm test                           # All unit tests
+pnpm nx test client                 # Client unit tests
+pnpm e2e                            # E2E tests
+pnpm nx e2e client-e2e              # E2E tests (via Nx)
 
 # Code quality
-yarn lint                           # ESLint (affected)
-yarn format:check                   # Prettier check
-yarn format:fix                     # Prettier fix
+pnpm lint                           # ESLint (affected)
+pnpm format:check                   # Prettier check
+pnpm format:fix                     # Prettier fix
 
 # Affected (CI)
-yarn nx affected -t lint,test,build
+pnpm nx affected -t lint,test,build
 ```
 
 > For detailed information about deployment scripts, see [SCRIPTS-GUIDE.md](./SCRIPTS-GUIDE.md).
@@ -163,7 +163,7 @@ Atomic deployment via symlink switching, managed by PM2.
 
 ```bash
 # Build for production
-yarn build
+pnpm build
 
 # Deploy using deploy script
 ./scripts/deploy.sh <version> <pm2-app-name> <symlink-path> <environment>

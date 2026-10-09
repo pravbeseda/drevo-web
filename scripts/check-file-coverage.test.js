@@ -6,7 +6,7 @@
  * the exit code and the output. That is the same entry point CI uses, so nothing is proven
  * about a shape the gate does not actually run in.
  *
- * Usage: yarn test:scripts   (node --test scripts/)
+ * Usage: pnpm test:scripts   (node --test scripts/)
  */
 
 const assert = require('node:assert/strict');

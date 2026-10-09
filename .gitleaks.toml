@@ -9,7 +9,7 @@ useDefault = true
 [allowlist]
 description = "Allowlisted files and patterns"
 paths = [
-    # Ignore yarn binary and package locks
+    # Package locks, and the Yarn release and lock file still in history
     '''\.yarn/releases/''',
     '''yarn\.lock''',
     '''package-lock\.json''',

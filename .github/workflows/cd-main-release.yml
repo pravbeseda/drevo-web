@@ -178,13 +178,15 @@ jobs:
                     echo "EOF" >> $GITHUB_OUTPUT
                   fi
 
+            - uses: pnpm/action-setup@v6
+
             - uses: actions/setup-node@v7
               with:
                   node-version: '22'
-                  cache: 'yarn'
+                  cache: 'pnpm'
 
             - name: Install dependencies
-              run: yarn install --frozen-lockfile
+              run: pnpm install --frozen-lockfile
 
             - name: Generate version and build
               id: build
@@ -209,10 +211,10 @@ jobs:
                     cat apps/client/src/environments/environment.prod.ts
                   fi
 
-                  npx nx build client --configuration=production
+                  pnpm exec nx build client --configuration=production
 
             - name: SSR host allow-list
-              run: yarn lint:ssr-hosts
+              run: pnpm lint:ssr-hosts
 
             - name: Upload source maps to Sentry
               env:
@@ -239,7 +241,7 @@ jobs:
                   echo "Uploading source maps to Sentry for release $VERSION..."
 
                   echo "Uploading source maps from ./dist/apps/client/browser..."
-                  if ! npx sentry-cli sourcemaps upload \
+                  if ! pnpm exec sentry-cli sourcemaps upload \
                     --release="$VERSION" \
                     --url-prefix "~/" \
                     ./dist/apps/client/browser; then

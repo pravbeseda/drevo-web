@@ -3,21 +3,21 @@ import { defineConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env['CI'];
 const isCoverage = !!process.env['COVERAGE'];
-// Not the `yarn serve` port: reusing a developer's HMR server re-creates views mid-test (#394).
+// Not the `pnpm serve` port: reusing a developer's HMR server re-creates views mid-test (#394).
 const port = 4210;
 const serverURL = `http://localhost:${port}`;
 const baseURL = process.env['BASE_URL'] || serverURL;
 
 const webServerConfig = isCoverage
     ? {
-          command: `yarn nx run client:build:coverage && cp dist/apps/client/browser/index.csr.html dist/apps/client/browser/index.html && npx serve dist/apps/client/browser -l ${port} -s`,
+          command: `pnpm nx run client:build:coverage && cp dist/apps/client/browser/index.csr.html dist/apps/client/browser/index.html && pnpm exec serve dist/apps/client/browser -l ${port} -s`,
           url: serverURL,
           reuseExistingServer: !isCI,
           cwd: workspaceRoot,
           timeout: 120_000,
       }
     : {
-          command: `yarn nx run client:serve --no-hmr --port ${port}`,
+          command: `pnpm nx run client:serve --no-hmr --port ${port}`,
           url: serverURL,
           reuseExistingServer: !isCI,
           cwd: workspaceRoot,

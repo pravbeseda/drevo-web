@@ -5,14 +5,14 @@
     "scripts": {
         "test": "nx run-many --target=test --all --parallel",
         "test:coverage": "nx run-many --target=test --all --parallel --coverage",
-        "lint": "yarn nx affected -t lint --parallel",
-        "format:check": "node ./node_modules/.bin/prettier . --check",
-        "format:fix": "node ./node_modules/.bin/prettier . --write",
+        "lint": "nx affected -t lint --parallel",
+        "format:check": "prettier . --check",
+        "format:fix": "prettier . --write",
         "commitlint": "commitlint",
         "lint:playwright": "eslint --flag v10_config_lookup_from_file testing/playwright --max-warnings=0",
         "lint:styles": "stylelint \"{apps,libs}/**/*.scss\"",
         "lint:styles:fix": "stylelint \"{apps,libs}/**/*.scss\" --fix",
-        "lint:types": "yarn lint:types:lib && yarn lint:types:spec",
+        "lint:types": "pnpm run lint:types:lib && pnpm run lint:types:spec",
         "lint:types:lib": "type-coverage -p libs/core/tsconfig.lib.json --at-least 99.90 && type-coverage -p libs/shared/tsconfig.lib.json --at-least 100 && type-coverage -p libs/ui/tsconfig.lib.json --at-least 99.94 && type-coverage -p libs/editor/tsconfig.lib.json --at-least 99.88",
         "lint:types:spec": "type-coverage -p libs/core/tsconfig.spec.json --at-least 99.95 && type-coverage -p libs/shared/tsconfig.spec.json --at-least 100 && type-coverage -p libs/ui/tsconfig.spec.json --at-least 99.95 && type-coverage -p libs/editor/tsconfig.spec.json --at-least 99.90",
         "lint:types:detail": "type-coverage -p libs/core/tsconfig.lib.json --detail; type-coverage -p libs/shared/tsconfig.lib.json --detail; type-coverage -p libs/ui/tsconfig.lib.json --detail; type-coverage -p libs/editor/tsconfig.lib.json --detail",
@@ -23,8 +23,8 @@
         "lint:ssr-hosts": "node scripts/check-ssr-hosts.js",
         "knip": "knip",
         "knip:deps": "knip --dependencies",
-        "e2e": "yarn playwright test --config=apps/client-e2e/playwright.config.ts",
-        "e2e:api": "yarn playwright test --project=api --config=apps/client-e2e/playwright.config.ts",
+        "e2e": "playwright test --config=apps/client-e2e/playwright.config.ts",
+        "e2e:api": "playwright test --project=api --config=apps/client-e2e/playwright.config.ts",
         "generate-version": "node scripts/generate-version.js",
         "build": "nx build client --configuration=production",
         "build:dev": "nx build client --configuration=development",
@@ -41,6 +41,7 @@
         "prepare": "husky"
     },
     "private": true,
+    "packageManager": "pnpm@12.8.2",
     "engines": {
         "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
     },
@@ -139,11 +140,5 @@
         "typescript-eslint": "^8.33.1",
         "wait-on": "^9.0.4",
         "zone.js": "0.16.3"
-    },
-    "//resolutions": {
-        "eslint-plugin-sonarjs/typescript": "The plugin accepts >=5 <6.1.0 and would otherwise install its own TypeScript 6.x. Its type-aware rules must run on the same compiler as the build, or lint results silently diverge between CI, the editor's TS server and `yarn build`. Scoped to the plugin on purpose: an unscoped `typescript` pin would apply to Angular, typescript-eslint and jest too, and would then block the next TypeScript bump from somewhere unrelated to linting. Keep this in step with `devDependencies.typescript`."
-    },
-    "resolutions": {
-        "eslint-plugin-sonarjs/typescript": "6.0.3"
     }
 }
