@@ -13,8 +13,10 @@ trustPolicyExclude:
     # shipped with provenance from CI.
     - semver@6.3.1
     # Via @types/node@22, which pins ~6.21.0, and 6.21.0 is the only match.
-    # Provenance runs 6.13.0–6.19.2 and from 7.1.0 on (7.2.0 aside); 6.21.0 is in the
-    # unattested stretch 6.19.3–7.0.0 (Jul–Nov 2024) by the same maintainer.
+    # Releases 6.13.0 to 6.19.2 (Apr–Jun 2024) carry provenance; the next eight
+    # by publish date, 6.19.3 to 7.0.0 (Jul–Nov 2024), do not, all by the same
+    # maintainer. Provenance returned with 7.1.0 (7.2.0 aside) and on the 6.x
+    # line with 6.23.0.
     - undici-types@6.21.0
 # Filled from the install output: only packages whose scripts the build actually needs.
 allowBuilds:
