@@ -7,6 +7,9 @@
     // Renovate fixes vulnerable direct dependencies only; a weekly re-resolution of pnpm-lock.yaml
     // reaches the transitive ones, with pnpm holding back releases younger than minimumReleaseAge.
     lockFileMaintenance: { enabled: true },
+    // Renovate's default lets a security fix skip the release age; pnpm-workspace.yaml would then
+    // refuse to resolve it, so security PRs wait the same 7 days as every other update.
+    vulnerabilityAlerts: { minimumReleaseAge: '7 days' },
     packageRules: [
         {
             // A minor or major of Angular or Nx carries schematics that rewrite source; `nx migrate` runs
