@@ -119,12 +119,13 @@ The project uses GitHub Actions for CI/CD.
 
 | Workflow | File | Trigger |
 |----------|------|---------|
-| CI | `ci.yml` | Push & PR to all branches |
-| Coverage | `coverage.yml` | After CI |
-| Beta Deploy | `cd-main-beta.yml` | Push to `main` |
-| Release Deploy | `cd-main-release.yml` | Tag `X.Y.Z` on `main` |
-| Iframe Release | `cd-iframe-release.yml` | Manual (`workflow_dispatch`) |
-| Security Scan | `security-scan.yml` | Push & PR |
+| CI & Beta Deploy | `cd-main-beta.yml` | PR to `main` (CI); push to `main` (CI, then beta deploy) |
+| Release Deploy | `cd-main-release.yml` | Tag `X.Y.Z`; manual (`workflow_dispatch`) |
+| Playwright Integration Tests | `playwright.yml` | PR to `main`; push to `main` |
+| Playwright Cross-Browser Tests | `playwright-cross-browser.yml` | Manual (`workflow_dispatch`) |
+| Test Coverage | `coverage.yml` | Push to `main`; manual (`workflow_dispatch`) |
+| Security Scan | `security-scan.yml` | Push to any branch; PR to `main` or `iframe` |
+| Iframe Release | `cd-iframe-release.yml` (on `iframe`) | Manual (`workflow_dispatch`) |
 
 ### Security Scanning
 
