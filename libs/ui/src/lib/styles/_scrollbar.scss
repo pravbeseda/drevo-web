@@ -18,3 +18,14 @@
     --os-track-bg-hover: var(--themed-scrollbar-track-background);
     --os-track-bg-active: var(--themed-scrollbar-track-background);
 }
+
+// The box the `uiScrollbar` directive draws the bars in. It opens the scroll
+// container and sticks to its visible area; the directive sizes it to that
+// area and cancels the room it takes.
+.ui-scrollbar-slot {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    flex: none;
+    pointer-events: none;
+}

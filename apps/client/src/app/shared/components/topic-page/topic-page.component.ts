@@ -13,6 +13,7 @@ import {
     ChangeDetectionStrategy,
     Component,
     computed,
+    DestroyRef,
     ElementRef,
     inject,
     Injector,
@@ -29,6 +30,12 @@ import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operator
 
 /** Which way «load more» walks out of the page the resolver served. */
 type LoadDirection = 'previous' | 'next';
+
+/** Where the feed opens: the anchored message's id, the end of the messages, or their top. */
+type OpeningPosition = number | 'end' | 'top';
+
+/** Sub-pixel rounding of a scroll position the feed set itself. */
+const SCROLL_TOLERANCE_PX = 1;
 
 @Component({
     selector: 'app-topic-page',
@@ -60,6 +67,7 @@ export class TopicPageComponent {
     private readonly ownLogin = toSignal(inject(AuthService).user$.pipe(map(user => user?.login)));
     private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
     private readonly messagesElement = viewChild<ElementRef<HTMLElement>>('messages');
+    private releaseOpeningPosition: (() => void) | undefined;
 
     readonly anchorId = this._anchorId.asReadonly();
 
@@ -102,6 +110,7 @@ export class TopicPageComponent {
                 takeUntilDestroyed(),
             )
             .subscribe(({ direction, page }) => this.mergePage(direction, page));
+        inject(DestroyRef).onDestroy(() => this.releaseOpeningPosition?.());
     }
 
     onLoadPrevious(): void {
@@ -118,6 +127,7 @@ export class TopicPageComponent {
      * would sit above pages not loaded yet, and loading them would put it out of order.
      */
     onPosted(message: ForumMessage): void {
+        this.releaseOpeningPosition?.();
         if (this.hasNext()) {
             void this.router.navigate(['/', ...this._topicPath(), message.id]);
             return;
@@ -207,7 +217,9 @@ export class TopicPageComponent {
      * The anchored message when the address names one, as Telegram opens a
      * link to a message; otherwise the end of the topic, as it opens a chat
      * whose messages are all read. A served page with more below opens at its
-     * top: its end would put the next end of the feed on screen and load it at once.
+     * top: its end would put the next end of the feed on screen and load it at
+     * once. The top is scrolled to rather than assumed, since a reused feed
+     * still holds the previous topic's position.
      *
      * The resolver already asked for the page holding the anchored message, so
      * the card is in the list this render puts on screen. The jump is instant:
@@ -215,30 +227,63 @@ export class TopicPageComponent {
      * heading for the old position, and the animation would then overshoot.
      */
     private scrollToOpeningPosition(): void {
-        const anchorId = this._anchorId();
-        if (anchorId === undefined && this.hasNext()) {
-            return;
-        }
+        const position: OpeningPosition = this._anchorId() ?? (this.hasNext() ? 'top' : 'end');
 
         afterNextRender(
             () => {
-                if (anchorId === undefined) {
-                    this.scrollToEnd();
-                } else {
-                    this.document.getElementById(`message-${anchorId}`)?.scrollIntoView({ block: 'start' });
-                }
+                this.scrollTo(position);
+                this.holdOpeningPosition(position);
             },
             { injector: this.injector },
         );
     }
 
+    private scrollTo(position: OpeningPosition): void {
+        if (position === 'end') {
+            this.scrollToEnd();
+        } else if (position === 'top') {
+            this.messagesElement()?.nativeElement.scrollIntoView({ block: 'start' });
+        } else {
+            this.document.getElementById(`message-${position}`)?.scrollIntoView({ block: 'start' });
+        }
+    }
+
     /**
-     * Aims at the messages rather than at the feed's scroll height: the
-     * scrollbar is drawn inside the feed and follows its scroll position, so
-     * after a longer topic it holds the old height open below a short one.
-     * A last message taller than the feed opens on its start, where its
-     * reading begins.
+     * Cards change height after the opening scroll — a picture without
+     * declared dimensions arrives later — and would carry the reader off the
+     * position. The feed returns to it on every resize until it is scrolled
+     * anywhere else — by wheel, touch, keyboard, scrollbar or assistive
+     * technology alike — or the reader posts, or another topic opens.
      */
+    private holdOpeningPosition(position: OpeningPosition): void {
+        this.releaseOpeningPosition?.();
+        const messages = this.messagesElement()?.nativeElement;
+        const scroller = this.scroller()?.nativeElement;
+        if (!messages || !scroller || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        let heldTop = scroller.scrollTop;
+        const observer = new ResizeObserver(() => {
+            this.scrollTo(position);
+            heldTop = scroller.scrollTop;
+        });
+        const onScroll = (): void => {
+            if (Math.abs(scroller.scrollTop - heldTop) > SCROLL_TOLERANCE_PX) {
+                release();
+            }
+        };
+        const release = (): void => {
+            observer.disconnect();
+            scroller.removeEventListener('scroll', onScroll);
+            this.releaseOpeningPosition = undefined;
+        };
+        observer.observe(messages);
+        scroller.addEventListener('scroll', onScroll, { passive: true });
+        this.releaseOpeningPosition = release;
+    }
+
+    /** A last message taller than the feed opens on its start, where its reading begins. */
     private scrollToEnd(): void {
         const lastMessage = this._messages().at(-1);
         const lastCard = lastMessage && this.document.getElementById(`message-${lastMessage.id}`);

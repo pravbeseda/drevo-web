@@ -48,6 +48,16 @@ const MESSAGES = Array.from({ length: MESSAGE_COUNT }, (_, index) =>
     createForumMessageDto({ html: MESSAGE_HTML }, index + 1),
 );
 
+/** A picture with no declared size, so its card grows only once the picture arrives. */
+const HELD_PICTURE_URL = '/images/thumbs/held.jpg';
+const HELD_PICTURE_HEIGHT_PX = 400;
+const HELD_PICTURE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="250" height="${HELD_PICTURE_HEIGHT_PX}"/>`;
+const PICTURE_MESSAGE_HTML = `<div class="pic"><img class="noborder" src="${HELD_PICTURE_URL}" alt="Иллюстрация"></div>`;
+/** A scroll short of any card's height, so hiding a card still leaves the reader past the new end. */
+const READER_NUDGE_PX = 20;
+/** Enough plain messages under the picture that the topic overflows the feed. */
+const MESSAGES_UNDER_PICTURE = 6;
+
 /** The backend serves the last page to a request that names none. */
 const pageOf = (page = PAGE_COUNT) => createForumTopicPageOf(TOPIC, MESSAGES, page, PAGE_SIZE);
 
@@ -136,6 +146,55 @@ test.describe('Forum topic feed', () => {
 
         await expect(topic.message(SHORT_TOPIC_MESSAGE_ID)).toBeInViewport();
         await expect.poll(() => topic.distanceToBottom()).toBeLessThanOrEqual(SCROLL_TOLERANCE_PX);
+    });
+
+    test('stays on the last message while a picture above it arrives', async ({ authenticatedPage: page }) => {
+        let deliverPicture = (): void => undefined;
+        const pictureReleased = new Promise<void>(resolve => (deliverPicture = resolve));
+        await page.route(`**${HELD_PICTURE_URL}`, async route => {
+            await pictureReleased;
+            await route.fulfill({ body: HELD_PICTURE_SVG, contentType: 'image/svg+xml' });
+        });
+        const lastId = MESSAGES_UNDER_PICTURE + 1;
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [
+                createForumMessageDto({ html: PICTURE_MESSAGE_HTML }, 1),
+                ...Array.from({ length: MESSAGES_UNDER_PICTURE }, (_, index) =>
+                    createForumMessageDto({ html: MESSAGE_HTML }, index + 2),
+                ),
+            ]),
+        );
+        const topic = new ForumTopicPage(page);
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+        await expect.poll(() => topic.distanceToBottom()).toBeLessThanOrEqual(SCROLL_TOLERANCE_PX);
+
+        deliverPicture();
+        await expect(topic.messagePicture(1)).toHaveJSProperty('naturalHeight', HELD_PICTURE_HEIGHT_PX);
+
+        await expect(topic.message(lastId)).toBeInViewport();
+        await expect.poll(() => topic.distanceToBottom()).toBeLessThanOrEqual(SCROLL_TOLERANCE_PX);
+    });
+
+    /**
+     * The scrollbar is drawn inside the feed, so it must not hold open the
+     * height the reader was scrolled to once the messages get shorter.
+     */
+    test('leaves no empty space below the messages when they get shorter', async ({ authenticatedPage: page }) => {
+        await mockForumTopicApi(page, TOPIC_ID, createForumTopicPage(TOPIC, MESSAGES.slice(0, PAGE_SIZE)));
+        const topic = new ForumTopicPage(page);
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+        await expect.poll(() => topic.distanceToBottom()).toBeLessThanOrEqual(SCROLL_TOLERANCE_PX);
+
+        // The reader moves off the end, so the feed no longer returns to it on its own.
+        await topic.feed.evaluate((feed, nudge) => feed.scrollBy(0, -nudge), READER_NUDGE_PX);
+        await expect.poll(() => topic.distanceToBottom()).toBeGreaterThan(SCROLL_TOLERANCE_PX);
+        await topic.message(1).evaluate(card => card.style.setProperty('display', 'none'));
+
+        await expect.poll(() => topic.emptySpaceBelowMessages()).toBeLessThanOrEqual(POSITION_TOLERANCE_PX);
     });
 
     test('loads the next page once the reader scrolls to the end', async ({ authenticatedPage: page }) => {
