@@ -41,6 +41,8 @@ describe('ForumService', () => {
                 lastPostAt: '2026-01-03T03:04:05+03:00',
                 pinned: true,
                 lastAuthor: 'Пётр Петров',
+                lastAuthorLogin: 'petrov',
+                lastExcerpt: 'Согласен, но в источнике иначе',
                 article: { id: 15, title: 'Статья' },
                 section: { id: 'articles', name: 'О статьях' },
             },
@@ -111,6 +113,8 @@ describe('ForumService', () => {
                             lastPostAt: new Date('2026-01-03T03:04:05+03:00'),
                             pinned: true,
                             author: 'Иван Иванов',
+                            lastExcerpt: 'Согласен, но в источнике иначе',
+                            lastAuthorLogin: 'petrov',
                             article: { id: 15, title: 'Статья' },
                             section: { id: 'articles', name: 'О статьях' },
                         },
@@ -124,7 +128,7 @@ describe('ForumService', () => {
             });
         });
 
-        it('should map a missing date, a missing article and section to undefined', done => {
+        it('should map a missing date, last post, article and section to undefined', done => {
             const bareItem: ForumTopicListItemDto = {
                 id: 42,
                 title: 'Тема',
@@ -146,9 +150,21 @@ describe('ForumService', () => {
                     lastPostAt: undefined,
                     pinned: false,
                     author: 'Иван Иванов',
+                    lastExcerpt: undefined,
+                    lastAuthorLogin: undefined,
                     article: undefined,
                     section: undefined,
                 });
+                done();
+            });
+        });
+
+        it('should map an excerpt with no text of its own to undefined', done => {
+            const [item] = topicList.items;
+            forumApiService.getTopics.mockReturnValue(of({ ...topicList, items: [{ ...item, lastExcerpt: '' }] }));
+
+            spectator.service.getTopics().subscribe(result => {
+                expect(result.items[0].lastExcerpt).toBeUndefined();
                 done();
             });
         });

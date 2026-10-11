@@ -44,6 +44,10 @@ export class ForumTopicsPage extends BasePage {
         return this.link(text).getByTestId('topic-context');
     }
 
+    excerpt(text: string): Locator {
+        return this.link(text).getByTestId('topic-excerpt');
+    }
+
     /** Drags the border between the list and the topic by `distance` pixels, right being positive. */
     async dragColumnBorder(distance: number): Promise<void> {
         const box = await this.resizeHandle.boundingBox();

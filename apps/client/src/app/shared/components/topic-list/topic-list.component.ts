@@ -1,6 +1,8 @@
+import { AuthService } from '../../../services/auth/auth.service';
 import { forumOwnerPrefix } from '../../helpers/forum-owner';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ForumTopicListItem } from '@drevo-web/shared';
 import {
@@ -13,6 +15,7 @@ import {
     VirtualScrollerComponent,
     VirtualScrollerItemDirective,
 } from '@drevo-web/ui';
+import { map } from 'rxjs';
 
 /**
  * The loaded forum topics, rendered as the reader scrolls to them.
@@ -60,9 +63,16 @@ export class TopicListComponent {
 
     protected readonly ownerPrefix = forumOwnerPrefix;
 
+    private readonly ownLogin = toSignal(inject(AuthService).user$.pipe(map(user => user?.login)));
+
     protected readonly trackById = (_index: number, topic: ForumTopicListItem): number => topic.id;
 
     topicLink(topicId: number): readonly (string | number)[] {
         return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
+    }
+
+    protected isOwnLastPost(topic: ForumTopicListItem): boolean {
+        const ownLogin = this.ownLogin();
+        return ownLogin !== undefined && topic.lastAuthorLogin === ownLogin;
     }
 }

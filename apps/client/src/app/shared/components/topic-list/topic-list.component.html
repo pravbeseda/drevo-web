@@ -55,16 +55,25 @@
                             </span>
                         }
                     </span>
-                    <span
-                        class="topic-list__context"
-                        data-testid="topic-context"
-                    >
-                        @if (topic.article; as article) {
-                            {{ ownerPrefix(topic.section?.id) }} {{ article.title }}
-                        } @else {
-                            {{ topic.section?.name }}
-                        }
-                    </span>
+                    @if (topic.lastExcerpt; as excerpt) {
+                        <span
+                            class="topic-list__subtitle"
+                            data-testid="topic-excerpt"
+                        >
+                            {{ isOwnLastPost(topic) ? 'Вы: ' : '' }}{{ excerpt }}
+                        </span>
+                    } @else {
+                        <span
+                            class="topic-list__subtitle"
+                            data-testid="topic-context"
+                        >
+                            @if (topic.article; as article) {
+                                {{ ownerPrefix(topic.section?.id) }} {{ article.title }}
+                            } @else {
+                                {{ topic.section?.name }}
+                            }
+                        </span>
+                    }
                 </span>
             </a>
         </div>

@@ -1,6 +1,7 @@
 import { expect, mockForumSectionsApi, mockForumTopicsApi, test } from '../../fixtures';
 import { getTooltip } from '../../helpers/tooltip';
 import { createForumTopicListItemDto, createForumTopicListResponse } from '../../mocks/forum';
+import { mockUsers } from '../../mocks/users';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
 import { LayoutPage } from '../../pages/layout.page';
 import { Page } from '@playwright/test';
@@ -58,5 +59,37 @@ test.describe('Forum topic list', () => {
         const topics = await openForum(page);
 
         await expect(topics.title(TOPIC_TITLE)).toHaveCSS('font-weight', '400');
+    });
+
+    test('shows the start of the last message under the title, marking the reader’s own', async ({
+        authenticatedPage: page,
+    }) => {
+        const ownTopic = 'Тема с моим ответом';
+        const otherTopic = 'Тема с чужим ответом';
+        await mockForumSectionsApi(page);
+        await mockForumTopicsApi(
+            page,
+            createForumTopicListResponse([
+                createForumTopicListItemDto({
+                    id: 1,
+                    title: ownTopic,
+                    lastExcerpt: 'Согласен, но в источнике иначе',
+                    lastAuthorLogin: mockUsers.authenticated.login,
+                }),
+                createForumTopicListItemDto({
+                    id: 2,
+                    title: otherTopic,
+                    lastExcerpt: 'Спасибо за ссылку',
+                    lastAuthorLogin: 'ivanov',
+                }),
+            ]),
+        );
+        const topics = new ForumTopicsPage(page);
+        await page.goto('/forum');
+        await topics.waitForReady();
+
+        await expect(topics.excerpt(ownTopic)).toHaveText('Вы: Согласен, но в источнике иначе');
+        await expect(topics.excerpt(otherTopic)).toHaveText('Спасибо за ссылку');
+        await expect(topics.context(ownTopic)).toHaveCount(0);
     });
 });
