@@ -38,6 +38,11 @@ export class ForumTopicPage extends BasePage {
         return this.page.getByTestId(`message-${id}`);
     }
 
+    /** A picture inside a message, as the wiki markup puts it there. */
+    messagePicture(id: number): Locator {
+        return this.message(id).locator('img');
+    }
+
     /** When a message was posted, as the card words it. */
     messageDate(id: number): Locator {
         return this.message(id).getByTestId('message-date');
@@ -70,6 +75,16 @@ export class ForumTopicPage extends BasePage {
     /** How far the feed is from its end — 0 when the reader is at the last message. */
     distanceToBottom(): Promise<number> {
         return this.feed.evaluate(feed => feed.scrollHeight - feed.clientHeight - feed.scrollTop);
+    }
+
+    /** How far the messages end above the bottom of the feed — 0 when they reach it. */
+    emptySpaceBelowMessages(): Promise<number> {
+        return this.feed.evaluate(feed => {
+            const messages = feed.querySelector('[data-testid="topic-messages"]');
+            return messages
+                ? feed.getBoundingClientRect().bottom - messages.getBoundingClientRect().bottom
+                : Number.NaN;
+        });
     }
 
     /** The ↩ of a card. */

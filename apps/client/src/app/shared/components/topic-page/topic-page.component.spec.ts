@@ -206,11 +206,6 @@ describe('TopicPageComponent', () => {
     describe('the opening position', () => {
         const scrolledIds = (): (string | null)[] => scrolled.map(element => element.getAttribute('data-testid'));
 
-        /**
-         * The end of the messages rather than the feed's own scroll height: the
-         * scrollbar drawn inside the feed still sits where the previous topic
-         * was scrolled to, and keeps that height alive.
-         */
         it('opens on the end of the messages when the address names none', () => {
             render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
 
@@ -233,11 +228,144 @@ describe('TopicPageComponent', () => {
         /**
          * At the end of a page with more below, the next end of the feed would
          * be on screen and load at once, leaving the reader nowhere in particular.
+         * The top is scrolled to rather than assumed: a reused feed still holds
+         * the previous topic's position.
          */
         it('opens at the top of a page that is not the last one', () => {
             render(createTopicPage([createMessage(1)], 1, 2));
 
-            expect(scrolled).toEqual([]);
+            expect(scrolledIds()).toEqual(['topic-messages']);
+            expect(scrollBlocks).toEqual(['start']);
+        });
+
+        /**
+         * Cards change height after the opening scroll — a picture without
+         * declared dimensions arrives later — so the feed keeps its opening
+         * position until the reader takes over.
+         */
+        describe('while the cards settle', () => {
+            const originalResizeObserver = globalThis.ResizeObserver;
+            let resizeObservers: { notify: () => void; observed: Element[]; disconnected: boolean }[];
+
+            /** Every observer of the messages, the composer's editor keeping its own. */
+            const messageObservers = (): typeof resizeObservers =>
+                resizeObservers.filter(observer =>
+                    observer.observed.includes(spectator.query('[data-testid="topic-messages"]') as Element),
+                );
+
+            /** The cards changed height. */
+            const resize = (): void => {
+                scrolled = [];
+                scrollBlocks = [];
+                messageObservers()
+                    .filter(observer => !observer.disconnected)
+                    .forEach(observer => observer.notify());
+            };
+
+            beforeEach(() => {
+                resizeObservers = [];
+                globalThis.ResizeObserver = class {
+                    private readonly record: (typeof resizeObservers)[number];
+
+                    constructor(callback: ResizeObserverCallback) {
+                        this.record = { notify: () => callback([], this), observed: [], disconnected: false };
+                        resizeObservers.push(this.record);
+                    }
+
+                    observe(target: Element): void {
+                        this.record.observed.push(target);
+                    }
+
+                    unobserve(): void {
+                        // Nothing is unobserved one by one.
+                    }
+
+                    disconnect(): void {
+                        this.record.disconnected = true;
+                    }
+                };
+            });
+
+            afterEach(() => {
+                globalThis.ResizeObserver = originalResizeObserver;
+            });
+
+            it('watches the messages', () => {
+                render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
+
+                expect(messageObservers()).toHaveLength(1);
+            });
+
+            it('returns to the end of the messages', () => {
+                render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
+
+                resize();
+
+                expect(scrolledIds()).toEqual(['topic-messages']);
+                expect(scrollBlocks).toEqual(['end']);
+            });
+
+            it('returns to the anchored message', () => {
+                render(createTopicPage([createMessage(1), createMessage(7)], 1, 1), { id: '42', messageId: '7' });
+
+                resize();
+
+                expect(scrolledIds()).toEqual(['message-7']);
+                expect(scrollBlocks).toEqual(['start']);
+            });
+
+            /** The feed was scrolled to a position it did not set itself. */
+            const scrollFeedTo = (top: number): void => {
+                const feed = spectator.query('[data-testid="topic-feed"]') as HTMLElement;
+                jest.spyOn(feed, 'scrollTop', 'get').mockReturnValue(top);
+                spectator.dispatchFakeEvent(feed, 'scroll');
+            };
+
+            it('leaves the feed to the reader once it is scrolled elsewhere', () => {
+                render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
+
+                scrollFeedTo(500);
+                resize();
+
+                expect(scrolled).toEqual([]);
+            });
+
+            it('keeps holding through the scroll it caused itself', () => {
+                render(createTopicPage([createMessage(1), createMessage(2)], 2, 2));
+
+                scrollFeedTo(0);
+                resize();
+
+                expect(scrolledIds()).toEqual(['topic-messages']);
+            });
+
+            it('leaves the feed to the message the reader posted', () => {
+                render(createTopicPage([createMessage(1), createMessage(7)], 1, 1), { id: '42', messageId: '7' });
+
+                spectator.triggerEventHandler(ForumComposerComponent, 'posted', createMessage(100));
+                spectator.detectChanges();
+                resize();
+
+                expect(scrolled).toEqual([]);
+            });
+
+            it('holds only the position of the topic opened last', () => {
+                render(createTopicPage([createMessage(1)], 1, 1));
+                resolveAgain(createTopicPage([createMessage(2), createMessage(3)], 1, 1));
+
+                resize();
+
+                expect(scrolledIds()).toEqual(['topic-messages']);
+            });
+
+            it('stops watching with the feed', () => {
+                render(createTopicPage([createMessage(1)], 1, 1));
+                const [observer] = messageObservers();
+
+                spectator.fixture.destroy();
+
+                expect(observer.disconnected).toBe(true);
+            });
         });
     });
 
