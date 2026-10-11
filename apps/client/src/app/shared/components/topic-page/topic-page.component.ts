@@ -253,7 +253,9 @@ export class TopicPageComponent {
      * declared dimensions arrives later — and would carry the reader off the
      * position. The feed returns to it on every resize until it is scrolled
      * anywhere else — by wheel, touch, keyboard, scrollbar or assistive
-     * technology alike — or the reader posts, or another topic opens.
+     * technology alike, or by `keepInPlace` under a prepended page, which
+     * keeps the reader where they were from then on — or the reader posts, or
+     * another topic opens.
      */
     private holdOpeningPosition(position: OpeningPosition): void {
         this.releaseOpeningPosition?.();
