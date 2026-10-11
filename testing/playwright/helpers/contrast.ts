@@ -10,7 +10,8 @@ function parseColor(color: string): readonly [number, number, number, number] {
     return [r, g, b, alpha];
 }
 
-function relativeLuminance(color: string): number {
+/** WCAG relative luminance of an opaque `rgb()` colour: 0 for black, 1 for white. */
+export function relativeLuminance(color: string): number {
     const [r, g, b] = parseColor(color)
         .slice(0, 3)
         .map(channel => {

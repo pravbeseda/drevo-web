@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures';
-import { composite, contrastRatio } from '../../helpers/contrast';
+import { composite, contrastRatio, relativeLuminance } from '../../helpers/contrast';
 import { LayoutPage } from '../../pages/layout.page';
 
 const THEME_KEY = 'drevo-theme';
@@ -95,6 +95,25 @@ test.describe('Light theme palette', () => {
         for (const text of OWN_BUBBLE_TEXT) {
             expect(contrastRatio(colors[text], colors['--themed-forum-bubble-own-bg']), text).toBeGreaterThanOrEqual(
                 WCAG_AA_TEXT,
+            );
+        }
+    });
+
+    test('the forum feed is no darker than the header', async () => {
+        const colors = await layout.readColors(['--themed-forum-feed-bg', '--themed-header-bg']);
+
+        expect(relativeLuminance(colors['--themed-forum-feed-bg'])).toBeGreaterThanOrEqual(
+            relativeLuminance(colors['--themed-header-bg']),
+        );
+    });
+
+    test('forum bubbles stand out from the feed', async () => {
+        const bubbles = ['--themed-forum-bubble-bg', '--themed-forum-bubble-own-bg'];
+        const colors = await layout.readColors([...bubbles, '--themed-forum-feed-bg']);
+
+        for (const bubble of bubbles) {
+            expect(contrastRatio(colors[bubble], colors['--themed-forum-feed-bg']), bubble).toBeGreaterThanOrEqual(
+                MIN_TINT_CONTRAST,
             );
         }
     });
