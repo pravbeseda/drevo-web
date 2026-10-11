@@ -591,7 +591,7 @@ $theme-colors: (
     ),
     /* The message feed, drawn as a chat: bubbles on a dotted wallpaper.*/
     forum-feed-bg: (
-        light: $paper-200,
+        light: $paper-100,
         dark: rgb(black, 0.25),
     ),
     forum-feed-pattern: (
@@ -599,15 +599,15 @@ $theme-colors: (
         dark: rgb(white, 0.04),
     ),
     forum-bubble-bg: (
-        light: $paper-50,
+        light: $paper-25,
         dark: rgb(white, 0.08),
     ),
     forum-bubble-own-bg: (
-        light: $sage-100,
+        light: $sage-200,
         dark: rgb($md-blue-400, 0.22),
     ),
     forum-bubble-own-meta: (
-        light: $sage-800,
+        light: $sage-900,
         dark: $md-blue-200,
     ),
     forum-quote-bg: (

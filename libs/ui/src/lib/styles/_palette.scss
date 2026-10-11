@@ -310,7 +310,9 @@ $md-blue-grey-A400: #78909c;
 $md-blue-grey-A700: #455a64;
 
 // Paper — not a Material colour: the warm, e-book-like grounds of the light theme,
-// one step per grey step it replaces (white, grey-100 … grey-400).
+// one step per grey step it replaces (white, grey-100 … grey-400), plus paper-25
+// for the forum bubbles that sit above the page.
+$paper-25: #fffaf0;
 $paper-50: #fbf0d9;
 $paper-100: #f3e4c3;
 $paper-200: #eadab3;
@@ -321,9 +323,9 @@ $paper-400: #c6ae80;
 // muted and warmed so they sit on the paper ground instead of on white.
 $ink-700: #2c4a72;
 $ink-900: #1e3554;
-$olive-800: #56641c;
-$sage-100: #dfe2c4;
-$sage-800: #5a6438;
+$olive-800: #515f1a;
+$sage-200: #d3d9ae;
+$sage-900: #4d5730;
 
 // Avatar circles, each dark enough for white initials to clear WCAG AA,
 // and the darker shade of the same hue for the author's name beside it.
