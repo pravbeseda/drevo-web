@@ -1,11 +1,14 @@
 import { TopicListComponent } from './topic-list.component';
+import { AuthService } from '../../../services/auth/auth.service';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
 import { Component } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ForumTopicListItem } from '@drevo-web/shared';
+import { ForumTopicListItem, User } from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { VirtualScrollerComponent } from '@drevo-web/ui';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
+import { of } from 'rxjs';
 
 jest.mock('overlayscrollbars', () => ({ OverlayScrollbars: jest.fn(() => ({ destroy: jest.fn() })) }));
 
@@ -16,6 +19,8 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
         lastPostAt: new Date('2025-03-16T12:30:00Z'),
         pinned: false,
         author: 'Петров Пётр Петрович',
+        lastExcerpt: undefined,
+        lastAuthorLogin: undefined,
         article: { id: 15, title: 'Статья' },
         section: { id: 'articles', name: 'О статьях' },
         ...overrides,
@@ -46,8 +51,12 @@ describe('TopicListComponent', () => {
             readonly total?: number;
             readonly loadState?: TopicListLoadState;
         } = {},
+        user?: User,
     ): Promise<void> => {
-        spectator = createComponent({ props: { items, ...props } });
+        spectator = createComponent({
+            props: { items, ...props },
+            providers: [{ provide: AuthService, useValue: { user$: of(user) } }],
+        });
         await settle();
         await settle();
     };
@@ -117,6 +126,44 @@ describe('TopicListComponent', () => {
         await render([createItem({ article: undefined, section: { id: 'common', name: 'Общие темы' } })]);
 
         expect(spectator.query('[data-testid="topic-context"]')).toHaveText('Общие темы');
+    });
+
+    describe('last message excerpt', () => {
+        const reader = createMockUser({ login: 'petrov' });
+
+        it('shows the start of the last message in place of the context', async () => {
+            await render([createItem({ lastExcerpt: 'Согласен, но в источнике иначе' })]);
+
+            const excerpt = spectator.query('[data-testid="topic-excerpt"]');
+            expect(excerpt?.textContent?.trim()).toBe('Согласен, но в источнике иначе');
+            expect(excerpt?.closest('a')).toBe(spectator.query('[data-testid="topic-link"]'));
+            expect(spectator.query('[data-testid="topic-context"]')).not.toExist();
+        });
+
+        it('marks the reader’s own last message', async () => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthorLogin: 'petrov' })], {}, reader);
+
+            expect(spectator.query('[data-testid="topic-excerpt"]')?.textContent?.trim()).toBe('Вы: Согласен');
+        });
+
+        it('leaves someone else’s last message unmarked', async () => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthorLogin: 'ivanov' })], {}, reader);
+
+            expect(spectator.query('[data-testid="topic-excerpt"]')?.textContent?.trim()).toBe('Согласен');
+        });
+
+        it('leaves a guest’s last message unmarked for an anonymous reader', async () => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthorLogin: undefined })]);
+
+            expect(spectator.query('[data-testid="topic-excerpt"]')?.textContent?.trim()).toBe('Согласен');
+        });
+
+        it('falls back to the context when the last message has no text of its own', async () => {
+            await render([createItem({ lastExcerpt: undefined, article: { id: 15, title: 'БОГ' } })], {}, reader);
+
+            expect(spectator.query('[data-testid="topic-excerpt"]')).not.toExist();
+            expect(spectator.query('[data-testid="topic-context"]')).toHaveText('к статье БОГ');
+        });
     });
 
     it('keeps the context line when the row has nothing to put on it', async () => {

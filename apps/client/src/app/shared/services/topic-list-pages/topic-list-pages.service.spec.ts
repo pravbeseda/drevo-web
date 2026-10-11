@@ -12,6 +12,8 @@ function createItem(id: number): ForumTopicListItem {
         lastPostAt: undefined,
         pinned: false,
         author: 'Иванов И.И.',
+        lastExcerpt: undefined,
+        lastAuthorLogin: undefined,
         article: undefined,
         section: undefined,
     };

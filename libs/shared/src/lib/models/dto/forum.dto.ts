@@ -26,6 +26,10 @@ export interface ForumTopicListItemDto {
     readonly pinned: boolean;
     /** Absent when `lastPostId` resolves to no row, not when nobody replied. */
     readonly lastAuthor?: string;
+    /** Absent for a guest and for a name with no account. */
+    readonly lastAuthorLogin?: string;
+    /** Present exactly when `lastAuthor` is; empty when the last post has no text of its own. */
+    readonly lastExcerpt?: string;
     readonly article: ForumTopicArticleDto | null;
     /** Null only for a part that names no forum section. */
     readonly section: ForumTopicSectionDto | null;
