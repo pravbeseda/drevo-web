@@ -43,6 +43,46 @@ export class ForumTopicPage extends BasePage {
         return this.message(id).locator('img');
     }
 
+    /** A paragraph of the message's own text, outside any quote. */
+    messageParagraph(id: number): Locator {
+        return this.message(id).locator('app-wiki-content p').first();
+    }
+
+    /** A quote of `>` lines as the formatter renders it; depth 2 is the quote inside one. */
+    messageQuote(id: number, depth = 1): Locator {
+        return this.message(id)
+            .locator(Array.from({ length: depth }, () => 'blockquote.quote').join(' '))
+            .first();
+    }
+
+    /** The size the element's text is set in. */
+    fontSizePx(element: Locator): Promise<number> {
+        return element.evaluate(node => parseFloat(getComputedStyle(node).fontSize));
+    }
+
+    /** The width of the bar along the element's left edge — 0 when it draws none. */
+    leftBarPx(element: Locator): Promise<number> {
+        return element.evaluate(node => parseFloat(getComputedStyle(node).borderLeftWidth));
+    }
+
+    /** How many lines the element's own text takes on screen, its child elements aside. */
+    ownTextLineCount(element: Locator): Promise<number> {
+        return element.evaluate(node => {
+            const tops = new Set<number>();
+            for (const child of Array.from(node.childNodes)) {
+                if (child.nodeType !== Node.TEXT_NODE || !child.textContent?.trim()) {
+                    continue;
+                }
+                const range = document.createRange();
+                range.selectNodeContents(child);
+                for (const rect of Array.from(range.getClientRects())) {
+                    tops.add(Math.round(rect.top));
+                }
+            }
+            return tops.size;
+        });
+    }
+
     /** When a message was posted, as the card words it. */
     messageDate(id: number): Locator {
         return this.message(id).getByTestId('message-date');

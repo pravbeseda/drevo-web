@@ -27,6 +27,24 @@ app-wiki-content {
         padding-inline-start: $gap-lg;
     }
 
+    .quote {
+        margin: $forum-message-gap 0 $forum-bubble-padding-v;
+        padding: $forum-quote-padding-v $forum-quote-padding-h;
+        border-left: $forum-quote-bar-width solid var(--themed-border-color);
+        border-radius: $forum-quote-radius;
+        background-color: var(--themed-forum-quote-bg);
+        font-size: $font-size-sm;
+        white-space: pre-line;
+
+        // A nested level gets a bar alone: a fill of its own would stack into boxes inside a narrow bubble.
+        .quote {
+            margin: $forum-message-gap 0;
+            padding: 0 0 0 $forum-quote-padding-h;
+            border-radius: 0;
+            background-color: transparent;
+        }
+    }
+
     .bible-chapters {
         margin: 16px 0;
     }

@@ -58,6 +58,12 @@ const READER_NUDGE_PX = 20;
 /** Enough plain messages under the picture that the topic overflows the feed. */
 const MESSAGES_UNDER_PICTURE = 6;
 
+/** A reply to a quote, as the formatter renders `> > …` under `> …` lines: the levels nest, the lines of one level part with `\n`. */
+const QUOTED_MESSAGE_HTML =
+    '<blockquote class="quote"><blockquote class="quote">Насельник Благовещенского монастыря.</blockquote>' +
+    'А в метрических книгах?\nИ в клировых ведомостях?</blockquote>\n<p>Смотрел, там пусто.</p>';
+const QUOTED_LINES = 2;
+
 /** The backend serves the last page to a request that names none. */
 const pageOf = (page = PAGE_COUNT) => createForumTopicPageOf(TOPIC, MESSAGES, page, PAGE_SIZE);
 
@@ -308,5 +314,35 @@ test.describe('Forum topic feed', () => {
 
         expect(await topic.messageTailOverlap(1)).toBe(0);
         expect(await topic.messageTailOverlap(2)).toBe(0);
+    });
+
+    test('sets a quote off in small type at the edge of the text, each nested level on a bar of its own', async ({
+        authenticatedPage: page,
+    }) => {
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [createForumMessageDto({ html: QUOTED_MESSAGE_HTML }, 1)]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        const text = topic.messageParagraph(1);
+        const quote = topic.messageQuote(1);
+        const nested = topic.messageQuote(1, 2);
+        const [textBox, quoteBox, nestedBox] = await Promise.all([
+            text.boundingBox(),
+            quote.boundingBox(),
+            nested.boundingBox(),
+        ]);
+
+        expect(quoteBox?.x).toBeLessThanOrEqual((textBox?.x ?? Number.NaN) + POSITION_TOLERANCE_PX);
+        expect(await topic.fontSizePx(quote)).toBeLessThan(await topic.fontSizePx(text));
+        expect(await topic.leftBarPx(quote)).toBeGreaterThan(0);
+        expect(nestedBox?.x).toBeGreaterThan(quoteBox?.x ?? Number.NaN);
+        expect(await topic.leftBarPx(nested)).toBeGreaterThan(0);
+        expect(await topic.ownTextLineCount(quote)).toBe(QUOTED_LINES);
     });
 });
