@@ -73,14 +73,11 @@
 }
 
 .message-card__quote {
+    @include quote-block(currentcolor);
+
     display: block;
     margin: $forum-message-gap 0 $forum-bubble-padding-v;
-    padding: $forum-quote-padding-v $forum-quote-padding-h;
-    border-left: $forum-quote-bar-width solid currentcolor;
-    border-radius: $forum-quote-radius;
-    background-color: var(--themed-forum-quote-bg);
     color: var(--themed-link-color);
-    font-size: $font-size-sm;
     text-decoration: none;
 }
 

@@ -1,0 +1,10 @@
+@use 'tokens' as *;
+
+// The block a quote is drawn as: a message card's reply header, the composer's reply chip, a `>` quote in wiki text.
+@mixin quote-block($bar-color) {
+    padding: $forum-quote-padding-v $forum-quote-padding-h;
+    border-left: $forum-quote-bar-width solid $bar-color;
+    border-radius: $forum-quote-radius;
+    background-color: var(--themed-forum-quote-bg);
+    font-size: $font-size-sm;
+}

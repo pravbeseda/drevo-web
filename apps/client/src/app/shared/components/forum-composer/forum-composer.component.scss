@@ -58,15 +58,12 @@
 
 /* Drawn like the quote in a message card, which is what the reply turns into. */
 .forum-composer__reply {
+    @include quote-block(var(--themed-link-color));
+
     display: flex;
     align-items: center;
     gap: $forum-composer-gap;
     margin-top: $forum-feed-padding-v;
-    padding: $forum-quote-padding-v $forum-quote-padding-h;
-    border-left: $forum-quote-bar-width solid var(--themed-link-color);
-    border-radius: $forum-quote-radius;
-    background-color: var(--themed-forum-quote-bg);
-    font-size: $font-size-sm;
 }
 
 .forum-composer__reply-body {

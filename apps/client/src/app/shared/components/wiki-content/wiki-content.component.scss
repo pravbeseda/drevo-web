@@ -1,4 +1,4 @@
-@use 'tokens' as *;
+@use 'index' as *;
 
 app-wiki-content {
     display: block;
@@ -25,6 +25,21 @@ app-wiki-content {
     ul,
     ol {
         padding-inline-start: $gap-lg;
+    }
+
+    .quote {
+        @include quote-block(var(--themed-border-color));
+
+        margin: $quote-margin-top 0 $quote-margin-bottom;
+        white-space: pre-line;
+
+        // A nested level gets a bar alone: a fill of its own would stack into boxes inside a narrow bubble.
+        .quote {
+            margin: $quote-margin-top 0;
+            padding: 0 0 0 $forum-quote-padding-h;
+            border-radius: 0;
+            background-color: transparent;
+        }
     }
 
     .bible-chapters {
