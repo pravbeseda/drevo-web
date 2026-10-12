@@ -1,4 +1,4 @@
-@use 'tokens' as *;
+@use 'index' as *;
 
 app-wiki-content {
     display: block;
@@ -28,17 +28,14 @@ app-wiki-content {
     }
 
     .quote {
-        margin: $forum-message-gap 0 $forum-bubble-padding-v;
-        padding: $forum-quote-padding-v $forum-quote-padding-h;
-        border-left: $forum-quote-bar-width solid var(--themed-border-color);
-        border-radius: $forum-quote-radius;
-        background-color: var(--themed-forum-quote-bg);
-        font-size: $font-size-sm;
+        @include quote-block(var(--themed-border-color));
+
+        margin: $quote-margin-top 0 $quote-margin-bottom;
         white-space: pre-line;
 
         // A nested level gets a bar alone: a fill of its own would stack into boxes inside a narrow bubble.
         .quote {
-            margin: $forum-message-gap 0;
+            margin: $quote-margin-top 0;
             padding: 0 0 0 $forum-quote-padding-h;
             border-radius: 0;
             background-color: transparent;
