@@ -52,12 +52,10 @@ function readLines(html: string, document: Document): readonly TextLine[] {
             // A quote keeps its source lines apart, as it shows them; elsewhere a newline is formatting.
             const text = node.textContent ?? '';
             const parts = depth > 0 ? text.split('\n') : [text];
+            currentDepth = depth;
             parts.forEach((part, index) => {
                 if (index > 0) {
                     breakLine();
-                }
-                if (!current.trim()) {
-                    currentDepth = depth;
                 }
                 current += part;
             });
