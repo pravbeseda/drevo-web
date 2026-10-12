@@ -261,6 +261,19 @@ describe('ForumComposerComponent', () => {
         expect(spectator.query(EditorComponent)?.content()).toBe('> Первая строка\n> Вторая\n\nУже написано');
     });
 
+    it('quotes a message that quotes another one level deeper, and drops what that one quoted', () => {
+        spectator.component.quote(
+            createMessage({
+                html:
+                    '<blockquote class="quote"><blockquote class="quote">давнее</blockquote>' +
+                    'цитата\nещё строка</blockquote>\n<p>Ответ</p>',
+            }),
+        );
+        spectator.detectChanges();
+
+        expect(spectator.query(EditorComponent)?.content()).toBe('> > цитата\n> > ещё строка\n> Ответ\n\n');
+    });
+
     it('hands an approved message on and starts over', () => {
         const message = createMessage({ id: 100 });
         forumService.reply.mockReturnValue(posted(true, message));

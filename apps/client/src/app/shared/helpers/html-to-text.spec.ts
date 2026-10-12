@@ -40,4 +40,19 @@ describe('htmlToLines', () => {
     it('keeps the whitespace the markup was formatted with inside the line', () => {
         expect(htmlToLines('<p>\n    Текст\n    сообщения\n</p>\n<p>Ещё</p>', document)).toBe('Текст сообщения\nЕщё');
     });
+
+    it('leads a quoted line with a `> ` per level of quote around it', () => {
+        expect(
+            htmlToLines(
+                '<blockquote class="quote"><blockquote class="quote">первая</blockquote>вторая</blockquote>\n<p>ответ</p>',
+                document,
+            ),
+        ).toBe('> > первая\n> вторая\nответ');
+    });
+
+    it('keeps the lines of a quote apart, as the quote shows them', () => {
+        expect(htmlToLines('<blockquote class="quote">первая\nвторая</blockquote>', document)).toBe(
+            '> первая\n> вторая',
+        );
+    });
 });
