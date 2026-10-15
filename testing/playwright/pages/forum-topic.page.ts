@@ -127,6 +127,19 @@ export class ForumTopicPage extends BasePage {
         });
     }
 
+    /** How far a card's actions stick out past the top or bottom of the feed — 0 when they are within it. */
+    actionsOutsideFeedPx(id: number): Promise<number> {
+        return this.message(id)
+            .getByTestId('message-reply')
+            .evaluate(button => {
+                const feed = button.closest('[data-testid="topic-feed"]')?.getBoundingClientRect();
+                const actions = button.getBoundingClientRect();
+                return feed
+                    ? Math.round(Math.max(0, feed.top - actions.top) + Math.max(0, actions.bottom - feed.bottom))
+                    : Number.NaN;
+            });
+    }
+
     /** The ↩ of a card. */
     async answer(id: number): Promise<void> {
         await this.revealActions(id);
