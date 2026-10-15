@@ -106,7 +106,12 @@
     }
 }
 
+// Centred on the message, but a message taller than the feed would carry them
+// out of sight, so they stop at whichever edge of the feed they would cross.
 .message-card__actions {
+    position: sticky;
+    top: $forum-feed-padding-v;
+    bottom: $forum-feed-padding-v;
     display: flex;
     flex: none;
     align-self: center;

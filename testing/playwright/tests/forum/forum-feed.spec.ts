@@ -121,6 +121,28 @@ test.describe('Forum topic feed', () => {
             .toBeLessThanOrEqual(POSITION_TOLERANCE_PX);
     });
 
+    test('keeps the actions of a message taller than the feed within sight at either end of it', async ({
+        authenticatedPage: page,
+    }) => {
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [
+                createForumMessageDto({ html: MESSAGE_HTML }, 1),
+                createForumMessageDto({ html: MESSAGE_HTML.repeat(LONG_MESSAGE_REPEATS) }, 2),
+            ]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        await expect.poll(() => topic.actionsOutsideFeedPx(2)).toBe(0);
+
+        await topic.scrollTo('bottom');
+        await expect.poll(() => topic.actionsOutsideFeedPx(2)).toBe(0);
+    });
+
     test('sits a short topic at the bottom after a long one was open', async ({
         authenticatedPage: page,
         isMobile,
