@@ -1,3 +1,4 @@
+import { ForumDraftService } from '../../../services/forum/forum-draft.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { forumEditorExtensions } from '../../helpers/forum-editor-extensions';
 import { quoteForumText } from '../../helpers/forum-quote';
@@ -17,17 +18,19 @@ import {
     signal,
     viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
 import { IconButtonComponent, IconComponent } from '@drevo-web/ui';
-import { finalize } from 'rxjs/operators';
+import { from } from 'rxjs';
+import { finalize, switchMap, tap } from 'rxjs/operators';
 
 /**
  * The reply form at the bottom of a topic. Without a chosen message the reply
  * answers the topic itself; the cards choose one through `replyTo` and `quote`.
  * It rests folded to the field alone and unfolds its bar while in use.
+ * Each topic keeps its own unsent text as a draft.
  */
 @Component({
     selector: 'app-forum-composer',
@@ -46,6 +49,7 @@ export class ForumComposerComponent {
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ForumComposer');
     private readonly notification = inject(NotificationService);
+    private readonly drafts = inject(ForumDraftService);
 
     private readonly _draft = signal('');
     private readonly _replyTarget = signal<ForumMessage | undefined>(undefined);
@@ -53,6 +57,11 @@ export class ForumComposerComponent {
     private readonly _error = signal<string | undefined>(undefined);
     private readonly _focused = signal(false);
     private readonly _expanded = signal(false);
+
+    /** The topic the text in the field belongs to. */
+    private draftTopicId: number | undefined;
+    /** Whether the topic's stored draft has been read; until then an empty field says nothing about it. */
+    private draftLoaded = false;
 
     private readonly field = viewChild.required<string, ElementRef<HTMLElement>>('field', { read: ElementRef });
     private readonly editor = viewChild.required(EditorComponent);
@@ -86,6 +95,18 @@ export class ForumComposerComponent {
 
     protected readonly editorExtensions = forumEditorExtensions('Сообщение', () => this.send());
 
+    constructor() {
+        // The topic page keeps this composer when the reader moves to another topic.
+        toObservable(this.topicId)
+            .pipe(
+                tap(topicId => this.enterTopic(topicId)),
+                switchMap(topicId => from(this.drafts.get(topicId))),
+                takeUntilDestroyed(),
+            )
+            .subscribe(draft => this.restoreDraft(draft));
+        this.destroyRef.onDestroy(() => this.storeDraft());
+    }
+
     /** Chosen from a card, the answer is written next, so the cursor goes to the field. */
     replyTo(message: ForumMessage): void {
         this._replyTarget.set(message);
@@ -95,7 +116,7 @@ export class ForumComposerComponent {
     quote(message: ForumMessage): void {
         const quoted = quoteForumText(htmlToLines(message.html, this.document));
         this._replyTarget.set(message);
-        this._draft.update(draft => `${quoted}\n\n${draft}`);
+        this.updateDraft(`${quoted}\n\n${this._draft()}`);
         this.editor().focus();
     }
 
@@ -134,7 +155,7 @@ export class ForumComposerComponent {
         if (text === this._draft()) {
             return;
         }
-        this._draft.set(text);
+        this.updateDraft(text);
         this._error.set(undefined);
     }
 
@@ -169,14 +190,58 @@ export class ForumComposerComponent {
         }
 
         const { message, approved } = outcome.result;
-        this._draft.set('');
-        this._replyTarget.set(undefined);
-        this._expanded.set(false);
+        void this.drafts.save(topicId, '');
         this.logger.info('Reply posted', { topicId, messageId: message.id, approved });
+        // The reader has moved to another topic meanwhile: its field and feed are not this message's.
+        if (topicId !== this.draftTopicId) {
+            return;
+        }
+        this.clear();
         if (approved) {
             this.posted.emit(message);
         } else {
             this.notification.info('Сообщение отправлено на модерацию и появится после проверки.');
         }
+    }
+
+    private enterTopic(topicId: number): void {
+        if (this.draftTopicId !== undefined) {
+            this.storeDraft();
+            this.clear();
+            this._error.set(undefined);
+        }
+        this.draftTopicId = topicId;
+        this.draftLoaded = false;
+    }
+
+    /** What the reader typed while the draft was loading wins over it. */
+    private restoreDraft(draft: string | undefined): void {
+        this.draftLoaded = true;
+        if (draft !== undefined && this._draft() === '') {
+            this._draft.set(draft);
+            this.logger.info('Draft restored', { topicId: this.draftTopicId, length: draft.length });
+        }
+    }
+
+    private storeDraft(): void {
+        const topicId = this.draftTopicId;
+        const text = this._draft();
+        if (topicId === undefined || (!this.draftLoaded && text === '')) {
+            return;
+        }
+        void this.drafts.save(topicId, text);
+    }
+
+    private updateDraft(text: string): void {
+        this._draft.set(text);
+        if (this.draftTopicId !== undefined) {
+            this.drafts.edit(this.draftTopicId, text);
+        }
+    }
+
+    private clear(): void {
+        this._draft.set('');
+        this._replyTarget.set(undefined);
+        this._expanded.set(false);
     }
 }

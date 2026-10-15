@@ -2,7 +2,7 @@ import { booleanAttribute, ChangeDetectionStrategy, Component, computed, input }
 import { MatIcon } from '@angular/material/icon';
 import { TooltipPosition, MatTooltip } from '@angular/material/tooltip';
 
-export type IconSize = 'small' | 'medium' | 'large' | 'xlarge';
+export type IconSize = 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge';
 
 export type IconTone = 'success' | 'warning' | 'error' | 'neutral' | 'primary' | 'secondary' | 'accent';
 

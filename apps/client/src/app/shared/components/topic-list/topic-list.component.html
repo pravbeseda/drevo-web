@@ -23,11 +23,25 @@
                 routerLinkActive
                 [routerLink]="topicLink(topic.id)"
             >
-                <ui-avatar
-                    data-testid="topic-author-avatar"
-                    [name]="topic.author"
-                    [uiTooltip]="topic.author"
-                />
+                @let draft = draftExcerpts().get(topic.id);
+                <span class="topic-list__avatar">
+                    <ui-avatar
+                        data-testid="topic-author-avatar"
+                        [name]="topic.author"
+                        [uiTooltip]="topic.author"
+                    />
+                    @if (draft !== undefined) {
+                        <span
+                            class="topic-list__draft-badge"
+                            data-testid="topic-draft-badge"
+                        >
+                            <ui-icon
+                                name="edit"
+                                size="xsmall"
+                            />
+                        </span>
+                    }
+                </span>
                 <span class="topic-list__body">
                     <span class="topic-list__line">
                         @if (topic.pinned) {
@@ -55,7 +69,15 @@
                             </span>
                         }
                     </span>
-                    @if (topic.lastExcerpt; as excerpt) {
+                    @if (draft !== undefined) {
+                        <span
+                            class="topic-list__subtitle"
+                            data-testid="topic-draft"
+                        >
+                            <span class="topic-list__draft-label">Черновик:</span>
+                            {{ draft }}
+                        </span>
+                    } @else if (topic.lastExcerpt; as excerpt) {
                         <span
                             class="topic-list__subtitle"
                             data-testid="topic-excerpt"

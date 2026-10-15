@@ -26,6 +26,7 @@ import { ForumTopicsPage } from '../../pages/forum-topics.page';
 import { Page, Request } from '@playwright/test';
 
 const TOPIC_ID = 7;
+const OTHER_TOPIC_ID = 8;
 const NEW_TOPIC_ID = 43;
 const NEW_MESSAGE_ID = 100;
 const ARTICLE_ID = 42;
@@ -117,6 +118,44 @@ test.describe('Forum posting', () => {
 
             await expect(topic.replyChipAuthor).toHaveText('Петров П.П.');
             await expect(topic.composerText).toContainText('> Сообщение 1');
+        });
+
+        test('keeps an unsent reply as the draft of its topic while the reader visits another', async ({
+            authenticatedPage: page,
+            isMobile,
+        }) => {
+            test.skip(isMobile, 'Only at desktop width does the list stay beside the topic');
+            await mockForumSectionsApi(page);
+            await mockForumTopicsApi(
+                page,
+                createForumTopicListResponse([
+                    createForumTopicListItemDto({ id: TOPIC_ID, title: 'Первая тема' }),
+                    createForumTopicListItemDto({ id: OTHER_TOPIC_ID, title: 'Вторая тема' }),
+                ]),
+            );
+            await mockForumTopicApi(page, TOPIC_ID, createForumTopicPage(TOPIC, MESSAGES));
+            await mockForumTopicApi(
+                page,
+                OTHER_TOPIC_ID,
+                createForumTopicPage(createForumTopicDto({ id: OTHER_TOPIC_ID }), MESSAGES),
+            );
+            const topic = new ForumTopicPage(page);
+            const topics = new ForumTopicsPage(page);
+            await page.goto(`/forum/topic/${TOPIC_ID}`);
+            await topic.waitForReady();
+
+            await topic.write('Мой ответ');
+            await topics.link('Вторая тема').click();
+
+            await expect(page).toHaveURL(new RegExp(`/forum/topic/${OTHER_TOPIC_ID}$`));
+            await expect(topic.composerText).not.toContainText('Мой ответ');
+            await expect(topics.draftBadge('Первая тема')).toBeVisible();
+            await expect(topics.draft('Первая тема')).toHaveText('Черновик: Мой ответ');
+            await expect(topics.draftBadge('Вторая тема')).toHaveCount(0);
+
+            await topics.link('Первая тема').click();
+
+            await expect(topic.composerText).toHaveText('Мой ответ');
         });
 
         test('announces a reply held for a moderator in a toast instead of showing it', async ({

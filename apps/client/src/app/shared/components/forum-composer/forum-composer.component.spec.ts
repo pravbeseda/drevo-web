@@ -1,11 +1,13 @@
 import { ForumComposerComponent } from './forum-composer.component';
+import { ForumDraftService } from '../../../services/forum/forum-draft.service';
+import { mockForumDraftProvider } from '../../../services/forum/forum-draft.testing';
 import { ForumService } from '../../../services/forum/forum.service';
 import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
 import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
-import { NEVER, Observable, of, throwError } from 'rxjs';
+import { NEVER, Observable, of, Subject, throwError } from 'rxjs';
 
 function createMessage(overrides: Partial<ForumMessage> = {}): ForumMessage {
     return {
@@ -28,10 +30,16 @@ function posted(
 describe('ForumComposerComponent', () => {
     let spectator: Spectator<ForumComposerComponent>;
     let forumService: jest.Mocked<ForumService>;
+    let drafts: jest.Mocked<ForumDraftService>;
 
     const createComponent = createComponentFactory({
         component: ForumComposerComponent,
-        providers: [mockLoggerProvider(), mockProvider(ForumService), mockProvider(NotificationService)],
+        providers: [
+            mockLoggerProvider(),
+            mockProvider(ForumService),
+            mockProvider(NotificationService),
+            mockForumDraftProvider(),
+        ],
     });
 
     const type = (text: string): void => {
@@ -50,9 +58,12 @@ describe('ForumComposerComponent', () => {
         spectator.detectChanges();
     };
 
+    const content = (): string | undefined => spectator.query(EditorComponent)?.content();
+
     beforeEach(() => {
         spectator = createComponent({ props: { topicId: 42 } });
         forumService = spectator.inject(ForumService);
+        drafts = spectator.inject(ForumDraftService);
     });
 
     it('writes in the wiki editor, grown to its text and without the toolbar or frame', () => {
@@ -349,5 +360,111 @@ describe('ForumComposerComponent', () => {
         spectator.component.send();
 
         expect(forumService.reply).toHaveBeenCalledTimes(1);
+    });
+    describe('drafts', () => {
+        /** The topic a reader opens next, with the draft it holds. */
+        const openTopic = async (topicId: number, draft?: string): Promise<void> => {
+            drafts.get.mockResolvedValue(draft);
+            spectator.setInput('topicId', topicId);
+            await spectator.fixture.whenStable();
+            spectator.detectChanges();
+        };
+
+        it('brings back the draft the reader left in the topic', async () => {
+            await openTopic(43, 'Начатый ответ');
+
+            expect(drafts.get).toHaveBeenCalledWith(43);
+            expect(content()).toBe('Начатый ответ');
+        });
+
+        it('hands what the reader types to the draft store', async () => {
+            await spectator.fixture.whenStable();
+
+            type('Ответ');
+
+            expect(drafts.edit).toHaveBeenCalledWith(42, 'Ответ');
+        });
+
+        it('hands a quote to the draft store as well', async () => {
+            await spectator.fixture.whenStable();
+
+            spectator.component.quote(createMessage({ html: '<p>цитата</p>' }));
+
+            expect(drafts.edit).toHaveBeenCalledWith(42, '> цитата\n\n');
+        });
+
+        it('keeps the text of the topic left behind and starts the next one afresh', async () => {
+            await spectator.fixture.whenStable();
+            spectator.component.replyTo(createMessage());
+            type('Ответ');
+
+            await openTopic(43);
+
+            expect(drafts.save).toHaveBeenCalledWith(42, 'Ответ');
+            expect(content()).toBe('');
+            expect(spectator.query('[data-testid="composer-reply"]')).toBeNull();
+        });
+
+        it('stores the text when the composer goes away', async () => {
+            await spectator.fixture.whenStable();
+            type('Ответ');
+
+            spectator.fixture.destroy();
+
+            expect(drafts.save).toHaveBeenCalledWith(42, 'Ответ');
+        });
+
+        it('leaves the stored draft alone when the composer goes before it is read', async () => {
+            await spectator.fixture.whenStable();
+            drafts.get.mockReturnValue(new Promise<never>(() => undefined));
+            spectator.setInput('topicId', 43);
+            spectator.detectChanges();
+
+            spectator.fixture.destroy();
+
+            expect(drafts.save).not.toHaveBeenCalledWith(43, expect.anything());
+        });
+
+        it('keeps what the reader typed while the draft was loading', async () => {
+            let resolve: ((text: string) => void) | undefined;
+            drafts.get.mockReturnValue(new Promise<string>(done => (resolve = done)));
+            spectator.setInput('topicId', 43);
+            spectator.detectChanges();
+            type('Новое');
+
+            resolve?.('Старое');
+            await spectator.fixture.whenStable();
+            spectator.detectChanges();
+
+            expect(content()).toBe('Новое');
+        });
+
+        it('discards the draft once the message is posted', async () => {
+            await spectator.fixture.whenStable();
+            forumService.reply.mockReturnValue(posted(true));
+            type('Ответ');
+
+            spectator.click(sendButton() as HTMLElement);
+
+            expect(drafts.save).toHaveBeenLastCalledWith(42, '');
+        });
+
+        it('leaves the next topic alone when a message posts after the reader moved on', async () => {
+            await spectator.fixture.whenStable();
+            const outcome = new Subject<ForumPostOutcome<ForumPostedMessage>>();
+            forumService.reply.mockReturnValue(outcome);
+            const sent: ForumMessage[] = [];
+            spectator.output<ForumMessage>('posted').subscribe(value => sent.push(value));
+            type('Ответ');
+            spectator.click(sendButton() as HTMLElement);
+            await openTopic(43, 'Другой ответ');
+
+            outcome.next({ status: 'posted', result: { message: createMessage({ id: 100 }), approved: true } });
+            spectator.detectChanges();
+
+            expect(drafts.save).toHaveBeenLastCalledWith(42, '');
+            expect(sent).toEqual([]);
+            expect(content()).toBe('Другой ответ');
+        });
     });
 });
