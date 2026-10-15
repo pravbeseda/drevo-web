@@ -1,5 +1,6 @@
 import { TopicListComponent } from './topic-list.component';
 import { AuthService } from '../../../services/auth/auth.service';
+import { mockForumDraftProvider } from '../../../services/forum/forum-draft.testing';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
 import { Component } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
@@ -52,10 +53,11 @@ describe('TopicListComponent', () => {
             readonly loadState?: TopicListLoadState;
         } = {},
         user?: User,
+        drafts: ReadonlyMap<number, string> = new Map(),
     ): Promise<void> => {
         spectator = createComponent({
             props: { items, ...props },
-            providers: [{ provide: AuthService, useValue: { user$: of(user) } }],
+            providers: [{ provide: AuthService, useValue: { user$: of(user) } }, mockForumDraftProvider(drafts)],
         });
         await settle();
         await settle();
@@ -163,6 +165,28 @@ describe('TopicListComponent', () => {
 
             expect(spectator.query('[data-testid="topic-excerpt"]')).not.toExist();
             expect(spectator.query('[data-testid="topic-context"]')).toHaveText('к статье БОГ');
+        });
+    });
+
+    describe('reply draft', () => {
+        it('marks the avatar of a topic the reader left a draft in', async () => {
+            await render([createItem({ id: 7 }), createItem({ id: 8 })], {}, undefined, new Map([[7, 'Ответ']]));
+
+            const [withDraft, withoutDraft] = spectator.queryAll('[data-testid="topic-item"]');
+            expect(withDraft.querySelector('[data-testid="topic-draft-badge"]')).toExist();
+            expect(withoutDraft.querySelector('[data-testid="topic-draft-badge"]')).not.toExist();
+        });
+
+        it('shows the reader’s own words of the draft in place of the last message', async () => {
+            await render(
+                [createItem({ id: 7, lastExcerpt: 'Согласен' })],
+                {},
+                undefined,
+                new Map([[7, '> Согласен\n\nА я нет']]),
+            );
+
+            expect(spectator.query('[data-testid="topic-draft"]')?.textContent?.trim()).toBe('Черновик: А я нет');
+            expect(spectator.query('[data-testid="topic-excerpt"]')).not.toExist();
         });
     });
 

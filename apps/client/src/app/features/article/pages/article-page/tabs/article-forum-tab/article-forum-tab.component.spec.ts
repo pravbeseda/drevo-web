@@ -1,5 +1,6 @@
 import { ArticleForumTabComponent } from './article-forum-tab.component';
 import { ForumService } from '../../../../../../services/forum/forum.service';
+import { mockForumDraftProvider } from '../../../../../../services/forum/forum-draft.testing';
 import { NEW_TOPIC_TARGET } from '../../../../../../shared/components/new-topic-page/new-topic-target';
 import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
@@ -42,7 +43,7 @@ describe('ArticleForumTabComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ArticleForumTabComponent,
-        providers: [provideRouter([]), mockLoggerProvider()],
+        providers: [provideRouter([]), mockLoggerProvider(), mockForumDraftProvider()],
     });
 
     beforeEach(() => {

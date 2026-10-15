@@ -26,6 +26,7 @@ import { ForumTopicsPage } from '../../pages/forum-topics.page';
 import { Page, Request } from '@playwright/test';
 
 const TOPIC_ID = 7;
+const OTHER_TOPIC_ID = 8;
 const NEW_TOPIC_ID = 43;
 const NEW_MESSAGE_ID = 100;
 const ARTICLE_ID = 42;
@@ -39,6 +40,10 @@ const MESSAGES = [
     createForumMessageDto({ author: { name: 'Сидоров С.С.', login: 'sidorov' } }, 2),
 ];
 const NEW_MESSAGE = createForumMessageDto({ html: '<p>Мой ответ</p>' }, NEW_MESSAGE_ID);
+
+const TWO_PANES_ONLY = 'Only at desktop width does the list stay beside the topic';
+/** Antialiasing at the edge of the cut-out, per colour channel. */
+const COLOUR_TOLERANCE = 8;
 
 /** The body of the first POST to a URL the pattern matches — what the form actually sent. */
 function nextPost(page: Page, url: RegExp): Promise<unknown> {
@@ -55,6 +60,30 @@ async function openTopic(page: Page): Promise<ForumTopicPage> {
     await page.goto(`/forum/topic/${TOPIC_ID}`);
     await topic.waitForReady();
     return topic;
+}
+
+/** Two topics in the list, the first of them open beside it. */
+async function openTwoTopics(
+    page: Page,
+): Promise<{ readonly topic: ForumTopicPage; readonly topics: ForumTopicsPage }> {
+    await mockForumSectionsApi(page);
+    await mockForumTopicsApi(
+        page,
+        createForumTopicListResponse([
+            createForumTopicListItemDto({ id: TOPIC_ID, title: 'Первая тема' }),
+            createForumTopicListItemDto({ id: OTHER_TOPIC_ID, title: 'Вторая тема' }),
+        ]),
+    );
+    await mockForumTopicApi(page, TOPIC_ID, createForumTopicPage(TOPIC, MESSAGES));
+    await mockForumTopicApi(
+        page,
+        OTHER_TOPIC_ID,
+        createForumTopicPage(createForumTopicDto({ id: OTHER_TOPIC_ID }), MESSAGES),
+    );
+    const topic = new ForumTopicPage(page);
+    await page.goto(`/forum/topic/${TOPIC_ID}`);
+    await topic.waitForReady();
+    return { topic, topics: new ForumTopicsPage(page) };
 }
 
 test.describe('Forum posting', () => {
@@ -118,6 +147,49 @@ test.describe('Forum posting', () => {
             await expect(topic.replyChipAuthor).toHaveText('Петров П.П.');
             await expect(topic.composerText).toContainText('> Сообщение 1');
         });
+
+        test('keeps an unsent reply as the draft of its topic while the reader visits another', async ({
+            authenticatedPage: page,
+            isMobile,
+        }) => {
+            test.skip(isMobile, TWO_PANES_ONLY);
+            const { topic, topics } = await openTwoTopics(page);
+
+            await topic.write('Мой ответ');
+            await topics.link('Вторая тема').click();
+
+            await expect(page).toHaveURL(new RegExp(`/forum/topic/${OTHER_TOPIC_ID}$`));
+            await expect(topic.composerText).not.toContainText('Мой ответ');
+            await expect(topics.draftBadge('Первая тема')).toBeVisible();
+            await expect(topics.draft('Первая тема')).toHaveText('Черновик: Мой ответ');
+            await expect(topics.draftBadge('Вторая тема')).toHaveCount(0);
+
+            await topics.link('Первая тема').click();
+
+            await expect(topic.composerText).toHaveText('Мой ответ');
+        });
+
+        for (const theme of ['light', 'dark']) {
+            test(`cuts the draft badge out of the avatar on a hovered and an open row in the ${theme} theme`, async ({
+                authenticatedPage: page,
+                isMobile,
+            }) => {
+                test.skip(isMobile, TWO_PANES_ONLY);
+                await page.addInitScript(value => localStorage.setItem('drevo-theme', value), theme);
+                const { topic, topics } = await openTwoTopics(page);
+                await topic.write('Мой ответ');
+                await topics.link('Вторая тема').click();
+                await expect(topics.draftBadge('Первая тема')).toBeVisible();
+
+                await topics.link('Первая тема').hover();
+                expect(await topics.draftBadgeRingMismatch('Первая тема')).toBeLessThanOrEqual(COLOUR_TOLERANCE);
+
+                await topics.link('Первая тема').click();
+                await topics.items.last().hover();
+                await expect(topics.link('Первая тема')).toHaveAttribute('aria-current', 'page');
+                expect(await topics.draftBadgeRingMismatch('Первая тема')).toBeLessThanOrEqual(COLOUR_TOLERANCE);
+            });
+        }
 
         test('announces a reply held for a moderator in a toast instead of showing it', async ({
             authenticatedPage: page,

@@ -1,5 +1,6 @@
 import { AuthService } from '../../../services/auth/auth.service';
 import { ForumService } from '../../../services/forum/forum.service';
+import { mockForumDraftProvider } from '../../../services/forum/forum-draft.testing';
 import { createRouteSnapshot } from '../../testing/route-testing.helper';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { ForumComposerComponent } from '../forum-composer/forum-composer.component';
@@ -57,7 +58,7 @@ describe('TopicPageComponent', () => {
 
     const createComponent = createComponentFactory({
         component: TopicPageComponent,
-        providers: [provideRouter([]), mockLoggerProvider()],
+        providers: [provideRouter([]), mockLoggerProvider(), mockForumDraftProvider()],
         detectChanges: false,
     });
 

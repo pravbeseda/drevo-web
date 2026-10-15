@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use 'index' as *;
 
 :host {
@@ -40,6 +41,44 @@
         outline: $forum-topic-row-focus-width solid var(--themed-link-color);
         outline-offset: -$forum-topic-row-focus-width;
     }
+}
+
+.topic-list__avatar {
+    position: relative;
+    display: flex;
+    flex: none;
+}
+
+/* The badge sits in a see-through cut-out of the avatar, so the gap shows whatever the row is painted with. */
+.topic-list__avatar--draft ui-avatar {
+    $badge-radius: math.div($forum-draft-badge-size, 2);
+    $center: $avatar-size-md - $forum-draft-badge-offset - $badge-radius;
+    $cut-radius: $badge-radius + $forum-draft-badge-gap;
+
+    /* A mask reads only the alpha, so any opaque colour keeps the avatar. */
+    mask: radial-gradient(
+        circle at $center $center,
+        transparent $cut-radius,
+        currentcolor calc(#{$cut-radius} + 0.5px)
+    );
+}
+
+.topic-list__draft-badge {
+    position: absolute;
+    right: $forum-draft-badge-offset;
+    bottom: $forum-draft-badge-offset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: $forum-draft-badge-size;
+    height: $forum-draft-badge-size;
+    border-radius: 50%;
+    background: var(--themed-link-color);
+    color: var(--themed-primary-bg);
+}
+
+.topic-list__draft-label {
+    color: var(--themed-link-color);
 }
 
 .topic-list__body {

@@ -1,7 +1,9 @@
 import { AuthService } from '../../../services/auth/auth.service';
+import { ForumDraftService } from '../../../services/forum/forum-draft.service';
+import { draftExcerpt } from '../../helpers/draft-excerpt';
 import { forumOwnerPrefix } from '../../helpers/forum-owner';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ForumTopicListItem } from '@drevo-web/shared';
@@ -64,6 +66,13 @@ export class TopicListComponent {
     protected readonly ownerPrefix = forumOwnerPrefix;
 
     private readonly ownLogin = toSignal(inject(AuthService).user$.pipe(map(user => user?.login)));
+
+    private readonly drafts = inject(ForumDraftService).drafts;
+
+    /** The excerpt of the unsent reply, by topic id. */
+    protected readonly draftExcerpts = computed(
+        () => new Map([...this.drafts()].map(([topicId, text]) => [topicId, draftExcerpt(text)])),
+    );
 
     protected readonly trackById = (_index: number, topic: ForumTopicListItem): number => topic.id;
 
