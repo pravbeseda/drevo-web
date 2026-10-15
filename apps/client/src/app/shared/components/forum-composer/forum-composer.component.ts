@@ -182,18 +182,27 @@ export class ForumComposerComponent {
     }
 
     private applyOutcome(outcome: ForumPostOutcome<ForumPostedMessage>, topicId: number): void {
+        // The reader may have moved to another topic meanwhile: its field and feed are not this reply's.
+        const stillHere = topicId === this.draftTopicId;
+
         if (outcome.status === 'rejected') {
             const { text, other, title } = outcome.errors;
-            this._error.set(text ?? other ?? title);
+            const reason = text ?? other ?? title;
             this.logger.warn('Reply refused', { topicId, errors: outcome.errors });
+            if (stillHere) {
+                this._error.set(reason);
+            } else {
+                // The text left with the reader as the topic's draft.
+                const because = reason ? ` (${reason})` : '';
+                this.notification.error(`Сообщение не отправлено${because}. Текст сохранён в черновике темы.`);
+            }
             return;
         }
 
         const { message, approved } = outcome.result;
         void this.drafts.save(topicId, '');
         this.logger.info('Reply posted', { topicId, messageId: message.id, approved });
-        // The reader has moved to another topic meanwhile: its field and feed are not this message's.
-        if (topicId !== this.draftTopicId) {
+        if (!stillHere) {
             return;
         }
         this.clear();

@@ -449,6 +449,28 @@ describe('ForumComposerComponent', () => {
             expect(drafts.save).toHaveBeenLastCalledWith(42, '');
         });
 
+        it('tells about a refusal that comes after the reader moved on, leaving the next topic alone', async () => {
+            await spectator.fixture.whenStable();
+            const outcome = new Subject<ForumPostOutcome<ForumPostedMessage>>();
+            forumService.reply.mockReturnValue(outcome);
+            type('Ответ');
+            spectator.click(sendButton() as HTMLElement);
+            await openTopic(43, 'Другой ответ');
+
+            outcome.next({
+                status: 'rejected',
+                errors: { title: undefined, text: 'Излишнее цитирование!', other: undefined },
+            });
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="composer-error"]')).toBeNull();
+            expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith(
+                'Сообщение не отправлено (Излишнее цитирование!). Текст сохранён в черновике темы.',
+            );
+            expect(drafts.save).not.toHaveBeenCalledWith(42, '');
+            expect(content()).toBe('Другой ответ');
+        });
+
         it('leaves the next topic alone when a message posts after the reader moved on', async () => {
             await spectator.fixture.whenStable();
             const outcome = new Subject<ForumPostOutcome<ForumPostedMessage>>();

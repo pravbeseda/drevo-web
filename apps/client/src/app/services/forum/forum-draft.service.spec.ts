@@ -110,10 +110,23 @@ describe('ForumDraftService', () => {
             await setUp([createDraft('/forum/topic/7', 'Ответ')]);
 
             await spectator.service.save(7, 'Ответ');
-            await spectator.service.save(8, '');
 
             expect(storage.save).not.toHaveBeenCalled();
-            expect(storage.deleteByRoute).not.toHaveBeenCalled();
+        });
+
+        it('deletes the draft of a blank field even before the drafts have loaded', async () => {
+            storage = new MockDraftStorageService();
+            storage.getAll.mockReturnValue(new Promise<never>(() => undefined));
+            spectator = createService({
+                providers: [
+                    { provide: DraftStorageService, useValue: storage },
+                    { provide: AuthService, useValue: { user$: new BehaviorSubject(createMockUser()) } },
+                ],
+            });
+
+            await spectator.service.save(7, '');
+
+            expect(storage.deleteByRoute).toHaveBeenCalledWith('/forum/topic/7');
         });
 
         it('applies the writes in the order they were asked for', async () => {
@@ -124,6 +137,17 @@ describe('ForumDraftService', () => {
 
             expect(storage.deleteByRoute).toHaveBeenCalledWith('/forum/topic/7');
             expect(spectator.service.drafts().has(7)).toBe(false);
+        });
+
+        it('stores nothing once the reader has logged out', async () => {
+            await setUp([createDraft('/forum/topic/7', 'Ответ')]);
+            user.next(undefined);
+
+            await spectator.service.save(7, 'Новый ответ');
+            await spectator.service.save(8, '');
+
+            expect(storage.save).not.toHaveBeenCalled();
+            expect(storage.deleteByRoute).not.toHaveBeenCalled();
         });
 
         it('keeps the topic unmarked when the storage fails', async () => {

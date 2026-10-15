@@ -16,14 +16,14 @@
 
 1. **Storage.** Reuse `DraftStorageService` (IndexedDB, keyed per user) with the route key `/forum/topic/{id}`. The article editor already writes there; nothing lists drafts yet.
 2. **`ForumDraftService`** (`app/services/forum/`, `providedIn: 'root'`):
-   - `drafts: Signal<ReadonlyMap<number, string>>` maps topic id to draft text, reloaded from `getAll()` (filtered by the route prefix) whenever the logged-in user changes;
+   - `drafts: Signal<ReadonlyMap<number, string>>` maps topic id to draft text, reloaded from `getAll()` (filtered by the route prefix) whenever the logged-in user changes; after logout no write reaches the storage;
    - `get(topicId)` reads one draft, `edit(topicId, text)` saves after a 3 s pause, `save(topicId, text)` saves at once (a blank text deletes);
    - writes are queued so that they land in order, and the signal changes only after the storage write succeeds.
 3. **Composer.**
    - When `topicId` changes, it saves the previous topic's draft and resets `_draft`, `_replyTarget`, `_error` and `_expanded`.
    - It then loads the new topic's draft.
    - It saves on destroy as well.
-   - It calls `save(topicId, '')` on `posted`. A message that posts after the reader has moved to another topic clears neither that topic's field nor its feed.
+   - It calls `save(topicId, '')` on `posted`. A message that posts after the reader has moved to another topic clears neither that topic's field nor its feed. A refusal that arrives after the move shows a toast instead of an error in the other topic's composer; the text stays as the draft of its own topic.
 4. **Topic list.**
    - It reads `ForumDraftService.drafts()`.
    - It wraps the avatar with the badge (`ui-icon name="edit" size="xsmall"`, a new icon size) and adds a `topic-draft` subtitle branch.

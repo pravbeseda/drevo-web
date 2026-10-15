@@ -2,7 +2,18 @@ import { AuthService } from '../auth/auth.service';
 import { inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Draft, DraftStorageService, LoggerService } from '@drevo-web/core';
-import { catchError, debounceTime, distinctUntilChanged, from, map, Observable, of, Subject, switchMap } from 'rxjs';
+import {
+    catchError,
+    debounceTime,
+    distinctUntilChanged,
+    from,
+    map,
+    Observable,
+    of,
+    Subject,
+    switchMap,
+    tap,
+} from 'rxjs';
 
 export const FORUM_DRAFT_SAVE_DEBOUNCE_MS = 3000;
 
@@ -37,6 +48,8 @@ export class ForumDraftService {
     private readonly _drafts = signal<ReadonlyMap<number, string>>(new Map());
     private readonly editSubject = new Subject<void>();
     private pending: PendingEdit | undefined;
+    /** The storage keys drafts by reader; once they log out there is no one to store a draft for. */
+    private signedIn = false;
     /** Writes run one after another, so a later one never lands before an earlier one. */
     private writes: Promise<void> = Promise.resolve();
 
@@ -48,6 +61,7 @@ export class ForumDraftService {
             .user$.pipe(
                 map(user => user?.login),
                 distinctUntilChanged(),
+                tap(login => (this.signedIn = login !== undefined)),
                 switchMap(login => (login === undefined ? of([]) : this.loadAll())),
                 takeUntilDestroyed(),
             )
@@ -87,8 +101,14 @@ export class ForumDraftService {
     }
 
     private async write(topicId: number, text: string): Promise<void> {
+        if (!this.signedIn) {
+            this.logger.debug('Draft dropped: the reader has logged out', { topicId });
+            return;
+        }
+
         const hasText = text.trim().length > 0;
-        if (this._drafts().get(topicId) === (hasText ? text : undefined)) {
+        // A blank field always deletes: the list of drafts may not have loaded yet to say there is none.
+        if (hasText && this._drafts().get(topicId) === text) {
             return;
         }
 
