@@ -23,7 +23,7 @@
    - When `topicId` changes, it saves the previous topic's draft and resets `_draft`, `_replyTarget`, `_error` and `_expanded`.
    - It then loads the new topic's draft.
    - It saves on destroy as well.
-   - It calls `save(topicId, '')` on `posted`. A message that posts after the reader has moved to another topic clears neither that topic's field nor its feed. A refusal that arrives after the move shows a toast instead of an error in the other topic's composer; the text stays as the draft of its own topic.
+   - It calls `save(topicId, '')` on `posted`. A message that posts after the reader has moved to another topic clears neither that topic's field nor its feed. A refusal that arrives after the move shows a toast instead of an error in the other topic's composer; the text stays as the draft of its own topic, and the toast says so only when that draft was actually stored.
 4. **Topic list.**
    - It reads `ForumDraftService.drafts()`.
    - It wraps the avatar with the badge (`ui-icon name="edit" size="xsmall"`, a new icon size) and adds a `topic-draft` subtitle branch.

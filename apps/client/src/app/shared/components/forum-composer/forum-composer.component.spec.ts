@@ -471,6 +471,25 @@ describe('ForumComposerComponent', () => {
             expect(content()).toBe('Другой ответ');
         });
 
+        it('promises no draft for a refused reply when the draft could not be stored', async () => {
+            await spectator.fixture.whenStable();
+            drafts.save.mockResolvedValue(undefined);
+            const outcome = new Subject<ForumPostOutcome<ForumPostedMessage>>();
+            forumService.reply.mockReturnValue(outcome);
+            type('Ответ');
+            spectator.click(sendButton() as HTMLElement);
+            await openTopic(43);
+
+            outcome.next({
+                status: 'rejected',
+                errors: { title: undefined, text: 'Слишком коротко', other: undefined },
+            });
+
+            expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith(
+                'Сообщение не отправлено (Слишком коротко).',
+            );
+        });
+
         it('leaves the next topic alone when a message posts after the reader moved on', async () => {
             await spectator.fixture.whenStable();
             const outcome = new Subject<ForumPostOutcome<ForumPostedMessage>>();

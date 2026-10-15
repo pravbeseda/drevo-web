@@ -192,9 +192,10 @@ export class ForumComposerComponent {
             if (stillHere) {
                 this._error.set(reason);
             } else {
-                // The text left with the reader as the topic's draft.
+                // The text left with the reader as the topic's draft; the store marks it only once it is written.
                 const because = reason ? ` (${reason})` : '';
-                this.notification.error(`Сообщение не отправлено${because}. Текст сохранён в черновике темы.`);
+                const kept = this.drafts.drafts().has(topicId) ? ' Текст сохранён в черновике темы.' : '';
+                this.notification.error(`Сообщение не отправлено${because}.${kept}`);
             }
             return;
         }
