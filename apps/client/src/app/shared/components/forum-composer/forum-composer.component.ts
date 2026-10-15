@@ -165,23 +165,24 @@ export class ForumComposerComponent {
         }
 
         const topicId = this.topicId();
+        const text = this._draft();
         const parentId = this._replyTarget()?.id;
         this._sending.set(true);
         this._error.set(undefined);
         this.forumService
-            .reply(topicId, this._draft(), parentId)
+            .reply(topicId, text, parentId)
             .pipe(
                 finalize(() => this._sending.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe({
-                next: outcome => this.applyOutcome(outcome, topicId),
+                next: outcome => this.applyOutcome(outcome, topicId, text),
                 // The error toast has already told the reader; the text stays for another try.
                 error: (error: unknown) => this.logger.error('Failed to post a reply', error),
             });
     }
 
-    private applyOutcome(outcome: ForumPostOutcome<ForumPostedMessage>, topicId: number): void {
+    private applyOutcome(outcome: ForumPostOutcome<ForumPostedMessage>, topicId: number, sentText: string): void {
         // The reader may have moved to another topic meanwhile: its field and feed are not this reply's.
         const stillHere = topicId === this.draftTopicId;
 
@@ -192,9 +193,9 @@ export class ForumComposerComponent {
             if (stillHere) {
                 this._error.set(reason);
             } else {
-                // The text left with the reader as the topic's draft; the store marks it only once it is written.
+                // The text left with the reader as the topic's draft; the store holds it only once it is written.
                 const because = reason ? ` (${reason})` : '';
-                const kept = this.drafts.drafts().has(topicId) ? ' Текст сохранён в черновике темы.' : '';
+                const kept = this.drafts.drafts().get(topicId) === sentText ? ' Текст сохранён в черновике темы.' : '';
                 this.notification.error(`Сообщение не отправлено${because}.${kept}`);
             }
             return;
