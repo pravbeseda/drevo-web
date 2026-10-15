@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use 'index' as *;
 
 :host {
@@ -36,15 +37,6 @@
         background: var(--themed-list-selected-background);
     }
 
-    /* The ring around the draft badge takes the row's own background, so the badge reads as cut out of the avatar. */
-    &:hover .topic-list__draft-badge {
-        border-color: var(--themed-menu-hover-background);
-    }
-
-    &[aria-current='page'] .topic-list__draft-badge {
-        border-color: var(--themed-list-selected-background);
-    }
-
     &:focus-visible {
         outline: $forum-topic-row-focus-width solid var(--themed-link-color);
         outline-offset: -$forum-topic-row-focus-width;
@@ -57,6 +49,20 @@
     flex: none;
 }
 
+/* The badge sits in a see-through cut-out of the avatar, so the gap shows whatever the row is painted with. */
+.topic-list__avatar--draft ui-avatar {
+    $badge-radius: math.div($forum-draft-badge-size, 2);
+    $center: $avatar-size-md - $forum-draft-badge-offset - $badge-radius;
+    $cut-radius: $badge-radius + $forum-draft-badge-gap;
+
+    /* A mask reads only the alpha, so any opaque colour keeps the avatar. */
+    mask: radial-gradient(
+        circle at $center $center,
+        transparent $cut-radius,
+        currentcolor calc(#{$cut-radius} + 0.5px)
+    );
+}
+
 .topic-list__draft-badge {
     position: absolute;
     right: $forum-draft-badge-offset;
@@ -66,7 +72,6 @@
     justify-content: center;
     width: $forum-draft-badge-size;
     height: $forum-draft-badge-size;
-    border: $forum-draft-badge-ring solid var(--themed-primary-bg);
     border-radius: 50%;
     background: var(--themed-link-color);
     color: var(--themed-primary-bg);

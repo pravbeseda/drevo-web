@@ -24,7 +24,10 @@
                 [routerLink]="topicLink(topic.id)"
             >
                 @let draft = draftExcerpts().get(topic.id);
-                <span class="topic-list__avatar">
+                <span
+                    class="topic-list__avatar"
+                    [class.topic-list__avatar--draft]="draft !== undefined"
+                >
                     <ui-avatar
                         data-testid="topic-author-avatar"
                         [name]="topic.author"

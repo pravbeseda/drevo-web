@@ -9,7 +9,7 @@
 - Each topic keeps its own reply draft. When you leave a topic with a non-empty composer, the draft is saved; when you open the topic again, it is restored.
 - When you leave with an empty composer, any stored draft for that topic is deleted. Sending a message also deletes the draft.
 - In the topic list (the forum page and the article discussion tab), a topic that has a draft shows:
-  - a pencil badge on the avatar, bottom-right, in a circle of `--themed-link-color` with a ring of the background colour (mockup variant 2);
+  - a pencil badge on the avatar, bottom-right, in a circle of `--themed-link-color` set in a cut-out of the avatar (mockup variant 2);
   - the subtitle `Черновик: <draft excerpt>` in place of the last-post excerpt (mockup variant 9).
 
 ## Design
@@ -27,7 +27,7 @@
 4. **Topic list.**
    - It reads `ForumDraftService.drafts()`.
    - It wraps the avatar with the badge (`ui-icon name="edit" size="xsmall"`, a new icon size) and adds a `topic-draft` subtitle branch.
-   - The badge size, ring and offset become tokens in `_tokens.scss`; the ring follows the row's hover and selected backgrounds.
+   - The badge sits in a see-through cut-out of the avatar (`mask`), so the gap shows the row's background in every state and theme; the hover and selected row colours are translucent in the dark theme, so a ring painted in them would vanish. The badge size, gap and offset are tokens in `_tokens.scss`.
 5. **Excerpt.** The first non-empty line of the draft that is not a `>` quote line, cut by CSS ellipsis.
 
 ## Tests

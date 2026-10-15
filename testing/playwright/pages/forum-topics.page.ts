@@ -57,6 +57,38 @@ export class ForumTopicsPage extends BasePage {
         return this.link(text).getByTestId('topic-draft');
     }
 
+    /**
+     * How far, at most per colour channel, the gap just left of the draft badge
+     * is from the row's own background beside the avatar — 0 when the badge
+     * sits in a see-through cut-out of the avatar.
+     */
+    async draftBadgeRingMismatch(text: string): Promise<number> {
+        const badge = await this.draftBadge(text).boundingBox();
+        const row = await this.link(text).boundingBox();
+        if (!badge || !row) {
+            throw new Error(`No draft badge on the row «${text}»`);
+        }
+        const y = badge.y + badge.height / 2;
+        const [ring, background] = await Promise.all([this.colourAt(badge.x - 1, y), this.colourAt(row.x + 2, y)]);
+        return Math.max(...ring.map((channel, index) => Math.abs(channel - background[index])));
+    }
+
+    /** The colour painted on screen at a point, as [r, g, b]. */
+    private async colourAt(x: number, y: number): Promise<readonly number[]> {
+        const png = await this.page.screenshot({ clip: { x: Math.floor(x), y: Math.floor(y), width: 1, height: 1 } });
+        return this.page.evaluate(async data => {
+            const image = new Image();
+            image.src = `data:image/png;base64,${data}`;
+            await image.decode();
+            const canvas = document.createElement('canvas');
+            canvas.width = 1;
+            canvas.height = 1;
+            const context = canvas.getContext('2d');
+            context?.drawImage(image, 0, 0, 1, 1);
+            return Array.from(context?.getImageData(0, 0, 1, 1).data.slice(0, 3) ?? []);
+        }, png.toString('base64'));
+    }
+
     /** Drags the border between the list and the topic by `distance` pixels, right being positive. */
     async dragColumnBorder(distance: number): Promise<void> {
         const box = await this.resizeHandle.boundingBox();
