@@ -53,6 +53,7 @@ export {
     mockForumTopicNotFound,
     mockForumMessageTopicApi,
     mockForumMessageNotFound,
+    mockForumMessageServerError,
     mockForumCreateTopicApi,
     mockForumReplyApi,
     mockArticleVersion,

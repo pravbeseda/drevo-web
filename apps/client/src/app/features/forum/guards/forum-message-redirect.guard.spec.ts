@@ -46,10 +46,10 @@ describe('forumMessageMatcher', () => {
         expect(match(...paths)).toBeNull();
     });
 
-    it('leaves an id carrying matrix params to the routes after it', () => {
+    it('takes an id carrying matrix params too, leaving them to the guard', () => {
         const result = forumMessageMatcher([new UrlSegment('123', { id: '7' })], new UrlSegmentGroup([], {}), {});
 
-        expect(result).toBeNull();
+        expect(result?.posParams?.['messageId'].path).toBe('123');
     });
 });
 
@@ -97,11 +97,11 @@ describe('forumMessageRedirectGuard', () => {
         expect(logger.error).not.toHaveBeenCalled();
     });
 
-    it('logs a failed lookup and leaves the outcome to the topic page', async () => {
+    it('logs a failed lookup and sends the reader to the forum', async () => {
         const error = new HttpErrorResponse({ status: 500 });
         forumService.getMessageTopic.mockReturnValue(throwError(() => error));
 
-        expect(await redirectOf(createRouteSnapshot({ messageId: '99' }))).toBe('/forum/topic/99');
+        expect(await redirectOf(createRouteSnapshot({ messageId: '99' }))).toBe('/forum');
         expect(logger.error).toHaveBeenCalledWith('Failed to resolve the forum message 99', error);
     });
 });

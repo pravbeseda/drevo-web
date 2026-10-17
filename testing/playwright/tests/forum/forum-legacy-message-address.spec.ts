@@ -1,6 +1,7 @@
 import {
     expect,
     mockForumMessageNotFound,
+    mockForumMessageServerError,
     mockForumMessageTopicApi,
     mockForumSectionsApi,
     mockForumTopicApi,
@@ -8,6 +9,7 @@ import {
     mockForumTopicsApi,
     test,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import {
     createForumMessageDto,
     createForumTopicDto,
@@ -16,6 +18,7 @@ import {
     createForumTopicPage,
 } from '../../mocks/forum';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
+import { ForumTopicsPage } from '../../pages/forum-topics.page';
 
 const TOPIC_ID = 7;
 const REPLY_ID = 3;
@@ -60,5 +63,15 @@ test.describe('Forum legacy message address', () => {
 
         await expect(page).toHaveURL(`/forum/topic/${GONE_MESSAGE_ID}`);
         await expect(new ForumTopicPage(page).notFound).toBeVisible();
+    });
+
+    test('opens the forum with an error when the lookup fails', async ({ authenticatedPage: page }) => {
+        await mockForumMessageServerError(page, REPLY_ID);
+
+        await page.goto(`/forum/${REPLY_ID}`);
+
+        await expect(page).toHaveURL('/forum');
+        await expect(new ForumTopicsPage(page).items.first()).toBeVisible();
+        await expect(getNotification(page, 'error')).toBeVisible();
     });
 });

@@ -668,6 +668,13 @@ export async function mockForumMessageNotFound(page: Page, messageId: number): P
     );
 }
 
+/** Mock GET /api/forum/messages/:id — 500 */
+export async function mockForumMessageServerError(page: Page, messageId: number): Promise<void> {
+    await page.route(forumMessageRe(messageId), route =>
+        route.fulfill({ status: 500, json: apiError('Server error') }),
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Article edit
 // ---------------------------------------------------------------------------
