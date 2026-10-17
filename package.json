@@ -127,7 +127,7 @@
         "monocart-reporter": "^2.10.0",
         "ng-mocks": "^14.15.0",
         "nx": "23.2.1",
-        "prettier": "3.9.9",
+        "prettier": "3.9.10",
         "serve": "^14.2.6",
         "stylelint": "^17.14.1",
         "stylelint-config-standard-scss": "^17.0.0",
