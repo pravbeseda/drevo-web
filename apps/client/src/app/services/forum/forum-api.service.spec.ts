@@ -5,6 +5,7 @@ import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import {
     ForumCreatedTopicDto,
+    ForumMessageTopicDto,
     ForumPostedMessageDto,
     ForumSectionDto,
     ForumTopicListResponseDto,
@@ -159,6 +160,28 @@ describe('ForumApiService', () => {
 
             const req = httpController.expectOne('/api/forum/topics/42?anchor=99');
             req.flush({ success: true, data: topicPage });
+        });
+    });
+
+    describe('getMessageTopic', () => {
+        it('should call GET /api/forum/messages/<id> and unwrap data', () => {
+            let result: ForumMessageTopicDto | undefined;
+            spectator.service.getMessageTopic(99).subscribe(dto => (result = dto));
+
+            const req = httpController.expectOne('/api/forum/messages/99');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush({ success: true, data: { topicId: 42 } });
+
+            expect(result).toEqual({ topicId: 42 });
+        });
+
+        it('should keep a 404 away from the error toast', () => {
+            spectator.service.getMessageTopic(99).subscribe({ error: () => undefined });
+
+            const req = httpController.expectOne('/api/forum/messages/99');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([404]);
+            req.flush({ success: false }, { status: 404, statusText: 'Not Found' });
         });
     });
 

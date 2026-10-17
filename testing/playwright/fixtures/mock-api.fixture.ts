@@ -651,6 +651,30 @@ export async function mockForumTopicNotFound(page: Page, id: number): Promise<vo
     await page.route(forumTopicRe(id), route => route.fulfill({ status: 404, json: apiError('Topic not found') }));
 }
 
+/** Matches GET /api/forum/messages/:id for one id */
+function forumMessageRe(id: number): RegExp {
+    return new RegExp(`/api/forum/messages/${id}(\\?.*)?$`);
+}
+
+/** Mock GET /api/forum/messages/:id — the topic the message belongs to */
+export async function mockForumMessageTopicApi(page: Page, messageId: number, topicId: number): Promise<void> {
+    await page.route(forumMessageRe(messageId), route => route.fulfill({ json: apiSuccess({ topicId }) }));
+}
+
+/** Mock GET /api/forum/messages/:id — 404 */
+export async function mockForumMessageNotFound(page: Page, messageId: number): Promise<void> {
+    await page.route(forumMessageRe(messageId), route =>
+        route.fulfill({ status: 404, json: apiError('Message not found') }),
+    );
+}
+
+/** Mock GET /api/forum/messages/:id — 500 */
+export async function mockForumMessageServerError(page: Page, messageId: number): Promise<void> {
+    await page.route(forumMessageRe(messageId), route =>
+        route.fulfill({ status: 500, json: apiError('Server error') }),
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Article edit
 // ---------------------------------------------------------------------------
