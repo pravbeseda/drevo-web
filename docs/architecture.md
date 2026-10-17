@@ -13,6 +13,7 @@ app/features/
     components/              # Non-routed components used within this feature
     services/                # Feature-scoped services (not providedIn: 'root')
     resolvers/               # Route resolvers
+    guards/                  # Route guards and matchers
     models/                  # Feature-local types and interfaces
     constants/               # Feature-local constants
     article.routes.ts        # Feature routes
@@ -22,7 +23,7 @@ app/features/
 2. **`pages/`** — only routed (lazy-loaded) components. One subfolder per route entry point
 3. **`components/`** — non-routed components used within this feature only
 4. **`services/`** — only feature-scoped services (provided in the component or route `providers`, not `providedIn: 'root'`). Global domain services live in `app/services/`
-5. **`resolvers/`** — route resolvers belonging to this feature
+5. **`resolvers/`, `guards/`** — route resolvers, guards and URL matchers belonging to this feature; app-wide guards stay in `app/guards/`
 6. **`models/`, `constants/`** — feature-local types, and constants shared across components within the feature. Created only when needed
 7. **Feature routes file** — each feature has its own `*.routes.ts`, imported lazily from `app.routes.ts`
 8. **Small features** — a feature that is a single component (no subcomponents, services or resolvers) keeps its files directly in `features/X/`. Add `pages/`, `components/`, `services/` as it grows

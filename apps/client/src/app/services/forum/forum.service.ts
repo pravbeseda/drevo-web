@@ -72,6 +72,13 @@ export class ForumService {
     }
 
     /**
+     * Get the id of the topic a message belongs to.
+     */
+    getMessageTopic(id: number): Observable<number> {
+        return this.forumApiService.getMessageTopic(id).pipe(map(dto => dto.topicId));
+    }
+
+    /**
      * Start a topic. A post the forum refuses is an outcome the form shows,
      * not a failure; anything else still fails the stream.
      */

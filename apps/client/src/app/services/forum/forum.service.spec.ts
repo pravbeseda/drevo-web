@@ -170,6 +170,18 @@ describe('ForumService', () => {
         });
     });
 
+    describe('getMessageTopic', () => {
+        it('should answer the id of the topic the message belongs to', done => {
+            forumApiService.getMessageTopic.mockReturnValue(of({ topicId: 42 }));
+
+            spectator.service.getMessageTopic(99).subscribe(topicId => {
+                expect(forumApiService.getMessageTopic).toHaveBeenCalledWith(99);
+                expect(topicId).toBe(42);
+                done();
+            });
+        });
+    });
+
     describe('getTopic', () => {
         it('should pass the params to the API layer', () => {
             forumApiService.getTopic.mockReturnValue(of(topicPage));

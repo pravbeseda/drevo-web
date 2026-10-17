@@ -6,6 +6,7 @@ import {
     ApiResponse,
     ForumCreatedTopicDto,
     ForumCreateTopicRequestDto,
+    ForumMessageTopicDto,
     ForumPostedMessageDto,
     ForumReplyRequestDto,
     ForumSectionDto,
@@ -18,6 +19,7 @@ import { map } from 'rxjs/operators';
 
 const VALIDATION_FAILURE_STATUS = 400;
 const FORBIDDEN_STATUS = 403;
+const NOT_FOUND_STATUS = 404;
 
 /**
  * Low-level API service for forum-related HTTP requests.
@@ -108,6 +110,24 @@ export class ForumApiService {
             .get<ApiResponse<ForumTopicPageDto>>(`${this.apiUrl}/api/forum/topics/${id}`, {
                 params,
                 withCredentials: true,
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Get the topic a message belongs to. A message that is gone is a stale
+     * link the caller answers itself, so a 404 stays away from the error toast.
+     */
+    getMessageTopic(id: number): Observable<ForumMessageTopicDto> {
+        return this.http
+            .get<ApiResponse<ForumMessageTopicDto>>(`${this.apiUrl}/api/forum/messages/${id}`, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [NOT_FOUND_STATUS]),
             })
             .pipe(
                 map(response => {

@@ -1,3 +1,4 @@
+import { forumMessageMatcher, forumMessageRedirectGuard } from './guards/forum-message-redirect.guard';
 import { forumSectionsResolver } from './resolvers/forum-sections.resolver';
 import { forumTopicsResolver } from './resolvers/forum-topics.resolver';
 import { forumTopicRoutes } from '../../shared/routes/forum-topic.routes';
@@ -18,6 +19,9 @@ function topicsRoute(children: Route[] = forumTopicRoutes()): Omit<Route, 'path'
 }
 
 export const FORUM_ROUTES: Route[] = [
+    // The legacy address of one message. It sits first: `:part` below would
+    // take the id for a section. Componentless — the guard always redirects.
+    { matcher: forumMessageMatcher, canActivate: [forumMessageRedirectGuard], children: [] },
     {
         // Componentless: the sections resolve once for the section filter of every list below.
         path: '',

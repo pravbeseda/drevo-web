@@ -105,3 +105,8 @@ export interface ForumPostedMessageDto {
 export interface ForumCreatedTopicDto extends ForumPostedMessageDto {
     readonly topicId: number;
 }
+
+/** The topic a message belongs to — what the legacy `forum/<id>` address resolves through. */
+export interface ForumMessageTopicDto {
+    readonly topicId: number;
+}
