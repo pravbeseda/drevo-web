@@ -73,7 +73,7 @@ jobs:
             - name: SSR host allow-list
               run: pnpm lint:ssr-hosts
 
-            - name: Lazy-only modules stay out of the initial bundle
+            - name: Initial bundle composition, lazy-only modules kept out
               run: pnpm lint:bundle
 
     deploy:
