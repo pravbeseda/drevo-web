@@ -36,7 +36,6 @@ const EXCEPTIONS = {
     // Declaration-only: a routing table or a DI configuration, exercised by the Playwright
     // suite through real navigation rather than by a unit test.
     'apps/client/src/app/app.config.ts': 0,
-    'apps/client/src/app/app.config.browser.ts': 0,
     'apps/client/src/app/app.config.server.ts': 0,
     'apps/client/src/app/app.routes.ts': 0,
     'apps/client/src/app/app.routes.server.ts': 0,
