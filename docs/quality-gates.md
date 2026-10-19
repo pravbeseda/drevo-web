@@ -57,6 +57,12 @@ A mock that no longer matches the type it claims is what this gate is for: it ma
 
 Adding a domain means adding it in both places: `security.allowedHosts` and `DEPLOYED_HOSTS` in `scripts/check-ssr-hosts.js`.
 
+## The initial bundle budget only ratchets down
+
+The `initial` budget under the production configuration in `apps/client/project.json` sits a small headroom over the measured size: `maximumWarning` about 50 kB above it, `maximumError` about 100 kB above, enough for ordinary feature growth and too little for a leaked library (#463 took 100 kB out). Angular counts `1mb` as 1,000,000 bytes, the same unit as the size in the build report.
+
+When the build fails on it, find what grew before touching the number. Never raise the budget to make the build pass without explicit approval; it was raised six times in ten months before #205 brought the bundle back down. Lower it when a change shrinks the bundle.
+
 ## Lazy-only modules in the initial bundle
 
 A lazy-only module that leaks into the initial bundle breaks nothing a test can see: the app builds, every suite passes, only the startup download grows. The usual cause is an eager import of a library barrel ([`architecture.md`](architecture.md#barrel-files-indexts)).
