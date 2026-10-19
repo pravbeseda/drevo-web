@@ -1,5 +1,8 @@
+import { LogDatabase } from '../log-database';
 import { LogEntry } from '../log-provider.interface';
 import { IndexedDBLogProvider } from './indexed-db-log.provider';
+
+jest.mock('../log-database');
 
 /**
  * Tests for IndexedDBLogProvider
@@ -7,6 +10,7 @@ import { IndexedDBLogProvider } from './indexed-db-log.provider';
  * Note: Since IndexedDB is not available in Jest/JSDOM, we test:
  * 1. Provider interface contract (name, isAvailable behavior)
  * 2. SSR safety (provider disabled when window/indexedDB unavailable)
+ * 3. Lazy loading of the database, against a mocked LogDatabase and a stub `indexedDB`
  *
  * Integration tests with real IndexedDB would require a browser-based test runner.
  */
@@ -88,17 +92,6 @@ describe('IndexedDBLogProvider', () => {
             expect(size).toBe(0);
         });
     });
-
-    describe('getUserAgent()', () => {
-        it('should return undefined when provider is unavailable', () => {
-            const provider = new IndexedDBLogProvider();
-
-            // When database is not available, getUserAgent returns undefined
-            const userAgent = provider.getUserAgent();
-
-            expect(userAgent).toBeUndefined();
-        });
-    });
 });
 
 describe('IndexedDBLogProvider (SSR)', () => {
@@ -144,5 +137,63 @@ describe('IndexedDBLogProvider (SSR)', () => {
         expect(logs).toEqual([]);
 
         global.window = originalWindow;
+    });
+});
+
+describe('IndexedDBLogProvider (browser with IndexedDB)', () => {
+    const MockLogDatabase = LogDatabase as jest.MockedClass<typeof LogDatabase>;
+    const entry: LogEntry = { level: 'info', message: 'Test', timestamp: new Date('2026-01-18T10:00:00.000Z') };
+
+    beforeEach(() => {
+        MockLogDatabase.mockClear();
+        Object.defineProperty(global, 'indexedDB', { value: {}, configurable: true });
+    });
+
+    afterEach(() => {
+        // @ts-expect-error - removing the stub installed above
+        delete global.indexedDB;
+    });
+
+    it('does not open the database, and so does not load dexie, until something is written', () => {
+        const provider = new IndexedDBLogProvider();
+
+        expect(provider.isAvailable).toBe(true);
+        expect(MockLogDatabase).not.toHaveBeenCalled();
+    });
+
+    it('opens the database on the first flush and writes the buffered entries', async () => {
+        const provider = new IndexedDBLogProvider();
+
+        provider.log(entry);
+        await provider.flush();
+
+        expect(MockLogDatabase).toHaveBeenCalledTimes(1);
+        expect(MockLogDatabase.mock.instances[0].addLogs).toHaveBeenCalledWith([entry]);
+    });
+
+    it('opens the database once across flushes', async () => {
+        const provider = new IndexedDBLogProvider();
+
+        provider.log(entry);
+        await provider.flush();
+        provider.log(entry);
+        await provider.flush();
+
+        expect(MockLogDatabase).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the entries and retries opening when the first attempt fails', async () => {
+        jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        MockLogDatabase.mockImplementationOnce(() => {
+            throw new Error('Loading chunk failed');
+        });
+        const provider = new IndexedDBLogProvider();
+
+        provider.log(entry);
+        await provider.flush();
+        await provider.flush();
+
+        expect(MockLogDatabase).toHaveBeenCalledTimes(2);
+        expect(MockLogDatabase.mock.instances[1].addLogs).toHaveBeenCalledWith([entry]);
     });
 });

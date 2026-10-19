@@ -62,9 +62,9 @@ const EXCEPTIONS = {
 
     // The IndexedDB layer: jsdom ships no implementation, so a unit test reaches the wrapper
     // around the calls and not the calls. Also #267.
-    'libs/core/src/lib/logging/log-database.ts': 4,
+    'libs/core/src/lib/logging/log-database.ts': 5,
     'libs/core/src/lib/draft-storage/draft-database.ts': 20,
-    'libs/core/src/lib/logging/providers/indexed-db-log.provider.ts': 39,
+    'libs/core/src/lib/logging/providers/indexed-db-log.provider.ts': 81,
     'libs/core/src/lib/logging/log-provider.interface.ts': 50,
 };
 
