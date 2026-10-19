@@ -73,6 +73,9 @@ jobs:
             - name: SSR host allow-list
               run: pnpm lint:ssr-hosts
 
+            - name: Lazy-only modules stay out of the initial bundle
+              run: pnpm lint:bundle
+
     deploy:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         needs: ci
