@@ -1,7 +1,8 @@
 import { PENDING_TYPE_LABELS } from '../../../../shared/constants/pending-type-labels';
 import { PendingGroup } from '../../services/pictures-history.service';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { IconButtonComponent, IconComponent } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 
 const MISSING_PICTURE_TITLE = 'Иллюстрация удалена';
 

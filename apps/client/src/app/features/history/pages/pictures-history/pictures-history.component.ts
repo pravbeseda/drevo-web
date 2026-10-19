@@ -2,12 +2,9 @@ import { PicturePendingCardComponent } from '../../components/picture-pending-ca
 import { PicturesHistoryService, trackByFn } from '../../services/pictures-history.service';
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-    FormatTimePipe,
-    SpinnerComponent,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-} from '@drevo-web/ui';
+import { FormatTimePipe } from '@drevo-web/ui/format-time';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 
 @Component({
     selector: 'app-pictures-history',

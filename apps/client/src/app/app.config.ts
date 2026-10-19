@@ -17,7 +17,7 @@ import {
     createSentryLogProvider,
 } from '@drevo-web/core';
 import { getTopicIconPath, TOPICS } from '@drevo-web/shared';
-import { provideSvgIcons } from '@drevo-web/ui';
+import { provideSvgIcons } from '@drevo-web/ui/providers';
 
 // Build log providers array based on environment
 const logProviders = [

@@ -8,7 +8,8 @@ import {
     ReviewStatusClass,
     ReviewSummary,
 } from '@drevo-web/shared';
-import { IconComponent, TooltipDirective } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { TooltipDirective } from '@drevo-web/ui/tooltip';
 
 interface ReviewChip {
     readonly status: ReviewStatus;

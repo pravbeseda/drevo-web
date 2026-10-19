@@ -7,7 +7,7 @@ import { provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumTopicListItem, User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { VirtualScrollerComponent } from '@drevo-web/ui';
+import { VirtualScrollerComponent } from '@drevo-web/ui/virtual-scroller';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 

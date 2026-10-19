@@ -2,13 +2,11 @@ import { ReviewBadgeComponent } from '../review-badge/review-badge.component';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApprovalStatus, ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
-import {
-    ButtonComponent,
-    FormatTimePipe,
-    IconButtonComponent,
-    IconComponent,
-    StatusIconComponent,
-} from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { FormatTimePipe } from '@drevo-web/ui/format-time';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 
 @Component({
     selector: 'app-articles-history-item',

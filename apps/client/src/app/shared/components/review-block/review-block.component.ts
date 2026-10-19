@@ -17,18 +17,13 @@ import {
     ReviewStatusClass,
     ReviewTarget,
 } from '@drevo-web/shared';
-import {
-    ButtonComponent,
-    ButtonToggleClick,
-    ButtonToggleGroupComponent,
-    ButtonToggleOption,
-    ConfirmationService,
-    FormatDatePipe,
-    IconButtonComponent,
-    IconComponent,
-    IconTone,
-    TextInputComponent,
-} from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { ButtonToggleClick, ButtonToggleGroupComponent, ButtonToggleOption } from '@drevo-web/ui/button-toggle-group';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { IconComponent, IconTone } from '@drevo-web/ui/icon';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
 import { filter, of, switchMap, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 

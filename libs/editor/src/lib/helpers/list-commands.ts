@@ -155,7 +155,7 @@ function handleQuoteContinuation(view: EditorView): boolean {
     const remainingContent = lineContent.substring(head - line.from).trim();
     const isCursorAtEndOfLine = head === line.to;
 
-    let insertText;
+    let insertText: string;
     const cursorPos = head + 2; // Position after first \n\n
 
     if (isCursorAtEndOfLine) {

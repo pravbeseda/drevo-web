@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { DrawerService } from '@drevo-web/core';
-import { IconComponent } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
 import { SidebarNavComponent } from './sidebar-nav.component';
 
 describe('SidebarNavComponent', () => {

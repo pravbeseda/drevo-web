@@ -21,6 +21,7 @@
         "test:scripts": "node --test \"scripts/*.test.js\"",
         "lint:workflows": "node scripts/check-release-workflow.js && node scripts/check-node-types.js",
         "lint:ssr-hosts": "node scripts/check-ssr-hosts.js",
+        "lint:bundle": "node scripts/check-initial-bundle.js",
         "knip": "knip",
         "knip:deps": "knip --dependencies",
         "e2e": "playwright test --config=apps/client-e2e/playwright.config.ts",

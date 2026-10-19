@@ -1,7 +1,8 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ArticlesHistoryItemComponent } from './articles-history-item.component';
 import { ApprovalStatus, ArticleHistoryItem, ReviewStatus } from '@drevo-web/shared';
-import { IconButtonComponent, StatusIconComponent } from '@drevo-web/ui';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 import { provideRouter } from '@angular/router';
 
 function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {

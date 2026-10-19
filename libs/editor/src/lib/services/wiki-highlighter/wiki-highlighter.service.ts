@@ -268,9 +268,7 @@ export class WikiHighlighterService {
     }
 
     private collectMatches(regex: RegExp, className: string, isBalancedCorrectionNeeded = false): void {
-        let match;
-        // eslint-disable-next-line no-null/no-null
-        while ((match = regex.exec(this.text)) !== null) {
+        for (let match = regex.exec(this.text); match; match = regex.exec(this.text)) {
             let matchedText = match[0];
             if (isBalancedCorrectionNeeded) {
                 matchedText = this.trimToBalanced(matchedText);

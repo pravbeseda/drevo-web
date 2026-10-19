@@ -6,6 +6,8 @@
         "apps/client/src/server.ts",
         "apps/client/src/environments/environment.prod.ts",
         "libs/*/src/index.ts",
+        "libs/ui/src/lib/**/index.ts",
+        "libs/shared/src/lib/helpers/diff/index.ts",
         "libs/*/src/testing.ts",
         "libs/*/src/test-setup.ts",
         "{apps,libs}/*/eslint.config.mjs",

@@ -9,7 +9,8 @@ import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, WINDOW } from '@drevo-web/core';
 import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { ConfirmationService, ModalService } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
+import { ModalService } from '@drevo-web/ui/modal';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { EMPTY, of, throwError } from 'rxjs';
 

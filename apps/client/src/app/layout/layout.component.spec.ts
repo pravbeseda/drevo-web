@@ -15,7 +15,7 @@ import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { Subject } from 'rxjs';
 import { DrawerService, WINDOW } from '@drevo-web/core';
-import { BREAKPOINT_TABLET } from '@drevo-web/ui';
+import { BREAKPOINT_TABLET } from '@drevo-web/ui/constants';
 import { PageTitleStrategy } from '../services/page-title.strategy';
 import { LayoutComponent } from './layout.component';
 

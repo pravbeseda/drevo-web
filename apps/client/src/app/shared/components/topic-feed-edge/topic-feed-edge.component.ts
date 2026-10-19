@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { ButtonComponent, InViewDirective, SpinnerComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { InViewDirective } from '@drevo-web/ui/in-view';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
 
 /**
  * Where an end of the feed stands. A failed end waits for the reader's retry:

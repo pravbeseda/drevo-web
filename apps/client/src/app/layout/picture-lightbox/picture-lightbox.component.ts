@@ -12,7 +12,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { IconButtonComponent, SpinnerComponent, TooltipDirective } from '@drevo-web/ui';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { TooltipDirective } from '@drevo-web/ui/tooltip';
 import { filter, fromEvent } from 'rxjs';
 
 @Component({

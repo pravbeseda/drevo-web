@@ -5,7 +5,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isValidReturnUrl } from '@drevo-web/shared';
-import { TextInputComponent, CheckboxComponent, ButtonComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { CheckboxComponent } from '@drevo-web/ui/checkbox';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
 import { finalize } from 'rxjs';
 
 @Component({

@@ -3,14 +3,10 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnIni
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ArticleSearchResult } from '@drevo-web/shared';
-import {
-    SpinnerComponent,
-    TextInputComponent,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-    MODAL_DATA,
-    ModalData,
-} from '@drevo-web/ui';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
+import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;

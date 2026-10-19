@@ -1,6 +1,6 @@
 import { ForumSendBarComponent } from './forum-send-bar.component';
 import { WINDOW } from '@drevo-web/core';
-import { ButtonComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
 import { Spectator, createComponentFactory, createHostFactory } from '@ngneat/spectator/jest';
 
 const MAC_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)';

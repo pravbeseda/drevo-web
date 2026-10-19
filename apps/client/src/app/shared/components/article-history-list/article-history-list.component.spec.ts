@@ -7,7 +7,7 @@ import { ArticleHistoryListComponent } from './article-history-list.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal, WritableSignal } from '@angular/core';
 import { ArticleHistoryItem, InworkItem, ReviewSummary } from '@drevo-web/shared';
-import { VirtualScrollerComponent } from '@drevo-web/ui';
+import { VirtualScrollerComponent } from '@drevo-web/ui/virtual-scroller';
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {

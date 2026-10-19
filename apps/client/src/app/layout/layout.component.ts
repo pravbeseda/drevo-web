@@ -17,7 +17,8 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router';
 import { DrawerService, SidebarService, WINDOW } from '@drevo-web/core';
-import { BREAKPOINT_TABLET, NavigationProgressComponent } from '@drevo-web/ui';
+import { BREAKPOINT_TABLET } from '@drevo-web/ui/constants';
+import { NavigationProgressComponent } from '@drevo-web/ui/navigation-progress';
 import { filter, map, of, switchMap, timer } from 'rxjs';
 
 const NAVIGATION_DEBOUNCE_MS = 100;

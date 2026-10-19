@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { ButtonComponent, IconComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { IconComponent } from '@drevo-web/ui/icon';
 
 @Component({
     selector: 'app-error',

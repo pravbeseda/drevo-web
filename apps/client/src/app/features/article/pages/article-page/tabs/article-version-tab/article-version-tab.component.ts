@@ -10,7 +10,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ApprovalStatus, ArticleVersion, ModerationResult } from '@drevo-web/shared';
-import { BannerComponent, FormatDatePipe, SpinnerComponent, StatusIconComponent } from '@drevo-web/ui';
+import { BannerComponent } from '@drevo-web/ui/banner';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({

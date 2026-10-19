@@ -1,7 +1,8 @@
 import { TITLE_MAX_LENGTH, TITLE_MIN_LENGTH } from '../../constants/picture.constants';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonComponent, MODAL_DATA, ModalData } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 
 export interface ReplaceFileDialogData {
     readonly currentTitle: string;

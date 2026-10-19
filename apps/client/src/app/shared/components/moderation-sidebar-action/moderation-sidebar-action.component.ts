@@ -12,7 +12,7 @@ import {
     ModerationResult,
     SidebarActionPriority,
 } from '@drevo-web/shared';
-import { SidePanelComponent } from '@drevo-web/ui';
+import { SidePanelComponent } from '@drevo-web/ui/side-panel';
 
 @Component({
     selector: 'app-moderation-sidebar-action',

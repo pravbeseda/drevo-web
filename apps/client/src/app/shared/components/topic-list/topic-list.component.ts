@@ -7,16 +7,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ForumTopicListItem } from '@drevo-web/shared';
-import {
-    AvatarComponent,
-    ButtonComponent,
-    FormatDatePipe,
-    IconComponent,
-    ShortDatePipe,
-    TooltipDirective,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-} from '@drevo-web/ui';
+import { AvatarComponent } from '@drevo-web/ui/avatar';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { ShortDatePipe } from '@drevo-web/ui/short-date';
+import { TooltipDirective } from '@drevo-web/ui/tooltip';
+import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { map } from 'rxjs';
 
 /**

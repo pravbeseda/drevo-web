@@ -11,7 +11,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { ForumTopicListResponse } from '@drevo-web/shared';
-import { SpinnerComponent } from '@drevo-web/ui';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { Observable, of } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 

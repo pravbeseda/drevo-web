@@ -67,7 +67,8 @@ app/layout/
 
 ## Barrel files (`index.ts`)
 
-- **Library boundaries carry the only barrels** — `libs/*/src/index.ts`, the public API of `@drevo-web/*`, enforced by `@nx/enforce-module-boundaries`
+- **Library entry points carry the only barrels** — the `index.ts` behind each `@drevo-web/*` path in `tsconfig.base.json`, enforced by `@nx/enforce-module-boundaries`
+- **`@drevo-web/ui` has one entry point per folder and no root barrel** — `@drevo-web/ui/button`, `@drevo-web/ui/modal`, `@drevo-web/ui/format-date`. esbuild assigns a file to chunks by file-level reachability, following every `export … from` of a barrel; tree shaking only decides which code survives. So an eager import of a library barrel puts every module it re-exports that a lazy route uses into a chunk `main` loads at startup, Material modules included, and `"sideEffects": false` does not prevent it. A new component folder gets its own `index.ts` and its own path. `@drevo-web/shared/diff` is split off for the same reason; the rest of `@drevo-web/shared` and `@drevo-web/core` is eager anyway. `pnpm lint:bundle` catches a regression ([`quality-gates.md`](quality-gates.md))
 - **Inside `apps/client/` imports name the concrete module** — `services/X/x.service`, not a folder `index.ts`. An intra-app barrel grows the module graph (slower Jest/esbuild), invites circular dependencies and can pull side-effect modules into lazy chunks, in exchange for a shorter path
 - **Existing app barrels are removed opportunistically** — when you touch a folder that still has an `index.ts` barrel, delete it and switch its consumers to direct imports
 
@@ -75,6 +76,6 @@ app/layout/
 
 Knip reports a type that is exported but only reachable through another exported type ("only reachable through an exported member"). The fix depends on whether anything can name it:
 
-- **Keep the export, add `/** @public ... */`** when the type is on a package boundary (`libs/*/src/index.ts`, e.g. `ModalPosition` in `ModalConfig.position`), or when it is an arm of an exported union that consumers narrow (e.g. `FilterOption` in `FilterEntry`, narrowed by the exported `isFilterGroup`). In both cases there is no other way to name it
+- **Keep the export, add `/** @public ... */`** when the type is on a package boundary (a library entry point, e.g. `ModalPosition` in `ModalConfig.position`), or when it is an arm of an exported union that consumers narrow (e.g. `FilterOption` in `FilterEntry`, narrowed by the exported `isFilterGroup`). In both cases there is no other way to name it
 - **Drop the `export`** otherwise — an element type of an array member, a shape used only inside its own module or app. It comes back, with `@public`, when a consumer actually needs the name
 - **Never suppress knip for the whole file** — the tag is per-type and states who needs the name

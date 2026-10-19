@@ -4,7 +4,7 @@ import { SidebarReserveComponent } from '../../../../shared/components/sidebar-r
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
-import { TabItem, TabsComponent } from '@drevo-web/ui';
+import { TabItem, TabsComponent } from '@drevo-web/ui/tabs';
 
 const BASE_TABS: readonly TabItem[] = [
     { label: 'Статьи', route: '/history/articles', testId: 'history-tab-articles' },

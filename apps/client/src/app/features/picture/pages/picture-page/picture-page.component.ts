@@ -17,13 +17,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
-import {
-    MODAL_DATA,
-    ModalData,
-    SpinnerComponent,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-} from '@drevo-web/ui';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { debounceTime, Subject } from 'rxjs';
 
 @Component({

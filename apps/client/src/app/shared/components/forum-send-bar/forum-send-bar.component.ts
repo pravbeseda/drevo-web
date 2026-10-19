@@ -2,7 +2,8 @@ import { FORUM_SEND_KEY } from '../../helpers/forum-editor-extensions';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { WINDOW } from '@drevo-web/core';
 import { formatKeyBinding, isMacPlatform } from '@drevo-web/shared';
-import { ButtonComponent, IconButtonComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 
 /**
  * The bar under a forum editor: attaching on the left, not yet available, the

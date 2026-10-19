@@ -39,6 +39,7 @@
             },
             "configurations": {
                 "production": {
+                    "statsJson": true,
                     "sourceMap": {
                         "scripts": true,
                         "styles": false,

@@ -22,7 +22,9 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DrawerService, LoggerService, NotificationService, readApiErrorBody, WINDOW } from '@drevo-web/core';
-import { IconButtonComponent, LineClampComponent, ModalService } from '@drevo-web/ui';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { LineClampComponent } from '@drevo-web/ui/line-clamp';
+import { ModalService } from '@drevo-web/ui/modal';
 
 @Component({
     selector: 'app-header',

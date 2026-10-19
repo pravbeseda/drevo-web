@@ -3,7 +3,7 @@ import {
     ReplaceFileDialogData,
     ReplaceFileDialogResult,
 } from './replace-file-dialog.component';
-import { MODAL_DATA, ModalData } from '@drevo-web/ui';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
 describe('ReplaceFileDialogComponent', () => {

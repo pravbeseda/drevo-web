@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { SpinnerComponent } from '@drevo-web/ui';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
 
 @Component({
     selector: 'app-version-redirect',

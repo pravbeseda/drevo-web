@@ -3,7 +3,8 @@ import { SidebarActionComponent } from '../../sidebar-action/sidebar-action.comp
 import { FiltersComponent } from '../filters.component';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SidePanelComponent, ToggleComponent } from '@drevo-web/ui';
+import { SidePanelComponent } from '@drevo-web/ui/side-panel';
+import { ToggleComponent } from '@drevo-web/ui/toggle';
 
 @Component({
     selector: 'app-filters-side-panel',

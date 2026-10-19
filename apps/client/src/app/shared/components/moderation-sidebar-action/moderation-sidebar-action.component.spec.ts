@@ -5,7 +5,7 @@ import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectat
 import { SidebarService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { SidePanelComponent } from '@drevo-web/ui';
+import { SidePanelComponent } from '@drevo-web/ui/side-panel';
 import { of } from 'rxjs';
 import { ModerationSidebarActionComponent } from './moderation-sidebar-action.component';
 

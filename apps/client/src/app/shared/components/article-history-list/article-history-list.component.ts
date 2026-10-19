@@ -3,7 +3,8 @@ import { ArticlesHistoryItemComponent } from '../articles-history-item/articles-
 import { InworkItemComponent } from '../inwork-item/inwork-item.component';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { ArticleHistoryItem } from '@drevo-web/shared';
-import { SpinnerComponent, VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 
 @Component({
     selector: 'app-article-history-list',

@@ -1,7 +1,8 @@
 import { FontScaleService } from '../../services/font-scale.service';
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { ButtonComponent, IconButtonComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 
 @Component({
     selector: 'app-font-scale-control',

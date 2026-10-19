@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, UrlSegmentGroup } from '@angular/router';
 import { ArticleVersion } from '@drevo-web/shared';
-import { TabGroup, TabsGroupComponent } from '@drevo-web/ui';
+import { TabGroup, TabsGroupComponent } from '@drevo-web/ui/tabs-group';
 import { filter, map } from 'rxjs';
 
 @Component({

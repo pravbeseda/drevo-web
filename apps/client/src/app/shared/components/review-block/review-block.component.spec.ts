@@ -4,7 +4,7 @@ import { ReviewService } from '../../../services/reviews/review.service';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus, Review, ReviewStatus, User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { ConfirmationService } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { BehaviorSubject, of } from 'rxjs';
 

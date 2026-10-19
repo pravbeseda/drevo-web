@@ -6,8 +6,8 @@ import {
     DropdownMenuComponent,
     DropdownMenuItemComponent,
     DropdownMenuTriggerDirective,
-    IconButtonComponent,
-} from '@drevo-web/ui';
+} from '@drevo-web/ui/dropdown-menu';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 
 /** Narrows the forum's topic list to one section, or widens it back to every topic. */
 @Component({
