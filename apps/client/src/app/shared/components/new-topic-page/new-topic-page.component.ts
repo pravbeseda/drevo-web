@@ -10,7 +10,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumCreatedTopic, ForumPostErrors, ForumPostOutcome, ForumSection } from '@drevo-web/shared';
-import { ButtonToggleGroupComponent, ButtonToggleOption, InlineInputComponent } from '@drevo-web/ui';
+import { ButtonToggleGroupComponent, ButtonToggleOption } from '@drevo-web/ui/button-toggle-group';
+import { InlineInputComponent } from '@drevo-web/ui/inline-input';
 import { EMPTY, Observable } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 

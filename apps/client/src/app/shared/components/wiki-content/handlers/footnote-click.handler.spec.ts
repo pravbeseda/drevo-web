@@ -2,7 +2,7 @@ import { FootnoteClickHandler } from './footnote-click.handler';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { expectObjectLike } from '@drevo-web/shared/testing';
-import { ModalService } from '@drevo-web/ui';
+import { ModalService } from '@drevo-web/ui/modal';
 
 describe('FootnoteClickHandler', () => {
     let spectator: SpectatorService<FootnoteClickHandler>;

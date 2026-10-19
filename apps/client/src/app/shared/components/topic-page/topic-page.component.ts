@@ -24,7 +24,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ForumMessage, ForumTopicPage } from '@drevo-web/shared';
-import { ScrollbarDirective } from '@drevo-web/ui';
+import { ScrollbarDirective } from '@drevo-web/ui/scrollbar';
 import { EMPTY, Observable, Subject, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 

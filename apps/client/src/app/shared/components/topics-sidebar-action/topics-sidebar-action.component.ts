@@ -6,7 +6,10 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { getTopicsByIds, TOPICS } from '@drevo-web/shared';
-import { ButtonComponent, CheckboxComponent, IconComponent, SidePanelComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { CheckboxComponent } from '@drevo-web/ui/checkbox';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { SidePanelComponent } from '@drevo-web/ui/side-panel';
 import { finalize } from 'rxjs';
 
 @Component({

@@ -21,7 +21,7 @@ The palette sources and the image overlays are the exceptions, listed as overrid
 
 All size tokens live in `libs/ui/src/lib/styles/_tokens.scss`:
 
-- **Breakpoints**: `$breakpoint-tablet: 768px`, `$breakpoint-desktop: 1024px` — the values are repeated deliberately, because `@drevo-web/ui` → `breakpoints` has to agree with them
+- **Breakpoints**: `$breakpoint-tablet: 768px`, `$breakpoint-desktop: 1024px` — the values are repeated deliberately, because `@drevo-web/ui/constants` → `breakpoints` has to agree with them
 - **Layout**: `$header-height`, `$sidebar-width`, `$sidebar-collapsed-width` — read the current values from `_tokens.scss`; they are not restated here, so they cannot go stale here
 
 Never define local CSS custom properties for sizes in component styles — add a new token to `_tokens.scss`.
@@ -34,7 +34,7 @@ Two panes the reader can resize share a `uiResizeHandle` placed between them: `[
 
 ## UI library (`libs/ui`)
 
-Everything is exported from `@drevo-web/ui`, and `libs/ui/src/index.ts` is the live list — read it before building a component by hand. The library covers more than the obvious set: a tooltip, a line clamp, a side panel and a navigation progress bar are already there.
+Each folder of `libs/ui/src/lib` is its own entry point (`@drevo-web/ui/<folder>`), and the `@drevo-web/ui/*` paths in `tsconfig.base.json` are the live list — read it before building a component by hand. The library covers more than the obvious set: a tooltip, a line clamp, a side panel and a navigation progress bar are already there.
 
 What the export names alone do not tell you:
 

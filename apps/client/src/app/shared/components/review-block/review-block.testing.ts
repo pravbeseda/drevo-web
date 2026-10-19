@@ -2,7 +2,7 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { ReviewService } from '../../../services/reviews/review.service';
 import { Provider } from '@angular/core';
 import { Review, User } from '@drevo-web/shared';
-import { ConfirmationService } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { BehaviorSubject, of } from 'rxjs';
 
 /**

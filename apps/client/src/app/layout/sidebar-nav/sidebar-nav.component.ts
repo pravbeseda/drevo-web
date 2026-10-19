@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { DrawerService } from '@drevo-web/core';
-import { IconComponent } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
 
 interface NavItem {
     readonly label: string;

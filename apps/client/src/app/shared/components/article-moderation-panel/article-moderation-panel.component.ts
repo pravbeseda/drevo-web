@@ -14,7 +14,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult } from '@drevo-web/shared';
-import { ButtonComponent, FormatDatePipe, StatusIconComponent, TextInputComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { StatusIconComponent } from '@drevo-web/ui/status-icon';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
 
 @Component({
     selector: 'app-article-moderation-panel',

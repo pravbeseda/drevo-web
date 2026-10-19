@@ -3,7 +3,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
-import { TextInputComponent, CheckboxComponent, ButtonComponent } from '@drevo-web/ui';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
+import { CheckboxComponent } from '@drevo-web/ui/checkbox';
+import { ButtonComponent } from '@drevo-web/ui/button';
 import { AuthService } from '../../services/auth/auth.service';
 import { LoginComponent } from './login.component';
 

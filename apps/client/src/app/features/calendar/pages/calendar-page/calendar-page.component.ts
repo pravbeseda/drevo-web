@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { CALENDAR_MAX_YEAR, CALENDAR_MIN_YEAR } from '@drevo-web/shared';
-import { TabItem, TabsComponent } from '@drevo-web/ui';
+import { TabItem, TabsComponent } from '@drevo-web/ui/tabs';
 import { map } from 'rxjs/operators';
 
 @Component({

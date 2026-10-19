@@ -3,7 +3,7 @@ import { WikiClickHandler } from './wiki-click-handler';
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
-import { ModalService } from '@drevo-web/ui';
+import { ModalService } from '@drevo-web/ui/modal';
 
 const FOOTNOTE_MARKER_CLASS = 'link-note';
 const FOOTNOTE_BACKLINK_SELECTOR = '.link-source';

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { MODAL_DATA, ModalData } from '@drevo-web/ui';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 import { EMPTY } from 'rxjs';
 
 describe('FootnoteModalComponent', () => {

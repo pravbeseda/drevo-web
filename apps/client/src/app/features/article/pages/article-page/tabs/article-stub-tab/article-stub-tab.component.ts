@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { IconComponent } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
 import { map } from 'rxjs/operators';
 
 @Component({

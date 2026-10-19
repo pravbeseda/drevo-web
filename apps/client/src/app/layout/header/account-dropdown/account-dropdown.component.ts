@@ -8,8 +8,8 @@ import {
     DropdownMenuComponent,
     DropdownMenuItemComponent,
     DropdownMenuTriggerDirective,
-    IconButtonComponent,
-} from '@drevo-web/ui';
+} from '@drevo-web/ui/dropdown-menu';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { finalize } from 'rxjs/operators';
 
 @Component({

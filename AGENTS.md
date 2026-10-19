@@ -78,6 +78,7 @@ pnpm knip                                       # dead code and unused deps — 
 pnpm test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 pnpm build                                      # production build — the type check the unit tests cannot do
 pnpm lint:ssr-hosts                             # boots the built SSR server and checks the deployed hosts — needs `pnpm build` first
+pnpm lint:bundle                                # lazy-only modules stay out of the initial bundle — reads the stats `pnpm build` writes
 ```
 
 Never lower a coverage or type-coverage threshold, and never widen the coverage excludes, to make a gate pass without explicit approval — see [`docs/quality-gates.md`](docs/quality-gates.md).
@@ -133,11 +134,12 @@ import { ... } from '@drevo-web/core';
 import { ... } from '@drevo-web/core/testing';    // test mocks
 import { ... } from '@drevo-web/shared';
 import { ... } from '@drevo-web/shared/testing';  // createMockUser, expectAny, expectObjectLike, fastestRunMs
-import { ... } from '@drevo-web/ui';
+import { ... } from '@drevo-web/shared/diff';     // diff engines — lazy pages only
+import { ... } from '@drevo-web/ui/button';       // one entry point per libs/ui folder, no root barrel
 import { ... } from '@drevo-web/editor';
 ```
 
-Never reach across projects with a relative path — always the alias. Library boundaries carry the only barrels; inside `apps/client/` an import names the concrete module.
+Never reach across projects with a relative path — always the alias. Library entry points carry the only barrels; inside `apps/client/` an import names the concrete module. `@drevo-web/ui` has no root barrel on purpose: one eager import of a barrel puts every lazy-only module it re-exports into the initial bundle — see [`docs/architecture.md`](docs/architecture.md).
 
 ### Selector prefixes
 

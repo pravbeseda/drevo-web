@@ -25,7 +25,7 @@ import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { WINDOW } from '@drevo-web/core';
 import { formatKeyBinding, InsertTagCommand, isMacPlatform } from '@drevo-web/shared';
-import { IconComponent } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
 
 const LINKS_CHECK_DEBOUNCE_MS = 300;

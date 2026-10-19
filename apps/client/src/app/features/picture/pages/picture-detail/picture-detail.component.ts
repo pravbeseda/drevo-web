@@ -31,7 +31,10 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { Picture, PictureArticle, PicturePending } from '@drevo-web/shared';
-import { ConfirmationService, FormatDatePipe, ModalService, SpinnerComponent } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { ModalService } from '@drevo-web/ui/modal';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { merge, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 import { catchError, filter, finalize, map, tap } from 'rxjs/operators';
 

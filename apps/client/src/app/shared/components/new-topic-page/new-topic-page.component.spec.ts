@@ -8,7 +8,8 @@ import { NotificationService, SidebarService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumCreatedTopic, ForumPostOutcome, ForumSection } from '@drevo-web/shared';
-import { ButtonToggleGroupComponent, InlineInputComponent } from '@drevo-web/ui';
+import { ButtonToggleGroupComponent } from '@drevo-web/ui/button-toggle-group';
+import { InlineInputComponent } from '@drevo-web/ui/inline-input';
 import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
 import { NEVER, Observable, of, throwError } from 'rxjs';
 

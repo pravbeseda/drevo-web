@@ -1,6 +1,7 @@
 import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { IconButtonComponent, MODAL_DATA, ModalData } from '@drevo-web/ui';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 
 export interface FootnoteModalData {
     readonly label: string;

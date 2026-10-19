@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect } from '@angular/core';
 import { SidebarService } from '@drevo-web/core';
 import { SidebarAction } from '@drevo-web/shared';
-import { ActionButtonComponent } from '@drevo-web/ui';
+import { ActionButtonComponent } from '@drevo-web/ui/action-button';
 
 @Component({
     selector: 'app-right-sidebar',

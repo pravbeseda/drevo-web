@@ -2,7 +2,9 @@ import { PENDING_TYPE_LABELS } from '../../../../shared/constants/pending-type-l
 import { PendingAction } from '../../models/pending.model';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { PicturePending } from '@drevo-web/shared';
-import { BannerComponent, ButtonComponent, IconComponent } from '@drevo-web/ui';
+import { BannerComponent } from '@drevo-web/ui/banner';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { IconComponent } from '@drevo-web/ui/icon';
 
 @Component({
     selector: 'app-pending-banner',

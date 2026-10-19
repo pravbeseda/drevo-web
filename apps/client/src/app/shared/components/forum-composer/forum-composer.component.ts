@@ -22,7 +22,8 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { EditorComponent } from '@drevo-web/editor';
 import { ForumMessage, ForumPostedMessage, ForumPostOutcome } from '@drevo-web/shared';
-import { IconButtonComponent, IconComponent } from '@drevo-web/ui';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { from } from 'rxjs';
 import { finalize, switchMap, tap } from 'rxjs/operators';
 

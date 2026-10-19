@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { VersionForDiff } from '@drevo-web/shared';
-import { FormatDatePipe, StatusIconComponent } from '@drevo-web/ui';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 
 @Component({
     selector: 'app-version-label',

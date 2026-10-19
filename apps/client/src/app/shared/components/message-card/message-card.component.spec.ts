@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { ClockService, NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumMessage } from '@drevo-web/shared';
-import { avatarNameColor } from '@drevo-web/ui';
+import { avatarNameColor } from '@drevo-web/ui/avatar';
 import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
 import { EMPTY, throwError } from 'rxjs';
 

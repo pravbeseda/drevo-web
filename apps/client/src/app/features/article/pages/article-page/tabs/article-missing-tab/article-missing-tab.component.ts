@@ -1,6 +1,7 @@
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { BannerComponent, ButtonComponent } from '@drevo-web/ui';
+import { BannerComponent } from '@drevo-web/ui/banner';
+import { ButtonComponent } from '@drevo-web/ui/button';
 
 @Component({
     selector: 'app-article-missing-tab',

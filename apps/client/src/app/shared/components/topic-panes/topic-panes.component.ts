@@ -14,7 +14,9 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { ButtonComponent, IconComponent, ResizeHandleDirective } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { ResizeHandleDirective } from '@drevo-web/ui/resize-handle';
 import { filter, map } from 'rxjs/operators';
 
 /**

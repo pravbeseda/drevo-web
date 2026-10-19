@@ -1,6 +1,6 @@
 import { A11yModule } from '@angular/cdk/a11y';
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
-import { ButtonComponent } from '@drevo-web/ui';
+import { ButtonComponent } from '@drevo-web/ui/button';
 
 // Intentionally does NOT use ModalService: shown after a chunk load failure,
 // when further lazy imports (including dialog infrastructure) are unreliable.

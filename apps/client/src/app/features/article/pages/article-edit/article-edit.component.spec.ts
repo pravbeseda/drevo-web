@@ -8,7 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { SaveArticleVersionResult } from '@drevo-web/shared';
-import { ConfirmationService } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { NotificationService } from '@drevo-web/core';
 import { createComponentFactory, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { NEVER, of, throwError } from 'rxjs';

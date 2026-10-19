@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
-import { TextInputComponent } from '@drevo-web/ui';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
 
 @Component({
     selector: 'app-picture-search-bar',

@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { InworkItem } from '@drevo-web/shared';
-import { ConfirmationService, IconButtonComponent, IconComponent } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
+import { IconComponent } from '@drevo-web/ui/icon';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { filter } from 'rxjs';
 
 const SECONDS_PER_MINUTE = 60;

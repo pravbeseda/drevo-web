@@ -1,5 +1,6 @@
 import { InworkItem } from '@drevo-web/shared';
-import { ConfirmationService, IconButtonComponent } from '@drevo-web/ui';
+import { ConfirmationService } from '@drevo-web/ui/confirmation';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 import { InworkItemComponent } from './inwork-item.component';

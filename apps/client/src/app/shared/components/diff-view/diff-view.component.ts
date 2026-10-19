@@ -1,7 +1,8 @@
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
-import { DIFF_ENGINES, DiffChange, DiffEngineEntry, escapeHtml } from '@drevo-web/shared';
+import { escapeHtml } from '@drevo-web/shared';
+import { DIFF_ENGINES, DiffChange, DiffEngineEntry } from '@drevo-web/shared/diff';
 
 interface DiffSegment {
     readonly collapsed: boolean;

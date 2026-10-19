@@ -6,17 +6,16 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { RouterLink } from '@angular/router';
 import { ClockService, LoggerService, NotificationService } from '@drevo-web/core';
 import { ForumMessage } from '@drevo-web/shared';
+import { AvatarComponent, avatarNameColor } from '@drevo-web/ui/avatar';
 import {
-    AvatarComponent,
-    avatarNameColor,
     DropdownMenuComponent,
     DropdownMenuItemComponent,
     DropdownMenuTriggerDirective,
-    FormatDatePipe,
-    IconButtonComponent,
-    RelativeTimePipe,
-    TooltipDirective,
-} from '@drevo-web/ui';
+} from '@drevo-web/ui/dropdown-menu';
+import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
+import { RelativeTimePipe } from '@drevo-web/ui/relative-time';
+import { TooltipDirective } from '@drevo-web/ui/tooltip';
 
 /** What `routerLink` takes for the topic's address plus the message it anchors on. */
 type MessageLink = readonly (string | number)[];

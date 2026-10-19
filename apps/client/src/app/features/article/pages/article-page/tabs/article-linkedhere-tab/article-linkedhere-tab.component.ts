@@ -7,12 +7,9 @@ import { Meta } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
 import { ArticleLinkedHereItem, ArticleLinkedHereResponse } from '@drevo-web/shared';
-import {
-    SpinnerComponent,
-    TextInputComponent,
-    VirtualScrollerComponent,
-    VirtualScrollerItemDirective,
-} from '@drevo-web/ui';
+import { SpinnerComponent } from '@drevo-web/ui/spinner';
+import { TextInputComponent } from '@drevo-web/ui/text-input';
+import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { Observable, Subject, merge, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 

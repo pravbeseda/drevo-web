@@ -5,7 +5,7 @@ import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectat
 import { NotificationService, SidebarService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { SidePanelComponent } from '@drevo-web/ui';
+import { SidePanelComponent } from '@drevo-web/ui/side-panel';
 import { of, throwError } from 'rxjs';
 import { TopicsSidebarActionComponent } from './topics-sidebar-action.component';
 
