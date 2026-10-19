@@ -81,7 +81,7 @@ pnpm lint:ssr-hosts                             # boots the built SSR server and
 pnpm lint:bundle                                # lazy-only modules stay out of the initial bundle — reads the stats `pnpm build` writes
 ```
 
-Never lower a coverage or type-coverage threshold, and never widen the coverage excludes, to make a gate pass without explicit approval — see [`docs/quality-gates.md`](docs/quality-gates.md).
+Never lower a coverage or type-coverage threshold, never widen the coverage excludes, and never raise the initial bundle budget, to make a gate pass without explicit approval — see [`docs/quality-gates.md`](docs/quality-gates.md).
 
 `nx e2e client-e2e` is not among them: its API tests are disabled when `CI` is set, and locally they need the Yii backend up, so the PR is never gated on them.
 
