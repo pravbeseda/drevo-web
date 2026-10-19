@@ -1,5 +1,6 @@
 import { environment } from '../environments/environment';
-import { ApplicationConfig, ErrorHandler, inject, provideAppInitializer } from '@angular/core';
+import { DELEGATE_ERROR_HANDLER } from './services/app-update/chunk-error-handler';
+import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { Router } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 
@@ -9,12 +10,12 @@ import * as Sentry from '@sentry/angular';
  */
 export const browserConfig: ApplicationConfig = {
     providers: [
-        // Sentry ErrorHandler and Tracing for catching unhandled Angular errors
-        // Only enabled when Sentry DSN is configured
+        // Sentry's ErrorHandler reports to Sentry and logs to the console; ChunkErrorHandler hands
+        // every error to it. Only enabled when Sentry DSN is configured
         ...(environment.sentryDsn
             ? [
                   {
-                      provide: ErrorHandler,
+                      provide: DELEGATE_ERROR_HANDLER,
                       useValue: Sentry.createErrorHandler(),
                   },
                   { provide: Sentry.TraceService, deps: [Router] },
