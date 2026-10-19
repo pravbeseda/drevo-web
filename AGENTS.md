@@ -78,7 +78,7 @@ pnpm knip                                       # dead code and unused deps — 
 pnpm test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
 pnpm build                                      # production build — the type check the unit tests cannot do
 pnpm lint:ssr-hosts                             # boots the built SSR server and checks the deployed hosts — needs `pnpm build` first
-pnpm lint:bundle                                # lazy-only modules stay out of the initial bundle — reads the stats `pnpm build` writes
+pnpm lint:bundle                                # lazy-only modules stay out of the initial bundle, and its size by package — reads the stats `pnpm build` writes
 ```
 
 Never lower a coverage or type-coverage threshold, never widen the coverage excludes, and never raise the initial bundle budget, to make a gate pass without explicit approval — see [`docs/quality-gates.md`](docs/quality-gates.md).

@@ -20,9 +20,12 @@ const tempRoots = [];
 
 const TABS = 'node_modules/.pnpm/@angular+material@22.2.0/node_modules/@angular/material/fesm2022/tabs.mjs';
 const BUTTON = 'node_modules/.pnpm/@angular+material@22.2.0/node_modules/@angular/material/fesm2022/button.mjs';
+const FORMS =
+    'node_modules/.pnpm/@angular+forms@22.2.2_@angular+core@22.2.2/node_modules/@angular/forms/fesm2022/forms.mjs';
+const RXJS = 'node_modules/.pnpm/rxjs@7.8.2/node_modules/rxjs/dist/esm5/internal/Observable.js';
 const DIFF_MATCH_PATCH = 'node_modules/.pnpm/diff-match-patch@1.0.5/node_modules/diff-match-patch/index.js';
 
-/** `{ 'file.js': { inputs: [...], imports: [{ path, kind }] } }` → a metafile on disk. */
+/** `{ 'file.js': { inputs: [path | [path, bytes]], imports: [{ path, kind }] } }` → a metafile on disk. */
 const writeStats = outputs => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bundle-gate-'));
     tempRoots.push(root);
@@ -32,7 +35,12 @@ const writeStats = outputs => {
         metafile.outputs[file] = {
             bytes: 1000,
             imports,
-            inputs: Object.fromEntries(inputs.map(input => [input, { bytesInOutput: 100 }])),
+            inputs: Object.fromEntries(
+                inputs.map(input => {
+                    const [inputPath, bytes] = Array.isArray(input) ? input : [input, 100];
+                    return [inputPath, { bytesInOutput: bytes }];
+                }),
+            ),
         };
     }
 
@@ -41,8 +49,11 @@ const writeStats = outputs => {
     return statsPath;
 };
 
-const run = statsPath => {
-    const result = spawnSync(process.execPath, [gate, statsPath], { encoding: 'utf8' });
+const run = (statsPath, env = {}) => {
+    const result = spawnSync(process.execPath, [gate, statsPath], {
+        encoding: 'utf8',
+        env: { ...process.env, GITHUB_STEP_SUMMARY: '', ...env },
+    });
     return { status: result.status, output: result.stdout + result.stderr };
 };
 
@@ -82,6 +93,51 @@ describe('check-initial-bundle', () => {
 
         assert.equal(status, 0, output);
         assert.match(output, /initial bundle OK/);
+    });
+
+    it('lists the initial bundle by package, largest first, scoped packages and workspace projects included', () => {
+        const { status, output } = run(
+            writeStats({
+                'main-A.js': {
+                    inputs: [
+                        ['apps/client/src/main.ts', 3000],
+                        ['libs/ui/src/lib/components/icon/icon.component.ts', 2000],
+                        [RXJS, 5000],
+                    ],
+                    imports: [
+                        { path: 'chunk-B.js', kind: 'import-statement' },
+                        { path: 'chunk-C.js', kind: 'dynamic-import' },
+                    ],
+                },
+                'chunk-B.js': {
+                    inputs: [
+                        [FORMS, 4000],
+                        [BUTTON, 6000],
+                    ],
+                },
+                'chunk-C.js': { inputs: [[TABS, 50000]] },
+            }),
+        );
+
+        assert.equal(status, 0, output);
+        const rows = output.split('\n').filter(line => /^\s+\d/.test(line));
+        assert.deepEqual(
+            rows.map(row => row.trim().split(/\s+/).at(-1)),
+            ['@angular/material', 'rxjs', '@angular/forms', 'apps/client', 'libs/ui'],
+        );
+        assert.match(rows[0], /6\.0 kB/);
+    });
+
+    it('writes the same breakdown to the GitHub job summary when CI provides one', () => {
+        const summary = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'bundle-summary-')), 'summary.md');
+        tempRoots.push(path.dirname(summary));
+
+        const { status, output } = run(writeStats({ 'main-A.js': { inputs: [[RXJS, 5000]] } }), {
+            GITHUB_STEP_SUMMARY: summary,
+        });
+
+        assert.equal(status, 0, output);
+        assert.match(fs.readFileSync(summary, 'utf8'), /\| rxjs \| 5\.0 kB \|/);
     });
 
     it('fails with a hint when the stats file is missing', () => {
