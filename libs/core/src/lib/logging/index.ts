@@ -17,9 +17,6 @@ export { LogExportService } from './log-export.service';
 // Utilities
 export { sanitizeLogData, sanitizeLogEntry } from './log-sanitizer';
 
-// Database
-export { LogDatabase } from './log-database';
-
 // Providers
 export { ConsoleLogProvider } from './providers/console-log.provider';
 export { IndexedDBLogProvider, createIndexedDBLogProvider } from './providers/indexed-db-log.provider';

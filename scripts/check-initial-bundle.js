@@ -26,6 +26,7 @@ const LAZY_ONLY = [
     '@angular/material/fesm2022/input.mjs',
     'diff/',
     'diff-match-patch/',
+    'dexie/',
 ];
 
 const statsPath = process.argv[2] ?? path.join(__dirname, '..', 'dist', 'apps', 'client', 'browser-stats.json');

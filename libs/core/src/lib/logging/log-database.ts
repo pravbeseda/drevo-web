@@ -16,27 +16,12 @@ interface LogTableEntry extends Omit<LogEntry, 'timestamp'> {
 export class LogDatabase extends Dexie {
     logs!: Table<LogTableEntry, number>;
 
-    /** User agent string, captured once on init */
-    private userAgent: string | undefined;
-
     constructor() {
         super('drevo-logs');
 
         this.version(1).stores({
             logs: '++id, timestamp, level',
         });
-
-        // Capture user agent once on initialization
-        if (typeof navigator !== 'undefined') {
-            this.userAgent = navigator.userAgent;
-        }
-    }
-
-    /**
-     * Get the user agent string
-     */
-    getUserAgent(): string | undefined {
-        return this.userAgent;
     }
 
     /**

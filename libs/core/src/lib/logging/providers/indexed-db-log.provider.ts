@@ -1,6 +1,5 @@
-import { LogDatabase } from '../log-database';
+import type { LogDatabase } from '../log-database';
 import { LogEntry, LogStorageProvider, GetLogsOptions } from '../log-provider.interface';
-import { assertIsDefined } from '@drevo-web/shared';
 
 /** Default max storage size in bytes (10MB) */
 const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
@@ -22,11 +21,12 @@ const PRUNE_PERCENTAGE = 0.2;
  * - Batched writes for better performance
  * - Automatic pruning when storage limit is reached
  * - SSR-safe (disabled on server)
+ * - Dexie loads with the first write, not with the app (#463)
  */
 export class IndexedDBLogProvider implements LogStorageProvider {
     readonly name = 'indexeddb';
 
-    private database: LogDatabase | undefined;
+    private database: Promise<LogDatabase> | undefined;
     private buffer: LogEntry[] = [];
     private flushTimer: ReturnType<typeof setTimeout> | undefined;
     private flushPromise: Promise<void> | undefined;
@@ -36,14 +36,10 @@ export class IndexedDBLogProvider implements LogStorageProvider {
     constructor(options?: { maxSize?: number }) {
         this.maxSize = options?.maxSize ?? DEFAULT_MAX_SIZE;
         this.isBrowser = typeof window !== 'undefined' && typeof indexedDB !== 'undefined';
-
-        if (this.isBrowser) {
-            this.database = new LogDatabase();
-        }
     }
 
     get isAvailable(): boolean {
-        return this.isBrowser && this.database !== undefined;
+        return this.isBrowser;
     }
 
     /**
@@ -96,10 +92,9 @@ export class IndexedDBLogProvider implements LogStorageProvider {
         const entries = [...this.buffer];
         this.buffer = [];
 
-        assertIsDefined(this.database, 'IndexedDBLogProvider flush: database is undefined');
-
         try {
-            await this.database.addLogs(entries);
+            const database = await this.getDatabase();
+            await database.addLogs(entries);
 
             // Check if pruning is needed
             await this.pruneIfNeeded();
@@ -118,9 +113,8 @@ export class IndexedDBLogProvider implements LogStorageProvider {
             return [];
         }
 
-        assertIsDefined(this.database, 'IndexedDBLogProvider getLogs: database is undefined');
-
-        return this.database.getLogs(options);
+        const database = await this.getDatabase();
+        return database.getLogs(options);
     }
 
     /**
@@ -135,9 +129,8 @@ export class IndexedDBLogProvider implements LogStorageProvider {
         this.buffer = [];
         this.clearFlushTimer();
 
-        assertIsDefined(this.database, 'IndexedDBLogProvider clearLogs: database is undefined');
-
-        await this.database.clearLogs();
+        const database = await this.getDatabase();
+        await database.clearLogs();
     }
 
     /**
@@ -148,16 +141,19 @@ export class IndexedDBLogProvider implements LogStorageProvider {
             return 0;
         }
 
-        assertIsDefined(this.database, 'IndexedDBLogProvider getStorageSize: database is undefined');
-
-        return this.database.getStorageSize();
+        const database = await this.getDatabase();
+        return database.getStorageSize();
     }
 
-    /**
-     * Get the captured user agent string
-     */
-    getUserAgent(): string | undefined {
-        return this.database?.getUserAgent();
+    private getDatabase(): Promise<LogDatabase> {
+        // A failed attempt is forgotten, so the next flush tries again
+        this.database ??= import('../log-database')
+            .then(({ LogDatabase }) => new LogDatabase())
+            .catch((error: unknown) => {
+                this.database = undefined;
+                throw error;
+            });
+        return this.database;
     }
 
     private startFlushTimer(): void {
@@ -178,10 +174,9 @@ export class IndexedDBLogProvider implements LogStorageProvider {
     private async pruneIfNeeded(): Promise<void> {
         const size = await this.getStorageSize();
 
-        assertIsDefined(this.database, 'IndexedDBLogProvider pruneIfNeeded: database is undefined');
-
         if (size > this.maxSize) {
-            await this.database.deleteOldestLogs(PRUNE_PERCENTAGE);
+            const database = await this.getDatabase();
+            await database.deleteOldestLogs(PRUNE_PERCENTAGE);
         }
     }
 }
