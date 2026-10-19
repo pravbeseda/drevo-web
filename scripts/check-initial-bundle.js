@@ -70,15 +70,22 @@ const kB = bytes => `${(bytes / 1000).toFixed(1)} kB`;
 const leaks = [];
 const bytesByPackage = new Map();
 let initialBytes = 0;
+const addBytes = (name, bytes) => bytesByPackage.set(name, (bytesByPackage.get(name) ?? 0) + bytes);
 for (const file of initialFiles) {
-    initialBytes += outputs[file].bytes;
-    for (const [input, { bytesInOutput }] of Object.entries(outputs[file].inputs)) {
+    const { bytes, inputs } = outputs[file];
+    initialBytes += bytes;
+    // `bytesInOutput` is recorded before Angular's chunk optimizer rewrites the chunk, so it
+    // overstates each module by a factor that differs per chunk; scale to the shipped size.
+    const recordedBytes = Object.values(inputs).reduce((sum, input) => sum + input.bytesInOutput, 0);
+    if (recordedBytes === 0) {
+        addBytes('(no source module)', bytes);
+    }
+    for (const [input, { bytesInOutput }] of Object.entries(inputs)) {
         const modulePath = input.split('node_modules/').at(-1);
         if (modulePath !== input && LAZY_ONLY.some(lazy => modulePath.startsWith(lazy))) {
             leaks.push(`${modulePath} (in ${file})`);
         }
-        const name = packageOf(input);
-        bytesByPackage.set(name, (bytesByPackage.get(name) ?? 0) + bytesInOutput);
+        addBytes(packageOf(input), (bytesInOutput * bytes) / recordedBytes);
     }
 }
 

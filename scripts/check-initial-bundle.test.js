@@ -25,15 +25,15 @@ const FORMS =
 const RXJS = 'node_modules/.pnpm/rxjs@7.8.2/node_modules/rxjs/dist/esm5/internal/Observable.js';
 const DIFF_MATCH_PATCH = 'node_modules/.pnpm/diff-match-patch@1.0.5/node_modules/diff-match-patch/index.js';
 
-/** `{ 'file.js': { inputs: [path | [path, bytes]], imports: [{ path, kind }] } }` → a metafile on disk. */
+/** `{ 'file.js': { bytes, inputs: [path | [path, bytes]], imports: [{ path, kind }] } }` → a metafile on disk. */
 const writeStats = outputs => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bundle-gate-'));
     tempRoots.push(root);
 
     const metafile = { inputs: {}, outputs: {} };
-    for (const [file, { inputs = [], imports = [] }] of Object.entries(outputs)) {
+    for (const [file, { bytes = 1000, inputs = [], imports = [] }] of Object.entries(outputs)) {
         metafile.outputs[file] = {
-            bytes: 1000,
+            bytes,
             imports,
             inputs: Object.fromEntries(
                 inputs.map(input => {
@@ -125,14 +125,37 @@ describe('check-initial-bundle', () => {
             rows.map(row => row.trim().split(/\s+/).at(-1)),
             ['@angular/material', 'rxjs', '@angular/forms', 'apps/client', 'libs/ui'],
         );
-        assert.match(rows[0], /6\.0 kB/);
+    });
+
+    it('scales each module to the bytes its chunk really has, so the rows add up to the shipped size', () => {
+        // The chunk optimizer rewrites the chunks after esbuild records `bytesInOutput`, which
+        // then overstates every module by a different factor per chunk.
+        const { status, output } = run(
+            writeStats({
+                'main-A.js': {
+                    bytes: 3000,
+                    inputs: [
+                        [RXJS, 2000],
+                        [FORMS, 4000],
+                    ],
+                    imports: [{ path: 'chunk-B.js', kind: 'import-statement' }],
+                },
+                'chunk-B.js': { bytes: 1500, inputs: [] },
+            }),
+        );
+
+        assert.equal(status, 0, output);
+        assert.match(output, /\(4\.5 kB raw JS in 2 files\)/);
+        assert.match(output, /2\.0 kB {2}@angular\/forms/);
+        assert.match(output, /1\.5 kB {2}\(no source module\)/);
+        assert.match(output, /1\.0 kB {2}rxjs/);
     });
 
     it('writes the same breakdown to the GitHub job summary when CI provides one', () => {
         const summary = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'bundle-summary-')), 'summary.md');
         tempRoots.push(path.dirname(summary));
 
-        const { status, output } = run(writeStats({ 'main-A.js': { inputs: [[RXJS, 5000]] } }), {
+        const { status, output } = run(writeStats({ 'main-A.js': { bytes: 5000, inputs: [[RXJS, 5000]] } }), {
             GITHUB_STEP_SUMMARY: summary,
         });
 
