@@ -3,6 +3,10 @@
  */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+export interface LogOptions {
+    readonly alreadyReported?: boolean;
+}
+
 /**
  * Log entry structure for persistence and dispatch
  */
@@ -19,6 +23,8 @@ export interface LogEntry {
     data?: unknown;
     /** When the log was created */
     timestamp: Date;
+    /** Already sent to Sentry by another path; the Sentry provider skips it */
+    alreadyReported?: boolean;
     /** Current page URL */
     url?: string;
 }

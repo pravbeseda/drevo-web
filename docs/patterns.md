@@ -91,6 +91,4 @@ this.logger.info('message', { data });
 this.logger.error('error', error);
 ```
 
-Pass the `Error` itself as the data, not a wrapper: Sentry reports an `Error` object once however many paths capture it, and a wrapper turns the entry into a separate message event.
-
-An error the code cannot handle where it is caught — a lazy chunk that failed to load is the usual one — goes to Angular's `ErrorHandler` instead (`inject(ErrorHandler).handleError(error)`). `ChunkErrorHandler` logs it through `LoggerService` like any other error, hands it to Sentry, and shows the reload prompt when a chunk failed to load; a local `logger.error` would log it but never reach that prompt.
+An error the code cannot handle where it is caught — a lazy chunk that failed to load is the usual one — goes to Angular's `ErrorHandler` instead (`inject(ErrorHandler).handleError(error)`). `ChunkErrorHandler` shows the reload prompt when a chunk failed to load, hands the error to `DELEGATE_ERROR_HANDLER` — Sentry's handler in the browser, Angular's own on the server, where `LoggerService` writes nothing — and logs it through `LoggerService` with `{ alreadyReported: true }`, so it reaches the console and the IndexedDB log while Sentry gets one event; a local `logger.error` would log it but never reach that prompt.

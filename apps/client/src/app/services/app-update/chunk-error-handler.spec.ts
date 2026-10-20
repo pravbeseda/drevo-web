@@ -34,16 +34,16 @@ describe('ChunkErrorHandler', () => {
             url: '/profile?id=1',
             source: 'error-handler',
         });
-        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error);
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: false });
     });
 
-    it('only logs non-chunk errors', () => {
+    it('only logs non-chunk errors, leaving Sentry to the logger', () => {
         const error = new TypeError('something else');
 
         spectator.service.handleError(error);
 
         expect(appUpdateService.notifyChunkLoadFailure).not.toHaveBeenCalled();
-        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error);
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: false });
     });
 });
 
@@ -77,13 +77,12 @@ describe('ChunkErrorHandler with a delegate error handler', () => {
         expect(delegate.handleError).toHaveBeenCalledWith(error);
     });
 
-    it('hands the error to the delegate before logging it, so Sentry keeps its unhandled-error event', () => {
+    it('logs the error as already reported, so Sentry gets it only from the delegate', () => {
         const error = new TypeError('something else');
 
         spectator.service.handleError(error);
 
         expect(delegate.handleError).toHaveBeenCalledWith(error);
-        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error);
-        expect(delegate.handleError.mock.invocationCallOrder[0]).toBeLessThan(logger.error.mock.invocationCallOrder[0]);
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: true });
     });
 });

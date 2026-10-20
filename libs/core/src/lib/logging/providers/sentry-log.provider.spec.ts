@@ -151,6 +151,18 @@ describe('SentryLogProvider', () => {
         });
     });
 
+    describe('log method with an entry already reported to Sentry', () => {
+        it('should send nothing, so the error is not captured twice', () => {
+            provider = new SentryLogProvider(true, true);
+
+            provider.log(createEntry('error', 'Unhandled error', { data: new Error('boom'), alreadyReported: true }));
+
+            expect(mockSentry.captureException).not.toHaveBeenCalled();
+            expect(mockSentry.captureMessage).not.toHaveBeenCalled();
+            expect(mockSentry.addBreadcrumb).not.toHaveBeenCalled();
+        });
+    });
+
     describe('log method with custom minLevel', () => {
         it('should send info level when minLevel is info', () => {
             provider = new SentryLogProvider(true, true, { minLevel: 'info' });

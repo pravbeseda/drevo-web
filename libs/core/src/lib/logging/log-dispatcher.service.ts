@@ -1,4 +1,11 @@
-import { LogEntry, LogLevel, LogProvider, LogStorageProvider, isStorageProvider } from './log-provider.interface';
+import {
+    LogEntry,
+    LogLevel,
+    LogOptions,
+    LogProvider,
+    LogStorageProvider,
+    isStorageProvider,
+} from './log-provider.interface';
 import { sanitizeLogEntry } from './log-sanitizer';
 import { ConsoleLogProvider } from './providers/console-log.provider';
 import { isPlatformBrowser } from '@angular/common';
@@ -85,7 +92,7 @@ export class LogDispatcher {
     /**
      * Dispatch a log entry to all available providers
      */
-    dispatch(level: LogLevel, message: string, context?: string, data?: unknown): void {
+    dispatch(level: LogLevel, message: string, context?: string, data?: unknown, options?: LogOptions): void {
         // Update current URL on each log (in case of navigation)
         if (this.isBrowser) {
             this.currentUrl = window.location.pathname;
@@ -98,6 +105,7 @@ export class LogDispatcher {
             data,
             timestamp: new Date(),
             url: this.currentUrl || undefined,
+            alreadyReported: options?.alreadyReported,
         };
 
         // Sanitize sensitive data before dispatching

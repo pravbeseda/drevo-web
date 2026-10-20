@@ -1,4 +1,5 @@
 import { LogDispatcher } from './log-dispatcher.service';
+import { LogOptions } from './log-provider.interface';
 import { Injectable, inject } from '@angular/core';
 
 /**
@@ -8,7 +9,7 @@ export interface Logger {
     debug(message: string, data?: unknown): void;
     info(message: string, data?: unknown): void;
     warn(message: string, data?: unknown): void;
-    error(message: string, data?: unknown): void;
+    error(message: string, data?: unknown, options?: LogOptions): void;
 }
 
 /**
@@ -33,8 +34,8 @@ class ContextLogger implements Logger {
         this.loggerService.warn(message, data, this.context);
     }
 
-    error(message: string, data?: unknown): void {
-        this.loggerService.error(message, data, this.context);
+    error(message: string, data?: unknown, options?: LogOptions): void {
+        this.loggerService.error(message, data, this.context, options);
     }
 }
 
@@ -53,7 +54,7 @@ class ContextLogger implements Logger {
 @Injectable({
     providedIn: 'root',
 })
-export class LoggerService implements Logger {
+export class LoggerService {
     private readonly dispatcher = inject(LogDispatcher);
 
     /**
@@ -89,7 +90,7 @@ export class LoggerService implements Logger {
     /**
      * Log error message
      */
-    error(message: string, data?: unknown, context?: string): void {
-        this.dispatcher.dispatch('error', message, context, data);
+    error(message: string, data?: unknown, context?: string, options?: LogOptions): void {
+        this.dispatcher.dispatch('error', message, context, data, options);
     }
 }

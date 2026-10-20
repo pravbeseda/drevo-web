@@ -3,8 +3,9 @@ import { isChunkLoadError } from './is-chunk-load-error';
 import { ErrorHandler, Injectable, InjectionToken, inject } from '@angular/core';
 import { LoggerService, WINDOW } from '@drevo-web/core';
 
-// Receives every error after ChunkErrorHandler has looked at it. Provided instead of overriding
-// ErrorHandler, which would silently replace ChunkErrorHandler (#462).
+// Reports every error after ChunkErrorHandler has looked at it: Sentry's handler in the browser,
+// Angular's own on the server. Provided instead of overriding ErrorHandler, which would silently
+// replace ChunkErrorHandler (#462).
 export const DELEGATE_ERROR_HANDLER = new InjectionToken<ErrorHandler>('DELEGATE_ERROR_HANDLER');
 
 // Every error nobody could handle locally ends up here, so it is logged here: that is what puts it
@@ -22,9 +23,9 @@ export class ChunkErrorHandler implements ErrorHandler {
             const url = loc ? loc.pathname + loc.search : '';
             this.appUpdateService.notifyChunkLoadFailure(error, { url, source: 'error-handler' });
         }
-        // Sentry's handler goes first so its unhandled-error event is the one kept: Sentry drops the
-        // second capture of the same Error object that the log entry below would make.
+        // Once the delegate has reported the error, the log entry only carries it to the console and
+        // the IndexedDB log, so Sentry gets it from its own handler alone.
         this.delegate?.handleError(error);
-        this.logger.error('Unhandled error', error);
+        this.logger.error('Unhandled error', error, { alreadyReported: Boolean(this.delegate) });
     }
 }
