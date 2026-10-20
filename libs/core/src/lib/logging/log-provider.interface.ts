@@ -3,6 +3,7 @@
  */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+/** @public Named for consumers of the exported `Logger.error`. */
 export interface LogOptions {
     readonly alreadyReported?: boolean;
 }
