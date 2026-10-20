@@ -20,7 +20,7 @@ export class ConsoleLogProvider implements LogProvider {
     }
 
     log(entry: LogEntry): void {
-        if (!this.isAvailable) {
+        if (!this.isAvailable || entry.alreadyReported) {
             return;
         }
 

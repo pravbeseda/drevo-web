@@ -1,5 +1,6 @@
 import { AppUpdateService } from './app-update.service';
 import { ChunkErrorHandler, DELEGATE_ERROR_HANDLER } from './chunk-error-handler';
+import { ErrorHandler } from '@angular/core';
 import { LoggerService, WINDOW } from '@drevo-web/core';
 import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
@@ -8,6 +9,7 @@ describe('ChunkErrorHandler', () => {
     let spectator: SpectatorService<ChunkErrorHandler>;
     let appUpdateService: jest.Mocked<AppUpdateService>;
     let logger: MockLoggerService['mockLogger'];
+    let angularHandleSpy: jest.SpyInstance;
 
     const windowMock = {
         location: { pathname: '/profile', search: '?id=1' },
@@ -23,6 +25,11 @@ describe('ChunkErrorHandler', () => {
         spectator = createService();
         appUpdateService = spectator.inject(AppUpdateService);
         logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+        angularHandleSpy = jest.spyOn(ErrorHandler.prototype, 'handleError').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        angularHandleSpy.mockRestore();
     });
 
     it('notifies AppUpdateService and logs chunk load errors', () => {
@@ -34,16 +41,17 @@ describe('ChunkErrorHandler', () => {
             url: '/profile?id=1',
             source: 'error-handler',
         });
-        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: false });
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: true });
     });
 
-    it('only logs non-chunk errors, leaving Sentry to the logger', () => {
+    it("reports through Angular's own ErrorHandler when no delegate is provided, and only records it in the log", () => {
         const error = new TypeError('something else');
 
         spectator.service.handleError(error);
 
         expect(appUpdateService.notifyChunkLoadFailure).not.toHaveBeenCalled();
-        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: false });
+        expect(angularHandleSpy).toHaveBeenCalledWith(error);
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: true });
     });
 });
 
@@ -77,7 +85,7 @@ describe('ChunkErrorHandler with a delegate error handler', () => {
         expect(delegate.handleError).toHaveBeenCalledWith(error);
     });
 
-    it('logs the error as already reported, so Sentry gets it only from the delegate', () => {
+    it('records the error as already reported, so the console and Sentry get it from the delegate alone', () => {
         const error = new TypeError('something else');
 
         spectator.service.handleError(error);

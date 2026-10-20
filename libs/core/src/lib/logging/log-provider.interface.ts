@@ -24,7 +24,7 @@ export interface LogEntry {
     data?: unknown;
     /** When the log was created */
     timestamp: Date;
-    /** Already sent to Sentry by another path; the Sentry provider skips it */
+    /** Already written to the console and Sentry by another path; only storage providers keep it */
     alreadyReported?: boolean;
     /** Current page URL */
     url?: string;
