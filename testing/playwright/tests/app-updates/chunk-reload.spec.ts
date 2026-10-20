@@ -54,6 +54,23 @@ test.describe('Chunk reload prompt', () => {
         await expect(overlay).toHaveCount(0);
     });
 
+    test('shows overlay when a lazy modal fails to load its chunk', async ({ authenticatedPage: page }) => {
+        const layout = new LayoutPage(page);
+        await page.goto('/');
+        await layout.waitForReady();
+        await expect(layout.searchButton).toBeVisible();
+
+        await page.route('**/chunk-*.js', route => route.abort());
+
+        // The modal opens through ModalService rather than the router, so no NavigationError is
+        // emitted: only ErrorHandler can turn this failure into the prompt.
+        await layout.searchButton.click();
+
+        const { overlay } = getReloadPrompt(page);
+        await expect(overlay).toBeVisible();
+        await expect(layout.searchContainer).toHaveCount(0);
+    });
+
     test('does not show overlay on normal navigation', async ({ authenticatedPage: page, isMobile }) => {
         await mockPictureImages(page);
         await mockPicturesApi(page);

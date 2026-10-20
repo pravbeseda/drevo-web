@@ -10,13 +10,13 @@ import * as Sentry from '@sentry/angular';
  */
 export const browserConfig: ApplicationConfig = {
     providers: [
-        // Sentry's ErrorHandler reports to Sentry and logs to the console; ChunkErrorHandler hands
-        // every error to it. Only enabled when Sentry DSN is configured
+        // Sentry's ErrorHandler reports to Sentry; ChunkErrorHandler hands every error to it and writes
+        // the console line itself through LoggerService. Only enabled when Sentry DSN is configured
         ...(environment.sentryDsn
             ? [
                   {
                       provide: DELEGATE_ERROR_HANDLER,
-                      useValue: Sentry.createErrorHandler(),
+                      useValue: Sentry.createErrorHandler({ logErrors: false }),
                   },
                   { provide: Sentry.TraceService, deps: [Router] },
                   provideAppInitializer(() => {

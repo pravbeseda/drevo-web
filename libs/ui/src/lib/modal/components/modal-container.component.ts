@@ -5,6 +5,7 @@ import {
     AfterViewInit,
     ChangeDetectionStrategy,
     Component,
+    ErrorHandler,
     Injector,
     ViewContainerRef,
     inject,
@@ -12,7 +13,6 @@ import {
     viewChild,
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { LoggerService } from '@drevo-web/core';
 
 interface LazyModalData<TData = unknown> {
     loader: LazyComponentLoader<unknown>;
@@ -30,7 +30,8 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown> impleme
     private readonly dialogRef = inject<MatDialogRef<ModalContainerComponent<TData, TResult>, TResult>>(MatDialogRef);
     private readonly dialogData = inject<LazyModalData<TData>>(MAT_DIALOG_DATA);
     private readonly injector = inject(Injector);
-    private readonly logger = inject(LoggerService).withContext('ModalContainerComponent');
+    // A chunk that fails to load is the app's to handle (the reload prompt), not the modal's.
+    private readonly errorHandler = inject(ErrorHandler);
 
     private readonly outlet = viewChild.required('outlet', {
         read: ViewContainerRef,
@@ -61,7 +62,7 @@ export class ModalContainerComponent<TData = unknown, TResult = unknown> impleme
             });
             this.isLoading.set(false);
         } catch (error) {
-            this.logger.error('Failed to load modal component:', error);
+            this.errorHandler.handleError(error);
             this.dialogRef.close();
         }
     }

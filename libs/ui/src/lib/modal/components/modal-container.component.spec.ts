@@ -1,9 +1,7 @@
-import { Component, Type, inject } from '@angular/core';
+import { Component, ErrorHandler, Type, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { By } from '@angular/platform-browser';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-import { LoggerService } from '@drevo-web/core';
-import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { MODAL_DATA } from '../models/modal.tokens';
 import { LazyComponentLoader, ModalData } from '../models/modal.types';
 import { ModalContainerComponent } from './modal-container.component';
@@ -25,7 +23,7 @@ describe('ModalContainerComponent', () => {
 
     const createComponent = createComponentFactory<TestContainerComponent>({
         component: ModalContainerComponent,
-        providers: [mockLoggerProvider()],
+        providers: [{ provide: ErrorHandler, useValue: { handleError: jest.fn() } }],
     });
 
     const setup = (loader: LazyComponentLoader<TestModalComponent>, data?: TestData) => {
@@ -85,7 +83,7 @@ describe('ModalContainerComponent', () => {
         expect(spectator.query('.modal-loading')).toBeFalsy();
     });
 
-    it('should log error and close dialog when loader rejects', async () => {
+    it('should hand the error to ErrorHandler and close dialog when loader rejects', async () => {
         const error = new Error('Load failed');
         const loader = jest.fn(() => Promise.reject(error));
 
@@ -94,8 +92,7 @@ describe('ModalContainerComponent', () => {
         await spectator.fixture.whenStable();
         spectator.detectChanges();
 
-        const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
-        expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to load modal component:', error);
+        expect(spectator.inject(ErrorHandler).handleError).toHaveBeenCalledWith(error);
         expect(dialogRef.close).toHaveBeenCalled();
     });
 });
