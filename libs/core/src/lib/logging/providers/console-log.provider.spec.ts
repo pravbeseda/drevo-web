@@ -61,6 +61,12 @@ describe('ConsoleLogProvider', () => {
             expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[TestContext] Test message'));
         });
 
+        it('should skip an entry the ErrorHandler delegate already wrote to the console', () => {
+            provider.log({ ...createEntry('error', new Error('boom')), alreadyReported: true });
+
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
         it('should include data in output when provided', () => {
             const data = { key: 'value' };
             provider.log(createEntry('info', data));

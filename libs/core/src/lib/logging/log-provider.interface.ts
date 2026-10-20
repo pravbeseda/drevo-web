@@ -3,6 +3,11 @@
  */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+/** @public Named for consumers of the exported `Logger.error`. */
+export interface LogOptions {
+    readonly alreadyReported?: boolean;
+}
+
 /**
  * Log entry structure for persistence and dispatch
  */
@@ -19,6 +24,8 @@ export interface LogEntry {
     data?: unknown;
     /** When the log was created */
     timestamp: Date;
+    /** Already written to the console and Sentry by another path; only storage providers keep it */
+    alreadyReported?: boolean;
     /** Current page URL */
     url?: string;
 }

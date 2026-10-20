@@ -12,6 +12,7 @@ export class LayoutPage extends BasePage {
 
     // Search
     readonly searchButton = this.page.getByTestId('search-button');
+    readonly searchContainer = this.page.getByTestId('search-container');
 
     // Account dropdown
     readonly accountButton = this.page.getByTestId('account-button');
@@ -135,7 +136,7 @@ export class LayoutPage extends BasePage {
     /** Click the search icon to open the search modal */
     async openSearch(): Promise<void> {
         await this.searchButton.click();
-        await this.page.getByTestId('search-container').waitFor({ state: 'visible' });
+        await this.searchContainer.waitFor({ state: 'visible' });
     }
 
     /** Open the font-scale popup */

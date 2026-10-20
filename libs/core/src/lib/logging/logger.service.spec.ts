@@ -48,7 +48,13 @@ describe('LoggerService', () => {
             const error = new Error('Test error');
             spectator.service.error('Error occurred', error);
 
-            expect(mockDispatcher.dispatch).toHaveBeenCalledWith('error', 'Error occurred', undefined, error);
+            expect(mockDispatcher.dispatch).toHaveBeenCalledWith(
+                'error',
+                'Error occurred',
+                undefined,
+                error,
+                undefined,
+            );
         });
 
         it('should dispatch with context when provided', () => {
@@ -100,7 +106,24 @@ describe('LoggerService', () => {
 
             logger.error('Something failed');
 
-            expect(mockDispatcher.dispatch).toHaveBeenCalledWith('error', 'Something failed', 'ErrorCtx', undefined);
+            expect(mockDispatcher.dispatch).toHaveBeenCalledWith(
+                'error',
+                'Something failed',
+                'ErrorCtx',
+                undefined,
+                undefined,
+            );
+        });
+
+        it('should pass the options of an error from context-bound logger', () => {
+            const logger = spectator.service.withContext('ErrorCtx');
+            const error = new Error('boom');
+
+            logger.error('Unhandled error', error, { alreadyReported: true });
+
+            expect(mockDispatcher.dispatch).toHaveBeenCalledWith('error', 'Unhandled error', 'ErrorCtx', error, {
+                alreadyReported: true,
+            });
         });
 
         it('should allow multiple context-bound loggers', () => {

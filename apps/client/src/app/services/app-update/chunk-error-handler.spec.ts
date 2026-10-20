@@ -1,13 +1,15 @@
 import { AppUpdateService } from './app-update.service';
 import { ChunkErrorHandler, DELEGATE_ERROR_HANDLER } from './chunk-error-handler';
 import { ErrorHandler } from '@angular/core';
-import { WINDOW } from '@drevo-web/core';
+import { LoggerService, WINDOW } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('ChunkErrorHandler', () => {
     let spectator: SpectatorService<ChunkErrorHandler>;
     let appUpdateService: jest.Mocked<AppUpdateService>;
-    let superHandleSpy: jest.SpyInstance;
+    let logger: MockLoggerService['mockLogger'];
+    let angularHandleSpy: jest.SpyInstance;
 
     const windowMock = {
         location: { pathname: '/profile', search: '?id=1' },
@@ -16,20 +18,21 @@ describe('ChunkErrorHandler', () => {
     const createService = createServiceFactory({
         service: ChunkErrorHandler,
         mocks: [AppUpdateService],
-        providers: [{ provide: WINDOW, useValue: windowMock }],
+        providers: [{ provide: WINDOW, useValue: windowMock }, mockLoggerProvider()],
     });
 
     beforeEach(() => {
         spectator = createService();
         appUpdateService = spectator.inject(AppUpdateService);
-        superHandleSpy = jest.spyOn(ErrorHandler.prototype, 'handleError').mockImplementation(() => undefined);
+        logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+        angularHandleSpy = jest.spyOn(ErrorHandler.prototype, 'handleError').mockImplementation(() => undefined);
     });
 
     afterEach(() => {
-        superHandleSpy.mockRestore();
+        angularHandleSpy.mockRestore();
     });
 
-    it('notifies AppUpdateService and delegates to super on chunk load errors', () => {
+    it('notifies AppUpdateService and logs chunk load errors', () => {
         const error = new Error('Loading chunk 5 failed');
 
         spectator.service.handleError(error);
@@ -38,22 +41,23 @@ describe('ChunkErrorHandler', () => {
             url: '/profile?id=1',
             source: 'error-handler',
         });
-        expect(superHandleSpy).toHaveBeenCalledWith(error);
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: true });
     });
 
-    it('only delegates to super on non-chunk errors', () => {
+    it("reports through Angular's own ErrorHandler when no delegate is provided, and only records it in the log", () => {
         const error = new TypeError('something else');
 
         spectator.service.handleError(error);
 
         expect(appUpdateService.notifyChunkLoadFailure).not.toHaveBeenCalled();
-        expect(superHandleSpy).toHaveBeenCalledWith(error);
+        expect(angularHandleSpy).toHaveBeenCalledWith(error);
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: true });
     });
 });
 
 describe('ChunkErrorHandler with a delegate error handler', () => {
     let spectator: SpectatorService<ChunkErrorHandler>;
-    let superHandleSpy: jest.SpyInstance;
+    let logger: MockLoggerService['mockLogger'];
     const delegate = { handleError: jest.fn() };
 
     const createService = createServiceFactory({
@@ -62,35 +66,31 @@ describe('ChunkErrorHandler with a delegate error handler', () => {
         providers: [
             { provide: WINDOW, useValue: { location: { pathname: '/', search: '' } } },
             { provide: DELEGATE_ERROR_HANDLER, useValue: delegate },
+            mockLoggerProvider(),
         ],
     });
 
     beforeEach(() => {
         spectator = createService();
         delegate.handleError.mockClear();
-        superHandleSpy = jest.spyOn(ErrorHandler.prototype, 'handleError').mockImplementation(() => undefined);
+        logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
     });
 
-    afterEach(() => {
-        superHandleSpy.mockRestore();
-    });
-
-    it('notifies AppUpdateService and hands chunk load errors to the delegate instead of super', () => {
+    it('notifies AppUpdateService and hands chunk load errors to the delegate', () => {
         const error = new Error('Loading chunk 5 failed');
 
         spectator.service.handleError(error);
 
         expect(spectator.inject(AppUpdateService).notifyChunkLoadFailure).toHaveBeenCalled();
         expect(delegate.handleError).toHaveBeenCalledWith(error);
-        expect(superHandleSpy).not.toHaveBeenCalled();
     });
 
-    it('hands other errors to the delegate instead of super', () => {
+    it('records the error as already reported, so the console and Sentry get it from the delegate alone', () => {
         const error = new TypeError('something else');
 
         spectator.service.handleError(error);
 
         expect(delegate.handleError).toHaveBeenCalledWith(error);
-        expect(superHandleSpy).not.toHaveBeenCalled();
+        expect(logger.error).toHaveBeenCalledWith('Unhandled error', error, { alreadyReported: true });
     });
 });

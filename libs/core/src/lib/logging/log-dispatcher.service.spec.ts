@@ -1,5 +1,5 @@
 import { PLATFORM_ID } from '@angular/core';
-import { expectAny } from '@drevo-web/shared/testing';
+import { expectAny, expectObjectLike } from '@drevo-web/shared/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { LogDispatcher, LOG_PRODUCTION_MODE, LOG_PROVIDERS } from './log-dispatcher.service';
 import { LogProvider } from './log-provider.interface';
@@ -102,6 +102,17 @@ describe('LogDispatcher', () => {
                     data: { password: '[REDACTED]' },
                 }),
             );
+        });
+
+        it('should mark the entry as already reported when asked to', () => {
+            const provider = createMockProvider('test');
+            spectator.service.registerProvider(provider);
+
+            spectator.service.dispatch('error', 'Unhandled error', 'ErrorHandler', undefined, {
+                alreadyReported: true,
+            });
+
+            expect(provider.log).toHaveBeenCalledWith(expectObjectLike({ alreadyReported: true }));
         });
 
         it('should include timestamp in log entries', () => {

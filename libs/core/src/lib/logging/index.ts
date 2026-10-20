@@ -1,6 +1,13 @@
 // Interfaces
 export { isStorageProvider } from './log-provider.interface';
-export type { GetLogsOptions, LogEntry, LogLevel, LogProvider, LogStorageProvider } from './log-provider.interface';
+export type {
+    GetLogsOptions,
+    LogEntry,
+    LogLevel,
+    LogOptions,
+    LogProvider,
+    LogStorageProvider,
+} from './log-provider.interface';
 
 // Services
 export { LoggerService } from './logger.service';
