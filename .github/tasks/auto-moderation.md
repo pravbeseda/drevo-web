@@ -45,7 +45,7 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
 1. **Rule model** (`libs/editor/src/lib/validation/models`):
    - `ValidationRule` gains `category`; `RuleMatch` gains an optional `suggestion` (the replacement text).
    - A category → level map; `validateWikiContent` keeps returning editor severities, and a new `checkWikiContent` returns findings with category and level for moderation.
-   - A masking step blanks out URLs (`!https://…`), tags and `nowiki` before the text rules (L1–L3) run, keeping offsets, so they never fire inside them.
+   - A masking step blanks out inline code, `nowiki`, comments (`[*…*]`) and URLs (`!https://…`) before the text rules (L1–L3) run, keeping offsets, so they never fire inside them. Categories (`{{…}}`) stay checked: a misspelling there names a category that does not exist.
 2. **Rules**: one file per group under `rules/`, added to `ALL_RULES`, each with its own spec.
 3. **Check report** (`app/shared/helpers/check-report.ts`, a pure function; `app/services/` may not import the shared diff config):
    - **Только изменения** keeps the findings on lines added or edited against the previous version, using `@codemirror/merge`'s `diff()` with the diff view's own config, so the lines match what CodeMirror highlights; a first version counts as all new.

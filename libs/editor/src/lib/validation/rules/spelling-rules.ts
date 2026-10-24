@@ -8,7 +8,8 @@ const MISSPELLING_REGEXES = MISSPELLINGS.map(entry => ({
     regex: new RegExp(`(?<!\\p{L})(?:${entry.pattern})(?!\\p{L})`, 'giu'),
 }));
 
-const REPEATED_WORD_REGEX = /(?<!\p{L})(\p{L}+)[ \t]+\1(?!\p{L})/giu;
+// A hyphen on either side makes it part of a compound: «что что-то» is no repeat.
+const REPEATED_WORD_REGEX = /(?<![\p{L}-])(\p{L}+)[ \t]+\1(?![\p{L}-])/giu;
 const DELIBERATE_REPEATS: ReadonlySet<string> = new Set([
     'так',
     'да',

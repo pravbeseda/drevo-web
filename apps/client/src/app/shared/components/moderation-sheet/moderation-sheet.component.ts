@@ -165,7 +165,14 @@ export class ModerationSheetComponent {
                 isNoPreviousVersion(err)
                     ? this.articleService
                           .getArticleVersion(versionId)
-                          .pipe(map(version => ({ current: version.content, previous: undefined })))
+                          // Unlike versionpairs, the version endpoint returns the content raw, and CodeMirror
+                          // reads CRLF as one character: the finding offsets would drift a line at a time.
+                          .pipe(
+                              map(version => ({
+                                  current: version.content.replace(/\r\n/gu, '\n'),
+                                  previous: undefined,
+                              })),
+                          )
                     : throwError(() => err),
             ),
         );

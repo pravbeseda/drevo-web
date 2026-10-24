@@ -142,7 +142,16 @@ describe('checkWikiContent', () => {
             expect(fragments('Он Он пришёл', 'repeated-word')).toEqual(['Он Он']);
         });
 
-        it.each(['Свят, свят, свят', 'так так', 'да да', 'еле-еле', 'в\nв'])('should not report «%s»', text => {
+        it.each([
+            'Свят, свят, свят',
+            'так так',
+            'да да',
+            'еле-еле',
+            'в\nв',
+            'что что-то не так',
+            'кто кто-нибудь видел',
+            'что-то то вспомнилось',
+        ])('should not report «%s»', text => {
             expect(byRule(text, 'repeated-word')).toEqual([]);
         });
     });

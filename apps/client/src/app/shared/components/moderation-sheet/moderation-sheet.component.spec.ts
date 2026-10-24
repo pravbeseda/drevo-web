@@ -123,6 +123,18 @@ describe('ModerationSheetComponent', () => {
         expect(spectator.query('[data-testid="toggle-unified"]')).toBeNull();
     });
 
+    it('should normalise CRLF line endings of a first version, as the diff endpoint does', () => {
+        create({
+            pairs: throwError(
+                () => new HttpErrorResponse({ error: { errorCode: 'NO_PREVIOUS_VERSION' }, status: 404 }),
+            ),
+            version: of(articleVersion('первая строка\r\nвторая строка')),
+        });
+        spectator.detectChanges();
+
+        expect(panel()?.texts()?.current).toBe('первая строка\nвторая строка');
+    });
+
     it('should report a failed load and still let the moderator decide', () => {
         create({ pairs: throwError(() => new HttpErrorResponse({ status: 500 })) });
         spectator.detectChanges();
