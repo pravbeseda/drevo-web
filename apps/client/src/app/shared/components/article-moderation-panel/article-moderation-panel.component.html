@@ -14,6 +14,11 @@
     </div>
 </div>
 
+<app-moderation-check
+    [versionId]="version().versionId"
+    (commentLinesAdded)="appendToComment($event)"
+/>
+
 <ui-text-input
     label="Комментарий"
     [multiline]="true"

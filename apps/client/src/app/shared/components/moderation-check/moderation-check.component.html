@@ -1,0 +1,114 @@
+@let current = report();
+
+<div class="moderation-check-verdict">
+    <span
+        class="moderation-check-light"
+        aria-hidden="true"
+    >
+        <span
+            class="moderation-check-lamp"
+            [class.moderation-check-lamp--serious]="current?.verdict === 'serious'"
+        ></span>
+        <span
+            class="moderation-check-lamp"
+            [class.moderation-check-lamp--fix]="current?.verdict === 'fix'"
+        ></span>
+        <span
+            class="moderation-check-lamp"
+            [class.moderation-check-lamp--clean]="current?.verdict === 'clean'"
+        ></span>
+    </span>
+    <div>
+        <div
+            class="moderation-check-title"
+            data-testid="moderation-check-verdict"
+        >
+            {{ verdictTitle() }}
+        </div>
+        @if (summary()) {
+            <div class="moderation-check-summary">{{ summary() }}</div>
+        }
+    </div>
+</div>
+
+<div class="moderation-check-actions">
+    <ui-button
+        testId="moderation-check-full"
+        variant="outlined"
+        [disabled]="isLoading()"
+        (click)="run('full')"
+    >
+        Весь текст
+    </ui-button>
+    <ui-button
+        testId="moderation-check-changes"
+        variant="outlined"
+        [disabled]="isLoading()"
+        (click)="run('changes')"
+    >
+        Только изменения
+    </ui-button>
+</div>
+
+@if (current && current.items.length > 0) {
+    <div class="moderation-check-list-header">
+        <span>Замечания · {{ current.items.length }}</span>
+        <ui-button
+            testId="moderation-check-add-all"
+            variant="text"
+            (click)="addAllToComment()"
+        >
+            Все в комментарий
+        </ui-button>
+    </div>
+
+    <ul class="moderation-check-list">
+        @for (item of current.items; track item) {
+            <li
+                class="moderation-check-card"
+                data-testid="moderation-check-item"
+            >
+                <div class="moderation-check-card-header">
+                    <span
+                        class="moderation-check-level"
+                        [class]="'moderation-check-level--' + item.level"
+                    >
+                        {{ levelLabels[item.level] }}
+                    </span>
+                    <span class="moderation-check-meta">
+                        {{ categoryLabels[item.category] }} · строка {{ item.line }}
+                        @if (current.scope === 'full' && item.isChanged) {
+                            · изменена
+                        }
+                    </span>
+                    <ui-icon-button
+                        icon="content_copy"
+                        aria-label="Копировать замечание"
+                        testId="moderation-check-copy"
+                        (clicked)="copy(item)"
+                    />
+                </div>
+                <p class="moderation-check-context">
+                    <span>{{ item.contextBefore }}</span>
+                    <mark class="moderation-check-fragment">{{ item.fragment }}</mark>
+                    <span>{{ item.contextAfter }}</span>
+                </p>
+                @if (item.suggestion; as suggestion) {
+                    <p class="moderation-check-fix">
+                        →
+                        <b>{{ suggestion }}</b>
+                    </p>
+                }
+                <p class="moderation-check-message">{{ item.message }}</p>
+                <ui-button
+                    testId="moderation-check-add"
+                    variant="text"
+                    [disabled]="added().has(item)"
+                    (click)="addToComment(item)"
+                >
+                    {{ added().has(item) ? 'В комментарии' : '+ В комментарий' }}
+                </ui-button>
+            </li>
+        }
+    </ul>
+}

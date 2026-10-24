@@ -1,3 +1,4 @@
+import { CM_DIFF_CONFIG } from '../../helpers/cm-diff-config';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -12,7 +13,7 @@ import {
     signal,
     viewChild,
 } from '@angular/core';
-import { DiffConfig, MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
+import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
@@ -21,11 +22,6 @@ type ViewMode = 'unified' | 'side-by-side';
 
 const ruPhrases = {
     '$ unchanged lines': 'Строки без изменений: $',
-};
-
-const diffConfig: DiffConfig = {
-    scanLimit: 10_000_000,
-    timeout: 15000,
 };
 
 const cmTheme = EditorView.theme({
@@ -153,7 +149,7 @@ export class CmDiffViewComponent implements OnDestroy {
                 extensions: [
                     ...commonExtensions,
                     unifiedMergeView({
-                        diffConfig,
+                        diffConfig: CM_DIFF_CONFIG,
                         original: oldText,
                         highlightChanges: true,
                         allowInlineDiffs: true,
@@ -166,7 +162,7 @@ export class CmDiffViewComponent implements OnDestroy {
             });
         } else {
             this.mergeView = new MergeView({
-                diffConfig,
+                diffConfig: CM_DIFF_CONFIG,
                 a: {
                     doc: oldText,
                     extensions: commonExtensions,

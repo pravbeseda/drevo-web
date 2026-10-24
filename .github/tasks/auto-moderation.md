@@ -47,14 +47,14 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
    - A category → level map; `validateWikiContent` keeps returning editor severities, and a new `checkWikiContent` returns findings with category and level for moderation.
    - A masking step blanks out URLs (`!https://…`), tags and `nowiki` before the text rules (L1–L3) run, keeping offsets, so they never fire inside them.
 2. **Rules**: one file per group under `rules/`, added to `ALL_RULES`, each with its own spec.
-3. **Check service** (`app/services/moderation/`):
-   - Loads the current and previous raw text by `versionId` through `ArticleService.getVersionPairs`, so the panel works the same on the diff page and the article page.
-   - **Только изменения** keeps the findings that fall inside paragraphs added or changed against the previous version (line diff from `@drevo-web/shared/diff`); a first version has nothing to compare with and is checked whole.
-   - Builds each finding's context: the sentence around the fragment, cut to a word window with an ellipsis past ~200 characters.
-   - Returns the findings and the verdict. Rules take milliseconds, so phase 1 has no cache.
+3. **Check report** (`app/shared/helpers/check-report.ts`, a pure function; `app/services/` may not import the shared diff config):
+   - **Только изменения** keeps the findings on lines added or edited against the previous version, using `@codemirror/merge`'s `diff()` with the diff view's own config, so the lines match what CodeMirror highlights; a first version counts as all new.
+   - Builds each finding's context: the sentence around the fragment within its line, cut to whole words with an ellipsis past 100 characters a side.
+   - Returns the findings in reading order, the counts per level and the verdict. Rules take milliseconds, so phase 1 has no cache.
 4. **Panel UI** (`app/shared/components/`):
    - `moderation-check` block inside `article-moderation-panel`: the two buttons, the traffic light with counts, the list of finding cards.
-   - The comment draft is assembled from the cards added to it: a greeting line, a numbered list `Абзац N: «fragment» → «fix»`, a closing line; it goes into the panel's existing comment field.
+   - It loads the raw texts by `versionId` through `ArticleService.getVersionPairs`, falling back to `getArticleVersion` when the backend answers `NO_PREVIOUS_VERSION` for a first version.
+   - A card, or **Все в комментарий** for the cards not added yet, appends a line `Строка N: «fragment» → «fix» — message` to the panel's existing comment field; an empty comment first gets `Прошу исправить:`. The same line is what the copy button puts on the clipboard.
 5. **CodeMirror** (`cm-diff-view`):
    - A `findings` input renders them as marks and gutter markers on the current-version document (unified view, or the right column `mergeView.b`).
    - A third view mode, **Исходник**: the same read-only editor without the diff.
@@ -70,7 +70,7 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
 
 1. Rule model: `category` (on the existing M1 and M3 too), the level map, `checkWikiContent`.
 2. Rules M2, M4, M5, then L1–L3, with the `suggestion` field and the masking step they need.
-3. Check service with both modes and context.
+3. Check report with both scopes and context.
 4. Panel block with cards and the comment draft.
 5. `cm-diff-view`: findings marks, source mode, scroll to a finding.
 6. The source-mode modal on the article page.
