@@ -5,22 +5,7 @@
     overflow: hidden;
 }
 
-.cm-diff-view-editor {
-    flex: 1;
-    overflow: auto;
-}
-
-// CodeMirror-generated DOM (.cm-editor, .cm-mergeView, .cm-scroller, …) lives
-// outside this component's template, so its sizing overrides are defined
-// globally, scoped by the element selector, in styles/_diff-view-overrides.scss.
-
-// Auto-height mode: size to content and defer scrolling to an outer container.
 :host.auto-height {
     flex: none;
     overflow: visible;
-
-    .cm-diff-view-editor {
-        flex: none;
-        overflow: visible;
-    }
 }

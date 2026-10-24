@@ -1,8 +1,6 @@
-import { ArticleService } from '../../../services/articles/article.service';
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { buildCheckReport } from '../../helpers/check-report';
-import { CheckReport, CheckReportItem, CheckScope, CheckVerdict } from '../../models/check-report.model';
-import { HttpErrorResponse } from '@angular/common/http';
+import { CheckReport, CheckReportItem, CheckScope, CheckVerdict, VersionTexts } from '../../models/check-report.model';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -12,19 +10,12 @@ import {
     input,
     linkedSignal,
     output,
-    signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
+import { LoggerService, NotificationService } from '@drevo-web/core';
 import { CheckCategory, CheckLevel } from '@drevo-web/editor';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
-import { Observable, catchError, map, throwError } from 'rxjs';
-
-interface VersionTexts {
-    readonly current: string;
-    readonly previous: string | undefined;
-}
 
 const VERDICT_TITLES: Readonly<Record<CheckVerdict, string>> = {
     clean: 'Замечаний нет',
@@ -52,10 +43,6 @@ function toCommentLine(item: CheckReportItem): string {
     return `Строка ${item.line}: «${item.fragment}»${fix} — ${item.message}`;
 }
 
-function isNoPreviousVersion(err: unknown): boolean {
-    return err instanceof HttpErrorResponse && readApiErrorBody(err)?.errorCode === 'NO_PREVIOUS_VERSION';
-}
-
 @Component({
     selector: 'app-moderation-check',
     imports: [ButtonComponent, IconButtonComponent],
@@ -64,20 +51,21 @@ function isNoPreviousVersion(err: unknown): boolean {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationCheckComponent {
-    private readonly articleService = inject(ArticleService);
     private readonly clipboard = inject(ClipboardService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ModerationCheckComponent');
     private readonly notification = inject(NotificationService);
 
-    readonly versionId = input.required<number>();
+    readonly texts = input.required<VersionTexts>();
     readonly commentLinesAdded = output<readonly string[]>();
+    readonly reportChanged = output<CheckReport>();
+    readonly findingSelected = output<CheckReportItem>();
 
     readonly levelLabels = LEVEL_LABELS;
     readonly categoryLabels = CATEGORY_LABELS;
 
-    private readonly _report = linkedSignal<number, CheckReport | undefined>({
-        source: this.versionId,
+    private readonly _report = linkedSignal<VersionTexts, CheckReport | undefined>({
+        source: this.texts,
         computation: () => undefined,
     });
     readonly report = this._report.asReadonly();
@@ -87,9 +75,6 @@ export class ModerationCheckComponent {
         computation: () => new Set(),
     });
     readonly added = this._added.asReadonly();
-
-    private readonly _isLoading = signal(false);
-    readonly isLoading = this._isLoading.asReadonly();
 
     readonly verdictTitle = computed(() => {
         const report = this._report();
@@ -105,25 +90,15 @@ export class ModerationCheckComponent {
     });
 
     run(scope: CheckScope): void {
-        const versionId = this.versionId();
-        this._isLoading.set(true);
-        this.logger.info('Check: started', { versionId, scope });
+        const { current, previous } = this.texts();
+        const report = buildCheckReport(current, previous, scope);
+        this._report.set(report);
+        this.reportChanged.emit(report);
+        this.logger.info('Check: done', { scope, verdict: report.verdict, findings: report.items.length });
+    }
 
-        this.loadTexts(versionId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: texts => {
-                    const report = buildCheckReport(texts.current, texts.previous, scope);
-                    this._report.set(report);
-                    this._isLoading.set(false);
-                    this.logger.info('Check: done', { versionId, scope, verdict: report.verdict });
-                },
-                error: (err: unknown) => {
-                    this._isLoading.set(false);
-                    this.notification.error('Не удалось загрузить текст версии');
-                    this.logger.error('Check: failed to load the version', err);
-                },
-            });
+    showInText(item: CheckReportItem): void {
+        this.findingSelected.emit(item);
     }
 
     addToComment(item: CheckReportItem): void {
@@ -155,18 +130,5 @@ export class ModerationCheckComponent {
         this._added.set(new Set([...added, ...fresh]));
         this.commentLinesAdded.emit(fresh.map(toCommentLine));
         this.logger.info('Check: findings added to the comment', { count: fresh.length });
-    }
-
-    private loadTexts(versionId: number): Observable<VersionTexts> {
-        return this.articleService.getVersionPairs(versionId).pipe(
-            map(pairs => ({ current: pairs.current.content, previous: pairs.previous.content })),
-            catchError((err: unknown) =>
-                isNoPreviousVersion(err)
-                    ? this.articleService
-                          .getArticleVersion(versionId)
-                          .pipe(map(version => ({ current: version.content, previous: undefined })))
-                    : throwError(() => err),
-            ),
-        );
     }
 }

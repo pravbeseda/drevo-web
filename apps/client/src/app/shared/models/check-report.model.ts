@@ -17,6 +17,12 @@ export interface CheckReportItem extends CheckFinding {
     readonly contextAfter: string;
 }
 
+/** The raw source of a version and of the one before it; a first version has none before it. */
+export interface VersionTexts {
+    readonly current: string;
+    readonly previous: string | undefined;
+}
+
 export interface CheckReport {
     readonly scope: CheckScope;
     readonly items: readonly CheckReportItem[];

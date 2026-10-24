@@ -118,12 +118,50 @@ describe('ArticleModerationPanelComponent', () => {
     });
 
     describe('auto-check findings', () => {
-        it('should check the moderated version', () => {
+        const texts = { current: 'Новый текст', previous: 'Старый текст' };
+        const report = { scope: 'full', items: [], verdict: 'clean', counts: { serious: 0, fix: 0, hint: 0 } } as const;
+        const item = {
+            from: 0,
+            to: 3,
+            message: 'Слово повторяется: «и и»',
+            ruleId: 'repeated-word',
+            category: 'spelling',
+            level: 'serious',
+            fragment: 'и и',
+            line: 1,
+            isChanged: true,
+            contextBefore: '',
+            contextAfter: '',
+        } as const;
+
+        it('should wait for the texts before offering the check', () => {
             spectator.detectChanges();
-            expect(spectator.query(ModerationCheckComponent)?.versionId()).toBe(200);
+            expect(spectator.query(ModerationCheckComponent)).toBeNull();
+        });
+
+        it('should check the texts it was given', () => {
+            spectator.setInput('texts', texts);
+            spectator.detectChanges();
+            expect(spectator.query(ModerationCheckComponent)?.texts()).toBe(texts);
+        });
+
+        it('should pass the report and the selected finding up', () => {
+            const reports: unknown[] = [];
+            const selected: unknown[] = [];
+            spectator.output('reportChanged').subscribe(value => reports.push(value));
+            spectator.output('findingSelected').subscribe(value => selected.push(value));
+            spectator.setInput('texts', texts);
+            spectator.detectChanges();
+
+            spectator.triggerEventHandler(ModerationCheckComponent, 'reportChanged', report);
+            spectator.triggerEventHandler(ModerationCheckComponent, 'findingSelected', item);
+
+            expect(reports).toEqual([report]);
+            expect(selected).toEqual([item]);
         });
 
         it('should open an empty comment with a request to fix', () => {
+            spectator.setInput('texts', texts);
             spectator.detectChanges();
             spectator.triggerEventHandler(ModerationCheckComponent, 'commentLinesAdded', ['Строка 1: «ихний» → «их»']);
 
@@ -131,7 +169,7 @@ describe('ArticleModerationPanelComponent', () => {
         });
 
         it('should append the findings under an existing comment', () => {
-            spectator.setInput('version', { ...mockVersion, comment: 'Прошу исправить:\nСтрока 1' });
+            spectator.setInput({ version: { ...mockVersion, comment: 'Прошу исправить:\nСтрока 1' }, texts });
             spectator.detectChanges();
             spectator.triggerEventHandler(ModerationCheckComponent, 'commentLinesAdded', ['Строка 2', 'Строка 3']);
 

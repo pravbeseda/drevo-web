@@ -75,6 +75,50 @@ describe('CmDiffViewComponent', () => {
         });
     });
 
+    describe('rendering', () => {
+        const unchanged = Array.from({ length: 12 }, (_, i) => `строка ${i + 1}`).join('\n');
+
+        it('should show the new text with the removed part inline in unified mode', () => {
+            spectator.detectChanges();
+
+            expect(spectator.query('.cm-mergeView')).toBeNull();
+            expect(spectator.queryAll('.cm-editor')).toHaveLength(1);
+            expect(spectator.query('.cm-content')?.textContent).toContain('new content');
+            // jsdom leaves the deleted chunk's text empty, so only the widget itself is checked.
+            expect(spectator.query('.cm-deletedChunk')).not.toBeNull();
+        });
+
+        it('should show the two texts in two editors side by side', () => {
+            spectator.detectChanges();
+            spectator.component.toggleViewMode();
+            spectator.detectChanges();
+
+            const contents = spectator.queryAll('.cm-content').map(el => el.textContent);
+            expect(spectator.query('.cm-mergeView')).not.toBeNull();
+            expect(contents).toEqual(['old content', 'new content']);
+        });
+
+        it('should collapse a long unchanged stretch', () => {
+            spectator.setInput({ oldText: `${unchanged}\nстарое`, newText: `${unchanged}\nновое` });
+            spectator.detectChanges();
+
+            expect(spectator.query('.cm-collapsedLines')).not.toBeNull();
+        });
+
+        it('should be read-only', () => {
+            spectator.detectChanges();
+
+            expect(spectator.query('.cm-content')?.getAttribute('contenteditable')).toBe('false');
+        });
+
+        it('should mark the host when it grows with its content', () => {
+            spectator.setInput('autoHeight', true);
+            spectator.detectChanges();
+
+            expect(spectator.element).toHaveClass('auto-height');
+        });
+    });
+
     describe('cleanup', () => {
         it('should destroy editor view on component destroy', () => {
             spectator.detectChanges();

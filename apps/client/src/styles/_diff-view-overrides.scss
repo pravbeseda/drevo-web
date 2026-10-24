@@ -2,13 +2,13 @@
 //
 // These rules target DOM that is NOT part of an Angular template, so component
 // style encapsulation cannot reach it without ::ng-deep:
-//   - app-cm-diff-view — CodeMirror-generated DOM (.cm-editor, .cm-mergeView, …)
+//   - app-cm-diff-editor — CodeMirror-generated DOM (.cm-editor, .cm-mergeView, …)
 //   - app-diff-view    — markup injected via innerHTML (.diff-insert, …)
 // Scoped by each component's element selector, so they stay confined to that
 // component's subtree instead of leaking globally.
 
-// --- app-cm-diff-view: CodeMirror merge/editor sizing ----------------------
-app-cm-diff-view {
+// --- app-cm-diff-editor: CodeMirror merge/editor sizing --------------------
+app-cm-diff-editor {
     .cm-editor,
     .cm-mergeView {
         height: 100%;

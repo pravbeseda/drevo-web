@@ -102,6 +102,12 @@
     flex: 1;
 }
 
+.moderation-check-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 .moderation-check-level {
     font-size: $font-size-xs;
     font-weight: 600;

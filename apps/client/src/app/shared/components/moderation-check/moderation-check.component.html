@@ -35,7 +35,6 @@
     <ui-button
         testId="moderation-check-full"
         variant="outlined"
-        [disabled]="isLoading()"
         (click)="run('full')"
     >
         Весь текст
@@ -43,7 +42,6 @@
     <ui-button
         testId="moderation-check-changes"
         variant="outlined"
-        [disabled]="isLoading()"
         (click)="run('changes')"
     >
         Только изменения
@@ -100,14 +98,23 @@
                     </p>
                 }
                 <p class="moderation-check-message">{{ item.message }}</p>
-                <ui-button
-                    testId="moderation-check-add"
-                    variant="text"
-                    [disabled]="added().has(item)"
-                    (click)="addToComment(item)"
-                >
-                    {{ added().has(item) ? 'В комментарии' : '+ В комментарий' }}
-                </ui-button>
+                <div class="moderation-check-card-actions">
+                    <ui-button
+                        testId="moderation-check-add"
+                        variant="text"
+                        [disabled]="added().has(item)"
+                        (click)="addToComment(item)"
+                    >
+                        {{ added().has(item) ? 'В комментарии' : '+ В комментарий' }}
+                    </ui-button>
+                    <ui-button
+                        testId="moderation-check-show"
+                        variant="text"
+                        (click)="showInText(item)"
+                    >
+                        Показать в тексте
+                    </ui-button>
+                </div>
             </li>
         }
     </ul>

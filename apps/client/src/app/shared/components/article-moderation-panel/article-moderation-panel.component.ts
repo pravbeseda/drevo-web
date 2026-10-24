@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { CheckReport, CheckReportItem, VersionTexts } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ModerationCheckComponent } from '../moderation-check/moderation-check.component';
 import {
@@ -36,7 +37,11 @@ export class ArticleModerationPanelComponent {
     private readonly notification = inject(NotificationService);
 
     readonly version = input.required<VersionForModeration>();
+    /** The version's raw texts for the auto-check; it is offered once they have loaded. */
+    readonly texts = input<VersionTexts>();
     readonly moderated = output<ModerationResult>();
+    readonly reportChanged = output<CheckReport>();
+    readonly findingSelected = output<CheckReportItem>();
 
     readonly statusText = computed(() => {
         const status = this.version().approved;

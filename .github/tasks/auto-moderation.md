@@ -55,16 +55,19 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
    - `moderation-check` block inside `article-moderation-panel`: the two buttons, the traffic light with counts, the list of finding cards.
    - It loads the raw texts by `versionId` through `ArticleService.getVersionPairs`, falling back to `getArticleVersion` when the backend answers `NO_PREVIOUS_VERSION` for a first version.
    - A card, or **Все в комментарий** for the cards not added yet, appends a line `Строка N: «fragment» → «fix» — message` to the panel's existing comment field; an empty comment first gets `Прошу исправить:`. The same line is what the copy button puts on the clipboard.
-5. **CodeMirror** (`cm-diff-view`):
-   - A `findings` input renders them as marks and gutter markers on the current-version document (unified view, or the right column `mergeView.b`).
-   - A third view mode, **Исходник**: the same read-only editor without the diff.
-   - Scroll to a finding, expanding a collapsed unchanged chunk when the finding sits inside one.
-   - On the article view page, **Показать в тексте** opens a modal (lazy, through `ModalService`) with a read-only CodeMirror in source mode.
+5. **CodeMirror core** (`app/shared/components/cm-diff-editor/`): extracted from `cm-diff-view`, whose controls register in the page sidebar through `SidebarService` and so cannot live inside a modal.
+   - Inputs: the two texts, the mode (`unified`, `side-by-side`, `source`), the findings, the focused finding; read-only throughout.
+   - Findings render as marks on the current-version document (the unified view, the right column `mergeView.b`, or the source view); focusing one scrolls to it, expanding a collapsed unchanged chunk first.
+   - `cm-diff-view` becomes the core plus its sidebar actions, so the diff page keeps its behaviour.
+6. **Moderation sheet** (`app/shared/components/moderation-sheet/`): moderation gets its own CodeMirror, independent of the page, since the article page has none and the diff page may be in JsDiff mode.
+   - **Модерация** in `moderation-sidebar-action` opens the sheet through `ModalService` (lazy, near full screen) instead of the side panel; a decision closes it and reports the result as before.
+   - The sheet loads the raw texts and passes them down; `moderation-check` takes them as an input instead of loading them, and reports its report and the card clicked through `article-moderation-panel` back up, so the sheet feeds the left editor.
+   - Desktop (≥ `$breakpoint-desktop`): the editor with its mode buttons on the left, `article-moderation-panel` on the right. Narrower: tabs «Решение» / «Текст», a card's **Показать в тексте** switches to «Текст» on its line, and the two-column mode is hidden (mockup: https://claude.ai/artifact/V7PDbUF2CvU1BKgxyqv2UN).
 
 ## Testing
 
 - Jest: every rule (hits, misses, the masking cases), the category → level map, the check service (both modes, the first-version case, context cutting), the panel block (verdict per level, draft assembly), `cm-diff-view` (findings marks, source mode).
-- Playwright: on the diff page, open the moderation panel, run **Весь текст** on a fixture version with known problems, check the verdict and the cards, add one to the comment, open it in the text.
+- Playwright: on the diff page, open the moderation sheet, run **Весь текст** on a fixture version with known problems, check the verdict and the cards, add one to the comment, click a card and see its mark in the editor; on a phone viewport, the same through the tabs.
 
 ## Steps
 
@@ -72,9 +75,9 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
 2. Rules M2, M4, M5, then L1–L3, with the `suggestion` field and the masking step they need.
 3. Check report with both scopes and context.
 4. Panel block with cards and the comment draft.
-5. `cm-diff-view`: findings marks, source mode, scroll to a finding.
-6. The source-mode modal on the article page.
-7. Playwright scenario; docs (`docs/patterns.md` if the check service introduces a pattern).
+5. `cm-diff-editor` extracted from `cm-diff-view` behind characterization tests, then the source mode, findings marks and focusing a finding.
+6. The moderation sheet: opening it from the sidebar action, the texts loaded once, the desktop split and the phone tabs.
+7. Playwright scenario; docs (`docs/patterns.md` if a pattern comes out of it).
 
 ## Editor severity
 

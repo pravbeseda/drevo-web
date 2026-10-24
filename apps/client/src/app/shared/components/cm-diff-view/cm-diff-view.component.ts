@@ -1,65 +1,12 @@
-import { CM_DIFF_CONFIG } from '../../helpers/cm-diff-config';
+import { CmDiffEditorComponent, CmDiffMode } from '../cm-diff-editor/cm-diff-editor.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
-import { isPlatformBrowser } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    effect,
-    ElementRef,
-    inject,
-    input,
-    OnDestroy,
-    PLATFORM_ID,
-    signal,
-    viewChild,
-} from '@angular/core';
-import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
-import { EditorState } from '@codemirror/state';
-import { EditorView, lineNumbers } from '@codemirror/view';
+import { ChangeDetectionStrategy, Component, inject, input, signal, viewChild } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 
-type ViewMode = 'unified' | 'side-by-side';
-
-const ruPhrases = {
-    '$ unchanged lines': 'Строки без изменений: $',
-};
-
-const cmTheme = EditorView.theme({
-    '.cm-content': {
-        fontFamily: 'monospace',
-    },
-    '.cm-gutters': {
-        backgroundColor: 'var(--themed-secondary-bg)',
-        borderRight: '1px solid var(--themed-border-color)',
-        color: 'var(--themed-text-muted)',
-    },
-    '.cm-activeLineGutter': {
-        backgroundColor: 'var(--themed-hover-bg)',
-    },
-    '.cm-changedLine': {
-        backgroundColor: 'var(--themed-diff-insert-bg) !important',
-    },
-    '.cm-deletedChunk': {
-        backgroundColor: 'var(--themed-diff-delete-bg)',
-    },
-    '.cm-insertedLine': {
-        backgroundColor: 'var(--themed-diff-insert-bg) !important',
-    },
-    '.cm-deletedLine': {
-        backgroundColor: 'var(--themed-diff-delete-bg) !important',
-    },
-    '.cm-changedText': {
-        background: 'none',
-        fontWeight: 'bold',
-    },
-    '.cm-collapsedLines': {
-        color: 'var(--themed-text-muted)',
-    },
-});
-
+/** The diff page's diff: the CodeMirror view plus its controls in the page sidebar. */
 @Component({
     selector: 'app-cm-diff-view',
-    imports: [SidebarActionComponent],
+    imports: [CmDiffEditorComponent, SidebarActionComponent],
     templateUrl: './cm-diff-view.component.html',
     styleUrl: './cm-diff-view.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,128 +14,29 @@ const cmTheme = EditorView.theme({
         '[class.auto-height]': 'autoHeight()',
     },
 })
-export class CmDiffViewComponent implements OnDestroy {
+export class CmDiffViewComponent {
     readonly oldText = input.required<string>();
     readonly newText = input.required<string>();
-    /**
-     * Grow to content height instead of filling a fixed box and scrolling
-     * internally — for use inside an outer scroll container (e.g. the diff page,
-     * where the review block and the diff share one scrollbar).
-     */
+    /** See `CmDiffEditorComponent.autoHeight`. */
     readonly autoHeight = input(false);
 
     private readonly logger = inject(LoggerService).withContext('CmDiffViewComponent');
-    private readonly platformId = inject(PLATFORM_ID);
+    private readonly editor = viewChild(CmDiffEditorComponent);
 
-    private readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
-
-    private unifiedView?: EditorView;
-    private mergeView?: MergeView;
-
-    private readonly _viewMode = signal<ViewMode>('unified');
+    private readonly _viewMode = signal<CmDiffMode>('unified');
     readonly viewMode = this._viewMode.asReadonly();
 
-    constructor() {
-        effect(() => {
-            const container = this.editorContainer();
-            const oldText = this.oldText();
-            const newText = this.newText();
-            const mode = this._viewMode();
-
-            if (container && isPlatformBrowser(this.platformId)) {
-                this.destroyEditorView();
-                this.createEditorView(oldText, newText, container.nativeElement, mode);
-            }
-        });
-    }
-
-    ngOnDestroy(): void {
-        this.destroyEditorView();
-    }
-
     toggleViewMode(): void {
-        const newMode: ViewMode = this._viewMode() === 'unified' ? 'side-by-side' : 'unified';
+        const newMode: CmDiffMode = this._viewMode() === 'unified' ? 'side-by-side' : 'unified';
         this._viewMode.set(newMode);
         this.logger.info('View mode changed', { mode: newMode });
     }
 
     goToNext(): void {
-        const view = this.getActiveEditorView();
-        if (view) {
-            goToNextChunk(view);
-        }
+        this.editor()?.goToNext();
     }
 
     goToPrevious(): void {
-        const view = this.getActiveEditorView();
-        if (view) {
-            goToPreviousChunk(view);
-        }
-    }
-
-    private getActiveEditorView(): EditorView | undefined {
-        if (this._viewMode() === 'unified') {
-            return this.unifiedView;
-        }
-        return this.mergeView?.b;
-    }
-
-    private createEditorView(oldText: string, newText: string, container: HTMLElement, mode: ViewMode): void {
-        const commonExtensions = [
-            EditorView.editable.of(false),
-            EditorState.readOnly.of(true),
-            EditorView.lineWrapping,
-            EditorState.phrases.of(ruPhrases),
-            cmTheme,
-            lineNumbers(),
-        ];
-
-        if (mode === 'unified') {
-            this.unifiedView = new EditorView({
-                doc: newText,
-                extensions: [
-                    ...commonExtensions,
-                    unifiedMergeView({
-                        diffConfig: CM_DIFF_CONFIG,
-                        original: oldText,
-                        highlightChanges: true,
-                        allowInlineDiffs: true,
-                        mergeControls: false,
-                        collapseUnchanged: { margin: 3, minSize: 4 },
-                        gutter: true,
-                    }),
-                ],
-                parent: container,
-            });
-        } else {
-            this.mergeView = new MergeView({
-                diffConfig: CM_DIFF_CONFIG,
-                a: {
-                    doc: oldText,
-                    extensions: commonExtensions,
-                },
-                b: {
-                    doc: newText,
-                    extensions: commonExtensions,
-                },
-                parent: container,
-                collapseUnchanged: { margin: 3, minSize: 4 },
-                highlightChanges: true,
-                gutter: true,
-            });
-        }
-
-        this.logger.debug('Editor view created', { mode: this._viewMode() });
-    }
-
-    private destroyEditorView(): void {
-        if (this.unifiedView) {
-            this.unifiedView.destroy();
-            this.unifiedView = undefined;
-        }
-        if (this.mergeView) {
-            this.mergeView.destroy();
-            this.mergeView = undefined;
-        }
+        this.editor()?.goToPrevious();
     }
 }
