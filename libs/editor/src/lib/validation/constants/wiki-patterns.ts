@@ -26,3 +26,15 @@ export const WIKI_ITALIC_REGEX = /_([^\s_\r\n](?:[^_\r\n]*[^\s_\r\n])?)_/gu;
 // Synced with: FootnoteRule.php — /\[\[(.+?)\]\]/smu
 // eslint-disable-next-line sonarjs/super-linear-regex -- `[\s\S]` is the PHP `s` flag; quadratic only inside a single heading, which `findInHeadings` bounds to one line
 export const WIKI_FOOTNOTE_REGEX = /\[\[([\s\S]+?)\]\]/gu;
+
+// Synced with: NowikiRule::INLINE_CODE_BODY — /(?<![\p{L}\p{N}`])`([^`\s](?:[^`\r\n]*[^`\s])?)`(?![\p{L}\p{N}`])/u
+export const WIKI_INLINE_CODE_REGEX = /(?<![\p{L}\p{N}`])`([^`\s](?:[^`\r\n]*[^`\s])?)`(?![\p{L}\p{N}`])/gu;
+
+// Synced with: NowikiRule::EXPLICIT_NOWIKI_BODY — /<nowiki>(.+?)<\/nowiki>/smu
+export const WIKI_NOWIKI_REGEX = /<nowiki>([\s\S]+?)<\/nowiki>/gu;
+
+// Synced with: CommentRule.php — /\[\*.*?\*\]/smu
+export const WIKI_COMMENT_REGEX = /\[\*[\s\S]*?\*\]/gu;
+
+// Synced with: ExternalLinkRule.php — #(?:https?|ftp)://([^\s\[\]]+)[^\s.,>:\[\];\'"!?]#u
+export const WIKI_URL_REGEX = /(?:https?|ftp):\/\/([^\s[\]]+)[^\s.,>:[\];'"!?]/gu;

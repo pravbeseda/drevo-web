@@ -31,13 +31,12 @@ Phase 1:
 | M1 | Разметка | unpaired `(( ))`, `{{ }}`, `[[ ]]` | exists: `paired-brackets` |
 | M2 | Разметка | empty `(())`, `[[]]`, `{{}}` | |
 | M3 | Разметка | links, formatting, footnotes in headings | exist: `heading-no-links`, `heading-no-formatting`, `heading-no-footnotes` |
-| M4 | Разметка | comment `[*` without `*]` | the rest of the article disappears |
-| M5 | Разметка | unknown tag `{{…}}` | known list mirrors `WikiFormatter/Rules` (`youtube`, `youtube-list`, `vimeo`, `Метка`, …) |
+| M4 | Разметка | a comment the formatter reads differently from the author: `[*` without `*]`, `[*` that runs past the next `[*`, `[[*` (a footnote opening with bold) | `CommentRule.php` runs before footnotes, so the text up to the next `*]` disappears |
 | L1 | Орфография | dictionary of unambiguous errors | `ихний`, `ложить`; `в течении` only before a time word (`года`, `дня`, `недели`, …), since `в течении реки` is correct |
 | L2 | Орфография | the same word twice in a row | `и и`, `в в` |
 | L3 | Орфография | Latin letters inside a Cyrillic word | reuse the confusables table of `SpamFilter/ConfusableSkeleton.php` |
 
-Later: link `((…))` to a missing article and missing picture `@123@` (need a backend endpoint); канцелярит and forbidden-word dictionaries (L4, Стиль/Лексика); empty section, skipped heading level, very long paragraph. Typography (quotes, dashes, spaces) is out for now.
+Later: link `((…))` to a missing article, missing picture `@123@` and a category `{{…}}` that does not exist (need a backend endpoint; `{{…}}` takes any text as a category, so there is no unknown-tag rule); канцелярит and forbidden-word dictionaries (L4, Стиль/Лексика); empty section, skipped heading level, very long paragraph. Typography (quotes, dashes, spaces) is out for now.
 
 Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, picture `@id@`, comment `[*…*]`, heading `==…==` / `===…===` — see `constants/wiki-patterns.ts` and `../drevo-yii/protected/components/WikiFormatter/`.
 
@@ -69,8 +68,8 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
 
 ## Steps
 
-1. Rule model: `category`, `suggestion`, the level map, `checkWikiContent`, the masking step.
-2. Rules M2, M4, M5, then L1–L3; categories on the existing M1 and M3.
+1. Rule model: `category` (on the existing M1 and M3 too), the level map, `checkWikiContent`.
+2. Rules M2, M4, M5, then L1–L3, with the `suggestion` field and the masking step they need.
 3. Check service with both modes and context.
 4. Panel block with cards and the comment draft.
 5. `cm-diff-view`: findings marks, source mode, scroll to a finding.
