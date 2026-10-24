@@ -9,7 +9,7 @@ Review all changes on the current branch in the `legacy-drevo-yii` repository co
 
 ## Context
 
-Repository: `legacy-drevo-yii/` (symlink → `/Users/ai/WebProjects/drevo/drevo-yii`)
+Repository: `legacy-drevo-yii/` (symlink → `/Users/ai/Work/drevo/drevo-yii`)
 Remote: https://github.com/pravbeseda/drevo-yii/
 
 **Current branch:** !`git -C legacy-drevo-yii rev-parse --abbrev-ref HEAD`
