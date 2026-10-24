@@ -14,6 +14,15 @@
     </div>
 </div>
 
+@if (texts(); as texts) {
+    <app-moderation-check
+        [texts]="texts"
+        (commentLinesAdded)="appendToComment($event)"
+        (reportChanged)="reportChanged.emit($event)"
+        (findingSelected)="findingSelected.emit($event)"
+    />
+}
+
 <ui-text-input
     label="Комментарий"
     [multiline]="true"

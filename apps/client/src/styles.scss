@@ -25,7 +25,7 @@
 @use 'scrollbar';
 
 // Global overrides for third-party / innerHTML DOM inside diff views,
-// scoped by the component element selector (app-cm-diff-view / app-diff-view).
+// scoped by the component element selector (app-cm-diff-editor / app-diff-view).
 @use './styles/diff-view-overrides';
 
 // The calendar legend, formatted wiki HTML from the API, in the grid's colours.

@@ -249,4 +249,23 @@ describe('validateWikiContent', () => {
             expect(errors).toHaveLength(0);
         });
     });
+
+    describe('editor severity of the moderation rules', () => {
+        it('should block saving on an unclosed comment', () => {
+            const [problem] = validateWikiContent('Текст[[*жирный*]]').filter(e => e.ruleId === 'unclosed-comment');
+
+            expect(problem.severity).toBe('error');
+        });
+
+        it.each([
+            ['empty-markup', 'См. (())'],
+            ['common-misspellings', 'ихний дом'],
+            ['repeated-word', 'и и'],
+            ['mixed-script', 'cвятой'],
+        ])('should only warn on %s', (ruleId, text) => {
+            const [problem] = validateWikiContent(text).filter(e => e.ruleId === ruleId);
+
+            expect(problem.severity).toBe('warning');
+        });
+    });
 });

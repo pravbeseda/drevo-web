@@ -7,17 +7,6 @@
         [disabled]="disabled()"
         [badge]="validationCount()"
         testId="moderation-action"
-        (activated)="togglePanel()"
+        (activated)="openSheet()"
     />
-
-    <ui-side-panel
-        header="Модерация"
-        [open]="isPanelOpen()"
-        (closed)="closePanel()"
-    >
-        <app-article-moderation-panel
-            [version]="version()"
-            (moderated)="onModerated($event)"
-        />
-    </ui-side-panel>
 }

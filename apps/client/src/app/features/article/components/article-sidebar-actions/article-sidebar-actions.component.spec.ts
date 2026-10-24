@@ -110,9 +110,8 @@ describe('ArticleSidebarActionsComponent', () => {
                 comment: 'OK',
             };
 
-            const moderation = spectator.query(ModerationSidebarActionComponent);
-            expect(moderation).toBeTruthy();
-            moderation?.onModerated(result);
+            expect(spectator.query(ModerationSidebarActionComponent)).toBeTruthy();
+            spectator.triggerEventHandler(ModerationSidebarActionComponent, 'moderated', result);
 
             expect(spy).toHaveBeenCalledWith(result);
         });

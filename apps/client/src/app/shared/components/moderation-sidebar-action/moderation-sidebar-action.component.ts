@@ -1,9 +1,9 @@
 import { AuthService } from '../../../services/auth/auth.service';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
-import { ArticleModerationPanelComponent } from '../article-moderation-panel/article-moderation-panel.component';
+import type { ModerationSheetData } from '../moderation-sheet/moderation-sheet.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ValidationResult } from '@drevo-web/editor';
 import {
     APPROVAL_CLASS,
@@ -12,11 +12,11 @@ import {
     ModerationResult,
     SidebarActionPriority,
 } from '@drevo-web/shared';
-import { SidePanelComponent } from '@drevo-web/ui/side-panel';
+import { ModalService } from '@drevo-web/ui/modal';
 
 @Component({
     selector: 'app-moderation-sidebar-action',
-    imports: [ArticleModerationPanelComponent, SidebarActionComponent, SidePanelComponent],
+    imports: [SidebarActionComponent],
     templateUrl: './moderation-sidebar-action.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -42,19 +42,18 @@ export class ModerationSidebarActionComponent {
     private readonly approvalClass = computed(() => APPROVAL_CLASS[this.version().approved]);
     readonly moderationIcon = computed(() => APPROVAL_ICONS[this.approvalClass()]);
 
-    private readonly _isPanelOpen = signal(false);
-    readonly isPanelOpen = this._isPanelOpen.asReadonly();
+    private readonly modalService = inject(ModalService);
+    private readonly destroyRef = inject(DestroyRef);
 
-    togglePanel(): void {
-        this._isPanelOpen.update(v => !v);
-    }
-
-    closePanel(): void {
-        this._isPanelOpen.set(false);
-    }
-
-    onModerated(result: ModerationResult): void {
-        this._isPanelOpen.set(false);
-        this.moderated.emit(result);
+    openSheet(): void {
+        this.modalService
+            .open<ModerationSheetData, ModerationResult>(
+                () => import('../moderation-sheet/moderation-sheet.component').then(m => m.ModerationSheetComponent),
+                { data: { version: this.version() }, width: '96vw', maxWidth: '96vw', height: '90vh' },
+            )
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(result => {
+                if (result) this.moderated.emit(result);
+            });
     }
 }

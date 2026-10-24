@@ -1,0 +1,94 @@
+<header class="moderation-sheet-head">
+    <h2 class="moderation-sheet-title">Модерация версии · {{ version.author }} · {{ version.date | formatDate }}</h2>
+    <ui-icon-button
+        icon="close"
+        aria-label="Закрыть"
+        testId="moderation-sheet-close"
+        (clicked)="close()"
+    />
+</header>
+
+@if (isNarrow()) {
+    <div
+        class="moderation-sheet-tabs"
+        role="tablist"
+        data-testid="moderation-sheet-tabs"
+    >
+        <button
+            type="button"
+            role="tab"
+            class="moderation-sheet-tab"
+            data-testid="moderation-sheet-tab-decision"
+            [class.moderation-sheet-tab--active]="tab() === 'decision'"
+            [attr.aria-selected]="tab() === 'decision'"
+            (click)="selectTab('decision')"
+        >
+            Решение
+        </button>
+        <button
+            type="button"
+            role="tab"
+            class="moderation-sheet-tab"
+            data-testid="moderation-sheet-tab-text"
+            [class.moderation-sheet-tab--active]="tab() === 'text'"
+            [attr.aria-selected]="tab() === 'text'"
+            (click)="selectTab('text')"
+        >
+            Текст
+        </button>
+    </div>
+}
+
+<div class="moderation-sheet-body">
+    <section
+        class="moderation-sheet-text"
+        aria-label="Текст версии"
+        data-testid="moderation-sheet-text"
+        [class.moderation-sheet-pane--hidden]="isNarrow() && tab() !== 'text'"
+    >
+        @if (texts(); as texts) {
+            @if (modeOptions().length > 1) {
+                <ui-button-toggle-group
+                    class="moderation-sheet-modes"
+                    appearance="segmented"
+                    ariaLabel="Вид текста"
+                    [options]="modeOptions()"
+                    [ngModel]="mode()"
+                    (optionClick)="setMode($event.value)"
+                />
+            }
+            <app-cm-diff-editor
+                [oldText]="texts.previous ?? ''"
+                [newText]="texts.current"
+                [mode]="mode()"
+                [collapseUnchanged]="collapseUnchanged()"
+                [marks]="marks()"
+                [focused]="focused()"
+            />
+        } @else if (loadFailed()) {
+            <p
+                class="moderation-sheet-message"
+                data-testid="moderation-sheet-error"
+            >
+                Не удалось загрузить текст версии
+            </p>
+        } @else {
+            <p class="moderation-sheet-message">Загружаем текст версии…</p>
+        }
+    </section>
+
+    <section
+        class="moderation-sheet-decision"
+        aria-label="Решение"
+        data-testid="moderation-sheet-decision"
+        [class.moderation-sheet-pane--hidden]="isNarrow() && tab() !== 'decision'"
+    >
+        <app-article-moderation-panel
+            [version]="version"
+            [texts]="texts()"
+            (moderated)="onModerated($event)"
+            (reportChanged)="onReport($event)"
+            (findingSelected)="showFinding($event)"
+        />
+    </section>
+</div>

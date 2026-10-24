@@ -1,5 +1,7 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { CheckReport, CheckReportItem, VersionTexts } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
+import { ModerationCheckComponent } from '../moderation-check/moderation-check.component';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -19,9 +21,11 @@ import { FormatDatePipe } from '@drevo-web/ui/format-date';
 import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 import { TextInputComponent } from '@drevo-web/ui/text-input';
 
+const COMMENT_INTRO = 'Прошу исправить:';
+
 @Component({
     selector: 'app-article-moderation-panel',
-    imports: [ButtonComponent, StatusIconComponent, TextInputComponent, FormatDatePipe],
+    imports: [ButtonComponent, ModerationCheckComponent, StatusIconComponent, TextInputComponent, FormatDatePipe],
     templateUrl: './article-moderation-panel.component.html',
     styleUrl: './article-moderation-panel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,7 +37,11 @@ export class ArticleModerationPanelComponent {
     private readonly notification = inject(NotificationService);
 
     readonly version = input.required<VersionForModeration>();
+    /** The version's raw texts for the auto-check; it is offered once they have loaded. */
+    readonly texts = input<VersionTexts>();
     readonly moderated = output<ModerationResult>();
+    readonly reportChanged = output<CheckReport>();
+    readonly findingSelected = output<CheckReportItem>();
 
     readonly statusText = computed(() => {
         const status = this.version().approved;
@@ -56,6 +64,10 @@ export class ArticleModerationPanelComponent {
 
     onCommentChange(value: string): void {
         this._comment.set(value);
+    }
+
+    appendToComment(lines: readonly string[]): void {
+        this._comment.update(comment => [comment.trim() ? comment : COMMENT_INTRO, ...lines].join('\n'));
     }
 
     approve(): void {

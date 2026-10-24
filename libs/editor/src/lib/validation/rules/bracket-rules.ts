@@ -42,6 +42,7 @@ function findUnpairedInLine(
 export const pairedBrackets: ValidationRule = {
     id: 'paired-brackets',
     defaultSeverity: 'warning',
+    category: 'markup',
     validate(text: string): readonly RuleMatch[] {
         const matches: RuleMatch[] = [];
         const lines = text.split('\n');

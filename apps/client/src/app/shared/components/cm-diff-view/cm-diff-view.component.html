@@ -15,7 +15,9 @@
     (activated)="goToNext()"
 />
 
-<div
-    class="cm-diff-view-editor"
-    #editorContainer
-></div>
+<app-cm-diff-editor
+    [oldText]="oldText()"
+    [newText]="newText()"
+    [mode]="viewMode()"
+    [autoHeight]="autoHeight()"
+/>

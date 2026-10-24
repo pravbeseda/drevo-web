@@ -5,8 +5,9 @@ import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectat
 import { SidebarService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { SidePanelComponent } from '@drevo-web/ui/side-panel';
-import { of } from 'rxjs';
+import { ModalService } from '@drevo-web/ui/modal';
+import { Observable, of } from 'rxjs';
+import { ModerationSheetComponent } from '../moderation-sheet/moderation-sheet.component';
 import { ModerationSidebarActionComponent } from './moderation-sidebar-action.component';
 
 const mockVersion: VersionForModeration = {
@@ -36,11 +37,13 @@ const mockRegularUser = createMockUser({
 describe('ModerationSidebarActionComponent', () => {
     describe('moderator user', () => {
         let spectator: Spectator<ModerationSidebarActionComponent>;
+        let sheetResult: Observable<ModerationResult | undefined>;
 
         const createComponent = createComponentFactory({
             component: ModerationSidebarActionComponent,
             providers: [
                 mockProvider(SidebarService),
+                mockProvider(ModalService, { open: jest.fn(() => sheetResult) }),
                 {
                     provide: AuthService,
                     useValue: { user$: of(mockModeratorUser) },
@@ -50,6 +53,7 @@ describe('ModerationSidebarActionComponent', () => {
         });
 
         beforeEach(() => {
+            sheetResult = of(undefined);
             spectator = createComponent({ props: { version: mockVersion } });
         });
 
@@ -66,11 +70,6 @@ describe('ModerationSidebarActionComponent', () => {
         it('should render sidebar action', () => {
             spectator.detectChanges();
             expect(spectator.query(SidebarActionComponent)).toBeTruthy();
-        });
-
-        it('should render side panel', () => {
-            spectator.detectChanges();
-            expect(spectator.query(SidePanelComponent)).toBeTruthy();
         });
 
         describe('icon computation', () => {
@@ -121,44 +120,7 @@ describe('ModerationSidebarActionComponent', () => {
             });
         });
 
-        describe('panel toggle', () => {
-            it('should start with panel closed', () => {
-                spectator.detectChanges();
-                expect(spectator.component.isPanelOpen()).toBe(false);
-            });
-
-            it('should open panel on toggle', () => {
-                spectator.detectChanges();
-                spectator.component.togglePanel();
-                expect(spectator.component.isPanelOpen()).toBe(true);
-            });
-
-            it('should close panel on second toggle', () => {
-                spectator.detectChanges();
-                spectator.component.togglePanel();
-                spectator.component.togglePanel();
-                expect(spectator.component.isPanelOpen()).toBe(false);
-            });
-
-            it('should close panel via closePanel', () => {
-                spectator.detectChanges();
-                spectator.component.togglePanel();
-                spectator.component.closePanel();
-                expect(spectator.component.isPanelOpen()).toBe(false);
-            });
-
-            it('should pass open state to side panel', () => {
-                spectator.detectChanges();
-                const panel = spectator.query(SidePanelComponent);
-                expect(panel?.open()).toBe(false);
-
-                spectator.component.togglePanel();
-                spectator.detectChanges();
-                expect(panel?.open()).toBe(true);
-            });
-        });
-
-        describe('onModerated', () => {
+        describe('moderation sheet', () => {
             const result: ModerationResult = {
                 versionId: 200,
                 articleId: 1,
@@ -166,33 +128,46 @@ describe('ModerationSidebarActionComponent', () => {
                 comment: 'Looks good',
             };
 
-            it('should close panel', () => {
+            function activate(): void {
                 spectator.detectChanges();
-                spectator.component.togglePanel();
-                expect(spectator.component.isPanelOpen()).toBe(true);
+                spectator.triggerEventHandler(SidebarActionComponent, 'activated', undefined);
+            }
 
-                spectator.component.onModerated(result);
-                expect(spectator.component.isPanelOpen()).toBe(false);
+            it('should open the sheet for the version, near full screen', () => {
+                activate();
+
+                expect(spectator.inject(ModalService).open).toHaveBeenCalledWith(expect.any(Function), {
+                    data: { version: mockVersion },
+                    width: '96vw',
+                    maxWidth: '96vw',
+                    height: '90vh',
+                });
             });
 
-            it('should emit moderated event', () => {
-                spectator.detectChanges();
+            it('should load the sheet lazily', async () => {
+                activate();
+
+                const loader = jest.mocked(spectator.inject(ModalService).open).mock.calls[0][0];
+                await expect(loader()).resolves.toBe(ModerationSheetComponent);
+            });
+
+            it('should emit the decision made in the sheet', () => {
+                sheetResult = of(result);
                 const spy = jest.fn();
                 spectator.component.moderated.subscribe(spy);
 
-                spectator.component.onModerated(result);
+                activate();
 
                 expect(spy).toHaveBeenCalledWith(result);
             });
 
-            it('should emit moderated event only once', () => {
-                spectator.detectChanges();
+            it('should emit nothing when the sheet is closed without a decision', () => {
                 const spy = jest.fn();
                 spectator.component.moderated.subscribe(spy);
 
-                spectator.component.onModerated(result);
+                activate();
 
-                expect(spy).toHaveBeenCalledTimes(1);
+                expect(spy).not.toHaveBeenCalled();
             });
         });
 
@@ -243,12 +218,6 @@ describe('ModerationSidebarActionComponent', () => {
             const spectator = createComponent({ props: { version: mockVersion } });
             spectator.detectChanges();
             expect(spectator.query(SidebarActionComponent)).toBeFalsy();
-        });
-
-        it('should not render side panel', () => {
-            const spectator = createComponent({ props: { version: mockVersion } });
-            spectator.detectChanges();
-            expect(spectator.query(SidePanelComponent)).toBeFalsy();
         });
     });
 

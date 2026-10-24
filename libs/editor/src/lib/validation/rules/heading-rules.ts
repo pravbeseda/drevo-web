@@ -32,6 +32,7 @@ function findInHeadings(text: string, pattern: RegExp, message: string): readonl
 export const headingNoLinks: ValidationRule = {
     id: 'heading-no-links',
     defaultSeverity: 'warning',
+    category: 'markup',
     validate(text: string): readonly RuleMatch[] {
         return findInHeadings(text, WIKI_LINK_REGEX, 'Ссылки запрещены в заголовках');
     },
@@ -40,6 +41,7 @@ export const headingNoLinks: ValidationRule = {
 export const headingNoFormatting: ValidationRule = {
     id: 'heading-no-formatting',
     defaultSeverity: 'warning',
+    category: 'markup',
     validate(text: string): readonly RuleMatch[] {
         return [
             ...findInHeadings(text, WIKI_BOLD_REGEX, 'Жирный текст запрещён в заголовках'),
@@ -51,6 +53,7 @@ export const headingNoFormatting: ValidationRule = {
 export const headingNoFootnotes: ValidationRule = {
     id: 'heading-no-footnotes',
     defaultSeverity: 'warning',
+    category: 'markup',
     validate(text: string): readonly RuleMatch[] {
         return findInHeadings(text, WIKI_FOOTNOTE_REGEX, 'Сноски запрещены в заголовках');
     },

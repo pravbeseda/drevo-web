@@ -3,7 +3,7 @@
 The Angular client talks to a Yii1 application that predates it. The source is reachable through a symlink:
 
 ```
-legacy-drevo-yii/            # Symlink → ~/WebProjects/drevo/drevo-yii
+legacy-drevo-yii/            # Symlink → ~/Work/drevo/drevo-yii
   protected/
     controllers/api/         # API controllers — the only folder this project modifies
     models/                  # Data models — read them for data structures and business logic
