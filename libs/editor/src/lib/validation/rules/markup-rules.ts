@@ -33,12 +33,14 @@ export const unclosedComment: ValidationRule = {
 
         while (open !== -1) {
             const close = masked.indexOf(COMMENT_CLOSE, open + COMMENT_OPEN.length);
+            // With no `*]` after it, `[[*` is just a footnote opening with bold: nothing hides.
             if (close === -1) {
-                matches.push({
-                    from: open,
-                    to: open + COMMENT_OPEN.length,
-                    message: 'Комментарий [* не закрыт: нет *]',
-                });
+                if (masked[open - 1] !== '[')
+                    matches.push({
+                        from: open,
+                        to: open + COMMENT_OPEN.length,
+                        message: 'Комментарий [* не закрыт: нет *]',
+                    });
                 open = masked.indexOf(COMMENT_OPEN, open + COMMENT_OPEN.length);
                 continue;
             }

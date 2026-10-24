@@ -78,6 +78,10 @@ describe('checkWikiContent', () => {
             expect(finding.suggestion).toBe('[[ *');
         });
 
+        it('should not report a footnote that starts with bold when no comment closes after it', () => {
+            expect(byRule('обитель[[*Троице-Сергиева лавра* — с 1744 года]].', 'unclosed-comment')).toEqual([]);
+        });
+
         it('should not report a proper comment', () => {
             expect(byRule('Текст [* заметка *] дальше', 'unclosed-comment')).toEqual([]);
         });

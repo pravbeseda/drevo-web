@@ -31,7 +31,7 @@ Phase 1:
 | M1 | Разметка | unpaired `(( ))`, `{{ }}`, `[[ ]]` | exists: `paired-brackets` |
 | M2 | Разметка | empty `(())`, `[[]]`, `{{}}` | |
 | M3 | Разметка | links, formatting, footnotes in headings | exist: `heading-no-links`, `heading-no-formatting`, `heading-no-footnotes` |
-| M4 | Разметка | a comment the formatter reads differently from the author: `[*` without `*]`, `[*` that runs past the next `[*`, `[[*` (a footnote opening with bold) | `CommentRule.php` runs before footnotes, so the text up to the next `*]` disappears |
+| M4 | Разметка | a comment the formatter reads differently from the author: `[*` without `*]`, `[*` that runs past the next `[*`, `[[*` (a footnote opening with bold) when a `*]` follows it | `CommentRule.php` runs before footnotes, so the text up to the next `*]` disappears |
 | L1 | Орфография | dictionary of unambiguous errors | `ихний`, `ложить`; `в течении` only before a time word (`года`, `дня`, `недели`, …), since `в течении реки` is correct |
 | L2 | Орфография | the same word twice in a row | `и и`, `в в` |
 | L3 | Орфография | Latin letters inside a Cyrillic word | reuse the confusables table of `SpamFilter/ConfusableSkeleton.php` |

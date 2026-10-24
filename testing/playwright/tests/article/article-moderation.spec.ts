@@ -1,7 +1,16 @@
-import { test, expect, mockAuthApi, mockArticleShow, mockArticleModerate, bypassSsr } from '../../fixtures';
-import { createArticleVersionDto } from '../../mocks/articles';
+import {
+    test,
+    expect,
+    mockAuthApi,
+    mockArticleShow,
+    mockArticleModerate,
+    mockVersionPairs,
+    bypassSsr,
+} from '../../fixtures';
+import { createArticleVersionDto, createVersionPairsResponse } from '../../mocks/articles';
 import { mockUsers } from '../../mocks';
 import { ArticlePage } from '../../pages/article.page';
+import { ModerationSheetPage } from '../../pages/moderation-sheet.page';
 import { getNotification } from '../../helpers/notification';
 
 const ARTICLE_ID = 42;
@@ -85,6 +94,22 @@ test.describe('Article moderation', () => {
             await article.moderationAction.click();
             await article.moderationRejectButton.click();
             await expect(getNotification(page, 'success')).toBeVisible();
+        });
+
+        test('the sheet shows the source of the version and checks it', async ({ authenticatedPage: page }) => {
+            await mockVersionPairs(
+                page,
+                420,
+                createVersionPairsResponse({ versionId: 420, content: 'Новый ихний дом.' }, { content: 'Старый дом.' }),
+            );
+            const sheet = new ModerationSheetPage(page);
+            await article.openMobileMenu();
+            await article.moderationAction.click();
+            await sheet.waitForReady();
+
+            await expect(sheet.editor).toBeVisible();
+            await sheet.checkWholeText.click();
+            await expect(sheet.findings).toHaveCount(1);
         });
     });
 
