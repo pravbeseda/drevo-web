@@ -11,7 +11,7 @@ Moderating a version means reading it for the same known problems every time —
 - A traffic-light verdict: green — no remarks, yellow — fixes needed, red — serious remarks.
 - Each finding is a card in the side panel: level, category, location, the surrounding sentence with the fragment highlighted, the suggested fix when there is one. A card copies itself, adds itself to the moderation comment, and shows its place in the text (mockup: https://claude.ai/artifact/T1zyKFAj3Wj5kkRcMxTCKs, board 2).
 - **Все в комментарий** assembles the selected findings into a draft in the existing comment field (`ModerationRequestDto.comment`); the moderator edits it before sending.
-- Phase 1 is rule-based only. AI comes in phase 2 (out of scope here, see the end).
+- Phase 1 is rule-based only; phase 2 adds the AI check (see «Phase 2» below).
 
 ## Decisions
 
@@ -83,6 +83,58 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
 
 In the editor an `error` blocks saving (`article-edit.component.ts:238`) and a `warning` asks for confirmation; the moderation level comes from the category, separately from that. M4 is an `error`, since an unclosed comment hides the rest of the article; every other new rule is a `warning`, so a false positive never blocks an author.
 
-## Phase 2: AI (out of scope)
+## Phase 2: AI check through Jev
 
-Adapters behind one interface: manual (copy the prompt into a chat, paste the JSON answer back), Jev (TypeSafe AI — a classification model: it scores a paragraph, it does not quote or rewrite), maybe the Claude API. The user's key is kept through `StorageService`, never logged. Results are cached by `versionId`, provider and prompt version.
+### Goal
+
+When the moderator has saved an OpenRouter API key, **Весь текст** and **Только изменения** run the rules and, alongside them, ask Jev (TypeSafe's classification model) about every paragraph in scope. Rule cards appear at once; AI cards follow as answers arrive, with an «ИИ: 12 из 40» counter. Without a key the block works exactly as in phase 1. There is no copy-paste prompt adapter.
+
+### Decisions
+
+- **Transport**: OpenRouter, `POST https://openrouter.ai/api/v1/systemone`, `Authorization: Bearer <key>`, model pinned to `typesafe/jev-1.14` (thresholds are calibrated against one model; [model page](https://openrouter.ai/typesafe/jev-1.14/)). `api.typesafe.ai` rejects browser origins (`400 Disallowed CORS origin` on preflight); OpenRouter answers `access-control-allow-origin: *`. The request carries `SKIP_ERROR_NOTIFICATION`; `AuthInterceptor` only touches `/api/` and `apiUrl`, so no CSRF or cookies leave.
+- **One request per paragraph** (one source line), with the whole questionnaire in it; at most 4 in flight. **Только изменения** sends only the changed lines, the same set `buildCheckReport` keeps. A finding covers its whole line.
+- **Text sent**: the line with the markup stripped on the frontend. Comments, `<nowiki>` and footnotes can span lines, so they are handled over the whole version first, keeping the line breaks: the existing `maskNonProse` (`mask.ts`) blanks comments, `<nowiki>`, inline code and URLs, and a footnote `[[…]]` becomes ` (…)`. Only then is the text split into lines and each line stripped by the patterns of `constants/wiki-patterns.ts` — link (its label after `=`, else its target), bold, italic and heading → their text; picture `@id@`, category `{{…}}`, the list, quote and indent markers and the mask filler → removed. A line with no letters left is not sent.
+- **Questionnaire**: a constant in code with a version number, three `choice` questions, one per category, each with a `none` option. Jev sees only the `instructions` and the option descriptions in `criteria`, so these are the contract; the card's message is the option description.
+
+  | Key | Category → level | `instructions` | `criteria` |
+  |---|---|---|---|
+  | `spelling` | Орфография → serious | Есть ли в абзаце орфографические ошибки или опечатки? | `none`: Ошибок нет · `typo`: Опечатка — пропущена, лишняя или переставлена буква · `spelling`: Слово написано с орфографической ошибкой |
+  | `grammar` | Грамматика (new) → serious | Есть ли в абзаце грамматические ошибки? | `none`: Ошибок нет · `agreement`: Нарушено согласование — род, число или падеж · `government`: Неверное управление или предлог · `punctuation`: Пунктуационная ошибка |
+  | `style` | Стиль → fix | Подходит ли стиль абзаца для энциклопедии? | `none`: Стиль нейтральный, энциклопедический · `colloquial`: Разговорные обороты · `bureaucratic`: Канцелярит · `evaluative`: Оценочные или эмоциональные слова |
+- **Thresholds**: `p = 1 − probabilities.none`. `p ≥ 0.7` → a finding at the category's level; `0.4 ≤ p < 0.7` → a `hint` («Возможно: …»), which keeps the light as it is; below → nothing. The message is the description of the most probable non-`none` option; the card shows `p` as a percentage.
+- **Key**: kept through `StorageService` under one key, read and written by one root service; never logged, never in an error context. The field is `type="password"`. Accepted trade-off: any script on our origin can read the key. It is the moderator's own key, not a project secret, so a spend limit on it in OpenRouter bounds the damage; a backend proxy can take the key over later without changing the rest of the design.
+- **Cache**: in memory, in the root service, keyed by model + questionnaire version + stripped text, so a paragraph unchanged across versions is not asked again until the tab reloads.
+- **Errors**: one outcome per run, never one per paragraph; the key and headers never reach `LoggerService`, and rule cards stay in every case.
+  - 401 is about the whole run: the first one cancels the requests still queued, with one «Ключ не подошёл» notification and one logged error.
+  - 429 → one retry after a fixed delay, a named constant (OpenRouter's `Access-Control-Expose-Headers` leaves `Retry-After` unreadable to the page).
+  - Anything else is about one paragraph: it is skipped and the run goes on. At the end, if any were skipped, one «ИИ: не удалось проверить абзацев — N из M» notification and one logged error with the count; the counter reads «ИИ: 37 из 40, 3 с ошибкой».
+
+### Design
+
+1. **Model** (`libs/editor`): `CheckCategory` gains `grammar` (serious in `CHECK_LEVELS`); `CheckFinding` gains an optional `probability`, set only on AI findings. `CATEGORY_LABELS` in `moderation-check.component.ts` gets «Грамматика».
+2. **Markup stripping** (`libs/editor/src/lib/validation/prose-lines.ts`, exported): `toProseLines(text): readonly string[]`, a pure function: `maskNonProse` and the footnotes over the whole text, then the inline patterns line by line; index `i` is source line `i + 1`.
+3. **Jev questionnaire** (`app/services/ai-review/jev-questionnaire.ts`): the questions, their category, the option descriptions, the version; and `toFindings(answers, line): CheckFinding[]`, applying the thresholds.
+4. **HTTP** (two layers, `app/services/ai-review/`):
+   - `jev-api.service.ts` — `systemOne(key, state, questions)`, the DTOs of the request and the answer, the context token, and no `withCredentials`: `docs/patterns.md` shows it on every API call, but credentials with `access-control-allow-origin: *` fail CORS.
+   - `ai-review.service.ts` — `review(lines): Observable<AiReviewProgress>` over `{ line, text }` pairs: `toProseLines` always runs over the whole current version, so a comment opened on an unchanged line still masks its body, and the scope only picks which of its lines are sent; emitting `{ done, total, failed, findings }` as answers arrive: skips the lines with no prose, serves the cache, runs the rest through `mergeMap(…, 4)`, retries a 429 once, maps the answers through `toFindings`.
+   - `ai-key.service.ts` — `key` (a readonly signal), `save(key)`, `remove()`.
+5. **Report** (`check-report.ts`): `buildCheckReport` takes the AI findings as an extra argument and merges them into the same items, counts and verdict; the changed-line selection is exported so the component sends exactly the lines the report keeps.
+6. **UI** (`moderation-check`):
+   - The block's border carries a legend: «Автопроверка» on the left, «ИИ» or «Подключить ИИ» on the right (pattern: `forum-composer.component.scss:43`). The right one toggles an inline key form: the password field, «Сохранить», «Удалить ключ».
+   - With a key, a run starts the AI review beside the rules and shows the «ИИ: done из total» counter; a new run cancels the previous one (`switchMap`): its queued lines are never sent and its answers never reach the cards, while the few requests already in flight run to the end and fill the cache the next run reads. Known limit: the sheet drops the focused finding on every report, so an AI answer arriving after «Показать в тексте» clears the focus mark.
+   - An AI card shows «ИИ · 82 %» in its meta and the paragraph cut to whole words instead of a highlighted fragment. Its comment line is `Строка N — message`, without the paragraph.
+
+### Testing
+
+- Jest: `toProseLines` (every markup kind, nested link in bold, a comment and a `<nowiki>` spanning lines, a footnote spanning lines, list and quote markers, a line that strips to nothing); `toFindings` (both thresholds, the boundaries, the winning option); `AiReviewService` (empty lines skipped, cache hit, concurrency cap, 429 retry, the first 401 cancelling the rest with one notification, failed paragraphs skipped and summed up in one notification); `AiKeyService`; `buildCheckReport` with AI findings (verdict, hints keep green); `moderation-check` (legend states, key form, counter, AI card, comment line, a changes-only run where a comment opened on an unchanged line sends nothing of its body).
+- Playwright: `page.route` mocks `openrouter.ai/api/v1/systemone`; with a key saved in the form, **Весь текст** shows an AI card with its percentage and moves the light; without a key, no request is sent.
+
+### Steps
+
+1. Model: `grammar`, `probability`, labels.
+2. `toProseLines`.
+3. Questionnaire and `toFindings`.
+4. `JevApiService`, `AiKeyService`, `AiReviewService`.
+5. `buildCheckReport` with AI findings and the exported line selection.
+6. `moderation-check`: legend, key form, AI run, AI cards.
+7. Playwright scenario; docs (`docs/patterns.md` gets the external-API call without credentials if it reads as a pattern).

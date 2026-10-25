@@ -1,3 +1,4 @@
+import { Page } from '@playwright/test';
 import { test, expect, mockAuthApi, mockVersionPairs, bypassSsr } from '../../fixtures';
 import { mockUsers } from '../../mocks';
 import { createVersionPairsResponse } from '../../mocks/articles';
@@ -9,6 +10,33 @@ const FILLER = Array.from({ length: 8 }, (_, i) => `Неизменная стр�
 // Line 1 is unchanged and far enough from the edit to be collapsed; lines 10 and 11 are new.
 const PREVIOUS = `Старый ихний дом.\n${FILLER}\nПрежняя строка.`;
 const CURRENT = `Старый ихний дом.\n${FILLER}\nОн в течении года жил в Хотькове.\nБратья поставили келью и и церковь.`;
+
+const JEV_URL = 'https://openrouter.ai/api/v1/systemone';
+
+/** Answers Jev's spelling question with a typo for the line about Хотьково, and clean for every other line. */
+async function mockJev(page: Page): Promise<string[]> {
+    const states: string[] = [];
+    await page.route(JEV_URL, async route => {
+        const { state } = route.request().postDataJSON() as { state: string };
+        states.push(state);
+        const typo = state.includes('Хотькове') ? 0.9 : 0.02;
+        await route.fulfill({
+            headers: { 'access-control-allow-origin': '*' },
+            json: {
+                model: 'typesafe/jev-1.14',
+                answers: {
+                    spelling: {
+                        type: 'choice',
+                        choice: typo > 0.5 ? 'typo' : 'none',
+                        confidence: 0.9,
+                        probabilities: { none: 1 - typo, typo, spelling: 0 },
+                    },
+                },
+            },
+        });
+    });
+    return states;
+}
 
 test.describe('Moderation sheet', () => {
     let diff: DiffPage;
@@ -63,6 +91,33 @@ test.describe('Moderation sheet', () => {
 
             await expect(sheet.focusedMark).toHaveText('ихний');
             await expect(sheet.focusedMark).toBeInViewport();
+        });
+
+        test('asks nothing of the AI without a key', async ({ authenticatedPage: page }) => {
+            const states = await mockJev(page);
+
+            await sheet.checkChanges.click();
+
+            await expect(sheet.findings).toHaveCount(2);
+            await expect(sheet.aiToggle).toHaveText('Подключить ИИ');
+            await expect(sheet.aiProgress).toBeHidden();
+            expect(states).toEqual([]);
+        });
+
+        test('adds the AI findings to the cards once a key is saved', async ({ authenticatedPage: page }) => {
+            const states = await mockJev(page);
+
+            await sheet.connectAi('sk-or-test');
+            await expect(sheet.aiToggle).toHaveText('ИИ');
+            await sheet.checkChanges.click();
+
+            await expect(sheet.aiProgress).toHaveText('ИИ: 2 из 2');
+            await expect(sheet.findings).toHaveCount(3);
+            await expect(sheet.findings.filter({ hasText: 'ИИ · 90 %' })).toContainText('Опечатка');
+            expect(states).toHaveLength(2);
+            expect(states).toEqual(
+                expect.arrayContaining(['Он в течении года жил в Хотькове.', 'Братья поставили келью и и церковь.']),
+            );
         });
 
         test('keeps the marks in the source view, without the diff', async () => {

@@ -1,12 +1,43 @@
 @use 'tokens' as *;
 
 :host {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 12px;
     padding: 12px;
     border: 1px solid var(--themed-border-color);
     border-radius: $panel-border-radius;
+}
+
+/* Cut into the block's top edge, like the label of an outlined field: the background hides the line under it. */
+.moderation-check-legend {
+    position: absolute;
+    top: 0;
+    padding: 0 $moderation-check-legend-spacing;
+    background-color: var(--themed-primary-bg);
+    color: var(--themed-text-secondary);
+    font-size: $font-size-xs;
+    transform: translateY(-50%);
+}
+
+.moderation-check-legend--start {
+    left: $moderation-check-legend-inset;
+}
+
+.moderation-check-legend--end {
+    right: $moderation-check-legend-inset;
+    border: none;
+    color: var(--themed-link-color);
+    font: inherit;
+    font-size: $font-size-xs;
+    cursor: pointer;
+}
+
+.moderation-check-key {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .moderation-check-verdict {
@@ -132,6 +163,13 @@
     border-radius: 6px;
     background: var(--themed-secondary-bg);
     overflow-wrap: anywhere;
+}
+
+.moderation-check-context--paragraph {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .moderation-check-fragment {

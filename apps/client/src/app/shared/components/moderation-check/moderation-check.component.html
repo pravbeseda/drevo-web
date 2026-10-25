@@ -1,5 +1,49 @@
 @let current = report();
 
+<span class="moderation-check-legend moderation-check-legend--start">Автопроверка</span>
+<button
+    type="button"
+    class="moderation-check-legend moderation-check-legend--end"
+    data-testid="moderation-check-ai-toggle"
+    [attr.aria-expanded]="keyFormOpen()"
+    (click)="toggleKeyForm()"
+>
+    {{ hasAiKey() ? 'ИИ' : 'Подключить ИИ' }}
+</button>
+
+@if (keyFormOpen()) {
+    <div class="moderation-check-key">
+        <ui-text-input
+            data-testid="moderation-check-ai-key"
+            label="Ключ OpenRouter"
+            type="password"
+            autocomplete="off"
+            [value]="keyDraft()"
+            (valueChanged)="setKeyDraft($event)"
+        />
+        <div class="moderation-check-actions">
+            <ui-button
+                testId="moderation-check-ai-save"
+                variant="filled"
+                [disabled]="!keyDraft().trim()"
+                (click)="saveKey()"
+            >
+                Сохранить
+            </ui-button>
+            @if (hasAiKey()) {
+                <ui-button
+                    testId="moderation-check-ai-remove"
+                    variant="text"
+                    accent="danger"
+                    (click)="removeKey()"
+                >
+                    Удалить ключ
+                </ui-button>
+            }
+        </div>
+    </div>
+}
+
 <div class="moderation-check-verdict">
     <span
         class="moderation-check-light"
@@ -48,6 +92,15 @@
     </ui-button>
 </div>
 
+@if (aiProgressText()) {
+    <div
+        class="moderation-check-summary"
+        data-testid="moderation-check-ai-progress"
+    >
+        {{ aiProgressText() }}
+    </div>
+}
+
 @if (current && current.items.length > 0) {
     <div class="moderation-check-list-header">
         <span>Замечания · {{ current.items.length }}</span>
@@ -61,7 +114,7 @@
     </div>
 
     <ul class="moderation-check-list">
-        @for (item of current.items; track item) {
+        @for (item of current.items; track findingKey(item)) {
             <li
                 class="moderation-check-card"
                 data-testid="moderation-check-item"
@@ -74,6 +127,9 @@
                         {{ levelLabels[item.level] }}
                     </span>
                     <span class="moderation-check-meta">
+                        @if (isAiFinding(item)) {
+                            ИИ · {{ percent(item) }} % ·
+                        }
                         {{ categoryLabels[item.category] }} · строка {{ item.line }}
                         @if (current.scope === 'full' && item.isChanged) {
                             · изменена
@@ -86,11 +142,15 @@
                         (clicked)="copy(item)"
                     />
                 </div>
-                <p class="moderation-check-context">
-                    <span>{{ item.contextBefore }}</span>
-                    <mark class="moderation-check-fragment">{{ item.fragment }}</mark>
-                    <span>{{ item.contextAfter }}</span>
-                </p>
+                @if (isAiFinding(item)) {
+                    <p class="moderation-check-context moderation-check-context--paragraph">{{ item.fragment }}</p>
+                } @else {
+                    <p class="moderation-check-context">
+                        <span>{{ item.contextBefore }}</span>
+                        <mark class="moderation-check-fragment">{{ item.fragment }}</mark>
+                        <span>{{ item.contextAfter }}</span>
+                    </p>
+                }
                 @if (item.suggestion; as suggestion) {
                     <p class="moderation-check-fix">
                         →
@@ -102,10 +162,10 @@
                     <ui-button
                         testId="moderation-check-add"
                         variant="text"
-                        [disabled]="added().has(item)"
+                        [disabled]="isAdded(item)"
                         (click)="addToComment(item)"
                     >
-                        {{ added().has(item) ? 'В комментарии' : '+ В комментарий' }}
+                        {{ isAdded(item) ? 'В комментарии' : '+ В комментарий' }}
                     </ui-button>
                     <ui-button
                         testId="moderation-check-show"
