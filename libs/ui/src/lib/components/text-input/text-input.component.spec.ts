@@ -1,5 +1,6 @@
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, createHostFactory, Spectator } from '@ngneat/spectator/jest';
+import { TextInputSuffixDirective } from './text-input-suffix.directive';
 import { TextInputComponent } from './text-input.component';
 
 describe('TextInputComponent', () => {
@@ -224,5 +225,23 @@ describe('TextInputComponent', () => {
             const autosize = spectator.query(CdkTextareaAutosize)!;
             expect(autosize.maxRows).toBe(12);
         });
+    });
+});
+
+describe('TextInputComponent suffix', () => {
+    const createHost = createHostFactory({ component: TextInputComponent, imports: [TextInputSuffixDirective] });
+
+    it('should project the suffix content to the end of the field', () => {
+        const spectator = createHost(
+            '<ui-text-input label="Комментарий"><button uiTextInputSuffix data-testid="suffix">x</button></ui-text-input>',
+        );
+
+        expect(spectator.query('.mat-mdc-form-field-icon-suffix [data-testid="suffix"]')).toExist();
+    });
+
+    it('should leave the end of the field empty without a suffix', () => {
+        const spectator = createHost('<ui-text-input label="Комментарий" />');
+
+        expect(spectator.query('.mat-mdc-form-field-icon-suffix')).not.toExist();
     });
 });

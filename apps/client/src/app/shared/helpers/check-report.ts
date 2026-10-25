@@ -3,13 +3,14 @@ import { ProseLine } from '../../services/ai-review/ai-review.model';
 import { CheckCounts, CheckReport, CheckReportItem, CheckScope, CheckVerdict } from '../models/check-report.model';
 import { diff } from '@codemirror/merge';
 import { Text } from '@codemirror/state';
-import { CheckFinding, checkWikiContent, toProseLines } from '@drevo-web/editor';
+import { CheckFinding, CheckLevel, checkWikiContent, toProseLines } from '@drevo-web/editor';
 
 const MAX_CONTEXT_SIDE = 100;
 const ELLIPSIS = '…';
 // A sentence ends where the next one starts with a capital, so «ок. 1314» and «г. до» stay inside it.
 const SENTENCE_BREAK = /[.!?…]\s+(?=[\p{Lu}«"(])/gu;
 const SENTENCE_END = /[.!?…](?=\s|$)/u;
+const LEVEL_ORDER: Readonly<Record<CheckLevel, number>> = { serious: 0, fix: 1, hint: 2 };
 
 export function buildCheckReport(
     current: string,
@@ -32,7 +33,7 @@ export function buildCheckReport(
             };
         })
         .filter(item => scope === 'full' || item.isChanged)
-        .sort((a, b) => a.from - b.from);
+        .sort(compareItems);
 
     const counts: CheckCounts = {
         serious: items.filter(item => item.level === 'serious').length,
@@ -59,6 +60,16 @@ export function selectProseLines(
         if (!text || (changedLines && !changedLines.has(number))) return [];
         return [{ line: number, from, to, text }];
     });
+}
+
+// The rule findings first, the most serious on top; then the AI ones, the most likely on top.
+function compareItems(a: CheckReportItem, b: CheckReportItem): number {
+    if (a.probability === undefined && b.probability === undefined) {
+        return LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level] || a.from - b.from;
+    }
+    if (a.probability === undefined) return -1;
+    if (b.probability === undefined) return 1;
+    return b.probability - a.probability || a.from - b.from;
 }
 
 /** Hints never change the light: only serious findings and fixes do. */

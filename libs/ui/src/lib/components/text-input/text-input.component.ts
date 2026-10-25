@@ -1,5 +1,16 @@
+import { TextInputSuffixDirective } from './text-input-suffix.directive';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { ChangeDetectionStrategy, Component, computed, effect, input, output, forwardRef, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    contentChild,
+    effect,
+    input,
+    output,
+    forwardRef,
+    signal,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldAppearance, MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -45,6 +56,8 @@ export class TextInputComponent implements ControlValueAccessor {
     value = input<string>('');
 
     valueChanged = output<string>();
+
+    protected suffix = contentChild(TextInputSuffixDirective);
 
     protected matAppearance = computed<MatFormFieldAppearance>(() =>
         this.appearance() === 'outline' ? 'outline' : 'fill',

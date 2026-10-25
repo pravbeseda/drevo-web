@@ -1,5 +1,7 @@
 import { AiKeyService } from '../../../services/ai-review/ai-key.service';
 import { AiReviewProgress, AiReviewService } from '../../../services/ai-review/ai-review.service';
+import { AiThresholdsService } from '../../../services/ai-review/ai-thresholds.service';
+import { DEFAULT_AI_THRESHOLDS } from '../../../services/ai-review/jev-questionnaire';
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { CheckReport, CheckReportItem } from '../../models/check-report.model';
 import { signal } from '@angular/core';
@@ -21,6 +23,7 @@ describe('ModerationCheckComponent', () => {
     let notification: SpyObject<NotificationService>;
     let aiKey: SpyObject<AiKeyService>;
     let aiReview: SpyObject<AiReviewService>;
+    let aiThresholds: SpyObject<AiThresholdsService>;
 
     const createComponent = createComponentFactory({
         component: ModerationCheckComponent,
@@ -30,6 +33,7 @@ describe('ModerationCheckComponent', () => {
             mockProvider(NotificationService),
             mockProvider(AiKeyService, { key: aiKeySignal.asReadonly() }),
             mockProvider(AiReviewService, { review: jest.fn(() => EMPTY) }),
+            mockProvider(AiThresholdsService, { thresholds: () => DEFAULT_AI_THRESHOLDS }),
         ],
         detectChanges: false,
     });
@@ -44,6 +48,7 @@ describe('ModerationCheckComponent', () => {
         notification = spectator.inject(NotificationService);
         aiKey = spectator.inject(AiKeyService);
         aiReview = spectator.inject(AiReviewService);
+        aiThresholds = spectator.inject(AiThresholdsService);
         clipboard.copy.mockReturnValue(of(undefined));
         spectator.detectChanges();
     });
@@ -96,12 +101,12 @@ describe('ModerationCheckComponent', () => {
         expect(items()).toEqual([]);
     });
 
-    it('asks to show a finding in the text', () => {
+    it('asks to show a finding in the text by a click on its quote', () => {
         const selected: CheckReportItem[] = [];
         spectator.output('findingSelected').subscribe(item => selected.push(item));
         spectator.click('[data-testid="moderation-check-full"]');
 
-        spectator.click('[data-testid="moderation-check-show"]');
+        spectator.click('[data-testid="moderation-check-quote"]');
 
         expect(selected.map(item => item.fragment)).toEqual(['ихний']);
     });
@@ -186,6 +191,43 @@ describe('ModerationCheckComponent', () => {
             expect(spectator.query('[data-testid="moderation-check-ai-key"]')).toBeNull();
         });
 
+        it('shows the saved thresholds in the key form as percentages', () => {
+            spectator.click('[data-testid="moderation-check-ai-toggle"]');
+
+            expect(spectator.query<HTMLInputElement>('[data-testid="moderation-check-ai-finding"] input')?.value).toBe(
+                '70',
+            );
+            expect(spectator.query<HTMLInputElement>('[data-testid="moderation-check-ai-hint"] input')?.value).toBe(
+                '40',
+            );
+        });
+
+        it('saves the thresholds without asking for the saved key again', () => {
+            withKey();
+            spectator.click('[data-testid="moderation-check-ai-toggle"]');
+            spectator.typeInElement('85', '[data-testid="moderation-check-ai-finding"] input');
+            spectator.typeInElement('50', '[data-testid="moderation-check-ai-hint"] input');
+
+            spectator.click('[data-testid="moderation-check-ai-save"]');
+
+            expect(aiThresholds.save).toHaveBeenCalledWith({ finding: 0.85, hint: 0.5 });
+            expect(aiKey.save).not.toHaveBeenCalled();
+            expect(spectator.query('[data-testid="moderation-check-ai-key"]')).toBeNull();
+        });
+
+        it.each([
+            ['30', '40'],
+            ['101', '40'],
+            ['', '40'],
+        ])('refuses to save the thresholds %p and %p', (finding, hint) => {
+            withKey();
+            spectator.click('[data-testid="moderation-check-ai-toggle"]');
+            spectator.typeInElement(finding, '[data-testid="moderation-check-ai-finding"] input');
+            spectator.typeInElement(hint, '[data-testid="moderation-check-ai-hint"] input');
+
+            expect(spectator.query<HTMLButtonElement>('[data-testid="moderation-check-ai-save"]')?.disabled).toBe(true);
+        });
+
         it('removes a saved key', () => {
             withKey();
             expect(spectator.query('[data-testid="moderation-check-ai-toggle"]')).toHaveText('ИИ');
@@ -222,6 +264,28 @@ describe('ModerationCheckComponent', () => {
             expect(aiItem()).toContain('ИИ · 82 %');
             expect(aiItem()).toContain('Грамматика');
             expect(aiItem()).toContain('Нарушено согласование');
+        });
+
+        it('dims an AI finding below the finding threshold', () => {
+            withKey();
+
+            spectator.click('[data-testid="moderation-check-full"]');
+            answers.next({ ...progress(1), findings: [{ ...AI_FINDING, level: 'hint', probability: 0.5 }] });
+            spectator.detectChanges();
+
+            const cards = spectator.queryAll('[data-testid="moderation-check-item"]');
+            const dimmed = cards.map(card => card.classList.contains('moderation-check-card--faint'));
+            expect(dimmed).toEqual([false, false, false, true]);
+        });
+
+        it('keeps a likely AI finding as bright as the rule ones', () => {
+            withKey();
+
+            spectator.click('[data-testid="moderation-check-full"]');
+            answers.next(progress(1));
+            spectator.detectChanges();
+
+            expect(spectator.queryAll('.moderation-check-card--faint')).toHaveLength(0);
         });
 
         it('shows how many paragraphs failed', () => {

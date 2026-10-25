@@ -9,8 +9,8 @@ Moderating a version means reading it for the same known problems every time —
 - The moderation panel gets an **Автопроверка** block, shown for a version in any status.
 - Two buttons: **Весь текст** checks the whole version, **Только изменения** checks only the paragraphs this version changed against the previous one.
 - A traffic-light verdict: green — no remarks, yellow — fixes needed, red — serious remarks.
-- Each finding is a card in the side panel: level, category, location, the surrounding sentence with the fragment highlighted, the suggested fix when there is one. A card copies itself, adds itself to the moderation comment, and shows its place in the text (mockup: https://claude.ai/artifact/T1zyKFAj3Wj5kkRcMxTCKs, board 2).
-- **Все в комментарий** assembles the selected findings into a draft in the existing comment field (`ModerationRequestDto.comment`); the moderator edits it before sending.
+- Each finding is a card in the side panel: level, category, location, the surrounding sentence with the fragment highlighted, the suggested fix when there is one. Rule cards come first, the most serious on top, then AI cards, the most likely on top. A card copies itself, adds itself to the moderation comment, and shows its place in the text on a click on its quote (mockup: https://claude.ai/artifact/T1zyKFAj3Wj5kkRcMxTCKs, board 2).
+- **Все в комментарий** assembles the selected findings into a draft in the existing comment field (`ModerationRequestDto.comment`); the moderator edits it before sending. An icon button inside the field copies the comment.
 - Phase 1 is rule-based only; phase 2 adds the AI check (see «Phase 2» below).
 
 ## Decisions
@@ -62,7 +62,7 @@ Markup syntax reference: link `((…))`, footnote `[[…]]`, tag `{{…}}`, pict
 6. **Moderation sheet** (`app/shared/components/moderation-sheet/`): moderation gets its own CodeMirror, independent of the page, since the article page has none and the diff page may be in JsDiff mode.
    - **Модерация** in `moderation-sidebar-action` opens the sheet through `ModalService` (lazy, near full screen) instead of the side panel; a decision closes it and reports the result as before.
    - The sheet loads the raw texts and passes them down; `moderation-check` takes them as an input instead of loading them, and reports its report and the card clicked through `article-moderation-panel` back up, so the sheet feeds the left editor.
-   - Desktop (≥ `$breakpoint-desktop`): the editor with its mode buttons on the left, `article-moderation-panel` on the right. Narrower: tabs «Решение» / «Текст», a card's **Показать в тексте** switches to «Текст» on its line, and the two-column mode is hidden (mockup: https://claude.ai/artifact/V7PDbUF2CvU1BKgxyqv2UN).
+   - Desktop (≥ `$breakpoint-desktop`): the editor with its mode buttons on the left, `article-moderation-panel` on the right. Narrower: tabs «Решение» / «Текст», a click on a card's quote switches to «Текст» on its line, and the two-column mode is hidden (mockup: https://claude.ai/artifact/V7PDbUF2CvU1BKgxyqv2UN).
 
 ## Testing
 
@@ -101,7 +101,7 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
   | `spelling` | Орфография → serious | Есть ли в абзаце орфографические ошибки или опечатки? | `none`: Ошибок нет · `typo`: Опечатка — пропущена, лишняя или переставлена буква · `spelling`: Слово написано с орфографической ошибкой |
   | `grammar` | Грамматика (new) → serious | Есть ли в абзаце грамматические ошибки? | `none`: Ошибок нет · `agreement`: Нарушено согласование — род, число или падеж · `government`: Неверное управление или предлог · `punctuation`: Пунктуационная ошибка |
   | `style` | Стиль → fix | Подходит ли стиль абзаца для энциклопедии? | `none`: Стиль нейтральный, энциклопедический · `colloquial`: Разговорные обороты · `bureaucratic`: Канцелярит · `evaluative`: Оценочные или эмоциональные слова |
-- **Thresholds**: `p = 1 − probabilities.none`. `p ≥ 0.7` → a finding at the category's level; `0.4 ≤ p < 0.7` → a `hint` («Возможно: …»), which keeps the light as it is; below → nothing. The message is the description of the most probable non-`none` option; the card shows `p` as a percentage.
+- **Thresholds**: `p = 1 − probabilities.none`. `p ≥ 0.7` → a finding at the category's level; `0.4 ≤ p < 0.7` → a `hint` («Возможно: …»), which keeps the light as it is and whose card is dimmed; below → nothing. The moderator can change both in the key form, in percent; they are kept through `StorageService` by `AiThresholdsService` and apply from the next run, which the answer cache serves without new requests. The message is the description of the most probable non-`none` option; the card shows `p` as a percentage.
 - **Key**: kept through `StorageService` under one key, read and written by one root service; never logged, never in an error context. The field is `type="password"`. Accepted trade-off: any script on our origin can read the key. It is the moderator's own key, not a project secret, so a spend limit on it in OpenRouter bounds the damage; a backend proxy can take the key over later without changing the rest of the design.
 - **Cache**: in memory, in the root service, keyed by model + questionnaire version + stripped text, so a paragraph unchanged across versions is not asked again until the tab reloads.
 - **Errors**: one outcome per run, never one per paragraph; the key and headers never reach `LoggerService`, and rule cards stay in every case.
@@ -113,15 +113,16 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
 
 1. **Model** (`libs/editor`): `CheckCategory` gains `grammar` (serious in `CHECK_LEVELS`); `CheckFinding` gains an optional `probability`, set only on AI findings. `CATEGORY_LABELS` in `moderation-check.component.ts` gets «Грамматика».
 2. **Markup stripping** (`libs/editor/src/lib/validation/prose-lines.ts`, exported): `toProseLines(text): readonly string[]`, a pure function: `maskNonProse` and the footnotes over the whole text, then the inline patterns line by line; index `i` is source line `i + 1`.
-3. **Jev questionnaire** (`app/services/ai-review/jev-questionnaire.ts`): the questions, their category, the option descriptions, the version; and `toFindings(answers, line): CheckFinding[]`, applying the thresholds.
+3. **Jev questionnaire** (`app/services/ai-review/jev-questionnaire.ts`): the questions, their category, the option descriptions, the version; and `toFindings(answers, line, thresholds): CheckFinding[]`, applying the thresholds.
 4. **HTTP** (two layers, `app/services/ai-review/`):
    - `jev-api.service.ts` — `systemOne(key, state, questions)`, the DTOs of the request and the answer, the context token, and no `withCredentials`: `docs/patterns.md` shows it on every API call, but credentials with `access-control-allow-origin: *` fail CORS.
    - `ai-review.service.ts` — `review(lines): Observable<AiReviewProgress>` over `{ line, text }` pairs: `toProseLines` always runs over the whole current version, so a comment opened on an unchanged line still masks its body, and the scope only picks which of its lines are sent; emitting `{ done, total, failed, findings }` as answers arrive: skips the lines with no prose, serves the cache, runs the rest through `mergeMap(…, 4)`, retries a 429 once, maps the answers through `toFindings`.
    - `ai-key.service.ts` — `key` (a readonly signal), `save(key)`, `remove()`.
+   - `ai-thresholds.service.ts` — `thresholds` (a readonly signal, the defaults when nothing valid is stored), `save(thresholds)`.
 5. **Report** (`check-report.ts`): `buildCheckReport` takes the AI findings as an extra argument and merges them into the same items, counts and verdict; the changed-line selection is exported so the component sends exactly the lines the report keeps.
 6. **UI** (`moderation-check`):
-   - The block's border carries a legend: «Автопроверка» on the left, «ИИ» or «Подключить ИИ» on the right (pattern: `forum-composer.component.scss:43`). The right one toggles an inline key form: the password field, «Сохранить», «Удалить ключ».
-   - With a key, a run starts the AI review beside the rules and shows the «ИИ: done из total» counter; a new run cancels the previous one (`switchMap`): its queued lines are never sent and its answers never reach the cards, while the few requests already in flight run to the end and fill the cache the next run reads. Known limit: the sheet drops the focused finding on every report, so an AI answer arriving after «Показать в тексте» clears the focus mark.
+   - The block's border carries a legend: «Автопроверка» on the left, «ИИ» or «Подключить ИИ» on the right (pattern: `forum-composer.component.scss:43`). The right one toggles an inline key form: the password field (left empty, it keeps a saved key), the two thresholds, «Сохранить», «Удалить ключ».
+   - With a key, a run starts the AI review beside the rules and shows the «ИИ: done из total» counter; a new run cancels the previous one (`switchMap`): its queued lines are never sent and its answers never reach the cards, while the few requests already in flight run to the end and fill the cache the next run reads. Known limit: the sheet drops the focused finding on every report, so an AI answer arriving after a click on a quote clears the focus mark.
    - An AI card shows «ИИ · 82 %» in its meta and the paragraph cut to whole words instead of a highlighted fragment. Its comment line is `Строка N — message`, without the paragraph.
 
 ### Testing

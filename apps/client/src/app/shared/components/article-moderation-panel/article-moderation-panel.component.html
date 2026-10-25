@@ -24,12 +24,22 @@
 }
 
 <ui-text-input
+    data-testid="moderation-comment"
     label="Комментарий"
     [multiline]="true"
     [rows]="3"
     [value]="comment()"
     (valueChanged)="onCommentChange($event)"
-/>
+>
+    <ui-icon-button
+        uiTextInputSuffix
+        icon="content_copy"
+        label="Копировать комментарий"
+        testId="moderation-comment-copy"
+        [disabled]="!comment().trim()"
+        (clicked)="copyComment()"
+    />
+</ui-text-input>
 
 <div class="moderation-panel-actions">
     @if (!isApproved()) {

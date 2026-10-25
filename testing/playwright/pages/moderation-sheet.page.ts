@@ -15,9 +15,10 @@ export class ModerationSheetPage extends BasePage {
     readonly checkChanges = this.page.getByTestId('moderation-check-changes');
     readonly verdict = this.page.getByTestId('moderation-check-verdict');
     readonly findings = this.page.getByTestId('moderation-check-item');
-    readonly comment = this.page.getByLabel('Комментарий');
+    readonly comment = this.page.getByTestId('moderation-comment').locator('textarea');
     readonly aiToggle = this.page.getByTestId('moderation-check-ai-toggle');
     readonly aiKey = this.page.getByTestId('moderation-check-ai-key').locator('input');
+    readonly aiFindingThreshold = this.page.getByTestId('moderation-check-ai-finding').locator('input');
     readonly aiSave = this.page.getByTestId('moderation-check-ai-save');
     readonly aiProgress = this.page.getByTestId('moderation-check-ai-progress');
 
@@ -36,9 +37,9 @@ export class ModerationSheetPage extends BasePage {
         return this.findings.nth(index).getByTestId('moderation-check-add');
     }
 
-    /** «Показать в тексте» on the n-th card, counting from 0. */
+    /** The quote on the n-th card, counting from 0, which shows the finding in the text. */
     showInText(index: number): Locator {
-        return this.findings.nth(index).getByTestId('moderation-check-show');
+        return this.findings.nth(index).getByTestId('moderation-check-quote');
     }
 
     async connectAi(key: string): Promise<void> {

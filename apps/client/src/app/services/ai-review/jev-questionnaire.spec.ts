@@ -1,5 +1,5 @@
 import { JevChoiceAnswer } from './jev.model';
-import { JEV_QUESTIONS, toFindings } from './jev-questionnaire';
+import { DEFAULT_AI_THRESHOLDS, JEV_QUESTIONS, toFindings } from './jev-questionnaire';
 import { ProseLine } from './ai-review.model';
 
 const LINE: ProseLine = { line: 3, from: 40, to: 80, text: 'Абзац с ошибкой.' };
@@ -29,12 +29,17 @@ describe('toFindings', () => {
                     style: answer({ none: 0.8, colloquial: 0.1, bureaucratic: 0.1, evaluative: 0 }),
                 },
                 LINE,
+                DEFAULT_AI_THRESHOLDS,
             ),
         ).toEqual([]);
     });
 
     it('should report a likely problem at its category level, with the winning option as the message', () => {
-        const findings = toFindings({ spelling: answer({ none: 0.2, typo: 0.7, spelling: 0.1 }) }, LINE);
+        const findings = toFindings(
+            { spelling: answer({ none: 0.2, typo: 0.7, spelling: 0.1 }) },
+            LINE,
+            DEFAULT_AI_THRESHOLDS,
+        );
 
         expect(findings).toEqual([
             {
@@ -53,6 +58,7 @@ describe('toFindings', () => {
         const [finding] = toFindings(
             { style: answer({ none: 0.1, colloquial: 0.2, bureaucratic: 0.6, evaluative: 0.1 }) },
             LINE,
+            DEFAULT_AI_THRESHOLDS,
         );
 
         expect(finding).toMatchObject({ category: 'style', level: 'fix', message: 'Канцелярит' });
@@ -62,6 +68,7 @@ describe('toFindings', () => {
         const [finding] = toFindings(
             { grammar: answer({ none: 0.5, agreement: 0.1, government: 0.1, punctuation: 0.3 }) },
             LINE,
+            DEFAULT_AI_THRESHOLDS,
         );
 
         expect(finding).toMatchObject({
@@ -73,13 +80,35 @@ describe('toFindings', () => {
     });
 
     it('should treat the thresholds as inclusive', () => {
-        expect(toFindings({ spelling: answer({ none: 0.3, typo: 0.7, spelling: 0 }) }, LINE)[0].level).toBe('serious');
-        expect(toFindings({ spelling: answer({ none: 0.6, typo: 0.4, spelling: 0 }) }, LINE)[0].level).toBe('hint');
-        expect(toFindings({ spelling: answer({ none: 0.61, typo: 0.39, spelling: 0 }) }, LINE)).toEqual([]);
+        expect(
+            toFindings({ spelling: answer({ none: 0.3, typo: 0.7, spelling: 0 }) }, LINE, DEFAULT_AI_THRESHOLDS)[0]
+                .level,
+        ).toBe('serious');
+        expect(
+            toFindings({ spelling: answer({ none: 0.6, typo: 0.4, spelling: 0 }) }, LINE, DEFAULT_AI_THRESHOLDS)[0]
+                .level,
+        ).toBe('hint');
+        expect(
+            toFindings({ spelling: answer({ none: 0.61, typo: 0.39, spelling: 0 }) }, LINE, DEFAULT_AI_THRESHOLDS),
+        ).toEqual([]);
+    });
+
+    it('should apply the thresholds it is given', () => {
+        const thresholds = { finding: 0.9, hint: 0.2 };
+
+        expect(toFindings({ spelling: answer({ none: 0.2, typo: 0.8, spelling: 0 }) }, LINE, thresholds)[0].level).toBe(
+            'hint',
+        );
+        expect(
+            toFindings({ spelling: answer({ none: 0.75, typo: 0.25, spelling: 0 }) }, LINE, thresholds),
+        ).toHaveLength(1);
+        expect(toFindings({ spelling: answer({ none: 0.1, typo: 0.9, spelling: 0 }) }, LINE, thresholds)[0].level).toBe(
+            'serious',
+        );
     });
 
     it('should skip a question the answer leaves out or answers with an unknown option', () => {
-        expect(toFindings({ spelling: answer({ none: 0.1, unknown: 0.9 }) }, LINE)).toEqual([]);
-        expect(toFindings({}, LINE)).toEqual([]);
+        expect(toFindings({ spelling: answer({ none: 0.1, unknown: 0.9 }) }, LINE, DEFAULT_AI_THRESHOLDS)).toEqual([]);
+        expect(toFindings({}, LINE, DEFAULT_AI_THRESHOLDS)).toEqual([]);
     });
 });

@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
@@ -30,7 +31,12 @@ describe('ArticleModerationPanelComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ArticleModerationPanelComponent,
-        providers: [mockLoggerProvider(), mockProvider(ArticleService), mockProvider(NotificationService)],
+        providers: [
+            mockLoggerProvider(),
+            mockProvider(ArticleService),
+            mockProvider(ClipboardService),
+            mockProvider(NotificationService),
+        ],
         detectChanges: false,
     });
 
@@ -114,6 +120,43 @@ describe('ArticleModerationPanelComponent', () => {
             spectator.setInput('version', { ...mockVersion, comment: 'Updated comment' });
             spectator.detectChanges();
             expect(spectator.component.comment()).toBe('Updated comment');
+        });
+    });
+
+    describe('comment copy', () => {
+        const copyButton = '[data-testid="moderation-comment-copy"]';
+
+        it('should copy the comment', () => {
+            const clipboard = spectator.inject(ClipboardService);
+            clipboard.copy.mockReturnValue(of(undefined));
+            spectator.setInput('version', { ...mockVersion, comment: 'Прошу исправить:\nСтрока 1' });
+            spectator.detectChanges();
+
+            spectator.click(copyButton);
+
+            expect(clipboard.copy).toHaveBeenCalledWith('Прошу исправить:\nСтрока 1');
+            expect(notificationService.success).toHaveBeenCalledWith('Комментарий скопирован');
+        });
+
+        it('should report a failed copy', () => {
+            const clipboard = spectator.inject(ClipboardService);
+            const error = new Error('denied');
+            clipboard.copy.mockReturnValue(throwError(() => error));
+            spectator.setInput('version', { ...mockVersion, comment: 'Комментарий' });
+            spectator.detectChanges();
+
+            spectator.click(copyButton);
+
+            expect(notificationService.error).toHaveBeenCalledWith('Не удалось скопировать комментарий');
+            expect(
+                (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger.error,
+            ).toHaveBeenCalledWith('Moderation: comment copy failed', error);
+        });
+
+        it('should offer no copy of an empty comment', () => {
+            spectator.detectChanges();
+
+            expect(spectator.query<HTMLButtonElement>(copyButton)?.disabled).toBe(true);
         });
     });
 

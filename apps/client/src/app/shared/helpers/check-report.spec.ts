@@ -1,5 +1,10 @@
-import { CheckFinding } from '@drevo-web/editor';
+import { CheckFinding, checkWikiContent } from '@drevo-web/editor';
 import { buildCheckReport, selectProseLines, toVerdict } from './check-report';
+
+jest.mock('@drevo-web/editor', () => {
+    const actual: typeof import('@drevo-web/editor') = jest.requireActual('@drevo-web/editor');
+    return { ...actual, checkWikiContent: jest.fn(actual.checkWikiContent) };
+});
 
 describe('buildCheckReport', () => {
     it('reports nothing for a clean text', () => {
@@ -127,6 +132,36 @@ describe('buildCheckReport with AI findings', () => {
         ]);
         expect(report.counts).toEqual({ serious: 1, fix: 0, hint: 0 });
         expect(report.verdict).toBe('serious');
+    });
+
+    it('lists the rule findings first, the most serious on top, then the AI ones, the most likely on top', () => {
+        const ruleFinding = (from: number, level: CheckFinding['level']): CheckFinding => ({
+            from,
+            to: from + 1,
+            ruleId: `rule-${level}`,
+            category: 'markup',
+            level,
+            message: 'Правило',
+        });
+        jest.mocked(checkWikiContent).mockReturnValueOnce([
+            ruleFinding(1, 'hint'),
+            ruleFinding(20, 'serious'),
+            ruleFinding(2, 'fix'),
+            ruleFinding(3, 'serious'),
+        ]);
+        const ai = (from: number, probability: number): CheckFinding => ({ ...aiFinding('fix'), from, probability });
+
+        const report = buildCheckReport(text, undefined, 'full', [ai(0, 0.5), ai(15, 0.9), ai(15, 0.5)]);
+
+        expect(report.items.map(item => `${item.ruleId}@${item.from}:${item.probability ?? '-'}`)).toEqual([
+            'rule-serious@3:-',
+            'rule-serious@20:-',
+            'rule-fix@2:-',
+            'rule-hint@1:-',
+            'ai-spelling@15:0.9',
+            'ai-spelling@0:0.5',
+            'ai-spelling@15:0.5',
+        ]);
     });
 
     it('keeps the light green for an AI hint', () => {

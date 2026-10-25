@@ -120,6 +120,20 @@ test.describe('Moderation sheet', () => {
             );
         });
 
+        test('applies a raised threshold without asking for the key again', async ({ authenticatedPage: page }) => {
+            await mockJev(page);
+            await sheet.connectAi('sk-or-test');
+
+            await sheet.aiToggle.click();
+            await sheet.aiFindingThreshold.fill('95');
+            await sheet.aiSave.click();
+            await sheet.checkChanges.click();
+
+            await expect(sheet.aiProgress).toHaveText('ИИ: 2 из 2');
+            await expect(sheet.findings.last()).toContainText('ИИ · 90 %');
+            await expect(sheet.findings.last()).toContainText('Возможно: опечатка');
+        });
+
         test('keeps the marks in the source view, without the diff', async () => {
             await sheet.checkWholeText.click();
             await sheet.mode('source').click();

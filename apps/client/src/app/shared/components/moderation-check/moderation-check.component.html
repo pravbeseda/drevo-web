@@ -18,15 +18,33 @@
             label="Ключ OpenRouter"
             type="password"
             autocomplete="off"
+            [hint]="hasAiKey() ? 'Ключ сохранён — оставьте поле пустым, чтобы не менять' : ''"
             [value]="keyDraft()"
             (valueChanged)="setKeyDraft($event)"
         />
+        <div class="moderation-check-thresholds">
+            <ui-text-input
+                data-testid="moderation-check-ai-finding"
+                label="Замечание от, %"
+                type="number"
+                [value]="findingDraft()"
+                (valueChanged)="setFindingDraft($event)"
+            />
+            <ui-text-input
+                data-testid="moderation-check-ai-hint"
+                label="Совет от, %"
+                type="number"
+                hint="Не выше порога замечания"
+                [value]="hintDraft()"
+                (valueChanged)="setHintDraft($event)"
+            />
+        </div>
         <div class="moderation-check-actions">
             <ui-button
                 testId="moderation-check-ai-save"
                 variant="filled"
-                [disabled]="!keyDraft().trim()"
-                (click)="saveKey()"
+                [disabled]="!canSaveAiSettings()"
+                (click)="saveAiSettings()"
             >
                 Сохранить
             </ui-button>
@@ -118,6 +136,7 @@
             <li
                 class="moderation-check-card"
                 data-testid="moderation-check-item"
+                [class.moderation-check-card--faint]="isFaint(item)"
             >
                 <div class="moderation-check-card-header">
                     <span
@@ -142,15 +161,21 @@
                         (clicked)="copy(item)"
                     />
                 </div>
-                @if (isAiFinding(item)) {
-                    <p class="moderation-check-context moderation-check-context--paragraph">{{ item.fragment }}</p>
-                } @else {
-                    <p class="moderation-check-context">
+                <button
+                    type="button"
+                    class="moderation-check-context"
+                    data-testid="moderation-check-quote"
+                    uiTooltip="Показать в тексте"
+                    (click)="showInText(item)"
+                >
+                    @if (isAiFinding(item)) {
+                        <span class="moderation-check-paragraph">{{ item.fragment }}</span>
+                    } @else {
                         <span>{{ item.contextBefore }}</span>
                         <mark class="moderation-check-fragment">{{ item.fragment }}</mark>
                         <span>{{ item.contextAfter }}</span>
-                    </p>
-                }
+                    }
+                </button>
                 @if (item.suggestion; as suggestion) {
                     <p class="moderation-check-fix">
                         →
@@ -158,23 +183,14 @@
                     </p>
                 }
                 <p class="moderation-check-message">{{ item.message }}</p>
-                <div class="moderation-check-card-actions">
-                    <ui-button
-                        testId="moderation-check-add"
-                        variant="text"
-                        [disabled]="isAdded(item)"
-                        (click)="addToComment(item)"
-                    >
-                        {{ isAdded(item) ? 'В комментарии' : '+ В комментарий' }}
-                    </ui-button>
-                    <ui-button
-                        testId="moderation-check-show"
-                        variant="text"
-                        (click)="showInText(item)"
-                    >
-                        Показать в тексте
-                    </ui-button>
-                </div>
+                <ui-button
+                    testId="moderation-check-add"
+                    variant="text"
+                    [disabled]="isAdded(item)"
+                    (click)="addToComment(item)"
+                >
+                    {{ isAdded(item) ? 'В комментарии' : '+ В комментарий' }}
+                </ui-button>
             </li>
         }
     </ul>

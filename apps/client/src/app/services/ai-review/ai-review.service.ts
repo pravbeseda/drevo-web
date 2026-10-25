@@ -1,5 +1,6 @@
 import { AiKeyService } from './ai-key.service';
-import { ProseLine } from './ai-review.model';
+import { AiThresholds, ProseLine } from './ai-review.model';
+import { AiThresholdsService } from './ai-thresholds.service';
 import { JEV_MODEL, JevApiService } from './jev-api.service';
 import { JEV_QUESTIONNAIRE_VERSION, JEV_QUESTIONS, toFindings } from './jev-questionnaire';
 import { JevChoiceAnswer } from './jev.model';
@@ -64,6 +65,7 @@ function describeError(err: unknown): unknown {
 export class AiReviewService {
     private readonly api = inject(JevApiService);
     private readonly aiKey = inject(AiKeyService);
+    private readonly aiThresholds = inject(AiThresholdsService);
     private readonly notification = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('AiReviewService');
 
@@ -73,6 +75,7 @@ export class AiReviewService {
 
     review(lines: readonly ProseLine[]): Observable<AiReviewProgress> {
         const key = this.aiKey.key();
+        const thresholds = this.aiThresholds.thresholds();
         const asked = lines.filter(line => line.text !== '');
         if (!key || asked.length === 0) return EMPTY;
 
@@ -82,7 +85,7 @@ export class AiReviewService {
             let firstError: unknown;
 
             return from(asked).pipe(
-                mergeMap(line => this.ask(key, line), AI_REVIEW_CONCURRENCY),
+                mergeMap(line => this.ask(key, line, thresholds), AI_REVIEW_CONCURRENCY),
                 tap(outcome => (firstError ??= outcome.error)),
                 scan(
                     (progress, outcome): AiReviewProgress => ({
@@ -105,9 +108,9 @@ export class AiReviewService {
         });
     }
 
-    private ask(key: string, line: ProseLine): Observable<LineOutcome> {
+    private ask(key: string, line: ProseLine, thresholds: AiThresholds): Observable<LineOutcome> {
         return this.answers(key, line.text).pipe(
-            map((answers): LineOutcome => ({ findings: toFindings(answers, line), failed: false })),
+            map((answers): LineOutcome => ({ findings: toFindings(answers, line, thresholds), failed: false })),
             catchError((err: unknown) =>
                 hasStatus(err, HttpStatusCode.Unauthorized)
                     ? throwError(() => err)

@@ -4,7 +4,7 @@ import { LoggerService, NotificationService } from '@drevo-web/core';
 import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { expectObjectLike } from '@drevo-web/shared/testing';
 import { defer, Observable, of, Subject, throwError } from 'rxjs';
-import { ProseLine } from './ai-review.model';
+import { AiThresholds, ProseLine } from './ai-review.model';
 import { AiKeyService } from './ai-key.service';
 import {
     AI_REVIEW_CONCURRENCY,
@@ -14,6 +14,8 @@ import {
 } from './ai-review.service';
 import { JevResponse } from './jev.model';
 import { JevApiService } from './jev-api.service';
+import { AiThresholdsService } from './ai-thresholds.service';
+import { DEFAULT_AI_THRESHOLDS } from './jev-questionnaire';
 
 const CLEAN: JevResponse = {
     model: 'typesafe/jev-1.14',
@@ -39,6 +41,7 @@ describe('AiReviewService', () => {
     let api: SpyObject<JevApiService>;
     let notification: SpyObject<NotificationService>;
     let key: string | undefined;
+    let thresholds: AiThresholds;
 
     const createService = createServiceFactory({
         service: AiReviewService,
@@ -47,6 +50,7 @@ describe('AiReviewService', () => {
             mockProvider(JevApiService),
             mockProvider(NotificationService),
             mockProvider(AiKeyService, { key: () => key }),
+            mockProvider(AiThresholdsService, { thresholds: () => thresholds }),
         ],
     });
 
@@ -58,6 +62,7 @@ describe('AiReviewService', () => {
 
     beforeEach(() => {
         key = 'sk-or-key';
+        thresholds = DEFAULT_AI_THRESHOLDS;
         spectator = createService();
         api = spectator.inject(JevApiService);
         notification = spectator.inject(NotificationService);
@@ -182,6 +187,15 @@ describe('AiReviewService', () => {
             'AI review: paragraphs failed',
             expect.objectContaining({ failed: 1, total: 2, firstError: expectObjectLike({ status: 400 }) }),
         );
+    });
+
+    it('should rate the answers by the saved thresholds', () => {
+        thresholds = { finding: 0.95, hint: 0.5 };
+        api.systemOne.mockReturnValue(of(TYPO));
+
+        const progress = run([proseLine(1, 'Апзац.')]);
+
+        expect(progress.at(-1)?.findings).toEqual([expect.objectContaining({ ruleId: 'ai-spelling', level: 'hint' })]);
     });
 
     it('should ask nothing without a key', () => {
