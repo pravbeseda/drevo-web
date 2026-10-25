@@ -121,7 +121,7 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
 5. **Report** (`check-report.ts`): `buildCheckReport` takes the AI findings as an extra argument and merges them into the same items, counts and verdict; the changed-line selection is exported so the component sends exactly the lines the report keeps.
 6. **UI** (`moderation-check`):
    - The block's border carries a legend: «Автопроверка» on the left, «ИИ» or «Подключить ИИ» on the right (pattern: `forum-composer.component.scss:43`). The right one toggles an inline key form: the password field, «Сохранить», «Удалить ключ».
-   - With a key, a run starts the AI review beside the rules and shows the «ИИ: done из total» counter; a new run cancels the previous one (`switchMap`). Known limit: the sheet drops the focused finding on every report, so an AI answer arriving after «Показать в тексте» clears the focus mark.
+   - With a key, a run starts the AI review beside the rules and shows the «ИИ: done из total» counter; a new run cancels the previous one (`switchMap`): its queued lines are never sent and its answers never reach the cards, while the few requests already in flight run to the end and fill the cache the next run reads. Known limit: the sheet drops the focused finding on every report, so an AI answer arriving after «Показать в тексте» clears the focus mark.
    - An AI card shows «ИИ · 82 %» in its meta and the paragraph cut to whole words instead of a highlighted fragment. Its comment line is `Строка N — message`, without the paragraph.
 
 ### Testing
