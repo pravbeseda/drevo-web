@@ -82,16 +82,10 @@ export class ArticleModerationPanelComponent {
     }
 
     copyComment(): void {
-        this.clipboard
-            .copy(this._comment())
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => this.notification.success('Комментарий скопирован'),
-                error: (err: unknown) => {
-                    this.notification.error('Не удалось скопировать комментарий');
-                    this.logger.error('Moderation: comment copy failed', err);
-                },
-            });
+        this.clipboard.copy(this._comment(), {
+            success: 'Комментарий скопирован',
+            failure: 'Не удалось скопировать комментарий',
+        });
     }
 
     approve(): void {

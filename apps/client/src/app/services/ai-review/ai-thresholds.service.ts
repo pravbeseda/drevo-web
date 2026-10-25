@@ -12,7 +12,8 @@ function isProbability(value: unknown): value is number {
 export function isValidAiThresholds(value: unknown): value is AiThresholds {
     if (typeof value !== 'object' || !value || !('finding' in value) || !('hint' in value)) return false;
     const { finding, hint } = value;
-    return isProbability(finding) && isProbability(hint) && hint <= finding;
+    // A zero hint threshold would turn every clean paragraph into a hint.
+    return isProbability(finding) && isProbability(hint) && hint > 0 && hint <= finding;
 }
 
 /** The moderator's own thresholds for the AI answers, kept in this browser. */

@@ -444,16 +444,7 @@ export class PictureDetailComponent {
         }
 
         const code = `@${pic.id}@`;
-        this.clipboard.copy(code).subscribe({
-            complete: () => {
-                this.notificationService.success('Код скопирован');
-                this.logger.info('Insert code copied', { id: pic.id, code });
-            },
-            error: (error: unknown) => {
-                this.logger.error('Failed to copy insert code', error);
-                this.notificationService.error(`Не удалось скопировать код ${code}`);
-            },
-        });
+        this.clipboard.copy(code, { success: 'Код скопирован', failure: `Не удалось скопировать код ${code}` });
     }
 
     private refreshPending(): void {

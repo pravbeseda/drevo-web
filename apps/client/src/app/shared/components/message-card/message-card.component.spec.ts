@@ -2,12 +2,11 @@ import { MessageCardComponent } from './message-card.component';
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { ClockService, NotificationService } from '@drevo-web/core';
+import { ClockService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumMessage } from '@drevo-web/shared';
 import { avatarNameColor } from '@drevo-web/ui/avatar';
 import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
-import { EMPTY, throwError } from 'rxjs';
 
 function createMessage(overrides: Partial<ForumMessage> = {}): ForumMessage {
     return {
@@ -31,9 +30,8 @@ describe('MessageCardComponent', () => {
         providers: [
             provideRouter([]),
             mockLoggerProvider(),
-            mockProvider(NotificationService),
             mockProvider(ClockService, { now: clockNow }),
-            mockProvider(ClipboardService, { copy: jest.fn().mockReturnValue(EMPTY) }),
+            mockProvider(ClipboardService),
         ],
     });
 
@@ -281,17 +279,10 @@ describe('MessageCardComponent', () => {
             openMenu();
             menuItem('message-copy-link').click();
 
-            expect(clipboard.copy).toHaveBeenCalledWith(`${document.location.origin}/forum/topic/42/7`);
-            expect(spectator.inject(NotificationService).success).toHaveBeenCalledWith('Ссылка скопирована');
-        });
-
-        it('says so when the link could not be copied', () => {
-            spectator.inject(ClipboardService).copy.mockReturnValue(throwError(() => new Error('denied')));
-
-            openMenu();
-            menuItem('message-copy-link').click();
-
-            expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('Не удалось скопировать ссылку');
+            expect(clipboard.copy).toHaveBeenCalledWith(`${document.location.origin}/forum/topic/42/7`, {
+                success: 'Ссылка скопирована',
+                failure: 'Не удалось скопировать ссылку',
+            });
         });
 
         it('keeps the actions shown after a tap on the message, for a screen without hover', () => {

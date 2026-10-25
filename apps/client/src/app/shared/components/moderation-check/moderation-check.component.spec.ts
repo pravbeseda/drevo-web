@@ -7,9 +7,8 @@ import { CheckReport, CheckReportItem } from '../../models/check-report.model';
 import { signal } from '@angular/core';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { NotificationService } from '@drevo-web/core';
 import { CheckFinding } from '@drevo-web/editor';
-import { EMPTY, of, Subject } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
 import { ModerationCheckComponent } from './moderation-check.component';
 
 const PREVIOUS = 'Старая строка, ихний дом.';
@@ -20,7 +19,6 @@ const aiKeySignal = signal<string | undefined>(undefined);
 describe('ModerationCheckComponent', () => {
     let spectator: Spectator<ModerationCheckComponent>;
     let clipboard: SpyObject<ClipboardService>;
-    let notification: SpyObject<NotificationService>;
     let aiKey: SpyObject<AiKeyService>;
     let aiReview: SpyObject<AiReviewService>;
     let aiThresholds: SpyObject<AiThresholdsService>;
@@ -30,7 +28,6 @@ describe('ModerationCheckComponent', () => {
         providers: [
             mockLoggerProvider(),
             mockProvider(ClipboardService),
-            mockProvider(NotificationService),
             mockProvider(AiKeyService, { key: aiKeySignal.asReadonly() }),
             mockProvider(AiReviewService, { review: jest.fn(() => EMPTY) }),
             mockProvider(AiThresholdsService, { thresholds: () => DEFAULT_AI_THRESHOLDS }),
@@ -45,11 +42,9 @@ describe('ModerationCheckComponent', () => {
         aiKeySignal.set(undefined);
         spectator = createComponent({ props: { texts: { current: CURRENT, previous: PREVIOUS } } });
         clipboard = spectator.inject(ClipboardService);
-        notification = spectator.inject(NotificationService);
         aiKey = spectator.inject(AiKeyService);
         aiReview = spectator.inject(AiReviewService);
         aiThresholds = spectator.inject(AiThresholdsService);
-        clipboard.copy.mockReturnValue(of(undefined));
         spectator.detectChanges();
     });
 
@@ -139,8 +134,13 @@ describe('ModerationCheckComponent', () => {
 
         spectator.click('[data-testid="moderation-check-copy"]');
 
-        expect(clipboard.copy).toHaveBeenCalledWith('Строка 1: «ихний» → «их» — «Ихний» — просторечие, правильно «их»');
-        expect(notification.success).toHaveBeenCalledWith('Замечание скопировано');
+        expect(clipboard.copy).toHaveBeenCalledWith(
+            'Строка 1: «ихний» → «их» — «Ихний» — просторечие, правильно «их»',
+            {
+                success: 'Замечание скопировано',
+                failure: 'Не удалось скопировать замечание',
+            },
+        );
     });
 
     describe('AI review', () => {
@@ -219,6 +219,7 @@ describe('ModerationCheckComponent', () => {
             ['30', '40'],
             ['101', '40'],
             ['', '40'],
+            ['70', '0'],
         ])('refuses to save the thresholds %p and %p', (finding, hint) => {
             withKey();
             spectator.click('[data-testid="moderation-check-ai-toggle"]');

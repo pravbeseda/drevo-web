@@ -62,7 +62,8 @@ describe('isValidAiThresholds', () => {
     it.each([
         [{ finding: 0.7, hint: 0.4 }, true],
         [{ finding: 0.5, hint: 0.5 }, true],
-        [{ finding: 1, hint: 0 }, true],
+        [{ finding: 1, hint: 0.01 }, true],
+        [{ finding: 1, hint: 0 }, false],
         [{ finding: 0.4, hint: 0.7 }, false],
         [{ finding: 1.1, hint: 0.4 }, false],
         [{ finding: 0.7, hint: -0.1 }, false],

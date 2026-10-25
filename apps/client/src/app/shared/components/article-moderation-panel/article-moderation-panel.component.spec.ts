@@ -128,29 +128,15 @@ describe('ArticleModerationPanelComponent', () => {
 
         it('should copy the comment', () => {
             const clipboard = spectator.inject(ClipboardService);
-            clipboard.copy.mockReturnValue(of(undefined));
             spectator.setInput('version', { ...mockVersion, comment: 'Прошу исправить:\nСтрока 1' });
             spectator.detectChanges();
 
             spectator.click(copyButton);
 
-            expect(clipboard.copy).toHaveBeenCalledWith('Прошу исправить:\nСтрока 1');
-            expect(notificationService.success).toHaveBeenCalledWith('Комментарий скопирован');
-        });
-
-        it('should report a failed copy', () => {
-            const clipboard = spectator.inject(ClipboardService);
-            const error = new Error('denied');
-            clipboard.copy.mockReturnValue(throwError(() => error));
-            spectator.setInput('version', { ...mockVersion, comment: 'Комментарий' });
-            spectator.detectChanges();
-
-            spectator.click(copyButton);
-
-            expect(notificationService.error).toHaveBeenCalledWith('Не удалось скопировать комментарий');
-            expect(
-                (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger.error,
-            ).toHaveBeenCalledWith('Moderation: comment copy failed', error);
+            expect(clipboard.copy).toHaveBeenCalledWith('Прошу исправить:\nСтрока 1', {
+                success: 'Комментарий скопирован',
+                failure: 'Не удалось скопировать комментарий',
+            });
         });
 
         it('should offer no copy of an empty comment', () => {

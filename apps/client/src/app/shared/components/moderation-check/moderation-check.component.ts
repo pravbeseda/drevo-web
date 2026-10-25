@@ -8,7 +8,6 @@ import { CheckReport, CheckReportItem, CheckScope, CheckVerdict, VersionTexts } 
 import {
     ChangeDetectionStrategy,
     Component,
-    DestroyRef,
     computed,
     inject,
     input,
@@ -17,7 +16,7 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService } from '@drevo-web/core';
 import { CheckCategory, CheckLevel } from '@drevo-web/editor';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
@@ -87,9 +86,7 @@ function toCommentLine(item: CheckReportItem): string {
 })
 export class ModerationCheckComponent {
     private readonly clipboard = inject(ClipboardService);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ModerationCheckComponent');
-    private readonly notification = inject(NotificationService);
     private readonly aiKey = inject(AiKeyService);
     private readonly aiReview = inject(AiReviewService);
     private readonly aiThresholds = inject(AiThresholdsService);
@@ -264,16 +261,10 @@ export class ModerationCheckComponent {
     }
 
     copy(item: CheckReportItem): void {
-        this.clipboard
-            .copy(toCommentLine(item))
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => this.notification.success('Замечание скопировано'),
-                error: (err: unknown) => {
-                    this.notification.error('Не удалось скопировать замечание');
-                    this.logger.error('Check: copy failed', err);
-                },
-            });
+        this.clipboard.copy(toCommentLine(item), {
+            success: 'Замечание скопировано',
+            failure: 'Не удалось скопировать замечание',
+        });
     }
 
     private publish(report: CheckReport): void {
