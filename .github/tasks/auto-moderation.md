@@ -11,7 +11,7 @@ Moderating a version means reading it for the same known problems every time —
 - A traffic-light verdict: green — no remarks, yellow — fixes needed, red — serious remarks.
 - Each finding is a card in the side panel: level, category, location, the surrounding sentence with the fragment highlighted, the suggested fix when there is one. A card copies itself, adds itself to the moderation comment, and shows its place in the text (mockup: https://claude.ai/artifact/T1zyKFAj3Wj5kkRcMxTCKs, board 2).
 - **Все в комментарий** assembles the selected findings into a draft in the existing comment field (`ModerationRequestDto.comment`); the moderator edits it before sending.
-- Phase 1 is rule-based only. AI comes in phase 2 (out of scope here, see the end).
+- Phase 1 is rule-based only; phase 2 adds the AI check (see «Phase 2» below).
 
 ## Decisions
 
@@ -91,31 +91,32 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
 
 ### Decisions
 
-- **Transport**: OpenRouter, `POST https://openrouter.ai/api/v1/systemone`, `Authorization: Bearer <key>`, model pinned to `typesafe/jev-1.14` (thresholds are calibrated against one model). `api.typesafe.ai` rejects browser origins (`400 Disallowed CORS origin` on preflight); OpenRouter answers `access-control-allow-origin: *`. The request carries `SKIP_ERROR_NOTIFICATION`; `AuthInterceptor` only touches `/api/` and `apiUrl`, so no CSRF or cookies leave.
+- **Transport**: OpenRouter, `POST https://openrouter.ai/api/v1/systemone`, `Authorization: Bearer <key>`, model pinned to `typesafe/jev-1.14` (thresholds are calibrated against one model; the public model list shows only `typesafe/jev-router`, so the first live request confirms the slug). `api.typesafe.ai` rejects browser origins (`400 Disallowed CORS origin` on preflight); OpenRouter answers `access-control-allow-origin: *`. The request carries `SKIP_ERROR_NOTIFICATION`; `AuthInterceptor` only touches `/api/` and `apiUrl`, so no CSRF or cookies leave.
 - **One request per paragraph** (one source line), with the whole questionnaire in it; at most 4 in flight. **Только изменения** sends only the changed lines, the same set `buildCheckReport` keeps. A finding covers its whole line.
-- **Text sent**: the line with the markup stripped on the frontend, by the patterns of `constants/wiki-patterns.ts` — link, bold, italic and heading → their text; comment, `<nowiki>`, inline code, URL and picture `@id@` → removed; footnote `[[…]]` → ` (…)`. A line with no letters left is not sent.
-- **Questionnaire**: a constant in code with a version number, three `choice` questions, one per category, each with a `none` option:
+- **Text sent**: the line with the markup stripped on the frontend. Comments, `<nowiki>`, inline code and URLs span lines, so they are blanked over the whole version first by the existing `maskNonProse` (`mask.ts`), which keeps the line breaks; only then is the text split into lines and each line stripped by the patterns of `constants/wiki-patterns.ts` — link, bold, italic and heading → their text; picture `@id@` and the mask filler → removed; footnote `[[…]]` → ` (…)`, and a footnote's bracket left on a line by a footnote spanning lines → removed. A line with no letters left is not sent.
+- **Questionnaire**: a constant in code with a version number, three `choice` questions, one per category, each with a `none` option. Jev sees only the `instructions` and the option descriptions in `criteria`, so these are the contract; the card's message is the option description.
 
-  | Key | Category → level | Options |
-  |---|---|---|
-  | `spelling` | Орфография → serious | `none`, `typo`, `spelling` |
-  | `grammar` | Грамматика (new) → serious | `none`, `agreement`, `government`, `punctuation` |
-  | `style` | Стиль → fix | `none`, `colloquial`, `bureaucratic`, `evaluative` |
-
-  Wording of the instructions and the option descriptions is part of the review of this plan.
-- **Thresholds**: `p = 1 − probabilities.none`. `p ≥ 0.7` → a finding at the category's level; `0.4 ≤ p < 0.7` → a `hint` («Возможно: …»), which keeps the light as it is; below → nothing. The message is the label of the most probable non-`none` option; the card shows `p` as a percentage.
-- **Key**: kept through `StorageService` under one key, read and written by one root service; never logged, never in an error context. The field is `type="password"`.
+  | Key | Category → level | `instructions` | `criteria` |
+  |---|---|---|---|
+  | `spelling` | Орфография → serious | Есть ли в абзаце орфографические ошибки или опечатки? | `none`: Ошибок нет · `typo`: Опечатка — пропущена, лишняя или переставлена буква · `spelling`: Слово написано с орфографической ошибкой |
+  | `grammar` | Грамматика (new) → serious | Есть ли в абзаце грамматические ошибки? | `none`: Ошибок нет · `agreement`: Нарушено согласование — род, число или падеж · `government`: Неверное управление или предлог · `punctuation`: Пунктуационная ошибка |
+  | `style` | Стиль → fix | Подходит ли стиль абзаца для энциклопедии? | `none`: Стиль нейтральный, энциклопедический · `colloquial`: Разговорные обороты · `bureaucratic`: Канцелярит · `evaluative`: Оценочные или эмоциональные слова |
+- **Thresholds**: `p = 1 − probabilities.none`. `p ≥ 0.7` → a finding at the category's level; `0.4 ≤ p < 0.7` → a `hint` («Возможно: …»), which keeps the light as it is; below → nothing. The message is the description of the most probable non-`none` option; the card shows `p` as a percentage.
+- **Key**: kept through `StorageService` under one key, read and written by one root service; never logged, never in an error context. The field is `type="password"`. Accepted trade-off: any script on our origin can read the key. It is the moderator's own key, not a project secret, so a spend limit on it in OpenRouter bounds the damage; a backend proxy can take the key over later without changing the rest of the design.
 - **Cache**: in memory, in the root service, keyed by model + questionnaire version + stripped text, so a paragraph unchanged across versions is not asked again until the tab reloads.
-- **Errors**: 401 → «Ключ не подошёл», rule cards stay; 429 → one retry after `Retry-After`; anything else → a notification and a `LoggerService` error without the key or headers. A failed paragraph does not stop the others.
+- **Errors**: one outcome per run, never one per paragraph; the key and headers never reach `LoggerService`, and rule cards stay in every case.
+  - 401 is about the whole run: the first one cancels the requests still queued, with one «Ключ не подошёл» notification and one logged error.
+  - 429 → one retry after a fixed delay, a named constant (OpenRouter's `Access-Control-Expose-Headers` leaves `Retry-After` unreadable to the page).
+  - Anything else is about one paragraph: it is skipped and the run goes on. At the end, if any were skipped, one «ИИ: не удалось проверить N абзацев» notification and one logged error with the count; the counter reads «ИИ: 37 из 40, 3 с ошибкой».
 
 ### Design
 
-1. **Model** (`libs/editor`): `CheckCategory` gains `grammar` (serious in `CHECK_LEVELS`); `CheckFinding` gains an optional `probability`, set only on AI findings. `CATEGORY_LABELS` gets «Грамматика».
-2. **Markup stripping** (`libs/editor/src/lib/validation/strip-markup.ts`, exported): `stripWikiMarkup(line): string`, a pure function over the existing patterns.
-3. **Jev questionnaire** (`app/services/ai-review/jev-questionnaire.ts`): the questions, their category, the labels of the options, the version; and `toFindings(answers, line): CheckFinding[]`, applying the thresholds.
+1. **Model** (`libs/editor`): `CheckCategory` gains `grammar` (serious in `CHECK_LEVELS`); `CheckFinding` gains an optional `probability`, set only on AI findings. `CATEGORY_LABELS` in `moderation-check.component.ts` gets «Грамматика».
+2. **Markup stripping** (`libs/editor/src/lib/validation/prose-lines.ts`, exported): `toProseLines(text): readonly string[]`, a pure function: `maskNonProse` over the whole text, then the inline patterns line by line; index `i` is source line `i + 1`.
+3. **Jev questionnaire** (`app/services/ai-review/jev-questionnaire.ts`): the questions, their category, the option descriptions, the version; and `toFindings(answers, line): CheckFinding[]`, applying the thresholds.
 4. **HTTP** (two layers, `app/services/ai-review/`):
-   - `jev-api.service.ts` — `systemOne(key, state, questions)`, the DTOs of the request and the answer, the context token.
-   - `ai-review.service.ts` — `review(lines): Observable<AiReviewProgress>` emitting `{ done, total, findings }` as answers arrive: strips each line, skips the empty ones, serves the cache, runs the rest through `mergeMap(…, 4)`, retries a 429 once, maps the answers through `toFindings`.
+   - `jev-api.service.ts` — `systemOne(key, state, questions)`, the DTOs of the request and the answer, the context token, and no `withCredentials`: `docs/patterns.md` shows it on every API call, but credentials with `access-control-allow-origin: *` fail CORS.
+   - `ai-review.service.ts` — `review(lines): Observable<AiReviewProgress>` over the `toProseLines` output of the lines in scope, emitting `{ done, total, failed, findings }` as answers arrive: skips the empty ones, serves the cache, runs the rest through `mergeMap(…, 4)`, retries a 429 once, maps the answers through `toFindings`.
    - `ai-key.service.ts` — `key` (a readonly signal), `save(key)`, `remove()`.
 5. **Report** (`check-report.ts`): `buildCheckReport` takes the AI findings as an extra argument and merges them into the same items, counts and verdict; the changed-line selection is exported so the component sends exactly the lines the report keeps.
 6. **UI** (`moderation-check`):
@@ -125,13 +126,13 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
 
 ### Testing
 
-- Jest: `stripWikiMarkup` (every markup kind, nested link in bold, a line that strips to nothing); `toFindings` (both thresholds, the boundaries, the winning option); `AiReviewService` (empty lines skipped, cache hit, concurrency cap, 429 retry, 401, one failed paragraph); `AiKeyService`; `buildCheckReport` with AI findings (verdict, hints keep green); `moderation-check` (legend states, key form, counter, AI card, comment line).
+- Jest: `toProseLines` (every markup kind, nested link in bold, a comment and a `<nowiki>` spanning lines, a footnote spanning lines, a line that strips to nothing); `toFindings` (both thresholds, the boundaries, the winning option); `AiReviewService` (empty lines skipped, cache hit, concurrency cap, 429 retry, the first 401 cancelling the rest with one notification, failed paragraphs skipped and summed up in one notification); `AiKeyService`; `buildCheckReport` with AI findings (verdict, hints keep green); `moderation-check` (legend states, key form, counter, AI card, comment line).
 - Playwright: `page.route` mocks `openrouter.ai/api/v1/systemone`; with a key saved in the form, **Весь текст** shows an AI card with its percentage and moves the light; without a key, no request is sent.
 
 ### Steps
 
 1. Model: `grammar`, `probability`, labels.
-2. `stripWikiMarkup`.
+2. `toProseLines`.
 3. Questionnaire and `toFindings`.
 4. `JevApiService`, `AiKeyService`, `AiReviewService`.
 5. `buildCheckReport` with AI findings and the exported line selection.
