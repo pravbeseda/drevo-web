@@ -202,6 +202,22 @@ describe('ModerationCheckComponent', () => {
             );
         });
 
+        it('explains the thresholds, and that an empty key field keeps a saved key', () => {
+            const note = (): string =>
+                spectator
+                    .query('[data-testid="moderation-check-ai-note"]')
+                    ?.textContent?.replace(/\s+/gu, ' ')
+                    .trim() ?? '';
+
+            spectator.click('[data-testid="moderation-check-ai-toggle"]');
+            expect(note()).toBe('Совет — больше 0 и не выше замечания.');
+
+            spectator.click('[data-testid="moderation-check-ai-toggle"]');
+            withKey();
+            spectator.click('[data-testid="moderation-check-ai-toggle"]');
+            expect(note()).toBe('Пустое поле ключа оставляет сохранённый. Совет — больше 0 и не выше замечания.');
+        });
+
         it('saves the thresholds without asking for the saved key again', () => {
             withKey();
             spectator.click('[data-testid="moderation-check-ai-toggle"]');

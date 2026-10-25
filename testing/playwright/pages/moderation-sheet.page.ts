@@ -17,7 +17,9 @@ export class ModerationSheetPage extends BasePage {
     readonly findings = this.page.getByTestId('moderation-check-item');
     readonly comment = this.page.getByTestId('moderation-comment').locator('textarea');
     readonly aiToggle = this.page.getByTestId('moderation-check-ai-toggle');
-    readonly aiKey = this.page.getByTestId('moderation-check-ai-key').locator('input');
+    readonly aiKeyField = this.page.getByTestId('moderation-check-ai-key');
+    readonly aiKey = this.aiKeyField.locator('input');
+    readonly aiThresholds = this.page.getByTestId('moderation-check-ai-thresholds');
     readonly aiFindingThreshold = this.page.getByTestId('moderation-check-ai-finding').locator('input');
     readonly aiSave = this.page.getByTestId('moderation-check-ai-save');
     readonly aiProgress = this.page.getByTestId('moderation-check-ai-progress');

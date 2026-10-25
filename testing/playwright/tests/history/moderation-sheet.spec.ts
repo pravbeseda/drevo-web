@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { test, expect, mockAuthApi, mockVersionPairs, bypassSsr } from '../../fixtures';
 import { mockUsers } from '../../mocks';
 import { createVersionPairsResponse } from '../../mocks/articles';
@@ -36,6 +36,19 @@ async function mockJev(page: Page): Promise<string[]> {
         });
     });
     return states;
+}
+
+/** The lowest edge of anything drawn inside the element, overflow included. */
+function contentBottom(locator: Locator): Promise<number> {
+    return locator.evaluate(el =>
+        Math.max(...Array.from(el.querySelectorAll('*'), child => child.getBoundingClientRect().bottom)),
+    );
+}
+
+async function top(locator: Locator): Promise<number> {
+    const box = await locator.boundingBox();
+    expect(box).not.toBeNull();
+    return box?.y ?? 0;
 }
 
 test.describe('Moderation sheet', () => {
@@ -132,6 +145,18 @@ test.describe('Moderation sheet', () => {
             await expect(sheet.aiProgress).toHaveText('ИИ: 2 из 2');
             await expect(sheet.findings.last()).toContainText('ИИ · 90 %');
             await expect(sheet.findings.last()).toContainText('Возможно: опечатка');
+        });
+
+        test('keeps the texts of the AI form from running into the fields below', async ({
+            authenticatedPage: page,
+        }) => {
+            await mockJev(page);
+            await sheet.connectAi('sk-or-test');
+
+            await sheet.aiToggle.click();
+
+            expect(await contentBottom(sheet.aiKeyField)).toBeLessThanOrEqual(await top(sheet.aiThresholds));
+            expect(await contentBottom(sheet.aiThresholds)).toBeLessThanOrEqual(await top(sheet.aiSave));
         });
 
         test('keeps the marks in the source view, without the diff', async () => {

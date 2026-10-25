@@ -18,11 +18,13 @@
             label="Ключ OpenRouter"
             type="password"
             autocomplete="off"
-            [hint]="hasAiKey() ? 'Ключ сохранён — оставьте поле пустым, чтобы не менять' : ''"
             [value]="keyDraft()"
             (valueChanged)="setKeyDraft($event)"
         />
-        <div class="moderation-check-thresholds">
+        <div
+            class="moderation-check-thresholds"
+            data-testid="moderation-check-ai-thresholds"
+        >
             <ui-text-input
                 data-testid="moderation-check-ai-finding"
                 label="Замечание от, %"
@@ -34,11 +36,19 @@
                 data-testid="moderation-check-ai-hint"
                 label="Совет от, %"
                 type="number"
-                hint="Больше 0, не выше порога замечания"
                 [value]="hintDraft()"
                 (valueChanged)="setHintDraft($event)"
             />
         </div>
+        <p
+            class="moderation-check-summary"
+            data-testid="moderation-check-ai-note"
+        >
+            @if (hasAiKey()) {
+                Пустое поле ключа оставляет сохранённый.
+            }
+            Совет — больше 0 и не выше замечания.
+        </p>
         <div class="moderation-check-actions">
             <ui-button
                 testId="moderation-check-ai-save"
