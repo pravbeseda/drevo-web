@@ -1,8 +1,9 @@
 import { CM_DIFF_CONFIG } from './cm-diff-config';
+import { ProseLine } from '../../services/ai-review/ai-review.model';
 import { CheckCounts, CheckReport, CheckReportItem, CheckScope, CheckVerdict } from '../models/check-report.model';
 import { diff } from '@codemirror/merge';
 import { Text } from '@codemirror/state';
-import { checkWikiContent } from '@drevo-web/editor';
+import { CheckFinding, checkWikiContent, toProseLines } from '@drevo-web/editor';
 
 const MAX_CONTEXT_SIDE = 100;
 const ELLIPSIS = '…';
@@ -10,11 +11,16 @@ const ELLIPSIS = '…';
 const SENTENCE_BREAK = /[.!?…]\s+(?=[\p{Lu}«"(])/gu;
 const SENTENCE_END = /[.!?…](?=\s|$)/u;
 
-export function buildCheckReport(current: string, previous: string | undefined, scope: CheckScope): CheckReport {
+export function buildCheckReport(
+    current: string,
+    previous: string | undefined,
+    scope: CheckScope,
+    aiFindings: readonly CheckFinding[] = [],
+): CheckReport {
     const doc = Text.of(current.split('\n'));
     const changedLines = previous === undefined ? undefined : findChangedLines(doc, previous, current);
 
-    const items = checkWikiContent(current)
+    const items = [...checkWikiContent(current), ...aiFindings]
         .map((finding): CheckReportItem => {
             const line = doc.lineAt(finding.from);
             return {
@@ -35,6 +41,24 @@ export function buildCheckReport(current: string, previous: string | undefined, 
     };
 
     return { scope, items, verdict: toVerdict(counts), counts };
+}
+
+/** The prose of the lines a check of `scope` covers, for the AI review; lines with no prose are left out. */
+export function selectProseLines(
+    current: string,
+    previous: string | undefined,
+    scope: CheckScope,
+): readonly ProseLine[] {
+    const doc = Text.of(current.split('\n'));
+    const changedLines =
+        scope === 'changes' && previous !== undefined ? findChangedLines(doc, previous, current) : undefined;
+
+    // The whole version is stripped, so a comment opened on an unchanged line still masks its changed body.
+    return toProseLines(current).flatMap((text, index): ProseLine[] => {
+        const { number, from, to } = doc.line(index + 1);
+        if (!text || (changedLines && !changedLines.has(number))) return [];
+        return [{ line: number, from, to, text }];
+    });
 }
 
 /** Hints never change the light: only serious findings and fixes do. */

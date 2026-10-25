@@ -1,4 +1,5 @@
-import { buildCheckReport, toVerdict } from './check-report';
+import { CheckFinding } from '@drevo-web/editor';
+import { buildCheckReport, selectProseLines, toVerdict } from './check-report';
 
 describe('buildCheckReport', () => {
     it('reports nothing for a clean text', () => {
@@ -103,6 +104,63 @@ describe('buildCheckReport', () => {
             expect(report.items).toHaveLength(2);
             expect(report.items.every(item => item.isChanged)).toBe(true);
         });
+    });
+});
+
+describe('buildCheckReport with AI findings', () => {
+    const text = 'Первая строка.\nВторая строка с опечаткой.';
+    const aiFinding = (level: CheckFinding['level']): CheckFinding => ({
+        from: 15,
+        to: 41,
+        ruleId: 'ai-spelling',
+        category: 'spelling',
+        level,
+        message: 'Опечатка',
+        probability: 0.8,
+    });
+
+    it('merges them into the items, the counts and the verdict', () => {
+        const report = buildCheckReport(text, undefined, 'full', [aiFinding('serious')]);
+
+        expect(report.items).toEqual([
+            expect.objectContaining({ ruleId: 'ai-spelling', line: 2, fragment: 'Вторая строка с опечаткой.' }),
+        ]);
+        expect(report.counts).toEqual({ serious: 1, fix: 0, hint: 0 });
+        expect(report.verdict).toBe('serious');
+    });
+
+    it('keeps the light green for an AI hint', () => {
+        const report = buildCheckReport(text, undefined, 'full', [aiFinding('hint')]);
+
+        expect(report.counts.hint).toBe(1);
+        expect(report.verdict).toBe('clean');
+    });
+});
+
+describe('selectProseLines', () => {
+    const previous = 'Без изменений.\nСтарая строка.';
+    const current = 'Без изменений.\nНовая строка.\n\n@12@';
+
+    it('gives every line with prose, with its place in the source', () => {
+        expect(selectProseLines(current, previous, 'full')).toEqual([
+            { line: 1, from: 0, to: 14, text: 'Без изменений.' },
+            { line: 2, from: 15, to: 28, text: 'Новая строка.' },
+        ]);
+    });
+
+    it('keeps only the changed lines for the changes scope', () => {
+        expect(selectProseLines(current, previous, 'changes').map(line => line.line)).toEqual([2]);
+    });
+
+    it('treats every line of a first version as changed', () => {
+        expect(selectProseLines(current, undefined, 'changes').map(line => line.line)).toEqual([1, 2]);
+    });
+
+    it('masks a comment opened on an unchanged line before picking the changed ones', () => {
+        const before = 'Начало [*заметка\nстарое тело\nконец*] после.';
+        const after = 'Начало [*заметка\nновое тело\nконец*] после.';
+
+        expect(selectProseLines(after, before, 'changes')).toEqual([]);
     });
 });
 

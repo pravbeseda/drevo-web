@@ -38,3 +38,10 @@ export const WIKI_COMMENT_REGEX = /\[\*[\s\S]*?\*\]/gu;
 
 // Synced with: ExternalLinkRule.php — #(?:https?|ftp)://([^\s\[\]]+)[^\s.,>:\[\];\'"!?]#u
 export const WIKI_URL_REGEX = /(?:https?|ftp):\/\/([^\s[\]]+)[^\s.,>:[\];'"!?]/gu;
+
+// Synced with: WikiFormatter::PICTURE_MARKER_PATTERN — /@(-?\d+)@/
+export const WIKI_PICTURE_REGEX = /@(-?\d+)@/gu;
+
+// Synced with: WikiFormatter::TAG_PATTERN — /{{([^\d^}]+)}}/u
+// eslint-disable-next-line sonarjs/super-linear-regex -- kept verbatim from PHP; it only ever runs over one line, in `toProseLines`
+export const WIKI_TAG_REGEX = /\{\{([^\d^}]+)\}\}/gu;

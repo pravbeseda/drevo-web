@@ -191,6 +191,7 @@ describe('CHECK_LEVELS', () => {
         expect(CHECK_LEVELS).toEqual({
             markup: 'serious',
             spelling: 'serious',
+            grammar: 'serious',
             style: 'fix',
             lexicon: 'hint',
         });

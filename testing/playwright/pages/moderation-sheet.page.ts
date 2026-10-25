@@ -16,6 +16,10 @@ export class ModerationSheetPage extends BasePage {
     readonly verdict = this.page.getByTestId('moderation-check-verdict');
     readonly findings = this.page.getByTestId('moderation-check-item');
     readonly comment = this.page.getByLabel('Комментарий');
+    readonly aiToggle = this.page.getByTestId('moderation-check-ai-toggle');
+    readonly aiKey = this.page.getByTestId('moderation-check-ai-key').locator('input');
+    readonly aiSave = this.page.getByTestId('moderation-check-ai-save');
+    readonly aiProgress = this.page.getByTestId('moderation-check-ai-progress');
 
     // CodeMirror builds its own DOM, which cannot carry data-testid: its class names are the stable markers.
     readonly editor = this.textPane.locator('.cm-editor').last();
@@ -35,6 +39,12 @@ export class ModerationSheetPage extends BasePage {
     /** «Показать в тексте» on the n-th card, counting from 0. */
     showInText(index: number): Locator {
         return this.findings.nth(index).getByTestId('moderation-check-show');
+    }
+
+    async connectAi(key: string): Promise<void> {
+        await this.aiToggle.click();
+        await this.aiKey.fill(key);
+        await this.aiSave.click();
     }
 
     async waitForReady(): Promise<void> {

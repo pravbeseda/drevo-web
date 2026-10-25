@@ -1,3 +1,5 @@
+import { AiKeyService } from '../../../services/ai-review/ai-key.service';
+import { AiReviewService } from '../../../services/ai-review/ai-review.service';
 import { ArticleService } from '../../../services/articles/article.service';
 import { CheckReport, CheckReportItem } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
@@ -62,7 +64,12 @@ describe('ModerationSheetComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ModerationSheetComponent,
-        providers: [mockLoggerProvider(), mockProvider(NotificationService)],
+        providers: [
+            mockLoggerProvider(),
+            mockProvider(NotificationService),
+            mockProvider(AiKeyService, { key: () => undefined }),
+            mockProvider(AiReviewService),
+        ],
         detectChanges: false,
     });
 
