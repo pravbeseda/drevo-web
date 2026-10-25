@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { createServiceFactory, mockProvider, SpectatorService, SpyObject } from '@ngneat/spectator/jest';
-import { NotificationService } from '@drevo-web/core';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { LoggerService, NotificationService } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
+import { expectObjectLike } from '@drevo-web/shared/testing';
 import { defer, Observable, of, Subject, throwError } from 'rxjs';
 import { ProseLine } from './ai-review.model';
 import { AiKeyService } from './ai-key.service';
@@ -86,6 +87,28 @@ describe('AiReviewService', () => {
         expect(progress.at(-1)?.findings).toEqual([expect.objectContaining({ from: 700, to: 706 })]);
     });
 
+    it('should ask once about a text repeated within one run', () => {
+        const pending = new Subject<JevResponse>();
+        api.systemOne.mockReturnValue(pending);
+
+        const progress = run([proseLine(1, 'Апзац.'), proseLine(2, 'Апзац.')]);
+        pending.next(TYPO);
+        pending.complete();
+
+        expect(api.systemOne).toHaveBeenCalledTimes(1);
+        expect(progress.at(-1)?.findings.map(finding => finding.from)).toEqual([100, 200]);
+    });
+
+    it('should ask again about a text whose request failed', () => {
+        api.systemOne.mockReturnValueOnce(throwError(() => httpError(500))).mockReturnValueOnce(of(TYPO));
+        run([proseLine(1, 'Апзац.')]);
+
+        const progress = run([proseLine(1, 'Апзац.')]);
+
+        expect(api.systemOne).toHaveBeenCalledTimes(2);
+        expect(progress.at(-1)).toMatchObject({ failed: 0 });
+    });
+
     it('should keep at most a few requests in flight', () => {
         const pending: Subject<JevResponse>[] = [];
         api.systemOne.mockImplementation(() => {
@@ -147,6 +170,18 @@ describe('AiReviewService', () => {
         expect(progress.at(-1)?.findings).toHaveLength(1);
         expect(notification.error).toHaveBeenCalledTimes(1);
         expect(notification.error).toHaveBeenCalledWith('ИИ: не удалось проверить абзацев — 2 из 3');
+    });
+
+    it('should log the cause of the first failed paragraph', () => {
+        const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+        api.systemOne.mockReturnValueOnce(throwError(() => httpError(400))).mockReturnValueOnce(of(CLEAN));
+
+        run([proseLine(1, 'Один.'), proseLine(2, 'Два.')]);
+
+        expect(logger.error).toHaveBeenCalledWith(
+            'AI review: paragraphs failed',
+            expect.objectContaining({ failed: 1, total: 2, firstError: expectObjectLike({ status: 400 }) }),
+        );
     });
 
     it('should ask nothing without a key', () => {

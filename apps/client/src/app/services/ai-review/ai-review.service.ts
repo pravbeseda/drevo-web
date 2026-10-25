@@ -18,6 +18,7 @@ import {
     of,
     retry,
     scan,
+    shareReplay,
     startWith,
     tap,
     throwError,
@@ -40,10 +41,20 @@ type Answers = Readonly<Partial<Record<string, JevChoiceAnswer>>>;
 interface LineOutcome {
     readonly findings: readonly CheckFinding[];
     readonly failed: boolean;
+    readonly error?: unknown;
 }
 
 function hasStatus(err: unknown, status: number): boolean {
     return err instanceof HttpErrorResponse && err.status === status;
+}
+
+// What tells a wrong request from an outage; an HttpErrorResponse carries no request headers, so no key.
+function describeError(err: unknown): unknown {
+    if (err instanceof HttpErrorResponse) {
+        const body: unknown = err.error;
+        return { status: err.status, message: err.message, body };
+    }
+    return err instanceof Error ? { message: err.message } : err;
 }
 
 /** Asks Jev about each line, a few at a time; one outcome per run, never one per paragraph. */
@@ -56,8 +67,9 @@ export class AiReviewService {
     private readonly notification = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('AiReviewService');
 
-    // Keyed by the text, so a paragraph unchanged across versions is asked once per tab.
-    private readonly cache = new Map<string, Answers>();
+    // Keyed by the text, so a paragraph unchanged across versions is asked once per tab; holding the request
+    // itself, so a text repeated within one run shares the request still in flight.
+    private readonly cache = new Map<string, Observable<Answers>>();
 
     review(lines: readonly ProseLine[]): Observable<AiReviewProgress> {
         const key = this.aiKey.key();
@@ -67,9 +79,11 @@ export class AiReviewService {
         return defer(() => {
             const initial: AiReviewProgress = { done: 0, total: asked.length, failed: 0, findings: [] };
             let last = initial;
+            let firstError: unknown;
 
             return from(asked).pipe(
                 mergeMap(line => this.ask(key, line), AI_REVIEW_CONCURRENCY),
+                tap(outcome => (firstError ??= outcome.error)),
                 scan(
                     (progress, outcome): AiReviewProgress => ({
                         ...progress,
@@ -80,7 +94,7 @@ export class AiReviewService {
                     initial,
                 ),
                 startWith(initial),
-                tap({ next: progress => (last = progress), complete: () => this.reportDone(last) }),
+                tap({ next: progress => (last = progress), complete: () => this.reportDone(last, firstError) }),
                 catchError((err: unknown) => {
                     if (!hasStatus(err, HttpStatusCode.Unauthorized)) return throwError(() => err);
                     this.notification.error('Ключ ИИ не подошёл');
@@ -97,7 +111,7 @@ export class AiReviewService {
             catchError((err: unknown) =>
                 hasStatus(err, HttpStatusCode.Unauthorized)
                     ? throwError(() => err)
-                    : of<LineOutcome>({ findings: [], failed: true }),
+                    : of<LineOutcome>({ findings: [], failed: true, error: err }),
             ),
         );
     }
@@ -105,9 +119,9 @@ export class AiReviewService {
     private answers(key: string, text: string): Observable<Answers> {
         const cacheKey = `${JEV_MODEL}|${JEV_QUESTIONNAIRE_VERSION}|${text}`;
         const cached = this.cache.get(cacheKey);
-        if (cached) return of(cached);
+        if (cached) return cached;
 
-        return this.api.systemOne(key, text, JEV_QUESTIONS).pipe(
+        const request = this.api.systemOne(key, text, JEV_QUESTIONS).pipe(
             retry({
                 count: 1,
                 delay: (err: unknown) =>
@@ -116,14 +130,20 @@ export class AiReviewService {
                         : throwError(() => err),
             }),
             map(response => response.answers),
-            tap(answers => this.cache.set(cacheKey, answers)),
+            catchError((err: unknown) => {
+                this.cache.delete(cacheKey);
+                return throwError(() => err);
+            }),
+            shareReplay(1),
         );
+        this.cache.set(cacheKey, request);
+        return request;
     }
 
-    private reportDone({ total, failed }: AiReviewProgress): void {
+    private reportDone({ total, failed }: AiReviewProgress, firstError: unknown): void {
         this.logger.info('AI review: done', { total, failed });
         if (failed === 0) return;
         this.notification.error(`ИИ: не удалось проверить абзацев — ${failed} из ${total}`);
-        this.logger.error('AI review: paragraphs failed', { failed, total });
+        this.logger.error('AI review: paragraphs failed', { failed, total, firstError: describeError(firstError) });
     }
 }
