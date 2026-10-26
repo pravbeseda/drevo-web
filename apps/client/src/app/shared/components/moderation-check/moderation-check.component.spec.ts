@@ -1,4 +1,5 @@
 import { AiKeyService } from '../../../services/ai-review/ai-key.service';
+import { AiLocateService } from '../../../services/ai-review/ai-locate.service';
 import { AiReviewProgress, AiReviewService } from '../../../services/ai-review/ai-review.service';
 import { AiThresholdsService } from '../../../services/ai-review/ai-thresholds.service';
 import { DEFAULT_AI_THRESHOLDS } from '../../../services/ai-review/jev-questionnaire';
@@ -8,7 +9,7 @@ import { signal } from '@angular/core';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { CheckFinding } from '@drevo-web/editor';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, of, Subject } from 'rxjs';
 import { ModerationCheckComponent } from './moderation-check.component';
 
 const PREVIOUS = 'Старая строка, ихний дом.';
@@ -30,6 +31,9 @@ describe('ModerationCheckComponent', () => {
             mockProvider(ClipboardService),
             mockProvider(AiKeyService, { key: aiKeySignal.asReadonly() }),
             mockProvider(AiReviewService, { review: jest.fn(() => EMPTY) }),
+            mockProvider(AiLocateService, {
+                locate: jest.fn(() => of([{ quote: 'ихнего', suggestion: 'их', explanation: 'Просторечие' }])),
+            }),
             mockProvider(AiThresholdsService, { thresholds: () => DEFAULT_AI_THRESHOLDS }),
         ],
         detectChanges: false,
@@ -318,6 +322,26 @@ describe('ModerationCheckComponent', () => {
 
             expect(emitted).toEqual([['Строка 2 — Нарушено согласование — род, число или падеж']]);
             expect(aiItem()).toContain('В комментарии');
+        });
+
+        it('lets the moderator ask Haiku or Luna where the problem of an AI card is', () => {
+            withKey();
+            const selected: CheckReportItem[] = [];
+            spectator.output('findingSelected').subscribe(item => selected.push(item));
+            spectator.click('[data-testid="moderation-check-full"]');
+            answers.next(progress(1));
+            spectator.detectChanges();
+
+            expect(spectator.queryAll('[data-testid="ai-locate-haiku"]')).toHaveLength(1);
+            spectator.click('[data-testid="ai-locate-haiku"]');
+            spectator.click('[data-testid="ai-locate-fragment"]');
+
+            expect(spectator.inject(AiLocateService).locate).toHaveBeenCalledWith(
+                'haiku',
+                'grammar',
+                'Новая строка, ихнего сына (без пары.',
+            );
+            expect(selected).toEqual([expect.objectContaining({ from: 40, to: 46, fragment: 'ихнего' })]);
         });
 
         it('drops the previous AI run when a new one starts', () => {

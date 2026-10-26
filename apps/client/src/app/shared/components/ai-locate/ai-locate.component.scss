@@ -1,0 +1,61 @@
+@use 'tokens' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ai-locate-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.ai-locate-answer {
+    font-size: $font-size-sm;
+}
+
+.ai-locate-model {
+    font-weight: 600;
+}
+
+.ai-locate-errors {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+
+    p {
+        margin: 0;
+    }
+}
+
+.ai-locate-fragment {
+    align-self: stretch;
+    width: 100%;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 6px;
+    background: var(--themed-secondary-bg);
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--themed-hover-bg);
+    }
+}
+
+.ai-locate-mark {
+    border-radius: 3px;
+    color: var(--themed-search-highlighted);
+    background: var(--themed-search-highlighted-bg);
+}
+
+.ai-locate-explanation {
+    color: var(--themed-text-secondary);
+}

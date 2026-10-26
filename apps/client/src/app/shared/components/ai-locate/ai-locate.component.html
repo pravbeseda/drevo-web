@@ -1,0 +1,63 @@
+<div class="ai-locate-buttons">
+    @for (option of models; track option.model) {
+        <ui-button
+            variant="text"
+            [testId]="'ai-locate-' + option.model"
+            [loading]="isLoading(option.model)"
+            (click)="ask(option.model)"
+        >
+            {{ option.label }}
+        </ui-button>
+    }
+</div>
+
+@for (entry of answers(); track entry.model) {
+    <div
+        class="ai-locate-answer"
+        data-testid="ai-locate-answer"
+    >
+        <span class="ai-locate-model">{{ entry.label }}:</span>
+        @switch (entry.answer.status) {
+            @case ('loading') {
+                проверяет…
+            }
+            @case ('failed') {
+                не удалось
+            }
+            @case ('done') {
+                @if (entry.answer.errors.length === 0) {
+                    ошибки нет
+                } @else {
+                    <ul class="ai-locate-errors">
+                        @for (error of entry.answer.errors; track $index) {
+                            <li>
+                                <button
+                                    type="button"
+                                    class="ai-locate-fragment"
+                                    data-testid="ai-locate-fragment"
+                                    uiTooltip="Показать в тексте"
+                                    (click)="select(error)"
+                                >
+                                    @if (error.location; as location) {
+                                        <span>{{ location.contextBefore }}</span>
+                                        <mark class="ai-locate-mark">{{ error.quote.trim() }}</mark>
+                                        <span>{{ location.contextAfter }}</span>
+                                    } @else {
+                                        {{ error.quote }}
+                                    }
+                                </button>
+                                @if (error.suggestion; as suggestion) {
+                                    <p>
+                                        →
+                                        <b>{{ suggestion }}</b>
+                                    </p>
+                                }
+                                <p class="ai-locate-explanation">{{ error.explanation }}</p>
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+        }
+    </div>
+}

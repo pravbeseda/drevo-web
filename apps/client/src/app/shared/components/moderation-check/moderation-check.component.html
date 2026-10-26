@@ -184,6 +184,13 @@
                     </p>
                 }
                 <p class="moderation-check-message">{{ item.message }}</p>
+                @if (isAiFinding(item) && hasAiKey()) {
+                    <app-ai-locate
+                        [item]="item"
+                        [prose]="prose(item)"
+                        (fragmentSelected)="showInText($event)"
+                    />
+                }
                 <ui-button
                     testId="moderation-check-add"
                     variant="text"

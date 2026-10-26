@@ -17,6 +17,12 @@ export interface CheckReportItem extends CheckFinding {
     readonly contextAfter: string;
 }
 
+/** Where a quote sits in its line: offsets within the line, and the sentence around it. */
+export interface QuoteLocation extends Pick<CheckReportItem, 'contextBefore' | 'contextAfter'> {
+    readonly from: number;
+    readonly to: number;
+}
+
 /** The raw source of a version and of the one before it; a first version has none before it. */
 export interface VersionTexts {
     readonly current: string;

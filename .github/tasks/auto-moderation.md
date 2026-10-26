@@ -139,3 +139,43 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
 5. `buildCheckReport` with AI findings and the exported line selection.
 6. `moderation-check`: legend, key form, AI run, AI cards.
 7. Playwright scenario; docs (`docs/patterns.md` gets the external-API call without credentials if it reads as a pattern).
+
+## Phase 3: locate an AI finding with Haiku or Luna
+
+### Goal
+
+An AI card says only that a paragraph probably has a problem of its category. Two buttons on the card, **Haiku** and **Luna**, ask that model where exactly the problem is: each answer appears in the card as its own block — every fragment highlighted in its sentence, with a fix and a short explanation, or «ошибки нет». Both answers in one card, Haiku's above Luna's, show whether Jev was right and which model handles Russian better; that comparison is the point of this phase, before the second pass becomes automatic.
+
+### Decisions
+
+- **Models**: pinned, never a `~…-latest` alias, since the answer cache is keyed by the model: `anthropic/claude-haiku-5.5` («Haiku») and `openai/gpt-6-luna` («Luna»), both $0.10 / $0.50 per 1M tokens on OpenRouter, both with structured outputs.
+- **Transport**: the same OpenRouter key, `POST https://openrouter.ai/api/v1/chat/completions`, `response_format: { type: 'json_schema', … }`, `reasoning: { effort: 'low' }` (a named constant: a click should answer in seconds). Same rules as Jev: `SKIP_ERROR_NOTIFICATION`, no `withCredentials`, the key never logged.
+- **One click, one request**: the card's line as stripped prose (`toProseLines`, the text Jev saw) and the card's category. The model reports only problems of that category, so «ошибки нет» means Jev's finding did not hold.
+- **Prompt**: Russian, a constant with a version number; one description per category — spelling and typos; agreement, government, punctuation; colloquial, bureaucratic, evaluative wording. The style of a quote is not assessed, and Church Slavonic liturgical text is not corrected at all: its archaic spelling and grammar are not errors.
+- **Answer**: `{ errors: [{ quote, suggestion?, explanation }] }`, `quote` copied verbatim from the paragraph. It is validated at the boundary: a body that is not JSON of that shape is an error, not an empty answer.
+- **Location**: by the quote, never by character offsets: the first match of `quote` in the source line. A quote that is not found (it spans markup) or is empty is shown without a highlight, and «Показать в тексте» falls back to the whole line.
+- **Cache**: in memory, in the root service, keyed by model + prompt version + category + text, so a second click, and a click on an unchanged paragraph in another version, sends nothing.
+- **Errors**: 401 → the existing «Ключ ИИ не подошёл» notification; anything else → «Haiku: не удалось» in the card, the button stays active for a retry; both logged through `LoggerService` without the key.
+- **Comment**: unchanged — the card goes into the moderation comment as before; the located fragments do not. Adding a fragment on its own is a later step, once one model is kept.
+
+### Design
+
+1. **HTTP** (two layers, `app/services/ai-review/`):
+   - `openrouter-chat-api.service.ts` — `complete(key, request): Observable<OpenRouterChatResponse>`, the DTOs, the context token.
+   - `ai-locate.service.ts` — `locate(model, category, text): Observable<readonly AiLocatedError[]>`: builds the prompt and the schema, parses and validates the answer, caches the request.
+   - `ai-request.ts` — what both services share: `cachedRequest` (one retry after a 429, `shareReplay(1)`, dropped from the cache on an error), `hasStatus`, `describeError`; `AiReviewService` moved onto it.
+   - `ai-locate.model.ts` — `AI_LOCATE_MODELS` (`haiku`, `luna`: id and label), `AiLocatedError`.
+2. **Location** (`check-report.ts`): a pure `locateQuote(lineText, quote)` returns the span with its sentence around it, or nothing; `sentenceContext` stays private.
+3. **UI**: a new `app-ai-locate` component in `shared/components/ai-locate/`, rendered inside an AI card of `moderation-check` — inputs: the item and its prose line; its own state per model (idle, loading, answer, error) as private signals. `moderation-check` only computes the prose lines of the current version once per report and passes the card's one; it does not grow further. The card's `@for` tracks by `findingKey`, so an answer survives a report rebuilt by a run still in progress.
+
+### Testing
+
+- Jest: `locateQuote` (found, not found, empty, the first of two matches); `AiLocateService` (request shape — model, category, schema, effort; a valid answer; a malformed one is an error; cache hit; cache dropped on error); `app-ai-locate` (buttons, loading, the highlighted fragment with its fix, «ошибки нет», an unlocated quote, the error line and retry, 401 notification).
+- Playwright: `page.route` mocks `openrouter.ai/api/v1/systemone` and `/chat/completions`; on an AI card **Haiku** shows a highlighted fragment, **Luna** shows «ошибки нет», both blocks stay in the card.
+
+### Steps
+
+1. `locateQuote`.
+2. `OpenRouterChatApiService`, `AiLocateService`, the models constant.
+3. `app-ai-locate` and its place in the AI card.
+4. Playwright scenario; this plan updated with what changed on the way.

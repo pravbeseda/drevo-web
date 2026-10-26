@@ -1,34 +1,17 @@
 import { AiKeyService } from './ai-key.service';
+import { cachedRequest, describeError, hasStatus } from './ai-request';
 import { AiThresholds, ProseLine } from './ai-review.model';
 import { AiThresholdsService } from './ai-thresholds.service';
 import { JEV_MODEL, JevApiService } from './jev-api.service';
 import { JEV_QUESTIONNAIRE_VERSION, JEV_QUESTIONS, toFindings } from './jev-questionnaire';
 import { JevChoiceAnswer } from './jev.model';
-import { HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
+import { HttpStatusCode } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { CheckFinding } from '@drevo-web/editor';
-import {
-    EMPTY,
-    Observable,
-    catchError,
-    defer,
-    from,
-    map,
-    mergeMap,
-    of,
-    retry,
-    scan,
-    shareReplay,
-    startWith,
-    tap,
-    throwError,
-    timer,
-} from 'rxjs';
+import { EMPTY, Observable, catchError, defer, from, map, mergeMap, of, scan, startWith, tap, throwError } from 'rxjs';
 
 export const AI_REVIEW_CONCURRENCY = 4;
-// OpenRouter does not expose `Retry-After` to the page, so a rate-limited request waits a fixed time.
-export const AI_REVIEW_RETRY_DELAY_MS = 2000;
 
 export interface AiReviewProgress {
     readonly done: number;
@@ -43,19 +26,6 @@ interface LineOutcome {
     readonly findings: readonly CheckFinding[];
     readonly failed: boolean;
     readonly error?: unknown;
-}
-
-function hasStatus(err: unknown, status: number): boolean {
-    return err instanceof HttpErrorResponse && err.status === status;
-}
-
-// What tells a wrong request from an outage; an HttpErrorResponse carries no request headers, so no key.
-function describeError(err: unknown): unknown {
-    if (err instanceof HttpErrorResponse) {
-        const body: unknown = err.error;
-        return { status: err.status, message: err.message, body };
-    }
-    return err instanceof Error ? { message: err.message } : err;
 }
 
 /** Asks Jev about each line, a few at a time; one outcome per run, never one per paragraph. */
@@ -120,27 +90,9 @@ export class AiReviewService {
     }
 
     private answers(key: string, text: string): Observable<Answers> {
-        const cacheKey = `${JEV_MODEL}|${JEV_QUESTIONNAIRE_VERSION}|${text}`;
-        const cached = this.cache.get(cacheKey);
-        if (cached) return cached;
-
-        const request = this.api.systemOne(key, text, JEV_QUESTIONS).pipe(
-            retry({
-                count: 1,
-                delay: (err: unknown) =>
-                    hasStatus(err, HttpStatusCode.TooManyRequests)
-                        ? timer(AI_REVIEW_RETRY_DELAY_MS)
-                        : throwError(() => err),
-            }),
-            map(response => response.answers),
-            catchError((err: unknown) => {
-                this.cache.delete(cacheKey);
-                return throwError(() => err);
-            }),
-            shareReplay(1),
+        return cachedRequest(this.cache, `${JEV_MODEL}|${JEV_QUESTIONNAIRE_VERSION}|${text}`, () =>
+            this.api.systemOne(key, text, JEV_QUESTIONS).pipe(map(response => response.answers)),
         );
-        this.cache.set(cacheKey, request);
-        return request;
     }
 
     private reportDone({ total, failed }: AiReviewProgress, firstError: unknown): void {

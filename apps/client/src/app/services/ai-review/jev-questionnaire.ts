@@ -1,6 +1,6 @@
-import { AiThresholds, ProseLine } from './ai-review.model';
+import { AiCheckCategory, AiThresholds, ProseLine } from './ai-review.model';
 import { JevChoiceAnswer, JevChoiceQuestion } from './jev.model';
-import { CHECK_LEVELS, CheckCategory, CheckFinding } from '@drevo-web/editor';
+import { CHECK_LEVELS, CheckFinding } from '@drevo-web/editor';
 
 /** Bumped whenever a question changes, so cached answers to the old wording are not reused. */
 export const JEV_QUESTIONNAIRE_VERSION = 2;
@@ -12,7 +12,7 @@ const NONE = 'none';
 const CLEAN_OPTIONS: ReadonlySet<string> = new Set([NONE, 'quote', 'liturgical']);
 
 interface QuestionnaireEntry {
-    readonly category: CheckCategory;
+    readonly category: AiCheckCategory;
     readonly question: JevChoiceQuestion;
 }
 

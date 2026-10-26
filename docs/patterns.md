@@ -56,7 +56,7 @@ export class ArticleService {
 ## Authentication & HTTP
 
 - **AuthInterceptor** — CSRF tokens (auto-added to POST/PUT/DELETE/PATCH), 401/403 handling
-- **Credentials** — `withCredentials: true` for all requests to our API, and never on a third-party one: an `access-control-allow-origin: *` answer, like OpenRouter's in `JevApiService`, fails a request with credentials
+- **Credentials** — `withCredentials: true` for all requests to our API, and never on a third-party one: an `access-control-allow-origin: *` answer, like OpenRouter's, fails a request with credentials — `openRouterOptions` in `services/ai-review/ai-request.ts` holds the options every OpenRouter call shares
 - **Per-request error control** — HTTP context tokens from `@drevo-web/core`:
 
 ```typescript

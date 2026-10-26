@@ -1,5 +1,5 @@
 import { CheckFinding, checkWikiContent } from '@drevo-web/editor';
-import { buildCheckReport, selectProseLines, toVerdict } from './check-report';
+import { buildCheckReport, locateQuote, selectProseLines, toVerdict } from './check-report';
 
 jest.mock('@drevo-web/editor', () => {
     const actual: typeof import('@drevo-web/editor') = jest.requireActual('@drevo-web/editor');
@@ -207,5 +207,26 @@ describe('toVerdict', () => {
         [{ serious: 0, fix: 0, hint: 0 }, 'clean'],
     ] as const)('turns %o into %s', (counts, verdict) => {
         expect(toVerdict(counts)).toBe(verdict);
+    });
+});
+
+describe('locateQuote', () => {
+    const LINE = 'Первое предложение. В нём есть ашибка и ещё ашибка. Третье.';
+
+    it('finds the first match of the quote, with its sentence around it', () => {
+        expect(locateQuote(LINE, 'ашибка')).toEqual({
+            from: 31,
+            to: 37,
+            contextBefore: 'В нём есть ',
+            contextAfter: ' и ещё ашибка.',
+        });
+    });
+
+    it('finds nothing for a quote the line does not hold', () => {
+        expect(locateQuote(LINE, 'ошибка')).toBeUndefined();
+    });
+
+    it('finds nothing for an empty quote', () => {
+        expect(locateQuote(LINE, '  ')).toBeUndefined();
     });
 });

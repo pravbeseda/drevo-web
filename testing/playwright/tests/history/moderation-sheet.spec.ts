@@ -38,6 +38,22 @@ async function mockJev(page: Page): Promise<string[]> {
     return states;
 }
 
+const CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+/** Haiku finds «в течении» in whatever it is asked about; Luna finds nothing. */
+async function mockChat(page: Page): Promise<void> {
+    await page.route(CHAT_URL, async route => {
+        const { model } = route.request().postDataJSON() as { model: string };
+        const errors = model.startsWith('anthropic/')
+            ? [{ quote: 'в течении', suggestion: 'в течение', explanation: 'О времени пишется с «е»' }]
+            : [];
+        await route.fulfill({
+            headers: { 'access-control-allow-origin': '*' },
+            json: { choices: [{ message: { content: JSON.stringify({ errors }) } }] },
+        });
+    });
+}
+
 /** The lowest edge of anything drawn inside the element, overflow included. */
 function contentBottom(locator: Locator): Promise<number> {
     return locator.evaluate(el =>
@@ -131,6 +147,23 @@ test.describe('Moderation sheet', () => {
             expect(states).toEqual(
                 expect.arrayContaining(['Он в течении года жил в Хотькове.', 'Братья поставили келью и и церковь.']),
             );
+        });
+
+        test('asks Haiku and Luna where the problem of an AI card is', async ({ authenticatedPage: page }) => {
+            await mockJev(page);
+            await mockChat(page);
+            await sheet.connectAi('sk-or-test');
+            await sheet.checkChanges.click();
+            await expect(sheet.aiProgress).toHaveText('ИИ: 2 из 2');
+
+            await sheet.aiLocate('haiku').click();
+            await sheet.aiLocate('luna').click();
+
+            await expect(sheet.aiAnswers).toHaveCount(2);
+            await expect(sheet.aiAnswers.first()).toContainText('в течение');
+            await expect(sheet.aiAnswers.last()).toContainText('Luna: ошибки нет');
+            await sheet.aiFragment(0).click();
+            await expect(sheet.focusedMark).toHaveText('в течении');
         });
 
         test('applies a raised threshold without asking for the key again', async ({ authenticatedPage: page }) => {
