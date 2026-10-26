@@ -1,6 +1,13 @@
 import { CM_DIFF_CONFIG } from './cm-diff-config';
 import { ProseLine } from '../../services/ai-review/ai-review.model';
-import { CheckCounts, CheckReport, CheckReportItem, CheckScope, CheckVerdict } from '../models/check-report.model';
+import {
+    CheckCounts,
+    CheckReport,
+    CheckReportItem,
+    CheckScope,
+    CheckVerdict,
+    QuoteLocation,
+} from '../models/check-report.model';
 import { diff } from '@codemirror/merge';
 import { Text } from '@codemirror/state';
 import { CheckFinding, CheckLevel, checkWikiContent, toProseLines } from '@drevo-web/editor';
@@ -60,6 +67,16 @@ export function selectProseLines(
         if (!text || (changedLines && !changedLines.has(number))) return [];
         return [{ line: number, from, to, text }];
     });
+}
+
+/** The first match of a quote an AI answer copied from the line; nothing when the line does not hold it. */
+export function locateQuote(line: string, quote: string): QuoteLocation | undefined {
+    const needle = quote.trim();
+    const from = needle ? line.indexOf(needle) : -1;
+    if (from === -1) return undefined;
+
+    const to = from + needle.length;
+    return { from, to, ...sentenceContext(line, from, to) };
 }
 
 // The rule findings first, the most serious on top; then the AI ones, the most likely on top.

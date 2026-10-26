@@ -6,12 +6,8 @@ import { expectObjectLike } from '@drevo-web/shared/testing';
 import { defer, Observable, of, Subject, throwError } from 'rxjs';
 import { AiThresholds, ProseLine } from './ai-review.model';
 import { AiKeyService } from './ai-key.service';
-import {
-    AI_REVIEW_CONCURRENCY,
-    AI_REVIEW_RETRY_DELAY_MS,
-    AiReviewProgress,
-    AiReviewService,
-} from './ai-review.service';
+import { AI_RETRY_DELAY_MS } from './ai-request';
+import { AI_REVIEW_CONCURRENCY, AiReviewProgress, AiReviewService } from './ai-review.service';
 import { JevResponse } from './jev.model';
 import { JevApiService } from './jev-api.service';
 import { AiThresholdsService } from './ai-thresholds.service';
@@ -139,7 +135,7 @@ describe('AiReviewService', () => {
         const progress = run([proseLine(1, 'Апзац.')]);
         expect(attempts).toBe(1);
 
-        jest.advanceTimersByTime(AI_REVIEW_RETRY_DELAY_MS);
+        jest.advanceTimersByTime(AI_RETRY_DELAY_MS);
 
         expect(attempts).toBe(2);
         expect(progress.at(-1)).toMatchObject({ done: 1, failed: 0 });

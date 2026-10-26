@@ -5,6 +5,7 @@ import { AiThresholdsService, isValidAiThresholds } from '../../../services/ai-r
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { buildCheckReport, selectProseLines } from '../../helpers/check-report';
 import { CheckReport, CheckReportItem, CheckScope, CheckVerdict, VersionTexts } from '../../models/check-report.model';
+import { AiLocateComponent } from '../ai-locate/ai-locate.component';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -17,7 +18,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
-import { CheckCategory, CheckLevel } from '@drevo-web/editor';
+import { CheckCategory, CheckLevel, toProseLines } from '@drevo-web/editor';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { TextInputComponent } from '@drevo-web/ui/text-input';
@@ -79,7 +80,7 @@ function toCommentLine(item: CheckReportItem): string {
 
 @Component({
     selector: 'app-moderation-check',
-    imports: [ButtonComponent, IconButtonComponent, TextInputComponent, TooltipDirective],
+    imports: [AiLocateComponent, ButtonComponent, IconButtonComponent, TextInputComponent, TooltipDirective],
     templateUrl: './moderation-check.component.html',
     styleUrl: './moderation-check.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -117,6 +118,7 @@ export class ModerationCheckComponent {
     });
 
     readonly hasAiKey = computed(() => this.aiKey.key() !== undefined);
+    private readonly proseLines = computed(() => toProseLines(this.texts().current));
 
     private readonly _keyFormOpen = signal(false);
     readonly keyFormOpen = this._keyFormOpen.asReadonly();
@@ -208,6 +210,11 @@ export class ModerationCheckComponent {
 
     findingKey(item: CheckReportItem): string {
         return findingKey(item);
+    }
+
+    /** The line of an AI card as Jev saw it, the markup stripped. */
+    prose(item: CheckReportItem): string {
+        return this.proseLines()[item.line - 1] ?? '';
     }
 
     percent(item: CheckReportItem): number {
