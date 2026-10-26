@@ -17,6 +17,10 @@ describe('JEV_QUESTIONS', () => {
             expect(question.criteria['none']).toBeDefined();
         }
     });
+
+    it('should let the style question set quotes and liturgical text aside', () => {
+        expect(Object.keys(JEV_QUESTIONS['style'].criteria)).toEqual(expect.arrayContaining(['quote', 'liturgical']));
+    });
 });
 
 describe('toFindings', () => {
@@ -62,6 +66,22 @@ describe('toFindings', () => {
         );
 
         expect(finding).toMatchObject({ category: 'style', level: 'fix', message: 'Канцелярит' });
+    });
+
+    it.each(['quote', 'liturgical'])('should not count %s as a style problem', option => {
+        const findings = toFindings(
+            { style: answer({ none: 0.05, [option]: 0.45, colloquial: 0.1, bureaucratic: 0, evaluative: 0.4 }) },
+            LINE,
+            DEFAULT_AI_THRESHOLDS,
+        );
+
+        expect(findings).toEqual([
+            expect.objectContaining({
+                level: 'hint',
+                message: 'Возможно: оценочные или эмоциональные слова',
+                probability: 0.5,
+            }),
+        ]);
     });
 
     it('should report an uncertain problem as a hint', () => {

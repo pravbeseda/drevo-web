@@ -3,11 +3,13 @@ import { JevChoiceAnswer, JevChoiceQuestion } from './jev.model';
 import { CHECK_LEVELS, CheckCategory, CheckFinding } from '@drevo-web/editor';
 
 /** Bumped whenever a question changes, so cached answers to the old wording are not reused. */
-export const JEV_QUESTIONNAIRE_VERSION = 1;
+export const JEV_QUESTIONNAIRE_VERSION = 2;
 
 export const DEFAULT_AI_THRESHOLDS: AiThresholds = { finding: 0.7, hint: 0.4 };
 
 const NONE = 'none';
+// Options that leave the paragraph clean: without them a quote's or a prayer's wording has nowhere to go but a problem.
+const CLEAN_OPTIONS: ReadonlySet<string> = new Set([NONE, 'quote', 'liturgical']);
 
 interface QuestionnaireEntry {
     readonly category: CheckCategory;
@@ -50,6 +52,9 @@ const QUESTIONNAIRE: Readonly<Record<string, QuestionnaireEntry>> = {
                 colloquial: 'Разговорные обороты',
                 bureaucratic: 'Канцелярит',
                 evaluative: 'Оценочные или эмоциональные слова',
+                quote: 'Цитата — стиль цитаты не оценивается',
+                liturgical:
+                    'Церковнославянский или богослужебный текст — молитва, песнопение; его стиль не оценивается',
             },
         },
     },
@@ -69,7 +74,7 @@ export function toFindings(
         const probabilities = answers[key]?.probabilities;
         if (!probabilities) return [];
 
-        const probability = 1 - (probabilities[NONE] ?? 0);
+        const probability = 1 - [...CLEAN_OPTIONS].reduce((sum, option) => sum + (probabilities[option] ?? 0), 0);
         const winner = mostProbableProblem(probabilities);
         const description = winner === undefined ? undefined : question.criteria[winner];
         if (probability < thresholds.hint || description === undefined) return [];
@@ -93,6 +98,6 @@ export function toFindings(
 
 function mostProbableProblem(probabilities: Readonly<Record<string, number>>): string | undefined {
     return Object.entries(probabilities)
-        .filter(([option]) => option !== NONE)
+        .filter(([option]) => !CLEAN_OPTIONS.has(option))
         .sort(([, a], [, b]) => b - a)[0]?.[0];
 }
