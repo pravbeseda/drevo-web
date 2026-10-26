@@ -70,7 +70,7 @@ describe('toFindings', () => {
 
     it.each(['quote', 'liturgical'])('should not count %s as a style problem', option => {
         const findings = toFindings(
-            { style: answer({ none: 0.05, [option]: 0.4, colloquial: 0, bureaucratic: 0, evaluative: 0.55 }) },
+            { style: answer({ none: 0.05, [option]: 0.45, colloquial: 0.1, bureaucratic: 0, evaluative: 0.4 }) },
             LINE,
             DEFAULT_AI_THRESHOLDS,
         );
@@ -79,7 +79,7 @@ describe('toFindings', () => {
             expect.objectContaining({
                 level: 'hint',
                 message: 'Возможно: оценочные или эмоциональные слова',
-                probability: 0.55,
+                probability: 0.5,
             }),
         ]);
     });
