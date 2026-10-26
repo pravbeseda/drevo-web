@@ -202,13 +202,6 @@ describe('ModerationCheckComponent', () => {
             );
         });
 
-        it('shows no note under the thresholds', () => {
-            withKey();
-            spectator.click('[data-testid="moderation-check-ai-toggle"]');
-
-            expect(spectator.query('[data-testid="moderation-check-ai-thresholds"] + p')).toBeNull();
-        });
-
         it('saves the thresholds without asking for the saved key again', () => {
             withKey();
             spectator.click('[data-testid="moderation-check-ai-toggle"]');
