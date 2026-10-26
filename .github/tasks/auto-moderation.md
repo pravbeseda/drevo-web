@@ -144,7 +144,7 @@ When the moderator has saved an OpenRouter API key, **Весь текст** and 
 
 ### Goal
 
-An AI card says only that a paragraph probably has a problem of its category. Two buttons on the card, **Haiku** and **Luna**, ask that model where exactly the problem is: each answer appears in the card as its own block — every fragment highlighted in its sentence, with a fix and a short explanation, or «ошибки нет». Both answers side by side show whether Jev was right and which model handles Russian better; that comparison is the point of this phase, before the second pass becomes automatic.
+An AI card says only that a paragraph probably has a problem of its category. Two buttons on the card, **Haiku** and **Luna**, ask that model where exactly the problem is: each answer appears in the card as its own block — every fragment highlighted in its sentence, with a fix and a short explanation, or «ошибки нет». Both answers in one card, Haiku's above Luna's, show whether Jev was right and which model handles Russian better; that comparison is the point of this phase, before the second pass becomes automatic.
 
 ### Decisions
 

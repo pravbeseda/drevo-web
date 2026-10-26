@@ -1,3 +1,8 @@
+import { CheckCategory } from '@drevo-web/editor';
+
+/** The categories Jev's questionnaire asks about, so the ones an AI card can carry. */
+export type AiCheckCategory = Extract<CheckCategory, 'spelling' | 'grammar' | 'style'>;
+
 /** A source line's prose and its place in the version's source. */
 export interface ProseLine {
     /** 1-based line number. */

@@ -1,6 +1,7 @@
 import { AiKeyService } from './ai-key.service';
-import { AI_LOCATE_MODELS, AiCheckCategory, AiLocatedError, AiLocateModel } from './ai-locate.model';
+import { AI_LOCATE_MODELS, AiLocatedError, AiLocateModel } from './ai-locate.model';
 import { cachedRequest, describeError, hasStatus } from './ai-request';
+import { AiCheckCategory } from './ai-review.model';
 import { OpenRouterChatApiService } from './openrouter-chat-api.service';
 import { OpenRouterChatRequest, OpenRouterChatResponse } from './openrouter-chat.model';
 import { HttpStatusCode } from '@angular/common/http';

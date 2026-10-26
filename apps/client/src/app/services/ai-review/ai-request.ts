@@ -1,8 +1,23 @@
-import { HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
+import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import { Observable, catchError, retry, shareReplay, throwError, timer } from 'rxjs';
 
 // OpenRouter does not expose `Retry-After` to the page, so a rate-limited request waits a fixed time.
 export const AI_RETRY_DELAY_MS = 2000;
+
+interface OpenRouterRequestOptions {
+    readonly headers: Readonly<Record<string, string>>;
+    readonly context: HttpContext;
+}
+
+/** How every request to OpenRouter goes out: the moderator's key, and errors left to the caller to report. */
+export function openRouterOptions(key: string): OpenRouterRequestOptions {
+    // No `withCredentials`: OpenRouter answers `access-control-allow-origin: *`, which credentials fail.
+    return {
+        headers: { Authorization: `Bearer ${key}` },
+        context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+    };
+}
 
 export function hasStatus(err: unknown, status: number): boolean {
     return err instanceof HttpErrorResponse && err.status === status;

@@ -53,7 +53,7 @@ describe('AiLocateComponent', () => {
         expect(spectator.query('[data-testid="ai-locate-answer"] mark')).toHaveText('ашибка');
     });
 
-    it('shows both answers side by side', () => {
+    it('shows both answers in the card, Haiku above Luna', () => {
         locate.mockReturnValueOnce(of([TYPO])).mockReturnValueOnce(of([]));
 
         spectator.click('[data-testid="ai-locate-haiku"]');

@@ -1,9 +1,4 @@
-import { CheckCategory } from '@drevo-web/editor';
-
 export type AiLocateModel = 'haiku' | 'luna';
-
-/** The categories Jev's questionnaire asks about, so the ones an AI card can carry. */
-export type AiCheckCategory = Extract<CheckCategory, 'spelling' | 'grammar' | 'style'>;
 
 export interface AiLocateModelInfo {
     /** OpenRouter id, pinned: the answer cache is keyed by it. */
