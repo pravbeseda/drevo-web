@@ -6,3 +6,9 @@ export interface ProseLine {
     readonly to: number;
     readonly text: string;
 }
+
+/** The probabilities, 0 to 1, from which an AI answer becomes a finding at its category's level and a hint. */
+export interface AiThresholds {
+    readonly finding: number;
+    readonly hint: number;
+}

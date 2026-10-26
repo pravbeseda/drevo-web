@@ -4,7 +4,7 @@ import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ClockService, LoggerService, NotificationService } from '@drevo-web/core';
+import { ClockService } from '@drevo-web/core';
 import { ForumMessage } from '@drevo-web/shared';
 import { AvatarComponent, avatarNameColor } from '@drevo-web/ui/avatar';
 import {
@@ -55,8 +55,6 @@ type MessageLink = readonly (string | number)[];
 export class MessageCardComponent {
     private readonly document = inject(DOCUMENT);
     private readonly clipboard = inject(ClipboardService);
-    private readonly notification = inject(NotificationService);
-    private readonly logger = inject(LoggerService).withContext('MessageCard');
     protected readonly now = inject(ClockService).now;
     private readonly _actionsShown = signal(false);
 
@@ -127,15 +125,6 @@ export class MessageCardComponent {
         const path = ['', ...this.topicPath(), this.message().id].join('/');
         const link = `${this.document.location.origin}${path}`;
 
-        this.clipboard.copy(link).subscribe({
-            complete: () => {
-                this.notification.success('Ссылка скопирована');
-                this.logger.info('Message link copied', { link });
-            },
-            error: (error: unknown) => {
-                this.logger.error('Failed to copy the message link', error);
-                this.notification.error('Не удалось скопировать ссылку');
-            },
-        });
+        this.clipboard.copy(link, { success: 'Ссылка скопирована', failure: 'Не удалось скопировать ссылку' });
     }
 }

@@ -1,13 +1,13 @@
-import { ProseLine } from './ai-review.model';
+import { AiThresholds, ProseLine } from './ai-review.model';
 import { JevChoiceAnswer, JevChoiceQuestion } from './jev.model';
 import { CHECK_LEVELS, CheckCategory, CheckFinding } from '@drevo-web/editor';
 
 /** Bumped whenever a question changes, so cached answers to the old wording are not reused. */
 export const JEV_QUESTIONNAIRE_VERSION = 1;
 
+export const DEFAULT_AI_THRESHOLDS: AiThresholds = { finding: 0.7, hint: 0.4 };
+
 const NONE = 'none';
-const FINDING_THRESHOLD = 0.7;
-const HINT_THRESHOLD = 0.4;
 
 interface QuestionnaireEntry {
     readonly category: CheckCategory;
@@ -63,6 +63,7 @@ export const JEV_QUESTIONS: Readonly<Record<string, JevChoiceQuestion>> = Object
 export function toFindings(
     answers: Readonly<Partial<Record<string, JevChoiceAnswer>>>,
     line: ProseLine,
+    thresholds: AiThresholds,
 ): readonly CheckFinding[] {
     return Object.entries(QUESTIONNAIRE).flatMap(([key, { category, question }]): CheckFinding[] => {
         const probabilities = answers[key]?.probabilities;
@@ -71,9 +72,9 @@ export function toFindings(
         const probability = 1 - (probabilities[NONE] ?? 0);
         const winner = mostProbableProblem(probabilities);
         const description = winner === undefined ? undefined : question.criteria[winner];
-        if (probability < HINT_THRESHOLD || description === undefined) return [];
+        if (probability < thresholds.hint || description === undefined) return [];
 
-        const isLikely = probability >= FINDING_THRESHOLD;
+        const isLikely = probability >= thresholds.finding;
         return [
             {
                 from: line.from,

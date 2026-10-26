@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
@@ -30,7 +31,12 @@ describe('ArticleModerationPanelComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ArticleModerationPanelComponent,
-        providers: [mockLoggerProvider(), mockProvider(ArticleService), mockProvider(NotificationService)],
+        providers: [
+            mockLoggerProvider(),
+            mockProvider(ArticleService),
+            mockProvider(ClipboardService),
+            mockProvider(NotificationService),
+        ],
         detectChanges: false,
     });
 
@@ -114,6 +120,29 @@ describe('ArticleModerationPanelComponent', () => {
             spectator.setInput('version', { ...mockVersion, comment: 'Updated comment' });
             spectator.detectChanges();
             expect(spectator.component.comment()).toBe('Updated comment');
+        });
+    });
+
+    describe('comment copy', () => {
+        const copyButton = '[data-testid="moderation-comment-copy"]';
+
+        it('should copy the comment', () => {
+            const clipboard = spectator.inject(ClipboardService);
+            spectator.setInput('version', { ...mockVersion, comment: 'Прошу исправить:\nСтрока 1' });
+            spectator.detectChanges();
+
+            spectator.click(copyButton);
+
+            expect(clipboard.copy).toHaveBeenCalledWith('Прошу исправить:\nСтрока 1', {
+                success: 'Комментарий скопирован',
+                failure: 'Не удалось скопировать комментарий',
+            });
+        });
+
+        it('should offer no copy of an empty comment', () => {
+            spectator.detectChanges();
+
+            expect(spectator.query<HTMLButtonElement>(copyButton)?.disabled).toBe(true);
         });
     });
 

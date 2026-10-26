@@ -41,6 +41,12 @@
         />
     }
 
+    @if (suffix()) {
+        <span matSuffix>
+            <ng-content select="[uiTextInputSuffix]" />
+        </span>
+    }
+
     @if (hint() && !errorMessage()) {
         <mat-hint>{{ hint() }}</mat-hint>
     }

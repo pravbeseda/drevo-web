@@ -40,6 +40,12 @@
     gap: 8px;
 }
 
+.moderation-check-thresholds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
 .moderation-check-verdict {
     display: flex;
     align-items: center;
@@ -122,6 +128,10 @@
     }
 }
 
+.moderation-check-card--faint {
+    opacity: 0.6;
+}
+
 .moderation-check-card-header {
     display: flex;
     align-items: center;
@@ -131,12 +141,6 @@
 
 .moderation-check-meta {
     flex: 1;
-}
-
-.moderation-check-card-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
 }
 
 .moderation-check-level {
@@ -160,12 +164,21 @@
 .moderation-check-context {
     align-self: stretch;
     padding: 6px 8px;
+    border: none;
     border-radius: 6px;
     background: var(--themed-secondary-bg);
+    color: inherit;
+    font: inherit;
+    text-align: start;
     overflow-wrap: anywhere;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--themed-hover-bg);
+    }
 }
 
-.moderation-check-context--paragraph {
+.moderation-check-paragraph {
     display: -webkit-box;
     overflow: hidden;
     -webkit-line-clamp: 3;

@@ -1,12 +1,13 @@
 import { AiKeyService } from '../../../services/ai-review/ai-key.service';
+import { AiThresholds } from '../../../services/ai-review/ai-review.model';
 import { AiReviewProgress, AiReviewService } from '../../../services/ai-review/ai-review.service';
+import { AiThresholdsService, isValidAiThresholds } from '../../../services/ai-review/ai-thresholds.service';
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { buildCheckReport, selectProseLines } from '../../helpers/check-report';
 import { CheckReport, CheckReportItem, CheckScope, CheckVerdict, VersionTexts } from '../../models/check-report.model';
 import {
     ChangeDetectionStrategy,
     Component,
-    DestroyRef,
     computed,
     inject,
     input,
@@ -15,11 +16,12 @@ import {
     signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoggerService, NotificationService } from '@drevo-web/core';
+import { LoggerService } from '@drevo-web/core';
 import { CheckCategory, CheckLevel } from '@drevo-web/editor';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { TextInputComponent } from '@drevo-web/ui/text-input';
+import { TooltipDirective } from '@drevo-web/ui/tooltip';
 import { EMPTY, Subject, map, switchMap } from 'rxjs';
 
 const VERDICT_TITLES: Readonly<Record<CheckVerdict, string>> = {
@@ -60,6 +62,14 @@ function findingKey(item: CheckReportItem): string {
     return `${item.ruleId}@${item.from}`;
 }
 
+function toPercentText(probability: number): string {
+    return String(Math.round(probability * PERCENT));
+}
+
+function fromPercentText(text: string): number {
+    return text.trim() === '' ? Number.NaN : Number(text) / PERCENT;
+}
+
 function toCommentLine(item: CheckReportItem): string {
     // An AI finding covers its whole paragraph, which the comment does not repeat.
     if (isAiFinding(item)) return `Строка ${item.line} — ${item.message}`;
@@ -69,18 +79,17 @@ function toCommentLine(item: CheckReportItem): string {
 
 @Component({
     selector: 'app-moderation-check',
-    imports: [ButtonComponent, IconButtonComponent, TextInputComponent],
+    imports: [ButtonComponent, IconButtonComponent, TextInputComponent, TooltipDirective],
     templateUrl: './moderation-check.component.html',
     styleUrl: './moderation-check.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationCheckComponent {
     private readonly clipboard = inject(ClipboardService);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ModerationCheckComponent');
-    private readonly notification = inject(NotificationService);
     private readonly aiKey = inject(AiKeyService);
     private readonly aiReview = inject(AiReviewService);
+    private readonly aiThresholds = inject(AiThresholdsService);
     private readonly aiRuns = new Subject<AiRun | undefined>();
 
     readonly texts = input.required<VersionTexts>();
@@ -114,6 +123,25 @@ export class ModerationCheckComponent {
 
     private readonly _keyDraft = signal('');
     readonly keyDraft = this._keyDraft.asReadonly();
+
+    private readonly _findingDraft = signal('');
+    readonly findingDraft = this._findingDraft.asReadonly();
+
+    private readonly _hintDraft = signal('');
+    readonly hintDraft = this._hintDraft.asReadonly();
+
+    private readonly draftThresholds = computed((): AiThresholds | undefined => {
+        const thresholds = {
+            finding: fromPercentText(this._findingDraft()),
+            hint: fromPercentText(this._hintDraft()),
+        };
+        return isValidAiThresholds(thresholds) ? thresholds : undefined;
+    });
+
+    // A saved key stays as it is when the field is left empty.
+    readonly canSaveAiSettings = computed(
+        () => this.draftThresholds() !== undefined && (this.hasAiKey() || this._keyDraft().trim() !== ''),
+    );
 
     readonly aiProgressText = computed(() => {
         const progress = this._aiProgress();
@@ -173,6 +201,11 @@ export class ModerationCheckComponent {
         return isAiFinding(item);
     }
 
+    /** An AI finding below the finding threshold, which `toFindings` turns into a hint. */
+    isFaint(item: CheckReportItem): boolean {
+        return isAiFinding(item) && item.level === 'hint';
+    }
+
     findingKey(item: CheckReportItem): string {
         return findingKey(item);
     }
@@ -182,16 +215,31 @@ export class ModerationCheckComponent {
     }
 
     toggleKeyForm(): void {
+        const { finding, hint } = this.aiThresholds.thresholds();
         this._keyFormOpen.update(open => !open);
         this._keyDraft.set('');
+        this._findingDraft.set(toPercentText(finding));
+        this._hintDraft.set(toPercentText(hint));
     }
 
     setKeyDraft(value: string): void {
         this._keyDraft.set(value);
     }
 
-    saveKey(): void {
-        this.aiKey.save(this._keyDraft());
+    setFindingDraft(value: string): void {
+        this._findingDraft.set(value);
+    }
+
+    setHintDraft(value: string): void {
+        this._hintDraft.set(value);
+    }
+
+    saveAiSettings(): void {
+        const thresholds = this.draftThresholds();
+        if (!thresholds) return;
+
+        this.aiThresholds.save(thresholds);
+        if (this._keyDraft().trim()) this.aiKey.save(this._keyDraft());
         this.toggleKeyForm();
     }
 
@@ -213,16 +261,10 @@ export class ModerationCheckComponent {
     }
 
     copy(item: CheckReportItem): void {
-        this.clipboard
-            .copy(toCommentLine(item))
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => this.notification.success('Замечание скопировано'),
-                error: (err: unknown) => {
-                    this.notification.error('Не удалось скопировать замечание');
-                    this.logger.error('Check: copy failed', err);
-                },
-            });
+        this.clipboard.copy(toCommentLine(item), {
+            success: 'Замечание скопировано',
+            failure: 'Не удалось скопировать замечание',
+        });
     }
 
     private publish(report: CheckReport): void {

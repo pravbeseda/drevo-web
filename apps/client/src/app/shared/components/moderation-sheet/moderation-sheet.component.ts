@@ -109,7 +109,7 @@ export class ModerationSheetComponent {
 
     onReport(report: CheckReport): void {
         this._report.set(report);
-        // shortcut: an AI answer arriving after «Показать в тексте» drops the focus too; keep it once the editor scrolls only on a new focus.
+        // shortcut: an AI answer arriving after a click on a card's quote drops the focus too; keep it once the editor scrolls only on a new focus.
         this._focused.set(undefined);
     }
 

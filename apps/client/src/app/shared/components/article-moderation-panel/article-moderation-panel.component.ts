@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { ClipboardService } from '../../../services/clipboard/clipboard.service';
 import { CheckReport, CheckReportItem, VersionTexts } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ModerationCheckComponent } from '../moderation-check/moderation-check.component';
@@ -18,20 +19,30 @@ import { LoggerService, NotificationService } from '@drevo-web/core';
 import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult } from '@drevo-web/shared';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { FormatDatePipe } from '@drevo-web/ui/format-date';
+import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { StatusIconComponent } from '@drevo-web/ui/status-icon';
-import { TextInputComponent } from '@drevo-web/ui/text-input';
+import { TextInputComponent, TextInputSuffixDirective } from '@drevo-web/ui/text-input';
 
 const COMMENT_INTRO = 'Прошу исправить:';
 
 @Component({
     selector: 'app-article-moderation-panel',
-    imports: [ButtonComponent, ModerationCheckComponent, StatusIconComponent, TextInputComponent, FormatDatePipe],
+    imports: [
+        ButtonComponent,
+        FormatDatePipe,
+        IconButtonComponent,
+        ModerationCheckComponent,
+        StatusIconComponent,
+        TextInputComponent,
+        TextInputSuffixDirective,
+    ],
     templateUrl: './article-moderation-panel.component.html',
     styleUrl: './article-moderation-panel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleModerationPanelComponent {
     private readonly articleService = inject(ArticleService);
+    private readonly clipboard = inject(ClipboardService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('ArticleModerationPanelComponent');
     private readonly notification = inject(NotificationService);
@@ -68,6 +79,13 @@ export class ArticleModerationPanelComponent {
 
     appendToComment(lines: readonly string[]): void {
         this._comment.update(comment => [comment.trim() ? comment : COMMENT_INTRO, ...lines].join('\n'));
+    }
+
+    copyComment(): void {
+        this.clipboard.copy(this._comment(), {
+            success: 'Комментарий скопирован',
+            failure: 'Не удалось скопировать комментарий',
+        });
     }
 
     approve(): void {
