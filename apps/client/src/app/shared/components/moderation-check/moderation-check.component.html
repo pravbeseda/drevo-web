@@ -40,15 +40,6 @@
                 (valueChanged)="setHintDraft($event)"
             />
         </div>
-        <p
-            class="moderation-check-summary"
-            data-testid="moderation-check-ai-note"
-        >
-            @if (hasAiKey()) {
-                Пустое поле ключа оставляет сохранённый.
-            }
-            Совет — больше 0 и не выше замечания.
-        </p>
         <div class="moderation-check-actions">
             <ui-button
                 testId="moderation-check-ai-save"
