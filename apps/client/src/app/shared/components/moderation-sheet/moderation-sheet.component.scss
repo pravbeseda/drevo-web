@@ -79,8 +79,10 @@
     display: none;
 }
 
-.moderation-sheet-modes {
-    align-self: flex-start;
+.moderation-sheet-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .moderation-sheet-message {

@@ -114,6 +114,21 @@ test.describe('Moderation sheet', () => {
             await expect(sheet.comment).toHaveValue(/^Прошу исправить:\nСтрока 10: «в течении» → «в течение»/);
         });
 
+        test('draws the diff with the chosen engine and keeps it for the next sheet', async () => {
+            await sheet.engine('js-diff').click();
+            await sheet.checkWholeText.click();
+            await sheet.showInText(0).click();
+
+            await expect(sheet.focusedMark).toBeInViewport();
+
+            await sheet.closeButton.click();
+            await diff.openMobileMenu();
+            await diff.moderationAction.click();
+            await sheet.waitForReady();
+
+            await expect(sheet.engineRadio('js-diff')).toBeChecked();
+        });
+
         test('shows a finding among collapsed unchanged lines', async () => {
             await sheet.checkWholeText.click();
             await sheet.showInText(0).click();

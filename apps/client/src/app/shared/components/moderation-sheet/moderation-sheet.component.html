@@ -48,19 +48,30 @@
     >
         @if (texts(); as texts) {
             @if (modeOptions().length > 1) {
-                <ui-button-toggle-group
-                    class="moderation-sheet-modes"
-                    appearance="segmented"
-                    ariaLabel="Вид текста"
-                    [options]="modeOptions()"
-                    [ngModel]="mode()"
-                    (optionClick)="setMode($event.value)"
-                />
+                <div class="moderation-sheet-toolbar">
+                    <ui-button-toggle-group
+                        appearance="segmented"
+                        ariaLabel="Вид текста"
+                        [options]="modeOptions()"
+                        [ngModel]="mode()"
+                        (optionClick)="setMode($event.value)"
+                    />
+                    @if (mode() !== 'source') {
+                        <ui-button-toggle-group
+                            appearance="segmented"
+                            ariaLabel="Движок сравнения"
+                            [options]="engineOptions"
+                            [ngModel]="engineId()"
+                            (optionClick)="setEngine($event.value)"
+                        />
+                    }
+                </div>
             }
             <app-cm-diff-editor
                 [oldText]="texts.previous ?? ''"
                 [newText]="texts.current"
                 [mode]="mode()"
+                [engine]="engine()"
                 [collapseUnchanged]="collapseUnchanged()"
                 [marks]="marks()"
                 [focused]="focused()"

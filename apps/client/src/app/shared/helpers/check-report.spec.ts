@@ -1,5 +1,7 @@
+import { cmDiffConfig } from './cm-diff-config';
 import { CheckFinding, checkWikiContent } from '@drevo-web/editor';
-import { buildCheckReport, locateQuote, selectProseLines, toVerdict } from './check-report';
+import { DiffEngine } from '@drevo-web/shared/diff';
+import { buildCheckReport, findChangedLines, locateQuote, selectProseLines, toVerdict } from './check-report';
 
 jest.mock('@drevo-web/editor', () => {
     const actual: typeof import('@drevo-web/editor') = jest.requireActual('@drevo-web/editor');
@@ -169,6 +171,26 @@ describe('buildCheckReport with AI findings', () => {
 
         expect(report.counts.hint).toBe(1);
         expect(report.verdict).toBe('clean');
+    });
+});
+
+describe('findChangedLines', () => {
+    const previous = 'Первая.\nВторая.';
+    const current = 'Первая!\nВторая.';
+
+    it("counts the lines CodeMirror's diff changed by default", () => {
+        expect([...findChangedLines(previous, current)]).toEqual([1]);
+    });
+
+    it('counts the lines the given diff config changed', () => {
+        const wholeText: DiffEngine = {
+            computeDiff: (a, b) => [
+                { type: 'delete', text: a },
+                { type: 'insert', text: b },
+            ],
+        };
+
+        expect([...findChangedLines(previous, current, cmDiffConfig(wholeText))]).toEqual([1, 2]);
     });
 });
 

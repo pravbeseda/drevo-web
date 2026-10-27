@@ -8,8 +8,9 @@ import { CmDiffEditorComponent } from '../cm-diff-editor/cm-diff-editor.componen
 import { HttpErrorResponse } from '@angular/common/http';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { NotificationService, WINDOW } from '@drevo-web/core';
+import { NotificationService, StorageService, WINDOW } from '@drevo-web/core';
 import { ApprovalStatus, ArticleVersion, ModerationResult, VersionForDiff } from '@drevo-web/shared';
+import { DiffMatchPatchEngine, JsDiffEngine } from '@drevo-web/shared/diff';
 import { MODAL_DATA } from '@drevo-web/ui/modal';
 import { Observable, of, throwError } from 'rxjs';
 import { ModerationSheetComponent } from './moderation-sheet.component';
@@ -77,10 +78,16 @@ describe('ModerationSheetComponent', () => {
     const editor = (): CmDiffEditorComponent | null => spectator.query(CmDiffEditorComponent);
 
     function create(
-        options: { pairs?: Observable<unknown>; version?: Observable<unknown>; narrow?: boolean } = {},
+        options: {
+            pairs?: Observable<unknown>;
+            version?: Observable<unknown>;
+            narrow?: boolean;
+            storedEngine?: string;
+        } = {},
     ): void {
         spectator = createComponent({
             providers: [
+                mockProvider(StorageService, { getString: jest.fn(() => options.storedEngine) }),
                 { provide: MODAL_DATA, useValue: { data: { version }, close } },
                 mockProvider(ArticleService, {
                     getVersionPairs: jest.fn(() => options.pairs ?? twoVersions()),
@@ -164,6 +171,53 @@ describe('ModerationSheetComponent', () => {
         expect(editor()?.mode()).toBe('source');
     });
 
+    describe('diff engine', () => {
+        it("should draw CodeMirror's own diff by default and offer the other engines", () => {
+            create();
+            spectator.detectChanges();
+
+            expect(editor()?.engine()).toBeUndefined();
+            expect(spectator.query('[data-testid="toggle-js-diff"]')).toExist();
+            expect(spectator.query('[data-testid="toggle-diff-match-patch"]')).toExist();
+        });
+
+        it('should switch the engine and remember the choice', () => {
+            create();
+            spectator.detectChanges();
+
+            spectator.click('[data-testid="toggle-js-diff"]');
+
+            expect(editor()?.engine()).toBeInstanceOf(JsDiffEngine);
+            expect(spectator.inject(StorageService).setString).toHaveBeenCalledWith(
+                'moderation-diff-engine',
+                'js-diff',
+            );
+        });
+
+        it('should open with the remembered engine', () => {
+            create({ storedEngine: 'diff-match-patch' });
+            spectator.detectChanges();
+
+            expect(editor()?.engine()).toBeInstanceOf(DiffMatchPatchEngine);
+        });
+
+        it("should fall back to CodeMirror's diff for an unknown remembered engine", () => {
+            create({ storedEngine: 'removed-engine' });
+            spectator.detectChanges();
+
+            expect(editor()?.engine()).toBeUndefined();
+        });
+
+        it('should offer no engines for the source, which has no diff', () => {
+            create();
+            spectator.detectChanges();
+
+            spectator.click('[data-testid="toggle-source"]');
+
+            expect(spectator.query('[data-testid="toggle-js-diff"]')).toBeNull();
+        });
+    });
+
     it('should mark the findings of the latest report', () => {
         create();
         spectator.detectChanges();
@@ -185,11 +239,20 @@ describe('ModerationSheetComponent', () => {
         expect(editor()?.collapseUnchanged()).toBe(true);
     });
 
-    it('should expand the unchanged lines to show a finding among them', () => {
-        create();
+    // The report flags lines by CodeMirror's diff, while another engine may collapse a line it calls changed.
+    it("should expand the unchanged lines to show a finding among them, by the drawn diff and not the report's flag", () => {
+        create({
+            pairs: of({
+                current: diffVersion(200, 'новый текст\nобщая строка'),
+                previous: diffVersion(199, 'старый текст\nобщая строка'),
+            }),
+        });
         spectator.detectChanges();
 
-        spectator.triggerEventHandler(ArticleModerationPanelComponent, 'findingSelected', unchangedItem);
+        spectator.triggerEventHandler(ArticleModerationPanelComponent, 'findingSelected', {
+            ...changedItem,
+            line: 2,
+        });
         spectator.detectChanges();
 
         expect(editor()?.collapseUnchanged()).toBe(false);
