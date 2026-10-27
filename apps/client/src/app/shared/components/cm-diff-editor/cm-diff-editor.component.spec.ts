@@ -1,5 +1,6 @@
 import { EditorView } from '@codemirror/view';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { LoggerService } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { DiffEngine } from '@drevo-web/shared/diff';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CmDiffEditorComponent } from './cm-diff-editor.component';
@@ -118,6 +119,15 @@ describe('CmDiffEditorComponent', () => {
             spectator.detectChanges();
 
             expect(deleted()).toContain('первая строка');
+        });
+
+        it("should log when it draws CodeMirror's diff because the engine's pieces do not match", () => {
+            spectator.setInput('engine', { computeDiff: () => [{ type: 'equal', text: 'другой текст' }] });
+            spectator.detectChanges();
+
+            const logger = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(logger.mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('fell back'));
+            expect(deleted()).toBe('старая');
         });
 
         it('should redraw the diff when the engine changes', () => {

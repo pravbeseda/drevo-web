@@ -1,5 +1,5 @@
 import { diff } from '@codemirror/merge';
-import { DiffChange, DiffEngine } from '@drevo-web/shared/diff';
+import { DiffChange, DiffEngine, JsDiffEngine } from '@drevo-web/shared/diff';
 import { CM_DIFF_CONFIG, cmDiffConfig } from './cm-diff-config';
 
 function engineOf(changes: DiffChange[]): DiffEngine {
@@ -40,17 +40,30 @@ describe('cmDiffConfig', () => {
         expect(rangesOf('было старое слово', 'было новое слово', engine)).toEqual([[5, 11, 5, 10]]);
     });
 
-    it("should fall back to CodeMirror's diff when the engine's pieces do not add up to the texts", () => {
-        // JsDiff strips combining marks after whitespace, so its pieces can be shorter than the text.
-        const engine = engineOf([
-            { type: 'equal', text: 'а б' },
-            { type: 'insert', text: 'в' },
-        ]);
-        const oldText = 'а ́б';
-        const newText = 'а ́бв';
+    // CodeMirror's own diff would replace the single letter, so the whole word comes from the engine;
+    // the dropped mark goes with the piece after it.
+    it('should step over the combining marks JsDiff drops after whitespace', () => {
+        expect(rangesOf('а ́кот', 'а ́кит', new JsDiffEngine())).toEqual([[2, 6, 2, 6]]);
+    });
 
-        expect(rangesOf(oldText, newText, engine)).toEqual(
-            diff(oldText, newText, CM_DIFF_CONFIG).map(c => [c.fromA, c.toA, c.fromB, c.toB]),
-        );
+    it('should step over a combining mark dropped at the end of the text', () => {
+        const engine = engineOf([
+            { type: 'equal', text: 'а ' },
+            { type: 'delete', text: 'кот' },
+            { type: 'insert', text: 'кит' },
+            { type: 'equal', text: ' ' },
+        ]);
+
+        expect(rangesOf('а кот ́', 'а кит ́', engine)).toEqual([[2, 5, 2, 5]]);
+    });
+
+    it("should fall back to CodeMirror's diff and report it when the pieces do not match the texts", () => {
+        const onFallback = jest.fn();
+        const engine = engineOf([{ type: 'equal', text: 'другой текст' }]);
+
+        const changes = diff('старый', 'новый', cmDiffConfig(engine, onFallback));
+
+        expect(changes).toEqual(diff('старый', 'новый', CM_DIFF_CONFIG));
+        expect(onFallback).toHaveBeenCalledTimes(1);
     });
 });

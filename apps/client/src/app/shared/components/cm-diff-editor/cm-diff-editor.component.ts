@@ -149,7 +149,9 @@ export class CmDiffEditorComponent implements OnDestroy {
             const newText = this.newText();
             const mode = this.mode();
             const collapse = this.collapseUnchanged();
-            const diffConfig = cmDiffConfig(this.engine());
+            const diffConfig = cmDiffConfig(this.engine(), () =>
+                this.logger.warn("Engine pieces did not match the texts; fell back to CodeMirror's diff"),
+            );
 
             if (container && isPlatformBrowser(this.platformId)) {
                 this.destroyEditorView();
