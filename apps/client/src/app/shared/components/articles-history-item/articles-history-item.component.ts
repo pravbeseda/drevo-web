@@ -1,3 +1,4 @@
+import { isOpenToModeration } from '../../helpers/moderation';
 import { ReviewBadgeComponent } from '../review-badge/review-badge.component';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -36,7 +37,7 @@ export class ArticlesHistoryItemComponent {
     readonly compare = output();
     readonly moderate = output<ArticleHistoryItem>();
 
-    readonly isModeratable = computed(() => this.canModerate() && this.item().approved !== ApprovalStatus.Cancelled);
+    readonly isModeratable = computed(() => this.canModerate() && isOpenToModeration(this.item().approved));
 
     /**
      * Review pill is only meaningful while a version awaits moderation. Once a

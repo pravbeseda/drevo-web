@@ -1,17 +1,12 @@
 import { AuthService } from '../../../services/auth/auth.service';
+import { isOpenToModeration } from '../../helpers/moderation';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { openModerationSheet } from '../moderation-sheet/open-moderation-sheet';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ValidationResult } from '@drevo-web/editor';
-import {
-    APPROVAL_CLASS,
-    APPROVAL_ICONS,
-    ApprovalStatus,
-    ModerationResult,
-    SidebarActionPriority,
-} from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_ICONS, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
 import { ModalService } from '@drevo-web/ui/modal';
 
 @Component({
@@ -36,7 +31,7 @@ export class ModerationSidebarActionComponent {
     private readonly authService = inject(AuthService);
     private readonly user = toSignal(this.authService.user$);
     readonly canModerate = computed(
-        () => (this.user()?.permissions.canModerate ?? false) && this.version().approved !== ApprovalStatus.Cancelled,
+        () => (this.user()?.permissions.canModerate ?? false) && isOpenToModeration(this.version().approved),
     );
 
     private readonly approvalClass = computed(() => APPROVAL_CLASS[this.version().approved]);

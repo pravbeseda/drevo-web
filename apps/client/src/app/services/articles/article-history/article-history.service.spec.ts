@@ -10,6 +10,7 @@ import {
     ArticleHistoryItem,
     ArticleHistoryResponse,
     InworkItem,
+    ModerationResult,
     ReviewStatus,
     ReviewSummary,
     User,
@@ -562,14 +563,20 @@ describe('ArticleHistoryService', () => {
     describe('applyModeration', () => {
         const versionsOf = () =>
             spectator.service.displayItems().flatMap(item => (item.type === 'version' ? [item.data] : []));
+        const approval: ModerationResult = {
+            versionId: 2,
+            articleId: 100,
+            approved: ApprovalStatus.Approved,
+            comment: 'Хорошо',
+        };
 
         beforeEach(() => {
             articleService.getArticlesHistory.mockReturnValue(
                 of(
                     createMockResponse(
                         [
-                            createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Pending }),
                             createMockHistoryItem({ versionId: 2, approved: ApprovalStatus.Pending }),
+                            createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Pending }),
                         ],
                         2,
                     ),
@@ -578,35 +585,59 @@ describe('ArticleHistoryService', () => {
             spectator.service.init();
         });
 
-        it('should set the decision on the moderated version only', () => {
-            spectator.service.applyModeration({
-                versionId: 2,
-                articleId: 100,
-                approved: ApprovalStatus.Rejected,
-                comment: 'Нужны источники',
-            });
+        it('should show the decision on the moderated version right away', () => {
+            articleService.getArticlesHistory.mockReturnValue(NEVER);
+
+            spectator.service.applyModeration(approval);
 
             expect(versionsOf()).toEqual([
-                expectObjectLike<ArticleHistoryItem>({ versionId: 1, approved: ApprovalStatus.Pending, comment: '' }),
                 expectObjectLike<ArticleHistoryItem>({
                     versionId: 2,
-                    approved: ApprovalStatus.Rejected,
-                    comment: 'Нужны источники',
+                    approved: ApprovalStatus.Approved,
+                    comment: 'Хорошо',
                 }),
+                expectObjectLike<ArticleHistoryItem>({ versionId: 1, approved: ApprovalStatus.Pending }),
             ]);
         });
 
-        it('should leave the list as is for a version it does not hold', () => {
-            const before = versionsOf();
+        it('should refresh the rows of the moderated article from the server, in place', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(
+                    createMockResponse([
+                        createMockHistoryItem({ versionId: 3, approved: ApprovalStatus.Pending }),
+                        createMockHistoryItem({ versionId: 2, approved: ApprovalStatus.Approved, comment: 'Хорошо' }),
+                        createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Approved }),
+                    ]),
+                ),
+            );
 
-            spectator.service.applyModeration({
-                versionId: 99,
-                articleId: 100,
-                approved: ApprovalStatus.Approved,
-                comment: '',
-            });
+            spectator.service.applyModeration(approval);
 
-            expect(versionsOf()).toEqual(before);
+            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith({ articleId: 100, pageSize: 100 });
+            expect(versionsOf()).toEqual([
+                expectObjectLike<ArticleHistoryItem>({
+                    versionId: 2,
+                    approved: ApprovalStatus.Approved,
+                    comment: 'Хорошо',
+                }),
+                expectObjectLike<ArticleHistoryItem>({ versionId: 1, approved: ApprovalStatus.Approved, comment: '' }),
+            ]);
+        });
+
+        it('should keep the decision and log when the refresh fails', () => {
+            const error = new Error('Network error');
+            articleService.getArticlesHistory.mockReturnValue(throwError(() => error));
+
+            spectator.service.applyModeration(approval);
+
+            expect(versionsOf()[0]).toEqual(
+                expectObjectLike<ArticleHistoryItem>({ versionId: 2, approved: ApprovalStatus.Approved }),
+            );
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
+                'Failed to refresh the moderated article',
+                error,
+            );
         });
     });
 
