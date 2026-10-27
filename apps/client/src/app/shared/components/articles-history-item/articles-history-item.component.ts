@@ -30,9 +30,13 @@ export class ArticlesHistoryItemComponent {
     readonly canCompare = input(false);
     readonly inwork = input(false);
     readonly reviewSummary = input<ReviewSummary>();
+    readonly canModerate = input(false);
 
     readonly selectItem = output<ArticleHistoryItem>();
     readonly compare = output();
+    readonly moderate = output<ArticleHistoryItem>();
+
+    readonly isModeratable = computed(() => this.canModerate() && this.item().approved !== ApprovalStatus.Cancelled);
 
     /**
      * Review pill is only meaningful while a version awaits moderation. Once a
@@ -62,5 +66,10 @@ export class ArticlesHistoryItemComponent {
     onCompareClick(event: Event): void {
         event.stopPropagation();
         this.compare.emit();
+    }
+
+    onModerateClick(event: Event): void {
+        event.stopPropagation();
+        this.moderate.emit(this.item());
     }
 }

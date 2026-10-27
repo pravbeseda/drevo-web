@@ -6,6 +6,7 @@ import { ReviewService } from '../../reviews/review.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
+    ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryResponse,
     InworkItem,
@@ -555,6 +556,57 @@ describe('ArticleHistoryService', () => {
             expect(notificationService.error).toHaveBeenCalledWith('Не удалось снять метку редактирования');
             const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
             expect(inworkItems).toHaveLength(1);
+        });
+    });
+
+    describe('applyModeration', () => {
+        const versionsOf = () =>
+            spectator.service.displayItems().flatMap(item => (item.type === 'version' ? [item.data] : []));
+
+        beforeEach(() => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(
+                    createMockResponse(
+                        [
+                            createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Pending }),
+                            createMockHistoryItem({ versionId: 2, approved: ApprovalStatus.Pending }),
+                        ],
+                        2,
+                    ),
+                ),
+            );
+            spectator.service.init();
+        });
+
+        it('should set the decision on the moderated version only', () => {
+            spectator.service.applyModeration({
+                versionId: 2,
+                articleId: 100,
+                approved: ApprovalStatus.Rejected,
+                comment: 'Нужны источники',
+            });
+
+            expect(versionsOf()).toEqual([
+                expectObjectLike<ArticleHistoryItem>({ versionId: 1, approved: ApprovalStatus.Pending, comment: '' }),
+                expectObjectLike<ArticleHistoryItem>({
+                    versionId: 2,
+                    approved: ApprovalStatus.Rejected,
+                    comment: 'Нужны источники',
+                }),
+            ]);
+        });
+
+        it('should leave the list as is for a version it does not hold', () => {
+            const before = versionsOf();
+
+            spectator.service.applyModeration({
+                versionId: 99,
+                articleId: 100,
+                approved: ApprovalStatus.Approved,
+                comment: '',
+            });
+
+            expect(versionsOf()).toEqual(before);
         });
     });
 

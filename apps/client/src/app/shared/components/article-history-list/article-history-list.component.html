@@ -49,8 +49,10 @@
                     [selectable]="selectable()"
                     [selected]="selectedVersionIds().has(item.data.versionId)"
                     [canCompare]="canCompare()"
+                    [canModerate]="canModerate()"
                     (selectItem)="selectItem.emit($event)"
                     (compare)="compareItems.emit()"
+                    (moderate)="onModerate($event)"
                 />
             }
         </ng-template>

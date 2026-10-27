@@ -11,6 +11,7 @@ import {
     ArticleHistoryParams,
     formatDateHeader,
     InworkItem,
+    ModerationResult,
     ReviewSummary,
 } from '@drevo-web/shared';
 import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
@@ -218,6 +219,12 @@ export class ArticleHistoryService {
                     this.notificationService.error('Не удалось снять метку редактирования');
                 },
             });
+    }
+
+    applyModeration({ versionId, approved, comment }: ModerationResult): void {
+        this._historyItems.update(items =>
+            items.map(item => (item.versionId === versionId ? { ...item, approved, comment } : item)),
+        );
     }
 
     private resetReviewSummaries(): void {

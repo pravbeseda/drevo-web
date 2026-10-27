@@ -16,6 +16,7 @@ export class ModerationSheetPage extends BasePage {
     readonly verdict = this.page.getByTestId('moderation-check-verdict');
     readonly findings = this.page.getByTestId('moderation-check-item');
     readonly comment = this.page.getByTestId('moderation-comment').locator('textarea');
+    readonly approveButton = this.page.getByTestId('moderation-approve-button');
     readonly aiToggle = this.page.getByTestId('moderation-check-ai-toggle');
     readonly aiKeyField = this.page.getByTestId('moderation-check-ai-key');
     readonly aiKey = this.aiKeyField.locator('input');
