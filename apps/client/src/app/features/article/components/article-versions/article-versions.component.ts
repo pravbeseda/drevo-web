@@ -8,7 +8,7 @@ import { FilterEntry } from '../../../../shared/models/filter.model';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ArticleHistoryItem } from '@drevo-web/shared';
+import { ArticleHistoryItem, ModerationResult } from '@drevo-web/shared';
 
 @Component({
     selector: 'app-article-versions',
@@ -73,6 +73,12 @@ export class ArticleVersionsComponent implements OnInit {
     onEscapePress(): void {
         if (this.selectedCount() > 0) {
             this._selectedVersionIds.set([]);
+        }
+    }
+
+    onModerated({ versionId, approved, comment }: ModerationResult): void {
+        if (this.articlePageService.article()?.versionId === versionId) {
+            this.articlePageService.updateApproval(approved, comment);
         }
     }
 

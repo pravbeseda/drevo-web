@@ -11,6 +11,7 @@ import {
     ArticleHistoryParams,
     formatDateHeader,
     InworkItem,
+    ModerationResult,
     ReviewSummary,
 } from '@drevo-web/shared';
 import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
@@ -60,6 +61,8 @@ export const trackByFn = (_index: number, item: HistoryDisplayItem): string => {
 };
 
 const HIDE_CANCELLED_STORAGE_KEY = 'history.hideCancelled';
+// shortcut: re-reads only the article's latest 100 versions (the backend's max page); page further if a pending version can sit deeper.
+const ARTICLE_REFRESH_PAGE_SIZE = 100;
 
 export interface ArticleHistoryConfig {
     readonly articleId?: Signal<number | undefined>;
@@ -218,6 +221,32 @@ export class ArticleHistoryService {
                     this.notificationService.error('Не удалось снять метку редактирования');
                 },
             });
+    }
+
+    applyModeration(result: ModerationResult): void {
+        this.patchItems([result]);
+        this.refreshArticle(result.articleId);
+    }
+
+    /** Approving a version approves the article's earlier pending ones on the backend too, so re-read them. */
+    private refreshArticle(articleId: number): void {
+        this.articleService
+            .getArticlesHistory({ articleId, pageSize: ARTICLE_REFRESH_PAGE_SIZE })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: response => this.patchItems(response.items),
+                error: (error: unknown) => this.logger.error('Failed to refresh the moderated article', error),
+            });
+    }
+
+    private patchItems(updates: readonly Pick<ArticleHistoryItem, 'versionId' | 'approved' | 'comment'>[]): void {
+        const byId = new Map(updates.map(update => [update.versionId, update]));
+        this._historyItems.update(items =>
+            items.map(item => {
+                const update = byId.get(item.versionId);
+                return update ? { ...item, approved: update.approved, comment: update.comment } : item;
+            }),
+        );
     }
 
     private resetReviewSummaries(): void {

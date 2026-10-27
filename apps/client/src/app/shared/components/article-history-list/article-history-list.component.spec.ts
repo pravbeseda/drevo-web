@@ -3,11 +3,24 @@ import {
     HistoryDisplayItem,
     HistoryFilter,
 } from '../../../services/articles/article-history/article-history.service';
+import { AuthService } from '../../../services/auth/auth.service';
+import { ModerationSheetComponent } from '../moderation-sheet/moderation-sheet.component';
 import { ArticleHistoryListComponent } from './article-history-list.component';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { signal, WritableSignal } from '@angular/core';
-import { ArticleHistoryItem, InworkItem, ReviewSummary } from '@drevo-web/shared';
+import { mockLoggerProvider } from '@drevo-web/core/testing';
+import {
+    ApprovalStatus,
+    ArticleHistoryItem,
+    InworkItem,
+    ModerationResult,
+    ReviewSummary,
+    User,
+} from '@drevo-web/shared';
+import { createMockUser } from '@drevo-web/shared/testing';
+import { ModalService } from '@drevo-web/ui/modal';
 import { VirtualScrollerComponent } from '@drevo-web/ui/virtual-scroller';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 function createMockHistoryItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
@@ -50,6 +63,7 @@ interface MockArticleHistoryService {
     readonly onFilterChange: jest.Mock;
     readonly onLoadMore: jest.Mock;
     readonly onCancelInwork: jest.Mock;
+    readonly applyModeration: jest.Mock;
 }
 
 function createMockService(): MockArticleHistoryService {
@@ -67,16 +81,25 @@ function createMockService(): MockArticleHistoryService {
         onFilterChange: jest.fn(),
         onLoadMore: jest.fn(),
         onCancelInwork: jest.fn(),
+        applyModeration: jest.fn(),
     };
 }
 
 describe('ArticleHistoryListComponent', () => {
     let spectator: Spectator<ArticleHistoryListComponent>;
     let mockService: MockArticleHistoryService;
+    let userSubject: BehaviorSubject<User | undefined>;
+    let sheetResult: Observable<ModerationResult | undefined>;
 
     const createComponent = createComponentFactory({
         component: ArticleHistoryListComponent,
         providers: [
+            mockLoggerProvider(),
+            mockProvider(ModalService, { open: jest.fn(() => sheetResult) }),
+            {
+                provide: AuthService,
+                useFactory: () => ({ user$: userSubject.asObservable() }),
+            },
             {
                 provide: ArticleHistoryService,
                 useFactory: (): MockArticleHistoryService => {
@@ -89,6 +112,8 @@ describe('ArticleHistoryListComponent', () => {
     });
 
     beforeEach(() => {
+        userSubject = new BehaviorSubject<User | undefined>(createMockUser());
+        sheetResult = of(undefined);
         spectator = createComponent();
     });
 
@@ -159,5 +184,62 @@ describe('ArticleHistoryListComponent', () => {
     it('should have empty selectedVersionIds by default', () => {
         spectator.detectChanges();
         expect(spectator.component.selectedVersionIds().size).toBe(0);
+    });
+
+    describe('moderation', () => {
+        const item = createMockHistoryItem({ versionId: 7, approved: ApprovalStatus.Pending });
+        const result: ModerationResult = {
+            versionId: 7,
+            articleId: 100,
+            approved: ApprovalStatus.Approved,
+            comment: 'Хорошо',
+        };
+
+        it('should let a moderator moderate', () => {
+            userSubject.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
+            spectator.detectChanges();
+
+            expect(spectator.component.canModerate()).toBe(true);
+        });
+
+        it('should not let a regular user or a guest moderate', () => {
+            spectator.detectChanges();
+            expect(spectator.component.canModerate()).toBe(false);
+
+            userSubject.next(undefined);
+            expect(spectator.component.canModerate()).toBe(false);
+        });
+
+        it('should open the moderation sheet for the item, loading it lazily', async () => {
+            spectator.component.onModerate(item);
+
+            const open = jest.mocked(spectator.inject(ModalService).open);
+            expect(open).toHaveBeenCalledWith(
+                expect.any(Function),
+                expect.objectContaining({ data: { version: item } }),
+            );
+            await expect(open.mock.calls[0][0]()).resolves.toBe(ModerationSheetComponent);
+        });
+
+        it('should apply the decision to the list and emit it', () => {
+            sheetResult = of(result);
+            const spy = jest.fn();
+            spectator.output('moderated').subscribe(spy);
+
+            spectator.component.onModerate(item);
+
+            expect(mockService.applyModeration).toHaveBeenCalledWith(result);
+            expect(spy).toHaveBeenCalledWith(result);
+        });
+
+        it('should change nothing when the sheet is closed without a decision', () => {
+            const spy = jest.fn();
+            spectator.output('moderated').subscribe(spy);
+
+            spectator.component.onModerate(item);
+
+            expect(mockService.applyModeration).not.toHaveBeenCalled();
+            expect(spy).not.toHaveBeenCalled();
+        });
     });
 });

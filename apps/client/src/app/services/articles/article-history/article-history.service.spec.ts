@@ -6,9 +6,11 @@ import { ReviewService } from '../../reviews/review.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
+    ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryResponse,
     InworkItem,
+    ModerationResult,
     ReviewStatus,
     ReviewSummary,
     User,
@@ -555,6 +557,87 @@ describe('ArticleHistoryService', () => {
             expect(notificationService.error).toHaveBeenCalledWith('Не удалось снять метку редактирования');
             const inworkItems = spectator.service.displayItems().filter(item => item.type === 'inwork-item');
             expect(inworkItems).toHaveLength(1);
+        });
+    });
+
+    describe('applyModeration', () => {
+        const versionsOf = () =>
+            spectator.service.displayItems().flatMap(item => (item.type === 'version' ? [item.data] : []));
+        const approval: ModerationResult = {
+            versionId: 2,
+            articleId: 100,
+            approved: ApprovalStatus.Approved,
+            comment: 'Хорошо',
+        };
+
+        beforeEach(() => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(
+                    createMockResponse(
+                        [
+                            createMockHistoryItem({ versionId: 2, approved: ApprovalStatus.Pending }),
+                            createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Pending }),
+                        ],
+                        2,
+                    ),
+                ),
+            );
+            spectator.service.init();
+        });
+
+        it('should show the decision on the moderated version right away', () => {
+            articleService.getArticlesHistory.mockReturnValue(NEVER);
+
+            spectator.service.applyModeration(approval);
+
+            expect(versionsOf()).toEqual([
+                expectObjectLike<ArticleHistoryItem>({
+                    versionId: 2,
+                    approved: ApprovalStatus.Approved,
+                    comment: 'Хорошо',
+                }),
+                expectObjectLike<ArticleHistoryItem>({ versionId: 1, approved: ApprovalStatus.Pending }),
+            ]);
+        });
+
+        it('should refresh the rows of the moderated article from the server, in place', () => {
+            articleService.getArticlesHistory.mockReturnValue(
+                of(
+                    createMockResponse([
+                        createMockHistoryItem({ versionId: 3, approved: ApprovalStatus.Pending }),
+                        createMockHistoryItem({ versionId: 2, approved: ApprovalStatus.Approved, comment: 'Хорошо' }),
+                        createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Approved }),
+                    ]),
+                ),
+            );
+
+            spectator.service.applyModeration(approval);
+
+            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith({ articleId: 100, pageSize: 100 });
+            expect(versionsOf()).toEqual([
+                expectObjectLike<ArticleHistoryItem>({
+                    versionId: 2,
+                    approved: ApprovalStatus.Approved,
+                    comment: 'Хорошо',
+                }),
+                expectObjectLike<ArticleHistoryItem>({ versionId: 1, approved: ApprovalStatus.Approved, comment: '' }),
+            ]);
+        });
+
+        it('should keep the decision and log when the refresh fails', () => {
+            const error = new Error('Network error');
+            articleService.getArticlesHistory.mockReturnValue(throwError(() => error));
+
+            spectator.service.applyModeration(approval);
+
+            expect(versionsOf()[0]).toEqual(
+                expectObjectLike<ArticleHistoryItem>({ versionId: 2, approved: ApprovalStatus.Approved }),
+            );
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.error).toHaveBeenCalledWith(
+                'Failed to refresh the moderated article',
+                error,
+            );
         });
     });
 

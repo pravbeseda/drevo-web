@@ -330,6 +330,62 @@ describe('ArticlesHistoryItemComponent', () => {
         });
     });
 
+    describe('moderation', () => {
+        const getModerateButton = () => spectator.query('[data-testid="moderate-button"]');
+
+        it('should not offer moderation by default', () => {
+            spectator = createComponent({ props: { item: createMockItem({ approved: ApprovalStatus.Pending }) } });
+            expect(getModerateButton()).toBeFalsy();
+            expect(spectator.query(StatusIconComponent)).toBeTruthy();
+        });
+
+        it.each([ApprovalStatus.Pending, ApprovalStatus.Approved, ApprovalStatus.Rejected])(
+            'should turn the status icon %s into a moderation button for a moderator',
+            approved => {
+                spectator = createComponent({ props: { item: createMockItem({ approved }), canModerate: true } });
+                expect(getModerateButton()?.getAttribute('aria-label')).toBe('Модерация');
+                expect(spectator.query('[data-testid="moderate-button"] [data-testid="status-icon"]')).toBeTruthy();
+            },
+        );
+
+        it('should not offer moderation of a version cancelled by its author', () => {
+            spectator = createComponent({
+                props: { item: createMockItem({ approved: ApprovalStatus.Cancelled }), canModerate: true },
+            });
+            expect(getModerateButton()).toBeFalsy();
+        });
+
+        it('should emit moderate with the item on click, without selecting it', () => {
+            const item = createMockItem({ approved: ApprovalStatus.Pending });
+            spectator = createComponent({ props: { item, canModerate: true, selectable: true } });
+            const moderateSpy = jest.fn();
+            const selectSpy = jest.fn();
+            spectator.output('moderate').subscribe(moderateSpy);
+            spectator.output('selectItem').subscribe(selectSpy);
+
+            spectator.click('[data-testid="moderate-button"]');
+
+            expect(moderateSpy).toHaveBeenCalledWith(item);
+            expect(selectSpy).not.toHaveBeenCalled();
+        });
+
+        it.each(['Enter', ' '])('should not select the item when %p is pressed on the button', key => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem({ approved: ApprovalStatus.Pending }),
+                    canModerate: true,
+                    selectable: true,
+                },
+            });
+            const selectSpy = jest.fn();
+            spectator.output('selectItem').subscribe(selectSpy);
+
+            spectator.dispatchKeyboardEvent('[data-testid="moderate-button"]', 'keydown', key);
+
+            expect(selectSpy).not.toHaveBeenCalled();
+        });
+    });
+
     describe('author display', () => {
         it('should display author name', () => {
             spectator = createComponent({

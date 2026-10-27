@@ -4,7 +4,7 @@ import { ArticlePageService } from '../../services/article-page.service';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
-import { ArticleHistoryItem } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ModerationResult } from '@drevo-web/shared';
 
 function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
@@ -24,6 +24,8 @@ function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHis
 describe('ArticleVersionsComponent', () => {
     let spectator: Spectator<ArticleVersionsComponent>;
     const articleIdSignal = signal<number | undefined>(100);
+    const articleSignal = signal({ articleId: 100, versionId: 5 });
+    const updateApproval = jest.fn();
 
     const mockService = {
         init: jest.fn(),
@@ -55,6 +57,8 @@ describe('ArticleVersionsComponent', () => {
                 provide: ArticlePageService,
                 useValue: {
                     articleId: articleIdSignal,
+                    article: articleSignal,
+                    updateApproval,
                 },
             },
         ],
@@ -148,6 +152,27 @@ describe('ArticleVersionsComponent', () => {
             spectator.component.onCompare();
 
             expect(router.navigate).toHaveBeenCalledWith(['/history/articles/diff', 10, 30]);
+        });
+    });
+
+    describe('moderation', () => {
+        const result = (versionId: number): ModerationResult => ({
+            versionId,
+            articleId: 100,
+            approved: ApprovalStatus.Approved,
+            comment: 'Хорошо',
+        });
+
+        it('should update the article when its shown version is moderated in the list', () => {
+            spectator.component.onModerated(result(5));
+
+            expect(updateApproval).toHaveBeenCalledWith(ApprovalStatus.Approved, 'Хорошо');
+        });
+
+        it('should leave the article as is when another version is moderated', () => {
+            spectator.component.onModerated(result(4));
+
+            expect(updateApproval).not.toHaveBeenCalled();
         });
     });
 });

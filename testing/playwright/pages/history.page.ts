@@ -32,6 +32,16 @@ export class HistoryPage extends BasePage {
             .filter({ has: this.page.getByTestId('title').filter({ hasText: title }) });
     }
 
+    /** Approval status icon of a history row; its class names the status. */
+    statusIcon(row: Locator): Locator {
+        return row.getByTestId('status-icon');
+    }
+
+    /** Status icon of a history row turned into a button that opens the moderation sheet — moderators only. */
+    moderateButton(row: Locator): Locator {
+        return row.getByTestId('moderate-button');
+    }
+
     /** Review badge (verdict chips and the vote pill) within a history row. */
     reviewBadge(row: Locator): Locator {
         return row.getByTestId('review-badge');

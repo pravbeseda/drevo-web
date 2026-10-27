@@ -89,6 +89,25 @@
     }
 }
 
+.moderate-button {
+    display: inline-flex;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--themed-hover-bg);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--themed-link-color);
+        outline-offset: 2px;
+    }
+}
+
 .review-badge-link {
     display: inline-flex;
     text-decoration: none;

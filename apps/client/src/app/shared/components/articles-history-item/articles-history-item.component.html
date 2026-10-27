@@ -28,7 +28,27 @@
     </div>
     <div class="content-col">
         <div class="title-row">
-            <ui-status-icon [status]="item().approved" />
+            @if (isModeratable()) {
+                <button
+                    type="button"
+                    class="moderate-button"
+                    data-testid="moderate-button"
+                    aria-label="Модерация"
+                    (click)="onModerateClick($event)"
+                    (keydown.enter)="$event.stopPropagation()"
+                    (keydown.space)="$event.stopPropagation()"
+                >
+                    <ui-status-icon
+                        data-testid="status-icon"
+                        [status]="item().approved"
+                    />
+                </button>
+            } @else {
+                <ui-status-icon
+                    data-testid="status-icon"
+                    [status]="item().approved"
+                />
+            }
             <a
                 class="title"
                 data-testid="title"
