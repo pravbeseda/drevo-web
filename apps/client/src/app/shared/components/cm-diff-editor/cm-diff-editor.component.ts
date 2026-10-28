@@ -1,4 +1,4 @@
-import { CM_DIFF_CONFIG } from '../../helpers/cm-diff-config';
+import { cmDiffConfig } from '../../helpers/cm-diff-config';
 import { isPlatformBrowser } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -12,10 +12,11 @@ import {
     untracked,
     viewChild,
 } from '@angular/core';
-import { MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
+import { DiffConfig, MergeView, goToNextChunk, goToPreviousChunk, unifiedMergeView } from '@codemirror/merge';
 import { EditorState, Extension, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, DecorationSet, EditorView, lineNumbers } from '@codemirror/view';
 import { LoggerService } from '@drevo-web/core';
+import type { DiffEngine } from '@drevo-web/shared/diff';
 
 /** `source` shows the new text alone, without the diff. */
 export type CmDiffMode = 'unified' | 'side-by-side' | 'source';
@@ -121,6 +122,8 @@ export class CmDiffEditorComponent implements OnDestroy {
     readonly newText = input.required<string>();
     readonly mode = input<CmDiffMode>('unified');
     readonly collapseUnchanged = input(true);
+    /** Computes the changes drawn; CodeMirror's own diff when absent. */
+    readonly engine = input<DiffEngine>();
     readonly marks = input<readonly CmMark[]>([]);
     /** A mark to highlight and scroll to. */
     readonly focused = input<CmMark>();
@@ -146,10 +149,13 @@ export class CmDiffEditorComponent implements OnDestroy {
             const newText = this.newText();
             const mode = this.mode();
             const collapse = this.collapseUnchanged();
+            const diffConfig = cmDiffConfig(this.engine(), () =>
+                this.logger.warn("Engine pieces did not match the texts; fell back to CodeMirror's diff"),
+            );
 
             if (container && isPlatformBrowser(this.platformId)) {
                 this.destroyEditorView();
-                this.createEditorView(oldText, newText, container.nativeElement, mode, collapse);
+                this.createEditorView(oldText, newText, container.nativeElement, mode, collapse, diffConfig);
             }
         });
 
@@ -193,6 +199,7 @@ export class CmDiffEditorComponent implements OnDestroy {
         container: HTMLElement,
         mode: CmDiffMode,
         collapse: boolean,
+        diffConfig: DiffConfig,
     ): void {
         const initialMarks: MarkState = untracked(() => ({ marks: this.marks(), focused: this.focused() }));
         const collapseUnchanged = collapse ? COLLAPSE_UNCHANGED : undefined;
@@ -218,7 +225,7 @@ export class CmDiffEditorComponent implements OnDestroy {
                     ...commonExtensions,
                     marksField(initialMarks),
                     unifiedMergeView({
-                        diffConfig: CM_DIFF_CONFIG,
+                        diffConfig,
                         original: oldText,
                         highlightChanges: true,
                         allowInlineDiffs: true,
@@ -231,7 +238,7 @@ export class CmDiffEditorComponent implements OnDestroy {
             });
         } else {
             this.mergeView = new MergeView({
-                diffConfig: CM_DIFF_CONFIG,
+                diffConfig,
                 a: {
                     doc: oldText,
                     extensions: commonExtensions,

@@ -1,4 +1,6 @@
 import { ArticleService } from '../../../services/articles/article.service';
+import { findChangedLines } from '../../helpers/check-report';
+import { cmDiffConfig } from '../../helpers/cm-diff-config';
 import { CheckReport, CheckReportItem, VersionTexts } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ArticleModerationPanelComponent } from '../article-moderation-panel/article-moderation-panel.component';
@@ -7,8 +9,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { LoggerService, WINDOW, readApiErrorBody } from '@drevo-web/core';
+import { LoggerService, StorageService, WINDOW, readApiErrorBody } from '@drevo-web/core';
 import { ModerationResult } from '@drevo-web/shared';
+import { DIFF_ENGINES } from '@drevo-web/shared/diff';
 import { ButtonToggleGroupComponent, ButtonToggleOption } from '@drevo-web/ui/button-toggle-group';
 import { BREAKPOINT_DESKTOP } from '@drevo-web/ui/constants';
 import { FormatDatePipe } from '@drevo-web/ui/format-date';
@@ -30,6 +33,17 @@ const MODE_OPTIONS: Readonly<Record<CmDiffMode, ButtonToggleOption>> = {
 
 function isCmDiffMode(value: string | number): value is CmDiffMode {
     return value in MODE_OPTIONS;
+}
+
+const ENGINE_STORAGE_KEY = 'moderation-diff-engine';
+const CODEMIRROR_ENGINE = 'codemirror';
+const ENGINE_OPTIONS: readonly ButtonToggleOption[] = [
+    { value: CODEMIRROR_ENGINE, label: 'CodeMirror' },
+    ...DIFF_ENGINES.map(({ id, label }) => ({ value: id, label })),
+];
+
+function isEngineId(value: string | number): value is string {
+    return ENGINE_OPTIONS.some(option => option.value === value);
 }
 
 function isNoPreviousVersion(err: unknown): boolean {
@@ -56,6 +70,7 @@ export class ModerationSheetComponent {
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly window = inject(WINDOW);
+    private readonly storage = inject(StorageService);
     private readonly logger = inject(LoggerService).withContext('ModerationSheetComponent');
 
     readonly version = this.modal.data.version;
@@ -68,6 +83,18 @@ export class ModerationSheetComponent {
 
     private readonly _mode = signal<CmDiffMode>('unified');
     readonly mode = this._mode.asReadonly();
+
+    readonly engineOptions = ENGINE_OPTIONS;
+    private readonly _engineId = signal(this.storedEngineId());
+    readonly engineId = this._engineId.asReadonly();
+    readonly engine = computed(() => DIFF_ENGINES.find(entry => entry.id === this._engineId())?.engine);
+
+    // The report counts changes by CodeMirror's diff; what is collapsed follows the diff drawn.
+    private readonly drawnChangedLines = computed(() => {
+        const texts = this._texts();
+        if (texts?.previous === undefined) return undefined;
+        return findChangedLines(texts.previous, texts.current, cmDiffConfig(this.engine()));
+    });
 
     private readonly _report = signal<CheckReport | undefined>(undefined);
     readonly marks = computed(() => this._report()?.items ?? []);
@@ -103,6 +130,13 @@ export class ModerationSheetComponent {
         this.logger.info('Sheet: mode changed', { mode: value });
     }
 
+    setEngine(value: string | number): void {
+        if (!isEngineId(value)) return;
+        this._engineId.set(value);
+        this.storage.setString(ENGINE_STORAGE_KEY, value);
+        this.logger.info('Sheet: diff engine changed', { engine: value });
+    }
+
     selectTab(tab: SheetTab): void {
         this._tab.set(tab);
     }
@@ -115,7 +149,8 @@ export class ModerationSheetComponent {
 
     showFinding(item: CheckReportItem): void {
         this._focused.set(item);
-        if (!item.isChanged) this._showUnchanged.set(true);
+        const changedLines = this.drawnChangedLines();
+        if (changedLines && !changedLines.has(item.line)) this._showUnchanged.set(true);
         this._tab.set('text');
         this.logger.info('Sheet: finding shown', { ruleId: item.ruleId, line: item.line });
     }
@@ -126,6 +161,11 @@ export class ModerationSheetComponent {
 
     close(): void {
         this.modal.close();
+    }
+
+    private storedEngineId(): string {
+        const stored = this.storage.getString(ENGINE_STORAGE_KEY);
+        return stored !== undefined && isEngineId(stored) ? stored : CODEMIRROR_ENGINE;
     }
 
     private watchWidth(): void {

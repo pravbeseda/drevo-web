@@ -8,7 +8,7 @@ import {
     CheckVerdict,
     QuoteLocation,
 } from '../models/check-report.model';
-import { diff } from '@codemirror/merge';
+import { DiffConfig, diff } from '@codemirror/merge';
 import { Text } from '@codemirror/state';
 import { CheckFinding, CheckLevel, checkWikiContent, toProseLines } from '@drevo-web/editor';
 
@@ -26,7 +26,7 @@ export function buildCheckReport(
     aiFindings: readonly CheckFinding[] = [],
 ): CheckReport {
     const doc = Text.of(current.split('\n'));
-    const changedLines = previous === undefined ? undefined : findChangedLines(doc, previous, current);
+    const changedLines = previous === undefined ? undefined : findChangedLines(previous, current);
 
     const items = [...checkWikiContent(current), ...aiFindings]
         .map((finding): CheckReportItem => {
@@ -59,7 +59,7 @@ export function selectProseLines(
 ): readonly ProseLine[] {
     const doc = Text.of(current.split('\n'));
     const changedLines =
-        scope === 'changes' && previous !== undefined ? findChangedLines(doc, previous, current) : undefined;
+        scope === 'changes' && previous !== undefined ? findChangedLines(previous, current) : undefined;
 
     // The whole version is stripped, so a comment opened on an unchanged line still masks its changed body.
     return toProseLines(current).flatMap((text, index): ProseLine[] => {
@@ -97,9 +97,14 @@ export function toVerdict(counts: CheckCounts): CheckVerdict {
 
 // A change counts against the lines whose text it touches; a newline at its edge belongs to no line,
 // so appending or removing whole lines leaves their neighbours unchanged.
-function findChangedLines(doc: Text, previous: string, current: string): ReadonlySet<number> {
+export function findChangedLines(
+    previous: string,
+    current: string,
+    config: DiffConfig = CM_DIFF_CONFIG,
+): ReadonlySet<number> {
+    const doc = Text.of(current.split('\n'));
     const lines = new Set<number>();
-    for (const change of diff(previous, current, CM_DIFF_CONFIG)) {
+    for (const change of diff(previous, current, config)) {
         if (change.toB > change.fromB) {
             for (let n = doc.lineAt(change.fromB).number; n <= doc.lineAt(change.toB).number; n++) {
                 const line = doc.line(n);

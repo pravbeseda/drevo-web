@@ -2,6 +2,7 @@ import { BasePage } from './base.page';
 import { Locator } from '@playwright/test';
 
 type SheetMode = 'unified' | 'side-by-side' | 'source';
+type SheetEngine = 'codemirror' | 'js-diff' | 'diff-match-patch';
 
 /** The moderation sheet the «Модерация» action opens, on any page. */
 export class ModerationSheetPage extends BasePage {
@@ -34,6 +35,15 @@ export class ModerationSheetPage extends BasePage {
 
     mode(mode: SheetMode): Locator {
         return this.page.getByTestId(`toggle-${mode}`);
+    }
+
+    engine(engine: SheetEngine): Locator {
+        return this.page.getByTestId(`toggle-${engine}`);
+    }
+
+    /** The radio inside an engine's toggle, which carries its checked state. */
+    engineRadio(engine: SheetEngine): Locator {
+        return this.engine(engine).getByRole('radio');
     }
 
     /** «+ В комментарий» on the n-th card, counting from 0. */
