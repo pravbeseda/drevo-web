@@ -9,6 +9,7 @@ export const CM_DIFF_CONFIG: DiffConfig = {
 
 const COMBINING_MARK = /\p{M}/u;
 const SPACE = /\s/;
+const SPACE_OR_MARK = /[\s\p{M}]/u;
 
 interface Cursor {
     readonly source: string;
@@ -54,7 +55,9 @@ function toCmChanges(a: string, b: string, pieces: readonly DiffChange[]): Chang
             addChange(changes, new Change(fromA, cursorA.at, fromB, cursorB.at));
         }
     }
-    if (skipMarks(a, cursorA.at) !== a.length || skipMarks(b, cursorB.at) !== b.length) return undefined;
+    if (skip(a, cursorA.at, SPACE_OR_MARK) !== a.length || skip(b, cursorB.at, SPACE_OR_MARK) !== b.length) {
+        return undefined;
+    }
     addGap(changes, a, b, { from: cursorA.at, to: a.length }, { from: cursorB.at, to: b.length });
     return changes;
 }

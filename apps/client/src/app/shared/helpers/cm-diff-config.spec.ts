@@ -76,6 +76,7 @@ describe('cmDiffConfig', () => {
         ['a removed double space', 'один  два', 'один два', [[4, 6, 4, 5]]],
         ['a removed space before a comma', 'слово , дело', 'слово, дело', [[5, 6, 5, 5]]],
         ['an added trailing newline', 'один два', 'один два\n', [[8, 8, 8, 9]]],
+        ['a removed trailing newline', 'один два\n', 'один два', [[8, 9, 8, 8]]],
         ['an insertion whose space JsDiff left unchanged', 'Марии)).', 'Марии)) Константинопольских.', [[7, 7, 7, 27]]],
     ])('should draw %s as a change of its own', (_, oldText, newText, expected) => {
         const onFallback = jest.fn();
@@ -90,6 +91,7 @@ describe('cmDiffConfig', () => {
         ['a removed mark', 'а ́кот', 'а кот', [[2, 3, 2, 2]]],
         ['an added mark', 'а кот', 'а ́кот', [[2, 2, 2, 3]]],
         ['a mark added at the end', 'кот', 'кот ́', [[3, 3, 3, 5]]],
+        ['a mark removed at the end', 'кот ́', 'кот', [[3, 5, 3, 3]]],
     ])('should draw %s JsDiff dropped as a change', (_, oldText, newText, expected) => {
         const onFallback = jest.fn();
 
