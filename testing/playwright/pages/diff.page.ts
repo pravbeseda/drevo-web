@@ -14,6 +14,7 @@ export class DiffPage extends BasePage {
     readonly changedLine: Locator = this.cmDiff.locator('.cm-changedLine, .cm-inlineChangedLine').first();
     readonly changedText: Locator = this.cmDiff.locator('.cm-changedText').first();
     readonly deletedText: Locator = this.cmDiff.locator('.cm-deletedText').first();
+    readonly deletedChunk: Locator = this.cmDiff.locator('.cm-deletedChunk').first();
     readonly changeMarker: Locator = this.cmDiff.locator('.cm-changedLineGutter, .cm-inlineChangedLineGutter').first();
 
     async waitForReady(): Promise<void> {
