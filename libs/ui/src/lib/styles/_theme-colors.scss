@@ -628,6 +628,14 @@ $theme-colors: (
         light: $md-red-100,
         dark: rgba($md-red-400, 0.2),
     ),
+    diff-delete-line-bg: (
+        light: rgba($md-red-100, 0.5),
+        dark: rgba($md-red-400, 0.16),
+    ),
+    diff-delete-line-text: (
+        light: rgba($md-brown-900, 0.7),
+        dark: rgba($md-grey-300, 0.7),
+    ),
     diff-delete-text: (
         light: $md-red-900,
         dark: $md-red-300,

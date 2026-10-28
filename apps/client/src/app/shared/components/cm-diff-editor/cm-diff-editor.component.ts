@@ -79,21 +79,29 @@ const cmTheme = EditorView.theme({
     '.cm-activeLineGutter': {
         backgroundColor: 'var(--themed-hover-bg)',
     },
-    '.cm-changedLine': {
-        backgroundColor: 'var(--themed-diff-insert-bg) !important',
+    // Colours only the changed words, as the JsDiff view does; `!important` beats the merge base theme's selectors.
+    '.cm-changedLine, .cm-inlineChangedLine': {
+        backgroundColor: 'transparent !important',
     },
+    // The old lines unified shows above the new ones are tinted and dimmed, or their unchanged words read as the text's own.
     '.cm-deletedChunk': {
-        backgroundColor: 'var(--themed-diff-delete-bg)',
-    },
-    '.cm-insertedLine': {
-        backgroundColor: 'var(--themed-diff-insert-bg) !important',
-    },
-    '.cm-deletedLine': {
-        backgroundColor: 'var(--themed-diff-delete-bg) !important',
+        backgroundColor: 'var(--themed-diff-delete-line-bg) !important',
+        color: 'var(--themed-diff-delete-line-text)',
     },
     '.cm-changedText': {
-        background: 'none',
-        fontWeight: 'bold',
+        background: 'var(--themed-diff-insert-bg) !important',
+        color: 'var(--themed-diff-insert-text)',
+    },
+    '&.cm-merge-a .cm-changedText, .cm-deletedText': {
+        background: 'var(--themed-diff-delete-bg) !important',
+        color: 'var(--themed-diff-delete-text)',
+        textDecoration: 'line-through !important',
+    },
+    '.cm-changedLineGutter, .cm-inlineChangedLineGutter': {
+        background: 'var(--themed-diff-insert-text) !important',
+    },
+    '&.cm-merge-a .cm-changedLineGutter, .cm-deletedLineGutter': {
+        background: 'var(--themed-diff-delete-text) !important',
     },
     '.cm-collapsedLines': {
         color: 'var(--themed-text-muted)',

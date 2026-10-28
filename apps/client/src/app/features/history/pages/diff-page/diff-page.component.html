@@ -50,6 +50,7 @@
         @switch (diffType()) {
             @case ('cm') {
                 <app-cm-diff-view
+                    data-testid="diff-cm"
                     [oldText]="pairs.previous.content"
                     [newText]="pairs.current.content"
                     [autoHeight]="true"
