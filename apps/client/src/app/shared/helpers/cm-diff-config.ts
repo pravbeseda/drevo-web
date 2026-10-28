@@ -85,11 +85,12 @@ function advance(text: string, cursors: readonly Cursor[], onGap?: (runs: readon
             i = skip(text, i, SPACE);
             const runs = cursors.map(readSpace);
             onGap?.(runs);
-        } else {
-            const char = text[i];
-            const runs = cursors.map(cursor => readDroppedMarks(cursor, char));
+        } else if (cursors.some(cursor => atDroppedMark(cursor, text[i]))) {
+            // Whitespace may follow the marks, so the loop looks at it again.
+            const runs = cursors.map(cursor => readDroppedMarks(cursor, text[i]));
             onGap?.(runs);
-            if (!cursors.every(cursor => readChar(cursor, char))) return false;
+        } else {
+            if (!cursors.every(cursor => readChar(cursor, text[i]))) return false;
             i++;
         }
     }
@@ -102,9 +103,13 @@ function readSpace(cursor: Cursor): Run {
     return { from, to: cursor.at };
 }
 
+function atDroppedMark({ source, at }: Cursor, char: string): boolean {
+    return source[at] !== char && COMBINING_MARK.test(source.charAt(at));
+}
+
 function readDroppedMarks(cursor: Cursor, char: string): Run {
     const from = cursor.at;
-    if (cursor.source[from] !== char) cursor.at = skipMarks(cursor.source, from);
+    if (atDroppedMark(cursor, char)) cursor.at = skipMarks(cursor.source, from);
     return { from, to: cursor.at };
 }
 

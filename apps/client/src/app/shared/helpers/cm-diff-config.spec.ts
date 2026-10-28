@@ -99,6 +99,18 @@ describe('cmDiffConfig', () => {
         expect(onFallback).not.toHaveBeenCalled();
     });
 
+    it.each([
+        ['before a space', 'слово ́ дело', 'слово ́ дело', []],
+        ['before a line break', 'слово ́\nдело', 'слово ́\nтело', [[6, 12, 6, 12]]],
+    ])('should step over a mark JsDiff dropped %s', (_, oldText, newText, expected) => {
+        const onFallback = jest.fn();
+
+        const changes = diff(oldText, newText, cmDiffConfig(new JsDiffEngine(), onFallback));
+
+        expect(changes.map(c => [c.fromA, c.toA, c.fromB, c.toB])).toEqual(expected);
+        expect(onFallback).not.toHaveBeenCalled();
+    });
+
     it("should fall back to CodeMirror's diff and report it when the pieces do not match the texts", () => {
         const onFallback = jest.fn();
         const engine = engineOf([{ type: 'equal', text: 'другой текст' }]);
