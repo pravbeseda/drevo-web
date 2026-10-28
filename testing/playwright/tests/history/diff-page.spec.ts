@@ -7,8 +7,10 @@ import {
     bypassSsr,
 } from '../../fixtures';
 import { DiffPage } from '../../pages/diff.page';
+import { LayoutPage } from '../../pages/layout.page';
 
 const VERSION1 = 200;
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
 const DIFF_URL_PATTERN = '**/history/articles/diff/**';
 
 test.describe('Diff page', () => {
@@ -31,6 +33,25 @@ test.describe('Diff page', () => {
 
         await expect(diff.meta).toBeVisible();
         await expect(diff.error).toBeHidden();
+    });
+
+    test('colours the changed words like the JsDiff view, not the whole line', async ({ authenticatedPage: page }) => {
+        await mockVersionPairs(page, VERSION1);
+        const diff = new DiffPage(page);
+        const layout = new LayoutPage(page);
+        await page.goto(`/history/articles/diff/${VERSION1}`);
+        await diff.waitForReady();
+        const colors = await layout.readColors([
+            '--themed-diff-insert-bg',
+            '--themed-diff-insert-text',
+            '--themed-diff-delete-bg',
+        ]);
+
+        await expect(diff.changedLine).toHaveCSS('background-color', TRANSPARENT);
+        await expect(diff.changedText).toHaveCSS('background-color', colors['--themed-diff-insert-bg']);
+        await expect(diff.deletedText).toHaveCSS('background-color', colors['--themed-diff-delete-bg']);
+        await expect(diff.deletedText).toHaveCSS('text-decoration-line', 'line-through');
+        await expect(diff.changeMarker).toHaveCSS('background-color', colors['--themed-diff-insert-text']);
     });
 
     test('toggle button switches diff type label', async ({ authenticatedPage: page }) => {

@@ -8,6 +8,12 @@ export class DiffPage extends BasePage {
     /** Moderation sidebar action (desktop sidebar or mobile FAB, moderators only) */
     readonly moderationAction: Locator = this.sidebarAction('moderation-action');
 
+    // CodeMirror builds its own DOM, which cannot carry data-testid: its class names are the stable markers.
+    readonly changedLine: Locator = this.page.locator('.cm-changedLine, .cm-inlineChangedLine').first();
+    readonly changedText: Locator = this.page.locator('.cm-changedText').first();
+    readonly deletedText: Locator = this.page.locator('.cm-deletedText').first();
+    readonly changeMarker: Locator = this.page.locator('.cm-changedLineGutter, .cm-inlineChangedLineGutter').first();
+
     async waitForReady(): Promise<void> {
         await Promise.race([this.meta.waitFor({ state: 'visible' }), this.error.waitFor({ state: 'visible' })]);
     }
