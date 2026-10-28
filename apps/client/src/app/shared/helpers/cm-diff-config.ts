@@ -8,6 +8,17 @@ export const CM_DIFF_CONFIG: DiffConfig = {
 };
 
 const COMBINING_MARK = /\p{M}/u;
+const SPACE = /\s/;
+
+interface Cursor {
+    readonly source: string;
+    at: number;
+}
+
+interface Run {
+    readonly from: number;
+    readonly to: number;
+}
 
 /**
  * The diff config that lets `engine` compute the changes CodeMirror draws; without one, CodeMirror's own diff.
@@ -29,18 +40,25 @@ export function cmDiffConfig(engine: DiffEngine | undefined, onFallback?: () => 
 // Nothing when the pieces do not match both texts, since their offsets would drift.
 function toCmChanges(a: string, b: string, pieces: readonly DiffChange[]): Change[] | undefined {
     const changes: Change[] = [];
-    let posA = 0;
-    let posB = 0;
+    const cursorA: Cursor = { source: a, at: 0 };
+    const cursorB: Cursor = { source: b, at: 0 };
     for (const { type, text } of pieces) {
-        const toA = type === 'insert' ? posA : advance(a, posA, text);
-        const toB = type === 'delete' ? posB : advance(b, posB, text);
-        if (toA === undefined || toB === undefined) return undefined;
-
-        if (type !== 'equal') addChange(changes, new Change(posA, toA, posB, toB));
-        posA = toA;
-        posB = toB;
+        const fromA = cursorA.at;
+        const fromB = cursorB.at;
+        if (type === 'equal') {
+            // JsDiff ignores whitespace, so the whitespace an unchanged piece reads differently is a change.
+            const read = advance(text, [cursorA, cursorB], ([spaceA, spaceB]) => {
+                if (a.slice(spaceA.from, spaceA.to) !== b.slice(spaceB.from, spaceB.to)) {
+                    addChange(changes, new Change(spaceA.from, spaceA.to, spaceB.from, spaceB.to));
+                }
+            });
+            if (!read) return undefined;
+        } else {
+            if (!advance(text, [type === 'insert' ? cursorB : cursorA])) return undefined;
+            addChange(changes, new Change(fromA, cursorA.at, fromB, cursorB.at));
+        }
     }
-    return skipMarks(a, posA) === a.length && skipMarks(b, posB) === b.length ? changes : undefined;
+    return skipMarks(a, cursorA.at) === a.length && skipMarks(b, cursorB.at) === b.length ? changes : undefined;
 }
 
 // A deletion and an insertion side by side are one replacement.
@@ -53,20 +71,43 @@ function addChange(changes: Change[], change: Change): void {
     }
 }
 
-// Where `text` ends in `source` read from `pos`, stepping over the combining marks the engine dropped
-// (JsDiff strips them after whitespace); nothing on any other mismatch.
-function advance(source: string, pos: number, text: string): number | undefined {
-    let at = pos;
-    for (const char of text) {
-        if (!source.startsWith(char, at)) at = skipMarks(source, at);
-        if (!source.startsWith(char, at)) return undefined;
-        at += char.length;
+// Moves every cursor past `text`, false on a mismatch. A whitespace run may differ from the text's,
+// and `onSpace` gets each cursor's run; the combining marks the engine dropped (JsDiff strips them
+// after whitespace) are stepped over.
+function advance(text: string, cursors: readonly Cursor[], onSpace?: (runs: readonly Run[]) => void): boolean {
+    let i = 0;
+    while (i < text.length) {
+        if (SPACE.test(text[i]) || cursors.some(({ source, at }) => SPACE.test(source.charAt(at)))) {
+            i = skip(text, i, SPACE);
+            const runs = cursors.map(readSpace);
+            onSpace?.(runs);
+        } else {
+            if (!cursors.every(cursor => readChar(cursor, text[i]))) return false;
+            i++;
+        }
     }
-    return at;
+    return true;
+}
+
+function readSpace(cursor: Cursor): Run {
+    const from = cursor.at;
+    cursor.at = skip(cursor.source, from, SPACE);
+    return { from, to: cursor.at };
+}
+
+function readChar(cursor: Cursor, char: string): boolean {
+    if (cursor.source[cursor.at] !== char) cursor.at = skipMarks(cursor.source, cursor.at);
+    if (cursor.source[cursor.at] !== char) return false;
+    cursor.at++;
+    return true;
 }
 
 function skipMarks(source: string, pos: number): number {
+    return skip(source, pos, COMBINING_MARK);
+}
+
+function skip(source: string, pos: number, chars: RegExp): number {
     let at = pos;
-    while (at < source.length && COMBINING_MARK.test(source[at])) at++;
+    while (at < source.length && chars.test(source[at])) at++;
     return at;
 }

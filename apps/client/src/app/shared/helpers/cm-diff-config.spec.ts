@@ -57,6 +57,35 @@ describe('cmDiffConfig', () => {
         expect(rangesOf('а кот ́', 'а кит ́', engine)).toEqual([[2, 5, 2, 5]]);
     });
 
+    it('should read the whitespace inside an inserted piece', () => {
+        const onFallback = jest.fn();
+        const engine = engineOf([
+            { type: 'equal', text: 'один ' },
+            { type: 'insert', text: 'два три' },
+        ]);
+
+        const changes = diff('один ', 'один два три', cmDiffConfig(engine, onFallback));
+
+        expect(changes.map(c => [c.fromA, c.toA, c.fromB, c.toB])).toEqual([[5, 5, 5, 12]]);
+        expect(onFallback).not.toHaveBeenCalled();
+    });
+
+    // JsDiff ignores whitespace and puts the new text's whitespace into its unchanged pieces.
+    it.each([
+        ['a joined line', 'один два\nтри', 'один два три', [[8, 9, 8, 9]]],
+        ['a removed double space', 'один  два', 'один два', [[4, 6, 4, 5]]],
+        ['a removed space before a comma', 'слово , дело', 'слово, дело', [[5, 6, 5, 5]]],
+        ['an added trailing newline', 'один два', 'один два\n', [[8, 8, 8, 9]]],
+        ['an insertion whose space JsDiff left unchanged', 'Марии)).', 'Марии)) Константинопольских.', [[7, 7, 7, 27]]],
+    ])('should draw %s as a change of its own', (_, oldText, newText, expected) => {
+        const onFallback = jest.fn();
+
+        const changes = diff(oldText, newText, cmDiffConfig(new JsDiffEngine(), onFallback));
+
+        expect(changes.map(c => [c.fromA, c.toA, c.fromB, c.toB])).toEqual(expected);
+        expect(onFallback).not.toHaveBeenCalled();
+    });
+
     it("should fall back to CodeMirror's diff and report it when the pieces do not match the texts", () => {
         const onFallback = jest.fn();
         const engine = engineOf([{ type: 'equal', text: 'другой текст' }]);
