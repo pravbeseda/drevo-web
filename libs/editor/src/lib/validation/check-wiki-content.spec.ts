@@ -171,6 +171,15 @@ describe('checkWikiContent', () => {
             expect(finding.suggestion).toBe('Windows');
         });
 
+        it.each([
+            ['студента VІI курса', 'VII'],
+            ['ОС Wіndows', 'Windows'],
+        ])('should suggest the Latin spelling for a Ukrainian І in «%s»', (text, suggestion) => {
+            const [finding] = byRule(text, 'mixed-script');
+
+            expect(finding.suggestion).toBe(suggestion);
+        });
+
         it('should report without a suggestion when a letter has no lookalike', () => {
             const [finding] = byRule('слоvо', 'mixed-script');
 
