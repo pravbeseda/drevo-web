@@ -86,6 +86,19 @@ describe('cmDiffConfig', () => {
         expect(onFallback).not.toHaveBeenCalled();
     });
 
+    it.each([
+        ['a removed mark', 'а ́кот', 'а кот', [[2, 3, 2, 2]]],
+        ['an added mark', 'а кот', 'а ́кот', [[2, 2, 2, 3]]],
+        ['a mark added at the end', 'кот', 'кот ́', [[3, 3, 3, 5]]],
+    ])('should draw %s JsDiff dropped as a change', (_, oldText, newText, expected) => {
+        const onFallback = jest.fn();
+
+        const changes = diff(oldText, newText, cmDiffConfig(new JsDiffEngine(), onFallback));
+
+        expect(changes.map(c => [c.fromA, c.toA, c.fromB, c.toB])).toEqual(expected);
+        expect(onFallback).not.toHaveBeenCalled();
+    });
+
     it("should fall back to CodeMirror's diff and report it when the pieces do not match the texts", () => {
         const onFallback = jest.fn();
         const engine = engineOf([{ type: 'equal', text: 'другой текст' }]);

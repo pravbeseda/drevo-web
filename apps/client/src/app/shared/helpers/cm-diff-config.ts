@@ -46,19 +46,23 @@ function toCmChanges(a: string, b: string, pieces: readonly DiffChange[]): Chang
         const fromA = cursorA.at;
         const fromB = cursorB.at;
         if (type === 'equal') {
-            // JsDiff ignores whitespace, so the whitespace an unchanged piece reads differently is a change.
-            const read = advance(text, [cursorA, cursorB], ([spaceA, spaceB]) => {
-                if (a.slice(spaceA.from, spaceA.to) !== b.slice(spaceB.from, spaceB.to)) {
-                    addChange(changes, new Change(spaceA.from, spaceA.to, spaceB.from, spaceB.to));
-                }
-            });
+            // JsDiff ignores whitespace and drops some marks, so what an unchanged piece reads differently is a change.
+            const read = advance(text, [cursorA, cursorB], ([gapA, gapB]) => addGap(changes, a, b, gapA, gapB));
             if (!read) return undefined;
         } else {
             if (!advance(text, [type === 'insert' ? cursorB : cursorA])) return undefined;
             addChange(changes, new Change(fromA, cursorA.at, fromB, cursorB.at));
         }
     }
-    return skipMarks(a, cursorA.at) === a.length && skipMarks(b, cursorB.at) === b.length ? changes : undefined;
+    if (skipMarks(a, cursorA.at) !== a.length || skipMarks(b, cursorB.at) !== b.length) return undefined;
+    addGap(changes, a, b, { from: cursorA.at, to: a.length }, { from: cursorB.at, to: b.length });
+    return changes;
+}
+
+function addGap(changes: Change[], a: string, b: string, gapA: Run, gapB: Run): void {
+    if (a.slice(gapA.from, gapA.to) !== b.slice(gapB.from, gapB.to)) {
+        addChange(changes, new Change(gapA.from, gapA.to, gapB.from, gapB.to));
+    }
 }
 
 // A deletion and an insertion side by side are one replacement.
@@ -72,17 +76,20 @@ function addChange(changes: Change[], change: Change): void {
 }
 
 // Moves every cursor past `text`, false on a mismatch. A whitespace run may differ from the text's,
-// and `onSpace` gets each cursor's run; the combining marks the engine dropped (JsDiff strips them
-// after whitespace) are stepped over.
-function advance(text: string, cursors: readonly Cursor[], onSpace?: (runs: readonly Run[]) => void): boolean {
+// and the combining marks the engine dropped (JsDiff strips them after whitespace) are stepped over;
+// `onGap` gets each cursor's run of either.
+function advance(text: string, cursors: readonly Cursor[], onGap?: (runs: readonly Run[]) => void): boolean {
     let i = 0;
     while (i < text.length) {
         if (SPACE.test(text[i]) || cursors.some(({ source, at }) => SPACE.test(source.charAt(at)))) {
             i = skip(text, i, SPACE);
             const runs = cursors.map(readSpace);
-            onSpace?.(runs);
+            onGap?.(runs);
         } else {
-            if (!cursors.every(cursor => readChar(cursor, text[i]))) return false;
+            const char = text[i];
+            const runs = cursors.map(cursor => readDroppedMarks(cursor, char));
+            onGap?.(runs);
+            if (!cursors.every(cursor => readChar(cursor, char))) return false;
             i++;
         }
     }
@@ -95,8 +102,13 @@ function readSpace(cursor: Cursor): Run {
     return { from, to: cursor.at };
 }
 
+function readDroppedMarks(cursor: Cursor, char: string): Run {
+    const from = cursor.at;
+    if (cursor.source[from] !== char) cursor.at = skipMarks(cursor.source, from);
+    return { from, to: cursor.at };
+}
+
 function readChar(cursor: Cursor, char: string): boolean {
-    if (cursor.source[cursor.at] !== char) cursor.at = skipMarks(cursor.source, cursor.at);
     if (cursor.source[cursor.at] !== char) return false;
     cursor.at++;
     return true;
