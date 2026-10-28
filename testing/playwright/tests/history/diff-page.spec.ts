@@ -66,9 +66,10 @@ test.describe('Diff page', () => {
         const layout = new LayoutPage(page);
         await page.goto(`/history/articles/diff/${VERSION1}`);
         await diff.waitForReady();
-        const colors = await layout.readColors(['--themed-diff-delete-line-bg']);
+        const colors = await layout.readColors(['--themed-diff-delete-line-bg', '--themed-diff-delete-line-text']);
 
         await expect(diff.deletedChunk).toHaveCSS('background-color', colors['--themed-diff-delete-line-bg']);
+        await expect(diff.deletedChunk).toHaveCSS('color', colors['--themed-diff-delete-line-text']);
     });
 
     test('toggle button switches diff type label', async ({ authenticatedPage: page }) => {

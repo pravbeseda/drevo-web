@@ -83,9 +83,10 @@ const cmTheme = EditorView.theme({
     '.cm-changedLine, .cm-inlineChangedLine': {
         backgroundColor: 'transparent !important',
     },
-    // The old lines unified shows above the new ones keep a faint tint, or their unchanged words read as the text's own.
+    // The old lines unified shows above the new ones are tinted and dimmed, or their unchanged words read as the text's own.
     '.cm-deletedChunk': {
         backgroundColor: 'var(--themed-diff-delete-line-bg) !important',
+        color: 'var(--themed-diff-delete-line-text)',
     },
     '.cm-changedText': {
         background: 'var(--themed-diff-insert-bg) !important',
