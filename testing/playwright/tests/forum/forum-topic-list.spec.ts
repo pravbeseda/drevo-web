@@ -92,7 +92,8 @@ test.describe('Forum topic list', () => {
 
         await expect(topics.excerpt(ownTopic)).toHaveText('Вы: Согласен, но в источнике иначе');
         await expect(topics.excerpt(otherTopic)).toHaveText('Иванов: Спасибо за ссылку');
-        expect(await topics.lastAuthorColor(otherTopic)).not.toBe(await topics.excerptColor(otherTopic));
+        const colors = await new LayoutPage(page).readColors(['--themed-forum-topic-label']);
+        await expect(topics.lastAuthor(otherTopic)).toHaveCSS('color', colors['--themed-forum-topic-label']);
         await expect(topics.context(ownTopic)).toHaveCount(0);
     });
 });
