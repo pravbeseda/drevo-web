@@ -23,6 +23,8 @@ export interface ForumTopicListItem {
     readonly pinned: boolean;
     /** Full name of who opened the topic. */
     readonly author: string;
+    /** Full name of who wrote the last message; absent when the topic has no last message on record. */
+    readonly lastAuthor: string | undefined;
     /** The start of the last message as one line of text; absent when it has no text of its own. */
     readonly lastExcerpt: string | undefined;
     /** Absent for a guest and for a name with no account. */

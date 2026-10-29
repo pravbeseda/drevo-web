@@ -16,6 +16,8 @@ import { TooltipDirective } from '@drevo-web/ui/tooltip';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { map } from 'rxjs';
 
+const FIRST_WORD = /\S+/;
+
 /**
  * The loaded forum topics, rendered as the reader scrolls to them.
  * Presentational: the forum section pages and the article's discussion tab
@@ -77,7 +79,12 @@ export class TopicListComponent {
         return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
     }
 
-    protected isOwnLastPost(topic: ForumTopicListItem): boolean {
+    /** Who wrote the last message: «Вы» for the reader, otherwise the first word of the name. */
+    protected lastAuthorName(topic: ForumTopicListItem): string | undefined {
+        return this.isOwnLastPost(topic) ? 'Вы' : FIRST_WORD.exec(topic.lastAuthor ?? '')?.[0];
+    }
+
+    private isOwnLastPost(topic: ForumTopicListItem): boolean {
         const ownLogin = this.ownLogin();
         return ownLogin !== undefined && topic.lastAuthorLogin === ownLogin;
     }

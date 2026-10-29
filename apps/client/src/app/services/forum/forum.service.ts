@@ -176,6 +176,7 @@ export class ForumService {
             lastPostAt: this.mapDate(dto.lastPostAt),
             pinned: dto.pinned,
             author: dto.author,
+            lastAuthor: dto.lastAuthor,
             lastExcerpt: dto.lastExcerpt === '' ? undefined : dto.lastExcerpt,
             lastAuthorLogin: dto.lastAuthorLogin,
             article: dto.article ?? undefined,

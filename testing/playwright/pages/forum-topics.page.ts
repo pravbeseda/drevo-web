@@ -48,6 +48,16 @@ export class ForumTopicsPage extends BasePage {
         return this.link(text).getByTestId('topic-excerpt');
     }
 
+    excerptColor(text: string): Promise<string> {
+        return this.excerpt(text).evaluate(node => getComputedStyle(node).color);
+    }
+
+    lastAuthorColor(text: string): Promise<string> {
+        return this.excerpt(text)
+            .getByTestId('topic-last-author')
+            .evaluate(node => getComputedStyle(node).color);
+    }
+
     /** The pencil on the avatar of a topic that holds an unsent reply. */
     draftBadge(text: string): Locator {
         return this.link(text).getByTestId('topic-draft-badge');

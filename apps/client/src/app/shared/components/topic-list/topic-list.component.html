@@ -85,7 +85,15 @@
                             class="topic-list__subtitle"
                             data-testid="topic-excerpt"
                         >
-                            {{ isOwnLastPost(topic) ? 'Вы: ' : '' }}{{ excerpt }}
+                            @if (lastAuthorName(topic); as name) {
+                                <span
+                                    class="topic-list__last-author"
+                                    data-testid="topic-last-author"
+                                >
+                                    {{ name }}:
+                                </span>
+                            }
+                            {{ excerpt }}
                         </span>
                     } @else {
                         <span
