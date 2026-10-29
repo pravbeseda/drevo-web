@@ -614,7 +614,7 @@ $theme-colors: (
         light: rgb($md-brown-900, 0.06),
         dark: rgb(white, 0.06),
     ),
-    /* The label a topic row's excerpt opens with: the last author or «Черновик:».*/
+    /* A topic row's marks: the label its excerpt opens with — the last author or «Черновик:» — and the draft badge.*/
     /* The ink link colour matches the brown text in lightness, so the light theme needs a hue of its own.*/
     forum-topic-label: (
         light: $cherry-800,

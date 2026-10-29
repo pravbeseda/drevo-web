@@ -40,6 +40,10 @@ describe('TopicListComponent', () => {
         providers: [provideRouter([{ path: '**', component: BlankComponent }]), mockLoggerProvider()],
     });
 
+    /** The text as the browser shows it: Prettier is free to break the template's lines. */
+    const shownText = (testId: string): string | undefined =>
+        spectator.query(`[data-testid="${testId}"]`)?.textContent?.replace(/\s+/g, ' ').trim();
+
     const settle = async (): Promise<void> => {
         await spectator.fixture.whenStable();
         spectator.detectChanges();
@@ -134,10 +138,6 @@ describe('TopicListComponent', () => {
     describe('last message excerpt', () => {
         const reader = createMockUser({ login: 'petrov' });
 
-        /** The text as the browser shows it: Prettier is free to break the template's lines. */
-        const excerptText = (): string | undefined =>
-            spectator.query('[data-testid="topic-excerpt"]')?.textContent?.replace(/\s+/g, ' ').trim();
-
         it('shows the start of the last message in place of the context', async () => {
             await render([createItem({ lastExcerpt: 'Согласен, но в источнике иначе' })]);
 
@@ -160,7 +160,7 @@ describe('TopicListComponent', () => {
                 reader,
             );
 
-            expect(excerptText()).toBe('Иванов: Согласен');
+            expect(shownText('topic-excerpt')).toBe('Иванов: Согласен');
             expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Иванов:');
         });
 
@@ -171,14 +171,14 @@ describe('TopicListComponent', () => {
                 reader,
             );
 
-            expect(excerptText()).toBe('Вы: Согласен');
+            expect(shownText('topic-excerpt')).toBe('Вы: Согласен');
             expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Вы:');
         });
 
         it('names a guest by the name they signed with', async () => {
             await render([createItem({ lastExcerpt: 'Согласен', lastAuthor: ' Гость ', lastAuthorLogin: undefined })]);
 
-            expect(excerptText()).toBe('Гость: Согласен');
+            expect(shownText('topic-excerpt')).toBe('Гость: Согласен');
         });
 
         it.each([
@@ -189,13 +189,13 @@ describe('TopicListComponent', () => {
         ])('names %p as %p, keeping the word after an abbreviation', async (lastAuthor, name) => {
             await render([createItem({ lastExcerpt: 'Согласен', lastAuthor })]);
 
-            expect(excerptText()).toBe(`${name}: Согласен`);
+            expect(shownText('topic-excerpt')).toBe(`${name}: Согласен`);
         });
 
         it.each([undefined, '', '  '])('leaves the last message unnamed when its author is %p', async lastAuthor => {
             await render([createItem({ lastExcerpt: 'Согласен', lastAuthor })]);
 
-            expect(excerptText()).toBe('Согласен');
+            expect(shownText('topic-excerpt')).toBe('Согласен');
             expect(spectator.query('[data-testid="topic-last-author"]')).not.toExist();
         });
 
@@ -224,7 +224,7 @@ describe('TopicListComponent', () => {
                 new Map([[7, '> Согласен\n\nА я нет']]),
             );
 
-            expect(spectator.query('[data-testid="topic-draft"]')?.textContent?.trim()).toBe('Черновик: А я нет');
+            expect(shownText('topic-draft')).toBe('Черновик: А я нет');
             expect(spectator.query('[data-testid="topic-excerpt"]')).not.toExist();
         });
     });

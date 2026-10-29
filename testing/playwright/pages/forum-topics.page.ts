@@ -61,6 +61,10 @@ export class ForumTopicsPage extends BasePage {
         return this.link(text).getByTestId('topic-draft');
     }
 
+    draftLabel(text: string): Locator {
+        return this.draft(text).getByTestId('topic-draft-label');
+    }
+
     /**
      * How far, at most per colour channel, the gap just left of the draft badge
      * is from the row's own background beside the avatar — 0 when the badge
