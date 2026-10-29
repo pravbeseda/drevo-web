@@ -181,6 +181,17 @@ describe('TopicListComponent', () => {
             expect(excerptText()).toBe('Гость: Согласен');
         });
 
+        it.each([
+            ['о. Иоанн Иванов', 'о. Иоанн'],
+            ['свящ.  Иван Петров', 'свящ. Иван'],
+            ['о.', 'о.'],
+            ['Иванов И.И.', 'Иванов'],
+        ])('names %p as %p, keeping the word after an abbreviation', async (lastAuthor, name) => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthor })]);
+
+            expect(excerptText()).toBe(`${name}: Согласен`);
+        });
+
         it.each([undefined, '', '  '])('leaves the last message unnamed when its author is %p', async lastAuthor => {
             await render([createItem({ lastExcerpt: 'Согласен', lastAuthor })]);
 
