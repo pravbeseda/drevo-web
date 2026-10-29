@@ -16,6 +16,14 @@ import { TooltipDirective } from '@drevo-web/ui/tooltip';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { map } from 'rxjs';
 
+/** The first word of a name, or the first two when the first is an abbreviation such as «о.» or «свящ.». */
+function shortName(fullName: string): string | undefined {
+    const words = fullName.split(/\s+/).filter(word => word !== '');
+    const first = words.at(0);
+    const second = words.at(1);
+    return first?.endsWith('.') && second !== undefined ? `${first} ${second}` : first;
+}
+
 /**
  * The loaded forum topics, rendered as the reader scrolls to them.
  * Presentational: the forum section pages and the article's discussion tab
@@ -77,7 +85,12 @@ export class TopicListComponent {
         return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
     }
 
-    protected isOwnLastPost(topic: ForumTopicListItem): boolean {
+    /** Who wrote the last message: «Вы» for the reader, otherwise the name cut short. */
+    protected lastAuthorName(topic: ForumTopicListItem): string | undefined {
+        return this.isOwnLastPost(topic) ? 'Вы' : shortName(topic.lastAuthor ?? '');
+    }
+
+    private isOwnLastPost(topic: ForumTopicListItem): boolean {
         const ownLogin = this.ownLogin();
         return ownLogin !== undefined && topic.lastAuthorLogin === ownLogin;
     }

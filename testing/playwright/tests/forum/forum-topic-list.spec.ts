@@ -61,7 +61,7 @@ test.describe('Forum topic list', () => {
         await expect(topics.title(TOPIC_TITLE)).toHaveCSS('font-weight', '400');
     });
 
-    test('shows the start of the last message under the title, marking the reader’s own', async ({
+    test('shows the start of the last message under the title, led by its author’s name in colour', async ({
         authenticatedPage: page,
     }) => {
         const ownTopic = 'Тема с моим ответом';
@@ -73,12 +73,14 @@ test.describe('Forum topic list', () => {
                 createForumTopicListItemDto({
                     id: 1,
                     title: ownTopic,
+                    lastAuthor: 'Тестов Тест',
                     lastExcerpt: 'Согласен, но в источнике иначе',
                     lastAuthorLogin: mockUsers.authenticated.login,
                 }),
                 createForumTopicListItemDto({
                     id: 2,
                     title: otherTopic,
+                    lastAuthor: 'Иванов Иван Иванович',
                     lastExcerpt: 'Спасибо за ссылку',
                     lastAuthorLogin: 'ivanov',
                 }),
@@ -89,7 +91,9 @@ test.describe('Forum topic list', () => {
         await topics.waitForReady();
 
         await expect(topics.excerpt(ownTopic)).toHaveText('Вы: Согласен, но в источнике иначе');
-        await expect(topics.excerpt(otherTopic)).toHaveText('Спасибо за ссылку');
+        await expect(topics.excerpt(otherTopic)).toHaveText('Иванов: Спасибо за ссылку');
+        const colors = await new LayoutPage(page).readColors(['--themed-forum-topic-label']);
+        await expect(topics.lastAuthor(otherTopic)).toHaveCSS('color', colors['--themed-forum-topic-label']);
         await expect(topics.context(ownTopic)).toHaveCount(0);
     });
 });

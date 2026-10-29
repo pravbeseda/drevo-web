@@ -73,12 +73,13 @@
     width: $forum-draft-badge-size;
     height: $forum-draft-badge-size;
     border-radius: 50%;
-    background: var(--themed-link-color);
+    background: var(--themed-forum-topic-label);
     color: var(--themed-primary-bg);
 }
 
-.topic-list__draft-label {
-    color: var(--themed-link-color);
+.topic-list__draft-label,
+.topic-list__last-author {
+    color: var(--themed-forum-topic-label);
 }
 
 .topic-list__body {

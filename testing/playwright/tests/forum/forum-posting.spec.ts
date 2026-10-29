@@ -23,6 +23,7 @@ import { ArticlePage } from '../../pages/article.page';
 import { ForumNewTopicPage } from '../../pages/forum-new-topic.page';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
+import { LayoutPage } from '../../pages/layout.page';
 import { Page, Request } from '@playwright/test';
 
 const TOPIC_ID = 7;
@@ -167,6 +168,20 @@ test.describe('Forum posting', () => {
             await topics.link('Первая тема').click();
 
             await expect(topic.composerText).toHaveText('Мой ответ');
+        });
+
+        test('paints the draft badge and label in one colour', async ({ authenticatedPage: page, isMobile }) => {
+            test.skip(isMobile, TWO_PANES_ONLY);
+            const { topic, topics } = await openTwoTopics(page);
+            await topic.write('Мой ответ');
+            await topics.link('Вторая тема').click();
+            const colors = await new LayoutPage(page).readColors(['--themed-forum-topic-label']);
+
+            await expect(topics.draftBadge('Первая тема')).toHaveCSS(
+                'background-color',
+                colors['--themed-forum-topic-label'],
+            );
+            await expect(topics.draftLabel('Первая тема')).toHaveCSS('color', colors['--themed-forum-topic-label']);
         });
 
         for (const theme of ['light', 'dark']) {

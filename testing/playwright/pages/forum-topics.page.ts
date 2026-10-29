@@ -48,6 +48,10 @@ export class ForumTopicsPage extends BasePage {
         return this.link(text).getByTestId('topic-excerpt');
     }
 
+    lastAuthor(text: string): Locator {
+        return this.excerpt(text).getByTestId('topic-last-author');
+    }
+
     /** The pencil on the avatar of a topic that holds an unsent reply. */
     draftBadge(text: string): Locator {
         return this.link(text).getByTestId('topic-draft-badge');
@@ -55,6 +59,10 @@ export class ForumTopicsPage extends BasePage {
 
     draft(text: string): Locator {
         return this.link(text).getByTestId('topic-draft');
+    }
+
+    draftLabel(text: string): Locator {
+        return this.draft(text).getByTestId('topic-draft-label');
     }
 
     /**

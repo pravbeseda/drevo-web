@@ -20,6 +20,7 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
         lastPostAt: new Date('2025-03-16T12:30:00Z'),
         pinned: false,
         author: 'Петров Пётр Петрович',
+        lastAuthor: undefined,
         lastExcerpt: undefined,
         lastAuthorLogin: undefined,
         article: { id: 15, title: 'Статья' },
@@ -38,6 +39,10 @@ describe('TopicListComponent', () => {
         component: TopicListComponent,
         providers: [provideRouter([{ path: '**', component: BlankComponent }]), mockLoggerProvider()],
     });
+
+    /** The text as the browser shows it: Prettier is free to break the template's lines. */
+    const shownText = (testId: string): string | undefined =>
+        spectator.query(`[data-testid="${testId}"]`)?.textContent?.replace(/\s+/g, ' ').trim();
 
     const settle = async (): Promise<void> => {
         await spectator.fixture.whenStable();
@@ -142,22 +147,56 @@ describe('TopicListComponent', () => {
             expect(spectator.query('[data-testid="topic-context"]')).not.toExist();
         });
 
-        it('marks the reader’s own last message', async () => {
-            await render([createItem({ lastExcerpt: 'Согласен', lastAuthorLogin: 'petrov' })], {}, reader);
+        it('names the author of the last message by the first word of the name', async () => {
+            await render(
+                [
+                    createItem({
+                        lastExcerpt: 'Согласен',
+                        lastAuthor: 'Иванов Иван Иванович',
+                        lastAuthorLogin: 'ivanov',
+                    }),
+                ],
+                {},
+                reader,
+            );
 
-            expect(spectator.query('[data-testid="topic-excerpt"]')?.textContent?.trim()).toBe('Вы: Согласен');
+            expect(shownText('topic-excerpt')).toBe('Иванов: Согласен');
+            expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Иванов:');
         });
 
-        it('leaves someone else’s last message unmarked', async () => {
-            await render([createItem({ lastExcerpt: 'Согласен', lastAuthorLogin: 'ivanov' })], {}, reader);
+        it('names the reader’s own last message «Вы»', async () => {
+            await render(
+                [createItem({ lastExcerpt: 'Согласен', lastAuthor: 'Петров Пётр', lastAuthorLogin: 'petrov' })],
+                {},
+                reader,
+            );
 
-            expect(spectator.query('[data-testid="topic-excerpt"]')?.textContent?.trim()).toBe('Согласен');
+            expect(shownText('topic-excerpt')).toBe('Вы: Согласен');
+            expect(spectator.query('[data-testid="topic-last-author"]')).toHaveText('Вы:');
         });
 
-        it('leaves a guest’s last message unmarked for an anonymous reader', async () => {
-            await render([createItem({ lastExcerpt: 'Согласен', lastAuthorLogin: undefined })]);
+        it('names a guest by the name they signed with', async () => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthor: ' Гость ', lastAuthorLogin: undefined })]);
 
-            expect(spectator.query('[data-testid="topic-excerpt"]')?.textContent?.trim()).toBe('Согласен');
+            expect(shownText('topic-excerpt')).toBe('Гость: Согласен');
+        });
+
+        it.each([
+            ['о. Иоанн Иванов', 'о. Иоанн'],
+            ['свящ.  Иван Петров', 'свящ. Иван'],
+            ['о.', 'о.'],
+            ['Иванов И.И.', 'Иванов'],
+        ])('names %p as %p, keeping the word after an abbreviation', async (lastAuthor, name) => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthor })]);
+
+            expect(shownText('topic-excerpt')).toBe(`${name}: Согласен`);
+        });
+
+        it.each([undefined, '', '  '])('leaves the last message unnamed when its author is %p', async lastAuthor => {
+            await render([createItem({ lastExcerpt: 'Согласен', lastAuthor })]);
+
+            expect(shownText('topic-excerpt')).toBe('Согласен');
+            expect(spectator.query('[data-testid="topic-last-author"]')).not.toExist();
         });
 
         it('falls back to the context when the last message has no text of its own', async () => {
@@ -185,7 +224,7 @@ describe('TopicListComponent', () => {
                 new Map([[7, '> Согласен\n\nА я нет']]),
             );
 
-            expect(spectator.query('[data-testid="topic-draft"]')?.textContent?.trim()).toBe('Черновик: А я нет');
+            expect(shownText('topic-draft')).toBe('Черновик: А я нет');
             expect(spectator.query('[data-testid="topic-excerpt"]')).not.toExist();
         });
     });
@@ -194,12 +233,6 @@ describe('TopicListComponent', () => {
         await render([createItem({ article: undefined, section: undefined, lastPostAt: undefined })]);
 
         expect(spectator.query('[data-testid="topic-context"]')).toExist();
-    });
-
-    it('no longer names who wrote the last post', async () => {
-        await render([createItem()]);
-
-        expect(spectator.query('[data-testid="topic-last-author"]')).not.toExist();
     });
 
     it('shows the last-post time short, with the full date for assistive technology', async () => {
