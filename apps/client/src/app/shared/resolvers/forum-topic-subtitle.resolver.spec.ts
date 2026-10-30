@@ -24,6 +24,7 @@ const topic: ForumTopic = {
     author: 'Николая',
     createdAt: undefined,
     repliesCount: 0,
+    firstUnreadId: undefined,
 };
 
 const pageOf = (overrides: Partial<ForumTopic>): ForumTopicPage => ({

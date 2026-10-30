@@ -11,6 +11,8 @@ import {
     ForumPostedMessageDto,
     ForumPostErrors,
     ForumPostOutcome,
+    ForumReadState,
+    ForumReadStateDto,
     ForumSection,
     ForumTopic,
     ForumTopicDto,
@@ -76,6 +78,13 @@ export class ForumService {
      */
     getMessageTopic(id: number): Observable<number> {
         return this.forumApiService.getMessageTopic(id).pipe(map(dto => dto.topicId));
+    }
+
+    /**
+     * Move the reader's read watermark of a topic up to a message; answers what is left unread.
+     */
+    markRead(topicId: number, lastMessageId: number): Observable<ForumReadState> {
+        return this.forumApiService.markRead(topicId, lastMessageId).pipe(map(dto => this.mapReadState(dto)));
     }
 
     /**
@@ -181,7 +190,12 @@ export class ForumService {
             lastAuthorLogin: dto.lastAuthorLogin,
             article: dto.article ?? undefined,
             section: dto.section ?? undefined,
+            ...this.mapReadState(dto),
         };
+    }
+
+    private mapReadState(dto: ForumReadStateDto): ForumReadState {
+        return { unreadCount: dto.unreadCount, firstUnreadId: dto.firstUnreadId };
     }
 
     private mapTopicPage(dto: ForumTopicPageDto): ForumTopicPage {
@@ -207,6 +221,7 @@ export class ForumService {
             author: dto.author,
             createdAt: this.mapDate(dto.createdAt),
             repliesCount: dto.repliesCount,
+            firstUnreadId: dto.firstUnreadId,
         };
     }
 

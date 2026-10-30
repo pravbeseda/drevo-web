@@ -121,12 +121,21 @@
 
 .topic-list__subtitle {
     display: block;
+    flex: 1;
 
     /* An empty line keeps its height, so every row is two lines. */
     min-height: 1lh;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Painted like the draft badge, the row's other mark, so the count stands out from the row. */
+.topic-list__unread {
+    flex: none;
+    align-self: center;
+    background-color: var(--themed-forum-topic-label);
+    color: var(--themed-primary-bg);
 }
 
 .topic-list__failed {

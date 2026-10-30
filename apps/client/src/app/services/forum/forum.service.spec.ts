@@ -45,6 +45,8 @@ describe('ForumService', () => {
                 lastExcerpt: 'Согласен, но в источнике иначе',
                 article: { id: 15, title: 'Статья' },
                 section: { id: 'articles', name: 'О статьях' },
+                unreadCount: 3,
+                firstUnreadId: 97,
             },
         ],
         total: 7,
@@ -63,6 +65,7 @@ describe('ForumService', () => {
             author: 'Иван Иванов',
             createdAt: '2026-01-02T03:04:05+03:00',
             repliesCount: 1,
+            firstUnreadId: 99,
         },
         messages: {
             items: [
@@ -118,6 +121,8 @@ describe('ForumService', () => {
                             lastAuthorLogin: 'petrov',
                             article: { id: 15, title: 'Статья' },
                             section: { id: 'articles', name: 'О статьях' },
+                            unreadCount: 3,
+                            firstUnreadId: 97,
                         },
                     ],
                     total: 7,
@@ -141,6 +146,7 @@ describe('ForumService', () => {
                 pinned: false,
                 article: null,
                 section: null,
+                unreadCount: 0,
             };
             forumApiService.getTopics.mockReturnValue(of({ ...topicList, items: [bareItem] }));
 
@@ -156,6 +162,8 @@ describe('ForumService', () => {
                     lastAuthorLogin: undefined,
                     article: undefined,
                     section: undefined,
+                    unreadCount: 0,
+                    firstUnreadId: undefined,
                 });
                 done();
             });
@@ -207,6 +215,7 @@ describe('ForumService', () => {
                         author: 'Иван Иванов',
                         createdAt: new Date('2026-01-02T03:04:05+03:00'),
                         repliesCount: 1,
+                        firstUnreadId: 99,
                     },
                     messages: {
                         items: [
@@ -228,11 +237,12 @@ describe('ForumService', () => {
             });
         });
 
-        it('should map the partId sentinel, a missing article and a missing date to undefined', done => {
+        it('should map the partId sentinel, a missing article, date and unread message to undefined', done => {
+            const { firstUnreadId: _unread, ...readTopic } = topicPage.topic;
             forumApiService.getTopic.mockReturnValue(
                 of({
                     ...topicPage,
-                    topic: { ...topicPage.topic, partId: 0, article: null, createdAt: null },
+                    topic: { ...readTopic, partId: 0, article: null, createdAt: null },
                 }),
             );
 
@@ -246,6 +256,7 @@ describe('ForumService', () => {
                     author: 'Иван Иванов',
                     createdAt: undefined,
                     repliesCount: 1,
+                    firstUnreadId: undefined,
                 });
                 done();
             });
@@ -278,6 +289,27 @@ describe('ForumService', () => {
                     createdAt: undefined,
                     html: '<p>Текст</p>',
                 });
+                done();
+            });
+        });
+    });
+
+    describe('markRead', () => {
+        it('should pass the topic and the message to the API layer and map the answer', done => {
+            forumApiService.markRead.mockReturnValue(of({ unreadCount: 2, firstUnreadId: 101 }));
+
+            spectator.service.markRead(42, 100).subscribe(state => {
+                expect(forumApiService.markRead).toHaveBeenCalledWith(42, 100);
+                expect(state).toStrictEqual({ unreadCount: 2, firstUnreadId: 101 });
+                done();
+            });
+        });
+
+        it('should map a topic with nothing left unread', done => {
+            forumApiService.markRead.mockReturnValue(of({ unreadCount: 0 }));
+
+            spectator.service.markRead(42, 101).subscribe(state => {
+                expect(state).toStrictEqual({ unreadCount: 0, firstUnreadId: undefined });
                 done();
             });
         });

@@ -1,3 +1,4 @@
+import { ForumReadService } from '../../../services/forum/forum-read.service';
 import { Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
@@ -23,6 +24,7 @@ export type TopicPageFetch = (page: number) => Observable<ForumTopicListResponse
 @Injectable()
 export class TopicListPagesService {
     private readonly logger = inject(LoggerService).withContext('TopicListPagesService');
+    private readonly forumReadService = inject(ForumReadService);
     private readonly resetSubject = new Subject<TopicPageFetch>();
     private readonly nextPageSubject = new Subject<void>();
     private readonly reloadSubject = new Subject<TopicPageFetch>();
@@ -68,6 +70,7 @@ export class TopicListPagesService {
 
     /** Starts over from the first page, or from nothing when there is no list to page through. */
     reset(firstPage: ForumTopicListResponse | undefined, fetchPage: TopicPageFetch): void {
+        this.forgetReadStates(firstPage?.items ?? []);
         this._items.set(firstPage?.items ?? []);
         this._total.set(firstPage?.total ?? 0);
         this._loadState.set('idle');
@@ -96,6 +99,11 @@ export class TopicListPagesService {
         }
     }
 
+    /** The rows just loaded count every read reported before them. */
+    private forgetReadStates(items: readonly ForumTopicListItem[]): void {
+        this.forumReadService.forget(items.map(item => item.id));
+    }
+
     private requestNextPage(): void {
         this._loadState.set('loading');
         this.nextPageSubject.next();
@@ -116,6 +124,7 @@ export class TopicListPagesService {
             return;
         }
 
+        this.forgetReadStates(response.items);
         this._items.set([...this._items(), ...response.items]);
         this._total.set(response.total);
         this._loadState.set('idle');

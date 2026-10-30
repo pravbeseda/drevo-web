@@ -1,13 +1,14 @@
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
+import { SKIP_ERROR_FOR_STATUSES, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
     ForumCreatedTopicDto,
     ForumCreateTopicRequestDto,
     ForumMessageTopicDto,
     ForumPostedMessageDto,
+    ForumReadStateDto,
     ForumReplyRequestDto,
     ForumSectionDto,
     ForumTopicListResponseDto,
@@ -163,6 +164,29 @@ export class ForumApiService {
                 withCredentials: true,
                 context: this.writeContext(),
             })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Move the reader's read watermark of a topic up to a message. The client
+     * sends it as the reader scrolls, unasked, so a failure stays away from
+     * the error toast.
+     */
+    markRead(topicId: number, lastMessageId: number): Observable<ForumReadStateDto> {
+        return this.http
+            .post<ApiResponse<ForumReadStateDto>>(
+                `${this.apiUrl}/api/forum/topics/${topicId}/read`,
+                { lastMessageId },
+                {
+                    withCredentials: true,
+                    context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+                },
+            )
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

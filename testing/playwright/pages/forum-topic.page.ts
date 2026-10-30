@@ -10,6 +10,7 @@ export class ForumTopicPage extends BasePage {
     readonly feed = this.page.getByTestId('topic-feed');
     /** OverlayScrollbars draws the scrollbar and takes no test id, so its own classes are the only hook. */
     readonly feedScrollbarHandle = this.feed.locator('.os-scrollbar-vertical .os-scrollbar-handle');
+    readonly unreadDivider = this.page.getByTestId('topic-unread-divider');
     readonly composer = this.page.getByTestId('topic-composer');
     readonly replyTo = this.page.getByTestId('message-reply-to');
     readonly notFound = this.page.getByTestId('topic-not-found');

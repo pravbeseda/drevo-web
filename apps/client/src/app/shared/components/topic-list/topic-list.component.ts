@@ -1,13 +1,15 @@
 import { AuthService } from '../../../services/auth/auth.service';
 import { ForumDraftService } from '../../../services/forum/forum-draft.service';
+import { ForumReadService } from '../../../services/forum/forum-read.service';
 import { draftExcerpt } from '../../helpers/draft-excerpt';
 import { forumOwnerPrefix } from '../../helpers/forum-owner';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ForumTopicListItem } from '@drevo-web/shared';
+import { ForumReadState, ForumTopicListItem } from '@drevo-web/shared';
 import { AvatarComponent } from '@drevo-web/ui/avatar';
+import { BadgeComponent } from '@drevo-web/ui/badge';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { FormatDatePipe } from '@drevo-web/ui/format-date';
 import { IconComponent } from '@drevo-web/ui/icon';
@@ -33,6 +35,7 @@ function shortName(fullName: string): string | undefined {
     selector: 'app-topic-list',
     imports: [
         AvatarComponent,
+        BadgeComponent,
         ButtonComponent,
         FormatDatePipe,
         IconComponent,
@@ -74,6 +77,8 @@ export class TopicListComponent {
 
     private readonly drafts = inject(ForumDraftService).drafts;
 
+    private readonly readStates = inject(ForumReadService).states;
+
     /** The excerpt of the unsent reply, by topic id. */
     protected readonly draftExcerpts = computed(
         () => new Map([...this.drafts()].map(([topicId, text]) => [topicId, draftExcerpt(text)])),
@@ -81,8 +86,15 @@ export class TopicListComponent {
 
     protected readonly trackById = (_index: number, topic: ForumTopicListItem): number => topic.id;
 
-    topicLink(topicId: number): readonly (string | number)[] {
-        return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
+    /** What is unread in the topic: as the reader has read it since the list was loaded, or as the list says. */
+    protected readState(topic: ForumTopicListItem): ForumReadState {
+        return this.readStates().get(topic.id) ?? topic;
+    }
+
+    /** The topic, opened on its first unread message when it has one. */
+    protected topicLink(topicId: number, firstUnreadId: number | undefined): readonly (string | number)[] {
+        const link = this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
+        return firstUnreadId === undefined ? link : [...link, firstUnreadId];
     }
 
     /** Who wrote the last message: «Вы» for the reader, otherwise the name cut short. */

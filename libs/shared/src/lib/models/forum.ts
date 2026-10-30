@@ -32,6 +32,9 @@ export interface ForumTopicListItem {
     /** Absent for a topic that hangs off no article or news item. */
     readonly article: ForumTopicArticle | undefined;
     readonly section: ForumTopicSection | undefined;
+    readonly unreadCount: number;
+    /** Absent when `unreadCount` is `0`. */
+    readonly firstUnreadId: number | undefined;
 }
 
 export interface ForumTopicListResponse {
@@ -52,6 +55,15 @@ export interface ForumTopic {
     readonly author: string;
     readonly createdAt: Date | undefined;
     readonly repliesCount: number;
+    /** The oldest message the reader has not read; absent when there is none. */
+    readonly firstUnreadId: number | undefined;
+}
+
+/** What is left unread in a topic: the messages past the reader's read watermark, not written by the reader. */
+export interface ForumReadState {
+    readonly unreadCount: number;
+    /** Absent when `unreadCount` is `0`. */
+    readonly firstUnreadId: number | undefined;
 }
 
 export interface ForumMessageAuthor {

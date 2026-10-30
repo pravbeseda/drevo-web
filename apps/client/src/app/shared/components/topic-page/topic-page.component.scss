@@ -38,3 +38,13 @@
 .topic-page__composer {
     flex: none;
 }
+
+// The unread mark: a band across the feed in the bubbles' colour, as a chat draws it.
+.topic-page__unread {
+    margin: $forum-series-gap 0;
+    padding: $forum-bubble-padding-v $forum-feed-padding-h;
+    background-color: var(--themed-forum-bubble-bg);
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+    text-align: center;
+}

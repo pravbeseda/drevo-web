@@ -1,4 +1,5 @@
 import { TopicListPagesService } from './topic-list-pages.service';
+import { ForumReadService } from '../../../services/forum/forum-read.service';
 import { LoggerService } from '@drevo-web/core';
 import { MockLogger, MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
@@ -17,6 +18,8 @@ function createItem(id: number): ForumTopicListItem {
         lastAuthorLogin: undefined,
         article: undefined,
         section: undefined,
+        unreadCount: 0,
+        firstUnreadId: undefined,
     };
 }
 
@@ -31,6 +34,7 @@ describe('TopicListPagesService', () => {
 
     const createService = createServiceFactory({
         service: TopicListPagesService,
+        mocks: [ForumReadService],
         providers: [mockLoggerProvider()],
     });
 
@@ -59,6 +63,16 @@ describe('TopicListPagesService', () => {
         expect(fetchPage).toHaveBeenCalledWith(2);
         expect(ids()).toEqual([1, 2]);
         expect(spectator.service.loadState()).toBe('idle');
+    });
+
+    it('drops the read states of the topics a page loads, being fresher than them', () => {
+        const forumReadService = spectator.inject(ForumReadService);
+
+        spectator.service.reset(createPage(1, [1]), fetchPage);
+        spectator.service.loadMore();
+
+        expect(forumReadService.forget).toHaveBeenNthCalledWith(1, [1]);
+        expect(forumReadService.forget).toHaveBeenNthCalledWith(2, [2]);
     });
 
     it('asks for nothing past the last page', () => {

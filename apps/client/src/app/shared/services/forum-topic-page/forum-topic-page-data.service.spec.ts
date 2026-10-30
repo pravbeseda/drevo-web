@@ -19,6 +19,7 @@ const topicPage: ForumTopicPage = {
         author: 'Автор',
         createdAt: undefined,
         repliesCount: 0,
+        firstUnreadId: undefined,
     },
     messages: { items: [], total: 0, page: 1, pageSize: 20, totalPages: 0 },
 };

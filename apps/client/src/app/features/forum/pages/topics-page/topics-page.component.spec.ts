@@ -25,6 +25,8 @@ function createItem(id: number): ForumTopicListItem {
         lastAuthorLogin: undefined,
         article: undefined,
         section: undefined,
+        unreadCount: 0,
+        firstUnreadId: undefined,
     };
 }
 

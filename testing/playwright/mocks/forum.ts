@@ -23,6 +23,7 @@ export function createForumTopicListItemDto(overrides: Partial<ForumTopicListIte
         pinned: false,
         article: null,
         section: { id: 'common', name: 'Общий раздел' },
+        unreadCount: 0,
         ...overrides,
     };
 }

@@ -1,11 +1,12 @@
 import { TopicListComponent } from './topic-list.component';
 import { AuthService } from '../../../services/auth/auth.service';
 import { mockForumDraftProvider } from '../../../services/forum/forum-draft.testing';
+import { mockForumReadProvider } from '../../../services/forum/forum-read.testing';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
 import { Component } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ForumTopicListItem, User } from '@drevo-web/shared';
+import { ForumReadState, ForumTopicListItem, User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { VirtualScrollerComponent } from '@drevo-web/ui/virtual-scroller';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
@@ -25,6 +26,8 @@ function createItem(overrides: Partial<ForumTopicListItem> = {}): ForumTopicList
         lastAuthorLogin: undefined,
         article: { id: 15, title: 'Статья' },
         section: { id: 'articles', name: 'О статьях' },
+        unreadCount: 0,
+        firstUnreadId: undefined,
         ...overrides,
     };
 }
@@ -59,10 +62,15 @@ describe('TopicListComponent', () => {
         } = {},
         user?: User,
         drafts: ReadonlyMap<number, string> = new Map(),
+        readStates: ReadonlyMap<number, ForumReadState> = new Map(),
     ): Promise<void> => {
         spectator = createComponent({
             props: { items, ...props },
-            providers: [{ provide: AuthService, useValue: { user$: of(user) } }, mockForumDraftProvider(drafts)],
+            providers: [
+                { provide: AuthService, useValue: { user$: of(user) } },
+                mockForumDraftProvider(drafts),
+                mockForumReadProvider(readStates),
+            ],
         });
         await settle();
         await settle();
@@ -226,6 +234,52 @@ describe('TopicListComponent', () => {
 
             expect(shownText('topic-draft')).toBe('Черновик: А я нет');
             expect(spectator.query('[data-testid="topic-excerpt"]')).not.toExist();
+        });
+    });
+
+    describe('unread messages', () => {
+        const unread = { unreadCount: 3, firstUnreadId: 50 };
+
+        it('counts them in a badge', async () => {
+            await render([createItem({ id: 42, ...unread })]);
+
+            expect(shownText('topic-unread')).toBe('3');
+        });
+
+        it('shows no badge when everything is read', async () => {
+            await render([createItem({ id: 42 })]);
+
+            expect(spectator.query('[data-testid="topic-unread"]')).not.toExist();
+        });
+
+        it('opens the topic on the first of them', async () => {
+            await render([createItem({ id: 42, ...unread })]);
+
+            expect(spectator.query('[data-testid="topic-link"]')?.getAttribute('href')).toBe('/forum/topic/42/50');
+        });
+
+        it('opens it on the first of them under the current route where the list asks for it', async () => {
+            await render([createItem({ id: 42, ...unread })], { relativeLinks: true });
+
+            expect(spectator.query('[data-testid="topic-link"]')?.getAttribute('href')).toBe('/topic/42/50');
+        });
+
+        it('follows what the reader has read since the list was loaded', async () => {
+            const read = new Map([[42, { unreadCount: 1, firstUnreadId: 52 }]]);
+
+            await render(
+                [createItem({ id: 42, ...unread }), createItem({ id: 43, ...unread })],
+                {},
+                undefined,
+                new Map(),
+                read,
+            );
+
+            expect(spectator.queryAll('[data-testid="topic-unread"]').map(badge => badge.textContent?.trim())).toEqual([
+                '1',
+                '3',
+            ]);
+            expect(spectator.query('[data-testid="topic-link"]')?.getAttribute('href')).toBe('/forum/topic/42/52');
         });
     });
 
