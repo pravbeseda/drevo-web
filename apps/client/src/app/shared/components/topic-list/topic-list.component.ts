@@ -6,7 +6,7 @@ import { forumOwnerPrefix } from '../../helpers/forum-owner';
 import { TopicListLoadState } from '../../services/topic-list-pages/topic-list-pages.service';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, containsTree, Router, RouterLink } from '@angular/router';
 import { ForumReadState, ForumTopicListItem } from '@drevo-web/shared';
 import { AvatarComponent } from '@drevo-web/ui/avatar';
 import { BadgeComponent } from '@drevo-web/ui/badge';
@@ -40,7 +40,6 @@ function shortName(fullName: string): string | undefined {
         FormatDatePipe,
         IconComponent,
         RouterLink,
-        RouterLinkActive,
         ShortDatePipe,
         TooltipDirective,
         VirtualScrollerComponent,
@@ -79,6 +78,10 @@ export class TopicListComponent {
 
     private readonly readStates = inject(ForumReadService).states;
 
+    private readonly router = inject(Router);
+
+    private readonly route = inject(ActivatedRoute);
+
     /** The excerpt of the unsent reply, by topic id. */
     protected readonly draftExcerpts = computed(
         () => new Map([...this.drafts()].map(([topicId, text]) => [topicId, draftExcerpt(text)])),
@@ -93,8 +96,23 @@ export class TopicListComponent {
 
     /** The topic, opened on its first unread message when it has one. */
     protected topicLink(topicId: number, firstUnreadId: number | undefined): readonly (string | number)[] {
-        const link = this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
+        const link = this.topicAddress(topicId);
         return firstUnreadId === undefined ? link : [...link, firstUnreadId];
+    }
+
+    /**
+     * Whether the topic is the one open. Matched against the topic's own
+     * address rather than the row's link: the link names the first unread
+     * message, which moves on as the reader reads.
+     */
+    protected isCurrent(topicId: number): boolean {
+        const url = this.router.lastSuccessfulNavigation()?.finalUrl;
+        const topic = this.router.createUrlTree([...this.topicAddress(topicId)], { relativeTo: this.route });
+        return url !== undefined && containsTree(url, topic);
+    }
+
+    private topicAddress(topicId: number): readonly (string | number)[] {
+        return this.relativeLinks() ? ['topic', topicId] : ['/forum/topic', topicId];
     }
 
     /** Who wrote the last message: «Вы» for the reader, otherwise the name cut short. */

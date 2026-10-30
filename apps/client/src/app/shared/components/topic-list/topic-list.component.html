@@ -19,9 +19,8 @@
             @let unread = readState(topic);
             <a
                 class="topic-list__link"
-                ariaCurrentWhenActive="page"
                 data-testid="topic-link"
-                routerLinkActive
+                [attr.aria-current]="isCurrent(topic.id) ? 'page' : undefined"
                 [routerLink]="topicLink(topic.id, unread.firstUnreadId)"
             >
                 @let draft = draftExcerpts().get(topic.id);

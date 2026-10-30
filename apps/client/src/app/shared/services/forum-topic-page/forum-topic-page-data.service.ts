@@ -7,7 +7,7 @@ import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
 import { ForumTopicPage } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
-import { catchError, shareReplay } from 'rxjs/operators';
+import { catchError, shareReplay, switchMap } from 'rxjs/operators';
 
 const NOT_FOUND_STATUS = 404;
 
@@ -72,6 +72,9 @@ export class ForumTopicPageDataService {
         const page = readForumPage(route);
 
         return this.forumService.getTopic(id, page, anchor).pipe(
+            switchMap(served =>
+                anchor === undefined && page === undefined ? this.fromFirstUnread(id, served) : of(served),
+            ),
             catchError((error: unknown) => {
                 // A topic that is gone is a stale link, not a fault, so it is
                 // answered without a log entry. Anything else is reported:
@@ -85,5 +88,20 @@ export class ForumTopicPageDataService {
                 return of('load-error' as const);
             }),
         );
+    }
+
+    /**
+     * A topic the address opens without naming a page or a message comes on
+     * its last page. When its first unread message lies on an earlier one, the
+     * topic is loaded again from there: read from the last page, it would move
+     * the reader's read mark past the pages in between.
+     */
+    private fromFirstUnread(id: number, served: ForumTopicPage): Observable<ForumTopicPage> {
+        const firstUnreadId = served.topic.firstUnreadId;
+        const holdsIt = served.messages.items.some(message => message.id === firstUnreadId);
+
+        return firstUnreadId === undefined || holdsIt
+            ? of(served)
+            : this.forumService.getTopic(id, undefined, firstUnreadId);
     }
 }

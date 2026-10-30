@@ -3,6 +3,7 @@ import {
     mockForumMarkReadApi,
     mockForumSectionsApi,
     mockForumTopicApi,
+    mockForumTopicPagedApi,
     mockForumTopicsApi,
     test,
 } from '../../fixtures';
@@ -12,6 +13,7 @@ import {
     createForumTopicListItemDto,
     createForumTopicListResponse,
     createForumTopicPage,
+    createForumTopicPageOf,
 } from '../../mocks/forum';
 import { ForumTopicPage } from '../../pages/forum-topic.page';
 import { ForumTopicsPage } from '../../pages/forum-topics.page';
@@ -85,5 +87,31 @@ test.describe('Forum unread messages', () => {
         await expect.poll(() => reported.at(-1)).toBe(MESSAGE_COUNT);
         await expect(topics.unreadBadge(TOPIC_TITLE)).toHaveCount(0);
         await expect(topics.link(TOPIC_TITLE)).toHaveAttribute('href', `/forum/topic/${TOPIC_ID}`);
+    });
+
+    test('opens an address that names no message on the first unread one, though it lies on an earlier page', async ({
+        authenticatedPage: page,
+    }) => {
+        const pageSize = 10;
+        const lastPage = Math.ceil(MESSAGE_COUNT / pageSize);
+        const firstUnreadId = 5;
+        const topicDto = createForumTopicDto({ id: TOPIC_ID, firstUnreadId });
+        await mockForumTopicPagedApi(page, TOPIC_ID, ({ page: requested, anchor }) =>
+            createForumTopicPageOf(
+                topicDto,
+                MESSAGES,
+                anchor === undefined ? (requested ?? lastPage) : Math.ceil(anchor / pageSize),
+                pageSize,
+            ),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        await expect(topic.unreadDivider).toBeInViewport();
+        await expect(topic.message(firstUnreadId)).toBeVisible();
+        await expect(topic.message(MESSAGE_COUNT)).toHaveCount(0);
+        expect(reported.every(id => id < MESSAGE_COUNT)).toBe(true);
     });
 });
