@@ -112,6 +112,8 @@ test.describe('Forum unread messages', () => {
         await expect(topic.unreadDivider).toBeInViewport();
         await expect(topic.message(firstUnreadId)).toBeVisible();
         await expect(topic.message(MESSAGE_COUNT)).toHaveCount(0);
-        expect(reported.every(id => id < MESSAGE_COUNT)).toBe(true);
+        // The report goes out after a pause; once it has, it stays within the page opened on.
+        await expect.poll(() => reported.length).toBeGreaterThan(0);
+        expect(Math.max(...reported)).toBeLessThanOrEqual(pageSize);
     });
 });
