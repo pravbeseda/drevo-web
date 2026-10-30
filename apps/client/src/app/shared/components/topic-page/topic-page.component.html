@@ -19,10 +19,19 @@
             }
 
             @for (item of feed(); track item.message.id) {
+                @if (item.message.id === unreadFrom()) {
+                    <div
+                        #unreadDivider
+                        class="topic-page__unread"
+                        data-testid="topic-unread-divider"
+                    >
+                        Непрочитанные сообщения
+                    </div>
+                }
                 <app-message-card
                     [message]="item.message"
                     [topicPath]="topicPath()"
-                    [anchored]="item.message.id === anchorId()"
+                    [anchored]="item.message.id === highlightedId()"
                     [own]="item.own"
                     [seriesStart]="item.seriesStart"
                     [seriesEnd]="item.seriesEnd"

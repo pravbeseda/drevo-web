@@ -30,6 +30,7 @@ import {
     CreateArticleResponseDto,
     ForumCreatedTopicDto,
     ForumPostedMessageDto,
+    ForumReadStateDto,
     ForumSectionDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
@@ -644,6 +645,24 @@ export async function mockForumReplyApi(
             ? route.fulfill({ status: 400, json: forumPostRefusal(reply.refused) })
             : route.fulfill({ json: apiSuccess(reply) });
     });
+}
+
+/**
+ * Mock POST /api/forum/topics/:id/read — answers every report with `reply`
+ * and hands back the message ids reported, in order.
+ */
+export async function mockForumMarkReadApi(
+    page: Page,
+    topicId: number,
+    reply: ForumReadStateDto,
+): Promise<readonly number[]> {
+    const reported: number[] = [];
+    await page.route(new RegExp(`/api/forum/topics/${topicId}/read$`), route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        reported.push((route.request().postDataJSON() as { lastMessageId: number }).lastMessageId);
+        return route.fulfill({ json: apiSuccess(reply) });
+    });
+    return reported;
 }
 
 /** Mock GET /api/forum/topics/:id — 404 */

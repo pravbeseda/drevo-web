@@ -1,6 +1,8 @@
 import { AuthService } from '../../../services/auth/auth.service';
+import { ForumReadService } from '../../../services/forum/forum-read.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { buildForumFeed } from '../../helpers/forum-feed';
+import { isMessageRead } from '../../helpers/forum-read';
 import { readForumAnchor } from '../../helpers/forum-route-params';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { ErrorComponent } from '../error/error.component';
@@ -10,6 +12,7 @@ import { TopicFeedEdgeComponent, TopicFeedEdgeState } from '../topic-feed-edge/t
 import { DOCUMENT } from '@angular/common';
 import {
     afterNextRender,
+    afterRenderEffect,
     ChangeDetectionStrategy,
     Component,
     computed,
@@ -31,8 +34,8 @@ import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operator
 /** Which way «load more» walks out of the page the resolver served. */
 type LoadDirection = 'previous' | 'next';
 
-/** Where the feed opens: the anchored message's id, the end of the messages, or their top. */
-type OpeningPosition = number | 'end' | 'top';
+/** Where the feed opens: the anchored message's id, the unread mark, the end of the messages, or their top. */
+type OpeningPosition = number | 'unread' | 'end' | 'top';
 
 /** Sub-pixel rounding of a scroll position the feed set itself. */
 const SCROLL_TOLERANCE_PX = 1;
@@ -48,6 +51,7 @@ export class TopicPageComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly forumService = inject(ForumService);
+    private readonly forumReadService = inject(ForumReadService);
     private readonly document = inject(DOCUMENT);
     private readonly injector = inject(Injector);
     private readonly logger = inject(LoggerService).withContext('ForumTopicPage');
@@ -67,6 +71,7 @@ export class TopicPageComponent {
     private readonly ownLogin = toSignal(inject(AuthService).user$.pipe(map(user => user?.login)));
     private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
     private readonly messagesElement = viewChild<ElementRef<HTMLElement>>('messages');
+    private readonly unreadDivider = viewChild<ElementRef<HTMLElement>>('unreadDivider');
     private releaseOpeningPosition: (() => void) | undefined;
 
     readonly anchorId = this._anchorId.asReadonly();
@@ -90,6 +95,15 @@ export class TopicPageComponent {
         return typeof result === 'object' ? result.topic : undefined;
     });
 
+    /** The first message the reader had not read when the topic opened; the mark stays there while they read on. */
+    readonly unreadFrom = computed(() => this.topic()?.firstUnreadId);
+
+    /** The anchored message, unless it is the first unread one: the unread mark shows the reader that place instead. */
+    readonly highlightedId = computed(() => {
+        const anchorId = this._anchorId();
+        return anchorId === this.unreadFrom() ? undefined : anchorId;
+    });
+
     readonly isNotFound = computed(() => this._resolveResult() === 'not-found');
     readonly isLoadError = computed(() => this._resolveResult() === 'load-error');
     readonly hasPrevious = computed(() => this._firstPage() > 1);
@@ -111,6 +125,16 @@ export class TopicPageComponent {
             )
             .subscribe(({ direction, page }) => this.mergePage(direction, page));
         inject(DestroyRef).onDestroy(() => this.releaseOpeningPosition?.());
+
+        afterRenderEffect(onCleanup => {
+            const scroller = this.scroller()?.nativeElement;
+            if (!scroller) {
+                return;
+            }
+            const onScroll = (): void => this.reportRead();
+            scroller.addEventListener('scroll', onScroll, { passive: true });
+            onCleanup(() => scroller.removeEventListener('scroll', onScroll));
+        });
     }
 
     onLoadPrevious(): void {
@@ -227,19 +251,40 @@ export class TopicPageComponent {
      * heading for the old position, and the animation would then overshoot.
      */
     private scrollToOpeningPosition(): void {
-        const position: OpeningPosition = this._anchorId() ?? (this.hasNext() ? 'top' : 'end');
+        const position = this.openingPosition();
 
         afterNextRender(
             () => {
                 this.scrollTo(position);
                 this.holdOpeningPosition(position);
+                // A feed the topic fits in never scrolls, so what it opens on is read here.
+                this.reportRead();
             },
             { injector: this.injector },
         );
     }
 
+    /**
+     * The unread mark, when the address names no other message and the served
+     * page holds it — as a chat opens on its first unread message.
+     */
+    private openingPosition(): OpeningPosition {
+        const anchorId = this.highlightedId();
+        if (anchorId !== undefined) {
+            return anchorId;
+        }
+        const unreadFrom = this.unreadFrom();
+        if (this._messages().some(message => message.id === unreadFrom)) {
+            return 'unread';
+        }
+
+        return this.hasNext() ? 'top' : 'end';
+    }
+
     private scrollTo(position: OpeningPosition): void {
-        if (position === 'end') {
+        if (position === 'unread') {
+            this.unreadDivider()?.nativeElement.scrollIntoView({ block: 'start' });
+        } else if (position === 'end') {
             this.scrollToEnd();
         } else if (position === 'top') {
             this.messagesElement()?.nativeElement.scrollIntoView({ block: 'start' });
@@ -295,6 +340,28 @@ export class TopicPageComponent {
             lastCard.scrollIntoView({ block: 'start' });
         } else {
             this.messagesElement()?.nativeElement.scrollIntoView({ block: 'end' });
+        }
+    }
+
+    /**
+     * Reports the furthest unread message the reader has on screen. Messages
+     * run down the feed in id order, so it is the last card that counts as read.
+     */
+    private reportRead(): void {
+        const topicId = this.topic()?.id;
+        const unreadFrom = this.unreadFrom();
+        const scroller = this.scroller()?.nativeElement;
+        if (topicId === undefined || unreadFrom === undefined || !scroller) {
+            return;
+        }
+
+        const feed = scroller.getBoundingClientRect();
+        const read = [...this._messages()].reverse().find(message => {
+            const card = this.document.getElementById(`message-${message.id}`)?.getBoundingClientRect();
+            return message.id >= unreadFrom && card !== undefined && isMessageRead(card, feed);
+        });
+        if (read) {
+            this.forumReadService.markSeen(topicId, read.id);
         }
     }
 

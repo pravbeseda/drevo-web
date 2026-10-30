@@ -57,6 +57,11 @@ export class ForumTopicsPage extends BasePage {
         return this.link(text).getByTestId('topic-draft-badge');
     }
 
+    /** The count of unread messages on the row. */
+    unreadBadge(text: string): Locator {
+        return this.link(text).getByTestId('topic-unread');
+    }
+
     draft(text: string): Locator {
         return this.link(text).getByTestId('topic-draft');
     }

@@ -19,6 +19,7 @@ const topicPage: ForumTopicPage = {
         author: 'Автор',
         createdAt: undefined,
         repliesCount: 0,
+        firstUnreadId: undefined,
     },
     messages: { items: [], total: 0, page: 1, pageSize: 20, totalPages: 0 },
 };
@@ -80,6 +81,47 @@ describe('ForumTopicPageDataService', () => {
         load({ id: '42', messageId: '7' });
 
         expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, 7);
+    });
+
+    describe('a topic with unread messages', () => {
+        const message = (id: number): ForumTopicPage['messages']['items'][number] => ({
+            id,
+            parentId: undefined,
+            author: { name: 'Автор', login: undefined },
+            createdAt: undefined,
+            html: '',
+        });
+        const pageOf = (ids: readonly number[], firstUnreadId: number, page: number): ForumTopicPage => ({
+            topic: { ...topicPage.topic, firstUnreadId },
+            messages: { items: ids.map(message), total: 40, page, pageSize: 20, totalPages: 2 },
+        });
+
+        it('loads it again from the first unread message when the page served holds none of them', () => {
+            const unreadPage = pageOf([21], 15, 1);
+            forumService.getTopic.mockReturnValueOnce(of(pageOf([30], 15, 2))).mockReturnValueOnce(of(unreadPage));
+
+            expect(load({ id: '42' })).toBe(unreadPage);
+            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, undefined, 15);
+        });
+
+        it('keeps the page served when it holds the first unread message', () => {
+            const servedPage = pageOf([15, 16], 15, 2);
+            forumService.getTopic.mockReturnValue(of(servedPage));
+
+            expect(load({ id: '42' })).toBe(servedPage);
+            expect(forumService.getTopic).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([
+            ['names a message', { id: '42', messageId: '30' }, {}],
+            ['asks for a page', { id: '42' }, { page: '2' }],
+        ])('keeps the page served when the address %s', (_case, params, queryParams) => {
+            forumService.getTopic.mockReturnValue(of(pageOf([30], 15, 2)));
+
+            load(params, queryParams);
+
+            expect(forumService.getTopic).toHaveBeenCalledTimes(1);
+        });
     });
 
     it.each([

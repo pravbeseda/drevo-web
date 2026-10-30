@@ -1,6 +1,8 @@
 import { AuthService } from '../../../services/auth/auth.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { mockForumDraftProvider } from '../../../services/forum/forum-draft.testing';
+import { ForumReadService } from '../../../services/forum/forum-read.service';
+import { mockForumReadProvider } from '../../../services/forum/forum-read.testing';
 import { createRouteSnapshot } from '../../testing/route-testing.helper';
 import { ForumTopicResolveResult } from '../../services/forum-topic-page/forum-topic-page-data.service';
 import { ForumComposerComponent } from '../forum-composer/forum-composer.component';
@@ -23,6 +25,7 @@ const topic: ForumTopic = {
     author: 'Иванов И.И.',
     createdAt: new Date('2025-03-15T10:00:00Z'),
     repliesCount: 5,
+    firstUnreadId: undefined,
 };
 
 /** The visible height of the feed, and a message taller than it. */
@@ -40,9 +43,14 @@ function createMessage(id: number, overrides: Partial<ForumMessage> = {}): Forum
     };
 }
 
-function createTopicPage(messages: readonly ForumMessage[], page: number, totalPages: number): ForumTopicPage {
+function createTopicPage(
+    messages: readonly ForumMessage[],
+    page: number,
+    totalPages: number,
+    firstUnreadId?: number,
+): ForumTopicPage {
     return {
-        topic,
+        topic: { ...topic, firstUnreadId },
         messages: { items: messages, total: totalPages, page, pageSize: 1, totalPages },
     };
 }
@@ -58,7 +66,7 @@ describe('TopicPageComponent', () => {
 
     const createComponent = createComponentFactory({
         component: TopicPageComponent,
-        providers: [provideRouter([]), mockLoggerProvider(), mockForumDraftProvider()],
+        providers: [provideRouter([]), mockLoggerProvider(), mockForumDraftProvider(), mockForumReadProvider()],
         detectChanges: false,
     });
 
@@ -578,6 +586,109 @@ describe('TopicPageComponent', () => {
             expect(error?.getAttribute('title')).toBe('Ошибка загрузки');
             expect(error?.getAttribute('message')).toBe('Не удалось загрузить тему. Попробуйте обновить страницу.');
             expect(cardIds()).toEqual([]);
+        });
+    });
+
+    describe('unread messages', () => {
+        const scrolledIds = (): (string | null)[] => scrolled.map(element => element.getAttribute('data-testid'));
+
+        it('marks where they start', () => {
+            render(createTopicPage([createMessage(5), createMessage(6), createMessage(7)], 1, 1, 6));
+
+            const divider = spectator.query('[data-testid="topic-unread-divider"]');
+            expect(divider).toHaveText('Непрочитанные сообщения');
+            expect(divider?.nextElementSibling?.getAttribute('data-testid')).toBe('message-6');
+        });
+
+        it('marks nothing in a topic that is all read', () => {
+            render(createTopicPage([createMessage(5), createMessage(6)], 1, 1));
+
+            expect(spectator.query('[data-testid="topic-unread-divider"]')).not.toExist();
+        });
+
+        it('opens on the mark when the address names the first unread message, without highlighting it', () => {
+            render(createTopicPage([createMessage(5), createMessage(6)], 1, 1, 6), { id: '42', messageId: '6' });
+
+            expect(scrolledIds()).toEqual(['topic-unread-divider']);
+            expect(scrollBlocks).toEqual(['start']);
+            expect(spectator.query('[data-testid="message-6"]')).not.toHaveClass('message-card--anchored');
+        });
+
+        it('opens on the mark when the address names no message', () => {
+            render(createTopicPage([createMessage(5), createMessage(6)], 2, 2, 6));
+
+            expect(scrolledIds()).toEqual(['topic-unread-divider']);
+        });
+
+        it('leaves the opening to another message the address names', () => {
+            render(createTopicPage([createMessage(5), createMessage(6)], 1, 1, 6), { id: '42', messageId: '5' });
+
+            expect(scrolledIds()).toEqual(['message-5']);
+            expect(spectator.query('[data-testid="message-5"]')).toHaveClass('message-card--anchored');
+        });
+
+        describe('reading', () => {
+            /** Where each element sits on screen; jsdom lays nothing out. */
+            let boxes: Record<string, { top: number; bottom: number }>;
+
+            beforeEach(() => {
+                boxes = { 'topic-feed': { top: 0, bottom: FEED_HEIGHT } };
+                jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+                    const box = boxes[this.getAttribute('data-testid') ?? ''] ?? { top: -1, bottom: -1 };
+                    return { ...box, height: box.bottom - box.top } as DOMRect;
+                });
+            });
+
+            const markSeen = (): jest.Mock => spectator.inject(ForumReadService).markSeen as jest.Mock;
+
+            const scrollFeed = (): void => {
+                spectator.dispatchFakeEvent('[data-testid="topic-feed"]', 'scroll');
+            };
+
+            it('reports the last message wholly in the feed once the topic opens', () => {
+                boxes['message-6'] = { top: 100, bottom: 300 };
+                boxes['message-7'] = { top: 300, bottom: 700 };
+
+                render(createTopicPage([createMessage(5), createMessage(6), createMessage(7)], 1, 1, 6));
+
+                expect(markSeen()).toHaveBeenCalledWith(42, 6);
+                expect(markSeen()).not.toHaveBeenCalledWith(42, 7);
+            });
+
+            it('reports a message as the reader scrolls it wholly into the feed', () => {
+                render(createTopicPage([createMessage(6), createMessage(7)], 1, 1, 6));
+
+                boxes['message-7'] = { top: 100, bottom: 500 };
+                scrollFeed();
+
+                expect(markSeen()).toHaveBeenLastCalledWith(42, 7);
+            });
+
+            it('reports a message taller than the feed once its end is in it', () => {
+                render(createTopicPage([createMessage(6)], 1, 1, 6));
+
+                boxes['message-6'] = { top: -400, bottom: 500 };
+                scrollFeed();
+
+                expect(markSeen()).toHaveBeenLastCalledWith(42, 6);
+            });
+
+            it('reports nothing the reader had read before', () => {
+                boxes['message-5'] = { top: 100, bottom: 300 };
+
+                render(createTopicPage([createMessage(5), createMessage(6)], 1, 1, 6));
+
+                expect(markSeen()).not.toHaveBeenCalled();
+            });
+
+            it('reports nothing in a topic that is all read', () => {
+                boxes['message-5'] = { top: 100, bottom: 300 };
+
+                render(createTopicPage([createMessage(5)], 1, 1));
+                scrollFeed();
+
+                expect(markSeen()).not.toHaveBeenCalled();
+            });
         });
     });
 });

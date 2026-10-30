@@ -33,6 +33,10 @@ export interface ForumTopicListItemDto {
     readonly article: ForumTopicArticleDto | null;
     /** Null only for a part that names no forum section. */
     readonly section: ForumTopicSectionDto | null;
+    /** Approved messages past the reader's read watermark, not written by the reader. */
+    readonly unreadCount: number;
+    /** The oldest of them; absent when `unreadCount` is `0`. */
+    readonly firstUnreadId?: number;
 }
 
 export interface ForumTopicListResponseDto {
@@ -52,6 +56,8 @@ export interface ForumTopicDto {
     readonly author: string;
     readonly createdAt: string | null;
     readonly repliesCount: number;
+    /** The oldest message the reader has not read; absent when there is none. */
+    readonly firstUnreadId?: number;
 }
 
 export interface ForumMessageAuthorDto {
@@ -104,6 +110,13 @@ export interface ForumPostedMessageDto {
 
 export interface ForumCreatedTopicDto extends ForumPostedMessageDto {
     readonly topicId: number;
+}
+
+/** What is left unread in a topic after its read watermark moved. */
+export interface ForumReadStateDto {
+    readonly unreadCount: number;
+    /** Absent when `unreadCount` is `0`. */
+    readonly firstUnreadId?: number;
 }
 
 /** The topic a message belongs to — what the legacy `forum/<id>` address resolves through. */

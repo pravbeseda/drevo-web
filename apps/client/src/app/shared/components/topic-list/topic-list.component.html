@@ -16,12 +16,12 @@
             data-testid="topic-item"
             [class.topic-list__item--divided]="index > 0"
         >
+            @let unread = readState(topic);
             <a
                 class="topic-list__link"
-                ariaCurrentWhenActive="page"
                 data-testid="topic-link"
-                routerLinkActive
-                [routerLink]="topicLink(topic.id)"
+                [attr.aria-current]="isCurrent(topic.id) ? 'page' : undefined"
+                [routerLink]="topicLink(topic.id, unread.firstUnreadId)"
             >
                 @let draft = draftExcerpts().get(topic.id);
                 <span
@@ -72,46 +72,55 @@
                             </span>
                         }
                     </span>
-                    @if (draft !== undefined) {
-                        <span
-                            class="topic-list__subtitle"
-                            data-testid="topic-draft"
-                        >
+                    <span class="topic-list__line">
+                        @if (draft !== undefined) {
                             <span
-                                class="topic-list__draft-label"
-                                data-testid="topic-draft-label"
+                                class="topic-list__subtitle"
+                                data-testid="topic-draft"
                             >
-                                Черновик:
-                            </span>
-                            {{ draft }}
-                        </span>
-                    } @else if (topic.lastExcerpt; as excerpt) {
-                        <span
-                            class="topic-list__subtitle"
-                            data-testid="topic-excerpt"
-                        >
-                            @if (lastAuthorName(topic); as name) {
                                 <span
-                                    class="topic-list__last-author"
-                                    data-testid="topic-last-author"
+                                    class="topic-list__draft-label"
+                                    data-testid="topic-draft-label"
                                 >
-                                    {{ name }}:
+                                    Черновик:
                                 </span>
-                            }
-                            {{ excerpt }}
-                        </span>
-                    } @else {
-                        <span
-                            class="topic-list__subtitle"
-                            data-testid="topic-context"
-                        >
-                            @if (topic.article; as article) {
-                                {{ ownerPrefix(topic.section?.id) }} {{ article.title }}
-                            } @else {
-                                {{ topic.section?.name }}
-                            }
-                        </span>
-                    }
+                                {{ draft }}
+                            </span>
+                        } @else if (topic.lastExcerpt; as excerpt) {
+                            <span
+                                class="topic-list__subtitle"
+                                data-testid="topic-excerpt"
+                            >
+                                @if (lastAuthorName(topic); as name) {
+                                    <span
+                                        class="topic-list__last-author"
+                                        data-testid="topic-last-author"
+                                    >
+                                        {{ name }}:
+                                    </span>
+                                }
+                                {{ excerpt }}
+                            </span>
+                        } @else {
+                            <span
+                                class="topic-list__subtitle"
+                                data-testid="topic-context"
+                            >
+                                @if (topic.article; as article) {
+                                    {{ ownerPrefix(topic.section?.id) }} {{ article.title }}
+                                } @else {
+                                    {{ topic.section?.name }}
+                                }
+                            </span>
+                        }
+                        @if (unread.unreadCount > 0) {
+                            <ui-badge
+                                class="topic-list__unread"
+                                data-testid="topic-unread"
+                                [value]="unread.unreadCount"
+                            />
+                        }
+                    </span>
                 </span>
             </a>
         </div>

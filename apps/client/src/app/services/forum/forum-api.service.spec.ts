@@ -2,11 +2,12 @@ import { ForumApiService } from './forum-api.service';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
-import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
+import { SKIP_ERROR_FOR_STATUSES, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ForumCreatedTopicDto,
     ForumMessageTopicDto,
     ForumPostedMessageDto,
+    ForumReadStateDto,
     ForumSectionDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
@@ -39,6 +40,7 @@ describe('ForumApiService', () => {
                 pinned: false,
                 article: null,
                 section: { id: 'common', name: 'Общий' },
+                unreadCount: 0,
             },
         ],
         total: 1,
@@ -231,6 +233,29 @@ describe('ForumApiService', () => {
             req.flush({ success: true, data: posted });
 
             expect(result).toEqual(posted);
+        });
+    });
+
+    describe('markRead', () => {
+        it('should POST the last read message to /api/forum/topics/<id>/read and unwrap data', () => {
+            let result: ForumReadStateDto | undefined;
+            spectator.service.markRead(42, 99).subscribe(dto => (result = dto));
+
+            const req = httpController.expectOne('/api/forum/topics/42/read');
+            expect(req.request.method).toBe('POST');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.body).toEqual({ lastMessageId: 99 });
+            req.flush({ success: true, data: { unreadCount: 1, firstUnreadId: 100 } });
+
+            expect(result).toEqual({ unreadCount: 1, firstUnreadId: 100 });
+        });
+
+        it('should keep a failure of the background write away from the error toast', () => {
+            spectator.service.markRead(42, 99).subscribe({ error: () => undefined });
+
+            const req = httpController.expectOne('/api/forum/topics/42/read');
+            expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+            req.flush({ success: false }, { status: 404, statusText: 'Not Found' });
         });
     });
 });
