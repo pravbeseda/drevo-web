@@ -103,6 +103,7 @@ export class LogDispatcher {
             message,
             context,
             data,
+            error: data instanceof Error ? data : undefined,
             timestamp: new Date(),
             url: this.currentUrl || undefined,
             alreadyReported: options?.alreadyReported,

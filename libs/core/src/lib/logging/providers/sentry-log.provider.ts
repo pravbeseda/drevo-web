@@ -100,9 +100,8 @@ export class SentryLogProvider implements LogProvider {
      * Capture error-level logs
      */
     private captureError(entry: LogEntry): void {
-        // If data contains an Error instance, capture it as exception
-        if (entry.data instanceof Error) {
-            Sentry.captureException(entry.data, {
+        if (entry.error) {
+            Sentry.captureException(entry.error, {
                 tags: this.buildTags(entry),
                 extra: {
                     message: entry.message,
