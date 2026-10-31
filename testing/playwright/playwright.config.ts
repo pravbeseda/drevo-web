@@ -56,7 +56,8 @@ export default defineConfig({
 
     use: {
         baseURL,
-        trace: 'on-first-retry',
+        // Locally there are no retries, so a trace kept only on a retry is never kept (#480).
+        trace: isCI ? 'on-first-retry' : 'retain-on-failure',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
     },
