@@ -72,7 +72,7 @@ pnpm lint:styles                                # Stylelint — when SCSS was to
 pnpm lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
 pnpm lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
 pnpm lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
-pnpm test:scripts                               # node:test specs for the gate scripts in scripts/ — no jest project there
+pnpm test:scripts                               # node:test specs in scripts/ for the gate scripts and the Playwright config — no jest project there
 pnpm lint:workflows                             # release job graph, @types/node against the engines floor — guards that only fail in a real tag push
 pnpm knip                                       # dead code and unused deps — after refactors and deletions
 pnpm test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
