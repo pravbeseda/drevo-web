@@ -1,4 +1,7 @@
+import { PLATFORM_ID } from '@angular/core';
 import { expectAny } from '@drevo-web/shared/testing';
+import { createServiceFactory } from '@ngneat/spectator/jest';
+import { LogDispatcher, LOG_PRODUCTION_MODE } from '../log-dispatcher.service';
 import { LogEntry, LogLevel } from '../log-provider.interface';
 import { SentryLogProvider } from './sentry-log.provider';
 
@@ -73,11 +76,12 @@ describe('SentryLogProvider', () => {
             );
         });
 
-        it('should capture Error instance as exception', () => {
+        it('should capture the logged Error as exception', () => {
             const error = new Error('Something went wrong');
             const entry = createEntry('error', 'Error occurred', {
                 context: 'TestService',
-                data: error,
+                data: { name: error.name, message: error.message, stack: error.stack },
+                error,
                 url: '/test-page',
             });
 
@@ -257,6 +261,27 @@ describe('SentryLogProvider', () => {
                     tags: {},
                 }),
             );
+        });
+    });
+
+    describe('behind the dispatcher', () => {
+        const createDispatcher = createServiceFactory({
+            service: LogDispatcher,
+            providers: [
+                { provide: PLATFORM_ID, useValue: 'browser' },
+                { provide: LOG_PRODUCTION_MODE, useValue: true },
+            ],
+        });
+
+        it('should capture an Error logged through the dispatcher as exception (#474)', () => {
+            const dispatcher = createDispatcher().service;
+            dispatcher.registerProvider(new SentryLogProvider(true, true));
+            const error = new Error('boom');
+
+            dispatcher.dispatch('error', 'Failed', 'Ctx', error);
+
+            expect(mockSentry.captureException).toHaveBeenCalledWith(error, expectAny(Object));
+            expect(mockSentry.captureMessage).not.toHaveBeenCalled();
         });
     });
 

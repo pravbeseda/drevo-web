@@ -22,6 +22,8 @@ export interface LogEntry {
     context?: string;
     /** Additional data (sanitized before storage) */
     data?: unknown;
+    /** The logged data when it is an Error, unsanitized, so Sentry gets its stack; never stored */
+    error?: Error;
     /** When the log was created */
     timestamp: Date;
     /** Already written to the console and Sentry by another path; only storage providers keep it */

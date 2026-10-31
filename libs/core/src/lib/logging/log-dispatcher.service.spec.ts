@@ -104,6 +104,30 @@ describe('LogDispatcher', () => {
             );
         });
 
+        it('should hand a logged Error to the providers as is, next to its sanitized data', () => {
+            const provider = createMockProvider('test');
+            spectator.service.registerProvider(provider);
+            const error = new Error('boom');
+
+            spectator.service.dispatch('error', 'Failed', 'Ctx', error);
+
+            expect(provider.log).toHaveBeenCalledWith(
+                expectObjectLike({
+                    error,
+                    data: { name: 'Error', message: 'boom', stack: error.stack },
+                }),
+            );
+        });
+
+        it('should leave the error out when the logged data is not an Error', () => {
+            const provider = createMockProvider('test');
+            spectator.service.registerProvider(provider);
+
+            spectator.service.dispatch('error', 'Failed', 'Ctx', { error: new Error('boom') });
+
+            expect(provider.log.mock.calls[0][0].error).toBeUndefined();
+        });
+
         it('should mark the entry as already reported when asked to', () => {
             const provider = createMockProvider('test');
             spectator.service.registerProvider(provider);
