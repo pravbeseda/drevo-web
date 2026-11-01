@@ -130,15 +130,12 @@ export class ForumTopicPage extends BasePage {
 
     /** How far a card's actions stick out past the top or bottom of the feed — 0 when they are within it. */
     actionsOutsideFeedPx(id: number): Promise<number> {
-        return this.message(id)
-            .getByTestId('message-reply')
-            .evaluate(button => {
-                const feed = button.closest('[data-testid="topic-feed"]')?.getBoundingClientRect();
-                const actions = button.getBoundingClientRect();
-                return feed
-                    ? Math.round(Math.max(0, feed.top - actions.top) + Math.max(0, actions.bottom - feed.bottom))
-                    : Number.NaN;
-            });
+        return this.outsideFeedPx(id, 'message-reply');
+    }
+
+    /** How far a card's avatar sticks out past the top or bottom of the feed — 0 when it is within it. */
+    avatarOutsideFeedPx(id: number): Promise<number> {
+        return this.outsideFeedPx(id, 'message-avatar');
     }
 
     /** The ↩ of a card. */
@@ -152,6 +149,18 @@ export class ForumTopicPage extends BasePage {
         await this.revealActions(id);
         await this.message(id).getByTestId('message-more').click();
         await this.page.getByTestId('message-quote').click();
+    }
+
+    private outsideFeedPx(id: number, testId: string): Promise<number> {
+        return this.message(id)
+            .getByTestId(testId)
+            .evaluate(part => {
+                const feed = part.closest('[data-testid="topic-feed"]')?.getBoundingClientRect();
+                const box = part.getBoundingClientRect();
+                return feed
+                    ? Math.round(Math.max(0, feed.top - box.top) + Math.max(0, box.bottom - feed.bottom))
+                    : Number.NaN;
+            });
     }
 
     /** A card shows its actions on hover, or on a tap on a screen without hover. */

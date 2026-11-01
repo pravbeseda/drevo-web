@@ -19,6 +19,13 @@
     background-color: var(--themed-forum-anchor-bg);
 }
 
+// Sits at the foot of the message, so on one taller than the feed it rides the
+// feed's bottom edge, and the author stays in sight without scrolling to the end.
+ui-avatar {
+    position: sticky;
+    bottom: $forum-feed-padding-v;
+}
+
 .message-card__avatar-gap {
     flex: none;
     width: $avatar-size-md;

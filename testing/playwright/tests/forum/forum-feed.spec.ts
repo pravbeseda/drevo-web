@@ -143,6 +143,26 @@ test.describe('Forum topic feed', () => {
         await expect.poll(() => topic.actionsOutsideFeedPx(2)).toBe(0);
     });
 
+    test('keeps the avatar of a message taller than the feed within sight while its start is read', async ({
+        authenticatedPage: page,
+    }) => {
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [
+                createForumMessageDto({ html: MESSAGE_HTML }, 1),
+                createForumMessageDto({ html: MESSAGE_HTML.repeat(LONG_MESSAGE_REPEATS) }, 2),
+            ]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        await topic.scrollTo('top');
+        await expect.poll(() => topic.avatarOutsideFeedPx(2)).toBe(0);
+    });
+
     test('sits a short topic at the bottom after a long one was open', async ({
         authenticatedPage: page,
         isMobile,
