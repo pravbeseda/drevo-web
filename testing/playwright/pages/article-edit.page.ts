@@ -46,6 +46,21 @@ export class ArticleEditPage extends BasePage {
         await this.cancelAction.click();
     }
 
+    /**
+     * Where a lint panel fix sits relative to its message: `below` is the gap from the
+     * message's bottom to the fix's top, `indent` the fix's left edge minus the message's.
+     */
+    async lintFixOffset(message: string, label: string): Promise<{ below: number; indent: number }> {
+        const [text, fix] = await Promise.all([
+            this.lintPanel.getByText(message, { exact: true }).boundingBox(),
+            this.lintFixButton(label).boundingBox(),
+        ]);
+        if (!text || !fix) {
+            throw new Error(`No lint message «${message}» with the fix «${label}»`);
+        }
+        return { below: fix.y - (text.y + text.height), indent: fix.x - text.x };
+    }
+
     /** The fix a lint panel diagnostic offers, by its button label */
     lintFixButton(label: string): Locator {
         return this.lintPanel.getByRole('button', { name: label });

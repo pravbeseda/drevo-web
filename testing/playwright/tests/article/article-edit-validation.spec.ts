@@ -208,6 +208,19 @@ test.describe('Article edit — validation', () => {
             );
         });
 
+        test('puts the fix on its own line, aligned with the message', async ({ authenticatedPage: page }) => {
+            const editPage = await setupEditPage(page, 'Это cвятой отец');
+            await editPage.validationIndicator.click();
+
+            const { below, indent } = await editPage.lintFixOffset(
+                'Латинские и русские буквы в одном слове',
+                'Заменить на «святой»',
+            );
+
+            expect(below).toBeGreaterThanOrEqual(0);
+            expect(indent).toBeCloseTo(0, 0);
+        });
+
         test('closes lint panel on second indicator click', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
             const indicator = editPage.validationIndicator;
