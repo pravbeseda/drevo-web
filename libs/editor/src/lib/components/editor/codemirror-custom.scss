@@ -225,6 +225,18 @@
         }
     }
 
+    .cm-diagnosticAction {
+        padding: 0 2px;
+        background-color: transparent;
+        color: var(--themed-link-color);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: var(--themed-link-hover);
+        }
+    }
+
     .cm-lintRange-active {
         background-color: var(--themed-lint-active-bg);
     }

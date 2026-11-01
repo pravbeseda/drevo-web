@@ -1,4 +1,5 @@
 import { BasePage } from './base.page';
+import { Locator } from '@playwright/test';
 
 export class ArticleEditPage extends BasePage {
     /** Root workspace element (data-testid="article-edit") */
@@ -45,9 +46,13 @@ export class ArticleEditPage extends BasePage {
         await this.cancelAction.click();
     }
 
-    /** Click the fix a lint panel diagnostic offers, by its button label */
+    /** The fix a lint panel diagnostic offers, by its button label */
+    lintFixButton(label: string): Locator {
+        return this.lintPanel.getByRole('button', { name: label });
+    }
+
     async applyLintFix(label: string): Promise<void> {
-        await this.lintPanel.getByRole('button', { name: label }).click();
+        await this.lintFixButton(label).click();
     }
 
     async clickPreviewTab(): Promise<void> {

@@ -196,6 +196,18 @@ test.describe('Article edit — validation', () => {
             await expect(indicator).toHaveClass(/validation-indicator--ok/);
         });
 
+        test('styles the fix as a link rather than the CodeMirror default button', async ({
+            authenticatedPage: page,
+        }) => {
+            const editPage = await setupEditPage(page, 'Это cвятой отец');
+            await editPage.validationIndicator.click();
+
+            await expect(editPage.lintFixButton('Заменить на «святой»')).toHaveCSS(
+                'background-color',
+                'rgba(0, 0, 0, 0)',
+            );
+        });
+
         test('closes lint panel on second indicator click', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
             const indicator = editPage.validationIndicator;
