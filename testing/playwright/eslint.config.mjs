@@ -7,6 +7,10 @@ import baseConfig from '../../eslint.config.mjs';
 export default [
     ...baseConfig,
     {
+        // What a local run writes — the same list as .gitignore here, which ESLint does not read.
+        ignores: ['playwright-report/', 'test-results/', 'coverage/'],
+    },
+    {
         ...playwright.configs['flat/recommended'],
         files: ['**/*.ts'],
     },
