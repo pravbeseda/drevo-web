@@ -191,10 +191,12 @@
         box-shadow: 0 2px 8px var(--themed-shadow-color);
     }
 
+    // Icon in the first column; message and fix actions stacked in the second.
     .cm-diagnostic {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto 1fr;
         align-items: baseline;
-        gap: 6px;
+        column-gap: 6px;
         color: var(--themed-text-primary);
         border-left: none;
 
@@ -205,7 +207,6 @@
             font-feature-settings: 'liga';
             font-variation-settings: 'FILL' 1;
             -webkit-font-smoothing: antialiased;
-            flex-shrink: 0;
             position: relative;
             top: 2px;
         }
@@ -222,6 +223,21 @@
         &::before {
             content: 'error';
             color: var(--themed-text-error);
+        }
+    }
+
+    .cm-diagnosticAction {
+        grid-column: 2;
+        justify-self: start;
+        margin-left: 0;
+        padding: 0;
+        background-color: transparent;
+        color: var(--themed-link-color);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: var(--themed-link-hover);
         }
     }
 

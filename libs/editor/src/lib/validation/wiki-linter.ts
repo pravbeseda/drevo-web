@@ -1,6 +1,17 @@
+import { ContentError } from './models/content-error.model';
 import { validateWikiContent } from './validate-wiki-content';
-import { Diagnostic, linter, lintGutter, lintKeymap } from '@codemirror/lint';
+import { Action, Diagnostic, linter, lintGutter, lintKeymap } from '@codemirror/lint';
 import { EditorView, keymap } from '@codemirror/view';
+
+function toFixActions({ suggestion }: ContentError): readonly Action[] {
+    if (suggestion === undefined) return [];
+    return [
+        {
+            name: `Заменить на «${suggestion}»`,
+            apply: (view, from, to) => view.dispatch({ changes: { from, to, insert: suggestion } }),
+        },
+    ];
+}
 
 function wikiLintSource(view: EditorView): readonly Diagnostic[] {
     return validateWikiContent(view.state.doc.toString()).map(err => ({
@@ -8,6 +19,7 @@ function wikiLintSource(view: EditorView): readonly Diagnostic[] {
         to: err.to,
         severity: err.severity,
         message: err.message,
+        actions: toFixActions(err),
     }));
 }
 
