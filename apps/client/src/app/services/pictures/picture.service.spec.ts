@@ -47,6 +47,7 @@ describe('PictureService', () => {
         pic_deleted: false,
         pic_title: 'Храм Христа Спасителя',
         pic_folder: '004',
+        pic_date: '2025-03-10T14:30:00+00:00',
         pic_width: 800,
         pic_height: 600,
     };
@@ -341,8 +342,8 @@ describe('PictureService', () => {
                 expect(pending.user).toBe('Пётр Петров');
                 expect(pending.date).toBeInstanceOf(Date);
                 expect(pending.currentTitle).toBe('Храм Христа Спасителя');
-                expect(pending.currentImageUrl).toBe('/images/004/000123.jpg');
-                expect(pending.currentThumbnailUrl).toBe('/images/thumbs/004/000123.jpg');
+                const expectedTimestamp = new Date('2025-03-10T14:30:00+00:00').getTime();
+                expect(pending.currentThumbnailUrl).toBe(`/images/thumbs/004/000123.jpg?v=${expectedTimestamp}`);
                 expect(pending.pendingImageUrl).toBeUndefined();
                 done();
             });
@@ -369,7 +370,6 @@ describe('PictureService', () => {
                 const pending = result.items[0];
                 expect(pending.isPictureDeleted).toBe(true);
                 expect(pending.currentTitle).toBeUndefined();
-                expect(pending.currentImageUrl).toBeUndefined();
                 expect(pending.currentThumbnailUrl).toBeUndefined();
                 done();
             });

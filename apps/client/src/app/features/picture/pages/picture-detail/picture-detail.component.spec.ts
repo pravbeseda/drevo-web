@@ -65,7 +65,6 @@ function createPending(overrides: Partial<PicturePending> = {}): PicturePending 
         user: 'Editor',
         date: new Date('2025-03-11T10:00:00Z'),
         currentTitle: 'Вид на Кремль',
-        currentImageUrl: '/images/0000/0042.jpg',
         currentThumbnailUrl: '/images/thumbs/0000/0042.jpg',
         currentWidth: 1920,
         currentHeight: 1280,

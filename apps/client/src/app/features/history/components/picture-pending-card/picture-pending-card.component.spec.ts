@@ -13,7 +13,6 @@ const createPending = (overrides: Partial<PicturePending> = {}): PicturePending 
     user: 'otheruser',
     date: new Date('2026-04-25'),
     currentTitle: 'Old Title',
-    currentImageUrl: '/images/folder/000010.jpg',
     currentThumbnailUrl: '/images/thumbs/folder/000010.jpg',
     currentWidth: 800,
     currentHeight: 600,

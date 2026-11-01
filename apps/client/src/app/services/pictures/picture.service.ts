@@ -151,9 +151,6 @@ export class PictureService {
     }
 
     private mapPicture(dto: PictureDto): Picture {
-        const paddedId = String(dto.pic_id).padStart(6, '0');
-        const cacheBuster = parseDate(dto.pic_date).getTime();
-
         return {
             id: dto.pic_id,
             folder: dto.pic_folder,
@@ -163,8 +160,16 @@ export class PictureService {
             date: parseDate(dto.pic_date),
             width: dto.pic_width ?? undefined,
             height: dto.pic_height ?? undefined,
-            imageUrl: `/images/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
-            thumbnailUrl: `/images/thumbs/${dto.pic_folder}/${paddedId}.jpg?v=${cacheBuster}`,
+            ...this.fileUrls(dto.pic_id, dto.pic_folder, dto.pic_date),
+        };
+    }
+
+    /** `/images` is served immutable, so a URL must change whenever the picture's file does. */
+    private fileUrls(id: number, folder: string, date: string): Pick<Picture, 'imageUrl' | 'thumbnailUrl'> {
+        const file = `${folder}/${String(id).padStart(6, '0')}.jpg?v=${parseDate(date).getTime()}`;
+        return {
+            imageUrl: `/images/${file}`,
+            thumbnailUrl: `/images/thumbs/${file}`,
         };
     }
 
@@ -176,9 +181,9 @@ export class PictureService {
     }
 
     private mapPicturePending(dto: PicturePendingDto): PicturePending {
-        const paddedPicId = String(dto.pp_pic_id).padStart(6, '0');
         const hasPendingFile = dto.pp_type === 'edit_file' || dto.pp_type === 'edit_both';
-        const folder = dto.pic_folder;
+        const current =
+            dto.pic_folder && dto.pic_date ? this.fileUrls(dto.pp_pic_id, dto.pic_folder, dto.pic_date) : undefined;
         return {
             id: dto.pp_id,
             pictureId: dto.pp_pic_id,
@@ -189,8 +194,7 @@ export class PictureService {
             user: dto.pp_user,
             date: parseDate(dto.pp_date),
             currentTitle: dto.pic_title,
-            currentImageUrl: folder ? `/images/${folder}/${paddedPicId}.jpg` : undefined,
-            currentThumbnailUrl: folder ? `/images/thumbs/${folder}/${paddedPicId}.jpg` : undefined,
+            currentThumbnailUrl: current?.thumbnailUrl,
             currentWidth: dto.pic_width ?? undefined,
             currentHeight: dto.pic_height ?? undefined,
             pendingImageUrl: hasPendingFile ? `/images/pending/${dto.pp_pic_id}_pp${dto.pp_id}.jpg` : undefined,
