@@ -45,7 +45,6 @@ export interface PicturePending {
     readonly date: Date;
     /** Absent when the picture has been deleted — see isPictureDeleted. */
     readonly currentTitle: string | undefined;
-    readonly currentImageUrl: string | undefined;
     readonly currentThumbnailUrl: string | undefined;
     readonly currentWidth: number | undefined;
     readonly currentHeight: number | undefined;

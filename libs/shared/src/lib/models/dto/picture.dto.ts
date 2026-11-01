@@ -38,6 +38,7 @@ export interface PicturePendingDto {
     readonly pic_deleted: boolean;
     readonly pic_title?: string;
     readonly pic_folder?: string;
+    readonly pic_date?: string;
     readonly pic_width?: number | null;
     readonly pic_height?: number | null;
 }
