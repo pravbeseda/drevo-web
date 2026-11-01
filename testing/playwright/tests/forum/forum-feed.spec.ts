@@ -47,6 +47,11 @@ const TOPIC = createForumTopicDto({ id: TOPIC_ID });
 const MESSAGES = Array.from({ length: MESSAGE_COUNT }, (_, index) =>
     createForumMessageDto({ html: MESSAGE_HTML }, index + 1),
 );
+/** A short message, then one taller than the feed. */
+const TALL_LAST_MESSAGE_TOPIC = createForumTopicPage(TOPIC, [
+    createForumMessageDto({ html: MESSAGE_HTML }, 1),
+    createForumMessageDto({ html: MESSAGE_HTML.repeat(LONG_MESSAGE_REPEATS) }, 2),
+]);
 
 /** A picture with no declared size, so its card grows only once the picture arrives. */
 const HELD_PICTURE_URL = '/images/thumbs/held.jpg';
@@ -100,14 +105,7 @@ test.describe('Forum topic feed', () => {
     });
 
     test('opens on the start of a last message taller than the feed', async ({ authenticatedPage: page }) => {
-        await mockForumTopicApi(
-            page,
-            TOPIC_ID,
-            createForumTopicPage(TOPIC, [
-                createForumMessageDto({ html: MESSAGE_HTML }, 1),
-                createForumMessageDto({ html: MESSAGE_HTML.repeat(LONG_MESSAGE_REPEATS) }, 2),
-            ]),
-        );
+        await mockForumTopicApi(page, TOPIC_ID, TALL_LAST_MESSAGE_TOPIC);
         const topic = new ForumTopicPage(page);
 
         await page.goto(`/forum/topic/${TOPIC_ID}`);
@@ -124,14 +122,7 @@ test.describe('Forum topic feed', () => {
     test('keeps the actions of a message taller than the feed within sight at either end of it', async ({
         authenticatedPage: page,
     }) => {
-        await mockForumTopicApi(
-            page,
-            TOPIC_ID,
-            createForumTopicPage(TOPIC, [
-                createForumMessageDto({ html: MESSAGE_HTML }, 1),
-                createForumMessageDto({ html: MESSAGE_HTML.repeat(LONG_MESSAGE_REPEATS) }, 2),
-            ]),
-        );
+        await mockForumTopicApi(page, TOPIC_ID, TALL_LAST_MESSAGE_TOPIC);
         const topic = new ForumTopicPage(page);
 
         await page.goto(`/forum/topic/${TOPIC_ID}`);
@@ -141,6 +132,19 @@ test.describe('Forum topic feed', () => {
 
         await topic.scrollTo('bottom');
         await expect.poll(() => topic.actionsOutsideFeedPx(2)).toBe(0);
+    });
+
+    test('keeps the avatar of a message taller than the feed within sight while its start is read', async ({
+        authenticatedPage: page,
+    }) => {
+        await mockForumTopicApi(page, TOPIC_ID, TALL_LAST_MESSAGE_TOPIC);
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+
+        await topic.scrollTo('top');
+        await expect.poll(() => topic.avatarOutsideFeedPx(2)).toBe(0);
     });
 
     test('sits a short topic at the bottom after a long one was open', async ({
