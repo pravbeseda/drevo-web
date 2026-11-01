@@ -45,6 +45,11 @@ export class ArticleEditPage extends BasePage {
         await this.cancelAction.click();
     }
 
+    /** Click the fix a lint panel diagnostic offers, by its button label */
+    async applyLintFix(label: string): Promise<void> {
+        await this.lintPanel.getByRole('button', { name: label }).click();
+    }
+
     async clickPreviewTab(): Promise<void> {
         await this.tabPreview.click();
     }

@@ -184,6 +184,18 @@ test.describe('Article edit — validation', () => {
             await expect(lintPanel).toContainText('Жирный текст запрещён в заголовках');
         });
 
+        test('replaces the fragment with the suggested fix', async ({ authenticatedPage: page }) => {
+            const editPage = await setupEditPage(page, 'Это cвятой отец');
+            const indicator = editPage.validationIndicator;
+            await expect(indicator).not.toHaveClass(/validation-indicator--ok/);
+
+            await indicator.click();
+            await editPage.applyLintFix('Заменить на «святой»');
+
+            await expect(editPage.editorContent).toHaveText('Это святой отец');
+            await expect(indicator).toHaveClass(/validation-indicator--ok/);
+        });
+
         test('closes lint panel on second indicator click', async ({ authenticatedPage: page }) => {
             const editPage = await setupEditPage(page, '== ((ссылка)) ==');
             const indicator = editPage.validationIndicator;
