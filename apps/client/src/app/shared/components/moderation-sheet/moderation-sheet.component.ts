@@ -4,7 +4,7 @@ import { cmDiffConfig } from '../../helpers/cm-diff-config';
 import { CheckReport, CheckReportItem, VersionTexts } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ArticleModerationPanelComponent } from '../article-moderation-panel/article-moderation-panel.component';
-import { CmDiffEditorComponent, CmDiffMode } from '../cm-diff-editor/cm-diff-editor.component';
+import { CmDiffEditorComponent, CmDiffMode, CmMark } from '../cm-diff-editor/cm-diff-editor.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -97,10 +97,21 @@ export class ModerationSheetComponent {
     });
 
     private readonly _report = signal<CheckReport | undefined>(undefined);
-    readonly marks = computed(() => this._report()?.items ?? []);
+    // An AI card covers its whole line, so only a quote located in it is worth marking.
+    readonly marks = computed(
+        (): readonly CheckReportItem[] => this._report()?.items.filter(item => item.probability === undefined) ?? [],
+    );
 
     private readonly _focused = signal<CheckReportItem | undefined>(undefined);
-    readonly focused = this._focused.asReadonly();
+    readonly focused = computed((): CmMark | undefined => {
+        const focused = this._focused();
+        if (!focused) return undefined;
+        const isAiCard = this._report()?.items.some(
+            item => item.probability !== undefined && item.from === focused.from && item.to === focused.to,
+        );
+        // An empty range scrolls to the card's line without marking it.
+        return isAiCard ? { from: focused.from, to: focused.from } : focused;
+    });
 
     // Unchanged lines stay collapsed until a finding among them is shown.
     private readonly _showUnchanged = signal(false);

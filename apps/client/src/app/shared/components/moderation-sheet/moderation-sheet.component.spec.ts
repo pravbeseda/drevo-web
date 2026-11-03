@@ -49,6 +49,14 @@ function item(from: number, isChanged: boolean): CheckReportItem {
 
 const changedItem = item(0, true);
 const unchangedItem = item(10, false);
+const aiItem: CheckReportItem = {
+    ...item(20, true),
+    to: 40,
+    ruleId: 'ai-grammar',
+    category: 'grammar',
+    level: 'fix',
+    probability: 0.9,
+};
 const report: CheckReport = {
     scope: 'full',
     items: [changedItem, unchangedItem],
@@ -226,6 +234,37 @@ describe('ModerationSheetComponent', () => {
         spectator.detectChanges();
 
         expect(editor()?.marks()).toEqual(report.items);
+    });
+
+    describe('with an AI card, which covers its whole line', () => {
+        beforeEach(() => {
+            create();
+            spectator.detectChanges();
+            spectator.triggerEventHandler(ArticleModerationPanelComponent, 'reportChanged', {
+                ...report,
+                items: [...report.items, aiItem],
+            });
+            spectator.detectChanges();
+        });
+
+        it('should not mark it', () => {
+            expect(editor()?.marks()).toEqual(report.items);
+        });
+
+        it('should only scroll to it when it is shown in the text', () => {
+            spectator.triggerEventHandler(ArticleModerationPanelComponent, 'findingSelected', aiItem);
+            spectator.detectChanges();
+
+            expect(editor()?.focused()).toEqual({ from: aiItem.from, to: aiItem.from });
+        });
+
+        it('should highlight a quote located in it', () => {
+            const quote = { ...aiItem, from: 25, to: 30 };
+            spectator.triggerEventHandler(ArticleModerationPanelComponent, 'findingSelected', quote);
+            spectator.detectChanges();
+
+            expect(editor()?.focused()).toBe(quote);
+        });
     });
 
     it('should focus a selected finding and keep the unchanged lines collapsed for a changed one', () => {

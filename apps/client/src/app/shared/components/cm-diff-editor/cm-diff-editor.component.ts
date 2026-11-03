@@ -39,17 +39,12 @@ const markDecoration = Decoration.mark({ class: 'cm-finding' });
 const focusedMarkDecoration = Decoration.mark({ class: 'cm-finding cm-finding-focused' });
 
 function buildMarks(docLength: number, { marks, focused }: MarkState): DecorationSet {
-    return Decoration.set(
-        marks
-            .filter(mark => mark.from < mark.to && mark.to <= docLength)
-            .map(mark =>
-                (mark.from === focused?.from && mark.to === focused.to ? focusedMarkDecoration : markDecoration).range(
-                    mark.from,
-                    mark.to,
-                ),
-            ),
-        true,
-    );
+    const fits = (mark: CmMark): boolean => mark.from < mark.to && mark.to <= docLength;
+    const ranges = marks
+        .filter(mark => fits(mark) && !(mark.from === focused?.from && mark.to === focused.to))
+        .map(mark => markDecoration.range(mark.from, mark.to));
+    const focusedRanges = focused && fits(focused) ? [focusedMarkDecoration.range(focused.from, focused.to)] : [];
+    return Decoration.set([...ranges, ...focusedRanges], true);
 }
 
 function marksField(initial: MarkState): Extension {
@@ -133,7 +128,7 @@ export class CmDiffEditorComponent implements OnDestroy {
     /** Computes the changes drawn; CodeMirror's own diff when absent. */
     readonly engine = input<DiffEngine>();
     readonly marks = input<readonly CmMark[]>([]);
-    /** A mark to highlight and scroll to. */
+    /** A range to highlight and scroll to, whether or not it is among `marks`; an empty one only scrolls. */
     readonly focused = input<CmMark>();
     /**
      * Grow to content height instead of filling a fixed box and scrolling

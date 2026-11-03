@@ -11,7 +11,7 @@ import { CheckCategory } from '@drevo-web/editor';
 import { EMPTY, Observable, catchError, map, throwError } from 'rxjs';
 
 /** Bumped whenever the prompt or the schema changes, so cached answers to the old wording are not reused. */
-const AI_LOCATE_PROMPT_VERSION = 1;
+const AI_LOCATE_PROMPT_VERSION = 2;
 // A click should answer in seconds, so the models think as little as they can.
 const AI_LOCATE_REASONING_EFFORT = 'low';
 
@@ -50,6 +50,7 @@ function systemPrompt(category: AiCheckCategory): string {
     return [
         'Ты — корректор православной энциклопедии на русском языке. Тебе дан один абзац статьи.',
         `Найди в нём только ${CATEGORY_TASKS[category]}. Ошибки других видов не называй.`,
+        'Дефис вместо тире — не ошибка, не называй его.',
         'Стиль цитат не оценивай. Церковнославянский богослужебный текст (молитвы, песнопения) не исправляй: его написание, грамматика и стиль — не ошибка.',
         'Для каждой ошибки верни: quote — фрагмент абзаца, скопированный символ в символ, самый короткий, по которому ошибку видно однозначно; ' +
             'suggestion — исправленный фрагмент или пустую строку, если исправление не очевидно; explanation — коротко, по-русски, в чём ошибка.',

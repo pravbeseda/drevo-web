@@ -7,7 +7,7 @@ import {
     WIKI_PICTURE_REGEX,
     WIKI_TAG_REGEX,
 } from './constants/wiki-patterns';
-import { MASK_FILLER, maskNonProse } from './mask';
+import { MASK_FILLER, maskLiteralAndComments } from './mask';
 
 const FILLER_RUN = new RegExp(`${MASK_FILLER}+`, 'gu');
 // List `*`/`#`, quote `>` and indent `:` markers open a line; a `*` glued to a word opens bold instead.
@@ -20,7 +20,8 @@ const LETTER = /\p{L}/u;
  */
 export function toProseLines(text: string): readonly string[] {
     // Comments, `<nowiki>` and footnotes can span lines, so they go before the split; both keep the line breaks.
-    const prose = maskNonProse(text).replace(WIKI_FOOTNOTE_REGEX, (_, note: string) => ` (${note})`);
+    // URLs stay: blanking one leaves the punctuation around it dangling, which reads as an error.
+    const prose = maskLiteralAndComments(text).replace(WIKI_FOOTNOTE_REGEX, (_, note: string) => ` (${note})`);
     return prose.split('\n').map(toProseLine);
 }
 

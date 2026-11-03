@@ -18,6 +18,10 @@ describe('JEV_QUESTIONS', () => {
         }
     });
 
+    it('should tell the grammar question that a hyphen in place of a dash is not an error', () => {
+        expect(JEV_QUESTIONS['grammar'].instructions).toContain('Дефис вместо тире — не ошибка');
+    });
+
     it('should let the style question set quotes and liturgical text aside', () => {
         expect(Object.keys(JEV_QUESTIONS['style'].criteria)).toEqual(expect.arrayContaining(['quote', 'liturgical']));
     });

@@ -9,7 +9,8 @@ import {
 export const MASK_FILLER = '\u0000';
 
 const LITERAL_PATTERNS: readonly RegExp[] = [WIKI_INLINE_CODE_REGEX, WIKI_NOWIKI_REGEX];
-const NON_PROSE_PATTERNS: readonly RegExp[] = [...LITERAL_PATTERNS, WIKI_COMMENT_REGEX, WIKI_URL_REGEX];
+const LITERAL_AND_COMMENT_PATTERNS: readonly RegExp[] = [...LITERAL_PATTERNS, WIKI_COMMENT_REGEX];
+const NON_PROSE_PATTERNS: readonly RegExp[] = [...LITERAL_AND_COMMENT_PATTERNS, WIKI_URL_REGEX];
 
 // Masking keeps the length and the line breaks, so offsets found in the result point into the original text.
 function mask(text: string, patterns: readonly RegExp[]): string {
@@ -22,6 +23,11 @@ function mask(text: string, patterns: readonly RegExp[]): string {
 /** Blanks what the formatter takes literally: inline code and `<nowiki>`. */
 export function maskLiteral(text: string): string {
     return mask(text, LITERAL_PATTERNS);
+}
+
+/** Blanks literal spans and comments, leaving URLs in place. */
+export function maskLiteralAndComments(text: string): string {
+    return mask(text, LITERAL_AND_COMMENT_PATTERNS);
 }
 
 /** Blanks everything a reader does not see as prose: literal spans, comments, URLs. */

@@ -29,10 +29,14 @@ describe('toProseLines', () => {
         expect(toProseLines('Начало[[первая\nвторая]] конец.')).toEqual(['Начало (первая', 'вторая) конец.']);
     });
 
-    it('should drop comments, nowiki, inline code and URLs', () => {
-        expect(
-            toProseLines('Текст [*заметка*] и `код`, <nowiki>*сырое*</nowiki> и https://drevo-info.ru/x тут.'),
-        ).toEqual(['Текст и , и тут.']);
+    it('should drop comments, nowiki and inline code', () => {
+        expect(toProseLines('Текст [*заметка*] и `код`, <nowiki>*сырое*</nowiki> тут.')).toEqual(['Текст и , тут.']);
+    });
+
+    it('should keep URLs, so the punctuation around them reads as written', () => {
+        expect(toProseLines('Сайт (опубликовано 30.05.2012), https://pravicon.com/info-692.')).toEqual([
+            'Сайт (опубликовано 30.05.2012), https://pravicon.com/info-692.',
+        ]);
     });
 
     it('should drop the body of a comment spanning lines', () => {
