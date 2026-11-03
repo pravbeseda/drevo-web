@@ -45,6 +45,10 @@ describe('toProseLines', () => {
         ).toEqual(['См. https://ru.wikipedia.org/wiki/Сергий_Радонежский_(x) и http://a.ru/*b*/c тут.']);
     });
 
+    it('should end a URL where a comment glued to it starts', () => {
+        expect(toProseLines('См. https://a.ru/x[*битая*] тут.')).toEqual(['См. https://a.ru/x тут.']);
+    });
+
     it('should still strip the markup next to a URL', () => {
         expect(toProseLines('_См._ https://drevo-info.ru/x_y_z и *тут*.')).toEqual([
             'См. https://drevo-info.ru/x_y_z и тут.',

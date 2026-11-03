@@ -31,9 +31,10 @@ export function toProseLines(text: string): readonly string[] {
 function toProseLine(line: string): string {
     // The formatter links URLs before the inline rules, so an underscore in one never reads as italic.
     const urls: string[] = [];
+    // The fillers turn to spaces first, so a URL ends where a comment glued to it starts.
     const prose = line
-        .replace(WIKI_URL_REGEX, url => `\uE000${urls.push(url) - 1}\uE001`)
         .replace(FILLER_RUN, ' ')
+        .replace(WIKI_URL_REGEX, url => `\uE000${urls.push(url) - 1}\uE001`)
         .replace(LINE_MARKER, '')
         .replace(WIKI_HEADING_REGEX, (_, h3: string | undefined, h2: string | undefined) => h3 ?? h2 ?? '')
         .replace(WIKI_LINK_REGEX, (_, link: string) => linkLabel(link))
