@@ -51,6 +51,11 @@ export function buildCheckReport(
     return { scope, items, verdict: toVerdict(counts), counts };
 }
 
+/** An AI finding carries the probability of its problem; a rule's finding is certain. */
+export function isAiFinding(item: CheckFinding): boolean {
+    return item.probability !== undefined;
+}
+
 /** The prose of the lines a check of `scope` covers, for the AI review; lines with no prose are left out. */
 export function selectProseLines(
     current: string,

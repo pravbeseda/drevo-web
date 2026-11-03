@@ -3,7 +3,7 @@ import { JevChoiceAnswer, JevChoiceQuestion } from './jev.model';
 import { CHECK_LEVELS, CheckFinding } from '@drevo-web/editor';
 
 /** Bumped whenever a question changes, so cached answers to the old wording are not reused. */
-export const JEV_QUESTIONNAIRE_VERSION = 2;
+export const JEV_QUESTIONNAIRE_VERSION = 3;
 
 export const DEFAULT_AI_THRESHOLDS: AiThresholds = { finding: 0.7, hint: 0.4 };
 
@@ -33,7 +33,7 @@ const QUESTIONNAIRE: Readonly<Record<string, QuestionnaireEntry>> = {
         category: 'grammar',
         question: {
             type: 'choice',
-            instructions: 'Есть ли в абзаце грамматические ошибки?',
+            instructions: 'Есть ли в абзаце грамматические ошибки? Дефис вместо тире — не ошибка.',
             criteria: {
                 [NONE]: 'Ошибок нет',
                 agreement: 'Нарушено согласование — род, число или падеж',

@@ -101,6 +101,23 @@ describe('CmDiffEditorComponent', () => {
         expect(scrollIntoView).toHaveBeenCalledWith(ERROR.from, { y: 'center' });
     });
 
+    it('should highlight a focused range that is not among the marks', () => {
+        spectator.setInput({ marks: [FIRST], focused: ERROR });
+        spectator.detectChanges();
+
+        expect(Array.from(spectator.queryAll('.cm-finding-focused'), el => el.textContent)).toEqual(['ошибкой']);
+        expect(marks()).toEqual(['первая', 'ошибкой']);
+    });
+
+    it('should only scroll to an empty focused range, marking nothing', () => {
+        const scrollIntoView = jest.spyOn(EditorView, 'scrollIntoView');
+        spectator.setInput({ focused: { from: ERROR.from, to: ERROR.from } });
+        spectator.detectChanges();
+
+        expect(marks()).toEqual([]);
+        expect(scrollIntoView).toHaveBeenCalledWith(ERROR.from, { y: 'center' });
+    });
+
     describe('with a diff engine', () => {
         const deleted = (): string =>
             spectator

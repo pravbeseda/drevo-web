@@ -29,10 +29,30 @@ describe('toProseLines', () => {
         expect(toProseLines('Начало[[первая\nвторая]] конец.')).toEqual(['Начало (первая', 'вторая) конец.']);
     });
 
-    it('should drop comments, nowiki, inline code and URLs', () => {
+    it('should drop comments, nowiki and inline code', () => {
+        expect(toProseLines('Текст [*заметка*] и `код`, <nowiki>*сырое*</nowiki> тут.')).toEqual(['Текст и , тут.']);
+    });
+
+    it('should keep URLs, so the punctuation around them reads as written', () => {
+        expect(toProseLines('Сайт (опубликовано 30.05.2012), https://pravicon.com/info-692.')).toEqual([
+            'Сайт (опубликовано 30.05.2012), https://pravicon.com/info-692.',
+        ]);
+    });
+
+    it('should leave the underscores and asterisks of a URL alone', () => {
         expect(
-            toProseLines('Текст [*заметка*] и `код`, <nowiki>*сырое*</nowiki> и https://drevo-info.ru/x тут.'),
-        ).toEqual(['Текст и , и тут.']);
+            toProseLines('См. https://ru.wikipedia.org/wiki/Сергий_Радонежский_(x) и http://a.ru/*b*/c тут.'),
+        ).toEqual(['См. https://ru.wikipedia.org/wiki/Сергий_Радонежский_(x) и http://a.ru/*b*/c тут.']);
+    });
+
+    it('should end a URL where a comment glued to it starts', () => {
+        expect(toProseLines('См. https://a.ru/x[*битая*] тут.')).toEqual(['См. https://a.ru/x тут.']);
+    });
+
+    it('should still strip the markup next to a URL', () => {
+        expect(toProseLines('_См._ https://drevo-info.ru/x_y_z и *тут*.')).toEqual([
+            'См. https://drevo-info.ru/x_y_z и тут.',
+        ]);
     });
 
     it('should drop the body of a comment spanning lines', () => {

@@ -79,6 +79,18 @@ describe('AiLocateService', () => {
         expect(sent?.reasoning).toEqual({ effort: 'low' });
     });
 
+    it('should tell the model that a hyphen in place of a dash is not an error', () => {
+        let sent: OpenRouterChatRequest | undefined;
+        api.complete.mockImplementation((_key: string, request: OpenRouterChatRequest) => {
+            sent = request;
+            return of(answer('{"errors":[]}'));
+        });
+
+        locate('haiku', 'grammar', TEXT);
+
+        expect(sent?.messages[0].content).toContain('Дефис вместо тире — не ошибка');
+    });
+
     it('should send a Luna click to Luna', () => {
         api.complete.mockReturnValue(of(answer('{"errors":[]}')));
 
