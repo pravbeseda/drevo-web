@@ -1,5 +1,5 @@
 import { ArticleService } from '../../../services/articles/article.service';
-import { findChangedLines } from '../../helpers/check-report';
+import { findChangedLines, isAiFinding } from '../../helpers/check-report';
 import { cmDiffConfig } from '../../helpers/cm-diff-config';
 import { CheckReport, CheckReportItem, VersionTexts } from '../../models/check-report.model';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
@@ -99,16 +99,15 @@ export class ModerationSheetComponent {
     private readonly _report = signal<CheckReport | undefined>(undefined);
     // An AI card covers its whole line, so only a quote located in it is worth marking.
     readonly marks = computed(
-        (): readonly CheckReportItem[] => this._report()?.items.filter(item => item.probability === undefined) ?? [],
+        (): readonly CheckReportItem[] => this._report()?.items.filter(item => !isAiFinding(item)) ?? [],
     );
 
     private readonly _focused = signal<CheckReportItem | undefined>(undefined);
     readonly focused = computed((): CmMark | undefined => {
         const focused = this._focused();
         if (!focused) return undefined;
-        const isAiCard = this._report()?.items.some(
-            item => item.probability !== undefined && item.from === focused.from && item.to === focused.to,
-        );
+        // A card is the report's own item; a quote located in it is a new one, even when it spans the whole line.
+        const isAiCard = isAiFinding(focused) && !!this._report()?.items.includes(focused);
         // An empty range scrolls to the card's line without marking it.
         return isAiCard ? { from: focused.from, to: focused.from } : focused;
     });

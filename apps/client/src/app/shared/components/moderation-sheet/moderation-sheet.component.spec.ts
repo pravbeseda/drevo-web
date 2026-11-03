@@ -265,6 +265,14 @@ describe('ModerationSheetComponent', () => {
 
             expect(editor()?.focused()).toBe(quote);
         });
+
+        it('should highlight a located quote that spans the whole line, as it is not the card itself', () => {
+            const quote = { ...aiItem, fragment: 'вся строка' };
+            spectator.triggerEventHandler(ArticleModerationPanelComponent, 'findingSelected', quote);
+            spectator.detectChanges();
+
+            expect(editor()?.focused()).toBe(quote);
+        });
     });
 
     it('should focus a selected finding and keep the unchanged lines collapsed for a changed one', () => {

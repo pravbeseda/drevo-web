@@ -3,7 +3,7 @@ import { AiThresholds } from '../../../services/ai-review/ai-review.model';
 import { AiReviewProgress, AiReviewService } from '../../../services/ai-review/ai-review.service';
 import { AiThresholdsService, isValidAiThresholds } from '../../../services/ai-review/ai-thresholds.service';
 import { ClipboardService } from '../../../services/clipboard/clipboard.service';
-import { buildCheckReport, selectProseLines } from '../../helpers/check-report';
+import { buildCheckReport, isAiFinding, selectProseLines } from '../../helpers/check-report';
 import { CheckReport, CheckReportItem, CheckScope, CheckVerdict, VersionTexts } from '../../models/check-report.model';
 import { AiLocateComponent } from '../ai-locate/ai-locate.component';
 import {
@@ -52,10 +52,6 @@ const PERCENT = 100;
 interface AiRun {
     readonly texts: VersionTexts;
     readonly scope: CheckScope;
-}
-
-function isAiFinding(item: CheckReportItem): boolean {
-    return item.probability !== undefined;
 }
 
 // A finding is the same across the rebuilt reports of one run, while the AI answers arrive.

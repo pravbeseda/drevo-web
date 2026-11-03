@@ -39,6 +39,18 @@ describe('toProseLines', () => {
         ]);
     });
 
+    it('should leave the underscores and asterisks of a URL alone', () => {
+        expect(
+            toProseLines('См. https://ru.wikipedia.org/wiki/Сергий_Радонежский_(x) и http://a.ru/*b*/c тут.'),
+        ).toEqual(['См. https://ru.wikipedia.org/wiki/Сергий_Радонежский_(x) и http://a.ru/*b*/c тут.']);
+    });
+
+    it('should still strip the markup next to a URL', () => {
+        expect(toProseLines('_См._ https://drevo-info.ru/x_y_z и *тут*.')).toEqual([
+            'См. https://drevo-info.ru/x_y_z и тут.',
+        ]);
+    });
+
     it('should drop the body of a comment spanning lines', () => {
         expect(toProseLines('До [*начало\nсередина\nконец*] после.')).toEqual(['До', '', 'после.']);
     });

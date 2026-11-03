@@ -6,6 +6,7 @@ import {
     WIKI_LINK_REGEX,
     WIKI_PICTURE_REGEX,
     WIKI_TAG_REGEX,
+    WIKI_URL_REGEX,
 } from './constants/wiki-patterns';
 import { MASK_FILLER, maskLiteralAndComments } from './mask';
 
@@ -13,6 +14,8 @@ const FILLER_RUN = new RegExp(`${MASK_FILLER}+`, 'gu');
 // List `*`/`#`, quote `>` and indent `:` markers open a line; a `*` glued to a word opens bold instead.
 const LINE_MARKER = /^(?:[*#]+\s+|>[>\s]*|:+\s*)/u;
 const LETTER = /\p{L}/u;
+// Private-use characters carry no meaning in an article, so a slot cannot be mistaken for text or markup.
+const URL_SLOT = /\uE000(\d+)\uE001/gu;
 
 /**
  * The prose a reader sees on each source line: index `i` is line `i + 1`, and a line
@@ -26,7 +29,10 @@ export function toProseLines(text: string): readonly string[] {
 }
 
 function toProseLine(line: string): string {
+    // The formatter links URLs before the inline rules, so an underscore in one never reads as italic.
+    const urls: string[] = [];
     const prose = line
+        .replace(WIKI_URL_REGEX, url => `\uE000${urls.push(url) - 1}\uE001`)
         .replace(FILLER_RUN, ' ')
         .replace(LINE_MARKER, '')
         .replace(WIKI_HEADING_REGEX, (_, h3: string | undefined, h2: string | undefined) => h3 ?? h2 ?? '')
@@ -36,6 +42,7 @@ function toProseLine(line: string): string {
         .replace(WIKI_PICTURE_REGEX, '')
         .replace(WIKI_TAG_REGEX, '')
         .replace(/\s+/gu, ' ')
+        .replace(URL_SLOT, (_, index: string) => urls[Number(index)] ?? '')
         .trim();
     return LETTER.test(prose) ? prose : '';
 }
