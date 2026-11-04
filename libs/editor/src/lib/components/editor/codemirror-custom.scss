@@ -241,6 +241,24 @@
         }
     }
 
+    .cm-mixed-script-letter {
+        outline: 1px solid var(--themed-text-warning);
+        outline-offset: -1px;
+        border-radius: 2px;
+    }
+
+    .cm-tooltip-hover:has(.cm-mixed-script-tooltip) {
+        background-color: var(--themed-editor-panel-bg);
+        border: 1px solid var(--themed-editor-panel-border);
+        border-radius: 4px;
+        box-shadow: 0 2px 8px var(--themed-shadow-color);
+    }
+
+    .cm-mixed-script-tooltip {
+        padding: 2px 6px;
+        color: var(--themed-text-primary);
+    }
+
     .cm-lintRange-active {
         background-color: var(--themed-lint-active-bg);
     }

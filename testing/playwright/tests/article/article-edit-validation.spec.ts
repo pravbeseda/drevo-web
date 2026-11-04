@@ -234,4 +234,18 @@ test.describe('Article edit — validation', () => {
             await expect(lintPanel).toBeHidden();
         });
     });
+
+    test.describe('Mixed-script letters', () => {
+        test('outlines the stray letter and names its alphabet on hover', async ({ authenticatedPage: page }) => {
+            const editPage = await setupEditPage(page, 'Это cвятой отец');
+            const letter = editPage.mixedScriptLetters;
+
+            await expect(letter).toHaveText('c');
+            await expect(letter).toHaveCSS('outline-style', 'solid');
+
+            await letter.hover();
+
+            await expect(editPage.mixedScriptHint).toHaveText('Латинская «c» среди кириллицы');
+        });
+    });
 });
