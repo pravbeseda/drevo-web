@@ -234,4 +234,30 @@ test.describe('Article edit — validation', () => {
             await expect(lintPanel).toBeHidden();
         });
     });
+
+    test.describe('Mixed-script letters', () => {
+        test('outlines the stray letter and names its alphabet on hover', async ({ authenticatedPage: page }) => {
+            const editPage = await setupEditPage(page, 'Это cвятой отец');
+            const letter = editPage.mixedScriptLetters;
+
+            await expect(letter).toHaveText('c');
+            await expect(letter).toHaveCSS('outline-style', 'solid');
+
+            await letter.hover();
+
+            await expect(editPage.mixedScriptHint).toHaveText('Латинская «c» среди кириллицы');
+        });
+
+        test('shows the hint and the lint message in one frame', async ({ authenticatedPage: page }) => {
+            const editPage = await setupEditPage(page, 'Это cвятой отец');
+            await expect(editPage.validationIndicator).not.toHaveClass(/validation-indicator--ok/);
+
+            await editPage.mixedScriptLetters.hover();
+
+            await expect(editPage.mixedScriptHint).toBeVisible();
+            await expect(editPage.lintTooltip).toBeVisible();
+            await expect(editPage.lintTooltip).toHaveCSS('border-top-style', 'none');
+            await expect(editPage.lintTooltip).toHaveCSS('box-shadow', 'none');
+        });
+    });
 });

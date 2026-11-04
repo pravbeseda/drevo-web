@@ -168,6 +168,19 @@
         border-color: var(--themed-editor-panel-border);
     }
 
+    // One frame around a tooltip, however many sections CodeMirror stacks in it; the sections carry none.
+    .cm-editor .cm-tooltip {
+        background-color: var(--themed-editor-panel-bg);
+        color: var(--themed-text-primary);
+        border: 1px solid var(--themed-editor-panel-border);
+        border-radius: 4px;
+        box-shadow: 0 2px 8px var(--themed-shadow-color);
+    }
+
+    .cm-editor .cm-tooltip-section:not(:first-child) {
+        border-top-color: var(--themed-editor-panel-border);
+    }
+
     .cm-tooltip-hover:has(.cm-picture-tooltip) {
         background-color: var(--themed-primary-bg);
         border: 1px solid var(--themed-border-color);
@@ -182,13 +195,6 @@
     // Lint panel & diagnostics
     .cm-gutter-lint {
         width: 1.6em;
-    }
-
-    .cm-tooltip-lint {
-        background-color: var(--themed-editor-panel-bg);
-        border: 1px solid var(--themed-editor-panel-border);
-        border-radius: 4px;
-        box-shadow: 0 2px 8px var(--themed-shadow-color);
     }
 
     // Icon in the first column; message and fix actions stacked in the second.
@@ -239,6 +245,16 @@
         &:hover {
             color: var(--themed-link-hover);
         }
+    }
+
+    .cm-mixed-script-letter {
+        outline: 1px solid var(--themed-text-warning);
+        outline-offset: -1px;
+        border-radius: 2px;
+    }
+
+    .cm-mixed-script-tooltip {
+        padding: 3px 6px 3px 8px;
     }
 
     .cm-lintRange-active {

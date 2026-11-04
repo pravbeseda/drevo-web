@@ -14,6 +14,12 @@ export class ArticleEditPage extends BasePage {
     readonly lintMarkers = this.editorContainer.locator('.cm-lint-marker-warning, .cm-lint-marker-error');
     /** CodeMirror lint panel listing the problems */
     readonly lintPanel = this.editorContainer.locator('.cm-panel-lint');
+    /** Letters of the minority alphabet outlined in a word that mixes Latin and Cyrillic */
+    readonly mixedScriptLetters = this.editorContainer.getByTestId('mixed-script-letter');
+    /** Lint message section of a hover tooltip */
+    readonly lintTooltip = this.editorContainer.locator('.cm-tooltip-hover .cm-tooltip-lint');
+    /** Hover hint naming the alphabet of an outlined letter */
+    readonly mixedScriptHint = this.editorContainer.getByTestId('mixed-script-hint');
     /** Validation status indicator; clicking it toggles the lint panel */
     readonly validationIndicator = this.page.getByTestId('validation-indicator');
     /** Warning count inside the validation indicator */

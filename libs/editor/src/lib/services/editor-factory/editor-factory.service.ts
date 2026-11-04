@@ -3,6 +3,7 @@ import { russianPhrases } from '../../constants/editor-phrases';
 import { insertTagInView } from '../../helpers/insert-tag';
 import { continueLists, decreaseListIndent, increaseListIndent } from '../../helpers/list-commands';
 import { quoteKeymap } from '../../helpers/quote-commands';
+import { mixedScriptMarks } from '../../validation/mixed-script-marks';
 import { ValidationResult } from '../../validation/models/validation-result.model';
 import { wikiLinter, wikiLintGutter, wikiLintKeymap } from '../../validation/wiki-linter';
 import { WikiHighlighterService } from '../wiki-highlighter/wiki-highlighter.service';
@@ -49,6 +50,7 @@ export class EditorFactoryService {
                 wikiLinter,
                 wikiLintGutter,
                 wikiLintKeymap,
+                mixedScriptMarks,
                 // listener
                 EditorView.updateListener.of((v: ViewUpdate) => {
                     if (v.docChanged) {
