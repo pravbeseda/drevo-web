@@ -38,6 +38,13 @@ describe('mixedScriptMarks', () => {
         view.destroy();
     });
 
+    it('should count only Latin and Cyrillic letters when choosing the minority', () => {
+        const view = createView('aaбΩΩΩ');
+
+        expect(markedLetters(view)).toEqual(['б']);
+        view.destroy();
+    });
+
     it.each(['святой Sergius', 'XIXв', 'см. https://site.ru/svyatoй', '`cвятой`'])(
         'should mark nothing in «%s»',
         doc => {

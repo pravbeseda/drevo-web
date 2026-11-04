@@ -23,8 +23,8 @@ export function isScriptLetter(letter: string, script: Script): boolean {
 
 function minorityOf(word: string): Script {
     const letters = Array.from(word);
-    const latinCount = letters.filter(letter => isScriptLetter(letter, 'latin')).length;
-    return letters.length - latinCount >= latinCount ? 'latin' : 'cyrillic';
+    const count = (script: Script): number => letters.filter(letter => isScriptLetter(letter, script)).length;
+    return count('cyrillic') >= count('latin') ? 'latin' : 'cyrillic';
 }
 
 /** Words of the prose that mix Latin and Cyrillic letters. */
