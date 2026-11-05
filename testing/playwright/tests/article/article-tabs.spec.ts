@@ -45,13 +45,6 @@ test.describe('Article tabs', () => {
         await article.waitForReady();
     });
 
-    test.describe('Stub tabs', () => {
-        test('news tab shows stub content', async () => {
-            await article.tabNews.click();
-            await expect(article.stub).toBeVisible();
-        });
-    });
-
     test.describe('Forum tab', () => {
         test('lists the discussions of this article', async ({ authenticatedPage: page }) => {
             await mockForumTopicsApi(page, createForumTopicListResponse([createForumTopicListItemDto()]));
@@ -165,14 +158,6 @@ test.describe('Article tabs', () => {
             await article.tabArticle.click();
             await expect(article.content).toBeVisible();
             await expect(article.versionBanner).toBeHidden();
-        });
-    });
-
-    test.describe('Direct URL navigation', () => {
-        test('navigating directly to stub tab URL shows stub content', async ({ authenticatedPage: page }) => {
-            await page.goto(`/articles/${ARTICLE_ID}/news`);
-            await article.waitForReady();
-            await expect(article.stub).toBeVisible();
         });
     });
 });

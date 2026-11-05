@@ -1,25 +1,24 @@
 import { PageEditSession } from '../../../shared/models/page-edit-session';
-import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
+import {
+    NewsCreateDeps,
+    injectNewsCreateDeps,
+    resolveNewsCreateSession,
+} from '../../../shared/resolvers/news-create-session.resolver';
+import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn } from '@angular/router';
 import { NewsTopic } from '@drevo-web/shared';
+import { Observable, of } from 'rxjs';
 
 /**
- * The edit session of a news item not created yet. Its sections come from the
- * news root, which resolved them ahead of this child in the same navigation.
+ * A news item created from the news history, where it was asked for. Its
+ * sections come from the news root, which resolved them ahead of this child.
  */
-export function resolveNewsCreateSession(route: ActivatedRouteSnapshot): PageEditSession {
+export function resolveHistoryNewsCreateSession(
+    route: ActivatedRouteSnapshot,
+    deps: NewsCreateDeps,
+): Observable<PageEditSession | RedirectCommand> {
     const newsTopics = (route.parent?.data['topics'] as readonly NewsTopic[] | undefined) ?? [];
-    return {
-        kind: 'news',
-        mode: 'create',
-        articleId: 0,
-        versionId: 0,
-        title: '',
-        content: '',
-        // The news are listed in the history, which is where a new one is asked for.
-        exitUrl: '/history/news',
-        draftKey: '/news/new',
-        newsTopics,
-    };
+    return resolveNewsCreateSession({ exitUrl: '/history/news', draftKey: '/news/new' }, of(newsTopics), deps);
 }
 
-export const newsCreateSessionResolver: ResolveFn<PageEditSession> = route => resolveNewsCreateSession(route);
+export const newsCreateSessionResolver: ResolveFn<PageEditSession | RedirectCommand> = route =>
+    resolveHistoryNewsCreateSession(route, injectNewsCreateDeps());

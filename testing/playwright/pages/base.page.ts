@@ -16,6 +16,11 @@ export abstract class BasePage {
         return this.page.locator(`[data-testid="${testId}"] .action-button:visible`);
     }
 
+    /** The count a tab of `ui-tabs-group` carries; hidden when the tab has none. */
+    badgeFor(tab: Locator): Locator {
+        return tab.locator('ui-badge');
+    }
+
     /**
      * Open the mobile speed-dial menu if present. No-op on desktop.
      * Call before interacting with secondary sidebar actions on mobile.

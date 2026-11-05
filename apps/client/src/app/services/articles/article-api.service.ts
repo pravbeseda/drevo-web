@@ -5,6 +5,7 @@ import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
+    ArticleCountsDto,
     ArticleFindResponseDto,
     ArticleHistoryRequestDto,
     ArticleHistoryResponseDto,
@@ -158,6 +159,21 @@ export class ArticleApiService {
             .get<ApiResponse<ArticleLinkedHereResponseDto>>(`${this.apiUrl}/api/articles/linkedhere`, {
                 params,
                 withCredentials: true,
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /** Get the badges of an article's tabs. Errors are not auto-notified — a missing badge is not worth a toast. */
+    getCounts(articleId: number): Observable<ArticleCountsDto> {
+        return this.http
+            .get<ApiResponse<ArticleCountsDto>>(`${this.apiUrl}/api/articles/${articleId}/counts`, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
             })
             .pipe(
                 map(response => {

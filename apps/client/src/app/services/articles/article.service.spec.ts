@@ -336,6 +336,18 @@ describe('ArticleService', () => {
         });
     });
 
+    describe('getCounts', () => {
+        it('maps the counts of the article tabs', done => {
+            articleApiService.getCounts.mockReturnValue(of({ news: 3, forum: 1 }));
+
+            spectator.service.getCounts(42).subscribe(result => {
+                expect(articleApiService.getCounts).toHaveBeenCalledWith(42);
+                expect(result).toEqual({ news: 3, forum: 1 });
+                done();
+            });
+        });
+    });
+
     describe('getLinkedHere', () => {
         it('should call articleApiService.getLinkedHere with defaults when only title is provided', () => {
             const mockApiResponse: ArticleLinkedHereResponseDto = {

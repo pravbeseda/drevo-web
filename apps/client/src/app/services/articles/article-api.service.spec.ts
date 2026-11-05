@@ -1,6 +1,6 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { readApiErrorBody } from '@drevo-web/core';
+import { readApiErrorBody, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import { ApprovalStatusDto, ModerationRequestDto } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ArticleApiService } from './article-api.service';
@@ -307,6 +307,21 @@ describe('ArticleApiService', () => {
                 );
             });
             req.flush(createMockSearchResponse());
+        });
+    });
+
+    describe('getCounts', () => {
+        it('reads the counts of the article tabs, leaving a failure to the caller', done => {
+            spectator.service.getCounts(42).subscribe(result => {
+                expect(result).toEqual({ news: 3, forum: 1 });
+                done();
+            });
+
+            const req = httpController.expectOne('/api/articles/42/counts');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+            req.flush({ success: true, data: { news: 3, forum: 1 } });
         });
     });
 

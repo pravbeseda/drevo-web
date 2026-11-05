@@ -36,6 +36,28 @@ describe('NewsApiService', () => {
         });
     });
 
+    describe('getArticleNews', () => {
+        it('reads a page of the news about an article', done => {
+            const list = {
+                items: [{ id: 5, title: 'Новость', newsDate: '2026-11-05', topics: [3], rank: 0 }],
+                total: 1,
+                page: 2,
+                pageSize: 25,
+                totalPages: 1,
+            };
+
+            spectator.service.getArticleNews(42, 2, 25).subscribe(result => {
+                expect(result).toEqual(list);
+                done();
+            });
+
+            const req = httpController.expectOne('/api/news/list?articleId=42&page=2&size=25');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush({ success: true, data: list });
+        });
+    });
+
     describe('createNews', () => {
         it('creates a news item, leaving its errors to the form', done => {
             const request = { title: 'Новость', newsDate: '2026-11-05', topic: 3, content: 'Текст' };

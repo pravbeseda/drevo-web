@@ -140,6 +140,15 @@ $forum-form-label-width: 64px;
 // to read — so the panes stack instead.
 $forum-panes-min-width: 800px;
 
+// News list
+$news-row-padding-v: 8px;
+
+// Fits the widest day, «18 сентября 2025», so every title starts in one column.
+$news-day-width: 140px;
+
+// Below this a title beside the day column wraps too soon — so the day goes above it.
+$news-list-stack-width: 480px;
+
 // Main page
 $main-panel-min-height: 140px;
 $main-calendar-min-height: 260px;

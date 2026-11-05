@@ -1,5 +1,5 @@
 import { resolveNewsTopics } from './news-topics.resolver';
-import { NewsService } from '../../../services/news/news.service';
+import { NewsService } from '../../services/news/news.service';
 import { MockLoggerService } from '@drevo-web/core/testing';
 import { of, throwError } from 'rxjs';
 
@@ -15,7 +15,7 @@ describe('resolveNewsTopics', () => {
         });
     });
 
-    it('reports a failure and resolves no sections, so the feed still shows', done => {
+    it('reports a failure and resolves no sections, so the page still shows', done => {
         const error = new Error('down');
         const newsService = { getTopics: jest.fn().mockReturnValue(throwError(() => error)) };
 

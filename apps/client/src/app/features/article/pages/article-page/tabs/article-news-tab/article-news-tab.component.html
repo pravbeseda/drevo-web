@@ -1,0 +1,53 @@
+@if (addNewsUrl(); as link) {
+    <app-sidebar-action
+        [order]="10"
+        icon="add"
+        label="Добавить новость"
+        priority="primary"
+        [link]="link"
+        testId="add-article-news-action"
+    />
+}
+
+@if (isLoading()) {
+    <div class="article-news__status">
+        <ui-spinner data-testid="article-news-loading" />
+    </div>
+} @else if (hasError()) {
+    <p
+        class="article-news__status article-news__status--error"
+        data-testid="article-news-error"
+    >
+        Не удалось загрузить новости. Попробуйте обновить страницу.
+    </p>
+} @else if (isEmpty()) {
+    <p
+        class="article-news__status"
+        data-testid="article-news-empty"
+    >
+        Новостей, относящихся к этой статье, не найдено.
+    </p>
+} @else {
+    <ui-virtual-scroller
+        data-testid="article-news-list"
+        [items]="rows()"
+        [totalItems]="total()"
+        [isLoading]="isLoadingMore()"
+        [trackByFn]="trackByFn"
+        (loadMore)="onLoadMore()"
+    >
+        <ng-template
+            uiVirtualScrollerItem
+            let-row
+        >
+            <a
+                class="article-news__item"
+                data-testid="article-news-item"
+                [routerLink]="['/news', row.id]"
+            >
+                <span class="article-news__day">{{ row.day }}</span>
+                <span>{{ row.title }}</span>
+            </a>
+        </ng-template>
+    </ui-virtual-scroller>
+}

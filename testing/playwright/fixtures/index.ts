@@ -39,6 +39,8 @@ export {
     mockArticlesEmpty,
     mockArticleShow,
     mockNewsCreate,
+    mockArticleNewsApi,
+    mockArticleCounts,
     mockNewsHistory,
     mockNewsMeta,
     mockNewsSave,

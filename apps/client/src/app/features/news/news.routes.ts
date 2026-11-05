@@ -1,7 +1,7 @@
 import { newsCreateSessionResolver } from './resolvers/news-create-session.resolver';
-import { newsTopicsResolver } from './resolvers/news-topics.resolver';
 import { NewsPageService } from './services/news-page.service';
 import { LinksService } from '../../services/links/links.service';
+import { newsTopicsResolver } from '../../shared/resolvers/news-topics.resolver';
 import { pageResolver } from '../../shared/resolvers/page.resolver';
 import { pageTabRoutes, shouldRerunPageResolver } from '../../shared/routes/page.routes';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';

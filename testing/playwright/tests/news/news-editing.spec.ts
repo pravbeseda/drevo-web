@@ -123,3 +123,19 @@ test.describe('News editing', () => {
         await expect(news.tableOfContentsAction).toHaveCount(0);
     });
 });
+
+test.describe('News creation without the right to edit', () => {
+    test('the address of the news editor lands on the news history', async ({ page }) => {
+        const reader = {
+            ...mockUsers.authenticated,
+            permissions: { ...mockUsers.authenticated.permissions, canEdit: false },
+        };
+        await mockAuthApi(page, reader);
+        await mockNewsTopicsApi(page);
+        await mockNewsHistory(page, createArticleHistoryResponse([]));
+
+        await page.goto('/news/new');
+
+        await expect(page).toHaveURL('/history/news');
+    });
+});

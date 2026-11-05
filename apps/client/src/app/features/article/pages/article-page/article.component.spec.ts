@@ -4,11 +4,16 @@ import { createMockArticle } from '../../../../shared/testing/article-testing.he
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { LoggerService } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ArticleVersion } from '@drevo-web/shared';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
+import { ArticleService } from '../../../../services/articles';
 
 const mockArticle = createMockArticle({ title: 'Test Article Title' });
+
+const mockArticleService = { getCounts: jest.fn() };
+const articleServiceProvider = { provide: ArticleService, useValue: mockArticleService };
 
 function createMockPageService(
     overrides: Partial<{
@@ -47,6 +52,7 @@ describe('ArticleComponent', () => {
         providers: [
             provideRouter([{ path: '**', children: [] }]),
             mockLoggerProvider(),
+            articleServiceProvider,
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService(),
@@ -56,6 +62,7 @@ describe('ArticleComponent', () => {
     });
 
     beforeEach(() => {
+        mockArticleService.getCounts.mockReset().mockReturnValue(of({ news: 0, forum: 0 }));
         dataSubject = new BehaviorSubject<Record<string, unknown>>({ article: mockArticle });
         spectator = createComponent({
             providers: [
@@ -125,6 +132,35 @@ describe('ArticleComponent', () => {
         expect(groups[1].align).toBe('end');
     });
 
+    describe('tab badges', () => {
+        const badges = (): (number | undefined)[] => spectator.component.tabGroups()[0].items.map(tab => tab.badge);
+
+        it("badges the news and discussion tabs with the article's counts", () => {
+            mockArticleService.getCounts.mockReturnValue(of({ news: 3, forum: 5 }));
+            spectator.detectChanges();
+
+            expect(mockArticleService.getCounts).toHaveBeenCalledWith(123);
+            expect(badges()).toEqual([undefined, 3, 5]);
+        });
+
+        it('leaves a tab with nothing in it unbadged', () => {
+            mockArticleService.getCounts.mockReturnValue(of({ news: 0, forum: 2 }));
+            spectator.detectChanges();
+
+            expect(badges()).toEqual([undefined, undefined, 2]);
+        });
+
+        it('reports counts that fail to load and shows no badges', () => {
+            const error = new Error('down');
+            mockArticleService.getCounts.mockReturnValue(throwError(() => error));
+            spectator.detectChanges();
+
+            const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+            expect(logger.error).toHaveBeenCalledWith('Failed to load the tab counts', { articleId: 123, error });
+            expect(badges()).toEqual([undefined, undefined, undefined]);
+        });
+    });
+
     it('should mark article tab active on article URL', async () => {
         const router = spectator.inject(Router);
         await router.navigateByUrl('/articles/123');
@@ -168,6 +204,7 @@ describe('ArticleComponent missing article', () => {
         providers: [
             provideRouter([{ path: '**', children: [] }]),
             mockLoggerProvider(),
+            articleServiceProvider,
             { provide: ArticlePageService, useValue: missingPageService },
             {
                 provide: ActivatedRoute,
@@ -190,6 +227,13 @@ describe('ArticleComponent missing article', () => {
         const spectator = createComponent();
 
         expect(spectator.query('[data-testid="article-page"]')).toBeTruthy();
+    });
+
+    it('should ask no counts for a page not created yet', () => {
+        mockArticleService.getCounts.mockClear();
+        createComponent();
+
+        expect(mockArticleService.getCounts).not.toHaveBeenCalled();
     });
 
     it('should hide the versions tab', () => {
@@ -228,6 +272,7 @@ describe('ArticleComponent error state', () => {
         providers: [
             provideRouter([{ path: '**', children: [] }]),
             mockLoggerProvider(),
+            articleServiceProvider,
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService({
@@ -258,6 +303,7 @@ describe('ArticleComponent no article ID', () => {
         providers: [
             provideRouter([{ path: '**', children: [] }]),
             mockLoggerProvider(),
+            articleServiceProvider,
             {
                 provide: ArticlePageService,
                 useValue: createMockPageService({

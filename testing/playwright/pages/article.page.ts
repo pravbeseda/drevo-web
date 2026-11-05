@@ -14,7 +14,6 @@ export class ArticlePage extends BasePage {
     readonly pictureImage = this.content.locator('.pic img');
     /** Link wrapping the picture inside `.pic` markup */
     readonly pictureLink = this.content.locator('.pic a');
-    readonly stub = this.page.getByTestId('article-stub');
     readonly versionBanner = this.page.getByTestId('version-banner');
     readonly versionBannerCurrentLink = this.versionBanner.getByRole('link', {
         name: 'Перейти к текущей версии статьи',

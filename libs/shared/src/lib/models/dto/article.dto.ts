@@ -82,6 +82,12 @@ export interface SaveArticleVersionResponseDto {
     readonly approved: ApprovalStatusDto;
 }
 
+/** The badges of an article's tabs (GET /api/articles/{id}/counts): its news and its discussion topics. */
+export interface ArticleCountsDto {
+    readonly news: number;
+    readonly forum: number;
+}
+
 /**
  * Response from resolving an article id by title (GET /api/articles/find).
  *
