@@ -85,31 +85,6 @@ test.describe('News editing', () => {
         expect(box?.height ?? 0).toBeGreaterThan(MIN_EDITOR_HEIGHT);
     });
 
-    test('a moderator changes the rank of a news item, and only the rank is sent', async ({
-        authenticatedPage: page,
-    }) => {
-        await bypassSsr(page, `**/news/${NEWS_ID}`);
-        await mockAuthApi(page, mockUsers.moderator);
-        await mockNewsMeta(page, NEWS_ID, {
-            articleId: NEWS_ID,
-            title: 'Престольный праздник',
-            newsDate: '2025-01-15',
-            topics: [1],
-            rank: 6,
-            numlist: 0,
-        });
-        await page.goto(`/news/${NEWS_ID}`);
-        await news.waitForReady();
-
-        await news.metaAction.click();
-        await news.rankOption('Событие').click();
-        const meta = page.waitForRequest(request => request.url().endsWith(`/api/news/${NEWS_ID}/meta`));
-        await news.metaSave.click();
-
-        expect((await meta).postDataJSON()).toEqual({ rank: 6 });
-        await expect(news.metaSave).toBeHidden();
-    });
-
     test('a moderator renames a news item in its editor, and only the title is sent', async ({
         authenticatedPage: page,
     }) => {

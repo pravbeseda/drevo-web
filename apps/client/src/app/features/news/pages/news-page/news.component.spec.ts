@@ -11,7 +11,6 @@ import { AuthService } from '../../../../services/auth/auth.service';
 import { NewsService } from '../../../../services/news/news.service';
 import { NewsTopicSidebarActionComponent } from '../../../../shared/components/news-topic-sidebar-action/news-topic-sidebar-action.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { NewsMetaDialogComponent } from '../../components/news-meta-dialog/news-meta-dialog.component';
 import { NotificationService } from '@drevo-web/core';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { ModalService } from '@drevo-web/ui/modal';
@@ -20,7 +19,6 @@ const news = createMockArticle({
     articleId: 7,
     title: 'Новость',
     topics: [3],
-    rank: 4,
     newsDate: new Date(2026, 10, 4),
 });
 const meta: NewsMeta = { articleId: 7, title: 'Другая', newsDate: undefined, topics: [5], rank: 6, numlist: 0 };
@@ -143,6 +141,12 @@ describe('NewsComponent', () => {
             await at('/news/7');
 
             expect(sectionAction()).toBeNull();
+        });
+
+        it('offer no meta form: the title and the day are edited with the text', async () => {
+            user.next(moderator());
+            await at('/news/7');
+
             expect(metaAction()).toBeUndefined();
         });
 
@@ -151,11 +155,9 @@ describe('NewsComponent', () => {
 
             await at('/news/7');
             expect(sectionAction()?.selected()).toBe(3);
-            expect(metaAction()).toBeDefined();
 
             await at('/news/7/version/70');
             expect(sectionAction()?.topics()).toEqual(topics);
-            expect(metaAction()).toBeDefined();
         });
 
         it('are not offered in the editor, nor on the other tabs', async () => {
@@ -165,7 +167,7 @@ describe('NewsComponent', () => {
             expect(sectionAction()).toBeNull();
 
             await at('/news/7/history');
-            expect(metaAction()).toBeUndefined();
+            expect(sectionAction()).toBeNull();
         });
 
         it('saves the picked section and takes what the news item now holds', async () => {
@@ -188,20 +190,6 @@ describe('NewsComponent', () => {
 
             expect(pageService.applyMeta).not.toHaveBeenCalled();
             expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('Не удалось сохранить раздел');
-        });
-
-        it('opens the meta form filled with what the news item has, and takes what is saved', async () => {
-            user.next(moderator());
-            await at('/news/7');
-
-            metaAction()?.activated.emit();
-
-            const open = jest.mocked(spectator.inject(ModalService).open);
-            expect(open).toHaveBeenCalledWith(expect.any(Function), {
-                data: { newsId: 7, fields: { title: 'Новость', newsDate: '2026-11-04', topic: 3 }, rank: 4 },
-            });
-            await expect(open.mock.calls[0][0]()).resolves.toBe(NewsMetaDialogComponent);
-            expect(pageService.applyMeta).toHaveBeenCalledWith(meta);
         });
     });
 });

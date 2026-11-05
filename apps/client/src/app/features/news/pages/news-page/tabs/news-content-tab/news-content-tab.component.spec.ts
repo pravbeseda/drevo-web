@@ -42,7 +42,6 @@ describe('NewsContentTabComponent', () => {
                 newsDate: new Date(2026, 10, 4),
                 title: 'Новость',
                 topics: [3],
-                rank: 4,
             }),
         );
         sections = signal<readonly NewsTopic[]>([

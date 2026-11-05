@@ -1,7 +1,7 @@
 import { BasePage } from './base.page';
 import { Locator } from '@playwright/test';
 
-/** A news item's page, its editor fields and its moderator's meta form. */
+/** A news item's page, its editor fields and its section picker. */
 export class NewsPage extends BasePage {
     readonly root = this.page.getByTestId('news-page');
     readonly content = this.page.getByTestId('news-content');
@@ -15,11 +15,8 @@ export class NewsPage extends BasePage {
 
     /** «Добавить новость» on the news tab of the history (desktop sidebar or mobile FAB). */
     readonly addNewsAction = this.sidebarAction('add-news-action');
-    /** «Свойства новости», a moderator's action on a news item. */
-    readonly metaAction = this.sidebarAction('news-meta-action');
     readonly titleInput = this.page.getByTestId('news-title-input').locator('input');
     readonly dateInput = this.page.getByTestId('news-date-input').locator('input');
-    readonly metaSave = this.page.getByTestId('news-meta-save');
 
     /** «Раздел» in the sidebar, which opens the panel of sections. */
     readonly topicAction = this.sidebarAction('news-topic-action');
@@ -30,11 +27,6 @@ export class NewsPage extends BasePage {
     /** A section in the panel of sections, by its id. */
     topicCheckbox(id: number): Locator {
         return this.page.getByTestId(`news-topic-${id}`).locator('input');
-    }
-
-    /** A rank to pick in the meta form, by its label. */
-    rankOption(label: string): Locator {
-        return this.page.getByTestId('news-rank-input').getByText(label, { exact: true });
     }
 
     async waitForReady(): Promise<void> {

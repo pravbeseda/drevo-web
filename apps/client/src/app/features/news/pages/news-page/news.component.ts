@@ -2,24 +2,21 @@ import { AuthService } from '../../../../services/auth/auth.service';
 import { NewsService } from '../../../../services/news/news.service';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { NewsTopicSidebarActionComponent } from '../../../../shared/components/news-topic-sidebar-action/news-topic-sidebar-action.component';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
 import { isPageContentPath, primaryPath } from '../../../../shared/helpers/content-tab';
 import { pageUrl } from '../../../../shared/helpers/page-kind';
-import { NewsMetaDialogData } from '../../components/news-meta-dialog/news-meta-dialog.component';
 import { NewsPageService } from '../../services/news-page.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { ArticleVersion, NewsMeta, NewsTopic, toCalendarDateString } from '@drevo-web/shared';
-import { ModalService } from '@drevo-web/ui/modal';
+import { ArticleVersion, NewsTopic } from '@drevo-web/shared';
 import { TabGroup, TabsGroupComponent } from '@drevo-web/ui/tabs-group';
 import { filter, map } from 'rxjs';
 
 /**
  * The page of one news item: its tabs around the outlet that shows the active
- * one, and a moderator's section and meta actions on the item and its versions.
+ * one, and a moderator's section action on the item and its versions.
  */
 @Component({
     selector: 'app-news',
@@ -27,7 +24,6 @@ import { filter, map } from 'rxjs';
         ErrorComponent,
         NewsTopicSidebarActionComponent,
         RouterOutlet,
-        SidebarActionComponent,
         SidebarReserveComponent,
         TabsGroupComponent,
     ],
@@ -39,7 +35,6 @@ export class NewsComponent {
     private readonly pageService = inject(NewsPageService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
-    private readonly modalService = inject(ModalService);
     private readonly newsService = inject(NewsService);
     private readonly notification = inject(NotificationService);
     private readonly destroyRef = inject(DestroyRef);
@@ -77,7 +72,7 @@ export class NewsComponent {
         () => this.newsTabActive() && !primaryPath(this.router, this.url())?.endsWith('/edit'),
     );
 
-    readonly canEditMeta = computed(() => this.isViewingNews() && (this.user()?.permissions.canModerate ?? false));
+    readonly canPickTopic = computed(() => this.isViewingNews() && (this.user()?.permissions.canModerate ?? false));
     readonly topics = this.pageService.topics;
 
     private readonly _isSavingTopic = signal(false);
@@ -130,32 +125,6 @@ export class NewsComponent {
                     this.logger.error('Failed to save the news section', err);
                     this.notification.error('Не удалось сохранить раздел');
                 },
-            });
-    }
-
-    openMeta(): void {
-        const news = this.news();
-        if (!news) return;
-        const data: NewsMetaDialogData = {
-            newsId: news.articleId,
-            fields: {
-                title: news.title,
-                newsDate: news.newsDate ? toCalendarDateString(news.newsDate) : '',
-                topic: news.topics[0],
-            },
-            rank: news.rank ?? 0,
-        };
-        this.modalService
-            .open<NewsMetaDialogData, NewsMeta>(
-                () =>
-                    import('../../components/news-meta-dialog/news-meta-dialog.component').then(
-                        m => m.NewsMetaDialogComponent,
-                    ),
-                { data },
-            )
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(meta => {
-                if (meta) this.pageService.applyMeta(meta);
             });
     }
 }

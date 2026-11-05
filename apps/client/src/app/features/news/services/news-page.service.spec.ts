@@ -62,7 +62,7 @@ describe('NewsPageService', () => {
     });
 
     it('takes the meta a moderator changed, and retitles the page heading', () => {
-        spectator.service.setNews(createMockArticle({ articleId: 7, title: 'Новость', topics: [1], rank: 4 }), topics);
+        spectator.service.setNews(createMockArticle({ articleId: 7, title: 'Новость', topics: [1] }), topics);
 
         spectator.service.applyMeta({
             articleId: 7,
@@ -78,7 +78,6 @@ describe('NewsPageService', () => {
                 title: 'Другой заголовок',
                 newsDate: new Date(2026, 10, 6),
                 topics: [2],
-                rank: 6,
             }),
         );
         expect(spectator.service.sections()).toEqual([{ id: 2, title: 'Общество' }]);

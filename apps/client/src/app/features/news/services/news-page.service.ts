@@ -49,9 +49,7 @@ export class NewsPageService implements PageContext {
     /** Takes what a moderator changed about the news item, the page heading included. */
     applyMeta(meta: NewsMeta): void {
         this._article.update(current =>
-            current
-                ? { ...current, title: meta.title, newsDate: meta.newsDate, topics: meta.topics, rank: meta.rank }
-                : current,
+            current ? { ...current, title: meta.title, newsDate: meta.newsDate, topics: meta.topics } : current,
         );
         this.pageTitleStrategy.retitle('news', meta.articleId, meta.title);
         this.logger.info('News meta applied', { id: meta.articleId });

@@ -233,7 +233,6 @@ export class ArticleService {
             comment: response.comment,
             topics: response.topics ?? [],
             ...(response.newsDate ? { newsDate: parseCalendarDate(response.newsDate) } : {}),
-            ...(response.rank === undefined ? {} : { rank: response.rank }),
         };
     }
 
