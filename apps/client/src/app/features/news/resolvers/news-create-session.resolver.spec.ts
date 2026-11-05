@@ -1,27 +1,25 @@
 import { resolveNewsCreateSession } from './news-create-session.resolver';
-import { NewsService } from '../../../services/news/news.service';
-import { MockLoggerService } from '@drevo-web/core/testing';
-import { of } from 'rxjs';
+import { ActivatedRouteSnapshot } from '@angular/router';
 
 describe('resolveNewsCreateSession', () => {
-    it('opens an empty news item, its sections to pick from', done => {
-        const topics = [{ id: 3, title: 'Церковь' }];
-        const newsService = { getTopics: jest.fn().mockReturnValue(of(topics)) };
+    const routeUnder = (parentData: Record<string, unknown>): ActivatedRouteSnapshot =>
+        ({ parent: { data: parentData } }) as unknown as ActivatedRouteSnapshot;
 
-        resolveNewsCreateSession(
-            newsService as unknown as NewsService,
-            new MockLoggerService().withContext('t'),
-        ).subscribe(session => {
-            expect(session).toEqual({
-                kind: 'news',
-                mode: 'create',
-                articleId: 0,
-                versionId: 0,
-                title: '',
-                content: '',
-                newsTopics: topics,
-            });
-            done();
+    it('opens an empty news item with the sections the news root already resolved', () => {
+        const topics = [{ id: 3, title: 'Церковь' }];
+
+        expect(resolveNewsCreateSession(routeUnder({ topics }))).toEqual({
+            kind: 'news',
+            mode: 'create',
+            articleId: 0,
+            versionId: 0,
+            title: '',
+            content: '',
+            newsTopics: topics,
         });
+    });
+
+    it('opens it with no sections when the root resolved none', () => {
+        expect(resolveNewsCreateSession(routeUnder({})).newsTopics).toEqual([]);
     });
 });

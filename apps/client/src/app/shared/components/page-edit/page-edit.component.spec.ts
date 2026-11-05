@@ -1164,4 +1164,15 @@ describe('PageEditComponent creating a news item', () => {
 
         expect(router.navigateByUrl).toHaveBeenCalledWith('/history/news');
     });
+
+    it('asks before cancel discards a title, a day or a section typed with no text yet', async () => {
+        const confirmation = spectator.inject(ConfirmationService);
+        confirmation.open.mockReturnValue(of('cancel'));
+        spectator.component.onNewsFields({ title: 'Новость', newsDate: '2026-11-05', topic: undefined });
+
+        await spectator.component.cancel();
+
+        expect(confirmation.open).toHaveBeenCalled();
+        expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
 });

@@ -105,11 +105,12 @@ export class PageEditComponent implements OnInit, OnDestroy {
     private readonly _articleId = signal(0);
     private readonly _kind = signal<PageKind>('articles');
     private readonly _newsTopics = signal<readonly NewsTopic[]>([]);
-    private readonly _newsFields = signal<NewsFields>({
+    private readonly initialNewsFields: NewsFields = {
         title: '',
         newsDate: toCalendarDateString(new Date()),
         topic: undefined,
-    });
+    };
+    private readonly _newsFields = signal<NewsFields>(this.initialNewsFields);
     private readonly _isNewsCreate = signal(false);
 
     private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
@@ -394,6 +395,7 @@ export class PageEditComponent implements OnInit, OnDestroy {
             // The draft is written 3 s after typing stops, so fresh edits may not be stored yet.
             const hasUnsavedChanges =
                 this._editorContent() !== session.content ||
+                this._newsFields() !== this.initialNewsFields ||
                 (await this.draftEditorService.getDraft(draftRoute)) !== undefined;
 
             if (!hasUnsavedChanges) {
