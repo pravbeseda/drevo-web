@@ -2,7 +2,7 @@ import { ArticleService } from '../../../services/articles';
 import { pageUrl, versionUrl } from '../../helpers/page-kind';
 import { parsePositiveIntParam, readRouteParam } from '../../helpers/route-params';
 import { PageContext } from '../../services/page-context/page-context';
-import { ArticleSidebarActionsComponent } from '../article-sidebar-actions/article-sidebar-actions.component';
+import { PageSidebarActionsComponent } from '../page-sidebar-actions/page-sidebar-actions.component';
 import { ReviewBlockComponent } from '../review-block/review-block.component';
 import { WikiContentComponent } from '../wiki-content/wiki-content.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -28,7 +28,7 @@ const VERSION_LABELS: Readonly<Record<PageKind, { readonly version: string; read
     selector: 'app-page-version-tab',
     imports: [
         WikiContentComponent,
-        ArticleSidebarActionsComponent,
+        PageSidebarActionsComponent,
         ReviewBlockComponent,
         BannerComponent,
         RouterLink,
@@ -59,8 +59,6 @@ export class PageVersionTabComponent implements OnInit {
     readonly kind = this.page.kind;
     readonly labels = VERSION_LABELS[this.kind];
     readonly reviewTarget = REVIEW_TARGET[this.kind];
-    // shortcut: news versions get no edit or moderation actions yet, upgrade with the news editor.
-    readonly hasArticleActions = this.kind === 'articles';
 
     readonly articleUrl = computed(() => {
         const id = this.page.articleId();

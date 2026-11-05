@@ -34,12 +34,12 @@ describe('SidebarNavComponent', () => {
         expect(items[0]).toHaveText('Изменения');
     });
 
-    it('should link to the news feed', () => {
+    it('should not offer a news section: the news are in the history', () => {
         spectator = createComponent();
 
         const newsItem = spectator.queryAll('.nav-item').find(item => item.textContent?.includes('Новости'));
 
-        expect(newsItem).toHaveAttribute('href', '/news');
+        expect(newsItem).toBeUndefined();
     });
 
     it('should link to the forum', () => {

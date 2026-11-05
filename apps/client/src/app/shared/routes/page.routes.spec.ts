@@ -1,4 +1,5 @@
 import { pageTabRoutes, shouldRerunPageResolver } from './page.routes';
+import { LinksService } from '../../services/links/links.service';
 import { createRouteSnapshot } from '../testing/route-testing.helper';
 import { ActivatedRouteSnapshot, UrlSegment } from '@angular/router';
 
@@ -64,24 +65,37 @@ describe('shouldRerunPageResolver', () => {
 
 describe('pageTabRoutes', () => {
     it('addresses one version, the versions and the discussions of a page', () => {
-        expect(pageTabRoutes().map(route => route.path)).toEqual(['version/:versionId', 'history', 'forum']);
+        expect(pageTabRoutes('articles').map(route => route.path)).toEqual([
+            'version/:versionId',
+            'version/:versionId/edit',
+            'history',
+            'forum',
+        ]);
+    });
+
+    it('edits a version of the page, its session resolved for the kind, its title marked as unsaved', () => {
+        const edit = pageTabRoutes('news').find(route => route.path === 'version/:versionId/edit');
+
+        expect(edit?.resolve?.['session']).toBeDefined();
+        expect(edit?.data).toEqual({ titleSource: 'session', titlePrefix: '*' });
+        expect(edit?.providers).toEqual([LinksService]);
     });
 
     it('opens a discussion topic under the page', () => {
-        const forum = pageTabRoutes().find(route => route.path === 'forum');
+        const forum = pageTabRoutes('articles').find(route => route.path === 'forum');
 
         expect(forum?.children?.map(route => route.path)).toEqual(['topic/:id', 'topic/:id/:messageId', 'new']);
     });
 
     it('hands every caller its own objects — the router writes its bookkeeping onto them', () => {
-        const [first] = pageTabRoutes();
-        const [second] = pageTabRoutes();
+        const [first] = pageTabRoutes('articles');
+        const [second] = pageTabRoutes('articles');
 
         expect(first).not.toBe(second);
     });
 
     it('loads every tab lazily', async () => {
-        for (const route of pageTabRoutes()) {
+        for (const route of pageTabRoutes('articles')) {
             expect(await route.loadComponent?.()).toBeDefined();
         }
     });

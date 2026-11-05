@@ -1,0 +1,18 @@
+@use 'tokens' as *;
+
+.news-topic-panel {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-lg;
+    padding: $gap-md;
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__actions {
+        display: flex;
+        gap: $gap-md;
+    }
+}

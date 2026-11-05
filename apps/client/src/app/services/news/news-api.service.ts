@@ -1,7 +1,16 @@
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ApiResponse, NewsFeedResponseDto, NewsTopicDto, assertIsDefined } from '@drevo-web/shared';
+import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
+import {
+    ApiResponse,
+    CreateArticleResponseDto,
+    CreateNewsRequestDto,
+    NewsMetaRequestDto,
+    NewsMetaResponseDto,
+    NewsTopicDto,
+    assertIsDefined,
+} from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -18,21 +27,10 @@ export class NewsApiService {
     private readonly apiUrl = environment.apiUrl;
     private readonly http = inject(HttpClient);
 
-    /**
-     * Get a page of the published news, newest first.
-     *
-     * @param topic - Section id; omitted means every section
-     * @param page - Page number (1-based)
-     * @param pageSize - Number of items per page
-     */
-    getFeed(topic: number | undefined, page: number, pageSize: number): Observable<NewsFeedResponseDto> {
-        let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
-        if (topic !== undefined) {
-            params = params.set('topic', topic.toString());
-        }
-
+    /** Get the news sections. */
+    getTopics(): Observable<readonly NewsTopicDto[]> {
         return this.http
-            .get<ApiResponse<NewsFeedResponseDto>>(`${this.apiUrl}/api/news/list`, { params, withCredentials: true })
+            .get<ApiResponse<readonly NewsTopicDto[]>>(`${this.apiUrl}/api/news/topics`, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -41,10 +39,33 @@ export class NewsApiService {
             );
     }
 
-    /** Get the news sections. */
-    getTopics(): Observable<readonly NewsTopicDto[]> {
+    /**
+     * Create a news item. Errors are not auto-notified — the editor explains them.
+     */
+    createNews(request: CreateNewsRequestDto): Observable<CreateArticleResponseDto> {
         return this.http
-            .get<ApiResponse<readonly NewsTopicDto[]>>(`${this.apiUrl}/api/news/topics`, { withCredentials: true })
+            .post<ApiResponse<CreateArticleResponseDto>>(`${this.apiUrl}/api/news/create`, request, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Change a news item's title, date, section, rank or mailing (moderator only).
+     * Errors are not auto-notified — the form explains them.
+     */
+    updateMeta(newsId: number, request: NewsMetaRequestDto): Observable<NewsMetaResponseDto> {
+        return this.http
+            .post<ApiResponse<NewsMetaResponseDto>>(`${this.apiUrl}/api/news/${newsId}/meta`, request, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

@@ -4,8 +4,16 @@
         title="Ошибка"
         [message]="error()"
     />
-} @else if (news()) {
+} @else if (news(); as news) {
     <app-sidebar-reserve />
+    @if (canPickTopic()) {
+        <app-news-topic-sidebar-action
+            [topics]="topics()"
+            [selected]="news.topics[0]"
+            [busy]="isSavingTopic()"
+            (picked)="saveTopic($event)"
+        />
+    }
 
     <article
         class="news"

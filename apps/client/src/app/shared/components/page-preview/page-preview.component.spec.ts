@@ -1,15 +1,15 @@
-import { ArticleService } from '../../../../services/articles';
-import { PreviewComponent } from './preview.component';
+import { ArticleService } from '../../../services/articles';
+import { PagePreviewComponent } from './page-preview.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { of, throwError } from 'rxjs';
 
-describe('PreviewComponent', () => {
-    let spectator: Spectator<PreviewComponent>;
+describe('PagePreviewComponent', () => {
+    let spectator: Spectator<PagePreviewComponent>;
     let articleService: jest.Mocked<ArticleService>;
 
     const createComponent = createComponentFactory({
-        component: PreviewComponent,
+        component: PagePreviewComponent,
         providers: [mockLoggerProvider()],
         mocks: [ArticleService],
         detectChanges: false,
@@ -43,7 +43,15 @@ describe('PreviewComponent', () => {
         articleService.previewArticle.mockReturnValue(of('<p>Formatted</p>'));
         spectator.detectChanges();
 
-        expect(articleService.previewArticle).toHaveBeenCalledWith('== Test ==\nSome wiki content', 42);
+        expect(articleService.previewArticle).toHaveBeenCalledWith('== Test ==\nSome wiki content', 42, 'articles');
+    });
+
+    it('should preview a news text through the news endpoints', () => {
+        articleService.previewArticle.mockReturnValue(of('<p>Formatted</p>'));
+        spectator.setInput('kind', 'news');
+        spectator.detectChanges();
+
+        expect(articleService.previewArticle).toHaveBeenCalledWith('== Test ==\nSome wiki content', 42, 'news');
     });
 
     it('should display formatted content after loading', () => {

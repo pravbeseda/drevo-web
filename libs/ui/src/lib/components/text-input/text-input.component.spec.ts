@@ -112,6 +112,13 @@ describe('TextInputComponent', () => {
         expect(input.autocomplete).toBe('current-password');
     });
 
+    it('should take a calendar day', () => {
+        spectator.setInput('type', 'date');
+        spectator.detectChanges();
+
+        expect(spectator.query<HTMLInputElement>('input')?.type).toBe('date');
+    });
+
     describe('value input', () => {
         it('should display value from input binding', () => {
             spectator.setInput('value', 'external value');

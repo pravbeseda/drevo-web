@@ -1,16 +1,16 @@
 @if (news(); as news) {
+    <app-page-sidebar-actions
+        kind="news"
+        [version]="news"
+        [editUrl]="editUrl()"
+        (moderated)="onModerated($event)"
+    />
     <div class="news-meta">
         @if (date(); as date) {
             <span data-testid="news-date">{{ date }}</span>
         }
         @for (section of sections(); track section.id) {
-            <a
-                data-testid="news-section"
-                routerLink="/news"
-                [queryParams]="{ topic: section.id }"
-            >
-                {{ section.title }}
-            </a>
+            <span data-testid="news-section">{{ section.title }}</span>
         }
     </div>
     <app-wiki-content

@@ -1,0 +1,16 @@
+@use 'tokens' as *;
+
+:host {
+    display: block;
+    padding: $gap-md $gap-md 0;
+}
+
+.news-fields__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $gap-md;
+}
+
+.news-fields__title {
+    flex: 1;
+}

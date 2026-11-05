@@ -1,0 +1,49 @@
+<app-sidebar-action
+    [order]="40"
+    [priority]="priority()"
+    icon="category"
+    [label]="label()"
+    testId="news-topic-action"
+    (activated)="togglePanel()"
+/>
+
+<ui-side-panel
+    header="Раздел"
+    [open]="isPanelOpen()"
+    (closed)="closePanel()"
+>
+    @if (isPanelOpen()) {
+        <div class="news-topic-panel">
+            <div class="news-topic-panel__list">
+                @for (topic of topics(); track topic.id) {
+                    <ui-checkbox
+                        [label]="topic.title"
+                        [attr.data-testid]="'news-topic-' + topic.id"
+                        [disabled]="busy()"
+                        [ngModel]="pending() === topic.id"
+                        (valueChanged)="onToggle(topic.id, $event)"
+                    />
+                }
+            </div>
+            <div class="news-topic-panel__actions">
+                <ui-button
+                    variant="filled"
+                    accent="primary"
+                    testId="news-topic-ok"
+                    [loading]="busy()"
+                    [disabled]="busy()"
+                    (click)="confirm()"
+                >
+                    OK
+                </ui-button>
+                <ui-button
+                    variant="outlined"
+                    [disabled]="busy()"
+                    (click)="closePanel()"
+                >
+                    Отмена
+                </ui-button>
+            </div>
+        </div>
+    }
+</ui-side-panel>

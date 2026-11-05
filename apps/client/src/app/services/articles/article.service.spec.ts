@@ -157,7 +157,7 @@ describe('ArticleService', () => {
 
             spectator.service.getArticleVersion(789).subscribe();
 
-            expect(articleApiService.getArticleVersion).toHaveBeenCalledWith(789);
+            expect(articleApiService.getArticleVersion).toHaveBeenCalledWith(789, 'articles');
         });
 
         it('should map API response to frontend model', done => {
@@ -403,11 +403,14 @@ describe('ArticleService', () => {
                 })
                 .subscribe();
 
-            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith({
-                versionId: 456,
-                content: 'New content',
-                info: 'Updated description',
-            });
+            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith(
+                {
+                    versionId: 456,
+                    content: 'New content',
+                    info: 'Updated description',
+                },
+                'articles',
+            );
         });
 
         it('should map API response to frontend model', done => {
@@ -471,10 +474,13 @@ describe('ArticleService', () => {
                 })
                 .subscribe();
 
-            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith({
-                versionId: 456,
-                content: 'New content',
-            });
+            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith(
+                {
+                    versionId: 456,
+                    content: 'New content',
+                },
+                'articles',
+            );
         });
     });
 
@@ -491,11 +497,14 @@ describe('ArticleService', () => {
 
             spectator.service.moderateVersion(200, ApprovalStatus.Approved, 'Looks good').subscribe();
 
-            expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
-                versionId: 200,
-                approved: ApprovalStatus.Approved,
-                comment: 'Looks good',
-            });
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith(
+                {
+                    versionId: 200,
+                    approved: ApprovalStatus.Approved,
+                    comment: 'Looks good',
+                },
+                'articles',
+            );
         });
 
         it('should map DTO to ModerationResult', done => {
@@ -515,11 +524,14 @@ describe('ArticleService', () => {
 
             spectator.service.moderateVersion(200, ApprovalStatus.Rejected).subscribe();
 
-            expect(articleApiService.moderateVersion).toHaveBeenCalledWith({
-                versionId: 200,
-                approved: ApprovalStatus.Rejected,
-                comment: '',
-            });
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith(
+                {
+                    versionId: 200,
+                    approved: ApprovalStatus.Rejected,
+                    comment: '',
+                },
+                'articles',
+            );
         });
     });
 
@@ -658,7 +670,10 @@ describe('ArticleService', () => {
 
             spectator.service.previewArticle('wiki content', 42).subscribe();
 
-            expect(articleApiService.previewArticle).toHaveBeenCalledWith({ content: 'wiki content', articleId: 42 });
+            expect(articleApiService.previewArticle).toHaveBeenCalledWith(
+                { content: 'wiki content', articleId: 42 },
+                'articles',
+            );
         });
 
         it('should return formatted HTML string', done => {
@@ -912,6 +927,44 @@ describe('ArticleService', () => {
             spectator.service.getArticlesHistory({ articleId: 7 }, 'news').subscribe();
 
             expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith({ articleId: 7 }, 'news');
+        });
+
+        it('reads a news version for editing through the news endpoints', () => {
+            articleApiService.getArticleVersion.mockReturnValue(of(newsDto));
+
+            spectator.service.getArticleVersion(70, 'news').subscribe();
+
+            expect(articleApiService.getArticleVersion).toHaveBeenCalledWith(70, 'news');
+        });
+
+        it('saves a news version through the news endpoints', () => {
+            articleApiService.saveArticleVersion.mockReturnValue(of({ ...newsDto, versionId: 71 }));
+
+            spectator.service.saveArticleVersion({ versionId: 70, content: 'Текст' }, 'news').subscribe();
+
+            expect(articleApiService.saveArticleVersion).toHaveBeenCalledWith(
+                { versionId: 70, content: 'Текст' },
+                'news',
+            );
+        });
+
+        it('previews a news text through the news endpoints', () => {
+            articleApiService.previewArticle.mockReturnValue(of({ content: '<p>Текст</p>' }));
+
+            spectator.service.previewArticle('Текст', 0, 'news').subscribe();
+
+            expect(articleApiService.previewArticle).toHaveBeenCalledWith({ content: 'Текст', articleId: 0 }, 'news');
+        });
+
+        it('moderates a news version through the news endpoints', () => {
+            articleApiService.moderateVersion.mockReturnValue(of({ versionId: 70, articleId: 7, approved: 1 }));
+
+            spectator.service.moderateVersion(70, ApprovalStatus.Approved, 'Хорошо', 'news').subscribe();
+
+            expect(articleApiService.moderateVersion).toHaveBeenCalledWith(
+                { versionId: 70, approved: ApprovalStatus.Approved, comment: 'Хорошо' },
+                'news',
+            );
         });
 
         it('reads two news versions through the news endpoints', () => {

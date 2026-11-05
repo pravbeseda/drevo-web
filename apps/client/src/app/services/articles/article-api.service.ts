@@ -87,9 +87,9 @@ export class ArticleApiService {
      * @param versionId - Version ID
      * @returns Observable with raw API response containing version details
      */
-    getArticleVersion(versionId: number): Observable<ArticleVersionDto> {
+    getArticleVersion(versionId: number, kind: PageKind = 'articles'): Observable<ArticleVersionDto> {
         return this.http
-            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/articles/version/${versionId}`, {
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/${kind}/version/${versionId}`, {
                 withCredentials: true,
             })
             .pipe(
@@ -220,11 +220,14 @@ export class ArticleApiService {
      * @param request - Save request with versionId, content, and optional info
      * @returns Observable with raw API response
      */
-    saveArticleVersion(request: SaveArticleVersionRequestDto): Observable<SaveArticleVersionResponseDto> {
+    saveArticleVersion(
+        request: SaveArticleVersionRequestDto,
+        kind: PageKind = 'articles',
+    ): Observable<SaveArticleVersionResponseDto> {
         const context = new HttpContext().set(SKIP_ERROR_NOTIFICATION, true);
 
         return this.http
-            .post<ApiResponse<SaveArticleVersionResponseDto>>(`${this.apiUrl}/api/articles/save`, request, {
+            .post<ApiResponse<SaveArticleVersionResponseDto>>(`${this.apiUrl}/api/${kind}/save`, request, {
                 withCredentials: true,
                 context,
             })
@@ -286,9 +289,9 @@ export class ArticleApiService {
      * @param request - Moderation request with versionId, approved status, and optional comment
      * @returns Observable with moderation response
      */
-    moderateVersion(request: ModerationRequestDto): Observable<ModerationResponseDto> {
+    moderateVersion(request: ModerationRequestDto, kind: PageKind = 'articles'): Observable<ModerationResponseDto> {
         return this.http
-            .post<ApiResponse<ModerationResponseDto>>(`${this.apiUrl}/api/articles/moderate`, request, {
+            .post<ApiResponse<ModerationResponseDto>>(`${this.apiUrl}/api/${kind}/moderate`, request, {
                 withCredentials: true,
             })
             .pipe(
@@ -305,9 +308,12 @@ export class ArticleApiService {
      * @param request - Preview request with content and articleId
      * @returns Observable with formatted HTML content
      */
-    previewArticle(request: ArticlePreviewRequestDto): Observable<ArticlePreviewResponseDto> {
+    previewArticle(
+        request: ArticlePreviewRequestDto,
+        kind: PageKind = 'articles',
+    ): Observable<ArticlePreviewResponseDto> {
         return this.http
-            .post<ApiResponse<ArticlePreviewResponseDto>>(`${this.apiUrl}/api/articles/preview`, request, {
+            .post<ApiResponse<ArticlePreviewResponseDto>>(`${this.apiUrl}/api/${kind}/preview`, request, {
                 withCredentials: true,
                 context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
             })

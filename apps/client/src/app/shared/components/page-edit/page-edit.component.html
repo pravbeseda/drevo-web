@@ -23,6 +23,20 @@
         (activated)="cancel()"
     />
 
+    @if (isNewsCreate()) {
+        <app-news-topic-sidebar-action
+            [topics]="newsTopics()"
+            [selected]="newsFields().topic"
+            (picked)="onNewsTopic($event)"
+        />
+    }
+    @if (showNewsFields()) {
+        <app-news-fields
+            [value]="newsFields()"
+            (valueChange)="onNewsFields($event)"
+        />
+    }
+
     <ui-workspace
         data-testid="article-edit"
         (activeTabChange)="onTabChange($event)"
@@ -85,9 +99,10 @@
             icon="visibility"
         >
             <ng-template>
-                <app-preview
+                <app-page-preview
                     [content]="editorContent()"
                     [articleId]="articleId()"
+                    [kind]="kind()"
                 />
             </ng-template>
         </ui-workspace-tab>

@@ -7,6 +7,7 @@ import {
     isSameDay,
     parseCalendarDate,
     parseDate,
+    toCalendarDateString,
 } from './date';
 
 describe('parseDate', () => {
@@ -37,6 +38,16 @@ describe('parseCalendarDate', () => {
         expect(date.getMonth()).toBe(10);
         expect(date.getDate()).toBe(5);
         expect(date.getHours()).toBe(0);
+    });
+});
+
+describe('toCalendarDateString', () => {
+    it('writes the local day as YYYY-MM-DD, whatever the time of day', () => {
+        expect(toCalendarDateString(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+    });
+
+    it('is the inverse of parseCalendarDate', () => {
+        expect(toCalendarDateString(parseCalendarDate('2026-11-05'))).toBe('2026-11-05');
     });
 });
 

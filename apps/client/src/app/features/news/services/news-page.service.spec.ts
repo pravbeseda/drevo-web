@@ -59,4 +59,24 @@ describe('NewsPageService', () => {
             expect.objectContaining({ approved: ApprovalStatus.Approved, comment: 'Хорошо' }),
         );
     });
+
+    it('takes the meta a moderator changed', () => {
+        spectator.service.setNews(createMockArticle({ articleId: 7, title: 'Новость', topics: [1] }), topics);
+
+        spectator.service.applyMeta({
+            articleId: 7,
+            title: 'Другой заголовок',
+            newsDate: new Date(2026, 10, 6),
+            topics: [2],
+        });
+
+        expect(spectator.service.article()).toEqual(
+            expect.objectContaining({
+                title: 'Другой заголовок',
+                newsDate: new Date(2026, 10, 6),
+                topics: [2],
+            }),
+        );
+        expect(spectator.service.sections()).toEqual([{ id: 2, title: 'Общество' }]);
+    });
 });

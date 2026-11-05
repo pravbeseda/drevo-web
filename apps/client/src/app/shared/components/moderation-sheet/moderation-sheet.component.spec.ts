@@ -9,7 +9,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { createComponentFactory, mockProvider, Spectator, SpyObject } from '@ngneat/spectator/jest';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NotificationService, StorageService, WINDOW } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion, ModerationResult, VersionForDiff } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion, ModerationResult, VersionForDiff, PageKind } from '@drevo-web/shared';
 import { DiffMatchPatchEngine, JsDiffEngine } from '@drevo-web/shared/diff';
 import { MODAL_DATA } from '@drevo-web/ui/modal';
 import { Observable, of, throwError } from 'rxjs';
@@ -91,12 +91,13 @@ describe('ModerationSheetComponent', () => {
             version?: Observable<unknown>;
             narrow?: boolean;
             storedEngine?: string;
+            kind?: PageKind;
         } = {},
     ): void {
         spectator = createComponent({
             providers: [
                 mockProvider(StorageService, { getString: jest.fn(() => options.storedEngine) }),
-                { provide: MODAL_DATA, useValue: { data: { version }, close } },
+                { provide: MODAL_DATA, useValue: { data: { version, kind: options.kind ?? 'articles' }, close } },
                 mockProvider(ArticleService, {
                     getVersionPairs: jest.fn(() => options.pairs ?? twoVersions()),
                     getArticleVersion: jest.fn(() => options.version ?? of(articleVersion(''))),
@@ -122,12 +123,20 @@ describe('ModerationSheetComponent', () => {
         create();
         spectator.detectChanges();
 
-        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200);
+        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, undefined, 'articles');
         expect(panel()?.version()).toBe(version);
         expect(panel()?.texts()).toEqual({ current: 'новый текст', previous: 'старый текст' });
         expect(editor()?.oldText()).toBe('старый текст');
         expect(editor()?.newText()).toBe('новый текст');
         expect(editor()?.mode()).toBe('unified');
+    });
+
+    it('should read and moderate a news version as news', () => {
+        create({ kind: 'news' });
+        spectator.detectChanges();
+
+        expect(articleService.getVersionPairs).toHaveBeenCalledWith(200, undefined, 'news');
+        expect(panel()?.kind()).toBe('news');
     });
 
     it('should show a first version as source, with no diff modes', () => {
@@ -139,7 +148,7 @@ describe('ModerationSheetComponent', () => {
         });
         spectator.detectChanges();
 
-        expect(articleService.getArticleVersion).toHaveBeenCalledWith(200);
+        expect(articleService.getArticleVersion).toHaveBeenCalledWith(200, 'articles');
         expect(panel()?.texts()).toEqual({ current: 'первый текст', previous: undefined });
         expect(editor()?.mode()).toBe('source');
         expect(spectator.query('[data-testid="toggle-unified"]')).toBeNull();

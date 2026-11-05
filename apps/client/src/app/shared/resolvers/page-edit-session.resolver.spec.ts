@@ -1,13 +1,14 @@
-import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
-import { resolveArticleVersion } from './article-version.resolver';
-import { createMockArticle } from '../../../shared/testing/article-testing.helper';
+import { resolvePageEditSession } from './page-edit-session.resolver';
+import { ArticleService } from '../../services/articles';
+import { toEditSession } from '../models/page-edit-session';
+import { createMockArticle } from '../testing/article-testing.helper';
+import { createRouteSnapshot } from '../testing/route-testing.helper';
 import { UrlSegment } from '@angular/router';
-import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
 
-describe('resolveArticleVersion', () => {
+describe('resolvePageEditSession', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'getArticleVersion'>>;
 
     beforeEach(() => {
@@ -18,9 +19,9 @@ describe('resolveArticleVersion', () => {
         articleService.getArticleVersion.mockReturnValue(of(mockArticle));
         const route = createRouteSnapshot({ versionId: '456' });
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
-            expect(result).toEqual(mockArticle);
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456);
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
+            expect(result).toEqual(toEditSession(mockArticle, 'articles'));
+            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456, 'articles');
             done();
         });
     });
@@ -28,7 +29,7 @@ describe('resolveArticleVersion', () => {
     it('should return undefined for non-numeric ID', done => {
         const route = createRouteSnapshot({ versionId: 'abc' });
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticleVersion).not.toHaveBeenCalled();
             done();
@@ -38,7 +39,7 @@ describe('resolveArticleVersion', () => {
     it('should return undefined for zero ID', done => {
         const route = createRouteSnapshot({ versionId: '0' });
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticleVersion).not.toHaveBeenCalled();
             done();
@@ -48,7 +49,7 @@ describe('resolveArticleVersion', () => {
     it('should return undefined for negative ID', done => {
         const route = createRouteSnapshot({ versionId: '-5' });
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticleVersion).not.toHaveBeenCalled();
             done();
@@ -68,7 +69,9 @@ describe('resolveArticleVersion', () => {
         // A sentinel, so that an observable that never emitted cannot pass as undefined.
         let result: unknown = 'not resolved';
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(
+            value => (result = value),
+        );
 
         expect(result).toBeUndefined();
         expect(articleService.getArticleVersion).not.toHaveBeenCalled();
@@ -81,7 +84,9 @@ describe('resolveArticleVersion', () => {
         // A sentinel, so that an observable that never emitted cannot pass as undefined.
         let result: unknown = 'not resolved';
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(
+            value => (result = value),
+        );
 
         expect(result).toBeUndefined();
         expect(articleService.getArticleVersion).not.toHaveBeenCalled();
@@ -90,7 +95,7 @@ describe('resolveArticleVersion', () => {
     it('should return undefined for missing ID param', done => {
         const route = createRouteSnapshot({});
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticleVersion).not.toHaveBeenCalled();
             done();
@@ -101,8 +106,19 @@ describe('resolveArticleVersion', () => {
         articleService.getArticleVersion.mockReturnValue(throwError(() => new Error('Server error')));
         const route = createRouteSnapshot({ versionId: '456' });
 
-        resolveArticleVersion(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
+            done();
+        });
+    });
+
+    it('should open a news version for editing through the news endpoints', done => {
+        articleService.getArticleVersion.mockReturnValue(of(mockArticle));
+        const route = createRouteSnapshot({ versionId: '70' });
+
+        resolvePageEditSession(articleService as unknown as ArticleService, route, 'news').subscribe(result => {
+            expect(articleService.getArticleVersion).toHaveBeenCalledWith(70, 'news');
+            expect(result?.kind).toBe('news');
             done();
         });
     });

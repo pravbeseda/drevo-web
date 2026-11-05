@@ -1,7 +1,7 @@
 import { PageContext } from '../../../shared/services/page-context/page-context';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion, NewsTopic, PageKind } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion, NewsMeta, NewsTopic, PageKind } from '@drevo-web/shared';
 
 /** The news item a news page holds, and the sections it is in. */
 @Injectable()
@@ -16,6 +16,8 @@ export class NewsPageService implements PageContext {
 
     readonly article = this._article.asReadonly();
     readonly error = this._error.asReadonly();
+    /** Every news section, for a form that moves the news item to another. */
+    readonly topics = this._topics.asReadonly();
     readonly articleId = computed(() => this.article()?.articleId);
     readonly title = computed(() => this.article()?.title);
 
@@ -40,5 +42,13 @@ export class NewsPageService implements PageContext {
 
     updateApproval(approved: ApprovalStatus, comment: string): void {
         this._article.update(current => (current ? { ...current, approved, comment } : current));
+    }
+
+    /** Takes what a moderator changed about the news item. */
+    applyMeta(meta: NewsMeta): void {
+        this._article.update(current =>
+            current ? { ...current, title: meta.title, newsDate: meta.newsDate, topics: meta.topics } : current,
+        );
+        this.logger.info('News meta applied', { id: meta.articleId });
     }
 }

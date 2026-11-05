@@ -16,7 +16,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_TITLES, ApprovalStatus, ModerationResult, PageKind } from '@drevo-web/shared';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { FormatDatePipe } from '@drevo-web/ui/format-date';
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
@@ -48,6 +48,7 @@ export class ArticleModerationPanelComponent {
     private readonly notification = inject(NotificationService);
 
     readonly version = input.required<VersionForModeration>();
+    readonly kind = input<PageKind>('articles');
     /** The version's raw texts for the auto-check; it is offered once they have loaded. */
     readonly texts = input<VersionTexts>();
     readonly moderated = output<ModerationResult>();
@@ -108,7 +109,7 @@ export class ArticleModerationPanelComponent {
         this.logger.info('Moderation: submitting', { versionId, approved, comment });
 
         this.articleService
-            .moderateVersion(versionId, approved, comment)
+            .moderateVersion(versionId, approved, comment, this.kind())
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {

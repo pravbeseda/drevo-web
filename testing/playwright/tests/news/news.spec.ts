@@ -1,6 +1,6 @@
-import { test, expect, mockNewsFeedApi, mockNewsHistory, mockNewsShow, mockNewsTopicsApi } from '../../fixtures';
+import { test, expect, mockNewsHistory, mockNewsShow, mockNewsTopicsApi } from '../../fixtures';
 import { createArticleHistoryItemDto, createArticleHistoryResponse } from '../../mocks';
-import { createNewsFeedItemDto, createNewsFeedResponse, createNewsVersionDto } from '../../mocks/news';
+import { createNewsVersionDto } from '../../mocks/news';
 import { LayoutPage } from '../../pages/layout.page';
 import { NewsPage } from '../../pages/news.page';
 
@@ -11,14 +11,6 @@ test.describe('News', () => {
 
     test.beforeEach(async ({ authenticatedPage: page }) => {
         await mockNewsTopicsApi(page);
-        await mockNewsFeedApi(page, topic =>
-            topic === '2'
-                ? createNewsFeedResponse([createNewsFeedItemDto({ id: 8, title: 'Новость общества', topics: [2] })])
-                : createNewsFeedResponse([
-                      createNewsFeedItemDto({ id: NEWS_ID, title: 'Престольный праздник', topics: [1] }),
-                      createNewsFeedItemDto({ id: 8, title: 'Новость общества', topics: [2] }),
-                  ]),
-        );
         await mockNewsShow(
             page,
             NEWS_ID,
@@ -30,49 +22,34 @@ test.describe('News', () => {
         news = new NewsPage(page);
     });
 
-    test('the sidebar opens the news feed', async ({ authenticatedPage: page, isMobile }) => {
+    test('the sidebar offers no news section: the news are in the history', async ({
+        authenticatedPage: page,
+        isMobile,
+    }) => {
         const layout = new LayoutPage(page);
         await page.goto('/');
         await layout.waitForReady();
         await layout.openSidebarOnMobile(isMobile);
 
-        await layout.navItem('Новости').click();
-
-        await expect(page).toHaveURL(/\/news$/);
-        await expect(news.feedItems).toHaveCount(2);
+        await expect(layout.navItem('Изменения')).toBeVisible();
+        await expect(layout.navItem('Новости')).toHaveCount(0);
     });
 
-    test('the feed opens a news item with its day, section and text', async ({ authenticatedPage: page }) => {
+    test('the bare /news lands on the news history', async ({ authenticatedPage: page }) => {
+        await mockNewsHistory(page, createArticleHistoryResponse([]));
+
         await page.goto('/news');
-        await news.waitForReady();
 
-        await news.feedItem('Престольный праздник').click();
-
-        await expect(page).toHaveURL(new RegExp(`/news/${NEWS_ID}$`));
-        await expect(news.date).toHaveText('15 января 2025');
-        await expect(news.sections).toHaveText(['Церковь']);
-        await expect(news.content).toContainText('Текст о празднике');
+        await expect(page).toHaveURL(/\/history\/news$/);
     });
 
-    test('the section filter narrows the feed to one section', async ({ authenticatedPage: page }) => {
-        await page.goto('/news');
-        await news.waitForReady();
-
-        await news.filterButton.click();
-        await news.filterOption(2).click();
-
-        await expect(page).toHaveURL(/\/news\?topic=2$/);
-        await expect(news.filterCurrent).toHaveText('Общество');
-        await expect(news.feedItems).toHaveText(['Новость общества']);
-    });
-
-    test('a section of a news item opens the feed of that section', async ({ authenticatedPage: page }) => {
+    test('a news item shows its day, section and text', async ({ authenticatedPage: page }) => {
         await page.goto(`/news/${NEWS_ID}`);
         await news.waitForReady();
 
-        await news.sections.first().click();
-
-        await expect(page).toHaveURL(/\/news\?topic=1$/);
+        await expect(news.date).toHaveText('15 января 2025');
+        await expect(news.sections).toHaveText(['Церковь']);
+        await expect(news.content).toContainText('Текст о празднике');
     });
 
     test('the versions tab lists the versions of the news item', async ({ authenticatedPage: page }) => {

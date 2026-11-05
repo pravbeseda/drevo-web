@@ -10,7 +10,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LoggerService, StorageService, WINDOW, readApiErrorBody } from '@drevo-web/core';
-import { ModerationResult } from '@drevo-web/shared';
+import { ModerationResult, PageKind } from '@drevo-web/shared';
 import { DIFF_ENGINES } from '@drevo-web/shared/diff';
 import { ButtonToggleGroupComponent, ButtonToggleOption } from '@drevo-web/ui/button-toggle-group';
 import { BREAKPOINT_DESKTOP } from '@drevo-web/ui/constants';
@@ -21,6 +21,7 @@ import { Observable, catchError, map, throwError } from 'rxjs';
 
 export interface ModerationSheetData {
     readonly version: VersionForModeration;
+    readonly kind: PageKind;
 }
 
 type SheetTab = 'decision' | 'text';
@@ -74,6 +75,7 @@ export class ModerationSheetComponent {
     private readonly logger = inject(LoggerService).withContext('ModerationSheetComponent');
 
     readonly version = this.modal.data.version;
+    readonly kind = this.modal.data.kind;
 
     private readonly _texts = signal<VersionTexts | undefined>(undefined);
     readonly texts = this._texts.asReadonly();
@@ -210,12 +212,12 @@ export class ModerationSheetComponent {
     }
 
     private fetchTexts(versionId: number): Observable<VersionTexts> {
-        return this.articleService.getVersionPairs(versionId).pipe(
+        return this.articleService.getVersionPairs(versionId, undefined, this.kind).pipe(
             map(pairs => ({ current: pairs.current.content, previous: pairs.previous.content })),
             catchError((err: unknown) =>
                 isNoPreviousVersion(err)
                     ? this.articleService
-                          .getArticleVersion(versionId)
+                          .getArticleVersion(versionId, this.kind)
                           // Unlike versionpairs, the version endpoint returns the content raw, and CodeMirror
                           // reads CRLF as one character: the finding offsets would drift a line at a time.
                           .pipe(

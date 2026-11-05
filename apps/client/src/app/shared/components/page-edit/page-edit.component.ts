@@ -1,15 +1,21 @@
-import { ArticleService } from '../../../../services/articles';
-import { InworkService } from '../../../../services/inwork';
-import { LinksService } from '../../../../services/links/links.service';
-import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
-import { PictureService } from '../../../../services/pictures/picture.service';
-import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
-import { ErrorComponent } from '../../../../shared/components/error/error.component';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { createPicturePreviewExtension } from '../../../../shared/helpers/picture-tooltip';
-import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { PreviewComponent } from '../../components/preview/preview.component';
-import { ArticleEditSession, toEditSession } from '../../models/article-edit-session';
+import { ArticleService } from '../../../services/articles';
+import { AuthService } from '../../../services/auth/auth.service';
+import { InworkService } from '../../../services/inwork';
+import { LinksService } from '../../../services/links/links.service';
+import { NewsService } from '../../../services/news/news.service';
+import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
+import { PictureService } from '../../../services/pictures/picture.service';
+import { pageUrl } from '../../helpers/page-kind';
+import { createPicturePreviewExtension } from '../../helpers/picture-tooltip';
+import { NewsFields } from '../../models/news-fields.model';
+import { PageEditSession } from '../../models/page-edit-session';
+import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
+import { DiffViewComponent } from '../diff-view/diff-view.component';
+import { ErrorComponent } from '../error/error.component';
+import { NewsFieldsComponent } from '../news-fields/news-fields.component';
+import { NewsTopicSidebarActionComponent } from '../news-topic-sidebar-action/news-topic-sidebar-action.component';
+import { PagePreviewComponent } from '../page-preview/page-preview.component';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,
@@ -22,51 +28,73 @@ import {
     signal,
     ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
-import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
+import {
+    NewsMetaChange,
+    NewsTopic,
+    PageKind,
+    SaveArticleVersionResult,
+    formatDateHeader,
+    formatTime,
+    toCalendarDateString,
+} from '@drevo-web/shared';
 import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { IconComponent } from '@drevo-web/ui/icon';
 import { ModalService } from '@drevo-web/ui/modal';
 import { TooltipDirective } from '@drevo-web/ui/tooltip';
 import { WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui/workspace';
-import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
+import { Observable, first, firstValueFrom, filter, map, of, switchMap, tap } from 'rxjs';
 
 const EDITOR_TAB_INDEX = 0;
 
+/** How the editor names a page of each kind to the reader. */
+const LABELS: Readonly<
+    Record<PageKind, { readonly saved: string; readonly created: string; readonly of: string; readonly noText: string }>
+> = {
+    articles: { saved: 'Статья сохранена', created: 'Статья создана', of: 'статьи', noText: 'Введите текст статьи' },
+    news: { saved: 'Новость сохранена', created: 'Новость создана', of: 'новости', noText: 'Введите текст новости' },
+};
+
+const NEW_NEWS_INFO = 'Новая новость';
+
+/** The wiki editor of an article or a news item: an existing version, or a page not created yet. */
 @Component({
-    selector: 'app-article-edit',
+    selector: 'app-page-edit',
     imports: [
         DiffViewComponent,
         EditorComponent,
         ErrorComponent,
+        NewsFieldsComponent,
+        NewsTopicSidebarActionComponent,
         IconComponent,
-        PreviewComponent,
+        PagePreviewComponent,
         SidebarActionComponent,
         TooltipDirective,
         WorkspaceComponent,
         WorkspaceTabComponent,
     ],
-    templateUrl: './article-edit.component.html',
-    styleUrl: './article-edit.component.scss',
+    templateUrl: './page-edit.component.html',
+    styleUrl: './page-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent implements OnInit, OnDestroy {
+export class PageEditComponent implements OnInit, OnDestroy {
     @ViewChild(EditorComponent) private readonly editorComponent?: EditorComponent;
 
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
+    private readonly newsService = inject(NewsService);
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly draftEditorService = inject(DraftEditorService);
     private readonly inworkService = inject(InworkService);
     private readonly confirmationService = inject(ConfirmationService);
-    private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
+    private readonly logger = inject(LoggerService).withContext('PageEditComponent');
     private readonly pictureService = inject(PictureService);
     private readonly pictureLightboxService = inject(PictureLightboxService);
     private readonly modalService = inject(ModalService);
@@ -77,6 +105,19 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _updateLinksState = signal<Record<string, boolean>>({});
     private readonly _originalContent = signal('');
     private readonly _articleId = signal(0);
+    private readonly _kind = signal<PageKind>('articles');
+    private readonly _newsTopics = signal<readonly NewsTopic[]>([]);
+    private readonly user = toSignal(inject(AuthService).user$);
+
+    /** What the news fields held when the session opened, or when the meta was last saved. */
+    private initialNewsFields: NewsFields = {
+        title: '',
+        newsDate: toCalendarDateString(new Date()),
+        topic: undefined,
+    };
+    private readonly _newsFields = signal<NewsFields>(this.initialNewsFields);
+    private readonly _isNewsCreate = signal(false);
+    private readonly _isNewsEdit = signal(false);
 
     private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
         getPicturesBatch: (ids: readonly number[]) => this.pictureService.getPicturesBatch(ids),
@@ -85,7 +126,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
 
     private readonly _validationResult = signal<ValidationResult>({ errors: 0, warnings: 0 });
 
-    private session: ArticleEditSession | undefined;
+    private session: PageEditSession | undefined;
     private editingCleared = false;
 
     readonly editorContent = this._editorContent.asReadonly();
@@ -94,6 +135,18 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly updateLinksState = this._updateLinksState.asReadonly();
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
+    readonly kind = this._kind.asReadonly();
+    readonly newsTopics = this._newsTopics.asReadonly();
+    readonly newsFields = this._newsFields.asReadonly();
+    /** A news item being created asks for its title, day and section beside its text. */
+    readonly isNewsCreate = this._isNewsCreate.asReadonly();
+    /**
+     * The title and the day are asked for on a news item being created, and
+     * shown to a moderator editing one — only a moderator may change them.
+     */
+    readonly showNewsFields = computed(
+        () => this._isNewsCreate() || (this._isNewsEdit() && (this.user()?.permissions.canModerate ?? false)),
+    );
     readonly validationResult = this._validationResult.asReadonly();
     readonly hasErrors = computed(() => this._validationResult().errors > 0);
     readonly hasWarnings = computed(() => this._validationResult().warnings > 0);
@@ -116,7 +169,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     ];
 
     ngOnInit(): void {
-        const session = this.readSession();
+        const session = this.route.snapshot.data['session'] as PageEditSession | undefined;
         if (!session) {
             this._error.set('Версия не найдена');
             this.logger.error('Edit session not resolved from route data');
@@ -124,10 +177,19 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         this.session = session;
+        this._kind.set(session.kind);
+        this._isNewsCreate.set(session.kind === 'news' && session.mode === 'create');
+        this._isNewsEdit.set(session.kind === 'news' && session.mode === 'edit');
+        if (this._isNewsEdit()) {
+            this.initialNewsFields = { title: session.title, newsDate: session.newsDate ?? '', topic: undefined };
+            this._newsFields.set(this.initialNewsFields);
+        }
+        this._newsTopics.set(session.newsTopics ?? []);
         this._articleId.set(session.articleId);
         this._originalContent.set(session.content);
         this._editorContent.set(session.content);
         this.logger.info('Edit session started', {
+            kind: session.kind,
             mode: session.mode,
             versionId: session.versionId,
             articleId: session.articleId,
@@ -161,22 +223,6 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             });
     }
 
-    /**
-     * The create route resolves a session directly; the existing edit route
-     * still resolves an `ArticleVersion` under `version` and is adapted here,
-     * so that route, its titleSource and its specs stay untouched.
-     */
-    private readSession(): ArticleEditSession | undefined {
-        const data = this.route.snapshot.data;
-        const session = data['session'] as ArticleEditSession | undefined;
-        if (session) {
-            return session;
-        }
-
-        const version = data['version'] as ArticleVersion | undefined;
-        return version ? toEditSession(version) : undefined;
-    }
-
     ngOnDestroy(): void {
         this.clearEditingMark();
         this.draftEditorService.flush();
@@ -207,7 +253,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         if (this.session) {
             this.draftEditorService.onContentChanged({
                 route: this.getDraftRoute(),
-                title: this.session.title,
+                title: this.draftTitle(),
                 text: content,
             });
         }
@@ -222,13 +268,21 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const content = this._editorContent();
 
         if (session.mode === 'create') {
-            if (!content.trim()) {
-                this.notificationService.info('Введите текст статьи');
+            const missing = this.missingNewsField() ?? (content.trim() ? undefined : LABELS[session.kind].noText);
+            if (missing) {
+                this.notificationService.info(missing);
                 return;
             }
-        } else if (content === session.content) {
-            this.notificationService.info('Нет изменений для сохранения');
-            return;
+        } else {
+            const missing = this.missingNewsField();
+            if (missing) {
+                this.notificationService.info(missing);
+                return;
+            }
+            if (content === session.content && Object.keys(this.newsMetaChange()).length === 0) {
+                this.notificationService.info('Нет изменений для сохранения');
+                return;
+            }
         }
 
         const problems = validateWikiContent(content);
@@ -272,33 +326,29 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         if (!session) return;
 
         this._isSaving.set(true);
-        this.logger.info('Saving article', {
+        this.logger.info('Saving page', {
+            kind: session.kind,
             mode: session.mode,
             versionId: session.versionId,
             articleId: session.articleId,
             contentLength: content.length,
         });
 
-        const save$ =
-            session.mode === 'create'
-                ? this.articleService.createArticle({ title: session.title, content, info: 'Новая статья' })
-                : this.articleService.saveArticleVersion({ versionId: session.versionId, content });
+        const save$ = session.mode === 'edit' ? this.editPage(session, content) : this.createPage(session, content);
 
         save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => {
                 this._isSaving.set(false);
-                this.logger.info('Article saved', {
-                    newVersionId: result.versionId,
-                    articleId: result.articleId,
-                });
-                this.notificationService.success(session.mode === 'create' ? 'Статья создана' : 'Статья сохранена');
+                this.logger.info('Page saved', { articleId: result.articleId });
+                const labels = LABELS[session.kind];
+                this.notificationService.success(session.mode === 'create' ? labels.created : labels.saved);
                 void this.draftEditorService.discardDraft(this.getDraftRoute());
                 this.clearEditingMark();
-                void this.router.navigate(['/articles', result.articleId]);
+                void this.router.navigateByUrl(pageUrl(session.kind, result.articleId));
             },
             error: (err: HttpErrorResponse) => {
                 this._isSaving.set(false);
-                this.logger.error('Failed to save article', err);
+                this.logger.error('Failed to save page', err);
 
                 if (this.handleDuplicateTitle(err)) {
                     return;
@@ -359,22 +409,19 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         const draftRoute = this.getDraftRoute();
-        const navigateTo =
-            session.mode === 'create'
-                ? ['/articles', 'find', session.title]
-                : ['/articles', session.articleId, 'version', session.versionId];
 
         try {
             // The draft is written 3 s after typing stops, so fresh edits may not be stored yet.
             const hasUnsavedChanges =
                 this._editorContent() !== session.content ||
+                this._newsFields() !== this.initialNewsFields ||
                 (await this.draftEditorService.getDraft(draftRoute)) !== undefined;
 
             if (!hasUnsavedChanges) {
                 // Discard pending input so ngOnDestroy.flush() won't persist it
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();
-                void this.router.navigate(navigateTo);
+                this.leave(session);
                 return;
             }
 
@@ -393,7 +440,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             if (result === 'confirm') {
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();
-                void this.router.navigate(navigateTo);
+                this.leave(session);
             }
         } catch (error) {
             this.logger.error('Failed to confirm discard', error);
@@ -406,7 +453,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         this.modalService
             .open<undefined, string>(
                 () =>
-                    import('../../../../features/picture/pages/picture-page/picture-page.component').then(
+                    import('../../../features/picture/pages/picture-page/picture-page.component').then(
                         m => m.PicturePageComponent,
                     ),
                 {
@@ -424,14 +471,92 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             });
     }
 
-    private getDraftRoute(): string {
-        const session = this.session;
-        if (!session) {
-            return '';
+    onNewsFields(fields: NewsFields): void {
+        this._newsFields.set(fields);
+    }
+
+    onNewsTopic(topic: number): void {
+        this._newsFields.update(fields => ({ ...fields, topic }));
+    }
+
+    /** What a news item being created still lacks besides its text; nothing for any other session. */
+    private missingNewsField(): string | undefined {
+        if (!this.showNewsFields()) {
+            return undefined;
         }
-        return session.mode === 'create'
-            ? `/articles/find/${session.title}/edit`
-            : `/articles/${session.articleId}/version/${session.versionId}/edit`;
+        const { title, newsDate, topic } = this._newsFields();
+        if (!title.trim()) return 'Введите заголовок новости';
+        // A news item is created with a day; an undated one being edited may stay so, but a day is not cleared.
+        if (!newsDate && (this._isNewsCreate() || this.initialNewsFields.newsDate)) return 'Укажите дату новости';
+        if (this._isNewsCreate() && topic === undefined) return 'Выберите раздел новости';
+        return undefined;
+    }
+
+    /** The title and the day a moderator changed on a news item being edited. */
+    private newsMetaChange(): NewsMetaChange {
+        if (!this._isNewsEdit() || !this.showNewsFields()) {
+            return {};
+        }
+        const { title, newsDate } = this._newsFields();
+        const before = this.initialNewsFields;
+        return {
+            ...(title.trim() === before.title ? {} : { title: title.trim() }),
+            ...(newsDate === before.newsDate ? {} : { newsDate }),
+        };
+    }
+
+    /**
+     * The meta first — the cheaper of the two, refused before any text is
+     * stored — then the text, each only when it changed. A saved meta becomes
+     * the baseline, so a retry after a failed text save does not send it again.
+     */
+    private editPage(
+        session: PageEditSession,
+        content: string,
+    ): Observable<Pick<SaveArticleVersionResult, 'articleId'>> {
+        const meta = this.newsMetaChange();
+        const meta$: Observable<unknown> =
+            Object.keys(meta).length === 0
+                ? of(undefined)
+                : this.newsService.updateMeta(session.articleId, meta).pipe(
+                      tap(() => {
+                          this.initialNewsFields = this._newsFields();
+                      }),
+                  );
+        const text$ =
+            content === session.content
+                ? of({ articleId: session.articleId })
+                : this.articleService.saveArticleVersion({ versionId: session.versionId, content }, session.kind);
+        return meta$.pipe(switchMap(() => text$));
+    }
+
+    private createPage(session: PageEditSession, content: string): Observable<SaveArticleVersionResult> {
+        if (session.kind === 'articles') {
+            return this.articleService.createArticle({ title: session.title, content, info: 'Новая статья' });
+        }
+        const { title, newsDate, topic } = this._newsFields();
+        // missingNewsField() let the save through, so the section is picked.
+        return this.newsService.createNews({
+            title: title.trim(),
+            newsDate,
+            topic: topic ?? 0,
+            content,
+            info: NEW_NEWS_INFO,
+        });
+    }
+
+    /** A news item being created is named by the title typed so far. */
+    private draftTitle(): string {
+        return this._isNewsCreate() ? this._newsFields().title || NEW_NEWS_INFO : (this.session?.title ?? '');
+    }
+
+    private getDraftRoute(): string {
+        return this.session?.draftKey ?? '';
+    }
+
+    /** Back to what was being edited, or to where the new page was asked for — the session's resolver knows which. */
+    private leave(session: PageEditSession): void {
+        void this.router.navigateByUrl(session.exitUrl);
     }
 
     private async showRestoreDraftDialog(title: string, time: number, text: string, draftRoute: string): Promise<void> {
@@ -439,7 +564,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const result = await firstValueFrom(
             this.confirmationService.open({
                 title: 'Найден черновик',
-                message: `Черновик статьи «${title}» сохранён ${savedAt}. Восстановить?`,
+                message: `Черновик ${LABELS[this._kind()].of} «${title}» сохранён ${savedAt}. Восстановить?`,
                 buttons: [
                     { key: 'discard', label: 'Удалить черновик' },
                     { key: 'restore', label: 'Восстановить', accent: 'primary' },
@@ -464,7 +589,11 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         return `${dateStr}, ${timeStr}`;
     }
 
-    private checkInworkAndMark(session: ArticleEditSession): void {
+    private checkInworkAndMark(session: PageEditSession): void {
+        // The backend keeps editing marks for articles only.
+        if (session.kind !== 'articles') {
+            return;
+        }
         // In create mode versionId is 0, and that is intentional: the inwork mark
         // is keyed by title (not versionId), the backend defaults versionId to 0,
         // and locking the title during creation is what warns a second author of a
@@ -482,7 +611,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             .subscribe();
     }
 
-    private confirmInworkEditing(editor: string, session: ArticleEditSession): Observable<boolean> {
+    private confirmInworkEditing(editor: string, session: PageEditSession): Observable<boolean> {
         return this.confirmationService
             .open({
                 title: 'Статья редактируется',
@@ -501,10 +630,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                         return true;
                     }
                     this.editingCleared = true;
-                    void this.router.navigate(
-                        session.mode === 'create'
-                            ? ['/articles', 'find', session.title]
-                            : ['/articles', session.articleId],
+                    void this.router.navigateByUrl(
+                        session.mode === 'create' ? session.exitUrl : pageUrl(session.kind, session.articleId),
                     );
                     return false;
                 }),
@@ -512,7 +639,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     }
 
     private clearEditingMark(): void {
-        if (this.editingCleared || !this.session) {
+        if (this.editingCleared || this.session?.kind !== 'articles') {
             return;
         }
         this.editingCleared = true;

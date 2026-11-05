@@ -6,7 +6,7 @@ import { SidebarActionComponent } from '../sidebar-action/sidebar-action.compone
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ValidationResult } from '@drevo-web/editor';
-import { APPROVAL_CLASS, APPROVAL_ICONS, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
+import { APPROVAL_CLASS, APPROVAL_ICONS, ModerationResult, PageKind, SidebarActionPriority } from '@drevo-web/shared';
 import { ModalService } from '@drevo-web/ui/modal';
 
 @Component({
@@ -17,6 +17,7 @@ import { ModalService } from '@drevo-web/ui/modal';
 })
 export class ModerationSidebarActionComponent {
     readonly version = input.required<VersionForModeration>();
+    readonly kind = input<PageKind>('articles');
     readonly disabled = input(false);
     readonly priority = input<SidebarActionPriority>('secondary');
     readonly validationResult = input<ValidationResult>({ errors: 0, warnings: 0 });
@@ -41,7 +42,7 @@ export class ModerationSidebarActionComponent {
     private readonly destroyRef = inject(DestroyRef);
 
     openSheet(): void {
-        openModerationSheet(this.modalService, this.version())
+        openModerationSheet(this.modalService, this.version(), this.kind())
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(result => {
                 if (result) this.moderated.emit(result);

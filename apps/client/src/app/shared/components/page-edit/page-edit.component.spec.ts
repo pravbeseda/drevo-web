@@ -1,9 +1,15 @@
-import { ArticleService } from '../../../../services/articles';
-import { InworkService } from '../../../../services/inwork';
-import { LinksService } from '../../../../services/links/links.service';
-import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { createMockArticle } from '../../../../shared/testing/article-testing.helper';
-import { ArticleEditComponent } from './article-edit.component';
+import { ArticleService } from '../../../services/articles';
+import { InworkService } from '../../../services/inwork';
+import { AuthService } from '../../../services/auth/auth.service';
+import { NewsService } from '../../../services/news/news.service';
+import { LinksService } from '../../../services/links/links.service';
+import { PageEditSession, toEditSession } from '../../models/page-edit-session';
+import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
+import { createMockArticle } from '../../testing/article-testing.helper';
+import { createMockUser } from '@drevo-web/shared/testing';
+import { PageEditComponent } from './page-edit.component';
+import { NewsFieldsComponent } from '../news-fields/news-fields.component';
+import { NewsTopicSidebarActionComponent } from '../news-topic-sidebar-action/news-topic-sidebar-action.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -34,33 +40,39 @@ const mockInwork = {
 };
 const mockInworkServiceProvider = { provide: InworkService, useValue: mockInwork };
 
+const readerAuth = { provide: AuthService, useValue: { user$: of(createMockUser()) } };
+const moderatorAuth = {
+    provide: AuthService,
+    useValue: { user$: of(createMockUser({ role: 'moder', permissions: { canModerate: true } })) },
+};
+
 const mockVersion = createMockArticle({
     title: 'Test Article Title',
     content: '<p>Test article content</p>',
 });
 
-function createMockActivatedRoute(version = mockVersion) {
+function createMockActivatedRoute(session: PageEditSession = toEditSession(mockVersion, 'articles')) {
     return {
         provide: ActivatedRoute,
         useValue: {
             snapshot: {
-                data: { version },
+                data: { session },
             },
         },
     };
 }
 
-describe('ArticleEditComponent', () => {
-    let spectator: Spectator<ArticleEditComponent>;
+describe('PageEditComponent', () => {
+    let spectator: Spectator<PageEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
     let notificationService: SpyObject<NotificationService>;
     let router: jest.Mocked<Router>;
     let confirmationService: jest.Mocked<ConfirmationService>;
     const createComponent = createComponentFactory({
-        component: ArticleEditComponent,
+        component: PageEditComponent,
         mocks: [ArticleService, NotificationService, Router, ConfirmationService],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
-        providers: [mockLoggerProvider(), createMockActivatedRoute()],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(), readerAuth],
         detectChanges: false,
     });
 
@@ -187,10 +199,13 @@ describe('ArticleEditComponent', () => {
 
             spectator.component.save();
 
-            expect(articleService.saveArticleVersion).toHaveBeenCalledWith({
-                versionId: 456,
-                content: 'draft content',
-            });
+            expect(articleService.saveArticleVersion).toHaveBeenCalledWith(
+                {
+                    versionId: 456,
+                    content: 'draft content',
+                },
+                'articles',
+            );
         });
     });
 
@@ -301,10 +316,13 @@ describe('ArticleEditComponent', () => {
 
             spectator.component.save();
 
-            expect(articleService.saveArticleVersion).toHaveBeenCalledWith({
-                versionId: 456,
-                content: 'new content',
-            });
+            expect(articleService.saveArticleVersion).toHaveBeenCalledWith(
+                {
+                    versionId: 456,
+                    content: 'new content',
+                },
+                'articles',
+            );
         });
 
         it('should set isSaving to true while saving', () => {
@@ -323,7 +341,7 @@ describe('ArticleEditComponent', () => {
 
             spectator.component.save();
 
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/123');
         });
 
         it('should show success notification on successful save', () => {
@@ -436,6 +454,7 @@ describe('ArticleEditComponent', () => {
 
             // Version save has no title to duplicate — must not bounce the editor.
             expect(router.navigate).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
             expect(notificationService.error).toHaveBeenCalledWith('Конфликт');
         });
 
@@ -474,10 +493,13 @@ describe('ArticleEditComponent', () => {
 
                 spectator.component.save();
 
-                expect(articleService.saveArticleVersion).toHaveBeenCalledWith({
-                    versionId: 456,
-                    content: '== ((ссылка)) ==',
-                });
+                expect(articleService.saveArticleVersion).toHaveBeenCalledWith(
+                    {
+                        versionId: 456,
+                        content: '== ((ссылка)) ==',
+                    },
+                    'articles',
+                );
             });
 
             it('should not save when user cancels warning dialog', () => {
@@ -648,7 +670,7 @@ describe('ArticleEditComponent', () => {
             confirmationService.open.mockReturnValue(of('back'));
             spectator.detectChanges();
 
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123]);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/123');
             expect(mockInwork.markEditing).not.toHaveBeenCalled();
         });
 
@@ -713,7 +735,7 @@ describe('ArticleEditComponent', () => {
             await spectator.component.cancel();
 
             expect(confirmationService.open).not.toHaveBeenCalled();
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123, 'version', 456]);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/123/version/456');
         });
 
         it('should ask before discarding edits the debounced draft write has not stored yet', async () => {
@@ -729,6 +751,7 @@ describe('ArticleEditComponent', () => {
             );
             expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
             expect(router.navigate).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
 
         it('should show confirm dialog when draft exists', async () => {
@@ -753,7 +776,7 @@ describe('ArticleEditComponent', () => {
             await spectator.component.cancel();
 
             expect(mockDraftEditorService.discardDraft).toHaveBeenCalledWith(DRAFT_ROUTE);
-            expect(router.navigate).toHaveBeenCalledWith(['/articles', 123, 'version', 456]);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/123/version/456');
         });
 
         it('should stay on page when user cancels', async () => {
@@ -766,18 +789,22 @@ describe('ArticleEditComponent', () => {
 
             expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
             expect(router.navigate).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
     });
 });
 
-describe('ArticleEditComponent in create mode', () => {
+describe('PageEditComponent in create mode', () => {
     const CREATE_DRAFT_ROUTE = '/articles/find/НОВАЯ СТАТЬЯ/edit';
-    const createSession = {
-        mode: 'create' as const,
+    const createSession: PageEditSession = {
+        kind: 'articles',
+        mode: 'create',
         articleId: 0,
         versionId: 0,
         title: 'НОВАЯ СТАТЬЯ',
         content: '',
+        exitUrl: '/articles/find/%D0%9D%D0%9E%D0%92%D0%90%D0%AF%20%D0%A1%D0%A2%D0%90%D0%A2%D0%AC%D0%AF',
+        draftKey: CREATE_DRAFT_ROUTE,
     };
     const mockCreateResult: SaveArticleVersionResult = {
         articleId: 555,
@@ -788,17 +815,18 @@ describe('ArticleEditComponent in create mode', () => {
         approved: 0,
     };
 
-    let spectator: Spectator<ArticleEditComponent>;
+    let spectator: Spectator<PageEditComponent>;
     let articleService: jest.Mocked<ArticleService>;
     let notificationService: SpyObject<NotificationService>;
     let router: jest.Mocked<Router>;
 
     const createComponent = createComponentFactory({
-        component: ArticleEditComponent,
+        component: PageEditComponent,
         mocks: [ArticleService, NotificationService, Router, ConfirmationService],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
         providers: [
             mockLoggerProvider(),
+            readerAuth,
             {
                 provide: ActivatedRoute,
                 useValue: { snapshot: { data: { session: createSession } } },
@@ -864,7 +892,7 @@ describe('ArticleEditComponent in create mode', () => {
         spectator.component.save();
 
         expect(notificationService.success).toHaveBeenCalledWith('Статья создана');
-        expect(router.navigate).toHaveBeenCalledWith(['/articles', 555]);
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/555');
     });
 
     it('should keep the draft and stay in the editor on a duplicate title', () => {
@@ -890,6 +918,7 @@ describe('ArticleEditComponent in create mode', () => {
             'Статья с таким названием уже создана. Ваш текст не сохранён — скопируйте его при необходимости.',
         );
         expect(router.navigate).not.toHaveBeenCalled();
+        expect(router.navigateByUrl).not.toHaveBeenCalled();
         expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
     });
 
@@ -907,6 +936,7 @@ describe('ArticleEditComponent in create mode', () => {
 
         expect(notificationService.error).toHaveBeenCalledWith('Превышен лимит правок');
         expect(router.navigate).not.toHaveBeenCalled();
+        expect(router.navigateByUrl).not.toHaveBeenCalled();
     });
 
     it('should cancel back to the find page', async () => {
@@ -915,13 +945,13 @@ describe('ArticleEditComponent in create mode', () => {
 
         await spectator.component.cancel();
 
-        expect(router.navigate).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
+        expect(router.navigateByUrl).toHaveBeenCalledWith(createSession.exitUrl);
     });
 });
 
-describe('ArticleEditComponent with undefined version', () => {
+describe('PageEditComponent with undefined version', () => {
     const createComponent = createComponentFactory({
-        component: ArticleEditComponent,
+        component: PageEditComponent,
         mocks: [ArticleService, Router, ConfirmationService],
         componentProviders: [
             { provide: LinksService, useValue: { getLinkStatuses: jest.fn() } },
@@ -950,5 +980,375 @@ describe('ArticleEditComponent with undefined version', () => {
         await spectator.component.cancel();
 
         expect(router.navigate).toHaveBeenCalledWith(['/']);
+    });
+});
+
+describe('PageEditComponent on a news version', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+    let notificationService: SpyObject<NotificationService>;
+    let router: jest.Mocked<Router>;
+    let confirmationService: jest.Mocked<ConfirmationService>;
+
+    const newsSession = toEditSession(
+        createMockArticle({ articleId: 7, versionId: 70, title: 'Новость', content: 'Текст новости' }),
+        'news',
+    );
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(newsSession), readerAuth],
+        detectChanges: false,
+    });
+
+    beforeEach(() => {
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        mockDraftEditorService.hasActiveSession.mockReturnValue(false);
+        mockDraftEditorService.discardDraft.mockClear();
+        mockDraftEditorService.onContentChanged.mockClear();
+        mockInwork.getActiveEditor.mockClear().mockReturnValue(of(undefined));
+        mockInwork.markEditing.mockClear().mockReturnValue(of(undefined));
+        mockInwork.clearEditing.mockClear().mockReturnValue(of(undefined));
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService);
+        notificationService = spectator.inject(NotificationService);
+        router = spectator.inject(Router);
+        confirmationService = spectator.inject(ConfirmationService);
+        articleService.saveArticleVersion.mockReturnValue(
+            of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+    });
+
+    it('shows a reader who does not moderate no title or day fields', () => {
+        spectator.detectChanges();
+
+        expect(spectator.query(NewsFieldsComponent)).toBeNull();
+    });
+
+    it('saves the news version through the news endpoints and opens the news item', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(articleService.saveArticleVersion).toHaveBeenCalledWith(
+            { versionId: 70, content: 'Новый текст' },
+            'news',
+        );
+        expect(notificationService.success).toHaveBeenCalledWith('Новость сохранена');
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7');
+    });
+
+    it('keeps its draft under the news version', () => {
+        spectator.detectChanges();
+        spectator.component.contentChanged('Новый текст');
+
+        expect(mockDraftEditorService.onContentChanged).toHaveBeenCalledWith({
+            route: '/news/7/version/70/edit',
+            title: 'Новость',
+            text: 'Новый текст',
+        });
+    });
+
+    it('marks nothing as in work: the editing marks are kept for articles only', () => {
+        spectator.detectChanges();
+        spectator.component.ngOnDestroy();
+
+        expect(mockInwork.getActiveEditor).not.toHaveBeenCalled();
+        expect(mockInwork.markEditing).not.toHaveBeenCalled();
+        expect(mockInwork.clearEditing).not.toHaveBeenCalled();
+    });
+
+    it('goes back to the news version on cancel', async () => {
+        spectator.detectChanges();
+
+        await spectator.component.cancel();
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7/version/70');
+        expect(confirmationService.open).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageEditComponent creating a news item', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let newsService: jest.Mocked<NewsService>;
+    let notificationService: SpyObject<NotificationService>;
+    let router: jest.Mocked<Router>;
+
+    const topics = [
+        { id: 3, title: 'Церковь' },
+        { id: 5, title: 'Общество' },
+    ];
+    const createSession: PageEditSession = {
+        kind: 'news',
+        mode: 'create',
+        articleId: 0,
+        versionId: 0,
+        title: '',
+        content: '',
+        exitUrl: '/history/news',
+        draftKey: '/news/new',
+        newsTopics: topics,
+    };
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(createSession), readerAuth],
+        detectChanges: false,
+    });
+
+    const fields = (): NewsFieldsComponent | null => spectator.query(NewsFieldsComponent);
+    const fill = (title: string, topic: number | undefined, content: string): void => {
+        spectator.component.onNewsFields({ title, newsDate: '2026-11-05', topic });
+        spectator.component.contentChanged(content);
+    };
+
+    beforeEach(() => {
+        jest.useFakeTimers({ now: new Date(2026, 10, 5, 12, 0), doNotFake: ['queueMicrotask', 'nextTick'] });
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        mockDraftEditorService.hasActiveSession.mockReturnValue(false);
+        mockDraftEditorService.onContentChanged.mockClear();
+        mockInwork.getActiveEditor.mockClear().mockReturnValue(of(undefined));
+        spectator = createComponent();
+        newsService = spectator.inject(NewsService);
+        notificationService = spectator.inject(NotificationService);
+        router = spectator.inject(Router);
+        newsService.createNews.mockReturnValue(
+            of({ articleId: 7, versionId: 70, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+        spectator.detectChanges();
+    });
+
+    afterEach(() => jest.useRealTimers());
+
+    it('asks for the title and the day — today by default — above the text', () => {
+        expect(fields()?.value()).toEqual({ title: '', newsDate: '2026-11-05', topic: undefined });
+    });
+
+    it('asks for the section the way an article asks for its dictionaries, in the sidebar', () => {
+        const section = spectator.query(NewsTopicSidebarActionComponent);
+        expect(section?.topics()).toEqual(topics);
+        expect(section?.selected()).toBeUndefined();
+
+        section?.picked.emit(5);
+        spectator.detectChanges();
+
+        expect(spectator.component.newsFields().topic).toBe(5);
+        expect(spectator.query(NewsTopicSidebarActionComponent)?.selected()).toBe(5);
+    });
+
+    it('creates the news item from the fields and the text, then opens it', () => {
+        fill('  Новость  ', 3, 'Текст');
+
+        spectator.component.save();
+
+        expect(newsService.createNews).toHaveBeenCalledWith({
+            title: 'Новость',
+            newsDate: '2026-11-05',
+            topic: 3,
+            content: 'Текст',
+            info: 'Новая новость',
+        });
+        expect(notificationService.success).toHaveBeenCalledWith('Новость создана');
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7');
+    });
+
+    it.each([
+        ['a title', '', 3, 'Текст', 'Введите заголовок новости'],
+        ['a section', 'Новость', undefined, 'Текст', 'Выберите раздел новости'],
+        ['a text', 'Новость', 3, '  ', 'Введите текст новости'],
+    ])('asks for %s before creating', (_case, title, topic, content, message) => {
+        fill(title, topic, content);
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith(message);
+        expect(newsService.createNews).not.toHaveBeenCalled();
+    });
+
+    it('asks for the day before creating', () => {
+        spectator.component.onNewsFields({ title: 'Новость', newsDate: '', topic: 3 });
+        spectator.component.contentChanged('Текст');
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Укажите дату новости');
+        expect(newsService.createNews).not.toHaveBeenCalled();
+    });
+
+    it('keeps its draft under /news/new, named by the title typed', () => {
+        fill('Новость', 3, 'Текст');
+
+        expect(mockDraftEditorService.onContentChanged).toHaveBeenLastCalledWith({
+            route: '/news/new',
+            title: 'Новость',
+            text: 'Текст',
+        });
+    });
+
+    it('goes back to the news history on cancel', async () => {
+        await spectator.component.cancel();
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/history/news');
+    });
+
+    it('asks before cancel discards a title, a day or a section typed with no text yet', async () => {
+        const confirmation = spectator.inject(ConfirmationService);
+        confirmation.open.mockReturnValue(of('cancel'));
+        spectator.component.onNewsFields({ title: 'Новость', newsDate: '2026-11-05', topic: undefined });
+
+        await spectator.component.cancel();
+
+        expect(confirmation.open).toHaveBeenCalled();
+        expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageEditComponent on a news version, for a moderator', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+    let newsService: jest.Mocked<NewsService>;
+    let notificationService: SpyObject<NotificationService>;
+    let router: jest.Mocked<Router>;
+
+    const newsSession = toEditSession(
+        createMockArticle({
+            articleId: 7,
+            versionId: 70,
+            title: 'Новость',
+            content: 'Текст',
+            newsDate: new Date(2026, 10, 4),
+        }),
+        'news',
+    );
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(newsSession), moderatorAuth],
+        detectChanges: false,
+    });
+
+    const fields = (): NewsFieldsComponent | null => spectator.query(NewsFieldsComponent);
+
+    beforeEach(() => {
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService);
+        newsService = spectator.inject(NewsService);
+        notificationService = spectator.inject(NotificationService);
+        router = spectator.inject(Router);
+        articleService.saveArticleVersion.mockReturnValue(
+            of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+        newsService.updateMeta.mockReturnValue(
+            of({ articleId: 7, title: 'Другая', newsDate: new Date(2026, 10, 6), topics: [3] }),
+        );
+        spectator.detectChanges();
+    });
+
+    it('shows the title and the day of the news item, the section staying on its page', () => {
+        expect(fields()?.value()).toEqual({ title: 'Новость', newsDate: '2026-11-04', topic: undefined });
+        expect(spectator.query(NewsTopicSidebarActionComponent)).toBeNull();
+    });
+
+    it('saves a changed title and day alone through the meta, then opens the news item', () => {
+        spectator.component.onNewsFields({ title: '  Другая  ', newsDate: '2026-11-06', topic: undefined });
+
+        spectator.component.save();
+
+        expect(newsService.updateMeta).toHaveBeenCalledWith(7, { title: 'Другая', newsDate: '2026-11-06' });
+        expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+        expect(notificationService.success).toHaveBeenCalledWith('Новость сохранена');
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7');
+    });
+
+    it('saves the meta first, then the text, when both changed', () => {
+        spectator.component.onNewsFields({ title: 'Другая', newsDate: '2026-11-04', topic: undefined });
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(newsService.updateMeta).toHaveBeenCalledWith(7, { title: 'Другая' });
+        expect(articleService.saveArticleVersion).toHaveBeenCalledWith(
+            { versionId: 70, content: 'Новый текст' },
+            'news',
+        );
+        expect(newsService.updateMeta.mock.invocationCallOrder[0]).toBeLessThan(
+            articleService.saveArticleVersion.mock.invocationCallOrder[0],
+        );
+    });
+
+    it('saves the text alone when the title and the day stay', () => {
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
+        expect(articleService.saveArticleVersion).toHaveBeenCalled();
+    });
+
+    it('has nothing to save when nothing changed', () => {
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Нет изменений для сохранения');
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
+    });
+
+    it('asks for a title before saving', () => {
+        spectator.component.onNewsFields({ title: ' ', newsDate: '2026-11-04', topic: undefined });
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Введите заголовок новости');
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageEditComponent on an undated news version, for a moderator', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+    let newsService: jest.Mocked<NewsService>;
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [
+            mockLoggerProvider(),
+            createMockActivatedRoute(
+                toEditSession(
+                    createMockArticle({ articleId: 7, versionId: 70, title: 'Новость', content: 'Текст' }),
+                    'news',
+                ),
+            ),
+            moderatorAuth,
+        ],
+        detectChanges: false,
+    });
+
+    beforeEach(() => {
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService);
+        newsService = spectator.inject(NewsService);
+        articleService.saveArticleVersion.mockReturnValue(
+            of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+        spectator.detectChanges();
+    });
+
+    it('saves a text-only edit, leaving the item undated', () => {
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(articleService.saveArticleVersion).toHaveBeenCalled();
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
     });
 });

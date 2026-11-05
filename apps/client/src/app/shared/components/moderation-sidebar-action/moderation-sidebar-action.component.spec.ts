@@ -137,11 +137,21 @@ describe('ModerationSidebarActionComponent', () => {
                 activate();
 
                 expect(spectator.inject(ModalService).open).toHaveBeenCalledWith(expect.any(Function), {
-                    data: { version: mockVersion },
+                    data: { version: mockVersion, kind: 'articles' },
                     width: '96vw',
                     maxWidth: '96vw',
                     height: '90vh',
                 });
+            });
+
+            it('should open the sheet for a news version as news', () => {
+                spectator.setInput('kind', 'news');
+                activate();
+
+                expect(spectator.inject(ModalService).open).toHaveBeenCalledWith(
+                    expect.any(Function),
+                    expect.objectContaining({ data: { version: mockVersion, kind: 'news' } }),
+                );
             });
 
             it('should load the sheet lazily', async () => {

@@ -85,9 +85,9 @@ export class ArticleService {
      * @param versionId - Version ID
      * @returns Observable with mapped article version (raw content)
      */
-    getArticleVersion(versionId: number): Observable<ArticleVersion> {
+    getArticleVersion(versionId: number, kind: PageKind = 'articles'): Observable<ArticleVersion> {
         return this.articleApiService
-            .getArticleVersion(versionId)
+            .getArticleVersion(versionId, kind)
             .pipe(map(response => this.mapArticleVersion(response)));
     }
 
@@ -145,8 +145,13 @@ export class ArticleService {
      * @param request - Save request with versionId, content, and optional info
      * @returns Observable with mapped save result
      */
-    saveArticleVersion(request: SaveArticleVersionRequest): Observable<SaveArticleVersionResult> {
-        return this.articleApiService.saveArticleVersion(request).pipe(map(response => this.mapSaveResponse(response)));
+    saveArticleVersion(
+        request: SaveArticleVersionRequest,
+        kind: PageKind = 'articles',
+    ): Observable<SaveArticleVersionResult> {
+        return this.articleApiService
+            .saveArticleVersion(request, kind)
+            .pipe(map(response => this.mapSaveResponse(response)));
     }
 
     /**
@@ -157,8 +162,13 @@ export class ArticleService {
      * @param comment - Optional moderation comment
      * @returns Observable with moderation result
      */
-    moderateVersion(versionId: number, approved: ApprovalStatus, comment = ''): Observable<ModerationResult> {
-        return this.articleApiService.moderateVersion({ versionId, approved, comment }).pipe(
+    moderateVersion(
+        versionId: number,
+        approved: ApprovalStatus,
+        comment = '',
+        kind: PageKind = 'articles',
+    ): Observable<ModerationResult> {
+        return this.articleApiService.moderateVersion({ versionId, approved, comment }, kind).pipe(
             map(dto => ({
                 versionId: dto.versionId,
                 articleId: dto.articleId,
@@ -175,8 +185,10 @@ export class ArticleService {
      * @param articleId - Article ID for internal links resolution
      * @returns Observable with formatted HTML string
      */
-    previewArticle(content: string, articleId: number): Observable<string> {
-        return this.articleApiService.previewArticle({ content, articleId }).pipe(map(response => response.content));
+    previewArticle(content: string, articleId: number, kind: PageKind = 'articles'): Observable<string> {
+        return this.articleApiService
+            .previewArticle({ content, articleId }, kind)
+            .pipe(map(response => response.content));
     }
 
     getArticlesHistory(

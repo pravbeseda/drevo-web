@@ -213,7 +213,17 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.approve();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Approved, '');
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Approved, '', 'articles');
+        });
+
+        it('should moderate a news version through the news endpoints', () => {
+            articleService.moderateVersion.mockReturnValue(of(mockModerationResult));
+            spectator.setInput('kind', 'news');
+            spectator.detectChanges();
+
+            spectator.component.approve();
+
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Approved, '', 'news');
         });
 
         it('should emit moderated event on success', () => {
@@ -243,7 +253,12 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.approve();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Approved, 'My comment');
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(
+                200,
+                ApprovalStatus.Approved,
+                'My comment',
+                'articles',
+            );
         });
     });
 
@@ -255,7 +270,7 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.sendToReview();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Pending, '');
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Pending, '', 'articles');
         });
 
         it('should show correct success message', () => {
@@ -277,7 +292,7 @@ describe('ArticleModerationPanelComponent', () => {
 
             spectator.component.reject();
 
-            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Rejected, '');
+            expect(articleService.moderateVersion).toHaveBeenCalledWith(200, ApprovalStatus.Rejected, '', 'articles');
         });
 
         it('should show correct success message', () => {

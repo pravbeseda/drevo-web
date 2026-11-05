@@ -1,10 +1,12 @@
-<app-sidebar-action
-    [order]="10"
-    icon="toc"
-    label="Содержание"
-    priority="secondary"
-    (activated)="openTableOfContents()"
-/>
+@if (isArticle()) {
+    <app-sidebar-action
+        [order]="10"
+        icon="toc"
+        label="Содержание"
+        priority="secondary"
+        (activated)="openTableOfContents()"
+    />
+}
 
 @if (editUrl(); as url) {
     <app-sidebar-action
@@ -16,7 +18,7 @@
     />
 }
 
-@if (articleId(); as id) {
+@if (isArticle() && articleId(); as id) {
     @if (topics(); as t) {
         <app-topics-sidebar-action
             [articleId]="id"
@@ -29,6 +31,7 @@
 @if (version(); as v) {
     <app-moderation-sidebar-action
         [version]="v"
+        [kind]="kind()"
         [priority]="moderationPriority()"
         [disabled]="moderationDisabled()"
         (moderated)="moderated.emit($event)"

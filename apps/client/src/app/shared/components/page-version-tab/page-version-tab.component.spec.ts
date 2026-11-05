@@ -1,3 +1,4 @@
+import { PageSidebarActionsComponent } from '../page-sidebar-actions/page-sidebar-actions.component';
 import { ArticleService } from '../../../services/articles';
 import { PageContext } from '../../services/page-context/page-context';
 import { createRouteSnapshot } from '../../testing/route-testing.helper';
@@ -337,7 +338,10 @@ describe('PageVersionTabComponent on a news item', () => {
         expect(reviewBlockStubs.getReviews).toHaveBeenCalledWith('news', 789);
     });
 
-    it('offers no article actions: editing and moderating news come with the news editor', () => {
-        expect(spectator.query('app-article-sidebar-actions')).toBeNull();
+    it('offers editing and moderating the version as one of a news item', () => {
+        const actions = spectator.query(PageSidebarActionsComponent);
+
+        expect(actions?.kind()).toBe('news');
+        expect(actions?.editUrl()).toBe('/news/100/version/789/edit');
     });
 });

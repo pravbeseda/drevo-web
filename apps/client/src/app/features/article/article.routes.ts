@@ -1,4 +1,3 @@
-import { articleVersionResolver } from './resolvers/article-version.resolver';
 import { missingArticleResolver } from './resolvers/missing-article.resolver';
 import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
@@ -62,7 +61,7 @@ export const ARTICLE_ROUTES: Route[] = [
             {
                 path: 'edit',
                 loadComponent: () =>
-                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
+                    import('../../shared/components/page-edit/page-edit.component').then(m => m.PageEditComponent),
                 resolve: { session: newArticleResolver },
                 providers: [LinksService],
                 data: { titleSource: 'session', titlePrefix: '*' },
@@ -111,15 +110,7 @@ export const ARTICLE_ROUTES: Route[] = [
                         m => m.ArticleContentTabComponent,
                     ),
             },
-            ...pageTabRoutes(),
-            {
-                path: 'version/:versionId/edit',
-                loadComponent: () =>
-                    import('./pages/article-edit/article-edit.component').then(m => m.ArticleEditComponent),
-                resolve: { version: articleVersionResolver },
-                providers: [LinksService],
-                data: { titleSource: 'version', titlePrefix: '*' },
-            },
+            ...pageTabRoutes('articles'),
             {
                 path: 'news',
                 title: 'Новости',

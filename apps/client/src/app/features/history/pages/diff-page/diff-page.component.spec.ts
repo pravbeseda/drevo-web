@@ -9,6 +9,7 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { DiffPageComponent } from './diff-page.component';
+import { ModerationSidebarActionComponent } from '../../../../shared/components/moderation-sidebar-action/moderation-sidebar-action.component';
 
 const mockVersionPairs: VersionPairs = {
     current: {
@@ -413,11 +414,11 @@ describe('DiffPageComponent', () => {
             expect(reviewStubs.getReviews).toHaveBeenCalledWith('news', 200);
         });
 
-        it('does not offer moderation of news versions yet', () => {
+        it('moderates news versions as news', () => {
             const spectator = createComponent();
             spectator.detectChanges();
 
-            expect(spectator.query('app-moderation-sidebar-action')).toBeNull();
+            expect(spectator.query(ModerationSidebarActionComponent)?.kind()).toBe('news');
         });
     });
 });
