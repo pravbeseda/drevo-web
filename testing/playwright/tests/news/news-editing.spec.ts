@@ -18,6 +18,8 @@ import { createNewsVersionDto } from '../../mocks/news';
 import { ArticleEditPage } from '../../pages/article-edit.page';
 import { NewsPage } from '../../pages/news.page';
 
+/** Well above one line of text: what a collapsed editor shrinks to. */
+const MIN_EDITOR_HEIGHT = 300;
 const NEWS_ID = 7;
 const VERSION_ID = 70;
 const NEWS = createNewsVersionDto({ versionId: VERSION_ID, title: 'Престольный праздник', rank: 4 }, NEWS_ID);
@@ -61,7 +63,9 @@ test.describe('News editing', () => {
         await editor.waitForReady();
         await news.titleInput.fill('Престольный праздник');
         await news.dateInput.fill('2025-01-15');
-        await news.topicOption('Церковь').click();
+        await news.topicAction.click();
+        await news.topicCheckbox(1).check();
+        await news.topicOk.click();
         await editor.typeInEditor('Текст новости');
         const create = page.waitForRequest(request => request.url().endsWith('/api/news/create'));
         await editor.clickSave();
@@ -70,6 +74,14 @@ test.describe('News editing', () => {
             expect.objectContaining({ title: 'Престольный праздник', newsDate: '2025-01-15', topic: 1 }),
         );
         await expect(page).toHaveURL(`/news/${NEWS_ID}`);
+    });
+
+    test('the news editor fills the page, not a single line', async ({ authenticatedPage: page }) => {
+        await page.goto('/news/new');
+        await editor.waitForReady();
+
+        const box = await editor.editorContainer.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThan(MIN_EDITOR_HEIGHT);
     });
 
     test('a moderator changes the rank of a news item, and only the rank is sent', async ({

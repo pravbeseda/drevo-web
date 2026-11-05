@@ -12,6 +12,7 @@ import { DraftEditorService } from '../../services/draft-editor/draft-editor.ser
 import { DiffViewComponent } from '../diff-view/diff-view.component';
 import { ErrorComponent } from '../error/error.component';
 import { NewsFieldsComponent } from '../news-fields/news-fields.component';
+import { NewsTopicSidebarActionComponent } from '../news-topic-sidebar-action/news-topic-sidebar-action.component';
 import { PagePreviewComponent } from '../page-preview/page-preview.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -68,6 +69,7 @@ const NEWS_EXIT_ROUTE = '/history/news';
         EditorComponent,
         ErrorComponent,
         NewsFieldsComponent,
+        NewsTopicSidebarActionComponent,
         IconComponent,
         PagePreviewComponent,
         SidebarActionComponent,
@@ -454,6 +456,10 @@ export class PageEditComponent implements OnInit, OnDestroy {
 
     onNewsFields(fields: NewsFields): void {
         this._newsFields.set(fields);
+    }
+
+    onNewsTopic(topic: number): void {
+        this._newsFields.update(fields => ({ ...fields, topic }));
     }
 
     /** What a news item being created still lacks besides its text; nothing for any other session. */

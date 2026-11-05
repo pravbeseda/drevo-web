@@ -14,10 +14,3 @@
         (ngModelChange)="onDate($event)"
     />
 </div>
-<ui-button-toggle-group
-    ariaLabel="Раздел"
-    data-testid="news-topic-input"
-    [options]="topicOptions()"
-    [ngModel]="value().topic"
-    (ngModelChange)="onTopic($event)"
-/>

@@ -24,8 +24,12 @@
     />
 
     @if (isNewsCreate()) {
-        <app-news-fields
+        <app-news-topic-sidebar-action
             [topics]="newsTopics()"
+            [selected]="newsFields().topic"
+            (picked)="onNewsTopic($event)"
+        />
+        <app-news-fields
             [value]="newsFields()"
             (valueChange)="onNewsFields($event)"
         />

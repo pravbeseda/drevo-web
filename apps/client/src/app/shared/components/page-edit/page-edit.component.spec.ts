@@ -7,6 +7,7 @@ import { DraftEditorService } from '../../services/draft-editor/draft-editor.ser
 import { createMockArticle } from '../../testing/article-testing.helper';
 import { PageEditComponent } from './page-edit.component';
 import { NewsFieldsComponent } from '../news-fields/news-fields.component';
+import { NewsTopicSidebarActionComponent } from '../news-topic-sidebar-action/news-topic-sidebar-action.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -1105,9 +1106,20 @@ describe('PageEditComponent creating a news item', () => {
 
     afterEach(() => jest.useRealTimers());
 
-    it('asks for the title, the day — today by default — and the section', () => {
-        expect(fields()?.topics()).toEqual(topics);
+    it('asks for the title and the day — today by default — above the text', () => {
         expect(fields()?.value()).toEqual({ title: '', newsDate: '2026-11-05', topic: undefined });
+    });
+
+    it('asks for the section the way an article asks for its dictionaries, in the sidebar', () => {
+        const section = spectator.query(NewsTopicSidebarActionComponent);
+        expect(section?.topics()).toEqual(topics);
+        expect(section?.selected()).toBeUndefined();
+
+        section?.picked.emit(5);
+        spectator.detectChanges();
+
+        expect(spectator.component.newsFields().topic).toBe(5);
+        expect(spectator.query(NewsTopicSidebarActionComponent)?.selected()).toBe(5);
     });
 
     it('creates the news item from the fields and the text, then opens it', () => {

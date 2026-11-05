@@ -21,9 +21,13 @@ export class NewsPage extends BasePage {
     readonly dateInput = this.page.getByTestId('news-date-input').locator('input');
     readonly metaSave = this.page.getByTestId('news-meta-save');
 
-    /** A section to pick in the news fields, by its title. */
-    topicOption(title: string): Locator {
-        return this.page.getByTestId('news-topic-input').getByText(title, { exact: true });
+    /** «Раздел» in the sidebar, which opens the panel of sections. */
+    readonly topicAction = this.sidebarAction('news-topic-action');
+    readonly topicOk = this.page.getByTestId('news-topic-ok');
+
+    /** A section in the panel of sections, by its id. */
+    topicCheckbox(id: number): Locator {
+        return this.page.getByTestId(`news-topic-${id}`).locator('input');
     }
 
     /** A rank to pick in the meta form, by its label. */

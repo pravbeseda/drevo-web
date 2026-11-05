@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
-import { NewsMeta, NewsMetaChange, NewsTopic } from '@drevo-web/shared';
+import { NewsMeta, NewsMetaChange } from '@drevo-web/shared';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { ButtonToggleGroupComponent, ButtonToggleOption } from '@drevo-web/ui/button-toggle-group';
 import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
@@ -15,7 +15,6 @@ export interface NewsMetaDialogData {
     readonly newsId: number;
     readonly fields: NewsFields;
     readonly rank: number;
-    readonly topics: readonly NewsTopic[];
 }
 
 /** The ranks the backend knows (`params.NewsRank`), least important first. */
@@ -39,7 +38,11 @@ const MAILING_OPTIONS: readonly ButtonToggleOption[] = [
     { value: 1, label: 'Не рассылать' },
 ];
 
-/** A moderator's form for what a news item has besides its text: title, day, section, rank, mailing. */
+/**
+ * A moderator's form for what a news item has besides its text and its section:
+ * title, day, rank, mailing. The section is picked in the sidebar, as an
+ * article's dictionaries are.
+ */
 @Component({
     selector: 'app-news-meta-dialog',
     imports: [ButtonComponent, ButtonToggleGroupComponent, FormsModule, NewsFieldsComponent],
@@ -55,7 +58,6 @@ export class NewsMetaDialogComponent {
     private readonly logger = inject(LoggerService).withContext('NewsMetaDialog');
 
     private readonly initial = this.modal.data;
-    readonly topics = this.initial.topics;
     readonly rankOptions = RANK_OPTIONS;
     readonly mailingOptions = MAILING_OPTIONS;
 
@@ -125,13 +127,12 @@ export class NewsMetaDialogComponent {
 
     /** Only what differs from what the news item has, so a change of rank does not rewrite its title. */
     private change(): NewsMetaChange {
-        const { title, newsDate, topic } = this._fields();
+        const { title, newsDate } = this._fields();
         const mailing = this._mailing();
         const before = this.initial.fields;
         return {
             ...(title.trim() === before.title ? {} : { title: title.trim() }),
             ...(newsDate === before.newsDate ? {} : { newsDate }),
-            ...(topic === undefined || topic === before.topic ? {} : { topic }),
             ...(this._rank() === this.initial.rank ? {} : { rank: this._rank() }),
             ...(mailing === KEEP_MAILING ? {} : { numlist: mailing }),
         };

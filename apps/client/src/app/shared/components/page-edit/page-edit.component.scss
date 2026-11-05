@@ -1,9 +1,12 @@
 @use 'index' as *;
 
+// `height` fills a block parent — /news/new sits straight in the main outlet;
+// `flex` fills the page shells, which lay their tab out as a flex or grid item.
 :host {
     display: flex;
     flex-direction: column;
     flex: 1;
+    height: 100%;
     min-height: 0;
     overflow: hidden;
 }

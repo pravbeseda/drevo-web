@@ -19,10 +19,6 @@ describe('NewsMetaDialogComponent', () => {
         newsId: 7,
         fields: { title: 'Новость', newsDate: '2026-11-05', topic: 3 },
         rank: 4,
-        topics: [
-            { id: 3, title: 'Церковь' },
-            { id: 5, title: 'Общество' },
-        ],
     };
     const saved: NewsMeta = {
         articleId: 7,
@@ -51,19 +47,18 @@ describe('NewsMetaDialogComponent', () => {
         newsService.updateMeta.mockReturnValue(of(saved));
     });
 
-    it('shows the title, the day and the section the news item has', () => {
+    it('shows the title and the day the news item has', () => {
         expect(spectator.query(NewsFieldsComponent)?.value()).toEqual(data.fields);
         expect(spectator.component.rank()).toBe(4);
     });
 
     it('sends only what was changed, then closes with what the news item now holds', () => {
-        spectator.component.onFields({ ...data.fields, topic: 5 });
         spectator.component.onRank(6);
         spectator.component.onMailing(1);
 
         spectator.component.save();
 
-        expect(newsService.updateMeta).toHaveBeenCalledWith(7, { topic: 5, rank: 6, numlist: 1 });
+        expect(newsService.updateMeta).toHaveBeenCalledWith(7, { rank: 6, numlist: 1 });
         expect(close).toHaveBeenCalledWith(saved);
     });
 
