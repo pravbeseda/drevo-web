@@ -6,13 +6,13 @@ import { NotificationService } from '@drevo-web/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { NewsMeta } from '@drevo-web/shared';
 import { MODAL_DATA } from '@drevo-web/ui/modal';
-import { Spectator, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
+import { Spectator, SpyObject, createComponentFactory, mockProvider } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 
 describe('NewsMetaDialogComponent', () => {
     let spectator: Spectator<NewsMetaDialogComponent>;
-    let newsService: jest.Mocked<NewsService>;
-    let notification: jest.Mocked<NotificationService>;
+    let newsService: SpyObject<NewsService>;
+    let notification: SpyObject<NotificationService>;
     const close = jest.fn();
 
     const data: NewsMetaDialogData = {
@@ -47,7 +47,7 @@ describe('NewsMetaDialogComponent', () => {
         close.mockReset();
         spectator = createComponent();
         newsService = spectator.inject(NewsService);
-        notification = spectator.inject(NotificationService) as jest.Mocked<NotificationService>;
+        notification = spectator.inject(NotificationService);
         newsService.updateMeta.mockReturnValue(of(saved));
     });
 
