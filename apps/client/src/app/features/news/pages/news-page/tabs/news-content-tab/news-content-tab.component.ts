@@ -7,14 +7,13 @@ import { NewsMetaDialogData } from '../../../../components/news-meta-dialog/news
 import { NewsPageService } from '../../../../services/news-page.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { ModerationResult, NewsMeta, formatCalendarDate, toCalendarDateString } from '@drevo-web/shared';
 import { ModalService } from '@drevo-web/ui/modal';
 
 /** The news item itself: the day it is about, its sections and its text. */
 @Component({
     selector: 'app-news-content-tab',
-    imports: [PageSidebarActionsComponent, RouterLink, SidebarActionComponent, WikiContentComponent],
+    imports: [PageSidebarActionsComponent, SidebarActionComponent, WikiContentComponent],
     templateUrl: './news-content-tab.component.html',
     styleUrl: './news-content-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

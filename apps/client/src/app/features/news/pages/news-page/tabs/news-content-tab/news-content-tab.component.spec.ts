@@ -83,14 +83,12 @@ describe('NewsContentTabComponent', () => {
         expect(spectator.query('[data-testid="news-date"]')).toBeNull();
     });
 
-    it('links each section of the news item to its feed', () => {
+    it('names each section of the news item, linking nowhere: there is no feed of a section', () => {
         spectator.detectChanges();
 
-        const links = spectator.queryAll<HTMLAnchorElement>('[data-testid="news-section"]');
-        expect(links.map(link => [link.textContent?.trim(), link.getAttribute('href')])).toEqual([
-            ['Церковь', '/news?topic=3'],
-            ['Общество', '/news?topic=5'],
-        ]);
+        const sections = spectator.queryAll('[data-testid="news-section"]');
+        expect(sections.map(section => section.textContent?.trim())).toEqual(['Церковь', 'Общество']);
+        expect(sections.some(section => section.tagName === 'A')).toBe(false);
     });
 
     it('offers editing and moderating the current version as a news item', () => {

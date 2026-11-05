@@ -10,16 +10,12 @@ import { Route } from '@angular/router';
 
 export const NEWS_ROUTES: Route[] = [
     {
-        // Componentless: the sections resolve once for the feed's filter and a news item's line.
+        // Componentless: the sections resolve once for a news item's line and the create form.
         path: '',
         resolve: { topics: newsTopicsResolver },
         children: [
-            {
-                path: '',
-                pathMatch: 'full',
-                title: 'Новости',
-                loadComponent: () => import('./pages/news-feed/news-feed.component').then(m => m.NewsFeedComponent),
-            },
+            // The news are listed in the history; the bare address of the old feed lands there.
+            { path: '', pathMatch: 'full', redirectTo: '/history/news' },
             {
                 // Ahead of `:id`, which would read `new` as an id.
                 path: 'new',

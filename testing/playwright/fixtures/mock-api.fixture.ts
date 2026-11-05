@@ -38,7 +38,6 @@ import {
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
-    NewsFeedResponseDto,
     NewsMetaResponseDto,
     NewsTopicDto,
     PictureDto,
@@ -1010,18 +1009,6 @@ export async function mockVersionPairsServerError(page: Page, version1: number, 
 /** Mock GET /api/news/topics — the news sections */
 export async function mockNewsTopicsApi(page: Page, topics: readonly NewsTopicDto[] = mockNewsTopics): Promise<void> {
     await page.route('**/api/news/topics', route => route.fulfill({ json: apiSuccess(topics) }));
-}
-
-/** Mock GET /api/news/list — each request answered for the section and the page it asks for */
-export async function mockNewsFeedApi(
-    page: Page,
-    respond: (topic: string | null, pageNumber: number) => NewsFeedResponseDto,
-): Promise<void> {
-    await page.route('**/api/news/list**', route => {
-        const url = new URL(route.request().url());
-        const pageNumber = Number(url.searchParams.get('page') ?? '1');
-        return route.fulfill({ json: apiSuccess(respond(url.searchParams.get('topic'), pageNumber)) });
-    });
 }
 
 /** Mock GET /api/news/show/:id — one news item for its page */

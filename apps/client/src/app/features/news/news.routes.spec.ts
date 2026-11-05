@@ -18,11 +18,8 @@ describe('NEWS_ROUTES', () => {
         expect(root.children?.map(route => route.path)).toEqual(['', 'new', ':id']);
     });
 
-    it('opens the feed under its own title', async () => {
-        const feed = child('');
-
-        expect(feed?.title).toBe('Новости');
-        expect(await feed?.loadComponent?.()).toBeDefined();
+    it('sends the bare /news to the news history, which lists the news', () => {
+        expect(child('')).toEqual({ path: '', pathMatch: 'full', redirectTo: '/history/news' });
     });
 
     it('creates a news item in the page editor, ahead of :id so the address is not read as an id', async () => {

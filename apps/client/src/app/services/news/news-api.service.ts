@@ -1,12 +1,11 @@
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
     CreateArticleResponseDto,
     CreateNewsRequestDto,
-    NewsFeedResponseDto,
     NewsMetaRequestDto,
     NewsMetaResponseDto,
     NewsTopicDto,
@@ -27,29 +26,6 @@ import { map } from 'rxjs/operators';
 export class NewsApiService {
     private readonly apiUrl = environment.apiUrl;
     private readonly http = inject(HttpClient);
-
-    /**
-     * Get a page of the published news, newest first.
-     *
-     * @param topic - Section id; omitted means every section
-     * @param page - Page number (1-based)
-     * @param pageSize - Number of items per page
-     */
-    getFeed(topic: number | undefined, page: number, pageSize: number): Observable<NewsFeedResponseDto> {
-        let params = new HttpParams().set('page', page.toString()).set('size', pageSize.toString());
-        if (topic !== undefined) {
-            params = params.set('topic', topic.toString());
-        }
-
-        return this.http
-            .get<ApiResponse<NewsFeedResponseDto>>(`${this.apiUrl}/api/news/list`, { params, withCredentials: true })
-            .pipe(
-                map(response => {
-                    assertIsDefined(response.data, 'Response data is undefined');
-                    return response.data;
-                }),
-            );
-    }
 
     /** Get the news sections. */
     getTopics(): Observable<readonly NewsTopicDto[]> {
