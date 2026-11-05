@@ -31,8 +31,9 @@ export const appConfig: ApplicationConfig = {
         provideZonelessChangeDetection(),
         provideRouter(appRoutes, withComponentInputBinding()),
         provideHttpClient(withInterceptorsFromDi()),
-        authInterceptorProvider,
+        // Outermost first: the toast must see only the error left after the CSRF retry.
         errorNotificationInterceptorProvider,
+        authInterceptorProvider,
         { provide: ErrorHandler, useClass: ChunkErrorHandler },
         PageTitleStrategy,
         { provide: TitleStrategy, useExisting: PageTitleStrategy },
