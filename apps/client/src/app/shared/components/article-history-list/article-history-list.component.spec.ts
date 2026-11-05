@@ -205,12 +205,18 @@ describe('ArticleHistoryListComponent', () => {
             expect(spectator.component.canModerate()).toBe(true);
         });
 
-        it('should not offer moderation of news versions yet', () => {
+        it('should moderate news versions as news', () => {
             mockService.kind.set('news');
             userSubject.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
             spectator.detectChanges();
 
-            expect(spectator.component.canModerate()).toBe(false);
+            spectator.component.onModerate(item);
+
+            expect(spectator.component.canModerate()).toBe(true);
+            expect(jest.mocked(spectator.inject(ModalService).open)).toHaveBeenCalledWith(
+                expect.any(Function),
+                expect.objectContaining({ data: { version: item, kind: 'news' } }),
+            );
         });
 
         it('should not let a regular user or a guest moderate', () => {
@@ -227,7 +233,7 @@ describe('ArticleHistoryListComponent', () => {
             const open = jest.mocked(spectator.inject(ModalService).open);
             expect(open).toHaveBeenCalledWith(
                 expect.any(Function),
-                expect.objectContaining({ data: { version: item } }),
+                expect.objectContaining({ data: { version: item, kind: 'articles' } }),
             );
             await expect(open.mock.calls[0][0]()).resolves.toBe(ModerationSheetComponent);
         });

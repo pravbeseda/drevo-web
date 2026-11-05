@@ -96,6 +96,7 @@
     >
         <app-article-moderation-panel
             [version]="version"
+            [kind]="kind"
             [texts]="texts()"
             (moderated)="onModerated($event)"
             (reportChanged)="onReport($event)"

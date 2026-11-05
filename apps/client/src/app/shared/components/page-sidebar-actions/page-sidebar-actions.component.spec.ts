@@ -1,8 +1,9 @@
+import { TopicsSidebarActionComponent } from '../topics-sidebar-action/topics-sidebar-action.component';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ModerationSidebarActionComponent } from '../moderation-sidebar-action/moderation-sidebar-action.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
-import { ArticleSidebarActionsComponent } from './article-sidebar-actions.component';
+import { PageSidebarActionsComponent } from './page-sidebar-actions.component';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { NotificationService, SidebarService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
@@ -25,11 +26,11 @@ const mockModeratorUser = createMockUser({
     permissions: { canModerate: true },
 });
 
-describe('ArticleSidebarActionsComponent', () => {
-    let spectator: Spectator<ArticleSidebarActionsComponent>;
+describe('PageSidebarActionsComponent', () => {
+    let spectator: Spectator<PageSidebarActionsComponent>;
 
     const createComponent = createComponentFactory({
-        component: ArticleSidebarActionsComponent,
+        component: PageSidebarActionsComponent,
         providers: [
             mockProvider(SidebarService),
             mockProvider(NotificationService),
@@ -206,6 +207,31 @@ describe('ArticleSidebarActionsComponent', () => {
             spectator.component.openTableOfContents();
 
             expect(notification.info).toHaveBeenCalledWith('Функция еще не реализована');
+        });
+    });
+
+    describe('on a news item', () => {
+        const pendingVersion = { ...mockVersion, approved: ApprovalStatus.Pending };
+
+        beforeEach(() => {
+            spectator.setInput({ kind: 'news', articleId: 7, topics: [3], version: pendingVersion });
+            spectator.detectChanges();
+        });
+
+        it('offers no topics action: the sections of a news item are not dictionary topics', () => {
+            expect(spectator.query(TopicsSidebarActionComponent)).toBeNull();
+        });
+
+        it('moderates the version as news', () => {
+            expect(spectator.query(ModerationSidebarActionComponent)?.kind()).toBe('news');
+        });
+
+        it('does not hold moderation back for topics, which only articles need', () => {
+            spectator.setInput('topics', []);
+            spectator.detectChanges();
+
+            expect(spectator.component.moderationDisabled()).toBe(false);
+            expect(spectator.component.moderationPriority()).toBe('primary');
         });
     });
 });

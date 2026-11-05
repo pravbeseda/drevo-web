@@ -16,7 +16,7 @@
     />
 }
 
-@if (articleId(); as id) {
+@if (isArticle() && articleId(); as id) {
     @if (topics(); as t) {
         <app-topics-sidebar-action
             [articleId]="id"
@@ -29,6 +29,7 @@
 @if (version(); as v) {
     <app-moderation-sidebar-action
         [version]="v"
+        [kind]="kind()"
         [priority]="moderationPriority()"
         [disabled]="moderationDisabled()"
         (moderated)="moderated.emit($event)"

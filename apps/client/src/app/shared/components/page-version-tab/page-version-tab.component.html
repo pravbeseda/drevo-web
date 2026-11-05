@@ -5,16 +5,15 @@
 } @else if (error()) {
     <p class="error-text">{{ error() }}</p>
 } @else if (version(); as version) {
-    @if (hasArticleActions) {
-        <app-article-sidebar-actions
-            [version]="version"
-            [editUrl]="versionEditUrl()"
-            [articleId]="version.articleId"
-            [topics]="version.topics"
-            (moderated)="onModerated($event)"
-            (topicsChanged)="onTopicsChanged($event)"
-        />
-    }
+    <app-page-sidebar-actions
+        [kind]="kind"
+        [version]="version"
+        [editUrl]="versionEditUrl()"
+        [articleId]="version.articleId"
+        [topics]="version.topics"
+        (moderated)="onModerated($event)"
+        (topicsChanged)="onTopicsChanged($event)"
+    />
     <ui-banner data-testid="version-banner">
         <div class="banner-header">
             {{ version.author }}

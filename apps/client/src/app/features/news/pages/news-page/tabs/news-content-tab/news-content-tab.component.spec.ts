@@ -1,16 +1,18 @@
+import { PageSidebarActionsComponent } from '../../../../../../shared/components/page-sidebar-actions/page-sidebar-actions.component';
 import { NewsContentTabComponent } from './news-content-tab.component';
 import { createMockArticle } from '../../../../../../shared/testing/article-testing.helper';
 import { NewsPageService } from '../../../../services/news-page.service';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
-import { ArticleVersion, NewsTopic } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion, NewsTopic } from '@drevo-web/shared';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
 describe('NewsContentTabComponent', () => {
     let spectator: Spectator<NewsContentTabComponent>;
     let news: ReturnType<typeof signal<ArticleVersion | undefined>>;
     let sections: ReturnType<typeof signal<readonly NewsTopic[]>>;
+    const updateApproval = jest.fn();
 
     const createComponent = createComponentFactory({
         component: NewsContentTabComponent,
@@ -20,14 +22,19 @@ describe('NewsContentTabComponent', () => {
 
     beforeEach(() => {
         news = signal<ArticleVersion | undefined>(
-            createMockArticle({ content: '<p>Текст новости</p>', newsDate: new Date(2026, 10, 4) }),
+            createMockArticle({
+                articleId: 7,
+                versionId: 70,
+                content: '<p>Текст новости</p>',
+                newsDate: new Date(2026, 10, 4),
+            }),
         );
         sections = signal<readonly NewsTopic[]>([
             { id: 3, title: 'Церковь' },
             { id: 5, title: 'Общество' },
         ]);
         spectator = createComponent({
-            providers: [{ provide: NewsPageService, useValue: { article: news, sections } }],
+            providers: [{ provide: NewsPageService, useValue: { article: news, sections, updateApproval } }],
         });
     });
 
@@ -58,5 +65,26 @@ describe('NewsContentTabComponent', () => {
             ['Церковь', '/news?topic=3'],
             ['Общество', '/news?topic=5'],
         ]);
+    });
+
+    it('offers editing and moderating the current version as a news item', () => {
+        spectator.detectChanges();
+
+        const actions = spectator.query(PageSidebarActionsComponent);
+        expect(actions?.kind()).toBe('news');
+        expect(actions?.editUrl()).toBe('/news/7/version/70/edit');
+    });
+
+    it('reflects a moderation decision on the news item', () => {
+        spectator.detectChanges();
+
+        spectator.query(PageSidebarActionsComponent)?.moderated.emit({
+            versionId: 70,
+            articleId: 7,
+            approved: ApprovalStatus.Approved,
+            comment: 'Хорошо',
+        });
+
+        expect(updateApproval).toHaveBeenCalledWith(ApprovalStatus.Approved, 'Хорошо');
     });
 });

@@ -1,4 +1,4 @@
-import { ArticleSidebarActionsComponent } from '../../../../../../shared/components/article-sidebar-actions/article-sidebar-actions.component';
+import { PageSidebarActionsComponent } from '../../../../../../shared/components/page-sidebar-actions/page-sidebar-actions.component';
 import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
@@ -11,7 +11,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
     selector: 'app-article-content-tab',
-    imports: [WikiContentComponent, ArticleSidebarActionsComponent],
+    imports: [WikiContentComponent, PageSidebarActionsComponent],
     templateUrl: './article-content-tab.component.html',
     styleUrl: './article-content-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

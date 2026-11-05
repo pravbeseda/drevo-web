@@ -1,4 +1,10 @@
 @if (news(); as news) {
+    <app-page-sidebar-actions
+        kind="news"
+        [version]="news"
+        [editUrl]="editUrl()"
+        (moderated)="onModerated($event)"
+    />
     <div class="news-meta">
         @if (date(); as date) {
             <span data-testid="news-date">{{ date }}</span>

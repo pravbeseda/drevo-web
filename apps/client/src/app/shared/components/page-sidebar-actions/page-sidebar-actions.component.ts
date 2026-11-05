@@ -4,15 +4,17 @@ import { SidebarActionComponent } from '../sidebar-action/sidebar-action.compone
 import { TopicsSidebarActionComponent } from '../topics-sidebar-action/topics-sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NotificationService } from '@drevo-web/core';
-import { ApprovalStatus, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
+import { ApprovalStatus, ModerationResult, PageKind, SidebarActionPriority } from '@drevo-web/shared';
 
+/** The sidebar actions of an article or a news item: contents, editing, topics (articles only), moderation. */
 @Component({
-    selector: 'app-article-sidebar-actions',
+    selector: 'app-page-sidebar-actions',
     imports: [SidebarActionComponent, ModerationSidebarActionComponent, TopicsSidebarActionComponent],
-    templateUrl: './article-sidebar-actions.component.html',
+    templateUrl: './page-sidebar-actions.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleSidebarActionsComponent {
+export class PageSidebarActionsComponent {
+    readonly kind = input<PageKind>('articles');
     readonly version = input<VersionForModeration>();
     readonly editUrl = input<string>();
     readonly articleId = input<number>();
@@ -20,17 +22,20 @@ export class ArticleSidebarActionsComponent {
     readonly moderated = output<ModerationResult>();
     readonly topicsChanged = output<ReadonlyArray<number>>();
 
-    private readonly hasTopics = computed(() => {
+    readonly isArticle = computed(() => this.kind() === 'articles');
+
+    /** An article is moderated once it has dictionary topics; a news item has no such topics to wait for. */
+    private readonly isReadyForModeration = computed(() => {
         const topics = this.topics();
-        return !!topics && topics.length > 0;
+        return !this.isArticle() || (!!topics && topics.length > 0);
     });
 
     readonly moderationPriority = computed<SidebarActionPriority>(() => {
         const isPending = this.version()?.approved === ApprovalStatus.Pending;
-        return this.hasTopics() && isPending ? 'primary' : 'secondary';
+        return this.isReadyForModeration() && isPending ? 'primary' : 'secondary';
     });
 
-    readonly moderationDisabled = computed(() => !this.hasTopics());
+    readonly moderationDisabled = computed(() => !this.isReadyForModeration());
 
     private readonly notification = inject(NotificationService);
 

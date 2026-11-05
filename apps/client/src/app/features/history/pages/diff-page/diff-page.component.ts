@@ -37,8 +37,6 @@ export class DiffPageComponent {
 
     readonly kind = this.data.kind;
     readonly reviewTarget = computed(() => REVIEW_TARGET[this.kind()]);
-    // shortcut: news versions are not moderated from the frontend yet, upgrade with the news editor.
-    readonly isModerationOffered = computed(() => this.kind() === 'articles');
 
     readonly isModerationEnabled = computed(() => {
         const pairs = this.data.versionPairs();
