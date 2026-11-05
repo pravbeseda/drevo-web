@@ -1,7 +1,9 @@
 import { NewsApiService } from './news-api.service';
+import { NEWS_LIST_PAGE_SIZE } from './news.constants';
 import { Injectable, inject } from '@angular/core';
 import {
     CreateNewsRequest,
+    NewsListPage,
     NewsMeta,
     NewsMetaChange,
     NewsTopic,
@@ -12,7 +14,7 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-/** The news-only endpoints: sections, creation, the moderator's meta; a news item's versions go through ArticleService with the `news` page kind. */
+/** The news-only endpoints: sections, the news about an article, creation, the moderator's meta; a news item's versions go through ArticleService with the `news` page kind. */
 @Injectable({
     providedIn: 'root',
 })
@@ -21,6 +23,19 @@ export class NewsService {
 
     getTopics(): Observable<readonly NewsTopic[]> {
         return this.newsApiService.getTopics();
+    }
+
+    getArticleNews(articleId: number, page = 1): Observable<NewsListPage> {
+        return this.newsApiService.getArticleNews(articleId, page, NEWS_LIST_PAGE_SIZE).pipe(
+            map(response => ({
+                items: response.items.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    newsDate: item.newsDate ? parseCalendarDate(item.newsDate) : undefined,
+                })),
+                total: response.total,
+            })),
+        );
     }
 
     createNews(request: CreateNewsRequest): Observable<SaveArticleVersionResult> {

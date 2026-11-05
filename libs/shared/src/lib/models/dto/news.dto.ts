@@ -4,6 +4,24 @@ export interface NewsTopicDto {
     readonly title: string;
 }
 
+/** One published news item of GET /api/news/list. */
+export interface NewsListItemDto {
+    readonly id: number;
+    readonly title: string;
+    /** `YYYY-MM-DD`; `null` when the news item has no date. */
+    readonly newsDate: string | null;
+    readonly topics: readonly number[];
+    readonly rank: number;
+}
+
+export interface NewsListResponseDto {
+    readonly items: readonly NewsListItemDto[];
+    readonly total: number;
+    readonly page: number;
+    readonly pageSize: number;
+    readonly totalPages: number;
+}
+
 /** Request body of POST /api/news/create. */
 export interface CreateNewsRequestDto {
     readonly title: string;

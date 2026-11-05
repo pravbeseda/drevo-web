@@ -1,5 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
@@ -7,6 +7,7 @@ import {
     CreateArticleResponseDto,
     CreateNewsRequestDto,
     NewsMetaRequestDto,
+    NewsListResponseDto,
     NewsMetaResponseDto,
     NewsTopicDto,
     assertIsDefined,
@@ -31,6 +32,23 @@ export class NewsApiService {
     getTopics(): Observable<readonly NewsTopicDto[]> {
         return this.http
             .get<ApiResponse<readonly NewsTopicDto[]>>(`${this.apiUrl}/api/news/topics`, { withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /** Get a page of the published news about an article, newest first. */
+    getArticleNews(articleId: number, page: number, pageSize: number): Observable<NewsListResponseDto> {
+        const params = new HttpParams()
+            .set('articleId', articleId.toString())
+            .set('page', page.toString())
+            .set('size', pageSize.toString());
+
+        return this.http
+            .get<ApiResponse<NewsListResponseDto>>(`${this.apiUrl}/api/news/list`, { params, withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

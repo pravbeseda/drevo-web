@@ -55,6 +55,12 @@ export const APPROVAL_TITLES: Record<ApprovalClass, string> = {
     approved: 'Одобрено',
 };
 
+/** How many news and discussion topics an article's tabs list. */
+export interface ArticleCounts {
+    readonly news: number;
+    readonly forum: number;
+}
+
 export interface RenameArticleResponse {
     readonly articleId: number;
     readonly title: string;

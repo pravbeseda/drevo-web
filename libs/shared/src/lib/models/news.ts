@@ -3,6 +3,18 @@ export interface NewsTopic {
     readonly title: string;
 }
 
+export interface NewsListItem {
+    readonly id: number;
+    readonly title: string;
+    readonly newsDate: Date | undefined;
+}
+
+/** A page of news, with the total across every page. */
+export interface NewsListPage {
+    readonly items: readonly NewsListItem[];
+    readonly total: number;
+}
+
 export interface CreateNewsRequest {
     readonly title: string;
     /** `YYYY-MM-DD` */

@@ -4,6 +4,7 @@ import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import {
     ApprovalStatus,
+    ArticleCounts,
     ArticleFindResponseDto,
     ArticleFindResult,
     ArticleHistoryItem,
@@ -117,6 +118,12 @@ export class ArticleService {
         return this.articleApiService
             .getLinkedHere(title, query, page, pageSize)
             .pipe(map(response => this.mapLinkedHereResponse(response)));
+    }
+
+    getCounts(articleId: number): Observable<ArticleCounts> {
+        return this.articleApiService
+            .getCounts(articleId)
+            .pipe(map(response => ({ news: response.news, forum: response.forum })));
     }
 
     /**

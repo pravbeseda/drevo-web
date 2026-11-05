@@ -28,6 +28,43 @@ describe('NewsService', () => {
         });
     });
 
+    describe('getArticleNews', () => {
+        it('reads the first page of 25 by default and maps the days', done => {
+            api.getArticleNews.mockReturnValue(
+                of({
+                    items: [
+                        { id: 5, title: 'Новость', newsDate: '2026-11-05', topics: [3], rank: 0 },
+                        { id: 4, title: 'Без даты', newsDate: null, topics: [], rank: 0 },
+                    ],
+                    total: 2,
+                    page: 1,
+                    pageSize: 25,
+                    totalPages: 1,
+                }),
+            );
+
+            spectator.service.getArticleNews(42).subscribe(result => {
+                expect(api.getArticleNews).toHaveBeenCalledWith(42, 1, 25);
+                expect(result).toEqual({
+                    items: [
+                        { id: 5, title: 'Новость', newsDate: new Date(2026, 10, 5) },
+                        { id: 4, title: 'Без даты', newsDate: undefined },
+                    ],
+                    total: 2,
+                });
+                done();
+            });
+        });
+
+        it('reads the page it is asked for', () => {
+            api.getArticleNews.mockReturnValue(of({ items: [], total: 0, page: 3, pageSize: 25, totalPages: 0 }));
+
+            spectator.service.getArticleNews(42, 3).subscribe();
+
+            expect(api.getArticleNews).toHaveBeenCalledWith(42, 3, 25);
+        });
+    });
+
     describe('createNews', () => {
         it('creates a news item and maps the new version', done => {
             api.createNews.mockReturnValue(
