@@ -1,4 +1,13 @@
-import { calendarDaysBetween, formatDateHeader, formatRelativeTime, formatTime, isSameDay, parseDate } from './date';
+import {
+    calendarDaysBetween,
+    formatDateHeader,
+    formatRelativeTime,
+    formatTime,
+    formatCalendarDate,
+    isSameDay,
+    parseCalendarDate,
+    parseDate,
+} from './date';
 
 describe('parseDate', () => {
     it('parses a backend "YYYY-MM-DD HH:mm:ss" string into a valid local Date', () => {
@@ -17,6 +26,23 @@ describe('parseDate', () => {
         const date = parseDate('2025-06-18');
 
         expect(Number.isNaN(date.getTime())).toBe(false);
+    });
+});
+
+describe('parseCalendarDate', () => {
+    it('reads a "YYYY-MM-DD" day as local midnight, so no time zone shifts it to another day', () => {
+        const date = parseCalendarDate('2026-11-05');
+
+        expect(date.getFullYear()).toBe(2026);
+        expect(date.getMonth()).toBe(10);
+        expect(date.getDate()).toBe(5);
+        expect(date.getHours()).toBe(0);
+    });
+});
+
+describe('formatCalendarDate', () => {
+    it('names the day, the month and the year', () => {
+        expect(formatCalendarDate(new Date(2026, 10, 4))).toBe('4 ноября 2026');
     });
 });
 

@@ -1,0 +1,35 @@
+@if (currentTitle(); as title) {
+    <span
+        class="news-filter__current"
+        data-testid="news-filter-current"
+    >
+        {{ title }}
+    </span>
+}
+<ui-icon-button
+    icon="filter_list"
+    label="Разделы новостей"
+    testId="news-filter-button"
+    [uiDropdownMenuTriggerFor]="menu"
+/>
+
+<ng-template #menu>
+    <ui-dropdown-menu>
+        <ui-dropdown-menu-item
+            data-testid="news-filter-all"
+            [icon]="current() === undefined ? 'check' : ''"
+            (clicked)="select(undefined)"
+        >
+            <span data-testid="news-filter-label">Все разделы</span>
+        </ui-dropdown-menu-item>
+        @for (topic of topics(); track topic.id) {
+            <ui-dropdown-menu-item
+                [attr.data-testid]="'news-filter-' + topic.id"
+                [icon]="topic.id === current() ? 'check' : ''"
+                (clicked)="select(topic.id)"
+            >
+                <span data-testid="news-filter-label">{{ topic.title }}</span>
+            </ui-dropdown-menu-item>
+        }
+    </ui-dropdown-menu>
+</ng-template>

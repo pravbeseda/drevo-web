@@ -927,4 +927,37 @@ describe('ArticleApiService', () => {
             );
         });
     });
+
+    describe('news pages', () => {
+        const ok = (data: unknown) => ({ success: true, data });
+
+        it('reads a news item from /api/news/show', () => {
+            spectator.service.getArticle(7, 'news').subscribe();
+
+            httpController.expectOne('/api/news/show/7').flush(ok({ articleId: 7 }));
+        });
+
+        it('reads a news version from /api/news/version-show', () => {
+            spectator.service.getVersionShow(70, 'news').subscribe();
+
+            httpController.expectOne('/api/news/version-show/70').flush(ok({ versionId: 70 }));
+        });
+
+        it('reads the news history from /api/news/history', () => {
+            spectator.service.getArticlesHistory({ articleId: 7 }, 'news').subscribe();
+
+            const req = httpController.expectOne(request => request.url === '/api/news/history');
+            expect(req.request.params.get('articleId')).toBe('7');
+            req.flush(ok({ items: [], total: 0, page: 1, pageSize: 25, totalPages: 0 }));
+        });
+
+        it('reads two news versions from /api/news/versionpairs', () => {
+            spectator.service.getVersionPairs(70, 69, 'news').subscribe();
+
+            const req = httpController.expectOne(request => request.url === '/api/news/versionpairs');
+            expect(req.request.params.get('version1')).toBe('70');
+            expect(req.request.params.get('version2')).toBe('69');
+            req.flush(ok({ current: {}, previous: {} }));
+        });
+    });
 });

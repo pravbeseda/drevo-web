@@ -2,7 +2,7 @@ import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { createReviewBlockStubs } from '../../../../shared/components/review-block/review-block.testing';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
-import { ApprovalStatus, Review, ReviewStatus, VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, PageKind, Review, ReviewStatus, VersionPairs } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
@@ -35,8 +35,13 @@ const mockVersionPairs: VersionPairs = {
     },
 };
 
-function createMockDataService(pairs?: VersionPairs, error?: string): Partial<DiffPageDataService> {
+function createMockDataService(
+    pairs?: VersionPairs,
+    error?: string,
+    kind: PageKind = 'articles',
+): Partial<DiffPageDataService> {
     return {
+        kind: signal(kind).asReadonly(),
         isLoading: signal(false).asReadonly(),
         error: signal(error).asReadonly(),
         versionPairs: signal(pairs).asReadonly(),
@@ -373,6 +378,46 @@ describe('DiffPageComponent', () => {
 
             expect(spectator.query('[data-testid="review-block"]')).toBeTruthy();
             expect(reviewStubs.getReviews).toHaveBeenCalledWith('article', 200);
+        });
+    });
+
+    describe('news versions', () => {
+        const reviewStubs = createReviewBlockStubs();
+
+        const createComponent = createComponentFactory({
+            component: DiffPageComponent,
+            providers: [
+                mockLoggerProvider(),
+                mockProvider(StorageService),
+                provideRouter([]),
+                { provide: DiffPageDataService, useValue: createMockDataService(mockVersionPairs, undefined, 'news') },
+                ...reviewStubs.providers,
+            ],
+            detectChanges: false,
+        });
+
+        it('links both versions under the news item', () => {
+            const spectator = createComponent();
+            spectator.detectChanges();
+
+            const links = spectator.queryAll<HTMLAnchorElement>('[data-testid="diff-meta"] a').map(a => a.pathname);
+            expect(links).toEqual(['/news/1/version/199', '/news/1/version/200']);
+        });
+
+        it('reads the reviews of the news version', () => {
+            reviewStubs.user$.next(createMockUser({ name: 'Author A', isReviewer: false }));
+            reviewStubs.getReviews.mockReturnValue(of<readonly Review[]>([]));
+            const spectator = createComponent();
+            spectator.detectChanges();
+
+            expect(reviewStubs.getReviews).toHaveBeenCalledWith('news', 200);
+        });
+
+        it('does not offer moderation of news versions yet', () => {
+            const spectator = createComponent();
+            spectator.detectChanges();
+
+            expect(spectator.query('app-moderation-sidebar-action')).toBeNull();
         });
     });
 });

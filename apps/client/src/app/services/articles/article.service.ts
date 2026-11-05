@@ -23,6 +23,7 @@ import {
     ArticleVersionDto,
     CreateArticleRequest,
     ModerationResult,
+    PageKind,
     RenameArticleResponse,
     SaveArticleVersionRequest,
     SaveArticleVersionResponseDto,
@@ -31,6 +32,7 @@ import {
     VersionForDiffDto,
     VersionPairs,
     assertIsDefined,
+    parseCalendarDate,
     parseDate,
 } from '@drevo-web/shared';
 import { Observable, Subject } from 'rxjs';
@@ -57,20 +59,24 @@ export class ArticleService {
      * Get article by ID.
      *
      * @param id - Article ID
+     * @param kind - Page kind: articles and news share the version endpoints
      * @returns Observable with mapped article
      */
-    getArticle(id: number): Observable<ArticleVersion> {
-        return this.articleApiService.getArticle(id).pipe(map(response => this.mapArticleVersion(response)));
+    getArticle(id: number, kind: PageKind = 'articles'): Observable<ArticleVersion> {
+        return this.articleApiService.getArticle(id, kind).pipe(map(response => this.mapArticleVersion(response)));
     }
 
     /**
      * Get article version for viewing
      *
      * @param versionId - Version ID
+     * @param kind - Page kind: articles and news share the version endpoints
      * @returns Observable with mapped article version
      */
-    getVersionShow(versionId: number): Observable<ArticleVersion> {
-        return this.articleApiService.getVersionShow(versionId).pipe(map(response => this.mapArticleVersion(response)));
+    getVersionShow(versionId: number, kind: PageKind = 'articles'): Observable<ArticleVersion> {
+        return this.articleApiService
+            .getVersionShow(versionId, kind)
+            .pipe(map(response => this.mapArticleVersion(response)));
     }
 
     /**
@@ -173,9 +179,12 @@ export class ArticleService {
         return this.articleApiService.previewArticle({ content, articleId }).pipe(map(response => response.content));
     }
 
-    getArticlesHistory(params: ArticleHistoryParams = {}): Observable<ArticleHistoryResponse> {
+    getArticlesHistory(
+        params: ArticleHistoryParams = {},
+        kind: PageKind = 'articles',
+    ): Observable<ArticleHistoryResponse> {
         return this.articleApiService
-            .getArticlesHistory(params)
+            .getArticlesHistory(params, kind)
             .pipe(map(response => this.mapHistoryResponse(response)));
     }
 
@@ -211,6 +220,7 @@ export class ArticleService {
             info: response.info,
             comment: response.comment,
             topics: response.topics ?? [],
+            ...(response.newsDate ? { newsDate: parseCalendarDate(response.newsDate) } : {}),
         };
     }
 
@@ -284,10 +294,11 @@ export class ArticleService {
      *
      * @param version1 - Primary version ID
      * @param version2 - Optional secondary version ID (auto-detected if omitted)
+     * @param kind - Page kind: articles and news share the version endpoints
      * @returns Observable with mapped version pairs
      */
-    getVersionPairs(version1: number, version2?: number): Observable<VersionPairs> {
-        return this.articleApiService.getVersionPairs(version1, version2).pipe(
+    getVersionPairs(version1: number, version2?: number, kind: PageKind = 'articles'): Observable<VersionPairs> {
+        return this.articleApiService.getVersionPairs(version1, version2, kind).pipe(
             map(response => ({
                 current: this.mapVersionForDiff(response.current),
                 previous: this.mapVersionForDiff(response.previous),

@@ -1,5 +1,5 @@
 import { ArticlePageService } from './article-page.service';
-import { createMockArticle } from '../testing/article-testing.helper';
+import { createMockArticle } from '../../../shared/testing/article-testing.helper';
 import { ArticleService } from '../../../services/articles';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus } from '@drevo-web/shared';

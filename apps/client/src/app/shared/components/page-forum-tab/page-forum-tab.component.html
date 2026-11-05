@@ -1,0 +1,30 @@
+<app-topic-panes [newTopicLink]="newTopicLink()">
+    @if (isLoaded()) {
+        @if (pages.items().length === 0) {
+            <p
+                class="page-forum__message"
+                data-testid="article-forum-empty"
+            >
+                {{ emptyMessage }}
+            </p>
+        } @else {
+            <app-topic-list
+                [items]="pages.items()"
+                [total]="pages.total()"
+                [loadState]="pages.loadState()"
+                [relativeLinks]="true"
+                (loadMore)="pages.loadMore()"
+                (retry)="pages.retry()"
+            />
+        }
+    } @else if (isLoadError()) {
+        <p
+            class="page-forum__message"
+            data-testid="article-forum-error"
+        >
+            Не удалось загрузить обсуждения. Попробуйте обновить страницу.
+        </p>
+    } @else {
+        <ui-spinner />
+    }
+</app-topic-panes>

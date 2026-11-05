@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { versionUrl } from '../../../../shared/helpers/page-kind';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { VersionForDiff } from '@drevo-web/shared';
+import { PageKind, VersionForDiff } from '@drevo-web/shared';
 import { FormatDatePipe } from '@drevo-web/ui/format-date';
 import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 
@@ -13,4 +14,7 @@ import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 })
 export class VersionLabelComponent {
     readonly version = input.required<VersionForDiff>();
+    readonly kind = input<PageKind>('articles');
+
+    readonly link = computed(() => versionUrl(this.kind(), this.version().articleId, this.version().versionId));
 }

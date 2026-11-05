@@ -1,7 +1,7 @@
 import { ArticleLinkedHereTabComponent } from './article-linkedhere-tab.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { ArticleService } from '../../../../../../services/articles';
-import { createMockArticle } from '../../../../testing/article-testing.helper';
+import { createMockArticle } from '../../../../../../shared/testing/article-testing.helper';
 import { Meta } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';

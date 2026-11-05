@@ -171,7 +171,7 @@ test.describe('Forum navigation', () => {
         await page.goto(`/forum/topic/${newsTopicId}`);
         await topic.waitForReady();
         await expect(topic.subtitle).toHaveText('к новости Престольный праздник');
-        await expect(topic.subtitleLink).toHaveAttribute('href', '/articles/9');
+        await expect(topic.subtitleLink).toHaveAttribute('href', '/news/9');
 
         // The second topic is picked from the list beside the first one.
         test.skip(isMobile, TWO_PANES_ONLY);

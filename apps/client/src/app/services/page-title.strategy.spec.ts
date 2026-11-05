@@ -289,7 +289,7 @@ describe('PageTitleStrategy', () => {
             });
             spectator.service.updateTitle(makeSnapshot(route));
 
-            expect(spectator.service.titleContext()).toEqual({ articleId: 42, title: 'Фотосинтез' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 42, title: 'Фотосинтез' });
         });
 
         it('should reset titleContext when navigating to non-article page', () => {
@@ -349,7 +349,7 @@ describe('PageTitleStrategy', () => {
 
             // Rename — context updates, route snapshot still has old title.
             renamedSubject.next({ articleId: 42, title: 'Новое' });
-            expect(spectator.service.titleContext()).toEqual({ articleId: 42, title: 'Новое' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 42, title: 'Новое' });
 
             // Navigate to "Версии" tab — parent snapshot carries STALE article data.
             buildTitleSpy.mockReturnValue('История версий');
@@ -360,7 +360,7 @@ describe('PageTitleStrategy', () => {
             const tabChild = makeRoute();
             spectator.service.updateTitle(makeSnapshot(staleParent, tabChild));
 
-            expect(spectator.service.titleContext()).toEqual({ articleId: 42, title: 'Новое' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 42, title: 'Новое' });
             expect(spectator.service.pageTitle()).toBe('История версий: Новое');
             expect(titleService.setTitle).toHaveBeenLastCalledWith('История версий: Новое - Древо');
         });
@@ -386,7 +386,7 @@ describe('PageTitleStrategy', () => {
                 ),
             );
 
-            expect(spectator.service.titleContext()).toEqual({ articleId: 2, title: 'Сосна' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 2, title: 'Сосна' });
         });
 
         it('should refresh titleContext between different missing articles (both id 0)', () => {
@@ -410,7 +410,44 @@ describe('PageTitleStrategy', () => {
                 ),
             );
 
-            expect(spectator.service.titleContext()).toEqual({ articleId: 0, title: 'СВЯТОЙ ПЁТР' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 0, title: 'СВЯТОЙ ПЁТР' });
+        });
+    });
+
+    describe('news title context', () => {
+        it('should head a news page with the news item, composing its tab titles', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue('Версии');
+
+            spectator.service.updateTitle(
+                makeSnapshot(makeRoute({ titleSource: 'news', news: { articleId: 7, title: 'Новость' } })),
+            );
+
+            expect(spectator.service.titleContext()).toEqual({ kind: 'news', articleId: 7, title: 'Новость' });
+            expect(spectator.service.pageTitle()).toBe('Версии: Новость');
+        });
+
+        it('should not retitle a news item when an article with the same id is renamed', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+            spectator.service.updateTitle(
+                makeSnapshot(makeRoute({ titleSource: 'news', news: { articleId: 7, title: 'Новость' } })),
+            );
+
+            renamedSubject.next({ articleId: 7, title: 'Статья' });
+
+            expect(spectator.service.pageTitle()).toBe('Новость');
+        });
+
+        it('should refresh the context between an article and a news item with the same id', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+            spectator.service.updateTitle(
+                makeSnapshot(makeRoute({ titleSource: 'article', article: { articleId: 7, title: 'Статья' } })),
+            );
+
+            spectator.service.updateTitle(
+                makeSnapshot(makeRoute({ titleSource: 'news', news: { articleId: 7, title: 'Новость' } })),
+            );
+
+            expect(spectator.service.titleContext()).toEqual({ kind: 'news', articleId: 7, title: 'Новость' });
         });
     });
 
@@ -442,7 +479,7 @@ describe('PageTitleStrategy', () => {
 
             renamedSubject.next({ articleId: 1, title: 'Новое' });
 
-            expect(spectator.service.titleContext()).toEqual({ articleId: 1, title: 'Новое' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 1, title: 'Новое' });
         });
 
         it('should recompose pageTitle when rename arrives while on a tab', () => {
@@ -488,7 +525,7 @@ describe('PageTitleStrategy', () => {
 
             renamedSubject.next({ articleId: 99, title: 'Чужое' });
 
-            expect(spectator.service.titleContext()).toEqual({ articleId: 1, title: 'Берёза' });
+            expect(spectator.service.titleContext()).toEqual({ kind: 'articles', articleId: 1, title: 'Берёза' });
             expect(titleService.setTitle).not.toHaveBeenCalled();
         });
 

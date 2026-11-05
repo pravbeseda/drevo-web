@@ -1,0 +1,202 @@
+import { ArticleHistoryService } from '../../../services/articles/article-history/article-history.service';
+import { PageContext } from '../../services/page-context/page-context';
+import { PageVersionsComponent } from './page-versions.component';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { signal } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
+import { ApprovalStatus, ArticleHistoryItem, ModerationResult, PageKind } from '@drevo-web/shared';
+
+function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
+    return {
+        versionId: 1,
+        articleId: 100,
+        title: 'Test Article',
+        author: 'Test Author',
+        date: new Date('2025-01-15T14:30:00'),
+        approved: 1,
+        isNew: false,
+        info: '',
+        comment: '',
+        ...overrides,
+    };
+}
+
+describe('PageVersionsComponent', () => {
+    let spectator: Spectator<PageVersionsComponent>;
+    let kind: PageKind;
+    const articleIdSignal = signal<number | undefined>(100);
+    const articleSignal = signal({ articleId: 100, versionId: 5 });
+    const updateApproval = jest.fn();
+
+    const mockService = {
+        init: jest.fn(),
+        isLoading: signal(false),
+        isLoadingMore: signal(false),
+        activeFilter: signal('all' as const),
+        hasError: signal(false),
+        isAuthenticated: signal(true),
+        hasItems: signal(false),
+        displayItems: signal([]),
+        displayTotalItems: signal(0),
+        onFilterChange: jest.fn(),
+        onHideCancelledChange: jest.fn(),
+        hideCancelled: signal(false),
+        onLoadMore: jest.fn(),
+    };
+
+    const createComponent = createComponentFactory({
+        component: PageVersionsComponent,
+        componentProviders: [
+            {
+                provide: ArticleHistoryService,
+                useValue: mockService,
+            },
+        ],
+        providers: [
+            provideRouter([]),
+            {
+                provide: PageContext,
+                useValue: {
+                    get kind() {
+                        return kind;
+                    },
+                    articleId: articleIdSignal,
+                    article: articleSignal,
+                    updateApproval,
+                },
+            },
+        ],
+        detectChanges: false,
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        kind = 'articles';
+        spectator = createComponent();
+    });
+
+    it('should create', () => {
+        spectator.detectChanges();
+        expect(spectator.component).toBeTruthy();
+    });
+
+    it('should call service.init() with articleId signal on ngOnInit', () => {
+        spectator.detectChanges();
+        expect(mockService.init).toHaveBeenCalledWith({
+            articleId: articleIdSignal,
+            kind: 'articles',
+        });
+    });
+
+    it('should list the versions of a news item', () => {
+        kind = 'news';
+        spectator.detectChanges();
+        expect(mockService.init).toHaveBeenLastCalledWith({ articleId: articleIdSignal, kind: 'news' });
+    });
+
+    it('should render article-history-list', () => {
+        spectator.detectChanges();
+        expect(spectator.query('app-article-history-list')).toBeTruthy();
+    });
+
+    describe('selection', () => {
+        beforeEach(() => {
+            spectator.detectChanges();
+        });
+
+        it('should start with no items selected', () => {
+            expect(spectator.component.selectedCount()).toBe(0);
+            expect(spectator.component.canCompare()).toBe(false);
+        });
+
+        it('should add item to selection', () => {
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            expect(spectator.component.selectedCount()).toBe(1);
+            expect(spectator.component.selectedVersionIds().has(10)).toBe(true);
+        });
+
+        it('should toggle off already selected item', () => {
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            expect(spectator.component.selectedCount()).toBe(0);
+        });
+
+        it('should select two items', () => {
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 20 }));
+            expect(spectator.component.selectedCount()).toBe(2);
+            expect(spectator.component.canCompare()).toBe(true);
+        });
+
+        it('should replace the older item when selecting a third', () => {
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 20 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 30 }));
+
+            expect(spectator.component.selectedCount()).toBe(2);
+            expect(spectator.component.selectedVersionIds().has(10)).toBe(false);
+            expect(spectator.component.selectedVersionIds().has(20)).toBe(true);
+            expect(spectator.component.selectedVersionIds().has(30)).toBe(true);
+        });
+
+        it('should clear selection on Escape key', () => {
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 20 }));
+            expect(spectator.component.selectedCount()).toBe(2);
+
+            spectator.dispatchKeyboardEvent(document, 'keydown', 'Escape');
+
+            expect(spectator.component.selectedCount()).toBe(0);
+            expect(spectator.component.canCompare()).toBe(false);
+        });
+
+        it('should not error on Escape when nothing is selected', () => {
+            spectator.dispatchKeyboardEvent(document, 'keydown', 'Escape');
+            expect(spectator.component.selectedCount()).toBe(0);
+        });
+
+        it('should navigate to diff page on compare', () => {
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+            spectator.component.onSelectItem(createMockItem({ versionId: 30 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onCompare();
+
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/history/articles/diff/10/30');
+        });
+
+        it('should compare news versions on the news diff page', () => {
+            kind = 'news';
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+            spectator.component.onSelectItem(createMockItem({ versionId: 30 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onCompare();
+
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/history/news/diff/10/30');
+        });
+    });
+
+    describe('moderation', () => {
+        const result = (versionId: number): ModerationResult => ({
+            versionId,
+            articleId: 100,
+            approved: ApprovalStatus.Approved,
+            comment: 'Хорошо',
+        });
+
+        it('should update the article when its shown version is moderated in the list', () => {
+            spectator.component.onModerated(result(5));
+
+            expect(updateApproval).toHaveBeenCalledWith(ApprovalStatus.Approved, 'Хорошо');
+        });
+
+        it('should leave the article as is when another version is moderated', () => {
+            spectator.component.onModerated(result(4));
+
+            expect(updateApproval).not.toHaveBeenCalled();
+        });
+    });
+});

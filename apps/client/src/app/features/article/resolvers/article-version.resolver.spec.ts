@@ -1,6 +1,6 @@
 import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { resolveArticleVersion } from './article-version.resolver';
-import { createMockArticle } from '../testing/article-testing.helper';
+import { createMockArticle } from '../../../shared/testing/article-testing.helper';
 import { UrlSegment } from '@angular/router';
 import { ArticleService } from '../../../services/articles';
 import { of, throwError } from 'rxjs';

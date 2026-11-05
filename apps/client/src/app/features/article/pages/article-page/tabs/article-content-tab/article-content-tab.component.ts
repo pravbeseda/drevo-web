@@ -1,5 +1,5 @@
+import { ArticleSidebarActionsComponent } from '../../../../../../shared/components/article-sidebar-actions/article-sidebar-actions.component';
 import { WikiContentComponent } from '../../../../../../shared/components/wiki-content/wiki-content.component';
-import { ArticleSidebarActionsComponent } from '../../../../components/article-sidebar-actions/article-sidebar-actions.component';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, Injector } from '@angular/core';

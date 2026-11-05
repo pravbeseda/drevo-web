@@ -1,0 +1,14 @@
+@use 'tokens' as *;
+
+:host {
+    display: block;
+    padding: $gap-md;
+}
+
+.news-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $gap-md;
+    margin-bottom: $gap-md;
+    color: var(--themed-text-secondary);
+}

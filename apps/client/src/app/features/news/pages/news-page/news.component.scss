@@ -1,0 +1,21 @@
+@use 'index' as *;
+
+// A tab that scrolls inside itself — the versions' virtual scroller, the
+// discussion's two panes — needs `:host` and `.news` locked to the height it
+// fills; the other tabs keep normal flow and `.main` scrolls them.
+:host:has(app-page-versions),
+:host:has(app-page-forum-tab) {
+    height: 100%;
+    overflow: hidden;
+
+    .news {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr);
+        height: 100%;
+    }
+}
+
+.news {
+    max-width: rem($article-max-width);
+    margin: 0 auto;
+}

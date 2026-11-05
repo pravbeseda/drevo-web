@@ -34,6 +34,14 @@ describe('SidebarNavComponent', () => {
         expect(items[0]).toHaveText('Изменения');
     });
 
+    it('should link to the news feed', () => {
+        spectator = createComponent();
+
+        const newsItem = spectator.queryAll('.nav-item').find(item => item.textContent?.includes('Новости'));
+
+        expect(newsItem).toHaveAttribute('href', '/news');
+    });
+
     it('should link to the forum', () => {
         spectator = createComponent();
 

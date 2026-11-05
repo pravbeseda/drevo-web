@@ -42,6 +42,28 @@ describe('DiffPageDataService', () => {
         providers: [mockLoggerProvider(), { provide: ArticleService, useValue: { getVersionPairs: jest.fn() } }],
     });
 
+    describe('page kind', () => {
+        it('should compare article versions when the route names no kind', () => {
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({ providers: [{ provide: ArticleService, useValue: articleService }] });
+
+            spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
+
+            expect(spectator.service.kind()).toBe('articles');
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, undefined, 'articles');
+        });
+
+        it('should compare news versions on a news route', () => {
+            const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
+            spectator = createService({ providers: [{ provide: ArticleService, useValue: articleService }] });
+
+            spectator.service.load(createRouteSnapshot({ id: '10' }, undefined, {}, { kind: 'news' })).subscribe();
+
+            expect(spectator.service.kind()).toBe('news');
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, undefined, 'news');
+        });
+    });
+
     describe('load with single version ID', () => {
         it('should load version pairs with id param', () => {
             const articleService = { getVersionPairs: jest.fn().mockReturnValue(of(MOCK_VERSION_PAIRS)) };
@@ -51,7 +73,7 @@ describe('DiffPageDataService', () => {
 
             spectator.service.load(createRouteSnapshot({ id: '10' })).subscribe();
 
-            expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, undefined);
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, undefined, 'articles');
             expect(spectator.service.isLoading()).toBe(false);
             expect(spectator.service.error()).toBeUndefined();
             expect(spectator.service.versionPairs()).toEqual(MOCK_VERSION_PAIRS);
@@ -65,7 +87,7 @@ describe('DiffPageDataService', () => {
 
             spectator.service.load(createRouteSnapshot({ id1: '15' })).subscribe();
 
-            expect(articleService.getVersionPairs).toHaveBeenCalledWith(15, undefined);
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(15, undefined, 'articles');
             expect(spectator.service.versionPairs()).toEqual(MOCK_VERSION_PAIRS);
         });
     });
@@ -79,7 +101,7 @@ describe('DiffPageDataService', () => {
 
             spectator.service.load(createRouteSnapshot({ id1: '10', id2: '5' })).subscribe();
 
-            expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, 5);
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(10, 5, 'articles');
             expect(spectator.service.isLoading()).toBe(false);
         });
 
@@ -91,7 +113,7 @@ describe('DiffPageDataService', () => {
 
             spectator.service.load(createRouteSnapshot({ id1: '3', id2: '20' })).subscribe();
 
-            expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, 3);
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, 3, 'articles');
         });
     });
 
@@ -342,7 +364,7 @@ describe('DiffPageDataService', () => {
 
             spectator.service.load(createRouteSnapshot({ id1: '20', id: '10' })).subscribe();
 
-            expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, undefined);
+            expect(articleService.getVersionPairs).toHaveBeenCalledWith(20, undefined, 'articles');
         });
     });
 

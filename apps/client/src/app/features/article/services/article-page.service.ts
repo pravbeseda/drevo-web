@@ -1,12 +1,14 @@
 import { ArticleService } from '../../../services/articles';
+import { PageContext } from '../../../shared/services/page-context/page-context';
 import { MissingArticle } from '../models/missing-article';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
-import { ApprovalStatus, ArticleVersion } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleVersion, PageKind } from '@drevo-web/shared';
 
 @Injectable()
-export class ArticlePageService {
+export class ArticlePageService implements PageContext {
+    readonly kind: PageKind = 'articles';
     private readonly logger = inject(LoggerService).withContext('ArticlePageService');
     private readonly articleService = inject(ArticleService);
 

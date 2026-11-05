@@ -17,6 +17,7 @@ import {
     CreateArticleResponseDto,
     ModerationRequestDto,
     ModerationResponseDto,
+    PageKind,
     RenameArticleResponseDto,
     SaveArticleVersionRequestDto,
     SaveArticleVersionResponseDto,
@@ -46,11 +47,12 @@ export class ArticleApiService {
      * Get article by ID
      *
      * @param id - Article ID
+     * @param kind - Page kind: articles and news share the version endpoints
      * @returns Observable with raw API response
      */
-    getArticle(id: number): Observable<ArticleVersionDto> {
+    getArticle(id: number, kind: PageKind = 'articles'): Observable<ArticleVersionDto> {
         return this.http
-            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/articles/show/${id}`, { withCredentials: true })
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/${kind}/show/${id}`, { withCredentials: true })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -63,11 +65,12 @@ export class ArticleApiService {
      * Get article version for viewing (with formatted HTML content)
      *
      * @param versionId - Version ID
+     * @param kind - Page kind: articles and news share the version endpoints
      * @returns Observable with raw API response containing version details
      */
-    getVersionShow(versionId: number): Observable<ArticleVersionDto> {
+    getVersionShow(versionId: number, kind: PageKind = 'articles'): Observable<ArticleVersionDto> {
         return this.http
-            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/articles/version-show/${versionId}`, {
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/${kind}/version-show/${versionId}`, {
                 withCredentials: true,
             })
             .pipe(
@@ -233,7 +236,10 @@ export class ArticleApiService {
             );
     }
 
-    getArticlesHistory(request: ArticleHistoryRequestDto = {}): Observable<ArticleHistoryResponseDto> {
+    getArticlesHistory(
+        request: ArticleHistoryRequestDto = {},
+        kind: PageKind = 'articles',
+    ): Observable<ArticleHistoryResponseDto> {
         const {
             page = 1,
             pageSize = DEFAULT_ARTICLE_SEARCH_PAGE_SIZE,
@@ -262,7 +268,7 @@ export class ArticleApiService {
         }
 
         return this.http
-            .get<ApiResponse<ArticleHistoryResponseDto>>(`${this.apiUrl}/api/articles/history`, {
+            .get<ApiResponse<ArticleHistoryResponseDto>>(`${this.apiUrl}/api/${kind}/history`, {
                 params,
                 withCredentials: true,
             })
@@ -355,9 +361,14 @@ export class ArticleApiService {
      *
      * @param version1 - Primary version ID
      * @param version2 - Optional secondary version ID (auto-detected if omitted)
+     * @param kind - Page kind: articles and news share the version endpoints
      * @returns Observable with version pairs DTO
      */
-    getVersionPairs(version1: number, version2?: number): Observable<VersionPairsResponseDto> {
+    getVersionPairs(
+        version1: number,
+        version2?: number,
+        kind: PageKind = 'articles',
+    ): Observable<VersionPairsResponseDto> {
         let params = new HttpParams().set('version1', version1.toString());
 
         if (version2 !== undefined) {
@@ -365,7 +376,7 @@ export class ArticleApiService {
         }
 
         return this.http
-            .get<ApiResponse<VersionPairsResponseDto>>(`${this.apiUrl}/api/articles/versionpairs`, {
+            .get<ApiResponse<VersionPairsResponseDto>>(`${this.apiUrl}/api/${kind}/versionpairs`, {
                 params,
                 withCredentials: true,
                 context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),

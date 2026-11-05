@@ -2,7 +2,7 @@ import { ArticleService } from '../../../../services/articles';
 import { InworkService } from '../../../../services/inwork';
 import { LinksService } from '../../../../services/links/links.service';
 import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { createMockArticle } from '../../testing/article-testing.helper';
+import { createMockArticle } from '../../../../shared/testing/article-testing.helper';
 import { ArticleEditComponent } from './article-edit.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';

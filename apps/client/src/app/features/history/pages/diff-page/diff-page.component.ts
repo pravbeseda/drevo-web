@@ -8,7 +8,7 @@ import { DiffPageDataService } from '../../services/diff-page-data.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LoggerService, StorageService } from '@drevo-web/core';
 import { validateWikiContent, ValidationResult } from '@drevo-web/editor';
-import { ApprovalStatus, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';
+import { ApprovalStatus, ModerationResult, REVIEW_TARGET, SidebarActionPriority } from '@drevo-web/shared';
 
 type DiffViewType = 'cm' | 'jsdiff';
 
@@ -34,6 +34,11 @@ export class DiffPageComponent {
 
     private readonly logger = inject(LoggerService).withContext('DiffPageComponent');
     private readonly storage = inject(StorageService);
+
+    readonly kind = this.data.kind;
+    readonly reviewTarget = computed(() => REVIEW_TARGET[this.kind()]);
+    // shortcut: news versions are not moderated from the frontend yet, upgrade with the news editor.
+    readonly isModerationOffered = computed(() => this.kind() === 'articles');
 
     readonly isModerationEnabled = computed(() => {
         const pairs = this.data.versionPairs();

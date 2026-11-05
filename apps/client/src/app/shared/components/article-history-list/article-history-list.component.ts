@@ -41,7 +41,10 @@ export class ArticleHistoryListComponent {
     private readonly logger = inject(LoggerService).withContext('ArticleHistoryListComponent');
     private readonly user = toSignal(inject(AuthService).user$);
 
-    readonly canModerate = computed(() => this.user()?.permissions.canModerate ?? false);
+    // shortcut: news versions are not moderated from the frontend yet, upgrade with the news editor.
+    readonly canModerate = computed(
+        () => this.service.kind() === 'articles' && (this.user()?.permissions.canModerate ?? false),
+    );
 
     onCancelInwork(title: string): void {
         this.service.onCancelInwork(title);

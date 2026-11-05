@@ -151,7 +151,7 @@ describe('HeaderComponent', () => {
         });
 
         it('should be false when user is not moderator', () => {
-            titleContextSignal.set({ articleId: 1, title: 'Test' });
+            titleContextSignal.set({ kind: 'articles', articleId: 1, title: 'Test' });
             spectator = createComponent({
                 providers: [
                     MockProvider(AuthService, {
@@ -165,15 +165,22 @@ describe('HeaderComponent', () => {
         });
 
         it('should be true when user is moderator and on article page', () => {
-            titleContextSignal.set({ articleId: 1, title: 'Test' });
+            titleContextSignal.set({ kind: 'articles', articleId: 1, title: 'Test' });
             spectator = createComponent();
 
             expect(spectator.component.canRename()).toBe(true);
         });
 
         it('should be false when on an article tab (tabTitle is set)', () => {
-            titleContextSignal.set({ articleId: 1, title: 'Test' });
+            titleContextSignal.set({ kind: 'articles', articleId: 1, title: 'Test' });
             tabTitleSignal.set('История версий');
+            spectator = createComponent();
+
+            expect(spectator.component.canRename()).toBe(false);
+        });
+
+        it('should be false on a news item: only articles are renamed here', () => {
+            titleContextSignal.set({ kind: 'news', articleId: 1, title: 'Новость' });
             spectator = createComponent();
 
             expect(spectator.component.canRename()).toBe(false);
@@ -181,7 +188,7 @@ describe('HeaderComponent', () => {
 
         it('should be false for a placeholder (missing) article', () => {
             // articleId 0 marks a not-yet-existing article — it cannot be renamed.
-            titleContextSignal.set({ articleId: 0, title: 'НОВАЯ СТАТЬЯ' });
+            titleContextSignal.set({ kind: 'articles', articleId: 0, title: 'НОВАЯ СТАТЬЯ' });
             spectator = createComponent();
 
             expect(spectator.component.canRename()).toBe(false);
@@ -190,7 +197,7 @@ describe('HeaderComponent', () => {
 
     describe('inline editing (moderator)', () => {
         beforeEach(() => {
-            titleContextSignal.set({ articleId: 42, title: 'Старое название' });
+            titleContextSignal.set({ kind: 'articles', articleId: 42, title: 'Старое название' });
             pageTitleSignal.set('Старое название');
             spectator = createComponent();
         });
@@ -281,7 +288,7 @@ describe('HeaderComponent', () => {
             // ctx.title comes from backend possibly with trailing/leading whitespace.
             // Trimmed input value must be compared against trimmed ctx.title,
             // otherwise rename fires for an effectively unchanged value.
-            titleContextSignal.set({ articleId: 42, title: 'Старое название ' });
+            titleContextSignal.set({ kind: 'articles', articleId: 42, title: 'Старое название ' });
             pageTitleSignal.set('Старое название ');
             spectator = createComponent();
 
@@ -292,7 +299,7 @@ describe('HeaderComponent', () => {
         });
 
         it('should not save on blur when title has surrounding whitespace and user did not edit', () => {
-            titleContextSignal.set({ articleId: 42, title: ' Старое название' });
+            titleContextSignal.set({ kind: 'articles', articleId: 42, title: ' Старое название' });
             pageTitleSignal.set(' Старое название');
             spectator = createComponent();
 
@@ -394,7 +401,7 @@ describe('HeaderComponent', () => {
             spectator.component.titleControl.setValue('Не сохранённое');
             expect(spectator.query('[data-testid="page-title-input"]')).toBeTruthy();
 
-            titleContextSignal.set({ articleId: 99, title: 'Другая статья' });
+            titleContextSignal.set({ kind: 'articles', articleId: 99, title: 'Другая статья' });
             spectator.detectChanges();
 
             expect(spectator.query('[data-testid="page-title-input"]')).toBeNull();
@@ -410,7 +417,7 @@ describe('HeaderComponent', () => {
             spectator.dispatchKeyboardEvent('[data-testid="page-title-input"]', 'keydown', 'Enter');
 
             // Request in flight — navigation must NOT abort it.
-            titleContextSignal.set({ articleId: 99, title: 'Другая статья' });
+            titleContextSignal.set({ kind: 'articles', articleId: 99, title: 'Другая статья' });
             spectator.detectChanges();
 
             expect(renameArticleMock).toHaveBeenCalledWith(42, 'Новое');
@@ -420,7 +427,7 @@ describe('HeaderComponent', () => {
 
     describe('inline editing (non-moderator)', () => {
         beforeEach(() => {
-            titleContextSignal.set({ articleId: 42, title: 'Старое название' });
+            titleContextSignal.set({ kind: 'articles', articleId: 42, title: 'Старое название' });
             pageTitleSignal.set('Старое название');
         });
 

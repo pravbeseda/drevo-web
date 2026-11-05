@@ -129,7 +129,19 @@ describe('ArticlesHistoryItemComponent', () => {
                 },
             });
 
-            expect(spectator.component.diffLink()).toEqual(['/history/articles/diff', 42]);
+            expect(spectator.component.diffLink()).toBe('/history/articles/diff/42');
+        });
+
+        it('should address the diff and the version of a news item under news', () => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem({ isNew: false, versionId: 42, articleId: 7 }),
+                    kind: 'news',
+                },
+            });
+
+            expect(spectator.component.diffLink()).toBe('/history/news/diff/42');
+            expect(spectator.component.versionLink()).toBe('/news/7/version/42');
         });
     });
 

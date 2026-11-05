@@ -1,0 +1,18 @@
+@if (error()) {
+    <app-error
+        data-testid="news-error"
+        title="Ошибка"
+        [message]="error()"
+    />
+} @else if (news()) {
+    <app-sidebar-reserve />
+
+    <article
+        class="news"
+        data-testid="news-page"
+    >
+        <ui-tabs-group [groups]="tabGroups()">
+            <router-outlet />
+        </ui-tabs-group>
+    </article>
+}

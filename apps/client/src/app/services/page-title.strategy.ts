@@ -4,11 +4,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
+import { PageKind } from '@drevo-web/shared';
 
 const DEFAULT_TITLE = 'Древо';
 const TITLE_SUFFIX = ' - Древо';
 const MAX_TITLE_LENGTH = 50;
-const ARTICLE_TITLE_SOURCE = 'article';
+
+/** The `titleSource` keys whose data is a wiki page heading its page, and the kind of that page. */
+const PAGE_TITLE_SOURCES: Readonly<Record<string, PageKind>> = {
+    article: 'articles',
+    news: 'news',
+};
 
 /** Reads the `title` a route's resolved data carries, `undefined` when it carries none. */
 function readTitle(data: unknown): string | undefined {
@@ -19,7 +25,9 @@ function readTitle(data: unknown): string | undefined {
     return undefined;
 }
 
+/** The wiki page heading the current page. */
 export interface TitleContext {
+    readonly kind: PageKind;
     readonly articleId: number;
     readonly title: string;
 }
@@ -69,8 +77,8 @@ export class PageTitleStrategy extends TitleStrategy {
         super();
         this.articleService.renamed$.pipe(takeUntilDestroyed()).subscribe(({ articleId, title }) => {
             const ctx = this._titleContext();
-            if (ctx?.articleId === articleId) {
-                this._titleContext.set({ articleId, title });
+            if (ctx?.kind === 'articles' && ctx.articleId === articleId) {
+                this._titleContext.set({ ...ctx, title });
                 this.applyDocumentTitle();
             }
         });
@@ -79,31 +87,14 @@ export class PageTitleStrategy extends TitleStrategy {
     override updateTitle(snapshot: RouterStateSnapshot): void {
         const chain = this.getRouteChain(snapshot);
         const source = this.findTitleSource(chain);
+        const kind =
+            source && Object.hasOwn(PAGE_TITLE_SOURCES, source.key) ? PAGE_TITLE_SOURCES[source.key] : undefined;
 
-        if (source?.key === ARTICLE_TITLE_SOURCE) {
-            // `Data` is an index signature of `any`; the guards below only mean something
+        if (source && kind) {
+            // `Data` is an index signature of `any`; the guards only mean something
             // once the value is read as `unknown`.
-            const articleData: unknown = source.route.data[source.key];
-            if (this.isTitleContext(articleData)) {
-                const current = this._titleContext();
-                // Preserve current context if articleId matches — it may hold a
-                // freshly renamed title that route snapshot data doesn't yet reflect.
-                // Only real articles (articleId > 0) are deduped this way: the
-                // missing-article placeholder always uses articleId 0, so distinct
-                // missing titles would otherwise wrongly keep the previous title.
-                const isSameRealArticle =
-                    !!current && current.articleId === articleData.articleId && articleData.articleId > 0;
-                if (!isSameRealArticle) {
-                    this._titleContext.set({ articleId: articleData.articleId, title: articleData.title });
-                }
-            } else {
-                // articleData === undefined is a normal failure path from articleResolver
-                // (bad id, 404, network error) — don't warn on it.
-                if (articleData !== undefined) {
-                    this.logger.warn('Article route data does not match TitleContext shape', { articleData });
-                }
-                this._titleContext.set(undefined);
-            }
+            const pageData: unknown = source.route.data[source.key];
+            this.applyTitleContext(kind, pageData);
             this._tabTitle.set(this.buildTitle(snapshot));
         } else if (source) {
             const data: unknown = source.route.data[source.key];
@@ -117,6 +108,30 @@ export class PageTitleStrategy extends TitleStrategy {
         this.applyLeafData(chain.at(-1));
         this.applyDocumentTitle();
         this.logger.debug('Title updated', { title: this.pageTitle() });
+    }
+
+    private applyTitleContext(kind: PageKind, pageData: unknown): void {
+        if (!this.isTitleContext(pageData)) {
+            // undefined is a normal failure path from the page resolver
+            // (bad id, 404, network error) — don't warn on it.
+            if (pageData !== undefined) {
+                this.logger.warn('Page route data does not match TitleContext shape', { pageData });
+            }
+            this._titleContext.set(undefined);
+            return;
+        }
+
+        const current = this._titleContext();
+        // Preserve current context if the page matches — it may hold a
+        // freshly renamed title that route snapshot data doesn't yet reflect.
+        // Only real pages (articleId > 0) are deduped this way: the
+        // missing-article placeholder always uses articleId 0, so distinct
+        // missing titles would otherwise wrongly keep the previous title.
+        const isSameRealPage =
+            !!current && current.kind === kind && current.articleId === pageData.articleId && pageData.articleId > 0;
+        if (!isSameRealPage) {
+            this._titleContext.set({ kind, articleId: pageData.articleId, title: pageData.title });
+        }
     }
 
     /** What only the page itself names: the document title's prefix and the line under the title. */
@@ -152,7 +167,7 @@ export class PageTitleStrategy extends TitleStrategy {
         this.title.setTitle(`${docTitle}${TITLE_SUFFIX}`);
     }
 
-    private isTitleContext(value: unknown): value is TitleContext {
+    private isTitleContext(value: unknown): value is Omit<TitleContext, 'kind'> {
         return (
             typeof value === 'object' &&
             !!value &&
