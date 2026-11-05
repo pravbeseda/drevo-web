@@ -24,6 +24,8 @@ export class NewsPage extends BasePage {
     /** «Раздел» in the sidebar, which opens the panel of sections. */
     readonly topicAction = this.sidebarAction('news-topic-action');
     readonly topicOk = this.page.getByTestId('news-topic-ok');
+    /** «Содержание», which a news item does not offer. */
+    readonly tableOfContentsAction = this.page.getByRole('button', { name: 'Содержание' });
 
     /** A section in the panel of sections, by its id. */
     topicCheckbox(id: number): Locator {

@@ -1,4 +1,4 @@
-import { ArticleVersion, NewsTopic, PageKind } from '@drevo-web/shared';
+import { ArticleVersion, NewsTopic, PageKind, toCalendarDateString } from '@drevo-web/shared';
 
 /**
  * What the editor works on — an existing version of an article or a news
@@ -12,6 +12,8 @@ export interface PageEditSession {
     readonly versionId: number;
     readonly title: string;
     readonly content: string;
+    /** The day of a news item being edited, `YYYY-MM-DD`; only a news edit session of a dated item has it. */
+    readonly newsDate?: string;
     /** The sections a news item being created picks from; only a news create session has them. */
     readonly newsTopics?: readonly NewsTopic[];
 }
@@ -24,5 +26,6 @@ export function toEditSession(version: ArticleVersion, kind: PageKind): PageEdit
         versionId: version.versionId,
         title: version.title,
         content: version.content,
+        ...(version.newsDate ? { newsDate: toCalendarDateString(version.newsDate) } : {}),
     };
 }

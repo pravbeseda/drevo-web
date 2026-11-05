@@ -5,22 +5,6 @@
         [editUrl]="editUrl()"
         (moderated)="onModerated($event)"
     />
-    @if (canEditMeta()) {
-        <app-news-topic-sidebar-action
-            [topics]="topics()"
-            [selected]="news.topics[0]"
-            [busy]="isSavingTopic()"
-            (picked)="saveTopic($event)"
-        />
-        <app-sidebar-action
-            [order]="50"
-            icon="tune"
-            label="Свойства новости"
-            priority="secondary"
-            testId="news-meta-action"
-            (activated)="openMeta()"
-        />
-    }
     <div class="news-meta">
         @if (date(); as date) {
             <span data-testid="news-date">{{ date }}</span>

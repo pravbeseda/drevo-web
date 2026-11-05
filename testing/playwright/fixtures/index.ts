@@ -45,6 +45,7 @@ export {
     mockNewsShow,
     mockNewsTopicsApi,
     mockNewsVersion,
+    mockNewsVersionShow,
     mockArticleShowNotFound,
     mockArticleShowError,
     mockArticleVersionShow,

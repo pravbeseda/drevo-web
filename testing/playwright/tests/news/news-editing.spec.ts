@@ -11,6 +11,7 @@ import {
     mockNewsShow,
     mockNewsTopicsApi,
     mockNewsVersion,
+    mockNewsVersionShow,
 } from '../../fixtures';
 import { createArticleHistoryResponse, mockUsers } from '../../mocks';
 import { createCreateArticleResponseDto, createSaveArticleVersionResponseDto } from '../../mocks/articles';
@@ -107,5 +108,43 @@ test.describe('News editing', () => {
 
         expect((await meta).postDataJSON()).toEqual({ rank: 6 });
         await expect(news.metaSave).toBeHidden();
+    });
+
+    test('a moderator renames a news item in its editor, and only the title is sent', async ({
+        authenticatedPage: page,
+    }) => {
+        await bypassSsr(page, `**/news/${NEWS_ID}/version/${VERSION_ID}/edit`);
+        await mockAuthApi(page, mockUsers.moderator);
+        await mockNewsVersion(page, VERSION_ID, NEWS);
+        await mockNewsMeta(page, NEWS_ID, {
+            articleId: NEWS_ID,
+            title: 'Храмовый праздник',
+            newsDate: '2025-01-15',
+            topics: [1],
+            rank: 4,
+            numlist: 0,
+        });
+        await page.goto(`/news/${NEWS_ID}/version/${VERSION_ID}/edit`);
+        await editor.waitForReady();
+
+        await news.titleInput.fill('Храмовый праздник');
+        const meta = page.waitForRequest(request => request.url().endsWith(`/api/news/${NEWS_ID}/meta`));
+        await editor.clickSave();
+
+        expect((await meta).postDataJSON()).toEqual({ title: 'Храмовый праздник' });
+        await expect(page).toHaveURL(`/news/${NEWS_ID}`);
+    });
+
+    test('a moderator picks the section on a version of a news item, with no table of contents', async ({
+        authenticatedPage: page,
+    }) => {
+        await bypassSsr(page, `**/news/${NEWS_ID}/version/${VERSION_ID}`);
+        await mockAuthApi(page, mockUsers.moderator);
+        await mockNewsVersionShow(page, VERSION_ID, NEWS);
+        await page.goto(`/news/${NEWS_ID}/version/${VERSION_ID}`);
+        await news.waitForReady();
+
+        await expect(news.topicAction).toBeVisible();
+        await expect(news.tableOfContentsAction).toHaveCount(0);
     });
 });

@@ -1036,6 +1036,11 @@ export async function mockNewsVersion(page: Page, versionId: number, data: Artic
     await page.route(`**/api/news/version/${versionId}`, route => route.fulfill({ json: apiSuccess(data) }));
 }
 
+/** Mock GET /api/news/version-show/:versionId — a news version, formatted, for its tab */
+export async function mockNewsVersionShow(page: Page, versionId: number, data: ArticleVersionDto): Promise<void> {
+    await page.route(`**/api/news/version-show/${versionId}`, route => route.fulfill({ json: apiSuccess(data) }));
+}
+
 /** Mock POST /api/news/save — the saved version */
 export async function mockNewsSave(page: Page, response: SaveArticleVersionResponseDto): Promise<void> {
     await page.route('**/api/news/save', route => {

@@ -1,10 +1,12 @@
 import { ArticleService } from '../../../services/articles';
 import { InworkService } from '../../../services/inwork';
+import { AuthService } from '../../../services/auth/auth.service';
 import { NewsService } from '../../../services/news/news.service';
 import { LinksService } from '../../../services/links/links.service';
 import { PageEditSession, toEditSession } from '../../models/page-edit-session';
 import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
 import { createMockArticle } from '../../testing/article-testing.helper';
+import { createMockUser } from '@drevo-web/shared/testing';
 import { PageEditComponent } from './page-edit.component';
 import { NewsFieldsComponent } from '../news-fields/news-fields.component';
 import { NewsTopicSidebarActionComponent } from '../news-topic-sidebar-action/news-topic-sidebar-action.component';
@@ -38,6 +40,12 @@ const mockInwork = {
 };
 const mockInworkServiceProvider = { provide: InworkService, useValue: mockInwork };
 
+const readerAuth = { provide: AuthService, useValue: { user$: of(createMockUser()) } };
+const moderatorAuth = {
+    provide: AuthService,
+    useValue: { user$: of(createMockUser({ role: 'moder', permissions: { canModerate: true } })) },
+};
+
 const mockVersion = createMockArticle({
     title: 'Test Article Title',
     content: '<p>Test article content</p>',
@@ -64,7 +72,7 @@ describe('PageEditComponent', () => {
         component: PageEditComponent,
         mocks: [ArticleService, NotificationService, Router, ConfirmationService],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
-        providers: [mockLoggerProvider(), createMockActivatedRoute()],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(), readerAuth],
         detectChanges: false,
     });
 
@@ -816,6 +824,7 @@ describe('PageEditComponent in create mode', () => {
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
         providers: [
             mockLoggerProvider(),
+            readerAuth,
             {
                 provide: ActivatedRoute,
                 useValue: { snapshot: { data: { session: createSession } } },
@@ -988,7 +997,7 @@ describe('PageEditComponent on a news version', () => {
         component: PageEditComponent,
         mocks: [ArticleService, NotificationService, Router, ConfirmationService],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
-        providers: [mockLoggerProvider(), createMockActivatedRoute(newsSession)],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(newsSession), readerAuth],
         detectChanges: false,
     });
 
@@ -1008,6 +1017,12 @@ describe('PageEditComponent on a news version', () => {
         articleService.saveArticleVersion.mockReturnValue(
             of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
         );
+    });
+
+    it('shows a reader who does not moderate no title or day fields', () => {
+        spectator.detectChanges();
+
+        expect(spectator.query(NewsFieldsComponent)).toBeNull();
     });
 
     it('saves the news version through the news endpoints and opens the news item', () => {
@@ -1078,7 +1093,7 @@ describe('PageEditComponent creating a news item', () => {
         component: PageEditComponent,
         mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
         componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
-        providers: [mockLoggerProvider(), createMockActivatedRoute(createSession)],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(createSession), readerAuth],
         detectChanges: false,
     });
 
@@ -1186,5 +1201,107 @@ describe('PageEditComponent creating a news item', () => {
 
         expect(confirmation.open).toHaveBeenCalled();
         expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageEditComponent on a news version, for a moderator', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+    let newsService: jest.Mocked<NewsService>;
+    let notificationService: SpyObject<NotificationService>;
+    let router: jest.Mocked<Router>;
+
+    const newsSession = toEditSession(
+        createMockArticle({
+            articleId: 7,
+            versionId: 70,
+            title: 'Новость',
+            content: 'Текст',
+            newsDate: new Date(2026, 10, 4),
+        }),
+        'news',
+    );
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(newsSession), moderatorAuth],
+        detectChanges: false,
+    });
+
+    const fields = (): NewsFieldsComponent | null => spectator.query(NewsFieldsComponent);
+
+    beforeEach(() => {
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService);
+        newsService = spectator.inject(NewsService);
+        notificationService = spectator.inject(NotificationService);
+        router = spectator.inject(Router);
+        articleService.saveArticleVersion.mockReturnValue(
+            of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+        newsService.updateMeta.mockReturnValue(
+            of({ articleId: 7, title: 'Другая', newsDate: new Date(2026, 10, 6), topics: [3], rank: 4, numlist: 0 }),
+        );
+        spectator.detectChanges();
+    });
+
+    it('shows the title and the day of the news item, the section staying on its page', () => {
+        expect(fields()?.value()).toEqual({ title: 'Новость', newsDate: '2026-11-04', topic: undefined });
+        expect(spectator.query(NewsTopicSidebarActionComponent)).toBeNull();
+    });
+
+    it('saves a changed title and day alone through the meta, then opens the news item', () => {
+        spectator.component.onNewsFields({ title: '  Другая  ', newsDate: '2026-11-06', topic: undefined });
+
+        spectator.component.save();
+
+        expect(newsService.updateMeta).toHaveBeenCalledWith(7, { title: 'Другая', newsDate: '2026-11-06' });
+        expect(articleService.saveArticleVersion).not.toHaveBeenCalled();
+        expect(notificationService.success).toHaveBeenCalledWith('Новость сохранена');
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7');
+    });
+
+    it('saves the meta first, then the text, when both changed', () => {
+        spectator.component.onNewsFields({ title: 'Другая', newsDate: '2026-11-04', topic: undefined });
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(newsService.updateMeta).toHaveBeenCalledWith(7, { title: 'Другая' });
+        expect(articleService.saveArticleVersion).toHaveBeenCalledWith(
+            { versionId: 70, content: 'Новый текст' },
+            'news',
+        );
+        expect(newsService.updateMeta.mock.invocationCallOrder[0]).toBeLessThan(
+            articleService.saveArticleVersion.mock.invocationCallOrder[0],
+        );
+    });
+
+    it('saves the text alone when the title and the day stay', () => {
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
+        expect(articleService.saveArticleVersion).toHaveBeenCalled();
+    });
+
+    it('has nothing to save when nothing changed', () => {
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Нет изменений для сохранения');
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
+    });
+
+    it('asks for a title before saving', () => {
+        spectator.component.onNewsFields({ title: ' ', newsDate: '2026-11-04', topic: undefined });
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Введите заголовок новости');
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
     });
 });

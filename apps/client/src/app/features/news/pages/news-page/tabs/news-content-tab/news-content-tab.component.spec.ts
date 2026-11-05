@@ -8,13 +8,9 @@ import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus, ArticleVersion, NewsTopic, NewsMeta, User } from '@drevo-web/shared';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { AuthService } from '../../../../../../services/auth/auth.service';
-import { SidebarActionComponent } from '../../../../../../shared/components/sidebar-action/sidebar-action.component';
-import { NewsMetaDialogComponent } from '../../../../components/news-meta-dialog/news-meta-dialog.component';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { ModalService } from '@drevo-web/ui/modal';
-import { BehaviorSubject, of, throwError } from 'rxjs';
-import { NewsService } from '../../../../../../services/news/news.service';
-import { NewsTopicSidebarActionComponent } from '../../../../../../shared/components/news-topic-sidebar-action/news-topic-sidebar-action.component';
+import { BehaviorSubject, of } from 'rxjs';
 import { NotificationService } from '@drevo-web/core';
 
 describe('NewsContentTabComponent', () => {
@@ -29,7 +25,6 @@ describe('NewsContentTabComponent', () => {
         { id: 9, title: 'Культура' },
     ];
     let user: BehaviorSubject<User | undefined>;
-    let newsService: { updateMeta: jest.Mock };
     const meta: NewsMeta = { articleId: 7, title: 'Другая', newsDate: undefined, topics: [5], rank: 6, numlist: 0 };
 
     const createComponent = createComponentFactory({
@@ -64,11 +59,9 @@ describe('NewsContentTabComponent', () => {
                 },
                 { provide: AuthService, useValue: { user$: user.asObservable() } },
                 mockProvider(ModalService, { open: jest.fn(() => of(meta)) }),
-                mockProvider(NewsService, { updateMeta: jest.fn(() => of(meta)) }),
                 mockProvider(NotificationService),
             ],
         });
-        newsService = spectator.inject(NewsService);
     });
 
     it('shows the text of the news item', () => {
@@ -117,83 +110,5 @@ describe('NewsContentTabComponent', () => {
         });
 
         expect(updateApproval).toHaveBeenCalledWith(ApprovalStatus.Approved, 'Хорошо');
-    });
-
-    describe('the section', () => {
-        const sectionAction = (): NewsTopicSidebarActionComponent | null =>
-            spectator.query(NewsTopicSidebarActionComponent);
-
-        it('is not offered to a reader who does not moderate', () => {
-            spectator.detectChanges();
-
-            expect(sectionAction()).toBeNull();
-        });
-
-        it('is picked by a moderator in the sidebar, as the dictionaries of an article are', () => {
-            user.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
-            spectator.detectChanges();
-
-            expect(sectionAction()?.topics()).toEqual(allTopics);
-            expect(sectionAction()?.selected()).toBe(3);
-        });
-
-        it('saves the picked section and takes what the news item now holds', () => {
-            user.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
-            spectator.detectChanges();
-
-            sectionAction()?.picked.emit(5);
-
-            expect(newsService.updateMeta).toHaveBeenCalledWith(7, { topic: 5 });
-            expect(applyMeta).toHaveBeenCalledWith(meta);
-            expect(spectator.inject(NotificationService).success).toHaveBeenCalledWith('Раздел сохранён');
-        });
-
-        it('says so when the section is not saved', () => {
-            newsService.updateMeta.mockReturnValue(throwError(() => new Error('down')));
-            user.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
-            spectator.detectChanges();
-
-            sectionAction()?.picked.emit(5);
-
-            expect(applyMeta).not.toHaveBeenCalled();
-            expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('Не удалось сохранить раздел');
-        });
-    });
-
-    describe('the news meta', () => {
-        const metaAction = (): SidebarActionComponent | undefined =>
-            spectator.queryAll(SidebarActionComponent).find(action => action.label() === 'Свойства новости');
-
-        it('is not offered to a reader who does not moderate', () => {
-            spectator.detectChanges();
-
-            expect(metaAction()).toBeUndefined();
-        });
-
-        it('opens the form for a moderator, filled with what the news item has', async () => {
-            user.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
-            spectator.detectChanges();
-
-            metaAction()?.activated.emit();
-
-            const open = jest.mocked(spectator.inject(ModalService).open);
-            expect(open).toHaveBeenCalledWith(expect.any(Function), {
-                data: {
-                    newsId: 7,
-                    fields: { title: 'Новость', newsDate: '2026-11-04', topic: 3 },
-                    rank: 4,
-                },
-            });
-            await expect(open.mock.calls[0][0]()).resolves.toBe(NewsMetaDialogComponent);
-        });
-
-        it('takes what the moderator saved', () => {
-            user.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
-            spectator.detectChanges();
-
-            metaAction()?.activated.emit();
-
-            expect(applyMeta).toHaveBeenCalledWith(meta);
-        });
     });
 });

@@ -1,10 +1,12 @@
-<app-sidebar-action
-    [order]="10"
-    icon="toc"
-    label="Содержание"
-    priority="secondary"
-    (activated)="openTableOfContents()"
-/>
+@if (isArticle()) {
+    <app-sidebar-action
+        [order]="10"
+        icon="toc"
+        label="Содержание"
+        priority="secondary"
+        (activated)="openTableOfContents()"
+    />
+}
 
 @if (editUrl(); as url) {
     <app-sidebar-action

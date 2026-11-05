@@ -218,6 +218,12 @@ describe('PageSidebarActionsComponent', () => {
             spectator.detectChanges();
         });
 
+        it('offers no table of contents: a news item is short', () => {
+            const labels = spectator.queryAll(SidebarActionComponent).map(action => action.label());
+
+            expect(labels).not.toContain('Содержание');
+        });
+
         it('offers no topics action: the sections of a news item are not dictionary topics', () => {
             expect(spectator.query(TopicsSidebarActionComponent)).toBeNull();
         });

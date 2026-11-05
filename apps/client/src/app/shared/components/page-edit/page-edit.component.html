@@ -29,6 +29,8 @@
             [selected]="newsFields().topic"
             (picked)="onNewsTopic($event)"
         />
+    }
+    @if (showNewsFields()) {
         <app-news-fields
             [value]="newsFields()"
             (valueChange)="onNewsFields($event)"

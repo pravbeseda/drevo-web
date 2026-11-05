@@ -1,4 +1,5 @@
 import { ArticleService } from '../../../services/articles';
+import { AuthService } from '../../../services/auth/auth.service';
 import { InworkService } from '../../../services/inwork';
 import { LinksService } from '../../../services/links/links.service';
 import { NewsService } from '../../../services/news/news.service';
@@ -27,12 +28,13 @@ import {
     signal,
     ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
 import {
+    NewsMetaChange,
     NewsTopic,
     PageKind,
     SaveArticleVersionResult,
@@ -45,7 +47,7 @@ import { IconComponent } from '@drevo-web/ui/icon';
 import { ModalService } from '@drevo-web/ui/modal';
 import { TooltipDirective } from '@drevo-web/ui/tooltip';
 import { WorkspaceComponent, WorkspaceTabComponent } from '@drevo-web/ui/workspace';
-import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'rxjs';
+import { Observable, first, firstValueFrom, filter, map, of, switchMap, tap } from 'rxjs';
 
 const EDITOR_TAB_INDEX = 0;
 
@@ -107,13 +109,17 @@ export class PageEditComponent implements OnInit, OnDestroy {
     private readonly _articleId = signal(0);
     private readonly _kind = signal<PageKind>('articles');
     private readonly _newsTopics = signal<readonly NewsTopic[]>([]);
-    private readonly initialNewsFields: NewsFields = {
+    private readonly user = toSignal(inject(AuthService).user$);
+
+    /** What the news fields held when the session opened, or when the meta was last saved. */
+    private initialNewsFields: NewsFields = {
         title: '',
         newsDate: toCalendarDateString(new Date()),
         topic: undefined,
     };
     private readonly _newsFields = signal<NewsFields>(this.initialNewsFields);
     private readonly _isNewsCreate = signal(false);
+    private readonly _isNewsEdit = signal(false);
 
     private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
         getPicturesBatch: (ids: readonly number[]) => this.pictureService.getPicturesBatch(ids),
@@ -136,6 +142,13 @@ export class PageEditComponent implements OnInit, OnDestroy {
     readonly newsFields = this._newsFields.asReadonly();
     /** A news item being created asks for its title, day and section beside its text. */
     readonly isNewsCreate = this._isNewsCreate.asReadonly();
+    /**
+     * The title and the day are asked for on a news item being created, and
+     * shown to a moderator editing one — only a moderator may change them.
+     */
+    readonly showNewsFields = computed(
+        () => this._isNewsCreate() || (this._isNewsEdit() && (this.user()?.permissions.canModerate ?? false)),
+    );
     readonly validationResult = this._validationResult.asReadonly();
     readonly hasErrors = computed(() => this._validationResult().errors > 0);
     readonly hasWarnings = computed(() => this._validationResult().warnings > 0);
@@ -168,6 +181,11 @@ export class PageEditComponent implements OnInit, OnDestroy {
         this.session = session;
         this._kind.set(session.kind);
         this._isNewsCreate.set(session.kind === 'news' && session.mode === 'create');
+        this._isNewsEdit.set(session.kind === 'news' && session.mode === 'edit');
+        if (this._isNewsEdit()) {
+            this.initialNewsFields = { title: session.title, newsDate: session.newsDate ?? '', topic: undefined };
+            this._newsFields.set(this.initialNewsFields);
+        }
         this._newsTopics.set(session.newsTopics ?? []);
         this._articleId.set(session.articleId);
         this._originalContent.set(session.content);
@@ -257,9 +275,16 @@ export class PageEditComponent implements OnInit, OnDestroy {
                 this.notificationService.info(missing);
                 return;
             }
-        } else if (content === session.content) {
-            this.notificationService.info('Нет изменений для сохранения');
-            return;
+        } else {
+            const missing = this.missingNewsField();
+            if (missing) {
+                this.notificationService.info(missing);
+                return;
+            }
+            if (content === session.content && Object.keys(this.newsMetaChange()).length === 0) {
+                this.notificationService.info('Нет изменений для сохранения');
+                return;
+            }
         }
 
         const problems = validateWikiContent(content);
@@ -311,18 +336,12 @@ export class PageEditComponent implements OnInit, OnDestroy {
             contentLength: content.length,
         });
 
-        const save$ =
-            session.mode === 'edit'
-                ? this.articleService.saveArticleVersion({ versionId: session.versionId, content }, session.kind)
-                : this.createPage(session, content);
+        const save$ = session.mode === 'edit' ? this.editPage(session, content) : this.createPage(session, content);
 
         save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => {
                 this._isSaving.set(false);
-                this.logger.info('Page saved', {
-                    newVersionId: result.versionId,
-                    articleId: result.articleId,
-                });
+                this.logger.info('Page saved', { articleId: result.articleId });
                 const labels = LABELS[session.kind];
                 this.notificationService.success(session.mode === 'create' ? labels.created : labels.saved);
                 void this.draftEditorService.discardDraft(this.getDraftRoute());
@@ -464,14 +483,52 @@ export class PageEditComponent implements OnInit, OnDestroy {
 
     /** What a news item being created still lacks besides its text; nothing for any other session. */
     private missingNewsField(): string | undefined {
-        if (!this._isNewsCreate()) {
+        if (!this.showNewsFields()) {
             return undefined;
         }
         const { title, newsDate, topic } = this._newsFields();
         if (!title.trim()) return 'Введите заголовок новости';
         if (!newsDate) return 'Укажите дату новости';
-        if (topic === undefined) return 'Выберите раздел новости';
+        if (this._isNewsCreate() && topic === undefined) return 'Выберите раздел новости';
         return undefined;
+    }
+
+    /** The title and the day a moderator changed on a news item being edited. */
+    private newsMetaChange(): NewsMetaChange {
+        if (!this._isNewsEdit() || !this.showNewsFields()) {
+            return {};
+        }
+        const { title, newsDate } = this._newsFields();
+        const before = this.initialNewsFields;
+        return {
+            ...(title.trim() === before.title ? {} : { title: title.trim() }),
+            ...(newsDate === before.newsDate ? {} : { newsDate }),
+        };
+    }
+
+    /**
+     * The meta first — the cheaper of the two, refused before any text is
+     * stored — then the text, each only when it changed. A saved meta becomes
+     * the baseline, so a retry after a failed text save does not send it again.
+     */
+    private editPage(
+        session: PageEditSession,
+        content: string,
+    ): Observable<Pick<SaveArticleVersionResult, 'articleId'>> {
+        const meta = this.newsMetaChange();
+        const meta$: Observable<unknown> =
+            Object.keys(meta).length === 0
+                ? of(undefined)
+                : this.newsService.updateMeta(session.articleId, meta).pipe(
+                      tap(() => {
+                          this.initialNewsFields = this._newsFields();
+                      }),
+                  );
+        const text$ =
+            content === session.content
+                ? of({ articleId: session.articleId })
+                : this.articleService.saveArticleVersion({ versionId: session.versionId, content }, session.kind);
+        return meta$.pipe(switchMap(() => text$));
     }
 
     private createPage(session: PageEditSession, content: string): Observable<SaveArticleVersionResult> {
