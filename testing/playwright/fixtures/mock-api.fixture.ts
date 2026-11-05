@@ -39,6 +39,7 @@ import {
     InworkItemDto,
     ModerationResponseDto,
     NewsFeedResponseDto,
+    NewsMetaResponseDto,
     NewsTopicDto,
     PictureDto,
     PicturePendingDto,
@@ -1040,5 +1041,34 @@ export async function mockNewsHistory(
             return route.fulfill({ json: apiSuccess(response) });
         }
         return route.fallback();
+    });
+}
+
+/** Mock GET /api/news/version/:versionId — a news version, raw, for the editor */
+export async function mockNewsVersion(page: Page, versionId: number, data: ArticleVersionDto): Promise<void> {
+    await page.route(`**/api/news/version/${versionId}`, route => route.fulfill({ json: apiSuccess(data) }));
+}
+
+/** Mock POST /api/news/save — the saved version */
+export async function mockNewsSave(page: Page, response: SaveArticleVersionResponseDto): Promise<void> {
+    await page.route('**/api/news/save', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+}
+
+/** Mock POST /api/news/create — the first version of the new news item */
+export async function mockNewsCreate(page: Page, response: CreateArticleResponseDto): Promise<void> {
+    await page.route('**/api/news/create', route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
+    });
+}
+
+/** Mock POST /api/news/:id/meta — what the news item holds after the change */
+export async function mockNewsMeta(page: Page, id: number, response: NewsMetaResponseDto): Promise<void> {
+    await page.route(`**/api/news/${id}/meta`, route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: apiSuccess(response) });
     });
 }
