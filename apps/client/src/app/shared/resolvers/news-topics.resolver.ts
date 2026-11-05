@@ -1,4 +1,4 @@
-import { NewsService } from '../../../services/news/news.service';
+import { NewsService } from '../../services/news/news.service';
 import { inject } from '@angular/core';
 import { ResolveFn } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
@@ -10,8 +10,8 @@ import { catchError } from 'rxjs/operators';
  * Pure function for resolving the news sections.
  * Extracted for testability without injection context.
  *
- * A failure is reported and resolves no sections: the feed and a news item
- * read on without them, only the section filter and names are missing.
+ * A failure is reported and resolves no sections: a news item and the create
+ * form read on without them, only the section names and choice are missing.
  */
 export function resolveNewsTopics(newsService: NewsService, logger: Logger): Observable<readonly NewsTopic[]> {
     return newsService.getTopics().pipe(
