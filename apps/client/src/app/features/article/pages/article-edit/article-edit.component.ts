@@ -365,9 +365,12 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 : ['/articles', session.articleId, 'version', session.versionId];
 
         try {
-            const draft = await this.draftEditorService.getDraft(draftRoute);
+            // The draft is written 3 s after typing stops, so fresh edits may not be stored yet.
+            const hasUnsavedChanges =
+                this._editorContent() !== session.content ||
+                (await this.draftEditorService.getDraft(draftRoute)) !== undefined;
 
-            if (!draft) {
+            if (!hasUnsavedChanges) {
                 // Discard pending input so ngOnDestroy.flush() won't persist it
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();

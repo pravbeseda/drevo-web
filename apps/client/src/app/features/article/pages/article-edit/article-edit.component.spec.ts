@@ -712,7 +712,23 @@ describe('ArticleEditComponent', () => {
 
             await spectator.component.cancel();
 
+            expect(confirmationService.open).not.toHaveBeenCalled();
             expect(router.navigate).toHaveBeenCalledWith(['/articles', 123, 'version', 456]);
+        });
+
+        it('should ask before discarding edits the debounced draft write has not stored yet', async () => {
+            spectator.detectChanges();
+            mockDraftEditorService.getDraft.mockResolvedValue(undefined);
+            confirmationService.open.mockReturnValue(of('cancel'));
+            spectator.component.contentChanged('fresh edit');
+
+            await spectator.component.cancel();
+
+            expect(confirmationService.open).toHaveBeenCalledWith(
+                expect.objectContaining({ title: 'Удалить черновик?', disableClose: true }),
+            );
+            expect(mockDraftEditorService.discardDraft).not.toHaveBeenCalled();
+            expect(router.navigate).not.toHaveBeenCalled();
         });
 
         it('should show confirm dialog when draft exists', async () => {
