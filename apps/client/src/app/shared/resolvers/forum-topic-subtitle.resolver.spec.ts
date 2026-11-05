@@ -66,11 +66,11 @@ describe('forumTopicSubtitleResolver', () => {
         expect(data.load).toHaveBeenCalledWith(route);
     });
 
-    it('names a news item as one, linking it as the article it is', () => {
+    it('names a news item as one, linking its page', () => {
         expect(resolveSubtitle(pageOf({ part: 'news', article: { id: 9, title: 'Престольный праздник' } }))).toEqual({
             prefix: 'к новости',
             label: 'Престольный праздник',
-            link: '/articles/9',
+            link: '/news/9',
         });
     });
 

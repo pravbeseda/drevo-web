@@ -1,0 +1,20 @@
+@if (news(); as news) {
+    <div class="news-meta">
+        @if (date(); as date) {
+            <span data-testid="news-date">{{ date }}</span>
+        }
+        @for (section of sections(); track section.id) {
+            <a
+                data-testid="news-section"
+                routerLink="/news"
+                [queryParams]="{ topic: section.id }"
+            >
+                {{ section.title }}
+            </a>
+        }
+    </div>
+    <app-wiki-content
+        data-testid="news-content"
+        [content]="news.content"
+    />
+}

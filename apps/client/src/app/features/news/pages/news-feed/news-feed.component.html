@@ -1,0 +1,63 @@
+<div class="news-feed__toolbar">
+    @if (topics().length > 0) {
+        <app-news-topic-filter
+            [topics]="topics()"
+            [current]="currentTopic()"
+        />
+    }
+</div>
+
+@if (isLoading()) {
+    <div class="news-feed__status">
+        <ui-spinner />
+    </div>
+} @else if (hasError()) {
+    <p
+        class="news-feed__status news-feed__status--error"
+        data-testid="news-feed-error"
+    >
+        Не удалось загрузить новости. Попробуйте обновить страницу.
+    </p>
+} @else if (isEmpty()) {
+    <p
+        class="news-feed__status"
+        data-testid="news-feed-empty"
+    >
+        Новостей нет.
+    </p>
+} @else {
+    <ui-virtual-scroller
+        data-testid="news-feed-list"
+        [items]="displayItems()"
+        [totalItems]="displayTotal()"
+        [isLoading]="isLoadingMore()"
+        [trackByFn]="trackByFn"
+        (loadMore)="onLoadMore()"
+    >
+        <ng-template
+            uiVirtualScrollerItem
+            let-entry
+        >
+            @if (entry.type === 'header') {
+                <div class="news-feed__date">{{ entry.label }}</div>
+            } @else {
+                <div class="news-feed__item">
+                    <a
+                        data-testid="news-feed-item"
+                        [routerLink]="['/news', entry.data.id]"
+                    >
+                        {{ entry.data.title }}
+                    </a>
+                    @if (entry.sections) {
+                        <span
+                            class="news-feed__sections"
+                            data-testid="news-feed-sections"
+                        >
+                            {{ entry.sections }}
+                        </span>
+                    }
+                </div>
+            }
+        </ng-template>
+    </ui-virtual-scroller>
+}

@@ -46,6 +46,10 @@ export const appRoutes: Route[] = [
                 loadChildren: () => import('./features/article/article.routes').then(m => m.ARTICLE_ROUTES),
             },
             {
+                path: 'news',
+                loadChildren: () => import('./features/news/news.routes').then(m => m.NEWS_ROUTES),
+            },
+            {
                 path: '**',
                 title: 'Страница не найдена',
                 loadComponent: () => import('./shared/components/error/error.component').then(m => m.ErrorComponent),

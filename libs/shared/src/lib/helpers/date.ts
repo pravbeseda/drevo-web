@@ -18,6 +18,13 @@ export function parseCalendarDate(value: string): Date {
     return new Date(`${value}T00:00:00`);
 }
 
+/** A calendar day as a reader names it: «4 ноября 2026». */
+export function formatCalendarDate(date: Date): string {
+    return date
+        .toLocaleDateString(RUSSIAN_LOCALE, { day: 'numeric', month: 'long', year: 'numeric' })
+        .replace(' г.', '');
+}
+
 export function isSameDay(a: Date, b: Date): boolean {
     return a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 }

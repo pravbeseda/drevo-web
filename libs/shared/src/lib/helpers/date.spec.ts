@@ -3,6 +3,7 @@ import {
     formatDateHeader,
     formatRelativeTime,
     formatTime,
+    formatCalendarDate,
     isSameDay,
     parseCalendarDate,
     parseDate,
@@ -36,6 +37,12 @@ describe('parseCalendarDate', () => {
         expect(date.getMonth()).toBe(10);
         expect(date.getDate()).toBe(5);
         expect(date.getHours()).toBe(0);
+    });
+});
+
+describe('formatCalendarDate', () => {
+    it('names the day, the month and the year', () => {
+        expect(formatCalendarDate(new Date(2026, 10, 4))).toBe('4 ноября 2026');
     });
 });
 

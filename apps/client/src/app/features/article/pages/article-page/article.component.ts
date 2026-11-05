@@ -1,10 +1,11 @@
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
+import { isPageContentPath, primaryPath } from '../../../../shared/helpers/content-tab';
 import { MissingArticle, isMissingArticle } from '../../models/missing-article';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, UrlSegmentGroup } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { ArticleVersion } from '@drevo-web/shared';
 import { TabGroup, TabsGroupComponent } from '@drevo-web/ui/tabs-group';
 import { filter, map } from 'rxjs';
@@ -47,17 +48,14 @@ export class ArticleComponent {
     );
 
     private readonly articleTabActive = computed(() => {
-        // `children` is typed as if every outlet were present; only `primary` is guaranteed
-        // to exist while an outlet is actually activated.
-        const children: Record<string, UrlSegmentGroup | undefined> = this.router.parseUrl(this.url()).root.children;
-        const path = children['primary']?.segments.map(s => s.path).join('/');
+        const path = primaryPath(this.router, this.url());
         const basePath = this.pageService.basePath();
         if (!path || !basePath) return false;
-        const base = basePath.slice(1);
         if (this.pageService.isMissing()) {
+            const base = basePath.slice(1);
             return path === base || path === `${base}/edit`;
         }
-        return path === base || path.startsWith(`${base}/version/`);
+        return isPageContentPath(path, basePath);
     });
 
     readonly article = this.pageService.article;
