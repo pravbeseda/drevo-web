@@ -21,6 +21,7 @@ import {
 } from '../mocks/articles';
 import { createForumTopicListResponse, mockForumSections } from '../mocks/forum';
 import { createLinkedHereResponse } from '../mocks/linked-here';
+import { mockNewsTopics } from '../mocks/news';
 import {
     ArticleHistoryResponseDto,
     ArticleLinkedHereResponseDto,
@@ -37,6 +38,8 @@ import {
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
+    NewsFeedResponseDto,
+    NewsTopicDto,
     PictureDto,
     PicturePendingDto,
     PicturePendingListResponseDto,
@@ -994,6 +997,47 @@ export async function mockVersionPairsServerError(page: Page, version1: number, 
         const url = new URL(route.request().url());
         if (url.searchParams.get('version1') === String(version1)) {
             return route.fulfill({ status, json: apiError('Internal server error') });
+        }
+        return route.fallback();
+    });
+}
+
+// ---------------------------------------------------------------------------
+// News
+// ---------------------------------------------------------------------------
+
+/** Mock GET /api/news/topics — the news sections */
+export async function mockNewsTopicsApi(page: Page, topics: readonly NewsTopicDto[] = mockNewsTopics): Promise<void> {
+    await page.route('**/api/news/topics', route => route.fulfill({ json: apiSuccess(topics) }));
+}
+
+/** Mock GET /api/news/list — each request answered for the section and the page it asks for */
+export async function mockNewsFeedApi(
+    page: Page,
+    respond: (topic: string | null, pageNumber: number) => NewsFeedResponseDto,
+): Promise<void> {
+    await page.route('**/api/news/list**', route => {
+        const url = new URL(route.request().url());
+        const pageNumber = Number(url.searchParams.get('page') ?? '1');
+        return route.fulfill({ json: apiSuccess(respond(url.searchParams.get('topic'), pageNumber)) });
+    });
+}
+
+/** Mock GET /api/news/show/:id — one news item for its page */
+export async function mockNewsShow(page: Page, id: number, data: ArticleVersionDto): Promise<void> {
+    await page.route(`**/api/news/show/${id}`, route => route.fulfill({ json: apiSuccess(data) }));
+}
+
+/** Mock GET /api/news/history — the versions of one news item, or of every one when no id is given */
+export async function mockNewsHistory(
+    page: Page,
+    response: ArticleHistoryResponseDto,
+    articleId?: number,
+): Promise<void> {
+    await page.route('**/api/news/history**', route => {
+        const url = new URL(route.request().url());
+        if (articleId === undefined || url.searchParams.get('articleId') === String(articleId)) {
+            return route.fulfill({ json: apiSuccess(response) });
         }
         return route.fallback();
     });
