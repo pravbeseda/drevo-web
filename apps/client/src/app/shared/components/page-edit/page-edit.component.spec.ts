@@ -1,10 +1,12 @@
 import { ArticleService } from '../../../services/articles';
 import { InworkService } from '../../../services/inwork';
+import { NewsService } from '../../../services/news/news.service';
 import { LinksService } from '../../../services/links/links.service';
 import { PageEditSession, toEditSession } from '../../models/page-edit-session';
 import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
 import { createMockArticle } from '../../testing/article-testing.helper';
 import { PageEditComponent } from './page-edit.component';
+import { NewsFieldsComponent } from '../news-fields/news-fields.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -1048,5 +1050,118 @@ describe('PageEditComponent on a news version', () => {
 
         expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7/version/70');
         expect(confirmationService.open).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageEditComponent creating a news item', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let newsService: jest.Mocked<NewsService>;
+    let notificationService: SpyObject<NotificationService>;
+    let router: jest.Mocked<Router>;
+
+    const topics = [
+        { id: 3, title: 'Церковь' },
+        { id: 5, title: 'Общество' },
+    ];
+    const createSession: PageEditSession = {
+        kind: 'news',
+        mode: 'create',
+        articleId: 0,
+        versionId: 0,
+        title: '',
+        content: '',
+        newsTopics: topics,
+    };
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [mockLoggerProvider(), createMockActivatedRoute(createSession)],
+        detectChanges: false,
+    });
+
+    const fields = (): NewsFieldsComponent | null => spectator.query(NewsFieldsComponent);
+    const fill = (title: string, topic: number | undefined, content: string): void => {
+        spectator.component.onNewsFields({ title, newsDate: '2026-11-05', topic });
+        spectator.component.contentChanged(content);
+    };
+
+    beforeEach(() => {
+        jest.useFakeTimers({ now: new Date(2026, 10, 5, 12, 0), doNotFake: ['queueMicrotask', 'nextTick'] });
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        mockDraftEditorService.hasActiveSession.mockReturnValue(false);
+        mockDraftEditorService.onContentChanged.mockClear();
+        mockInwork.getActiveEditor.mockClear().mockReturnValue(of(undefined));
+        spectator = createComponent();
+        newsService = spectator.inject(NewsService);
+        notificationService = spectator.inject(NotificationService);
+        router = spectator.inject(Router);
+        newsService.createNews.mockReturnValue(
+            of({ articleId: 7, versionId: 70, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+        spectator.detectChanges();
+    });
+
+    afterEach(() => jest.useRealTimers());
+
+    it('asks for the title, the day — today by default — and the section', () => {
+        expect(fields()?.topics()).toEqual(topics);
+        expect(fields()?.value()).toEqual({ title: '', newsDate: '2026-11-05', topic: undefined });
+    });
+
+    it('creates the news item from the fields and the text, then opens it', () => {
+        fill('  Новость  ', 3, 'Текст');
+
+        spectator.component.save();
+
+        expect(newsService.createNews).toHaveBeenCalledWith({
+            title: 'Новость',
+            newsDate: '2026-11-05',
+            topic: 3,
+            content: 'Текст',
+            info: 'Новая новость',
+        });
+        expect(notificationService.success).toHaveBeenCalledWith('Новость создана');
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/news/7');
+    });
+
+    it.each([
+        ['a title', '', 3, 'Текст', 'Введите заголовок новости'],
+        ['a section', 'Новость', undefined, 'Текст', 'Выберите раздел новости'],
+        ['a text', 'Новость', 3, '  ', 'Введите текст новости'],
+    ])('asks for %s before creating', (_case, title, topic, content, message) => {
+        fill(title, topic, content);
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith(message);
+        expect(newsService.createNews).not.toHaveBeenCalled();
+    });
+
+    it('asks for the day before creating', () => {
+        spectator.component.onNewsFields({ title: 'Новость', newsDate: '', topic: 3 });
+        spectator.component.contentChanged('Текст');
+
+        spectator.component.save();
+
+        expect(notificationService.info).toHaveBeenCalledWith('Укажите дату новости');
+        expect(newsService.createNews).not.toHaveBeenCalled();
+    });
+
+    it('keeps its draft under /news/new, named by the title typed', () => {
+        fill('Новость', 3, 'Текст');
+
+        expect(mockDraftEditorService.onContentChanged).toHaveBeenLastCalledWith({
+            route: '/news/new',
+            title: 'Новость',
+            text: 'Текст',
+        });
+    });
+
+    it('goes back to the news history on cancel', async () => {
+        await spectator.component.cancel();
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/history/news');
     });
 });

@@ -1,14 +1,17 @@
 import { ArticleService } from '../../../services/articles';
 import { InworkService } from '../../../services/inwork';
 import { LinksService } from '../../../services/links/links.service';
+import { NewsService } from '../../../services/news/news.service';
 import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { pageUrl, versionUrl } from '../../helpers/page-kind';
 import { createPicturePreviewExtension } from '../../helpers/picture-tooltip';
+import { NewsFields } from '../../models/news-fields.model';
 import { PageEditSession } from '../../models/page-edit-session';
 import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
 import { DiffViewComponent } from '../diff-view/diff-view.component';
 import { ErrorComponent } from '../error/error.component';
+import { NewsFieldsComponent } from '../news-fields/news-fields.component';
 import { PagePreviewComponent } from '../page-preview/page-preview.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -28,7 +31,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
-import { PageKind, formatDateHeader, formatTime } from '@drevo-web/shared';
+import {
+    NewsTopic,
+    PageKind,
+    SaveArticleVersionResult,
+    formatDateHeader,
+    formatTime,
+    toCalendarDateString,
+} from '@drevo-web/shared';
 import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { IconComponent } from '@drevo-web/ui/icon';
 import { ModalService } from '@drevo-web/ui/modal';
@@ -39,10 +49,16 @@ import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'r
 const EDITOR_TAB_INDEX = 0;
 
 /** How the editor names a page of each kind to the reader. */
-const LABELS: Readonly<Record<PageKind, { readonly saved: string; readonly created: string; readonly of: string }>> = {
-    articles: { saved: 'Статья сохранена', created: 'Статья создана', of: 'статьи' },
-    news: { saved: 'Новость сохранена', created: 'Новость создана', of: 'новости' },
+const LABELS: Readonly<
+    Record<PageKind, { readonly saved: string; readonly created: string; readonly of: string; readonly noText: string }>
+> = {
+    articles: { saved: 'Статья сохранена', created: 'Статья создана', of: 'статьи', noText: 'Введите текст статьи' },
+    news: { saved: 'Новость сохранена', created: 'Новость создана', of: 'новости', noText: 'Введите текст новости' },
 };
+
+const NEW_NEWS_INFO = 'Новая новость';
+const NEWS_CREATE_ROUTE = '/news/new';
+const NEWS_EXIT_ROUTE = '/history/news';
 
 /** The wiki editor of an article or a news item: an existing version, or a page not created yet. */
 @Component({
@@ -51,6 +67,7 @@ const LABELS: Readonly<Record<PageKind, { readonly saved: string; readonly creat
         DiffViewComponent,
         EditorComponent,
         ErrorComponent,
+        NewsFieldsComponent,
         IconComponent,
         PagePreviewComponent,
         SidebarActionComponent,
@@ -68,6 +85,7 @@ export class PageEditComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly articleService = inject(ArticleService);
+    private readonly newsService = inject(NewsService);
     private readonly notificationService = inject(NotificationService);
     private readonly linksService = inject(LinksService);
     private readonly destroyRef = inject(DestroyRef);
@@ -86,6 +104,13 @@ export class PageEditComponent implements OnInit, OnDestroy {
     private readonly _originalContent = signal('');
     private readonly _articleId = signal(0);
     private readonly _kind = signal<PageKind>('articles');
+    private readonly _newsTopics = signal<readonly NewsTopic[]>([]);
+    private readonly _newsFields = signal<NewsFields>({
+        title: '',
+        newsDate: toCalendarDateString(new Date()),
+        topic: undefined,
+    });
+    private readonly _isNewsCreate = signal(false);
 
     private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
         getPicturesBatch: (ids: readonly number[]) => this.pictureService.getPicturesBatch(ids),
@@ -104,6 +129,10 @@ export class PageEditComponent implements OnInit, OnDestroy {
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
     readonly kind = this._kind.asReadonly();
+    readonly newsTopics = this._newsTopics.asReadonly();
+    readonly newsFields = this._newsFields.asReadonly();
+    /** A news item being created asks for its title, day and section beside its text. */
+    readonly isNewsCreate = this._isNewsCreate.asReadonly();
     readonly validationResult = this._validationResult.asReadonly();
     readonly hasErrors = computed(() => this._validationResult().errors > 0);
     readonly hasWarnings = computed(() => this._validationResult().warnings > 0);
@@ -135,6 +164,8 @@ export class PageEditComponent implements OnInit, OnDestroy {
 
         this.session = session;
         this._kind.set(session.kind);
+        this._isNewsCreate.set(session.kind === 'news' && session.mode === 'create');
+        this._newsTopics.set(session.newsTopics ?? []);
         this._articleId.set(session.articleId);
         this._originalContent.set(session.content);
         this._editorContent.set(session.content);
@@ -203,7 +234,7 @@ export class PageEditComponent implements OnInit, OnDestroy {
         if (this.session) {
             this.draftEditorService.onContentChanged({
                 route: this.getDraftRoute(),
-                title: this.session.title,
+                title: this.draftTitle(),
                 text: content,
             });
         }
@@ -218,8 +249,9 @@ export class PageEditComponent implements OnInit, OnDestroy {
         const content = this._editorContent();
 
         if (session.mode === 'create') {
-            if (!content.trim()) {
-                this.notificationService.info('Введите текст статьи');
+            const missing = this.missingNewsField() ?? (content.trim() ? undefined : LABELS[session.kind].noText);
+            if (missing) {
+                this.notificationService.info(missing);
                 return;
             }
         } else if (content === session.content) {
@@ -277,9 +309,9 @@ export class PageEditComponent implements OnInit, OnDestroy {
         });
 
         const save$ =
-            session.mode === 'create'
-                ? this.articleService.createArticle({ title: session.title, content, info: 'Новая статья' })
-                : this.articleService.saveArticleVersion({ versionId: session.versionId, content }, session.kind);
+            session.mode === 'edit'
+                ? this.articleService.saveArticleVersion({ versionId: session.versionId, content }, session.kind)
+                : this.createPage(session, content);
 
         save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => {
@@ -418,20 +450,61 @@ export class PageEditComponent implements OnInit, OnDestroy {
             });
     }
 
+    onNewsFields(fields: NewsFields): void {
+        this._newsFields.set(fields);
+    }
+
+    /** What a news item being created still lacks besides its text; nothing for any other session. */
+    private missingNewsField(): string | undefined {
+        if (!this._isNewsCreate()) {
+            return undefined;
+        }
+        const { title, newsDate, topic } = this._newsFields();
+        if (!title.trim()) return 'Введите заголовок новости';
+        if (!newsDate) return 'Укажите дату новости';
+        if (topic === undefined) return 'Выберите раздел новости';
+        return undefined;
+    }
+
+    private createPage(session: PageEditSession, content: string): Observable<SaveArticleVersionResult> {
+        if (session.kind === 'articles') {
+            return this.articleService.createArticle({ title: session.title, content, info: 'Новая статья' });
+        }
+        const { title, newsDate, topic } = this._newsFields();
+        // missingNewsField() let the save through, so the section is picked.
+        return this.newsService.createNews({
+            title: title.trim(),
+            newsDate,
+            topic: topic ?? 0,
+            content,
+            info: NEW_NEWS_INFO,
+        });
+    }
+
+    /** A news item being created is named by the title typed so far. */
+    private draftTitle(): string {
+        return this._isNewsCreate() ? this._newsFields().title || NEW_NEWS_INFO : (this.session?.title ?? '');
+    }
+
     private getDraftRoute(): string {
         const session = this.session;
         if (!session) {
             return '';
         }
-        return session.mode === 'create'
-            ? `/articles/find/${session.title}/edit`
-            : `${versionUrl(session.kind, session.articleId, session.versionId)}/edit`;
+        if (session.mode === 'edit') {
+            return `${versionUrl(session.kind, session.articleId, session.versionId)}/edit`;
+        }
+        return session.kind === 'news' ? NEWS_CREATE_ROUTE : `/articles/find/${session.title}/edit`;
     }
 
     /** Back to what was being edited: the version, or the placeholder of the page not created yet. */
     private leave(session: PageEditSession): void {
         if (session.mode === 'create') {
-            void this.router.navigate(['/articles', 'find', session.title]);
+            if (session.kind === 'news') {
+                void this.router.navigateByUrl(NEWS_EXIT_ROUTE);
+            } else {
+                void this.router.navigate(['/articles', 'find', session.title]);
+            }
             return;
         }
         void this.router.navigateByUrl(versionUrl(session.kind, session.articleId, session.versionId));

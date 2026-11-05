@@ -18,6 +18,13 @@ export function parseCalendarDate(value: string): Date {
     return new Date(`${value}T00:00:00`);
 }
 
+/** The local calendar day of `date` as `YYYY-MM-DD`; the inverse of `parseCalendarDate`. */
+export function toCalendarDateString(date: Date): string {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+}
+
 /** A calendar day as a reader names it: «4 ноября 2026». */
 export function formatCalendarDate(date: Date): string {
     return date

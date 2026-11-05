@@ -1,0 +1,23 @@
+<div class="news-fields__row">
+    <ui-text-input
+        class="news-fields__title"
+        label="Заголовок"
+        data-testid="news-title-input"
+        [ngModel]="value().title"
+        (ngModelChange)="onTitle($event)"
+    />
+    <ui-text-input
+        label="Дата"
+        type="date"
+        data-testid="news-date-input"
+        [ngModel]="value().newsDate"
+        (ngModelChange)="onDate($event)"
+    />
+</div>
+<ui-button-toggle-group
+    ariaLabel="Раздел"
+    data-testid="news-topic-input"
+    [options]="topicOptions()"
+    [ngModel]="value().topic"
+    (ngModelChange)="onTopic($event)"
+/>

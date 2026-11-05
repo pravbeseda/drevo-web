@@ -1,3 +1,14 @@
+@if (canAddNews()) {
+    <app-sidebar-action
+        [order]="10"
+        icon="add"
+        label="Добавить новость"
+        priority="primary"
+        link="/news/new"
+        testId="add-news-action"
+    />
+}
+
 <app-filters-side-panel
     [filters]="filters()"
     [activeFilter]="activeFilter()"

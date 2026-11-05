@@ -4,6 +4,7 @@ import {
 } from '../../../../services/articles/article-history/article-history.service';
 import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
 import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { FilterEntry } from '../../../../shared/models/filter.model';
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
 import { PageKind } from '@drevo-web/shared';
@@ -15,7 +16,7 @@ const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
 
 @Component({
     selector: 'app-page-history',
-    imports: [ArticleHistoryListComponent, FiltersSidePanelComponent],
+    imports: [ArticleHistoryListComponent, FiltersSidePanelComponent, SidebarActionComponent],
     templateUrl: './page-history.component.html',
     styleUrl: './page-history.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +30,9 @@ export class PageHistoryComponent implements OnInit {
 
     readonly activeFilter = this.service.activeFilter;
     readonly hideCancelled = this.service.hideCancelled;
+
+    /** A signed-in reader may add a news item; the editor lives at /news/new. */
+    readonly canAddNews = computed(() => this.kind() === 'news' && this.service.isAuthenticated());
 
     readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
         if (this.service.isAuthenticated()) {

@@ -42,7 +42,7 @@ export class TextInputComponent implements ControlValueAccessor {
     placeholder = input<string>('');
     hint = input<string>('');
     errorMessage = input<string>('');
-    type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url'>('text');
+    type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date'>('text');
     autocomplete = input<string>('off');
     disabled = input<boolean>(false);
     readonly = input<boolean>(false);

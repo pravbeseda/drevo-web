@@ -23,6 +23,14 @@
         (activated)="cancel()"
     />
 
+    @if (isNewsCreate()) {
+        <app-news-fields
+            [topics]="newsTopics()"
+            [value]="newsFields()"
+            (valueChange)="onNewsFields($event)"
+        />
+    }
+
     <ui-workspace
         data-testid="article-edit"
         (activeTabChange)="onTabChange($event)"

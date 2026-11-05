@@ -1,3 +1,4 @@
+import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { ArticleHistoryService } from '../../../../services/articles/article-history/article-history.service';
 import { PageHistoryComponent } from './page-history.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
@@ -75,5 +76,32 @@ describe('PageHistoryComponent', () => {
     it('should expose activeFilter from service', () => {
         spectator.detectChanges();
         expect(spectator.component.activeFilter()).toBe('all');
+    });
+
+    describe('adding a news item', () => {
+        const addAction = (): SidebarActionComponent | undefined =>
+            spectator.queryAll(SidebarActionComponent).find(action => action.label() === 'Добавить новость');
+
+        it('is offered on the news tab, opening the news editor', () => {
+            spectator = createComponent({ props: { kind: 'news' } });
+            spectator.detectChanges();
+
+            expect(addAction()?.link()).toBe('/news/new');
+        });
+
+        it('is not offered on the articles tab', () => {
+            spectator.detectChanges();
+
+            expect(addAction()).toBeUndefined();
+        });
+
+        it('is not offered to a guest, who may not create news', () => {
+            mockService.isAuthenticated.set(false);
+            spectator = createComponent({ props: { kind: 'news' } });
+            spectator.detectChanges();
+
+            expect(addAction()).toBeUndefined();
+            mockService.isAuthenticated.set(true);
+        });
     });
 });
