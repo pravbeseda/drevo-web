@@ -18,29 +18,29 @@ Drevo-Web is the new front end of the Drevo encyclopedia: a server-rendered Angu
 
 | ID | Lens | Label | Finding | Effort | Depends on | Status | Verified |
 |----|------|-------|---------|--------|------------|--------|----------|
-| SEC-1 | security | blocking | Text typed after a session expires is dropped instead of saved as a draft | M | — | new | confirmed |
-| SEC-2 | security | blocking | Text typed while a forum reply is sending is erased when the send succeeds | S | — | new | confirmed |
-| ARCH-1 | architecture | blocking | Error toast sits inside the auth interceptor; a recovered CSRF retry still shows «Доступ запрещен.» | S | — | new | confirmed |
-| ARCH-2 | architecture | blocking | Angular Material lives in libs/core; toast styling split into the app stylesheet | M | — | new | confirmed |
-| ARCH-3 | architecture | blocking | Page-scoped ArticleHistoryService lives among the global root services | S | — | new | confirmed |
-| ARCH-4 | architecture | blocking | Single-consumer code kept in app/shared | S | — | new | confirmed |
-| ARCH-5 | architecture | blocking | ThemeService exposes a writable global signal and reads browser globals | S | — | new | confirmed |
-| ARCH-6 | architecture | blocking | Public writable signals in six components | S | — | new | confirmed |
-| ARCH-7 | architecture | blocking | AppComponent breaks the OnPush rule and carries a dead field | S | — | new | confirmed |
-| COR-1 | correctness | blocking | «Отмена» in the article editor discards recent edits without asking | S | — | new | confirmed |
-| COR-2 | correctness | blocking | Article history: a slower response for the previous filter overwrites the current one | M | ARCH-3 | new | confirmed |
-| COR-3 | correctness | blocking | Article resolvers turn "not found" and every failure into one unlogged `undefined` | M | — | new | confirmed |
-| COR-4 | correctness | blocking | Forum topic list duplicates or hides topics when someone posts during scrolling | S | — | new | confirmed |
-| COR-5 | correctness | blocking | Search: a stale "load more" lands on a newer query's results | S | — | new | confirmed |
-| COR-6 | correctness | blocking | Errors recovered with no log entry (picture, search, reviews) | S | — | new | confirmed |
-| COR-7 | correctness | blocking | Not-found pages also show a «Не найдено.» error toast | S | COR-3 | new | confirmed |
-| DOC-1 | docs | blocking | Two git-hook systems override each other; commit gates or the secret scan silently off | S | — | new | confirmed |
-| DOC-2 | docs | blocking | `README-deployment.md` gives rollback commands for a layout that no longer exists | M | — | new | confirmed |
-| DOC-3 | docs | blocking | Secrets-migration and server-setup guides would break both deploys if followed | S | — | new | confirmed |
-| DOC-4 | docs | blocking | AGENTS.md component scaffolding command fails on Nx 23 | S | — | new | confirmed |
-| DOC-5 | docs | blocking | AGENTS.md says the dev proxy forwards `/pictures`; it forwards `/images` | S | — | new | confirmed |
-| DOC-6 | docs | blocking | `auth-api.md` names the wrong production frontend origin | S | — | new | confirmed |
-| DOC-7 | docs | blocking | The project `create` skill forbids writing tests first | S | — | new | confirmed |
+| SEC-1 | security | blocking | Text typed after a session expires is dropped instead of saved as a draft | M | — | tracked in #506 | confirmed |
+| SEC-2 | security | blocking | Text typed while a forum reply is sending is erased when the send succeeds | S | — | tracked in #507 | confirmed |
+| ARCH-1 | architecture | blocking | Error toast sits inside the auth interceptor; a recovered CSRF retry still shows «Доступ запрещен.» | S | — | fixed in #505 | confirmed |
+| ARCH-2 | architecture | blocking | Angular Material lives in libs/core; toast styling split into the app stylesheet | M | — | tracked in #514 | confirmed |
+| ARCH-3 | architecture | blocking | Page-scoped ArticleHistoryService lives among the global root services | S | — | tracked in #509 | confirmed |
+| ARCH-4 | architecture | blocking | Single-consumer code kept in app/shared | S | — | tracked in #515 | confirmed |
+| ARCH-5 | architecture | blocking | ThemeService exposes a writable global signal and reads browser globals | S | — | tracked in #516 | confirmed |
+| ARCH-6 | architecture | blocking | Public writable signals in six components | S | — | tracked in #516 | confirmed |
+| ARCH-7 | architecture | blocking | AppComponent breaks the OnPush rule and carries a dead field | S | — | tracked in #517 | confirmed |
+| COR-1 | correctness | blocking | «Отмена» in the article editor discards recent edits without asking | S | — | tracked in #508 | confirmed |
+| COR-2 | correctness | blocking | Article history: a slower response for the previous filter overwrites the current one | M | ARCH-3 | tracked in #509 | confirmed |
+| COR-3 | correctness | blocking | Article resolvers turn "not found" and every failure into one unlogged `undefined` | M | — | tracked in #510 | confirmed |
+| COR-4 | correctness | blocking | Forum topic list duplicates or hides topics when someone posts during scrolling | S | — | tracked in #511 | confirmed |
+| COR-5 | correctness | blocking | Search: a stale "load more" lands on a newer query's results | S | — | tracked in #512 | confirmed |
+| COR-6 | correctness | blocking | Errors recovered with no log entry (picture, search, reviews) | S | — | tracked in #512, #513 | confirmed |
+| COR-7 | correctness | blocking | Not-found pages also show a «Не найдено.» error toast | S | COR-3 | tracked in #510 | confirmed |
+| DOC-1 | docs | blocking | Two git-hook systems override each other; commit gates or the secret scan silently off | S | — | tracked in #518 | confirmed |
+| DOC-2 | docs | blocking | `README-deployment.md` gives rollback commands for a layout that no longer exists | M | — | tracked in #519 | confirmed |
+| DOC-3 | docs | blocking | Secrets-migration and server-setup guides would break both deploys if followed | S | — | tracked in #519 | confirmed |
+| DOC-4 | docs | blocking | AGENTS.md component scaffolding command fails on Nx 23 | S | — | tracked in #520 | confirmed |
+| DOC-5 | docs | blocking | AGENTS.md says the dev proxy forwards `/pictures`; it forwards `/images` | S | — | tracked in #520 | confirmed |
+| DOC-6 | docs | blocking | `auth-api.md` names the wrong production frontend origin | S | — | tracked in #520 | confirmed |
+| DOC-7 | docs | blocking | The project `create` skill forbids writing tests first | S | — | tracked in #521 | confirmed |
 | SEC-3 | security | suggestion | CSRF token received from the embedding window is never used | S | — | new | confirmed |
 | ARCH-8 | architecture | suggestion | Public members only their own specs call | S | SEC-1 | new | confirmed |
 | ARCH-9 | architecture | suggestion | Auth state is held twice | S | — | new | confirmed |
