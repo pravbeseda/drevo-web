@@ -139,15 +139,16 @@ describe('ForumDraftService', () => {
             expect(spectator.service.drafts().has(7)).toBe(false);
         });
 
-        it('stores nothing once the reader has logged out', async () => {
+        it('keeps the reply typed before the session ended, without marking the topic', async () => {
             await setUp([createDraft('/forum/topic/7', 'Ответ')]);
             user.next(undefined);
 
             await spectator.service.save(7, 'Новый ответ');
             await spectator.service.save(8, '');
 
-            expect(storage.save).not.toHaveBeenCalled();
-            expect(storage.deleteByRoute).not.toHaveBeenCalled();
+            expect(storage.save).toHaveBeenCalledWith({ route: '/forum/topic/7', title: '', text: 'Новый ответ' });
+            expect(storage.deleteByRoute).toHaveBeenCalledWith('/forum/topic/8');
+            expect(spectator.service.drafts().size).toBe(0);
         });
 
         it('keeps the topic unmarked when the storage fails', async () => {

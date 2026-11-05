@@ -11,6 +11,7 @@ import {
     mockInworkCheck,
     mockInworkMark,
     mockInworkClear,
+    mockLoginSuccess,
 } from '../../fixtures';
 import {
     createArticleVersionDto,
@@ -21,6 +22,7 @@ import {
 import { apiSuccess } from '../../mocks';
 import { ArticleEditPage } from '../../pages/article-edit.page';
 import { ArticlePage } from '../../pages/article.page';
+import { LoginPage } from '../../pages/login.page';
 import { getConfirmationDialogTitle } from '../../helpers/confirmation-dialog';
 import { getNotification } from '../../helpers/notification';
 
@@ -87,6 +89,21 @@ test.describe('Article edit', () => {
             await editPage.clickCancel();
             await expect(getConfirmationDialogTitle(page)).toContainText('Удалить черновик?');
             await expect(page).toHaveURL(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
+        });
+
+        test('keeps the text typed just before the session expired as a draft', async ({ authenticatedPage: page }) => {
+            await mockArticleSaveError(page, 401, 'Требуется авторизация');
+            await editPage.typeInEditor('Текст перед истечением сессии');
+            await editPage.clickSave();
+            await expect(page).toHaveURL(/\/login\?returnUrl=/);
+
+            const loginPage = new LoginPage(page);
+            await loginPage.waitForReady();
+            await mockLoginSuccess(page);
+            await loginPage.login('user', 'password');
+
+            await expect(page).toHaveURL(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
+            await expect(editPage.editorContent).toContainText('Текст перед истечением сессии');
         });
 
         test('shows error on preview tab when request fails', async ({ authenticatedPage: page }) => {

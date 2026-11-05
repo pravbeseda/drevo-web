@@ -14,6 +14,12 @@ export class DraftStorageService {
     private readonly getUserIdFn = inject(DRAFT_USER_ID_PROVIDER);
 
     private db: DraftDatabase | undefined;
+    /**
+     * Writes still land for this user after the session ends, so text typed just before it is kept.
+     * shortcut: a write pending when another user signs in goes to that user; capture the user with
+     * the pending input if accounts are ever switched within the 3 s draft debounce.
+     */
+    private lastSignedInUserId: string | undefined;
 
     private async getDatabase(): Promise<DraftDatabase> {
         if (!this.db) {
@@ -24,11 +30,22 @@ export class DraftStorageService {
     }
 
     private getUserId(): string | undefined {
-        return this.getUserIdFn();
+        const userId = this.getUserIdFn();
+        if (userId !== undefined) {
+            this.lastSignedInUserId = userId;
+        }
+        return userId;
     }
 
     private requireUserId(): string {
-        const userId = this.getUserId();
+        return this.ensureUserId(this.getUserId());
+    }
+
+    private requireWriterId(): string {
+        return this.ensureUserId(this.getUserId() ?? this.lastSignedInUserId);
+    }
+
+    private ensureUserId(userId: string | undefined): string {
         if (userId === undefined) {
             this.logger.error(NOT_AUTHENTICATED_ERROR);
             throw new Error(NOT_AUTHENTICATED_ERROR);
@@ -39,7 +56,7 @@ export class DraftStorageService {
     async save(input: DraftInput): Promise<void> {
         if (!this.isBrowser) return;
 
-        const userId = this.requireUserId();
+        const userId = this.requireWriterId();
         const draft: Draft = {
             userId,
             route: input.route,
@@ -83,7 +100,7 @@ export class DraftStorageService {
     async deleteByRoute(route: string): Promise<void> {
         if (!this.isBrowser) return;
 
-        const userId = this.requireUserId();
+        const userId = this.requireWriterId();
         this.logger.debug('Deleting draft', { route });
         const db = await this.getDatabase();
         await db.deleteDraft(userId, route);

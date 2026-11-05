@@ -48,7 +48,7 @@ export class ForumDraftService {
     private readonly _drafts = signal<ReadonlyMap<number, string>>(new Map());
     private readonly editSubject = new Subject<void>();
     private pending: PendingEdit | undefined;
-    /** The storage keys drafts by reader; once they log out there is no one to store a draft for. */
+    /** After the session ends the storage still keeps the reply, but the list of a signed-out reader stays empty. */
     private signedIn = false;
     /** Writes run one after another, so a later one never lands before an earlier one. */
     private writes: Promise<void> = Promise.resolve();
@@ -101,11 +101,6 @@ export class ForumDraftService {
     }
 
     private async write(topicId: number, text: string): Promise<void> {
-        if (!this.signedIn) {
-            this.logger.debug('Draft dropped: the reader has logged out', { topicId });
-            return;
-        }
-
         const hasText = text.trim().length > 0;
         // A blank field always deletes: the list of drafts may not have loaded yet to say there is none.
         if (hasText && this._drafts().get(topicId) === text) {
@@ -124,6 +119,9 @@ export class ForumDraftService {
             return;
         }
 
+        if (!this.signedIn) {
+            return;
+        }
         this._drafts.update(drafts => {
             const next = new Map(drafts);
             if (hasText) {
