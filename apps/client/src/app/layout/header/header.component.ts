@@ -68,7 +68,7 @@ export class HeaderComponent {
         const ctx = this.pageTitleStrategy.titleContext();
         const tab = this.pageTitleStrategy.tabTitle();
         // articleId 0 is a missing-article placeholder — it has no article to rename.
-        return !!ctx && ctx.articleId > 0 && !tab && (this.user()?.permissions.canModerate ?? false);
+        return ctx?.kind === 'articles' && ctx.articleId > 0 && !tab && (this.user()?.permissions.canModerate ?? false);
     });
 
     readonly titleControl = new FormControl('', { nonNullable: true });
