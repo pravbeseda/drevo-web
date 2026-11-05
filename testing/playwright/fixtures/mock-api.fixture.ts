@@ -23,6 +23,7 @@ import { createForumTopicListResponse, mockForumSections } from '../mocks/forum'
 import { createLinkedHereResponse } from '../mocks/linked-here';
 import { mockNewsTopics } from '../mocks/news';
 import {
+    ArticleCountsDto,
     ArticleHistoryResponseDto,
     ArticleLinkedHereResponseDto,
     ArticleSearchResponseDto,
@@ -38,6 +39,7 @@ import {
     HistoryCountsDto,
     InworkItemDto,
     ModerationResponseDto,
+    NewsListResponseDto,
     NewsMetaResponseDto,
     NewsTopicDto,
     PictureDto,
@@ -1009,6 +1011,25 @@ export async function mockVersionPairsServerError(page: Page, version1: number, 
 /** Mock GET /api/news/topics — the news sections */
 export async function mockNewsTopicsApi(page: Page, topics: readonly NewsTopicDto[] = mockNewsTopics): Promise<void> {
     await page.route('**/api/news/topics', route => route.fulfill({ json: apiSuccess(topics) }));
+}
+
+/** Mock GET /api/news/list?articleId= — the news about an article, each request answered for the page it asks for */
+export async function mockArticleNewsApi(
+    page: Page,
+    articleId: number,
+    respond: (pageNumber: number) => NewsListResponseDto,
+): Promise<void> {
+    await page.route('**/api/news/list?**', route => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('articleId') !== String(articleId)) return route.fallback();
+        const pageNumber = Number(url.searchParams.get('page') ?? '1');
+        return route.fulfill({ json: apiSuccess(respond(pageNumber)) });
+    });
+}
+
+/** Mock GET /api/articles/:id/counts — the badges of the article's news and discussion tabs */
+export async function mockArticleCounts(page: Page, articleId: number, counts: ArticleCountsDto): Promise<void> {
+    await page.route(`**/api/articles/${articleId}/counts`, route => route.fulfill({ json: apiSuccess(counts) }));
 }
 
 /** Mock GET /api/news/show/:id — one news item for its page */

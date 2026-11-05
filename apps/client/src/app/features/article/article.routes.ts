@@ -1,3 +1,4 @@
+import { articleNewsCreateSessionResolver } from './resolvers/article-news-create-session.resolver';
 import { missingArticleResolver } from './resolvers/missing-article.resolver';
 import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
@@ -115,10 +116,18 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: 'news',
                 title: 'Новости',
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent,
+                    import('./pages/article-page/tabs/article-news-tab/article-news-tab.component').then(
+                        m => m.ArticleNewsTabComponent,
                     ),
-                data: { stubTitle: 'Новости' },
+            },
+            {
+                path: 'news/new',
+                title: 'Новая новость',
+                loadComponent: () =>
+                    import('../../shared/components/page-edit/page-edit.component').then(m => m.PageEditComponent),
+                resolve: { session: articleNewsCreateSessionResolver },
+                providers: [LinksService],
+                data: { titlePrefix: '*' },
             },
             {
                 path: 'linkedhere',

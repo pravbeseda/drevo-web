@@ -1,14 +1,21 @@
+import { ArticleService } from '../../../../services/articles';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
 import { isPageContentPath, primaryPath } from '../../../../shared/helpers/content-tab';
 import { MissingArticle, isMissingArticle } from '../../models/missing-article';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { LoggerService } from '@drevo-web/core';
 import { ArticleVersion } from '@drevo-web/shared';
 import { TabGroup, TabsGroupComponent } from '@drevo-web/ui/tabs-group';
-import { filter, map } from 'rxjs';
+import { catchError, filter, map, of, startWith, switchMap } from 'rxjs';
+
+/** A tab with nothing in it carries no badge. */
+function badge(count: number | undefined): number | undefined {
+    return count || undefined;
+}
 
 @Component({
     selector: 'app-article',
@@ -21,6 +28,8 @@ export class ArticleComponent {
     private readonly pageService = inject(ArticlePageService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly articleService = inject(ArticleService);
+    private readonly logger = inject(LoggerService).withContext('ArticleComponent');
 
     constructor() {
         this.route.data
@@ -58,6 +67,23 @@ export class ArticleComponent {
         return isPageContentPath(path, basePath);
     });
 
+    /** The badges of the news and discussion tabs; a page not created yet has neither. */
+    private readonly counts = toSignal(
+        toObservable(this.pageService.articleId).pipe(
+            switchMap(articleId =>
+                articleId === undefined
+                    ? of(undefined)
+                    : this.articleService.getCounts(articleId).pipe(
+                          startWith(undefined),
+                          catchError((error: unknown) => {
+                              this.logger.error('Failed to load the tab counts', { articleId, error });
+                              return of(undefined);
+                          }),
+                      ),
+            ),
+        ),
+    );
+
     readonly article = this.pageService.article;
     readonly isMissing = this.pageService.isMissing;
     readonly error = this.pageService.error;
@@ -67,6 +93,7 @@ export class ArticleComponent {
         if (!base) {
             return [];
         }
+        const counts = this.counts();
         const historyTab = this.pageService.isMissing()
             ? []
             : [
@@ -91,12 +118,14 @@ export class ArticleComponent {
                         label: 'Новости',
                         route: `${base}/news`,
                         icon: 'newspaper',
+                        badge: badge(counts?.news),
                         testId: 'tab-news',
                     },
                     {
                         label: 'Обсуждение',
                         route: `${base}/forum`,
                         icon: 'forum',
+                        badge: badge(counts?.forum),
                         testId: 'tab-forum',
                     },
                 ],

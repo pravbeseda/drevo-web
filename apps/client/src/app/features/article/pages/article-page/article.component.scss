@@ -7,6 +7,7 @@
 :host:has(app-page-versions),
 :host:has(app-page-edit),
 :host:has(app-page-forum-tab),
+:host:has(app-article-news-tab),
 :host:has(app-article-linkedhere-tab) {
     height: 100%;
     overflow: hidden;

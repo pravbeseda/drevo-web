@@ -21,10 +21,6 @@ export class HistoryPage extends BasePage {
     /** Every "Нужен ваш голос" pill on the page, whichever row it belongs to. */
     readonly reviewBadgeVotes: Locator = this.page.getByTestId('review-badge-vote');
 
-    badgeFor(tab: Locator): Locator {
-        return tab.locator('ui-badge');
-    }
-
     /** History row (`app-articles-history-item`) identified by its title text. */
     historyItemByTitle(title: string): Locator {
         return this.page
