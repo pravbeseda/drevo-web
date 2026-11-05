@@ -82,6 +82,13 @@ test.describe('Article edit', () => {
             await expect(editPage.previewContent).toBeVisible();
         });
 
+        test('asks before discarding fresh edits on cancel', async ({ authenticatedPage: page }) => {
+            await editPage.typeInEditor('Свежая правка');
+            await editPage.clickCancel();
+            await expect(getConfirmationDialogTitle(page)).toContainText('Удалить черновик?');
+            await expect(page).toHaveURL(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
+        });
+
         test('shows error on preview tab when request fails', async ({ authenticatedPage: page }) => {
             await mockArticlePreviewError(page);
             await editPage.clickPreviewTab();
