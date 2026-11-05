@@ -1,15 +1,16 @@
-import { ArticleService } from '../../../../services/articles';
-import { InworkService } from '../../../../services/inwork';
-import { LinksService } from '../../../../services/links/links.service';
-import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
-import { PictureService } from '../../../../services/pictures/picture.service';
-import { DiffViewComponent } from '../../../../shared/components/diff-view/diff-view.component';
-import { ErrorComponent } from '../../../../shared/components/error/error.component';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { createPicturePreviewExtension } from '../../../../shared/helpers/picture-tooltip';
-import { DraftEditorService } from '../../../../shared/services/draft-editor/draft-editor.service';
-import { PreviewComponent } from '../../components/preview/preview.component';
-import { ArticleEditSession, toEditSession } from '../../models/article-edit-session';
+import { ArticleService } from '../../../services/articles';
+import { InworkService } from '../../../services/inwork';
+import { LinksService } from '../../../services/links/links.service';
+import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
+import { PictureService } from '../../../services/pictures/picture.service';
+import { pageUrl, versionUrl } from '../../helpers/page-kind';
+import { createPicturePreviewExtension } from '../../helpers/picture-tooltip';
+import { PageEditSession } from '../../models/page-edit-session';
+import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
+import { DiffViewComponent } from '../diff-view/diff-view.component';
+import { ErrorComponent } from '../error/error.component';
+import { PagePreviewComponent } from '../page-preview/page-preview.component';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,
@@ -27,7 +28,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Extension } from '@codemirror/state';
 import { LoggerService, NotificationService, readApiErrorBody } from '@drevo-web/core';
 import { CustomToolbarAction, EditorComponent, validateWikiContent, ValidationResult } from '@drevo-web/editor';
-import { ArticleVersion, formatDateHeader, formatTime } from '@drevo-web/shared';
+import { PageKind, formatDateHeader, formatTime } from '@drevo-web/shared';
 import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { IconComponent } from '@drevo-web/ui/icon';
 import { ModalService } from '@drevo-web/ui/modal';
@@ -37,24 +38,31 @@ import { Observable, first, firstValueFrom, filter, map, of, switchMap } from 'r
 
 const EDITOR_TAB_INDEX = 0;
 
+/** How the editor names a page of each kind to the reader. */
+const LABELS: Readonly<Record<PageKind, { readonly saved: string; readonly created: string; readonly of: string }>> = {
+    articles: { saved: 'Статья сохранена', created: 'Статья создана', of: 'статьи' },
+    news: { saved: 'Новость сохранена', created: 'Новость создана', of: 'новости' },
+};
+
+/** The wiki editor of an article or a news item: an existing version, or a page not created yet. */
 @Component({
-    selector: 'app-article-edit',
+    selector: 'app-page-edit',
     imports: [
         DiffViewComponent,
         EditorComponent,
         ErrorComponent,
         IconComponent,
-        PreviewComponent,
+        PagePreviewComponent,
         SidebarActionComponent,
         TooltipDirective,
         WorkspaceComponent,
         WorkspaceTabComponent,
     ],
-    templateUrl: './article-edit.component.html',
-    styleUrl: './article-edit.component.scss',
+    templateUrl: './page-edit.component.html',
+    styleUrl: './page-edit.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent implements OnInit, OnDestroy {
+export class PageEditComponent implements OnInit, OnDestroy {
     @ViewChild(EditorComponent) private readonly editorComponent?: EditorComponent;
 
     private readonly route = inject(ActivatedRoute);
@@ -66,7 +74,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly draftEditorService = inject(DraftEditorService);
     private readonly inworkService = inject(InworkService);
     private readonly confirmationService = inject(ConfirmationService);
-    private readonly logger = inject(LoggerService).withContext('ArticleEditComponent');
+    private readonly logger = inject(LoggerService).withContext('PageEditComponent');
     private readonly pictureService = inject(PictureService);
     private readonly pictureLightboxService = inject(PictureLightboxService);
     private readonly modalService = inject(ModalService);
@@ -77,6 +85,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     private readonly _updateLinksState = signal<Record<string, boolean>>({});
     private readonly _originalContent = signal('');
     private readonly _articleId = signal(0);
+    private readonly _kind = signal<PageKind>('articles');
 
     private readonly picturePreviewExtension: Extension = createPicturePreviewExtension({
         getPicturesBatch: (ids: readonly number[]) => this.pictureService.getPicturesBatch(ids),
@@ -85,7 +94,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
 
     private readonly _validationResult = signal<ValidationResult>({ errors: 0, warnings: 0 });
 
-    private session: ArticleEditSession | undefined;
+    private session: PageEditSession | undefined;
     private editingCleared = false;
 
     readonly editorContent = this._editorContent.asReadonly();
@@ -94,6 +103,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     readonly updateLinksState = this._updateLinksState.asReadonly();
     readonly originalContent = this._originalContent.asReadonly();
     readonly articleId = this._articleId.asReadonly();
+    readonly kind = this._kind.asReadonly();
     readonly validationResult = this._validationResult.asReadonly();
     readonly hasErrors = computed(() => this._validationResult().errors > 0);
     readonly hasWarnings = computed(() => this._validationResult().warnings > 0);
@@ -116,7 +126,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
     ];
 
     ngOnInit(): void {
-        const session = this.readSession();
+        const session = this.route.snapshot.data['session'] as PageEditSession | undefined;
         if (!session) {
             this._error.set('Версия не найдена');
             this.logger.error('Edit session not resolved from route data');
@@ -124,10 +134,12 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         this.session = session;
+        this._kind.set(session.kind);
         this._articleId.set(session.articleId);
         this._originalContent.set(session.content);
         this._editorContent.set(session.content);
         this.logger.info('Edit session started', {
+            kind: session.kind,
             mode: session.mode,
             versionId: session.versionId,
             articleId: session.articleId,
@@ -159,22 +171,6 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             .catch((err: unknown) => {
                 this.logger.error('Failed to check draft', err);
             });
-    }
-
-    /**
-     * The create route resolves a session directly; the existing edit route
-     * still resolves an `ArticleVersion` under `version` and is adapted here,
-     * so that route, its titleSource and its specs stay untouched.
-     */
-    private readSession(): ArticleEditSession | undefined {
-        const data = this.route.snapshot.data;
-        const session = data['session'] as ArticleEditSession | undefined;
-        if (session) {
-            return session;
-        }
-
-        const version = data['version'] as ArticleVersion | undefined;
-        return version ? toEditSession(version) : undefined;
     }
 
     ngOnDestroy(): void {
@@ -272,7 +268,8 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         if (!session) return;
 
         this._isSaving.set(true);
-        this.logger.info('Saving article', {
+        this.logger.info('Saving page', {
+            kind: session.kind,
             mode: session.mode,
             versionId: session.versionId,
             articleId: session.articleId,
@@ -282,23 +279,24 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const save$ =
             session.mode === 'create'
                 ? this.articleService.createArticle({ title: session.title, content, info: 'Новая статья' })
-                : this.articleService.saveArticleVersion({ versionId: session.versionId, content });
+                : this.articleService.saveArticleVersion({ versionId: session.versionId, content }, session.kind);
 
         save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => {
                 this._isSaving.set(false);
-                this.logger.info('Article saved', {
+                this.logger.info('Page saved', {
                     newVersionId: result.versionId,
                     articleId: result.articleId,
                 });
-                this.notificationService.success(session.mode === 'create' ? 'Статья создана' : 'Статья сохранена');
+                const labels = LABELS[session.kind];
+                this.notificationService.success(session.mode === 'create' ? labels.created : labels.saved);
                 void this.draftEditorService.discardDraft(this.getDraftRoute());
                 this.clearEditingMark();
-                void this.router.navigate(['/articles', result.articleId]);
+                void this.router.navigateByUrl(pageUrl(session.kind, result.articleId));
             },
             error: (err: HttpErrorResponse) => {
                 this._isSaving.set(false);
-                this.logger.error('Failed to save article', err);
+                this.logger.error('Failed to save page', err);
 
                 if (this.handleDuplicateTitle(err)) {
                     return;
@@ -359,10 +357,6 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
 
         const draftRoute = this.getDraftRoute();
-        const navigateTo =
-            session.mode === 'create'
-                ? ['/articles', 'find', session.title]
-                : ['/articles', session.articleId, 'version', session.versionId];
 
         try {
             // The draft is written 3 s after typing stops, so fresh edits may not be stored yet.
@@ -374,7 +368,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                 // Discard pending input so ngOnDestroy.flush() won't persist it
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();
-                void this.router.navigate(navigateTo);
+                this.leave(session);
                 return;
             }
 
@@ -393,7 +387,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             if (result === 'confirm') {
                 await this.draftEditorService.discardDraft(draftRoute);
                 this.clearEditingMark();
-                void this.router.navigate(navigateTo);
+                this.leave(session);
             }
         } catch (error) {
             this.logger.error('Failed to confirm discard', error);
@@ -406,7 +400,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         this.modalService
             .open<undefined, string>(
                 () =>
-                    import('../../../../features/picture/pages/picture-page/picture-page.component').then(
+                    import('../../../features/picture/pages/picture-page/picture-page.component').then(
                         m => m.PicturePageComponent,
                     ),
                 {
@@ -431,7 +425,16 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         }
         return session.mode === 'create'
             ? `/articles/find/${session.title}/edit`
-            : `/articles/${session.articleId}/version/${session.versionId}/edit`;
+            : `${versionUrl(session.kind, session.articleId, session.versionId)}/edit`;
+    }
+
+    /** Back to what was being edited: the version, or the placeholder of the page not created yet. */
+    private leave(session: PageEditSession): void {
+        if (session.mode === 'create') {
+            void this.router.navigate(['/articles', 'find', session.title]);
+            return;
+        }
+        void this.router.navigateByUrl(versionUrl(session.kind, session.articleId, session.versionId));
     }
 
     private async showRestoreDraftDialog(title: string, time: number, text: string, draftRoute: string): Promise<void> {
@@ -439,7 +442,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         const result = await firstValueFrom(
             this.confirmationService.open({
                 title: 'Найден черновик',
-                message: `Черновик статьи «${title}» сохранён ${savedAt}. Восстановить?`,
+                message: `Черновик ${LABELS[this._kind()].of} «${title}» сохранён ${savedAt}. Восстановить?`,
                 buttons: [
                     { key: 'discard', label: 'Удалить черновик' },
                     { key: 'restore', label: 'Восстановить', accent: 'primary' },
@@ -464,7 +467,11 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
         return `${dateStr}, ${timeStr}`;
     }
 
-    private checkInworkAndMark(session: ArticleEditSession): void {
+    private checkInworkAndMark(session: PageEditSession): void {
+        // The backend keeps editing marks for articles only.
+        if (session.kind !== 'articles') {
+            return;
+        }
         // In create mode versionId is 0, and that is intentional: the inwork mark
         // is keyed by title (not versionId), the backend defaults versionId to 0,
         // and locking the title during creation is what warns a second author of a
@@ -482,7 +489,7 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
             .subscribe();
     }
 
-    private confirmInworkEditing(editor: string, session: ArticleEditSession): Observable<boolean> {
+    private confirmInworkEditing(editor: string, session: PageEditSession): Observable<boolean> {
         return this.confirmationService
             .open({
                 title: 'Статья редактируется',
@@ -501,18 +508,18 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
                         return true;
                     }
                     this.editingCleared = true;
-                    void this.router.navigate(
-                        session.mode === 'create'
-                            ? ['/articles', 'find', session.title]
-                            : ['/articles', session.articleId],
-                    );
+                    if (session.mode === 'create') {
+                        void this.router.navigate(['/articles', 'find', session.title]);
+                    } else {
+                        void this.router.navigateByUrl(pageUrl(session.kind, session.articleId));
+                    }
                     return false;
                 }),
             );
     }
 
     private clearEditingMark(): void {
-        if (this.editingCleared || !this.session) {
+        if (this.editingCleared || this.session?.kind !== 'articles') {
             return;
         }
         this.editingCleared = true;

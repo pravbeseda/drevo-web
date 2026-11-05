@@ -1,6 +1,9 @@
 import { forumTopicRoutes } from './forum-topic.routes';
+import { LinksService } from '../../services/links/links.service';
 import { readRouteParam } from '../helpers/route-params';
+import { pageEditSessionResolver } from '../resolvers/page-edit-session.resolver';
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
+import { PageKind } from '@drevo-web/shared';
 
 /**
  * Predicate for the `:id` route of an article or a news item's `runGuardsAndResolvers`.
@@ -28,13 +31,14 @@ export function shouldRerunPageResolver(from: ActivatedRouteSnapshot, to: Activa
 
 /**
  * The tabs an article and a news item share under their `:id` route: one
- * version, the versions and the discussions. Each reads its page from
- * `PageContext`, which the page route provides.
+ * version and its editor, the versions and the discussions. Each reads its
+ * page from `PageContext`, which the page route provides; the editor reads
+ * the session its resolver opens for the kind.
  *
  * A fresh config per caller: the router writes its own bookkeeping onto a
  * route object, so two parents must not share one.
  */
-export function pageTabRoutes(): Route[] {
+export function pageTabRoutes(kind: PageKind): Route[] {
     return [
         {
             path: 'version/:versionId',
@@ -42,6 +46,13 @@ export function pageTabRoutes(): Route[] {
                 import('../components/page-version-tab/page-version-tab.component').then(
                     m => m.PageVersionTabComponent,
                 ),
+        },
+        {
+            path: 'version/:versionId/edit',
+            loadComponent: () => import('../components/page-edit/page-edit.component').then(m => m.PageEditComponent),
+            resolve: { session: pageEditSessionResolver(kind) },
+            providers: [LinksService],
+            data: { titleSource: 'session', titlePrefix: '*' },
         },
         {
             path: 'history',

@@ -1,6 +1,6 @@
 import { ArticleService } from '../../../services/articles';
 import { readRouteParam } from '../../../shared/helpers/route-params';
-import { ArticleEditSession } from '../models/article-edit-session';
+import { PageEditSession } from '../../../shared/models/page-edit-session';
 import { MISSING_ARTICLE_ID } from '../models/missing-article';
 import { ArticlePageService } from '../services/article-page.service';
 import { inject } from '@angular/core';
@@ -39,7 +39,7 @@ export function resolveNewArticle(
     logger: Logger,
     pageService: ArticlePageService,
     route: ActivatedRouteSnapshot,
-): Observable<ArticleEditSession | RedirectCommand> {
+): Observable<PageEditSession | RedirectCommand> {
     // `:title` lives on the parent route, and this child inherits it — the
     // router's `paramsInheritanceStrategy` defaults to `always`. Reading it off
     // the parent instead would defeat the matrix-param check: the parent's path
@@ -74,7 +74,7 @@ export function resolveNewArticle(
                 });
                 return placeholderRedirect();
             }
-            return { mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
+            return { kind: 'articles', mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
         }),
         catchError((error: unknown) => {
             // Re-check failed (network/contract) — log it (repo convention: no
@@ -91,7 +91,7 @@ export function resolveNewArticle(
     );
 }
 
-export const newArticleResolver: ResolveFn<ArticleEditSession | RedirectCommand> = route =>
+export const newArticleResolver: ResolveFn<PageEditSession | RedirectCommand> = route =>
     resolveNewArticle(
         inject(ArticleService),
         inject(Router),

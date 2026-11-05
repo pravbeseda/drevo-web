@@ -85,9 +85,10 @@
             icon="visibility"
         >
             <ng-template>
-                <app-preview
+                <app-page-preview
                     [content]="editorContent()"
                     [articleId]="articleId()"
+                    [kind]="kind()"
                 />
             </ng-template>
         </ui-workspace-tab>

@@ -1,9 +1,10 @@
 @use 'index' as *;
 
-// A tab that scrolls inside itself — the versions' virtual scroller, the
+// A tab that scrolls inside itself — the versions' virtual scroller, the editor, the
 // discussion's two panes — needs `:host` and `.news` locked to the height it
 // fills; the other tabs keep normal flow and `.main` scrolls them.
 :host:has(app-page-versions),
+:host:has(app-page-edit),
 :host:has(app-page-forum-tab) {
     height: 100%;
     overflow: hidden;

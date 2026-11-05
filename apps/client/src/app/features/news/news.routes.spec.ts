@@ -1,5 +1,6 @@
 import { NEWS_ROUTES } from './news.routes';
 import { NewsPageService } from './services/news-page.service';
+import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
 import { PageContext } from '../../shared/services/page-context/page-context';
 import { shouldRerunPageResolver } from '../../shared/routes/page.routes';
 import { Route } from '@angular/router';
@@ -27,14 +28,24 @@ describe('NEWS_ROUTES', () => {
         expect(page?.data).toEqual({ titleSource: 'news' });
         expect(page?.resolve?.['news']).toBeDefined();
         expect(page?.runGuardsAndResolvers).toBe(shouldRerunPageResolver);
-        expect(page?.providers).toEqual([NewsPageService, { provide: PageContext, useExisting: NewsPageService }]);
+        expect(page?.providers).toEqual([
+            NewsPageService,
+            { provide: PageContext, useExisting: NewsPageService },
+            DraftEditorService,
+        ]);
         expect(await page?.loadComponent?.()).toBeDefined();
     });
 
     it('shows the news item, one version, the versions and the discussions', async () => {
         const tabs = child(':id')?.children ?? [];
 
-        expect(tabs.map(route => route.path)).toEqual(['', 'version/:versionId', 'history', 'forum']);
+        expect(tabs.map(route => route.path)).toEqual([
+            '',
+            'version/:versionId',
+            'version/:versionId/edit',
+            'history',
+            'forum',
+        ]);
         expect(await tabs[0].loadComponent?.()).toBeDefined();
     });
 });

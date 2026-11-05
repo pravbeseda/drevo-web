@@ -54,6 +54,7 @@ describe('resolveNewArticle', () => {
 
         resolve({ title: 'НОВАЯ СТАТЬЯ' }).subscribe(result => {
             expect(result).toEqual({
+                kind: 'articles',
                 mode: 'create',
                 articleId: 0,
                 versionId: 0,

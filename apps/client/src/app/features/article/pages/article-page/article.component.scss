@@ -5,7 +5,7 @@
 // can fill the remaining space via flex.
 // Other tabs keep normal flow — `.main` scrolls their content as before.
 :host:has(app-page-versions),
-:host:has(app-article-edit),
+:host:has(app-page-edit),
 :host:has(app-page-forum-tab),
 :host:has(app-article-linkedhere-tab) {
     height: 100%;

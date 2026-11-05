@@ -2,6 +2,7 @@ import { newsTopicsResolver } from './resolvers/news-topics.resolver';
 import { NewsPageService } from './services/news-page.service';
 import { pageResolver } from '../../shared/resolvers/page.resolver';
 import { pageTabRoutes, shouldRerunPageResolver } from '../../shared/routes/page.routes';
+import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
 import { PageContext } from '../../shared/services/page-context/page-context';
 import { Route } from '@angular/router';
 
@@ -20,7 +21,11 @@ export const NEWS_ROUTES: Route[] = [
             {
                 path: ':id',
                 loadComponent: () => import('./pages/news-page/news.component').then(m => m.NewsComponent),
-                providers: [NewsPageService, { provide: PageContext, useExisting: NewsPageService }],
+                providers: [
+                    NewsPageService,
+                    { provide: PageContext, useExisting: NewsPageService },
+                    DraftEditorService,
+                ],
                 // The key must be `news` — PageTitleStrategy reads data[titleSource].
                 resolve: { news: pageResolver('news') },
                 runGuardsAndResolvers: shouldRerunPageResolver,
@@ -34,7 +39,7 @@ export const NEWS_ROUTES: Route[] = [
                                 m => m.NewsContentTabComponent,
                             ),
                     },
-                    ...pageTabRoutes(),
+                    ...pageTabRoutes('news'),
                 ],
             },
         ],
