@@ -1,4 +1,5 @@
 import { ForumService } from '../../../services/forum/forum.service';
+import { forumSectionOf } from '../../helpers/forum-owner';
 import { pageUrl } from '../../helpers/page-kind';
 import { PageContext } from '../../services/page-context/page-context';
 import { TopicListPagesService, TopicPageFetch } from '../../services/topic-list-pages/topic-list-pages.service';
@@ -12,12 +13,6 @@ import { ForumTopicListResponse, PageKind } from '@drevo-web/shared';
 import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { Observable, of } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
-
-/** The forum section that holds the discussions of each page kind. */
-const FORUM_SECTION: Readonly<Record<PageKind, string>> = {
-    articles: 'articles',
-    news: 'news',
-};
 
 /** How the log names the page. */
 const LOG_NAME: Readonly<Record<PageKind, string>> = {
@@ -50,7 +45,7 @@ export class PageForumTabComponent {
     private readonly forumService = inject(ForumService);
     private readonly page = inject(PageContext);
     private readonly logger = inject(LoggerService).withContext('PageForumTab');
-    private readonly section = FORUM_SECTION[this.page.kind];
+    private readonly section = forumSectionOf(this.page.kind);
 
     readonly emptyMessage = EMPTY_MESSAGE[this.page.kind];
     protected readonly pages = inject(TopicListPagesService);

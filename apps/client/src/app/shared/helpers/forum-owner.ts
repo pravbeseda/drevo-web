@@ -1,6 +1,7 @@
 import { PageKind } from '@drevo-web/shared';
 
 const NEWS_SECTION_ID = 'news';
+const ARTICLES_SECTION_ID = 'articles';
 
 /** How a topic names the page it hangs off: a news item is told from an article by its section id. */
 export function forumOwnerPrefix(sectionId: string | undefined): string {
@@ -10,4 +11,9 @@ export function forumOwnerPrefix(sectionId: string | undefined): string {
 /** The kind of page a topic hangs off, told by its section id the same way. */
 export function forumOwnerKind(sectionId: string | undefined): PageKind {
     return sectionId === NEWS_SECTION_ID ? 'news' : 'articles';
+}
+
+/** The forum section that holds the discussions of a page kind; the inverse of `forumOwnerKind`. */
+export function forumSectionOf(kind: PageKind): string {
+    return kind === 'news' ? NEWS_SECTION_ID : ARTICLES_SECTION_ID;
 }
