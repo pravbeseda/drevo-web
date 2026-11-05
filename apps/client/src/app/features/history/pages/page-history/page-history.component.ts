@@ -5,7 +5,8 @@ import {
 import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
 import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
 import { FilterEntry } from '../../../../shared/models/filter.model';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
+import { PageKind } from '@drevo-web/shared';
 
 const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
     { key: 'all', label: 'Все' },
@@ -13,15 +14,18 @@ const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
 ];
 
 @Component({
-    selector: 'app-articles-history',
+    selector: 'app-page-history',
     imports: [ArticleHistoryListComponent, FiltersSidePanelComponent],
-    templateUrl: './articles-history.component.html',
-    styleUrl: './articles-history.component.scss',
+    templateUrl: './page-history.component.html',
+    styleUrl: './page-history.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [ArticleHistoryService],
 })
-export class ArticlesHistoryComponent implements OnInit {
+export class PageHistoryComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
+
+    /** Whose versions the tab lists, from the route's data. */
+    readonly kind = input.required<PageKind>();
 
     readonly activeFilter = this.service.activeFilter;
     readonly hideCancelled = this.service.hideCancelled;
@@ -34,7 +38,7 @@ export class ArticlesHistoryComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        this.service.init();
+        this.service.init({ kind: this.kind() });
     }
 
     onFilterChange(filter: HistoryFilter): void {

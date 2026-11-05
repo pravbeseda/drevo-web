@@ -167,9 +167,12 @@ describe('ArticleHistoryService', () => {
         it('should load history on init', () => {
             articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.init();
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                },
+                'articles',
+            );
         });
 
         it('should set isLoading while loading', () => {
@@ -204,10 +207,13 @@ describe('ArticleHistoryService', () => {
             const articleId = signal<number | undefined>(100);
             spectator.service.init({ articleId });
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                articleId: 100,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    articleId: 100,
+                },
+                'articles',
+            );
         });
 
         it('should not load when articleId is undefined', () => {
@@ -216,6 +222,37 @@ describe('ArticleHistoryService', () => {
 
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
             expect(spectator.service.isLoading()).toBe(false);
+        });
+    });
+
+    describe('init() for news', () => {
+        beforeEach(() => {
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse([createMockHistoryItem()], 1)));
+        });
+
+        it('should load the news history', () => {
+            spectator.service.init({ kind: 'news' });
+
+            expect(spectator.service.kind()).toBe('news');
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({ page: 1 }, 'news');
+        });
+
+        it('should not list the articles in work, which are articles only', () => {
+            spectator.service.init({ kind: 'news' });
+
+            expect(inworkService.getInworkList).not.toHaveBeenCalled();
+        });
+
+        it('should read the review summaries of news versions', () => {
+            spectator.service.init({ kind: 'news' });
+
+            expect(reviewService.getSummary).toHaveBeenCalledWith('news', [1]);
+        });
+
+        it('should default to articles', () => {
+            spectator.service.init();
+
+            expect(spectator.service.kind()).toBe('articles');
         });
     });
 
@@ -385,10 +422,13 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onFilterChange('unchecked');
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                approved: 0,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    approved: 0,
+                },
+                'articles',
+            );
         });
 
         it('should reload with author when "my" filter selected', () => {
@@ -397,10 +437,13 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onFilterChange('my');
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                author: 'testuser',
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    author: 'testuser',
+                },
+                'articles',
+            );
         });
 
         it('should not reload when selecting same filter', () => {
@@ -458,9 +501,12 @@ describe('ArticleHistoryService', () => {
 
                 spectator.service.onFilterChange(filter);
 
-                expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                    page: 1,
-                });
+                expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                    {
+                        page: 1,
+                    },
+                    'articles',
+                );
             },
         );
 
@@ -501,11 +547,14 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onFilterChange('unchecked');
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                articleId: 100,
-                approved: 0,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    articleId: 100,
+                    approved: 0,
+                },
+                'articles',
+            );
         });
 
         it('should not load inwork list in article-scoped mode', () => {
@@ -613,7 +662,10 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.applyModeration(approval);
 
-            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith({ articleId: 100, pageSize: 100 });
+            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith(
+                { articleId: 100, pageSize: 100 },
+                'articles',
+            );
             expect(versionsOf()).toEqual([
                 expectObjectLike<ArticleHistoryItem>({
                     versionId: 2,
@@ -653,9 +705,12 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onLoadMore();
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 2,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 2,
+                },
+                'articles',
+            );
         });
 
         it('should load more with articleId', () => {
@@ -673,10 +728,13 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onLoadMore();
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 2,
-                articleId: 100,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 2,
+                    articleId: 100,
+                },
+                'articles',
+            );
         });
 
         it('should keep existing items when loadMore fails', () => {
@@ -795,10 +853,13 @@ describe('ArticleHistoryService', () => {
 
             expect(storageService.get).toHaveBeenCalledWith('history.hideCancelled');
             expect(spectator.service.hideCancelled()).toBe(true);
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                excludeCancelled: true,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    excludeCancelled: true,
+                },
+                'articles',
+            );
         });
 
         it('should reload with excludeCancelled when toggled on', () => {
@@ -810,10 +871,13 @@ describe('ArticleHistoryService', () => {
 
             expect(spectator.service.hideCancelled()).toBe(true);
             expect(storageService.set).toHaveBeenCalledWith('history.hideCancelled', true);
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                excludeCancelled: true,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    excludeCancelled: true,
+                },
+                'articles',
+            );
         });
 
         it('should reload without excludeCancelled when toggled off', () => {
@@ -826,9 +890,12 @@ describe('ArticleHistoryService', () => {
 
             expect(spectator.service.hideCancelled()).toBe(false);
             expect(storageService.set).toHaveBeenCalledWith('history.hideCancelled', false);
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                },
+                'articles',
+            );
         });
 
         it('should reset items and page when toggling', () => {
@@ -840,10 +907,13 @@ describe('ArticleHistoryService', () => {
             articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
             spectator.service.onHideCancelledChange(true);
 
-            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith({
-                page: 1,
-                excludeCancelled: true,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenLastCalledWith(
+                {
+                    page: 1,
+                    excludeCancelled: true,
+                },
+                'articles',
+            );
         });
 
         it('should combine excludeCancelled with active filter', () => {
@@ -857,11 +927,14 @@ describe('ArticleHistoryService', () => {
 
             spectator.service.onFilterChange('unchecked');
 
-            expect(articleService.getArticlesHistory).toHaveBeenCalledWith({
-                page: 1,
-                approved: 0,
-                excludeCancelled: true,
-            });
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                {
+                    page: 1,
+                    approved: 0,
+                    excludeCancelled: true,
+                },
+                'articles',
+            );
         });
     });
 

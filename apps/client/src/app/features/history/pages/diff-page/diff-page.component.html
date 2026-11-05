@@ -1,4 +1,4 @@
-@if (data.versionPairs(); as pairs) {
+@if (isModerationOffered() && data.versionPairs(); as pairs) {
     <app-moderation-sidebar-action
         [version]="pairs.current"
         [priority]="moderationPriority()"
@@ -28,9 +28,15 @@
         data-testid="diff-meta"
     >
         <span class="diff-page-meta-versions">
-            <app-version-label [version]="pairs.previous" />
+            <app-version-label
+                [version]="pairs.previous"
+                [kind]="kind()"
+            />
             <span class="version-arrow">&rarr;</span>
-            <app-version-label [version]="pairs.current" />
+            <app-version-label
+                [version]="pairs.current"
+                [kind]="kind()"
+            />
         </span>
         @if (pairs.current.info) {
             <span class="diff-page-meta-comment">
@@ -42,6 +48,7 @@
     <div class="diff-page-body">
         <app-review-block
             class="px-md"
+            [type]="reviewTarget()"
             [versionId]="pairs.current.versionId"
             [author]="pairs.current.author"
             [approved]="pairs.current.approved"

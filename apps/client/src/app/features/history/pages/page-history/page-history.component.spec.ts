@@ -1,10 +1,10 @@
 import { ArticleHistoryService } from '../../../../services/articles/article-history/article-history.service';
-import { ArticlesHistoryComponent } from './articles-history.component';
+import { PageHistoryComponent } from './page-history.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 
-describe('ArticlesHistoryComponent', () => {
-    let spectator: Spectator<ArticlesHistoryComponent>;
+describe('PageHistoryComponent', () => {
+    let spectator: Spectator<PageHistoryComponent>;
 
     const mockService = {
         init: jest.fn(),
@@ -23,7 +23,7 @@ describe('ArticlesHistoryComponent', () => {
     };
 
     const createComponent = createComponentFactory({
-        component: ArticlesHistoryComponent,
+        component: PageHistoryComponent,
         componentProviders: [
             {
                 provide: ArticleHistoryService,
@@ -35,7 +35,7 @@ describe('ArticlesHistoryComponent', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        spectator = createComponent();
+        spectator = createComponent({ props: { kind: 'articles' } });
     });
 
     it('should create', () => {
@@ -43,9 +43,15 @@ describe('ArticlesHistoryComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should call service.init() with no args on ngOnInit', () => {
+    it('should list the versions of the kind the route names', () => {
         spectator.detectChanges();
-        expect(mockService.init).toHaveBeenCalledWith();
+        expect(mockService.init).toHaveBeenCalledWith({ kind: 'articles' });
+    });
+
+    it('should list news versions on the news tab', () => {
+        spectator = createComponent({ props: { kind: 'news' } });
+        spectator.detectChanges();
+        expect(mockService.init).toHaveBeenLastCalledWith({ kind: 'news' });
     });
 
     it('should render article-history-list', () => {

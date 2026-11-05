@@ -12,6 +12,8 @@ import {
     formatDateHeader,
     InworkItem,
     ModerationResult,
+    PageKind,
+    REVIEW_TARGET,
     ReviewSummary,
 } from '@drevo-web/shared';
 import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
@@ -66,6 +68,8 @@ const ARTICLE_REFRESH_PAGE_SIZE = 100;
 
 export interface ArticleHistoryConfig {
     readonly articleId?: Signal<number | undefined>;
+    /** Whose versions to list; articles by default. */
+    readonly kind?: PageKind;
 }
 
 @Injectable()
@@ -92,6 +96,7 @@ export class ArticleHistoryService {
     private readonly _reviewSummaries = signal<ReadonlyMap<number, ReviewSummary>>(new Map());
     private readonly _loadSummariesSubject = new Subject<readonly number[]>();
     private readonly _resetSummariesSubject = new Subject<void>();
+    private readonly _kind = signal<PageKind>('articles');
 
     private articleId?: Signal<number | undefined>;
 
@@ -101,6 +106,7 @@ export class ArticleHistoryService {
     readonly hideCancelled = this._hideCancelled.asReadonly();
     readonly hasError = this._hasError.asReadonly();
     readonly reviewSummaries = this._reviewSummaries.asReadonly();
+    readonly kind = this._kind.asReadonly();
 
     private readonly currentUser = toSignal(this.authService.user$);
 
@@ -155,7 +161,7 @@ export class ArticleHistoryService {
                 switchMap(() =>
                     this._loadSummariesSubject.pipe(
                         mergeMap(versionIds =>
-                            this.reviewService.getSummary('article', versionIds).pipe(
+                            this.reviewService.getSummary(REVIEW_TARGET[this._kind()], versionIds).pipe(
                                 catchError((error: unknown) => {
                                     this.logger.info('Review summaries unavailable, skipping badges', { error });
                                     return of([] as readonly ReviewSummary[]);
@@ -171,6 +177,7 @@ export class ArticleHistoryService {
 
     init(config?: ArticleHistoryConfig): void {
         this.articleId = config?.articleId;
+        this._kind.set(config?.kind ?? 'articles');
         this._hideCancelled.set(this.storageService.get<boolean>(HIDE_CANCELLED_STORAGE_KEY) ?? false);
         this.loadInworkIfNeeded();
         this.loadHistory();
@@ -231,7 +238,7 @@ export class ArticleHistoryService {
     /** Approving a version approves the article's earlier pending ones on the backend too, so re-read them. */
     private refreshArticle(articleId: number): void {
         this.articleService
-            .getArticlesHistory({ articleId, pageSize: ARTICLE_REFRESH_PAGE_SIZE })
+            .getArticlesHistory({ articleId, pageSize: ARTICLE_REFRESH_PAGE_SIZE }, this._kind())
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: response => this.patchItems(response.items),
@@ -271,7 +278,8 @@ export class ArticleHistoryService {
     }
 
     private loadInworkIfNeeded(): void {
-        if (this.articleId || this._activeFilter() !== 'all') {
+        // The editing marks are kept for articles only.
+        if (this.articleId || this._kind() !== 'articles' || this._activeFilter() !== 'all') {
             this._inworkItems.set([]);
             return;
         }
@@ -299,7 +307,7 @@ export class ArticleHistoryService {
         }
 
         this.articleService
-            .getArticlesHistory(params)
+            .getArticlesHistory(params, this._kind())
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: response => {

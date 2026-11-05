@@ -14,6 +14,7 @@ import {
     ArticleHistoryItem,
     InworkItem,
     ModerationResult,
+    PageKind,
     ReviewSummary,
     User,
 } from '@drevo-web/shared';
@@ -60,6 +61,7 @@ interface MockArticleHistoryService {
     readonly displayTotalItems: WritableSignal<number>;
     readonly inworkVersionIds: WritableSignal<ReadonlySet<number>>;
     readonly reviewSummaries: WritableSignal<ReadonlyMap<number, ReviewSummary>>;
+    readonly kind: WritableSignal<PageKind>;
     readonly onFilterChange: jest.Mock;
     readonly onLoadMore: jest.Mock;
     readonly onCancelInwork: jest.Mock;
@@ -78,6 +80,7 @@ function createMockService(): MockArticleHistoryService {
         displayTotalItems: signal(0),
         inworkVersionIds: signal<ReadonlySet<number>>(new Set()),
         reviewSummaries: signal<ReadonlyMap<number, ReviewSummary>>(new Map()),
+        kind: signal<PageKind>('articles'),
         onFilterChange: jest.fn(),
         onLoadMore: jest.fn(),
         onCancelInwork: jest.fn(),
@@ -200,6 +203,14 @@ describe('ArticleHistoryListComponent', () => {
             spectator.detectChanges();
 
             expect(spectator.component.canModerate()).toBe(true);
+        });
+
+        it('should not offer moderation of news versions yet', () => {
+            mockService.kind.set('news');
+            userSubject.next(createMockUser({ role: 'moder', permissions: { canModerate: true } }));
+            spectator.detectChanges();
+
+            expect(spectator.component.canModerate()).toBe(false);
         });
 
         it('should not let a regular user or a guest moderate', () => {

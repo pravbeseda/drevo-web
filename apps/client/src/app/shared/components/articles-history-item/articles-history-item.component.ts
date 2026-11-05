@@ -1,8 +1,9 @@
 import { isOpenToModeration } from '../../helpers/moderation';
+import { diffUrl, versionUrl } from '../../helpers/page-kind';
 import { ReviewBadgeComponent } from '../review-badge/review-badge.component';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ApprovalStatus, ArticleHistoryItem, ReviewSummary } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, PageKind, ReviewSummary } from '@drevo-web/shared';
 import { ButtonComponent } from '@drevo-web/ui/button';
 import { FormatTimePipe } from '@drevo-web/ui/format-time';
 import { IconComponent } from '@drevo-web/ui/icon';
@@ -26,6 +27,7 @@ import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 })
 export class ArticlesHistoryItemComponent {
     readonly item = input.required<ArticleHistoryItem>();
+    readonly kind = input<PageKind>('articles');
     readonly selected = input(false);
     readonly selectable = input(false);
     readonly canCompare = input(false);
@@ -48,9 +50,9 @@ export class ArticlesHistoryItemComponent {
         () => this.reviewSummary() !== undefined && this.item().approved === ApprovalStatus.Pending,
     );
 
-    readonly diffLink = computed(() => ['/history/articles/diff', this.item().versionId]);
+    readonly diffLink = computed(() => diffUrl(this.kind(), this.item().versionId));
 
-    readonly versionLink = computed(() => ['/articles', this.item().articleId, 'version', this.item().versionId]);
+    readonly versionLink = computed(() => versionUrl(this.kind(), this.item().articleId, this.item().versionId));
 
     /**
      * Where the review pill navigates: the version's diff, or — for new versions

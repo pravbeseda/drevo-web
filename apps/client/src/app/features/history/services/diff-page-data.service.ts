@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { Logger, LoggerService, readApiErrorBody } from '@drevo-web/core';
-import { ApprovalStatus, VersionPairs } from '@drevo-web/shared';
+import { ApprovalStatus, PageKind, VersionPairs } from '@drevo-web/shared';
 import { Observable, catchError, of, shareReplay, tap } from 'rxjs';
 
 @Injectable()
@@ -15,10 +15,13 @@ export class DiffPageDataService {
     private readonly _isLoading = signal(true);
     private readonly _error = signal<string | undefined>(undefined);
     private readonly _versionPairs = signal<VersionPairs | undefined>(undefined);
+    private readonly _kind = signal<PageKind>('articles');
 
     readonly isLoading = this._isLoading.asReadonly();
     readonly error = this._error.asReadonly();
     readonly versionPairs = this._versionPairs.asReadonly();
+    /** Whose versions are compared, from the route's data. */
+    readonly kind = this._kind.asReadonly();
 
     private _load$: Observable<VersionPairs | undefined> | undefined;
     private _loadedParams: string | undefined;
@@ -40,6 +43,9 @@ export class DiffPageDataService {
         const paramsKey = `${id1Param}_${id2Param ?? ''}`;
 
         if (this._load$ && this._loadedParams === paramsKey) return this._load$;
+
+        const kind: PageKind = snapshot.data['kind'] === 'news' ? 'news' : 'articles';
+        this._kind.set(kind);
 
         this._loadedParams = paramsKey;
         this._isLoading.set(true);
@@ -77,7 +83,7 @@ export class DiffPageDataService {
             older = undefined;
         }
 
-        this._load$ = this.articleService.getVersionPairs(newer, older).pipe(
+        this._load$ = this.articleService.getVersionPairs(newer, older, kind).pipe(
             tap(pairs => {
                 this._versionPairs.set(pairs);
                 this._isLoading.set(false);

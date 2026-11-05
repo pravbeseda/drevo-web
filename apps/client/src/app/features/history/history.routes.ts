@@ -1,22 +1,25 @@
 import { diffTitleResolver } from './resolvers/diff-title.resolver';
 import { DiffPageDataService } from './services/diff-page-data.service';
 import { Route } from '@angular/router';
+import { PageKind } from '@drevo-web/shared';
+
+/** The diff of one version against the one before it, and of two versions; `kind` is read from the data. */
+function diffRoutes(kind: PageKind): Route[] {
+    const route: Omit<Route, 'path'> = {
+        title: diffTitleResolver,
+        data: { titlePrefix: '#', kind },
+        providers: [DiffPageDataService],
+        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
+    };
+    return [
+        { path: `${kind}/diff/:id`, ...route },
+        { path: `${kind}/diff/:id1/:id2`, ...route },
+    ];
+}
 
 export const HISTORY_ROUTES: Route[] = [
-    {
-        path: 'articles/diff/:id',
-        title: diffTitleResolver,
-        data: { titlePrefix: '#' },
-        providers: [DiffPageDataService],
-        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
-    },
-    {
-        path: 'articles/diff/:id1/:id2',
-        title: diffTitleResolver,
-        data: { titlePrefix: '#' },
-        providers: [DiffPageDataService],
-        loadComponent: () => import('./pages/diff-page/diff-page.component').then(m => m.DiffPageComponent),
-    },
+    ...diffRoutes('articles'),
+    ...diffRoutes('news'),
     {
         path: '',
         loadComponent: () => import('./pages/history-page/history.component').then(m => m.HistoryComponent),
@@ -28,14 +31,16 @@ export const HISTORY_ROUTES: Route[] = [
             },
             {
                 path: 'articles',
+                data: { kind: 'articles' satisfies PageKind },
                 loadComponent: () =>
-                    import('./pages/articles-history/articles-history.component').then(m => m.ArticlesHistoryComponent),
+                    import('./pages/page-history/page-history.component').then(m => m.PageHistoryComponent),
             },
             {
                 path: 'news',
                 title: 'История новостей',
+                data: { kind: 'news' satisfies PageKind },
                 loadComponent: () =>
-                    import('./pages/news-history/news-history.component').then(m => m.NewsHistoryComponent),
+                    import('./pages/page-history/page-history.component').then(m => m.PageHistoryComponent),
             },
             {
                 path: 'forum',
