@@ -10,10 +10,8 @@ import { BehaviorSubject, of, throwError } from 'rxjs';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { NewsService } from '../../../../services/news/news.service';
 import { NewsTopicSidebarActionComponent } from '../../../../shared/components/news-topic-sidebar-action/news-topic-sidebar-action.component';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { NotificationService } from '@drevo-web/core';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { ModalService } from '@drevo-web/ui/modal';
 
 const news = createMockArticle({
     articleId: 7,
@@ -21,7 +19,7 @@ const news = createMockArticle({
     topics: [3],
     newsDate: new Date(2026, 10, 4),
 });
-const meta: NewsMeta = { articleId: 7, title: 'Другая', newsDate: undefined, topics: [5], rank: 6, numlist: 0 };
+const meta: NewsMeta = { articleId: 7, title: 'Другая', newsDate: undefined, topics: [5] };
 const moderator = (): User => createMockUser({ role: 'moder', permissions: { canModerate: true } });
 const topics = [{ id: 3, title: 'Церковь' }];
 
@@ -63,7 +61,6 @@ describe('NewsComponent', () => {
                 { provide: NewsPageService, useValue: pageService },
                 { provide: ActivatedRoute, useValue: { data: dataSubject.asObservable() } },
                 { provide: AuthService, useValue: { user$: user.asObservable() } },
-                mockProvider(ModalService, { open: jest.fn(() => of(meta)) }),
                 mockProvider(NewsService, { updateMeta: jest.fn(() => of(meta)) }),
                 mockProvider(NotificationService),
             ],
@@ -129,8 +126,6 @@ describe('NewsComponent', () => {
     describe("the section and the meta, a moderator's", () => {
         const sectionAction = (): NewsTopicSidebarActionComponent | null =>
             spectator.query(NewsTopicSidebarActionComponent);
-        const metaAction = (): SidebarActionComponent | undefined =>
-            spectator.queryAll(SidebarActionComponent).find(action => action.label() === 'Свойства новости');
         const at = async (url: string): Promise<void> => {
             spectator.detectChanges();
             await spectator.inject(Router).navigateByUrl(url);
@@ -141,13 +136,6 @@ describe('NewsComponent', () => {
             await at('/news/7');
 
             expect(sectionAction()).toBeNull();
-        });
-
-        it('offer no meta form: the title and the day are edited with the text', async () => {
-            user.next(moderator());
-            await at('/news/7');
-
-            expect(metaAction()).toBeUndefined();
         });
 
         it('are offered on the news item and on any of its versions', async () => {

@@ -5,7 +5,7 @@ import { LinksService } from '../../../services/links/links.service';
 import { NewsService } from '../../../services/news/news.service';
 import { PictureLightboxService } from '../../../services/pictures/picture-lightbox.service';
 import { PictureService } from '../../../services/pictures/picture.service';
-import { pageUrl, versionUrl } from '../../helpers/page-kind';
+import { pageUrl } from '../../helpers/page-kind';
 import { createPicturePreviewExtension } from '../../helpers/picture-tooltip';
 import { NewsFields } from '../../models/news-fields.model';
 import { PageEditSession } from '../../models/page-edit-session';
@@ -60,8 +60,6 @@ const LABELS: Readonly<
 };
 
 const NEW_NEWS_INFO = 'Новая новость';
-const NEWS_CREATE_ROUTE = '/news/new';
-const NEWS_EXIT_ROUTE = '/history/news';
 
 /** The wiki editor of an article or a news item: an existing version, or a page not created yet. */
 @Component({
@@ -488,7 +486,8 @@ export class PageEditComponent implements OnInit, OnDestroy {
         }
         const { title, newsDate, topic } = this._newsFields();
         if (!title.trim()) return 'Введите заголовок новости';
-        if (!newsDate) return 'Укажите дату новости';
+        // A news item is created with a day; an undated one being edited may stay so, but a day is not cleared.
+        if (!newsDate && (this._isNewsCreate() || this.initialNewsFields.newsDate)) return 'Укажите дату новости';
         if (this._isNewsCreate() && topic === undefined) return 'Выберите раздел новости';
         return undefined;
     }
@@ -552,27 +551,12 @@ export class PageEditComponent implements OnInit, OnDestroy {
     }
 
     private getDraftRoute(): string {
-        const session = this.session;
-        if (!session) {
-            return '';
-        }
-        if (session.mode === 'edit') {
-            return `${versionUrl(session.kind, session.articleId, session.versionId)}/edit`;
-        }
-        return session.kind === 'news' ? NEWS_CREATE_ROUTE : `/articles/find/${session.title}/edit`;
+        return this.session?.draftKey ?? '';
     }
 
-    /** Back to what was being edited: the version, or the placeholder of the page not created yet. */
+    /** Back to what was being edited, or to where the new page was asked for — the session's resolver knows which. */
     private leave(session: PageEditSession): void {
-        if (session.mode === 'create') {
-            if (session.kind === 'news') {
-                void this.router.navigateByUrl(NEWS_EXIT_ROUTE);
-            } else {
-                void this.router.navigate(['/articles', 'find', session.title]);
-            }
-            return;
-        }
-        void this.router.navigateByUrl(versionUrl(session.kind, session.articleId, session.versionId));
+        void this.router.navigateByUrl(session.exitUrl);
     }
 
     private async showRestoreDraftDialog(title: string, time: number, text: string, draftRoute: string): Promise<void> {
@@ -646,11 +630,9 @@ export class PageEditComponent implements OnInit, OnDestroy {
                         return true;
                     }
                     this.editingCleared = true;
-                    if (session.mode === 'create') {
-                        void this.router.navigate(['/articles', 'find', session.title]);
-                    } else {
-                        void this.router.navigateByUrl(pageUrl(session.kind, session.articleId));
-                    }
+                    void this.router.navigateByUrl(
+                        session.mode === 'create' ? session.exitUrl : pageUrl(session.kind, session.articleId),
+                    );
                     return false;
                 }),
             );

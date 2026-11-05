@@ -23,7 +23,7 @@ import { NewsPage } from '../../pages/news.page';
 const MIN_EDITOR_HEIGHT = 300;
 const NEWS_ID = 7;
 const VERSION_ID = 70;
-const NEWS = createNewsVersionDto({ versionId: VERSION_ID, title: 'Престольный праздник', rank: 4 }, NEWS_ID);
+const NEWS = createNewsVersionDto({ versionId: VERSION_ID, title: 'Престольный праздник' }, NEWS_ID);
 
 test.describe('News editing', () => {
     let news: NewsPage;

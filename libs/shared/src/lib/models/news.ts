@@ -12,14 +12,12 @@ export interface CreateNewsRequest {
     readonly info?: string;
 }
 
-/** What a moderator may change about a news item besides its text. */
+/** What a moderator changes about a news item besides its text: its title, day and section. */
 export interface NewsMetaChange {
     readonly title?: string;
     /** `YYYY-MM-DD` */
     readonly newsDate?: string;
     readonly topic?: number;
-    readonly rank?: number;
-    readonly numlist?: number;
 }
 
 export interface NewsMeta {
@@ -27,6 +25,4 @@ export interface NewsMeta {
     readonly title: string;
     readonly newsDate: Date | undefined;
     readonly topics: readonly number[];
-    readonly rank: number;
-    readonly numlist: number;
 }

@@ -26,7 +26,7 @@ function createChildRouteSnapshot(
 
 describe('resolveNewArticle', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'findArticleByTitle'>>;
-    let router: jest.Mocked<Pick<Router, 'createUrlTree'>>;
+    let router: jest.Mocked<Pick<Router, 'createUrlTree' | 'serializeUrl'>>;
     let logger: jest.Mocked<Pick<Logger, 'error'>>;
     let pageService: jest.Mocked<Pick<ArticlePageService, 'setMissing' | 'setError'>>;
 
@@ -44,7 +44,10 @@ describe('resolveNewArticle', () => {
         articleService = { findArticleByTitle: jest.fn() };
         // createUrlTree encodes segments itself, so the title is passed as a raw
         // segment rather than interpolated into a parsed URL string.
-        router = { createUrlTree: jest.fn().mockImplementation((commands: unknown[]) => ({ commands })) };
+        router = {
+            createUrlTree: jest.fn().mockImplementation((commands: unknown[]) => ({ commands })),
+            serializeUrl: jest.fn().mockImplementation((tree: { commands: string[] }) => tree.commands.join('/')),
+        };
         logger = { error: jest.fn() };
         pageService = { setMissing: jest.fn(), setError: jest.fn() };
     });
@@ -60,6 +63,8 @@ describe('resolveNewArticle', () => {
                 versionId: 0,
                 title: 'НОВАЯ СТАТЬЯ',
                 content: '',
+                exitUrl: '/articles/find/НОВАЯ СТАТЬЯ',
+                draftKey: '/articles/find/НОВАЯ СТАТЬЯ/edit',
             });
             done();
         });

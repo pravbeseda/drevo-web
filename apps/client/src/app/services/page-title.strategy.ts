@@ -75,18 +75,13 @@ export class PageTitleStrategy extends TitleStrategy {
 
     constructor() {
         super();
-        this.articleService.renamed$
-            .pipe(takeUntilDestroyed())
-            .subscribe(({ articleId, title }) => this.retitle('articles', articleId, title));
-    }
-
-    /** A page changed its title in place: the heading follows when that page is the one heading it. */
-    retitle(kind: PageKind, articleId: number, title: string): void {
-        const ctx = this._titleContext();
-        if (ctx?.kind === kind && ctx.articleId === articleId) {
-            this._titleContext.set({ ...ctx, title });
-            this.applyDocumentTitle();
-        }
+        this.articleService.renamed$.pipe(takeUntilDestroyed()).subscribe(({ articleId, title }) => {
+            const ctx = this._titleContext();
+            if (ctx?.kind === 'articles' && ctx.articleId === articleId) {
+                this._titleContext.set({ ...ctx, title });
+                this.applyDocumentTitle();
+            }
+        });
     }
 
     override updateTitle(snapshot: RouterStateSnapshot): void {

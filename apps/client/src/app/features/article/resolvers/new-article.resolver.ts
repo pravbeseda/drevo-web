@@ -74,7 +74,17 @@ export function resolveNewArticle(
                 });
                 return placeholderRedirect();
             }
-            return { kind: 'articles', mode: 'create', articleId: 0, versionId: 0, title, content: '' } as const;
+            return {
+                kind: 'articles',
+                mode: 'create',
+                articleId: 0,
+                versionId: 0,
+                title,
+                content: '',
+                exitUrl: router.serializeUrl(router.createUrlTree(['/articles', 'find', title])),
+                // The title as typed, the key drafts of a new article have always had.
+                draftKey: `/articles/find/${title}/edit`,
+            } as const;
         }),
         catchError((error: unknown) => {
             // Re-check failed (network/contract) — log it (repo convention: no

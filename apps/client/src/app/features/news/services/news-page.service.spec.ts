@@ -2,15 +2,14 @@ import { NewsPageService } from './news-page.service';
 import { createMockArticle } from '../../../shared/testing/article-testing.helper';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus } from '@drevo-web/shared';
-import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator/jest';
-import { PageTitleStrategy } from '../../../services/page-title.strategy';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 describe('NewsPageService', () => {
     let spectator: SpectatorService<NewsPageService>;
 
     const createService = createServiceFactory({
         service: NewsPageService,
-        providers: [mockLoggerProvider(), mockProvider(PageTitleStrategy)],
+        providers: [mockLoggerProvider()],
     });
 
     const topics = [
@@ -61,7 +60,7 @@ describe('NewsPageService', () => {
         );
     });
 
-    it('takes the meta a moderator changed, and retitles the page heading', () => {
+    it('takes the meta a moderator changed', () => {
         spectator.service.setNews(createMockArticle({ articleId: 7, title: 'Новость', topics: [1] }), topics);
 
         spectator.service.applyMeta({
@@ -69,8 +68,6 @@ describe('NewsPageService', () => {
             title: 'Другой заголовок',
             newsDate: new Date(2026, 10, 6),
             topics: [2],
-            rank: 6,
-            numlist: 0,
         });
 
         expect(spectator.service.article()).toEqual(
@@ -81,6 +78,5 @@ describe('NewsPageService', () => {
             }),
         );
         expect(spectator.service.sections()).toEqual([{ id: 2, title: 'Общество' }]);
-        expect(spectator.inject(PageTitleStrategy).retitle).toHaveBeenCalledWith('news', 7, 'Другой заголовок');
     });
 });

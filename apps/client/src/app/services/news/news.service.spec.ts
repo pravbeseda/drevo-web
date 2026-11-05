@@ -63,15 +63,13 @@ describe('NewsService', () => {
                 of({ articleId: 7, title: 'Новость', newsDate: '2026-11-05', topics: [3], rank: 4, numlist: 1 }),
             );
 
-            spectator.service.updateMeta(7, { rank: 4, numlist: 1 }).subscribe(result => {
-                expect(api.updateMeta).toHaveBeenCalledWith(7, { rank: 4, numlist: 1 });
+            spectator.service.updateMeta(7, { topic: 3 }).subscribe(result => {
+                expect(api.updateMeta).toHaveBeenCalledWith(7, { topic: 3 });
                 expect(result).toEqual({
                     articleId: 7,
                     title: 'Новость',
                     newsDate: new Date(2026, 10, 5),
                     topics: [3],
-                    rank: 4,
-                    numlist: 1,
                 });
                 done();
             });

@@ -43,8 +43,6 @@ export class NewsService {
                 title: response.title,
                 newsDate: response.newsDate ? parseCalendarDate(response.newsDate) : undefined,
                 topics: response.topics,
-                rank: response.rank,
-                numlist: response.numlist,
             })),
         );
     }

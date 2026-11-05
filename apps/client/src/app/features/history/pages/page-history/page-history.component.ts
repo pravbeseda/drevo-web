@@ -2,11 +2,13 @@ import {
     ArticleHistoryService,
     HistoryFilter,
 } from '../../../../services/articles/article-history/article-history.service';
+import { AuthService } from '../../../../services/auth/auth.service';
 import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
 import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { FilterEntry } from '../../../../shared/models/filter.model';
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { PageKind } from '@drevo-web/shared';
 
 const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
@@ -24,6 +26,7 @@ const BASE_FILTERS: readonly FilterEntry<HistoryFilter>[] = [
 })
 export class PageHistoryComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
+    private readonly user = toSignal(inject(AuthService).user$);
 
     /** Whose versions the tab lists, from the route's data. */
     readonly kind = input.required<PageKind>();
@@ -31,8 +34,8 @@ export class PageHistoryComponent implements OnInit {
     readonly activeFilter = this.service.activeFilter;
     readonly hideCancelled = this.service.hideCancelled;
 
-    /** A signed-in reader may add a news item; the editor lives at /news/new. */
-    readonly canAddNews = computed(() => this.kind() === 'news' && this.service.isAuthenticated());
+    /** A reader who may edit adds a news item, as /api/news/create requires; the editor lives at /news/new. */
+    readonly canAddNews = computed(() => this.kind() === 'news' && (this.user()?.permissions.canEdit ?? false));
 
     readonly filters = computed<readonly FilterEntry<HistoryFilter>[]>(() => {
         if (this.service.isAuthenticated()) {

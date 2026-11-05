@@ -803,6 +803,8 @@ describe('PageEditComponent in create mode', () => {
         versionId: 0,
         title: 'НОВАЯ СТАТЬЯ',
         content: '',
+        exitUrl: '/articles/find/%D0%9D%D0%9E%D0%92%D0%90%D0%AF%20%D0%A1%D0%A2%D0%90%D0%A2%D0%AC%D0%AF',
+        draftKey: CREATE_DRAFT_ROUTE,
     };
     const mockCreateResult: SaveArticleVersionResult = {
         articleId: 555,
@@ -943,7 +945,7 @@ describe('PageEditComponent in create mode', () => {
 
         await spectator.component.cancel();
 
-        expect(router.navigate).toHaveBeenCalledWith(['/articles', 'find', 'НОВАЯ СТАТЬЯ']);
+        expect(router.navigateByUrl).toHaveBeenCalledWith(createSession.exitUrl);
     });
 });
 
@@ -1086,6 +1088,8 @@ describe('PageEditComponent creating a news item', () => {
         versionId: 0,
         title: '',
         content: '',
+        exitUrl: '/history/news',
+        draftKey: '/news/new',
         newsTopics: topics,
     };
 
@@ -1243,7 +1247,7 @@ describe('PageEditComponent on a news version, for a moderator', () => {
             of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
         );
         newsService.updateMeta.mockReturnValue(
-            of({ articleId: 7, title: 'Другая', newsDate: new Date(2026, 10, 6), topics: [3], rank: 4, numlist: 0 }),
+            of({ articleId: 7, title: 'Другая', newsDate: new Date(2026, 10, 6), topics: [3] }),
         );
         spectator.detectChanges();
     });
@@ -1302,6 +1306,49 @@ describe('PageEditComponent on a news version, for a moderator', () => {
         spectator.component.save();
 
         expect(notificationService.info).toHaveBeenCalledWith('Введите заголовок новости');
+        expect(newsService.updateMeta).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageEditComponent on an undated news version, for a moderator', () => {
+    let spectator: Spectator<PageEditComponent>;
+    let articleService: jest.Mocked<ArticleService>;
+    let newsService: jest.Mocked<NewsService>;
+
+    const createComponent = createComponentFactory({
+        component: PageEditComponent,
+        mocks: [ArticleService, NewsService, NotificationService, Router, ConfirmationService],
+        componentProviders: [mockLinksServiceProvider, mockDraftEditorServiceProvider, mockInworkServiceProvider],
+        providers: [
+            mockLoggerProvider(),
+            createMockActivatedRoute(
+                toEditSession(
+                    createMockArticle({ articleId: 7, versionId: 70, title: 'Новость', content: 'Текст' }),
+                    'news',
+                ),
+            ),
+            moderatorAuth,
+        ],
+        detectChanges: false,
+    });
+
+    beforeEach(() => {
+        mockDraftEditorService.getDraft.mockClear().mockResolvedValue(undefined);
+        spectator = createComponent();
+        articleService = spectator.inject(ArticleService);
+        newsService = spectator.inject(NewsService);
+        articleService.saveArticleVersion.mockReturnValue(
+            of({ articleId: 7, versionId: 71, title: 'Новость', author: 'a', date: new Date(), approved: 0 }),
+        );
+        spectator.detectChanges();
+    });
+
+    it('saves a text-only edit, leaving the item undated', () => {
+        spectator.component.contentChanged('Новый текст');
+
+        spectator.component.save();
+
+        expect(articleService.saveArticleVersion).toHaveBeenCalled();
         expect(newsService.updateMeta).not.toHaveBeenCalled();
     });
 });

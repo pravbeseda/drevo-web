@@ -15,6 +15,8 @@ describe('resolveNewsCreateSession', () => {
             versionId: 0,
             title: '',
             content: '',
+            exitUrl: '/history/news',
+            draftKey: '/news/new',
             newsTopics: topics,
         });
     });

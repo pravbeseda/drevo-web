@@ -437,30 +437,6 @@ describe('PageTitleStrategy', () => {
             expect(spectator.service.pageTitle()).toBe('Новость');
         });
 
-        it('should take a new title of the news item heading the page', () => {
-            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
-            spectator.service.updateTitle(
-                makeSnapshot(makeRoute({ titleSource: 'news', news: { articleId: 7, title: 'Новость' } })),
-            );
-
-            spectator.service.retitle('news', 7, 'Новый заголовок');
-
-            expect(spectator.service.pageTitle()).toBe('Новый заголовок');
-            expect(spectator.inject(Title).setTitle).toHaveBeenLastCalledWith('Новый заголовок - Древо');
-        });
-
-        it('should leave the heading alone when another page is retitled', () => {
-            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
-            spectator.service.updateTitle(
-                makeSnapshot(makeRoute({ titleSource: 'news', news: { articleId: 7, title: 'Новость' } })),
-            );
-
-            spectator.service.retitle('articles', 7, 'Статья');
-            spectator.service.retitle('news', 8, 'Другая новость');
-
-            expect(spectator.service.pageTitle()).toBe('Новость');
-        });
-
         it('should refresh the context between an article and a news item with the same id', () => {
             jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
             spectator.service.updateTitle(

@@ -25,7 +25,7 @@ describe('NewsContentTabComponent', () => {
         { id: 9, title: 'Культура' },
     ];
     let user: BehaviorSubject<User | undefined>;
-    const meta: NewsMeta = { articleId: 7, title: 'Другая', newsDate: undefined, topics: [5], rank: 6, numlist: 0 };
+    const meta: NewsMeta = { articleId: 7, title: 'Другая', newsDate: undefined, topics: [5] };
 
     const createComponent = createComponentFactory({
         component: NewsContentTabComponent,
