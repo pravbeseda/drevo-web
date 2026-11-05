@@ -244,3 +244,66 @@ describe('DraftStorageService — SSR (server platform)', () => {
         expect(MockedDraftDatabase).not.toHaveBeenCalled();
     });
 });
+
+describe('DraftStorageService — the session ends while a draft is pending', () => {
+    let spectator: SpectatorService<DraftStorageService>;
+    let mockDb: jest.Mocked<DraftDatabase>;
+    let currentUserId: string | undefined;
+
+    const createService = createServiceFactory({
+        service: DraftStorageService,
+        providers: [mockLoggerProvider(), { provide: DRAFT_USER_ID_PROVIDER, useValue: () => currentUserId }],
+    });
+
+    const draftInput: DraftInput = { route: '/articles/edit/42', title: 'Test Article', text: 'Typed last' };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockDb = {
+            saveDraft: jest.fn().mockResolvedValue(undefined),
+            getDraft: jest.fn().mockResolvedValue(undefined),
+            deleteDraft: jest.fn().mockResolvedValue(undefined),
+        } as unknown as jest.Mocked<DraftDatabase>;
+        MockedDraftDatabase.mockImplementation(() => mockDb);
+        spectator = createService();
+        currentUserId = 'author';
+    });
+
+    it('saves the draft for the user who was signed in', async () => {
+        await spectator.service.getByRoute(draftInput.route);
+        currentUserId = undefined;
+
+        await spectator.service.save(draftInput);
+
+        expect(mockDb.saveDraft).toHaveBeenCalledWith(
+            expect.objectContaining({ userId: 'author', text: 'Typed last' }),
+        );
+    });
+
+    it('deletes the draft for the user who was signed in', async () => {
+        await spectator.service.getByRoute(draftInput.route);
+        currentUserId = undefined;
+
+        await spectator.service.deleteByRoute(draftInput.route);
+
+        expect(mockDb.deleteDraft).toHaveBeenCalledWith('author', draftInput.route);
+    });
+
+    it('saves for whoever is signed in now once another user logs in', async () => {
+        await spectator.service.getByRoute(draftInput.route);
+        currentUserId = 'next-user';
+
+        await spectator.service.save(draftInput);
+
+        expect(mockDb.saveDraft).toHaveBeenCalledWith(expect.objectContaining({ userId: 'next-user' }));
+    });
+
+    it('still refuses to read drafts once nobody is signed in', async () => {
+        await spectator.service.getByRoute(draftInput.route);
+        currentUserId = undefined;
+
+        await expect(spectator.service.getByRoute(draftInput.route)).rejects.toThrow(
+            'DraftStorageService: user is not authenticated',
+        );
+    });
+});
