@@ -951,6 +951,32 @@ describe('ArticleApiService', () => {
             req.flush(ok({ items: [], total: 0, page: 1, pageSize: 25, totalPages: 0 }));
         });
 
+        it('reads a news version for editing from /api/news/version', () => {
+            spectator.service.getArticleVersion(70, 'news').subscribe();
+
+            httpController.expectOne('/api/news/version/70').flush(ok({ versionId: 70 }));
+        });
+
+        it('saves a news version through /api/news/save', () => {
+            spectator.service.saveArticleVersion({ versionId: 70, content: 'Текст' }, 'news').subscribe();
+
+            const req = httpController.expectOne('/api/news/save');
+            expect(req.request.body).toEqual({ versionId: 70, content: 'Текст' });
+            req.flush(ok({ versionId: 71 }));
+        });
+
+        it('previews a news text through /api/news/preview', () => {
+            spectator.service.previewArticle({ content: 'Текст', articleId: 0 }, 'news').subscribe();
+
+            httpController.expectOne('/api/news/preview').flush(ok({ content: '<p>Текст</p>' }));
+        });
+
+        it('moderates a news version through /api/news/moderate', () => {
+            spectator.service.moderateVersion({ versionId: 70, approved: 1, comment: '' }, 'news').subscribe();
+
+            httpController.expectOne('/api/news/moderate').flush(ok({ versionId: 70, articleId: 7, approved: 1 }));
+        });
+
         it('reads two news versions from /api/news/versionpairs', () => {
             spectator.service.getVersionPairs(70, 69, 'news').subscribe();
 

@@ -1,7 +1,17 @@
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ApiResponse, NewsFeedResponseDto, NewsTopicDto, assertIsDefined } from '@drevo-web/shared';
+import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
+import {
+    ApiResponse,
+    CreateArticleResponseDto,
+    CreateNewsRequestDto,
+    NewsFeedResponseDto,
+    NewsMetaRequestDto,
+    NewsMetaResponseDto,
+    NewsTopicDto,
+    assertIsDefined,
+} from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -45,6 +55,41 @@ export class NewsApiService {
     getTopics(): Observable<readonly NewsTopicDto[]> {
         return this.http
             .get<ApiResponse<readonly NewsTopicDto[]>>(`${this.apiUrl}/api/news/topics`, { withCredentials: true })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Create a news item. Errors are not auto-notified — the editor explains them.
+     */
+    createNews(request: CreateNewsRequestDto): Observable<CreateArticleResponseDto> {
+        return this.http
+            .post<ApiResponse<CreateArticleResponseDto>>(`${this.apiUrl}/api/news/create`, request, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Change a news item's title, date, section, rank or mailing (moderator only).
+     * Errors are not auto-notified — the form explains them.
+     */
+    updateMeta(newsId: number, request: NewsMetaRequestDto): Observable<NewsMetaResponseDto> {
+        return this.http
+            .post<ApiResponse<NewsMetaResponseDto>>(`${this.apiUrl}/api/news/${newsId}/meta`, request, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

@@ -2,12 +2,17 @@ import { NewsApiService } from './news-api.service';
 import { NEWS_FEED_PAGE_SIZE } from './news.constants';
 import { Injectable, inject } from '@angular/core';
 import {
+    CreateNewsRequest,
     NewsFeedItem,
     NewsFeedItemDto,
     NewsFeedParams,
     NewsFeedResponse,
+    NewsMeta,
+    NewsMetaChange,
     NewsTopic,
+    SaveArticleVersionResult,
     parseCalendarDate,
+    parseDate,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -34,6 +39,32 @@ export class NewsService {
 
     getTopics(): Observable<readonly NewsTopic[]> {
         return this.newsApiService.getTopics();
+    }
+
+    createNews(request: CreateNewsRequest): Observable<SaveArticleVersionResult> {
+        return this.newsApiService.createNews(request).pipe(
+            map(response => ({
+                articleId: response.articleId,
+                versionId: response.versionId,
+                title: response.title,
+                author: response.author,
+                date: parseDate(response.date),
+                approved: response.approved,
+            })),
+        );
+    }
+
+    updateMeta(newsId: number, change: NewsMetaChange): Observable<NewsMeta> {
+        return this.newsApiService.updateMeta(newsId, change).pipe(
+            map(response => ({
+                articleId: response.articleId,
+                title: response.title,
+                newsDate: response.newsDate ? parseCalendarDate(response.newsDate) : undefined,
+                topics: response.topics,
+                rank: response.rank,
+                numlist: response.numlist,
+            })),
+        );
     }
 
     private mapFeedItem(item: NewsFeedItemDto): NewsFeedItem {
