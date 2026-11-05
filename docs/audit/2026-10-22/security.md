@@ -7,7 +7,7 @@
 - **Problem:** A user without "remember me" (the default) has a session cookie; once the PHP session expires, the next authenticated call — Save, a forum reply POST, or the cross-tab sync after another tab's 401/logout — gets a 401. `handleUnauthorized` clears the user synchronously, then navigates to `/login`. On destroy, `flush()` has already cleared `lastPendingInput`, `requireUserId` throws, the error is logged, and the text typed since the last debounced write is gone. After logging back in, the re-entry path silently restores the older draft. In the forum, `signedIn` is already false, so `write` drops the text ("Draft dropped"); a short reply typed within 3 s has no stored draft at all.
 - **Fix direction:** Tie a pending write to the user who typed it (capture the user id with the pending input), or flush pending drafts before `handleUnauthorized` clears the user. Fix it once in `DraftStorageService` so both draft services get it.
 - **If we skip it:** Whenever a session expires mid-edit, the latest typing is lost and an outdated draft comes back with no notice.
-- **Effort:** M · **Touches:** `draft-storage.service.ts`, `draft-editor.service.ts`, `forum-draft.service.ts`, possibly `auth.service.ts` · **Depends on:** — · **Status:** new (adjacent to #472) · **Verified:** confirmed
+- **Effort:** M · **Touches:** `draft-storage.service.ts`, `draft-editor.service.ts`, `forum-draft.service.ts`, possibly `auth.service.ts` · **Depends on:** — · **Status:** tracked in #506 (adjacent to #472) · **Verified:** confirmed
 
 ## SEC-2 · blocking · Text typed while a forum reply is sending is erased when the send succeeds
 
@@ -16,7 +16,7 @@
 - **Problem:** The editor stays editable while the POST is in flight (only the send bar is disabled; `lib-editor` has no readonly input). Send "A", type " P.S." before the response arrives: on success `drafts.save(topicId, '')` clears the pending edit for that topic and deletes any stored draft, and `clear()` resets the field to `''`. The reply was posted as "A", and " P.S." exists nowhere.
 - **Fix direction:** On success, clear the field and delete the draft only if the field still equals the sent text; otherwise keep what is there. Blocking edits while sending is the alternative.
 - **If we skip it:** Anything typed during the request is silently lost.
-- **Effort:** S · **Touches:** `forum-composer.component.ts` (and its template if editing is blocked) · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `forum-composer.component.ts` (and its template if editing is blocked) · **Depends on:** — · **Status:** tracked in #507 · **Verified:** confirmed
 
 ## SEC-3 · suggestion · The CSRF token received from the embedding window is stored and never used
 

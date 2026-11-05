@@ -7,7 +7,7 @@
 - **Problem:** DI interceptors chain with `reduceRight`, so the first-provided (auth) is outermost and the error notifier, provided second, sees the raw 403 before the retry. The backend regenerates the CSRF token on login (`AuthApiController.php:197`), and the cross-tab `storage` handler only re-runs `checkAuth()`, so another tab keeps the cached old token. Log in again in one tab, then act in the other: the first write gets 403, the reader sees «Доступ запрещен.», and the retry succeeds anyway. Writes that show the toast today: the wiki-links check (`links-api.service.ts:32`), `moderateVersion` (`article-api.service.ts:285`), `setReview`/`deleteReview` (`review-api.service.ts:93,112`), picture writes without a 403 skip, and login. Each interceptor's spec tests it alone, so nothing catches the interaction.
 - **Fix direction:** Make the order explicit with the error notifier outermost, so it sees only the final outcome; add a spec that runs both interceptors together. Refreshing the token in the cross-tab handler is optional on top.
 - **If we skip it:** Readers keep seeing a "forbidden" error on actions that succeeded.
-- **Effort:** S · **Touches:** `app.config.ts`, a combined interceptor spec · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `app.config.ts`, a combined interceptor spec · **Depends on:** — · **Status:** fixed in #505 · **Verified:** confirmed
 
 ## ARCH-2 · blocking · Angular Material lives in libs/core, and its toast styling is split into the app stylesheet
 
@@ -16,7 +16,7 @@
 - **Problem:** "Angular Material stays inside `libs/ui`" — this is the only Material import outside libs/ui in TypeScript. The class names are chosen in core and styled in the app's global SCSS; `toast-persistent` has no style at all. Changing the toast look or kinds means editing a non-UI library and the app stylesheet together. libs/ui already depends on libs/core, so the wrapper cannot simply move; the seam has to be inverted. (AGENTS.md's directory map also lists "notifications" under core, which points the other way — fix that line with it.)
 - **Fix direction:** Keep a notification interface/token in core; put the snackbar implementation and its styles in a `@drevo-web/ui` entry point, provided by the app.
 - **If we skip it:** The one sanctioned Material boundary stays broken in the most-used service.
-- **Effort:** M · **Touches:** `notification.service.ts`, a new `libs/ui/src/lib/notification/*`, `tsconfig.base.json`, `app.config.ts`, `styles.scss`, `AGENTS.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** M · **Touches:** `notification.service.ts`, a new `libs/ui/src/lib/notification/*`, `tsconfig.base.json`, `app.config.ts`, `styles.scss`, `AGENTS.md` · **Depends on:** — · **Status:** tracked in #514 · **Verified:** confirmed
 
 ## ARCH-3 · blocking · Page-scoped ArticleHistoryService lives among the global root services
 
@@ -25,7 +25,7 @@
 - **Problem:** `app/services/` is documented as the home of `providedIn: 'root'` services. The other two-feature page-scoped services (`DraftEditorService`, `TopicListPagesService`, `ForumTopicPageDataService`) sit in `app/shared/services/`. This one sits next to `ArticleService` and carries list-rendering helpers. Note: AGENTS.md:117 says shared services are extracted "to `app/services/`", which contradicts `docs/architecture.md`; settle the wording in the same change.
 - **Fix direction:** Move it, with its display helpers, to `app/shared/services/article-history/`.
 - **If we skip it:** The global-services layer keeps mixing root domain services with per-page view state.
-- **Effort:** S · **Touches:** `article-history.service.ts` (+spec), its three importers, `AGENTS.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `article-history.service.ts` (+spec), its three importers, `AGENTS.md` · **Depends on:** — · **Status:** tracked in #509 · **Verified:** confirmed
 
 ## ARCH-4 · blocking · Single-consumer code kept in app/shared
 
@@ -34,7 +34,7 @@
 - **Problem:** The rule says code "moves back into a feature when it is down to one consumer again". Grepped by class, selector and export across templates, routes and styles: each has exactly one feature consumer.
 - **Fix direction:** Move each into its feature's `components/`, `helpers/` or `services/`; only import paths change.
 - **If we skip it:** `shared/` stops meaning "used by two features", and readers cannot tell what is safe to change locally.
-- **Effort:** S · **Touches:** the four folders, their importers, `styles/_diff-view-overrides.scss` references · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** the four folders, their importers, `styles/_diff-view-overrides.scss` references · **Depends on:** — · **Status:** tracked in #515 · **Verified:** confirmed
 
 ## ARCH-5 · blocking · ThemeService exposes a writable global signal and reads browser globals directly
 
@@ -43,7 +43,7 @@
 - **Problem:** `readonly theme = signal<Theme>(…)` is public and writable (Angular rule 2: "Public writable signals are forbidden"). It reads `localStorage`, `window.matchMedia` and `document` as globals (rule 10) where injection fits, as its sibling `FontScaleService` shows. The `isBrowser` guards keep SSR working, but the `setItem` inside the effect has no error handling, which `StorageService.setString` already provides.
 - **Fix direction:** Private `_theme` with `asReadonly()`; inject `StorageService`, `WINDOW` and `DOCUMENT` as `FontScaleService` does.
 - **If we skip it:** Global theme state stays mutable from anywhere, and the service cannot be faked through DI.
-- **Effort:** S · **Touches:** `theme.service.ts` (+spec, `theme-toggle.component.spec.ts`) · **Depends on:** — · **Status:** new (#331 is a different theme bug) · **Verified:** confirmed
+- **Effort:** S · **Touches:** `theme.service.ts` (+spec, `theme-toggle.component.spec.ts`) · **Depends on:** — · **Status:** tracked in #516 (#331 is a different theme bug) · **Verified:** confirmed
 
 ## ARCH-6 · blocking · Public writable signals in six components
 
@@ -52,7 +52,7 @@
 - **Problem:** AGENTS.md Angular rule 2 forbids public writable signals. A tree-wide search finds exactly these 13 (plus `ThemeService.theme`, ARCH-5); the rest of the code follows `_x` / `asReadonly()`.
 - **Fix direction:** Make each private, or `protected` where only the template reads it; expose `asReadonly()` where a test or parent needs it.
 - **If we skip it:** The documented state rule stays unenforced in six components.
-- **Effort:** S · **Touches:** the six components (+specs) · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** the six components (+specs) · **Depends on:** — · **Status:** tracked in #516 · **Verified:** confirmed
 
 ## ARCH-7 · blocking · AppComponent breaks the OnPush rule and carries a dead field
 
@@ -61,7 +61,7 @@
 - **Problem:** It is the only component in `apps/` and `libs/` without `ChangeDetectionStrategy.OnPush` (Angular rule 3). Its `title = 'Древо'` is read nowhere.
 - **Fix direction:** Add OnPush and delete `title`.
 - **If we skip it:** The one exception to the rule sits at the root, where it is copied first.
-- **Effort:** S · **Touches:** `app.component.ts` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `app.component.ts` · **Depends on:** — · **Status:** tracked in #517 · **Verified:** confirmed
 
 ## ARCH-8 · suggestion · Public members only their own specs call
 

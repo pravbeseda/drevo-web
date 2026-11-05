@@ -7,7 +7,7 @@
 - **Problem:** Whichever ran last wins. Following the README order (`pnpm install`, then the script) turns off ESLint/Prettier/Stylelint on commit and commitlint, which AGENTS.md relies on; the next `pnpm install` switches back and silently drops gitleaks. This checkout is on `.husky/_`, so the "pre-commit hook scans staged files" claim is false today. `security-scanning.md:125` also lists the CI triggers as `main`/`iframe`/`feature/*`; the workflow runs on `'**'`.
 - **Fix direction:** Keep one hook system — call `gitleaks protect --staged` from `.husky/pre-commit`, or rely on the CI scan — then delete `.githooks/` and `setup-git-hooks.sh` and fix the README and `security-scanning.md`.
 - **If we skip it:** Each new clone loses either the lint and commitlint gates or the secret scan, with no message.
-- **Effort:** S · **Touches:** `.husky/pre-commit`, `.githooks/`, `scripts/setup-git-hooks.sh`, `README.md`, `docs/security-scanning.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `.husky/pre-commit`, `.githooks/`, `scripts/setup-git-hooks.sh`, `README.md`, `docs/security-scanning.md` · **Depends on:** — · **Status:** tracked in #518 · **Verified:** confirmed
 
 ## DOC-2 · blocking · `README-deployment.md` gives rollback commands for a layout that no longer exists
 
@@ -16,7 +16,7 @@
 - **Problem:** `./deploy.sh staging 20240923-0900` passes two arguments; the script accepts four (or five with `--dry-run`) and exits with its usage text. Rollback uses `~/staging-previous` / `~/production-current` and `--only drevo-staging`; `deploy.sh` writes `~/releases/<env>-{current,previous,prev-N}` and no PM2 app is named `drevo-staging` (`drevo-production` is real, but its symlink paths here are wrong). Port 4001, `NODE_ENV=staging`, `cd-staging.yml` and `cd-production.yml` do not exist.
 - **Fix direction:** Delete the file and keep one short runbook beside `SCRIPTS-GUIDE.md`, written against the real `~/releases/<env>-*` symlinks and the beta/release apps.
 - **If we skip it:** The document an operator opens during an outage gives commands that fail or touch the wrong symlinks.
-- **Effort:** M · **Touches:** `README-deployment.md`, `SCRIPTS-GUIDE.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** M · **Touches:** `README-deployment.md`, `SCRIPTS-GUIDE.md` · **Depends on:** — · **Status:** tracked in #519 · **Verified:** confirmed
 
 ## DOC-3 · blocking · The secrets-migration and server-setup guides describe environments the workflows do not use; following them breaks both deploys
 
@@ -25,7 +25,7 @@
 - **Problem:** The deploy jobs use the `beta` and `release` environments (there is no `staging`), and they read every `SSH_*`/`SENTRY_*` as a repository secret — `beta` and `release` hold only `BETA_URL`/`RELEASE_URL`. The guide's Step 5, "Delete Repository Secrets", would therefore break both deploys. `scripts/check-github-secrets.sh` does not exist; `git tag v1.0.0` does not match the release trigger `tags: ['[0-9]*']`; `server-github-setup.md` creates `STAGING_URL`/`PRODUCTION_URL` and `~/staging`/`~/production`, which nothing reads any more.
 - **Fix direction:** Rewrite the migration guide for `beta`/`release` if environment-scoped secrets are still wanted, or delete it; bring `server-github-setup.md` and the script's prompt in line with beta/release. The repository variables `STAGING_URL`/`PRODUCTION_URL` (GitHub settings) are unread.
 - **If we skip it:** A reader who finishes the migration as written takes down the beta and release deploys.
-- **Effort:** S · **Touches:** `docs/github-secrets-migration.md`, `docs/server-github-setup.md`, `scripts/generate-github-secrets.sh` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `docs/github-secrets-migration.md`, `docs/server-github-setup.md`, `scripts/generate-github-secrets.sh` · **Depends on:** — · **Status:** tracked in #519 · **Verified:** confirmed
 
 ## DOC-4 · blocking · The AGENTS.md component scaffolding command fails on Nx 23
 
@@ -34,7 +34,7 @@
 - **Problem:** `nx g @nx/angular:component my-component --project=client --changeDetection=OnPush` fails with `'project' is not found in schema` on @nx/angular 23.2.1 (re-run with `--dry-run`): the schema requires `path` and sets `additionalProperties: false`. The service line at `:59` still runs.
 - **Fix direction:** Use the path form, e.g. `nx g @nx/angular:component apps/client/src/app/.../my-component --changeDetection=OnPush`.
 - **If we skip it:** Every agent or developer who follows the canon fails on the first try.
-- **Effort:** S · **Touches:** `AGENTS.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `AGENTS.md` · **Depends on:** — · **Status:** tracked in #520 · **Verified:** confirmed
 
 ## DOC-5 · blocking · AGENTS.md says the dev proxy forwards `/pictures`; it forwards `/images`
 
@@ -43,7 +43,7 @@
 - **Problem:** `proxy.conf.json` proxies `/api` and `/images`; `/pictures` is an Angular route, so a reader who "restores" a `/pictures` proxy shadows that page in dev. Line 151 sends the reader to `proxy.conf.json` to learn whether an endpoint is still PHP, but the file forwards all of `/api` and cannot answer that.
 - **Fix direction:** Change `/pictures` to `/images`; point line 151 at `legacy-drevo-yii/protected/controllers/api/`, which `docs/legacy-yii.md` already names.
 - **If we skip it:** A wrong fact in the canon, on the topic it tells readers to check first.
-- **Effort:** S · **Touches:** `AGENTS.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `AGENTS.md` · **Depends on:** — · **Status:** tracked in #520 · **Verified:** confirmed
 
 ## DOC-6 · blocking · `auth-api.md` names the wrong production frontend origin
 
@@ -52,7 +52,7 @@
 - **Problem:** It names `https://new.drevo-info.ru`. The backend, the e2e contract tests, the iframe allowlist and the SSR `allowedHosts` all use `https://app.drevo-info.ru`; `new.` appears nowhere else. A client debugged against this doc gets `ORIGIN_NOT_ALLOWED`, and the SSR server answers 400 for that host.
 - **Fix direction:** Replace `new.drevo-info.ru` with `app.drevo-info.ru` throughout (and re-check the SameSite reasoning at `:23`, which no longer holds for the same site).
 - **If we skip it:** The security section of the auth contract is wrong about the one origin it allows.
-- **Effort:** S · **Touches:** `docs/auth-api.md` · **Depends on:** — · **Status:** new · **Verified:** confirmed
+- **Effort:** S · **Touches:** `docs/auth-api.md` · **Depends on:** — · **Status:** tracked in #520 · **Verified:** confirmed
 
 ## DOC-7 · blocking · The project `create` skill forbids writing tests first
 
@@ -61,7 +61,7 @@
 - **Problem:** It implements first, checks only `pnpm lint` and `pnpm build`, and ends with "Never write tests before user confirms the implementation works". AGENTS.md: "TDD is mandatory — always, no exceptions. Write the test first and watch it fail." An agent running `/create` follows the skill and breaks the canon.
 - **Fix direction:** Rewrite Phases 2–3 as red → green → refactor and point at the quality-gate list, or delete the skill.
 - **If we skip it:** The repository's own feature workflow tells agents to skip the rule the canon calls mandatory.
-- **Effort:** S · **Touches:** `.claude/skills/create/SKILL.md` · **Depends on:** — · **Status:** new (related to #258) · **Verified:** confirmed
+- **Effort:** S · **Touches:** `.claude/skills/create/SKILL.md` · **Depends on:** — · **Status:** tracked in #521 (related to #258) · **Verified:** confirmed
 
 ## DOC-8 · suggestion · `docs/security-audit-report.md` is a stale snapshot with false claims
 
