@@ -16,6 +16,8 @@ export interface ArticleVersion extends Article {
     readonly info: string;
     readonly comment: string;
     readonly topics: readonly number[];
+    /** News only: the day the news item is about. */
+    readonly newsDate?: Date;
 }
 
 /**

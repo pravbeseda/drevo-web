@@ -45,7 +45,7 @@ describe('ArticleService', () => {
 
             spectator.service.getArticle(123).subscribe();
 
-            expect(articleApiService.getArticle).toHaveBeenCalledWith(123);
+            expect(articleApiService.getArticle).toHaveBeenCalledWith(123, 'articles');
         });
 
         it('should map API response to frontend model', done => {
@@ -106,7 +106,7 @@ describe('ArticleService', () => {
 
             spectator.service.getVersionShow(789).subscribe();
 
-            expect(articleApiService.getVersionShow).toHaveBeenCalledWith(789);
+            expect(articleApiService.getVersionShow).toHaveBeenCalledWith(789, 'articles');
         });
 
         it('should map API response to frontend model', done => {
@@ -553,7 +553,7 @@ describe('ArticleService', () => {
 
             spectator.service.getVersionPairs(10).subscribe();
 
-            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(10, undefined);
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(10, undefined, 'articles');
         });
 
         it('should call articleApiService.getVersionPairs with both versions', () => {
@@ -561,7 +561,7 @@ describe('ArticleService', () => {
 
             spectator.service.getVersionPairs(10, 9).subscribe();
 
-            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(10, 9);
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(10, 9, 'articles');
         });
 
         it('should convert date strings to Date objects', done => {
@@ -708,7 +708,7 @@ describe('ArticleService', () => {
 
             spectator.service.getArticlesHistory({ page: 1 }).subscribe();
 
-            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith({ page: 1 });
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith({ page: 1 }, 'articles');
         });
 
         it('should pass custom params to API service', () => {
@@ -722,7 +722,7 @@ describe('ArticleService', () => {
             };
             spectator.service.getArticlesHistory(params).subscribe();
 
-            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(params);
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith(params, 'articles');
         });
 
         it('should map API response to frontend model', done => {
@@ -849,6 +849,79 @@ describe('ArticleService', () => {
                 });
                 done();
             });
+        });
+    });
+
+    describe('news pages', () => {
+        const newsDto: ArticleVersionDto = {
+            articleId: 7,
+            versionId: 70,
+            title: 'Новость',
+            content: '<p>Текст</p>',
+            author: 'Автор',
+            date: '2026-11-05T10:00:00+00:00',
+            redirect: 0,
+            approved: 1,
+            new: false,
+            info: '',
+            comment: '',
+            topics: [3],
+            newsDate: '2026-11-04',
+        };
+
+        it('reads a news item through the news endpoints', () => {
+            articleApiService.getArticle.mockReturnValue(of(newsDto));
+
+            spectator.service.getArticle(7, 'news').subscribe();
+
+            expect(articleApiService.getArticle).toHaveBeenCalledWith(7, 'news');
+        });
+
+        it('reads a news version through the news endpoints', () => {
+            articleApiService.getVersionShow.mockReturnValue(of(newsDto));
+
+            spectator.service.getVersionShow(70, 'news').subscribe();
+
+            expect(articleApiService.getVersionShow).toHaveBeenCalledWith(70, 'news');
+        });
+
+        it('maps the news date as a local calendar day', done => {
+            articleApiService.getArticle.mockReturnValue(of(newsDto));
+
+            spectator.service.getArticle(7, 'news').subscribe(result => {
+                expect(result.newsDate).toEqual(new Date(2026, 10, 4));
+                done();
+            });
+        });
+
+        it('leaves the news date out when the news item has none', done => {
+            // The backend sends `null` for a news item without a date.
+            articleApiService.getArticle.mockReturnValue(of({ ...newsDto, newsDate: null }));
+
+            spectator.service.getArticle(7, 'news').subscribe(result => {
+                expect(result.newsDate).toBeUndefined();
+                done();
+            });
+        });
+
+        it('reads the news history through the news endpoints', () => {
+            articleApiService.getArticlesHistory.mockReturnValue(
+                of({ items: [], total: 0, page: 1, pageSize: 25, totalPages: 0 }),
+            );
+
+            spectator.service.getArticlesHistory({ articleId: 7 }, 'news').subscribe();
+
+            expect(articleApiService.getArticlesHistory).toHaveBeenCalledWith({ articleId: 7 }, 'news');
+        });
+
+        it('reads two news versions through the news endpoints', () => {
+            articleApiService.getVersionPairs.mockReturnValue(
+                of({ current: {}, previous: {} } as VersionPairsResponseDto),
+            );
+
+            spectator.service.getVersionPairs(70, 69, 'news').subscribe();
+
+            expect(articleApiService.getVersionPairs).toHaveBeenCalledWith(70, 69, 'news');
         });
     });
 });
