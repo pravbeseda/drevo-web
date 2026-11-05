@@ -2,10 +2,10 @@
     @if (isLoaded()) {
         @if (pages.items().length === 0) {
             <p
-                class="article-forum__message"
+                class="page-forum__message"
                 data-testid="article-forum-empty"
             >
-                Обсуждений этой статьи пока нет.
+                {{ emptyMessage }}
             </p>
         } @else {
             <app-topic-list
@@ -19,7 +19,7 @@
         }
     } @else if (isLoadError()) {
         <p
-            class="article-forum__message"
+            class="page-forum__message"
             data-testid="article-forum-error"
         >
             Не удалось загрузить обсуждения. Попробуйте обновить страницу.

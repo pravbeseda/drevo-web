@@ -1,7 +1,7 @@
-import { AuthService } from '../../../../services/auth/auth.service';
-import { ModerationSidebarActionComponent } from '../../../../shared/components/moderation-sidebar-action/moderation-sidebar-action.component';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { VersionForModeration } from '../../../../shared/models/version-for-moderation.model';
+import { AuthService } from '../../../services/auth/auth.service';
+import { ModerationSidebarActionComponent } from '../moderation-sidebar-action/moderation-sidebar-action.component';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
+import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ArticleSidebarActionsComponent } from './article-sidebar-actions.component';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { NotificationService, SidebarService } from '@drevo-web/core';

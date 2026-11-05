@@ -1,15 +1,15 @@
-import { ArticleForumTabComponent } from './article-forum-tab.component';
-import { ForumService } from '../../../../../../services/forum/forum.service';
-import { mockForumDraftProvider } from '../../../../../../services/forum/forum-draft.testing';
-import { NEW_TOPIC_TARGET } from '../../../../../../shared/components/new-topic-page/new-topic-target';
-import { TopicListComponent } from '../../../../../../shared/components/topic-list/topic-list.component';
-import { ArticlePageService } from '../../../../services/article-page.service';
-import { createMockArticle } from '../../../../testing/article-testing.helper';
+import { PageForumTabComponent } from './page-forum-tab.component';
+import { ForumService } from '../../../services/forum/forum.service';
+import { mockForumDraftProvider } from '../../../services/forum/forum-draft.testing';
+import { PageContext } from '../../services/page-context/page-context';
+import { createMockArticle } from '../../testing/article-testing.helper';
+import { NEW_TOPIC_TARGET } from '../new-topic-page/new-topic-target';
+import { TopicListComponent } from '../topic-list/topic-list.component';
 import { computed, signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { LoggerService, SidebarService } from '@drevo-web/core';
 import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
-import { ArticleVersion, ForumTopicListItem, ForumTopicListResponse } from '@drevo-web/shared';
+import { ArticleVersion, ForumTopicListItem, ForumTopicListResponse, PageKind } from '@drevo-web/shared';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { NEVER, of, throwError } from 'rxjs';
 
@@ -39,13 +39,13 @@ function createPage(
     return { items, total: items.length, page: 1, pageSize: 20, totalPages: 1, ...overrides };
 }
 
-describe('ArticleForumTabComponent', () => {
-    let spectator: Spectator<ArticleForumTabComponent>;
+describe('PageForumTabComponent', () => {
+    let spectator: Spectator<PageForumTabComponent>;
     let forumService: { getTopics: jest.Mock };
     let article: ReturnType<typeof signal<ArticleVersion | undefined>>;
 
     const createComponent = createComponentFactory({
-        component: ArticleForumTabComponent,
+        component: PageForumTabComponent,
         providers: [provideRouter([]), mockLoggerProvider(), mockForumDraftProvider()],
     });
 
@@ -54,13 +54,14 @@ describe('ArticleForumTabComponent', () => {
         article = signal<ArticleVersion | undefined>(createMockArticle({ articleId: ARTICLE_ID }));
     });
 
-    const render = (): void => {
+    const render = (kind: PageKind = 'articles'): void => {
         spectator = createComponent({
             providers: [
                 { provide: ForumService, useValue: forumService },
                 {
-                    provide: ArticlePageService,
+                    provide: PageContext,
                     useValue: {
+                        kind,
                         article,
                         articleId: computed(() => article()?.articleId),
                         title: computed(() => article()?.title),
@@ -230,6 +231,37 @@ describe('ArticleForumTabComponent', () => {
                 partId: ARTICLE_ID,
                 ownerTitle: 'Макарий Великий',
             });
+        });
+    });
+
+    describe('on a news item', () => {
+        it('lists the discussions of the news item from the news section', () => {
+            render('news');
+
+            expect(forumService.getTopics).toHaveBeenCalledWith('news', ARTICLE_ID);
+        });
+
+        it('starts a topic on the news item, in the news section', () => {
+            article.set(createMockArticle({ articleId: ARTICLE_ID, title: 'Новость' }));
+            render('news');
+
+            expect(spectator.query('[data-testid="forum-new-topic"]')?.getAttribute('href')).toBe(
+                `/news/${ARTICLE_ID}/forum/new`,
+            );
+            expect(spectator.inject(NEW_TOPIC_TARGET, true)()).toEqual({
+                part: 'news',
+                partId: ARTICLE_ID,
+                ownerTitle: 'Новость',
+            });
+        });
+
+        it('names the news item when it has no discussions', () => {
+            forumService.getTopics.mockReturnValue(of(createPage([])));
+            render('news');
+
+            expect(spectator.query('[data-testid="article-forum-empty"]')?.textContent).toContain(
+                'Обсуждений этой новости пока нет.',
+            );
         });
     });
 });

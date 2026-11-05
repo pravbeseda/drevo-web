@@ -1,26 +1,28 @@
 import {
     ArticleHistoryService,
     HistoryFilter,
-} from '../../../../services/articles/article-history/article-history.service';
-import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
-import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
-import { FilterEntry } from '../../../../shared/models/filter.model';
-import { ArticlePageService } from '../../services/article-page.service';
+} from '../../../services/articles/article-history/article-history.service';
+import { diffUrl } from '../../helpers/page-kind';
+import { FilterEntry } from '../../models/filter.model';
+import { PageContext } from '../../services/page-context/page-context';
+import { ArticleHistoryListComponent } from '../article-history-list/article-history-list.component';
+import { FiltersSidePanelComponent } from '../filters/filters-side-panel/filters-side-panel.component';
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ArticleHistoryItem, ModerationResult } from '@drevo-web/shared';
 
 @Component({
-    selector: 'app-article-versions',
+    selector: 'app-page-versions',
     imports: [ArticleHistoryListComponent, FiltersSidePanelComponent],
-    templateUrl: './article-versions.component.html',
-    styleUrl: './article-versions.component.scss',
+    templateUrl: './page-versions.component.html',
+    styleUrl: './page-versions.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [ArticleHistoryService],
 })
-export class ArticleVersionsComponent implements OnInit {
+/** The versions tab of an article or a news item: its history, filtered, with two versions picked for a diff. */
+export class PageVersionsComponent implements OnInit {
     private readonly service = inject(ArticleHistoryService);
-    private readonly articlePageService = inject(ArticlePageService);
+    private readonly page = inject(PageContext);
     private readonly router = inject(Router);
 
     private readonly _selectedVersionIds = signal<readonly number[]>([]);
@@ -43,7 +45,7 @@ export class ArticleVersionsComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        this.service.init({ articleId: this.articlePageService.articleId });
+        this.service.init({ articleId: this.page.articleId, kind: this.page.kind });
     }
 
     onFilterChange(filter: HistoryFilter): void {
@@ -77,13 +79,13 @@ export class ArticleVersionsComponent implements OnInit {
     }
 
     onModerated({ versionId, approved, comment }: ModerationResult): void {
-        if (this.articlePageService.article()?.versionId === versionId) {
-            this.articlePageService.updateApproval(approved, comment);
+        if (this.page.article()?.versionId === versionId) {
+            this.page.updateApproval(approved, comment);
         }
     }
 
     onCompare(): void {
         const [older, newer] = [...this._selectedVersionIds()].sort((a, b) => a - b);
-        void this.router.navigate(['/history/articles/diff', older, newer]);
+        void this.router.navigateByUrl(diffUrl(this.page.kind, older, newer));
     }
 }

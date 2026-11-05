@@ -1,10 +1,10 @@
-import { ArticleHistoryService } from '../../../../services/articles/article-history/article-history.service';
-import { ArticleVersionsComponent } from './article-versions.component';
-import { ArticlePageService } from '../../services/article-page.service';
+import { ArticleHistoryService } from '../../../services/articles/article-history/article-history.service';
+import { PageContext } from '../../services/page-context/page-context';
+import { PageVersionsComponent } from './page-versions.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
-import { ApprovalStatus, ArticleHistoryItem, ModerationResult } from '@drevo-web/shared';
+import { ApprovalStatus, ArticleHistoryItem, ModerationResult, PageKind } from '@drevo-web/shared';
 
 function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
@@ -21,8 +21,9 @@ function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHis
     };
 }
 
-describe('ArticleVersionsComponent', () => {
-    let spectator: Spectator<ArticleVersionsComponent>;
+describe('PageVersionsComponent', () => {
+    let spectator: Spectator<PageVersionsComponent>;
+    let kind: PageKind;
     const articleIdSignal = signal<number | undefined>(100);
     const articleSignal = signal({ articleId: 100, versionId: 5 });
     const updateApproval = jest.fn();
@@ -44,7 +45,7 @@ describe('ArticleVersionsComponent', () => {
     };
 
     const createComponent = createComponentFactory({
-        component: ArticleVersionsComponent,
+        component: PageVersionsComponent,
         componentProviders: [
             {
                 provide: ArticleHistoryService,
@@ -54,8 +55,11 @@ describe('ArticleVersionsComponent', () => {
         providers: [
             provideRouter([]),
             {
-                provide: ArticlePageService,
+                provide: PageContext,
                 useValue: {
+                    get kind() {
+                        return kind;
+                    },
                     articleId: articleIdSignal,
                     article: articleSignal,
                     updateApproval,
@@ -67,6 +71,7 @@ describe('ArticleVersionsComponent', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        kind = 'articles';
         spectator = createComponent();
     });
 
@@ -79,7 +84,14 @@ describe('ArticleVersionsComponent', () => {
         spectator.detectChanges();
         expect(mockService.init).toHaveBeenCalledWith({
             articleId: articleIdSignal,
+            kind: 'articles',
         });
+    });
+
+    it('should list the versions of a news item', () => {
+        kind = 'news';
+        spectator.detectChanges();
+        expect(mockService.init).toHaveBeenLastCalledWith({ articleId: articleIdSignal, kind: 'news' });
     });
 
     it('should render article-history-list', () => {
@@ -145,13 +157,25 @@ describe('ArticleVersionsComponent', () => {
 
         it('should navigate to diff page on compare', () => {
             const router = spectator.inject(Router);
-            jest.spyOn(router, 'navigate').mockResolvedValue(true);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
             spectator.component.onSelectItem(createMockItem({ versionId: 30 }));
             spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
             spectator.component.onCompare();
 
-            expect(router.navigate).toHaveBeenCalledWith(['/history/articles/diff', 10, 30]);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/history/articles/diff/10/30');
+        });
+
+        it('should compare news versions on the news diff page', () => {
+            kind = 'news';
+            const router = spectator.inject(Router);
+            jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+            spectator.component.onSelectItem(createMockItem({ versionId: 30 }));
+            spectator.component.onSelectItem(createMockItem({ versionId: 10 }));
+            spectator.component.onCompare();
+
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/history/news/diff/10/30');
         });
     });
 

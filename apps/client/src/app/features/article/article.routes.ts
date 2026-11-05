@@ -1,37 +1,14 @@
 import { articleVersionResolver } from './resolvers/article-version.resolver';
-import { articleResolver } from './resolvers/article.resolver';
 import { missingArticleResolver } from './resolvers/missing-article.resolver';
 import { newArticleResolver } from './resolvers/new-article.resolver';
 import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
 import { readRouteParam } from '../../shared/helpers/route-params';
-import { forumTopicRoutes } from '../../shared/routes/forum-topic.routes';
+import { pageResolver } from '../../shared/resolvers/page.resolver';
+import { pageTabRoutes, shouldRerunPageResolver } from '../../shared/routes/page.routes';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
+import { PageContext } from '../../shared/services/page-context/page-context';
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
-
-/**
- * Predicate for the `:id` article route's `runGuardsAndResolvers`.
- *
- * Re-runs the resolver when:
- * - the article `:id` changes (default `paramsChange` behavior), or
- * - the user returns to the empty-child "article" tab from any other child
- *   route (edit, version view, history, etc.). This keeps the article content
- *   fresh after an edit and also catches changes made in another tab or by
- *   another user.
- *
- * The id is read with `readRouteParam`, not off `paramMap`: a custom predicate
- * fully replaces the default `paramsChange`, whose `equalParamsAndUrlSegments`
- * compares the segments' matrix parameters too. Comparing the merged map alone
- * would answer "unchanged" for `/articles/42` -> `/articles/43;id=42` and leave
- * article 42 on screen under an address naming 43.
- */
-export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: ActivatedRouteSnapshot): boolean {
-    if (readRouteParam(from, 'id') !== readRouteParam(to, 'id')) return true;
-
-    const fromPath = from.firstChild?.routeConfig?.path;
-    const toPath = to.firstChild?.routeConfig?.path;
-    return toPath === '' && fromPath !== '';
-}
 
 /**
  * Predicate for the `find/:title` route's `runGuardsAndResolvers`.
@@ -42,7 +19,7 @@ export function shouldRerunArticleResolver(from: ActivatedRouteSnapshot, to: Act
  *   (e.g. leaving the editor after `/edit` actually activated), so `canCreate`
  *   and the "create" button reflect current state.
  *
- * The title is read with `readRouteParam` for the same reason as above.
+ * The title is read with `readRouteParam` for the reason `shouldRerunPageResolver` gives.
  *
  * The creation-denied redirect is handled separately in `newArticleResolver`:
  * it never commits `/edit`, so that same-URL redirect isn't observable here.
@@ -121,9 +98,9 @@ export const ARTICLE_ROUTES: Route[] = [
     {
         path: ':id',
         loadComponent: () => import('./pages/article-page/article.component').then(m => m.ArticleComponent),
-        providers: [ArticlePageService, DraftEditorService],
-        resolve: { article: articleResolver },
-        runGuardsAndResolvers: shouldRerunArticleResolver,
+        providers: [ArticlePageService, { provide: PageContext, useExisting: ArticlePageService }, DraftEditorService],
+        resolve: { article: pageResolver('articles') },
+        runGuardsAndResolvers: shouldRerunPageResolver,
         data: { titleSource: 'article' },
         children: [
             {
@@ -134,13 +111,7 @@ export const ARTICLE_ROUTES: Route[] = [
                         m => m.ArticleContentTabComponent,
                     ),
             },
-            {
-                path: 'version/:versionId',
-                loadComponent: () =>
-                    import('./pages/article-page/tabs/article-version-tab/article-version-tab.component').then(
-                        m => m.ArticleVersionTabComponent,
-                    ),
-            },
+            ...pageTabRoutes(),
             {
                 path: 'version/:versionId/edit',
                 loadComponent: () =>
@@ -157,25 +128,6 @@ export const ARTICLE_ROUTES: Route[] = [
                         m => m.ArticleStubTabComponent,
                     ),
                 data: { stubTitle: 'Новости' },
-            },
-            {
-                path: 'forum',
-                title: 'Обсуждение',
-                loadComponent: () =>
-                    import('./pages/article-page/tabs/article-forum-tab/article-forum-tab.component').then(
-                        m => m.ArticleForumTabComponent,
-                    ),
-                // A topic opened from the tab stays inside the article, so it
-                // is addressed under it rather than at `/forum/topic/:id`.
-                children: forumTopicRoutes(),
-            },
-            {
-                path: 'history',
-                title: 'История версий',
-                loadComponent: () =>
-                    import('./components/article-versions/article-versions.component').then(
-                        m => m.ArticleVersionsComponent,
-                    ),
             },
             {
                 path: 'linkedhere',

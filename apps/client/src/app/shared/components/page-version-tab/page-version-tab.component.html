@@ -5,19 +5,21 @@
 } @else if (error()) {
     <p class="error-text">{{ error() }}</p>
 } @else if (version(); as version) {
-    <app-article-sidebar-actions
-        [version]="version"
-        [editUrl]="versionEditUrl()"
-        [articleId]="version.articleId"
-        [topics]="version.topics"
-        (moderated)="onModerated($event)"
-        (topicsChanged)="onTopicsChanged($event)"
-    />
+    @if (hasArticleActions) {
+        <app-article-sidebar-actions
+            [version]="version"
+            [editUrl]="versionEditUrl()"
+            [articleId]="version.articleId"
+            [topics]="version.topics"
+            (moderated)="onModerated($event)"
+            (topicsChanged)="onTopicsChanged($event)"
+        />
+    }
     <ui-banner data-testid="version-banner">
         <div class="banner-header">
             {{ version.author }}
             <ui-status-icon [status]="version.approved" />
-            <span>Версия статьи от {{ version.date | formatDate }}</span>
+            <span>{{ labels.version }} от {{ version.date | formatDate }}</span>
         </div>
         @if (version.info) {
             <div class="banner-meta">
@@ -28,11 +30,12 @@
             <div class="banner-meta">Версия отменена автором</div>
         }
         @if (articleUrl(); as url) {
-            <a [routerLink]="url">Перейти к текущей версии статьи</a>
+            <a [routerLink]="url">{{ labels.current }}</a>
         }
     </ui-banner>
 
     <app-review-block
+        [type]="reviewTarget"
         [versionId]="version.versionId"
         [author]="version.author"
         [approved]="version.approved"

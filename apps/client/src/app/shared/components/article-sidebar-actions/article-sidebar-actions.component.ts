@@ -1,7 +1,7 @@
-import { ModerationSidebarActionComponent } from '../../../../shared/components/moderation-sidebar-action/moderation-sidebar-action.component';
-import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { TopicsSidebarActionComponent } from '../../../../shared/components/topics-sidebar-action/topics-sidebar-action.component';
-import { VersionForModeration } from '../../../../shared/models/version-for-moderation.model';
+import { VersionForModeration } from '../../models/version-for-moderation.model';
+import { ModerationSidebarActionComponent } from '../moderation-sidebar-action/moderation-sidebar-action.component';
+import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
+import { TopicsSidebarActionComponent } from '../topics-sidebar-action/topics-sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NotificationService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult, SidebarActionPriority } from '@drevo-web/shared';

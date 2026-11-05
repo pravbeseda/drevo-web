@@ -1,13 +1,13 @@
-import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
-import { resolveArticle } from './article.resolver';
 import { createMockArticle } from '../testing/article-testing.helper';
+import { createRouteSnapshot } from '../testing/route-testing.helper';
+import { resolvePage } from './page.resolver';
 import { UrlSegment } from '@angular/router';
-import { ArticleService } from '../../../services/articles';
+import { ArticleService } from '../../services/articles';
 import { of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
 
-describe('resolveArticle', () => {
+describe('resolvePage', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'getArticle'>>;
 
     beforeEach(() => {
@@ -18,9 +18,9 @@ describe('resolveArticle', () => {
         articleService.getArticle.mockReturnValue(of(mockArticle));
         const route = createRouteSnapshot({ id: '123' });
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toEqual(mockArticle);
-            expect(articleService.getArticle).toHaveBeenCalledWith(123);
+            expect(articleService.getArticle).toHaveBeenCalledWith(123, 'articles');
             done();
         });
     });
@@ -28,7 +28,7 @@ describe('resolveArticle', () => {
     it('should return undefined for non-numeric ID', done => {
         const route = createRouteSnapshot({ id: 'abc' });
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticle).not.toHaveBeenCalled();
             done();
@@ -38,7 +38,7 @@ describe('resolveArticle', () => {
     it('should return undefined for zero ID', done => {
         const route = createRouteSnapshot({ id: '0' });
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticle).not.toHaveBeenCalled();
             done();
@@ -48,7 +48,7 @@ describe('resolveArticle', () => {
     it('should return undefined for negative ID', done => {
         const route = createRouteSnapshot({ id: '-5' });
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticle).not.toHaveBeenCalled();
             done();
@@ -68,7 +68,9 @@ describe('resolveArticle', () => {
         // A sentinel, so that an observable that never emitted cannot pass as undefined.
         let result: unknown = 'not resolved';
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(
+            value => (result = value),
+        );
 
         expect(result).toBeUndefined();
         expect(articleService.getArticle).not.toHaveBeenCalled();
@@ -81,7 +83,9 @@ describe('resolveArticle', () => {
         // A sentinel, so that an observable that never emitted cannot pass as undefined.
         let result: unknown = 'not resolved';
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(value => (result = value));
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(
+            value => (result = value),
+        );
 
         expect(result).toBeUndefined();
         expect(articleService.getArticle).not.toHaveBeenCalled();
@@ -90,7 +94,7 @@ describe('resolveArticle', () => {
     it('should return undefined for missing ID param', done => {
         const route = createRouteSnapshot({});
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
             expect(articleService.getArticle).not.toHaveBeenCalled();
             done();
@@ -101,8 +105,18 @@ describe('resolveArticle', () => {
         articleService.getArticle.mockReturnValue(throwError(() => new Error('Server error')));
         const route = createRouteSnapshot({ id: '123' });
 
-        resolveArticle(articleService as unknown as ArticleService, route).subscribe(result => {
+        resolvePage(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
             expect(result).toBeUndefined();
+            done();
+        });
+    });
+
+    it('should read a news item through the news endpoints', done => {
+        articleService.getArticle.mockReturnValue(of(mockArticle));
+        const route = createRouteSnapshot({ id: '7' });
+
+        resolvePage(articleService as unknown as ArticleService, route, 'news').subscribe(() => {
+            expect(articleService.getArticle).toHaveBeenCalledWith(7, 'news');
             done();
         });
     });

@@ -6,7 +6,7 @@
 }
 
 // The list pane has no gutter of its own: the message lines up with the rows.
-.article-forum__message {
+.page-forum__message {
     margin: 0;
     padding: $forum-topic-row-padding-v $forum-topic-row-padding-h;
     color: var(--themed-text-secondary);

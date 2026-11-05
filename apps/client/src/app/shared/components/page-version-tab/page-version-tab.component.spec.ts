@@ -1,8 +1,8 @@
-import { createRouteSnapshot } from '../../../../../../shared/testing/route-testing.helper';
-import { ArticleService } from '../../../../../../services/articles';
-import { ArticlePageService } from '../../../../services/article-page.service';
-import { createReviewBlockStubs } from '../../../../../../shared/components/review-block/review-block.testing';
-import { ArticleVersionTabComponent } from './article-version-tab.component';
+import { ArticleService } from '../../../services/articles';
+import { PageContext } from '../../services/page-context/page-context';
+import { createRouteSnapshot } from '../../testing/route-testing.helper';
+import { createReviewBlockStubs } from '../review-block/review-block.testing';
+import { PageVersionTabComponent } from './page-version-tab.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, provideRouter, Router, UrlSegment } from '@angular/router';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
@@ -38,8 +38,8 @@ function routeStub(
     return { url: of(segments), snapshot: createRouteSnapshot(params, segments) };
 }
 
-describe('ArticleVersionTabComponent', () => {
-    let spectator: Spectator<ArticleVersionTabComponent>;
+describe('PageVersionTabComponent', () => {
+    let spectator: Spectator<PageVersionTabComponent>;
     let articleService: jest.Mocked<ArticleService>;
     let urlSubject: BehaviorSubject<UrlSegment[]>;
     let routeMock: { url: unknown; snapshot: ReturnType<typeof createRouteSnapshot> };
@@ -47,7 +47,7 @@ describe('ArticleVersionTabComponent', () => {
     const reviewBlockStubs = createReviewBlockStubs();
 
     const createComponent = createComponentFactory({
-        component: ArticleVersionTabComponent,
+        component: PageVersionTabComponent,
         providers: [
             provideRouter([]),
             mockLoggerProvider(),
@@ -56,11 +56,8 @@ describe('ArticleVersionTabComponent', () => {
                 useValue: { getVersionShow: jest.fn() },
             },
             {
-                provide: ArticlePageService,
-                useValue: {
-                    articleId: signal(100),
-                    editUrl: signal(undefined),
-                },
+                provide: PageContext,
+                useValue: { kind: 'articles', articleId: signal(100) },
             },
             ...reviewBlockStubs.providers,
         ],
@@ -91,7 +88,7 @@ describe('ArticleVersionTabComponent', () => {
     it('should load version on init', () => {
         spectator.detectChanges();
 
-        expect(articleService.getVersionShow).toHaveBeenCalledWith(789);
+        expect(articleService.getVersionShow).toHaveBeenCalledWith(789, 'articles');
         expect(spectator.component.version()).toEqual(mockVersion);
     });
 
@@ -158,7 +155,7 @@ describe('ArticleVersionTabComponent', () => {
         // the positional one, so the merged params are unchanged and paramMap
         // never emits. Only the url does, and the tab must notice.
         spectator.detectChanges();
-        expect(articleService.getVersionShow).toHaveBeenCalledWith(789);
+        expect(articleService.getVersionShow).toHaveBeenCalledWith(789, 'articles');
         const shadowed = [new UrlSegment('version', {}), new UrlSegment('456', { versionId: '789' })];
 
         routeMock.snapshot = createRouteSnapshot({ versionId: '789' }, shadowed);
@@ -171,8 +168,8 @@ describe('ArticleVersionTabComponent', () => {
     });
 });
 
-describe('ArticleVersionTabComponent with mismatched article', () => {
-    let spectator: Spectator<ArticleVersionTabComponent>;
+describe('PageVersionTabComponent with mismatched article', () => {
+    let spectator: Spectator<PageVersionTabComponent>;
     let router: Router;
 
     const mismatchedVersion: ArticleVersion = {
@@ -181,7 +178,7 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
     };
 
     const createComponent = createComponentFactory({
-        component: ArticleVersionTabComponent,
+        component: PageVersionTabComponent,
         providers: [
             provideRouter([]),
             mockLoggerProvider(),
@@ -192,11 +189,8 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
                 },
             },
             {
-                provide: ArticlePageService,
-                useValue: {
-                    articleId: signal(100),
-                    editUrl: signal(undefined),
-                },
+                provide: PageContext,
+                useValue: { kind: 'articles', articleId: signal(100) },
             },
             {
                 provide: ActivatedRoute,
@@ -209,17 +203,17 @@ describe('ArticleVersionTabComponent with mismatched article', () => {
     it('should redirect to correct article URL when version belongs to different article', () => {
         spectator = createComponent();
         router = spectator.inject(Router);
-        jest.spyOn(router, 'navigate').mockResolvedValue(true);
+        jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
         spectator.detectChanges();
 
-        expect(router.navigate).toHaveBeenCalledWith(['/articles', 200, 'version', 789], { replaceUrl: true });
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/articles/200/version/789', { replaceUrl: true });
         expect(spectator.component.version()).toBeUndefined();
     });
 });
 
-describe('ArticleVersionTabComponent with invalid ID', () => {
+describe('PageVersionTabComponent with invalid ID', () => {
     const createComponent = createComponentFactory({
-        component: ArticleVersionTabComponent,
+        component: PageVersionTabComponent,
         providers: [
             provideRouter([]),
             mockLoggerProvider(),
@@ -228,11 +222,8 @@ describe('ArticleVersionTabComponent with invalid ID', () => {
                 useValue: { getVersionShow: jest.fn() },
             },
             {
-                provide: ArticlePageService,
-                useValue: {
-                    articleId: signal(100),
-                    editUrl: signal(undefined),
-                },
+                provide: PageContext,
+                useValue: { kind: 'articles', articleId: signal(100) },
             },
             {
                 provide: ActivatedRoute,
@@ -248,18 +239,15 @@ describe('ArticleVersionTabComponent with invalid ID', () => {
     });
 });
 
-describe('ArticleVersionTabComponent with a malformed ID', () => {
+describe('PageVersionTabComponent with a malformed ID', () => {
     const createComponent = createComponentFactory({
-        component: ArticleVersionTabComponent,
+        component: PageVersionTabComponent,
         providers: [
             provideRouter([]),
             mockLoggerProvider(),
             {
-                provide: ArticlePageService,
-                useValue: {
-                    articleId: signal(100),
-                    editUrl: signal(undefined),
-                },
+                provide: PageContext,
+                useValue: { kind: 'articles', articleId: signal(100) },
             },
         ],
     });
@@ -303,5 +291,53 @@ describe('ArticleVersionTabComponent with a malformed ID', () => {
 
         expect(spectator.component.error()).toBe('Неверный ID версии');
         expect(articleService.getVersionShow).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageVersionTabComponent on a news item', () => {
+    const reviewBlockStubs = createReviewBlockStubs();
+    const articleService = { getVersionShow: jest.fn() };
+
+    const createComponent = createComponentFactory({
+        component: PageVersionTabComponent,
+        providers: [
+            provideRouter([]),
+            mockLoggerProvider(),
+            { provide: ArticleService, useValue: articleService },
+            { provide: PageContext, useValue: { kind: 'news', articleId: signal(100) } },
+            { provide: ActivatedRoute, useValue: routeStub({ versionId: '789' }) },
+            ...reviewBlockStubs.providers,
+        ],
+    });
+
+    let spectator: Spectator<PageVersionTabComponent>;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        reviewBlockStubs.user$.next(createMockUser({ isReviewer: false }));
+        reviewBlockStubs.getReviews.mockReturnValue(of<readonly Review[]>([]));
+        articleService.getVersionShow.mockReturnValue(of(mockVersion));
+        spectator = createComponent();
+    });
+
+    it('reads the version through the news endpoints', () => {
+        expect(articleService.getVersionShow).toHaveBeenCalledWith(789, 'news');
+    });
+
+    it('names the version as one of a news item and links back to the news item', () => {
+        const banner = spectator.query('[data-testid="version-banner"]');
+        const link = spectator.query<HTMLAnchorElement>('[data-testid="version-banner"] a');
+
+        expect(banner?.textContent).toContain('Версия новости от');
+        expect(link?.textContent).toContain('Перейти к текущей версии новости');
+        expect(link?.getAttribute('href')).toBe('/news/100');
+    });
+
+    it('reads the reviews of the news version', () => {
+        expect(reviewBlockStubs.getReviews).toHaveBeenCalledWith('news', 789);
+    });
+
+    it('offers no article actions: editing and moderating news come with the news editor', () => {
+        expect(spectator.query('app-article-sidebar-actions')).toBeNull();
     });
 });
