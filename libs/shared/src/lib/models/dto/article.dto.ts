@@ -38,6 +38,8 @@ export interface ArticleVersionDto extends ArticlePageDto {
     readonly topics?: readonly number[];
     /** News only: `YYYY-MM-DD`, `null` when the news item has no date. */
     readonly newsDate?: string | null;
+    /** News only: how important the news item is, 1–7. */
+    readonly rank?: number;
 }
 
 /**

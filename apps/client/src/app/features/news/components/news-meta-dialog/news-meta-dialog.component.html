@@ -1,0 +1,51 @@
+<div class="news-meta">
+    <h2 class="news-meta__title">Свойства новости</h2>
+
+    <app-news-fields
+        [topics]="topics"
+        [value]="fields()"
+        (valueChange)="onFields($event)"
+    />
+
+    <div class="news-meta__field">
+        <span class="news-meta__label">Важность</span>
+        <ui-button-toggle-group
+            ariaLabel="Важность"
+            data-testid="news-rank-input"
+            [options]="rankOptions"
+            [ngModel]="rank()"
+            (ngModelChange)="onRank($event)"
+        />
+    </div>
+
+    <div class="news-meta__field">
+        <span class="news-meta__label">Рассылка</span>
+        <ui-button-toggle-group
+            ariaLabel="Рассылка"
+            data-testid="news-mailing-input"
+            [options]="mailingOptions"
+            [ngModel]="mailing()"
+            (ngModelChange)="onMailing($event)"
+        />
+    </div>
+
+    <div class="news-meta__actions">
+        <ui-button
+            variant="outlined"
+            accent="secondary"
+            testId="news-meta-cancel"
+            (click)="cancel()"
+        >
+            Отмена
+        </ui-button>
+        <ui-button
+            variant="filled"
+            accent="primary"
+            testId="news-meta-save"
+            [disabled]="isSaving()"
+            (click)="save()"
+        >
+            Сохранить
+        </ui-button>
+    </div>
+</div>

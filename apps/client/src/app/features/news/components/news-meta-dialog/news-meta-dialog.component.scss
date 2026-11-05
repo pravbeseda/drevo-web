@@ -1,0 +1,33 @@
+@use 'index' as *;
+
+.news-meta {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
+    padding-bottom: $gap-md;
+}
+
+.news-meta__title {
+    margin: 0;
+    padding: $gap-md $gap-md 0;
+    font-size: $font-size-lg;
+}
+
+.news-meta__field {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-xs;
+    padding: 0 $gap-md;
+}
+
+.news-meta__label {
+    color: var(--themed-text-secondary);
+    font-size: $font-size-sm;
+}
+
+.news-meta__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $gap-md;
+    padding: 0 $gap-md;
+}

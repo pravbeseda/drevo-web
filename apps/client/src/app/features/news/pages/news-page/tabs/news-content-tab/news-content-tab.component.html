@@ -5,6 +5,16 @@
         [editUrl]="editUrl()"
         (moderated)="onModerated($event)"
     />
+    @if (canEditMeta()) {
+        <app-sidebar-action
+            [order]="40"
+            icon="tune"
+            label="Свойства новости"
+            priority="secondary"
+            testId="news-meta-action"
+            (activated)="openMeta()"
+        />
+    }
     <div class="news-meta">
         @if (date(); as date) {
             <span data-testid="news-date">{{ date }}</span>

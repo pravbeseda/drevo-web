@@ -909,6 +909,15 @@ describe('ArticleService', () => {
             });
         });
 
+        it('maps the rank of a news item', done => {
+            articleApiService.getArticle.mockReturnValue(of({ ...newsDto, rank: 5 }));
+
+            spectator.service.getArticle(7, 'news').subscribe(result => {
+                expect(result.rank).toBe(5);
+                done();
+            });
+        });
+
         it('leaves the news date out when the news item has none', done => {
             // The backend sends `null` for a news item without a date.
             articleApiService.getArticle.mockReturnValue(of({ ...newsDto, newsDate: null }));

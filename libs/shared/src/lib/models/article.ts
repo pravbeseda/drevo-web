@@ -18,6 +18,8 @@ export interface ArticleVersion extends Article {
     readonly topics: readonly number[];
     /** News only: the day the news item is about. */
     readonly newsDate?: Date;
+    /** News only: how important the news item is, 1–7. */
+    readonly rank?: number;
 }
 
 /**
