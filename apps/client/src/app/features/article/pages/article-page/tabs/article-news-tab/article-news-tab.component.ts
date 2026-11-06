@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { NewsListItem, formatCalendarDate } from '@drevo-web/shared';
+import { NewsListItem, NewsListSource, formatCalendarDate } from '@drevo-web/shared';
 import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { EMPTY, Observable, Subject } from 'rxjs';
@@ -22,7 +22,10 @@ export interface ArticleNewsRow {
 
 type ListState = 'loading' | 'loaded' | 'error';
 
-/** The published news about the article, newest first, a page at a time as the reader scrolls. */
+/**
+ * The published news about the article, or linked to the title of one not written yet,
+ * newest first, a page at a time as the reader scrolls.
+ */
 @Component({
     selector: 'app-article-news-tab',
     imports: [
@@ -71,11 +74,20 @@ export class ArticleNewsTabComponent {
 
     readonly trackByFn = (_index: number, row: ArticleNewsRow): number => row.id;
 
+    private readonly source = computed((): NewsListSource | undefined => {
+        const articleId = this.pageService.articleId();
+        if (articleId !== undefined) {
+            return { articleId };
+        }
+        const missing = this.pageService.missing();
+        return missing ? { title: missing.title } : undefined;
+    });
+
     constructor() {
         // Another article starts the list over and drops a page still in flight for the previous one.
-        toObservable(this.pageService.articleId)
+        toObservable(this.source)
             .pipe(
-                switchMap(articleId => (articleId === undefined ? EMPTY : this.pages(articleId))),
+                switchMap(source => (source === undefined ? EMPTY : this.pages(source))),
                 takeUntilDestroyed(),
             )
             .subscribe();
@@ -85,8 +97,8 @@ export class ArticleNewsTabComponent {
         this.loadMoreSubject.next();
     }
 
-    /** The pages of one article's news, the first at once and each next on request, one at a time. */
-    private pages(articleId: number): Observable<unknown> {
+    /** The pages of one source's news, the first at once and each next on request, one at a time. */
+    private pages(source: NewsListSource): Observable<unknown> {
         this._items.set([]);
         this._total.set(0);
         this._state.set('loading');
@@ -101,7 +113,7 @@ export class ArticleNewsTabComponent {
                 }
                 const page = lastPage + 1;
                 this._isLoadingMore.set(page > 1);
-                return this.newsService.getArticleNews(articleId, page).pipe(
+                return this.newsService.getNewsList(source, page).pipe(
                     tap(response => {
                         lastPage = page;
                         this._items.update(items => [...items, ...response.items]);
@@ -110,7 +122,7 @@ export class ArticleNewsTabComponent {
                         this._isLoadingMore.set(false);
                     }),
                     catchError((error: unknown) => {
-                        this.logger.error('Failed to load the news about the article', { articleId, page, error });
+                        this.logger.error('Failed to load the news about the article', { source, page, error });
                         this._isLoadingMore.set(false);
                         if (page === 1) {
                             this._state.set('error');

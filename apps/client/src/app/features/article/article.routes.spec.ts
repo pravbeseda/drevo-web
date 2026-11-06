@@ -80,4 +80,21 @@ describe('ARTICLE_ROUTES', () => {
         expect(create?.providers).toEqual([LinksService]);
         expect(await create?.loadComponent?.()).toBe(PageEditComponent);
     });
+
+    describe('the placeholder of an article not written yet', () => {
+        const placeholder = ARTICLE_ROUTES.find(route => route.path === 'find/:title');
+        const placeholderChild = (path: string): Route | undefined =>
+            placeholder?.children?.find(route => route.path === path);
+
+        it('lists the news linked to its title on the news tab', async () => {
+            const tab = placeholderChild('news');
+
+            expect(tab?.title).toBe('Новости');
+            expect(await tab?.loadComponent?.()).toBe(ArticleNewsTabComponent);
+        });
+
+        it('has no discussion, which hangs off an article that does not exist', () => {
+            expect(placeholderChild('forum')).toBeUndefined();
+        });
+    });
 });

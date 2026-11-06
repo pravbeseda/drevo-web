@@ -94,7 +94,9 @@ export class ArticleComponent {
             return [];
         }
         const counts = this.counts();
-        const historyTab = this.pageService.isMissing()
+        // Versions and discussions hang off the article's id, which a page not written yet lacks.
+        const isMissing = this.pageService.isMissing();
+        const historyTab = isMissing
             ? []
             : [
                   {
@@ -102,6 +104,17 @@ export class ArticleComponent {
                       route: `${base}/history`,
                       icon: 'history',
                       testId: 'tab-history',
+                  },
+              ];
+        const forumTab = isMissing
+            ? []
+            : [
+                  {
+                      label: 'Обсуждение',
+                      route: `${base}/forum`,
+                      icon: 'forum',
+                      badge: badge(counts?.forum),
+                      testId: 'tab-forum',
                   },
               ];
         return [
@@ -121,13 +134,7 @@ export class ArticleComponent {
                         badge: badge(counts?.news),
                         testId: 'tab-news',
                     },
-                    {
-                        label: 'Обсуждение',
-                        route: `${base}/forum`,
-                        icon: 'forum',
-                        badge: badge(counts?.forum),
-                        testId: 'tab-forum',
-                    },
+                    ...forumTab,
                 ],
             },
             {

@@ -4,6 +4,7 @@ import { Injectable, inject } from '@angular/core';
 import {
     CreateNewsRequest,
     NewsListPage,
+    NewsListSource,
     NewsMeta,
     NewsMetaChange,
     NewsTopic,
@@ -14,7 +15,7 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-/** The news-only endpoints: sections, the news about an article, creation, the moderator's meta; a news item's versions go through ArticleService with the `news` page kind. */
+/** The news-only endpoints: sections, the news of an article or of a title without one, creation, the moderator's meta; a news item's versions go through ArticleService with the `news` page kind. */
 @Injectable({
     providedIn: 'root',
 })
@@ -25,8 +26,8 @@ export class NewsService {
         return this.newsApiService.getTopics();
     }
 
-    getArticleNews(articleId: number, page = 1): Observable<NewsListPage> {
-        return this.newsApiService.getArticleNews(articleId, page, NEWS_LIST_PAGE_SIZE).pipe(
+    getNewsList(source: NewsListSource, page = 1): Observable<NewsListPage> {
+        return this.newsApiService.getNewsList(source, page, NEWS_LIST_PAGE_SIZE).pipe(
             map(response => ({
                 items: response.items.map(item => ({
                     id: item.id,

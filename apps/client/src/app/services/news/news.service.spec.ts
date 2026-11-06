@@ -28,9 +28,9 @@ describe('NewsService', () => {
         });
     });
 
-    describe('getArticleNews', () => {
+    describe('getNewsList', () => {
         it('reads the first page of 25 by default and maps the days', done => {
-            api.getArticleNews.mockReturnValue(
+            api.getNewsList.mockReturnValue(
                 of({
                     items: [
                         { id: 5, title: 'Новость', newsDate: '2026-11-05', topics: [3], rank: 0 },
@@ -43,8 +43,8 @@ describe('NewsService', () => {
                 }),
             );
 
-            spectator.service.getArticleNews(42).subscribe(result => {
-                expect(api.getArticleNews).toHaveBeenCalledWith(42, 1, 25);
+            spectator.service.getNewsList({ articleId: 42 }).subscribe(result => {
+                expect(api.getNewsList).toHaveBeenCalledWith({ articleId: 42 }, 1, 25);
                 expect(result).toEqual({
                     items: [
                         { id: 5, title: 'Новость', newsDate: new Date(2026, 10, 5) },
@@ -56,12 +56,12 @@ describe('NewsService', () => {
             });
         });
 
-        it('reads the page it is asked for', () => {
-            api.getArticleNews.mockReturnValue(of({ items: [], total: 0, page: 3, pageSize: 25, totalPages: 0 }));
+        it('reads the page it is asked for, of the source it is given', () => {
+            api.getNewsList.mockReturnValue(of({ items: [], total: 0, page: 3, pageSize: 25, totalPages: 0 }));
 
-            spectator.service.getArticleNews(42, 3).subscribe();
+            spectator.service.getNewsList({ title: 'НОВАЯ СТАТЬЯ' }, 3).subscribe();
 
-            expect(api.getArticleNews).toHaveBeenCalledWith(42, 3, 25);
+            expect(api.getNewsList).toHaveBeenCalledWith({ title: 'НОВАЯ СТАТЬЯ' }, 3, 25);
         });
     });
 

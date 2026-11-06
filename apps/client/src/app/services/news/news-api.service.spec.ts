@@ -36,17 +36,17 @@ describe('NewsApiService', () => {
         });
     });
 
-    describe('getArticleNews', () => {
-        it('reads a page of the news about an article', done => {
-            const list = {
-                items: [{ id: 5, title: 'Новость', newsDate: '2026-11-05', topics: [3], rank: 0 }],
-                total: 1,
-                page: 2,
-                pageSize: 25,
-                totalPages: 1,
-            };
+    describe('getNewsList', () => {
+        const list = {
+            items: [{ id: 5, title: 'Новость', newsDate: '2026-11-05', topics: [3], rank: 0 }],
+            total: 1,
+            page: 2,
+            pageSize: 25,
+            totalPages: 1,
+        };
 
-            spectator.service.getArticleNews(42, 2, 25).subscribe(result => {
+        it('reads a page of the news about an article', done => {
+            spectator.service.getNewsList({ articleId: 42 }, 2, 25).subscribe(result => {
                 expect(result).toEqual(list);
                 done();
             });
@@ -54,6 +54,18 @@ describe('NewsApiService', () => {
             const req = httpController.expectOne('/api/news/list?articleId=42&page=2&size=25');
             expect(req.request.method).toBe('GET');
             expect(req.request.withCredentials).toBe(true);
+            req.flush({ success: true, data: list });
+        });
+
+        it('reads a page of the news linked to a title that has no article', done => {
+            spectator.service.getNewsList({ title: 'НОВАЯ СТАТЬЯ' }, 1, 25).subscribe(result => {
+                expect(result).toEqual(list);
+                done();
+            });
+
+            const req = httpController.expectOne(request => request.url === '/api/news/list');
+            expect(req.request.params.keys()).toEqual(['title', 'page', 'size']);
+            expect(req.request.params.get('title')).toBe('НОВАЯ СТАТЬЯ');
             req.flush({ success: true, data: list });
         });
     });
