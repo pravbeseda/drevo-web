@@ -9,6 +9,9 @@ export interface NewsListItem {
     readonly newsDate: Date | undefined;
 }
 
+/** Whose news a list holds: an article's, or those linked to a title that has no article yet. */
+export type NewsListSource = { readonly articleId: number } | { readonly title: string };
+
 /** A page of news, with the total across every page. */
 export interface NewsListPage {
     readonly items: readonly NewsListItem[];

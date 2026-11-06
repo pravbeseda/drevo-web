@@ -40,6 +40,7 @@ import {
     InworkItemDto,
     ModerationResponseDto,
     NewsListResponseDto,
+    NewsListSource,
     NewsMetaResponseDto,
     NewsTopicDto,
     PictureDto,
@@ -1013,15 +1014,19 @@ export async function mockNewsTopicsApi(page: Page, topics: readonly NewsTopicDt
     await page.route('**/api/news/topics', route => route.fulfill({ json: apiSuccess(topics) }));
 }
 
-/** Mock GET /api/news/list?articleId= — the news about an article, each request answered for the page it asks for */
+/**
+ * Mock GET /api/news/list?articleId= or ?title= — the news about an article, or linked to a title
+ * without one, each request answered for the page it asks for
+ */
 export async function mockArticleNewsApi(
     page: Page,
-    articleId: number,
+    source: NewsListSource,
     respond: (pageNumber: number) => NewsListResponseDto,
 ): Promise<void> {
+    const [param, value] = 'articleId' in source ? ['articleId', String(source.articleId)] : ['title', source.title];
     await page.route('**/api/news/list?**', route => {
         const url = new URL(route.request().url());
-        if (url.searchParams.get('articleId') !== String(articleId)) return route.fallback();
+        if (url.searchParams.get(param) !== value) return route.fallback();
         const pageNumber = Number(url.searchParams.get('page') ?? '1');
         return route.fulfill({ json: apiSuccess(respond(pageNumber)) });
     });

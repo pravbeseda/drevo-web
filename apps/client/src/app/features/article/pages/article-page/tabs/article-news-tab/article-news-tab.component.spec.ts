@@ -1,4 +1,5 @@
 import { ArticleNewsTabComponent } from './article-news-tab.component';
+import { MISSING_ARTICLE_ID, MissingArticle } from '../../../../models/missing-article';
 import { ArticlePageService } from '../../../../services/article-page.service';
 import { AuthService } from '../../../../../../services/auth/auth.service';
 import { NewsService } from '../../../../../../services/news/news.service';
@@ -22,8 +23,9 @@ function page(items: readonly NewsListItem[], total = items.length): NewsListPag
 
 describe('ArticleNewsTabComponent', () => {
     let spectator: Spectator<ArticleNewsTabComponent>;
-    let newsService: { getArticleNews: jest.Mock };
+    let newsService: { getNewsList: jest.Mock };
     const articleId = signal<number | undefined>(42);
+    const missing = signal<MissingArticle | undefined>(undefined);
     const user = new BehaviorSubject<User | undefined>(undefined);
 
     const createComponent = createComponentFactory({
@@ -31,7 +33,7 @@ describe('ArticleNewsTabComponent', () => {
         providers: [
             provideRouter([]),
             mockLoggerProvider(),
-            { provide: ArticlePageService, useValue: { articleId } },
+            { provide: ArticlePageService, useValue: { articleId, missing } },
             { provide: AuthService, useFactory: () => ({ user$: user.asObservable() }) },
         ],
         detectChanges: false,
@@ -45,20 +47,34 @@ describe('ArticleNewsTabComponent', () => {
     const addAction = (): SidebarActionComponent | undefined =>
         spectator.queryAll(SidebarActionComponent).find(action => action.label() === 'Добавить новость');
 
+    const showMissingArticle = (): void => {
+        articleId.set(undefined);
+        missing.set({ articleId: MISSING_ARTICLE_ID, title: 'НОВАЯ СТАТЬЯ', canCreate: true });
+    };
+
     beforeEach(() => {
         articleId.set(42);
+        missing.set(undefined);
         user.next(createMockUser({ permissions: { canEdit: true } }));
-        newsService = { getArticleNews: jest.fn().mockReturnValue(of(page([item(1, new Date(2026, 10, 4))]))) };
+        newsService = { getNewsList: jest.fn().mockReturnValue(of(page([item(1, new Date(2026, 10, 4))]))) };
     });
 
     it("opens on the first page of the article's news", () => {
         render();
 
-        expect(newsService.getArticleNews).toHaveBeenCalledWith(42, 1);
+        expect(newsService.getNewsList).toHaveBeenCalledWith({ articleId: 42 }, 1);
+    });
+
+    it('lists the news linked to the title of an article not written yet', () => {
+        showMissingArticle();
+        render();
+
+        expect(newsService.getNewsList).toHaveBeenCalledWith({ title: 'НОВАЯ СТАТЬЯ' }, 1);
+        expect(spectator.component.rows().map(row => row.id)).toEqual([1]);
     });
 
     it('names the day of each news item and leaves an undated one without', () => {
-        newsService.getArticleNews.mockReturnValue(of(page([item(1, new Date(2026, 10, 4)), item(2)])));
+        newsService.getNewsList.mockReturnValue(of(page([item(1, new Date(2026, 10, 4)), item(2)])));
         render();
 
         expect(spectator.component.rows().map(row => [row.id, row.title, row.day])).toEqual([
@@ -68,7 +84,7 @@ describe('ArticleNewsTabComponent', () => {
     });
 
     it('hands the rows to the scroller, sized for the news still to load', () => {
-        newsService.getArticleNews.mockReturnValue(of(page([item(1)], 30)));
+        newsService.getNewsList.mockReturnValue(of(page([item(1)], 30)));
         render();
 
         const scroller = spectator.query(VirtualScrollerComponent);
@@ -77,13 +93,13 @@ describe('ArticleNewsTabComponent', () => {
     });
 
     it('appends the next page as the reader scrolls', () => {
-        newsService.getArticleNews.mockReturnValueOnce(of(page([item(1)], 2)));
+        newsService.getNewsList.mockReturnValueOnce(of(page([item(1)], 2)));
         render();
-        newsService.getArticleNews.mockReturnValueOnce(of(page([item(2)], 2)));
+        newsService.getNewsList.mockReturnValueOnce(of(page([item(2)], 2)));
 
         spectator.component.onLoadMore();
 
-        expect(newsService.getArticleNews).toHaveBeenLastCalledWith(42, 2);
+        expect(newsService.getNewsList).toHaveBeenLastCalledWith({ articleId: 42 }, 2);
         expect(spectator.component.rows().map(row => row.id)).toEqual([1, 2]);
     });
 
@@ -92,33 +108,33 @@ describe('ArticleNewsTabComponent', () => {
 
         spectator.component.onLoadMore();
 
-        expect(newsService.getArticleNews).toHaveBeenCalledTimes(1);
+        expect(newsService.getNewsList).toHaveBeenCalledTimes(1);
     });
 
     it('asks for one page at a time', () => {
-        newsService.getArticleNews.mockReturnValueOnce(of(page([item(1)], 3)));
+        newsService.getNewsList.mockReturnValueOnce(of(page([item(1)], 3)));
         render();
-        newsService.getArticleNews.mockReturnValue(NEVER);
+        newsService.getNewsList.mockReturnValue(NEVER);
 
         spectator.component.onLoadMore();
         spectator.component.onLoadMore();
 
-        expect(newsService.getArticleNews).toHaveBeenCalledTimes(2);
+        expect(newsService.getNewsList).toHaveBeenCalledTimes(2);
     });
 
     it('starts over when the page moves to another article', () => {
         render();
-        newsService.getArticleNews.mockReturnValue(of(page([item(7)])));
+        newsService.getNewsList.mockReturnValue(of(page([item(7)])));
 
         articleId.set(43);
         spectator.detectChanges();
 
-        expect(newsService.getArticleNews).toHaveBeenLastCalledWith(43, 1);
+        expect(newsService.getNewsList).toHaveBeenLastCalledWith({ articleId: 43 }, 1);
         expect(spectator.component.rows().map(row => row.id)).toEqual([7]);
     });
 
     it('says so when the article has no news', () => {
-        newsService.getArticleNews.mockReturnValue(of(page([])));
+        newsService.getNewsList.mockReturnValue(of(page([])));
         render();
 
         expect(spectator.query('[data-testid="article-news-empty"]')?.textContent).toContain(
@@ -127,7 +143,7 @@ describe('ArticleNewsTabComponent', () => {
     });
 
     it('says so when the news fail to load', () => {
-        newsService.getArticleNews.mockReturnValue(throwError(() => new Error('down')));
+        newsService.getNewsList.mockReturnValue(throwError(() => new Error('down')));
         render();
 
         expect(spectator.query('[data-testid="article-news-error"]')).toBeTruthy();
@@ -142,6 +158,13 @@ describe('ArticleNewsTabComponent', () => {
 
         it('is not offered to a reader who may not edit', () => {
             user.next(createMockUser({ permissions: { canEdit: false } }));
+            render();
+
+            expect(addAction()).toBeUndefined();
+        });
+
+        it('is not offered for a title that has no article to attach the news to', () => {
+            showMissingArticle();
             render();
 
             expect(addAction()).toBeUndefined();

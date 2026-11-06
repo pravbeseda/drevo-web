@@ -236,11 +236,12 @@ describe('ArticleComponent missing article', () => {
         expect(mockArticleService.getCounts).not.toHaveBeenCalled();
     });
 
-    it('should hide the versions tab', () => {
+    it('should hide the versions and discussion tabs', () => {
         const spectator = createComponent();
 
         const tabs = spectator.component.tabGroups().flatMap(group => group.items);
         expect(tabs.some(tab => tab.testId === 'tab-history')).toBe(false);
+        expect(tabs.some(tab => tab.testId === 'tab-forum')).toBe(false);
     });
 
     it('should point the remaining tabs at the find route', () => {
@@ -250,7 +251,6 @@ describe('ArticleComponent missing article', () => {
         expect(groups[0].items.map(item => item.route)).toEqual([
             '/articles/find/НОВАЯ СТАТЬЯ',
             '/articles/find/НОВАЯ СТАТЬЯ/news',
-            '/articles/find/НОВАЯ СТАТЬЯ/forum',
         ]);
         expect(groups[1].items[0].route).toBe('/articles/find/НОВАЯ СТАТЬЯ/linkedhere');
     });

@@ -8,6 +8,8 @@ export class ArticleFindPage extends BasePage {
 
     readonly tabArticle = this.page.getByTestId('tab-article');
     readonly tabHistory = this.page.getByTestId('tab-history');
+    readonly tabNews = this.page.getByTestId('tab-news');
+    readonly tabForum = this.page.getByTestId('tab-forum');
     readonly tabLinkedhere = this.page.getByTestId('tab-linkedhere');
 
     async waitForReady(): Promise<void> {

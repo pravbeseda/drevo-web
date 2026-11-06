@@ -71,19 +71,9 @@ export const ARTICLE_ROUTES: Route[] = [
                 path: 'news',
                 title: 'Новости',
                 loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent,
+                    import('./pages/article-page/tabs/article-news-tab/article-news-tab.component').then(
+                        m => m.ArticleNewsTabComponent,
                     ),
-                data: { stubTitle: 'Новости' },
-            },
-            {
-                path: 'forum',
-                title: 'Обсуждение',
-                loadComponent: () =>
-                    import('./pages/article-page/tabs/article-stub-tab/article-stub-tab.component').then(
-                        m => m.ArticleStubTabComponent,
-                    ),
-                data: { stubTitle: 'Обсуждение' },
             },
             {
                 path: 'linkedhere',

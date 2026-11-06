@@ -2,6 +2,7 @@ import {
     test,
     expect,
     bypassSsr,
+    mockArticleNewsApi,
     mockArticleCreate,
     mockArticleCreateDuplicate,
     mockArticleFindCreatableThenDenied,
@@ -17,8 +18,10 @@ import {
 import { getNotification } from '../../helpers/notification';
 import { createCreateArticleResponseDto } from '../../mocks/articles';
 import { createLinkedHereResponse } from '../../mocks/linked-here';
+import { createNewsListItemDto, createNewsListResponse } from '../../mocks/news';
 import { ArticleEditPage } from '../../pages/article-edit.page';
 import { ArticleFindPage } from '../../pages/article-find.page';
+import { ArticleNewsTabPage } from '../../pages/article-news-tab.page';
 import { ArticlePage } from '../../pages/article.page';
 import { LinkedHereTabPage } from '../../pages/linkedhere-tab.page';
 
@@ -73,8 +76,9 @@ test.describe('Article find by title', () => {
             await expect(findPage.createButton).toBeVisible();
         });
 
-        test('hides the versions tab', async () => {
+        test('hides the versions and discussion tabs', async () => {
             await expect(findPage.tabHistory).toHaveCount(0);
+            await expect(findPage.tabForum).toHaveCount(0);
             await expect(findPage.tabArticle).toBeVisible();
         });
 
@@ -102,6 +106,28 @@ test.describe('Article find by title', () => {
 
         await expect(linkedHere.items).toHaveCount(2);
         await expect(linkedHere.empty).toHaveCount(0);
+    });
+
+    test('lists the news linked to the missing title, offering none to add', async ({ authenticatedPage: page }) => {
+        await bypassSsr(page, '**/articles/find/**');
+        await mockArticleFindMissing(page, NEW_TITLE);
+        await mockArticleNewsApi(page, { title: NEW_TITLE }, () =>
+            createNewsListResponse([
+                createNewsListItemDto({ title: 'Престольный праздник', newsDate: '2025-01-15' }, 7),
+            ]),
+        );
+        const findPage = new ArticleFindPage(page);
+        const newsTab = new ArticleNewsTabPage(page);
+        await page.goto(FIND_URL);
+        await findPage.waitForReady();
+
+        await findPage.tabNews.click();
+        await newsTab.waitForReady();
+
+        expect(pathnameOf(page.url())).toBe(`${FIND_URL}/news`);
+        await expect(newsTab.items).toHaveCount(1);
+        await expect(newsTab.item('Престольный праздник')).toBeVisible();
+        await expect(newsTab.addNewsAction).toBeHidden();
     });
 
     test('preserves a literal plus in the title', async ({ authenticatedPage: page }) => {

@@ -31,7 +31,7 @@ test.describe('Article news tab', () => {
     });
 
     test('lists the news about the article, each opening its news item', async ({ authenticatedPage: page }) => {
-        await mockArticleNewsApi(page, ARTICLE_ID, () =>
+        await mockArticleNewsApi(page, { articleId: ARTICLE_ID }, () =>
             createNewsListResponse([
                 createNewsListItemDto({ title: 'Престольный праздник', newsDate: '2025-01-15' }, 7),
                 createNewsListItemDto({ title: 'Освящение храма', newsDate: null }, 5),
@@ -49,7 +49,7 @@ test.describe('Article news tab', () => {
 
     test('loads the next page of news as the reader scrolls', async ({ authenticatedPage: page }) => {
         const total = PAGE_SIZE + 5;
-        await mockArticleNewsApi(page, ARTICLE_ID, pageNumber => {
+        await mockArticleNewsApi(page, { articleId: ARTICLE_ID }, pageNumber => {
             const first = (pageNumber - 1) * PAGE_SIZE + 1;
             const count = Math.min(PAGE_SIZE, total - first + 1);
             const items = Array.from({ length: count }, (_, i) => createNewsListItemDto({}, first + i));
@@ -65,7 +65,7 @@ test.describe('Article news tab', () => {
     });
 
     test('says so when the article has no news', async ({ authenticatedPage: page }) => {
-        await mockArticleNewsApi(page, ARTICLE_ID, () => createNewsListResponse([]));
+        await mockArticleNewsApi(page, { articleId: ARTICLE_ID }, () => createNewsListResponse([]));
         await page.goto(`/articles/${ARTICLE_ID}/news`);
         await newsTab.waitForReady();
 
@@ -84,7 +84,7 @@ test.describe('Article news tab', () => {
     });
 
     test('adds a news item from the tab and returns to the tab on cancel', async ({ authenticatedPage: page }) => {
-        await mockArticleNewsApi(page, ARTICLE_ID, () => createNewsListResponse([]));
+        await mockArticleNewsApi(page, { articleId: ARTICLE_ID }, () => createNewsListResponse([]));
         await mockNewsTopicsApi(page);
         await page.goto(`/articles/${ARTICLE_ID}/news`);
         await newsTab.waitForReady();
@@ -113,7 +113,7 @@ test.describe('Adding a news item without the right to edit', () => {
 
     test("is not offered on the article's news tab, and its address lands back on the tab", async ({ page }) => {
         await mockArticleShow(page, ARTICLE_ID, ARTICLE);
-        await mockArticleNewsApi(page, ARTICLE_ID, () => createNewsListResponse([]));
+        await mockArticleNewsApi(page, { articleId: ARTICLE_ID }, () => createNewsListResponse([]));
         const newsTab = new ArticleNewsTabPage(page);
 
         await page.goto(`/articles/${ARTICLE_ID}/news/new`);

@@ -8,6 +8,7 @@ import {
     CreateNewsRequestDto,
     NewsMetaRequestDto,
     NewsListResponseDto,
+    NewsListSource,
     NewsMetaResponseDto,
     NewsTopicDto,
     assertIsDefined,
@@ -40,12 +41,13 @@ export class NewsApiService {
             );
     }
 
-    /** Get a page of the published news about an article, newest first. */
-    getArticleNews(articleId: number, page: number, pageSize: number): Observable<NewsListResponseDto> {
-        const params = new HttpParams()
-            .set('articleId', articleId.toString())
-            .set('page', page.toString())
-            .set('size', pageSize.toString());
+    /** Get a page of the published news of the source, newest first. */
+    getNewsList(source: NewsListSource, page: number, pageSize: number): Observable<NewsListResponseDto> {
+        const sourceParams =
+            'articleId' in source
+                ? new HttpParams().set('articleId', source.articleId.toString())
+                : new HttpParams().set('title', source.title);
+        const params = sourceParams.set('page', page.toString()).set('size', pageSize.toString());
 
         return this.http
             .get<ApiResponse<NewsListResponseDto>>(`${this.apiUrl}/api/news/list`, { params, withCredentials: true })
