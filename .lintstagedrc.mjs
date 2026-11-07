@@ -19,10 +19,7 @@ export default {
         const lintable = files.filter(isLintable);
 
         if (lintable.length > 0) {
-            // The flag makes ESLint resolve the config from each file instead of from cwd,
-            // which is what ESLint 10 does by default. Without it only the root config
-            // applies, and it matches no **/*.html — every template would be skipped.
-            tasks.push(`eslint --flag v10_config_lookup_from_file --fix --no-warn-ignored ${quote(lintable)}`);
+            tasks.push(`eslint --fix --no-warn-ignored ${quote(lintable)}`);
         }
 
         tasks.push(`prettier --write ${quote(files)}`);
