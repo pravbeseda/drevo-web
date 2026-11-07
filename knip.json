@@ -30,7 +30,7 @@
         "@nx/workspace",
         "ts-node",
         "angular-eslint",
-        "jest-environment-node",
+        "@eslint/js",
         "modern-normalize",
         "@fontsource/roboto",
         "material-icons",

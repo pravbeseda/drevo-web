@@ -15,8 +15,7 @@ const { ESLint } = require('eslint');
 
 const repoRoot = path.join(__dirname, '..');
 
-// The same flag as the lint:playwright script, so the nearest config is the one resolved.
-const eslint = new ESLint({ cwd: repoRoot, flags: ['v10_config_lookup_from_file'] });
+const eslint = new ESLint({ cwd: repoRoot });
 
 describe('lint:playwright ignores', () => {
     for (const generated of [

@@ -62,7 +62,7 @@ legacy-drevo-yii/            # Symlink to legacy Yii1 backend
 
 ### Prerequisites
 
-- Node.js 22.12+ (or 24+)
+- Node.js 26+ (the version in `.nvmrc`)
 - pnpm — any install switches itself to the version pinned in `packageManager` (`npm install -g pnpm`)
 - Playwright (for E2E testing)
 

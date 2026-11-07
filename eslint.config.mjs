@@ -1,6 +1,6 @@
 import nx from '@nx/eslint-plugin';
 import noNull from 'eslint-plugin-no-null';
-import importPlugin from 'eslint-plugin-import';
+import importX from 'eslint-plugin-import-x';
 import sonarjs from 'eslint-plugin-sonarjs';
 import tseslint from 'typescript-eslint';
 
@@ -36,7 +36,7 @@ export default [
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         plugins: {
-            import: importPlugin,
+            'import-x': importX,
         },
         rules: {
             // `use-unknown-in-catch-callback-variable` from strict-type-checked covers a native
@@ -65,8 +65,8 @@ export default [
                         'Annotate the subscribe error callback parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
                 },
             ],
-            'import/no-duplicates': 'error',
-            'import/order': [
+            'import-x/no-duplicates': 'error',
+            'import-x/order': [
                 'error',
                 {
                     groups: [['builtin', 'external', 'internal', 'parent', 'sibling', 'index']],
@@ -141,7 +141,7 @@ export default [
         files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
         rules: {
             '@typescript-eslint/no-empty-function': 'off',
-            'import/order': 'off',
+            'import-x/order': 'off',
             // sonarjs rules whose findings are inherent to test code: fixture URLs and
             // credentials, assertion style, float comparisons. Everything else — including
             // cognitive-complexity, no-duplicate-string and no-identical-functions — stays on.
