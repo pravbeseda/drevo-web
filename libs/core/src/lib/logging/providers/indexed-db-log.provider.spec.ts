@@ -9,7 +9,7 @@ jest.mock('../log-database');
  *
  * Note: Since IndexedDB is not available in Jest/JSDOM, we test:
  * 1. Provider interface contract (name, isAvailable behavior)
- * 2. SSR safety (provider disabled when window/indexedDB unavailable)
+ * 2. SSR safety (provider disabled when window/indexedDB unavailable) — in the `.ssr.spec.ts` sibling, under the node environment
  * 3. Lazy loading of the database, against a mocked LogDatabase and a stub `indexedDB`
  *
  * Integration tests with real IndexedDB would require a browser-based test runner.
@@ -91,52 +91,6 @@ describe('IndexedDBLogProvider', () => {
 
             expect(size).toBe(0);
         });
-    });
-});
-
-describe('IndexedDBLogProvider (SSR)', () => {
-    it('should not be available when window is undefined', () => {
-        // Save original
-        const originalWindow = global.window;
-
-        // Mock SSR environment
-        // @ts-expect-error - intentionally setting to undefined for SSR test
-        delete global.window;
-
-        const provider = new IndexedDBLogProvider();
-        expect(provider.isAvailable).toBe(false);
-
-        // Restore
-        global.window = originalWindow;
-    });
-
-    it('should handle log() gracefully in SSR', () => {
-        const originalWindow = global.window;
-        // @ts-expect-error - intentionally setting to undefined for SSR test
-        delete global.window;
-
-        const provider = new IndexedDBLogProvider();
-        expect(() =>
-            provider.log({
-                level: 'info',
-                message: 'Test',
-                timestamp: new Date(),
-            }),
-        ).not.toThrow();
-
-        global.window = originalWindow;
-    });
-
-    it('should return empty logs in SSR', async () => {
-        const originalWindow = global.window;
-        // @ts-expect-error - intentionally setting to undefined for SSR test
-        delete global.window;
-
-        const provider = new IndexedDBLogProvider();
-        const logs = await provider.getLogs();
-        expect(logs).toEqual([]);
-
-        global.window = originalWindow;
     });
 });
 
