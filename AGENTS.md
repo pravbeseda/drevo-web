@@ -169,7 +169,7 @@ Check `apps/client/proxy.conf.json` before creating an API service — the endpo
 5. **Readonly interface properties** — all interface properties are `readonly` by default
 6. **Named constants over literals** — a number in the logic gets a name. Exception: CSS margin/padding/sizes of atomic UI components
 7. **Narrow instead of asserting** — `if`, `@if (value(); as v)`, optional chaining. Enforced by `@typescript-eslint/no-non-null-assertion` for `.ts` files, convention in templates
-8. **Import order** — one group, alphabetical by path, case-insensitive, no blank lines between imports; type imports sort alongside value imports. `import/order` enforces it and is off in `*.spec.ts`; check with `pnpm nx lint <project>`
+8. **Import order** — one group, alphabetical by path, case-insensitive, no blank lines between imports; type imports sort alongside value imports. `import-x/order` enforces it and is off in `*.spec.ts`; check with `pnpm nx lint <project>`
 9. **Explicit types on the public API** — annotate return types of public service and component methods, and the types behind `input()`/`output()`/`model()`. Inference stays for locals, private helpers and template-only expressions. A wrong inferred return type is a silent API change; an annotated one fails at the source. The rule guards against inference that can drift with the implementation, not against signature defaults: a payload-less event is bare `output()` — its type is the fixed `void` default of Angular's signature, and `no-unnecessary-type-arguments` rejects restating it — while anything whose type would be inferred from a value (an `input()` with an initial value, a method body) still gets the annotation
 
 ### Angular

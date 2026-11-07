@@ -49,7 +49,7 @@ export class ArticleContentTabComponent {
                     return;
                 }
 
-                let targetElement: Element | undefined = undefined;
+                let targetElement: Element | undefined;
                 try {
                     targetElement =
                         this.document.getElementById(this.currentFragment) ||
