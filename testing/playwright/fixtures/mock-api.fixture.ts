@@ -87,6 +87,14 @@ export async function mockAuthApi(page: Page, user: User = mockUsers.authenticat
     );
 
     await page.route('**/api/auth/logout', route => route.fulfill({ json: apiSuccess(undefined) }));
+
+    await mockSidebarCounts(page);
+}
+
+/** The sidebar loads these for a signed-in user on every page; a 401 from the real backend would log them out. */
+async function mockSidebarCounts(page: Page): Promise<void> {
+    await mockHistoryCounts(page);
+    await mockForumUnreadCount(page, 0);
 }
 
 /** Mock auth endpoints for an unauthenticated user */
@@ -119,6 +127,8 @@ export async function mockLoginSuccess(page: Page, user: User = mockUsers.authen
             json: apiSuccess({ isAuthenticated: true, user }),
         }),
     );
+
+    await mockSidebarCounts(page);
 }
 
 /** Mock POST /api/auth/login — failed login with error code */
@@ -934,6 +944,11 @@ export async function mockHistoryCounts(
     counts: HistoryCountsDto = { pendingArticles: 0, pendingNews: 0, pendingPictures: 0 },
 ): Promise<void> {
     await page.route('**/api/counts', route => route.fulfill({ json: apiSuccess(counts) }));
+}
+
+/** Mock GET /api/forum/unread-count — the total behind the forum badge in the sidebar */
+export async function mockForumUnreadCount(page: Page, unreadCount: number): Promise<void> {
+    await page.route('**/api/forum/unread-count', route => route.fulfill({ json: apiSuccess({ unreadCount }) }));
 }
 
 // ---------------------------------------------------------------------------

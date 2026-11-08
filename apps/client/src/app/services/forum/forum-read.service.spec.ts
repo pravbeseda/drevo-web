@@ -1,6 +1,7 @@
 import { FORUM_MARK_READ_DEBOUNCE_MS, ForumReadService } from './forum-read.service';
 import { ForumService } from './forum.service';
 import { AuthService } from '../auth/auth.service';
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { LoggerService } from '@drevo-web/core';
 import { MockLogger, MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { User } from '@drevo-web/shared';
@@ -73,6 +74,27 @@ describe('ForumReadService', () => {
         jest.advanceTimersByTime(FORUM_MARK_READ_DEBOUNCE_MS);
 
         expect(spectator.service.states().get(42)).toEqual({ unreadCount: 2, firstUnreadId: 10 });
+    });
+
+    it('should invalidate the counts once a report is accepted', () => {
+        const invalidated = jest.fn();
+        spectator.inject(CountsInvalidationService).invalidated$.subscribe(invalidated);
+
+        spectator.service.markSeen(42, 9);
+        jest.advanceTimersByTime(FORUM_MARK_READ_DEBOUNCE_MS);
+
+        expect(invalidated).toHaveBeenCalledTimes(1);
+    });
+
+    it('should leave the counts alone when a report fails', () => {
+        const invalidated = jest.fn();
+        spectator.inject(CountsInvalidationService).invalidated$.subscribe(invalidated);
+        forumService.markRead.mockReturnValue(throwError(() => new Error('offline')));
+
+        spectator.service.markSeen(42, 9);
+        jest.advanceTimersByTime(FORUM_MARK_READ_DEBOUNCE_MS);
+
+        expect(invalidated).not.toHaveBeenCalled();
     });
 
     it('should log a failed report and go on reporting', () => {

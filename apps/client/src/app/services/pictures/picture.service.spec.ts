@@ -6,7 +6,8 @@ import {
     PicturesListResponseDto,
 } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { PictureApiService } from './picture-api.service';
 import { PictureService } from './picture.service';
 
@@ -460,6 +461,30 @@ describe('PictureService', () => {
             spectator.service.cancelPending(10).subscribe();
 
             expect(pictureApiService.cancelPending).toHaveBeenCalledWith(10);
+        });
+    });
+
+    describe('counts invalidation', () => {
+        const decisions = ['approvePending', 'rejectPending', 'cancelPending'] as const;
+
+        it.each(decisions)('should invalidate the counts after %s succeeds', decision => {
+            const invalidated = jest.fn();
+            spectator.inject(CountsInvalidationService).invalidated$.subscribe(invalidated);
+            pictureApiService[decision].mockReturnValue(of(undefined));
+
+            spectator.service[decision](10).subscribe();
+
+            expect(invalidated).toHaveBeenCalledTimes(1);
+        });
+
+        it.each(decisions)('should leave the counts alone when %s fails', decision => {
+            const invalidated = jest.fn();
+            spectator.inject(CountsInvalidationService).invalidated$.subscribe(invalidated);
+            pictureApiService[decision].mockReturnValue(throwError(() => new Error('offline')));
+
+            spectator.service[decision](10).subscribe({ error: () => undefined });
+
+            expect(invalidated).not.toHaveBeenCalled();
         });
     });
 

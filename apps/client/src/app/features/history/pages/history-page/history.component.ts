@@ -1,8 +1,6 @@
-import { AuthService } from '../../../../services/auth/auth.service';
-import { HistoryCounts, HistoryCountsService } from '../../../../services/counts/history-counts.service';
+import { CountsService, HistoryCounts } from '../../../../services/counts/counts.service';
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TabItem, TabsComponent } from '@drevo-web/ui/tabs';
 
@@ -20,17 +18,10 @@ const BASE_TABS: readonly TabItem[] = [
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HistoryComponent {
-    private readonly authService = inject(AuthService);
-    private readonly historyCountsService = inject(HistoryCountsService);
-    private readonly user = toSignal(this.authService.user$);
-    private countsLoaded = false;
-
-    readonly canModerate = computed(() => this.user()?.permissions.canModerate ?? false);
+    private readonly countsService = inject(CountsService);
 
     readonly tabs = computed<TabItem[]>(() => {
-        if (!this.canModerate()) return [...BASE_TABS];
-
-        const counts = this.historyCountsService.counts();
+        const counts = this.countsService.historyCounts();
         if (!counts) return [...BASE_TABS];
 
         return BASE_TABS.map(tab => {
@@ -38,15 +29,6 @@ export class HistoryComponent {
             return badge > 0 ? { ...tab, badge } : tab;
         });
     });
-
-    constructor() {
-        effect(() => {
-            if (this.canModerate() && !this.countsLoaded) {
-                this.countsLoaded = true;
-                this.historyCountsService.loadCounts();
-            }
-        });
-    }
 
     private getBadge(route: string, counts: HistoryCounts): number {
         switch (route) {

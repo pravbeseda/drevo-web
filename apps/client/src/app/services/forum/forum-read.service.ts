@@ -1,5 +1,6 @@
 import { ForumService } from './forum.service';
 import { AuthService } from '../auth/auth.service';
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';
@@ -38,6 +39,7 @@ interface SeenMessage {
 @Injectable({ providedIn: 'root' })
 export class ForumReadService {
     private readonly forumService = inject(ForumService);
+    private readonly countsInvalidationService = inject(CountsInvalidationService);
     private readonly logger = inject(LoggerService).withContext('ForumReadService');
     private readonly seenSubject = new Subject<SeenMessage>();
     private readonly _states = signal<ReadonlyMap<number, ForumReadState>>(new Map());
@@ -88,6 +90,7 @@ export class ForumReadService {
 
     private markRead(topicId: number, messageId: number): Observable<ForumReadState> {
         return this.forumService.markRead(topicId, messageId).pipe(
+            tap(() => this.countsInvalidationService.invalidate()),
             catchError((error: unknown) => {
                 this.logger.error(`Failed to mark forum topic ${topicId} read up to message ${messageId}`, error);
                 return EMPTY;

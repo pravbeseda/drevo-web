@@ -11,6 +11,7 @@ import {
     ForumSectionDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
+    ForumUnreadCountDto,
 } from '@drevo-web/shared';
 
 describe('ForumApiService', () => {
@@ -256,6 +257,28 @@ describe('ForumApiService', () => {
             const req = httpController.expectOne('/api/forum/topics/42/read');
             expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
             req.flush({ success: false }, { status: 404, statusText: 'Not Found' });
+        });
+    });
+
+    describe('getUnreadCount', () => {
+        it('should GET /api/forum/unread-count and unwrap data', () => {
+            let result: ForumUnreadCountDto | undefined;
+            spectator.service.getUnreadCount().subscribe(dto => (result = dto));
+
+            const req = httpController.expectOne('/api/forum/unread-count');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            req.flush({ success: true, data: { unreadCount: 12 } });
+
+            expect(result).toEqual({ unreadCount: 12 });
+        });
+
+        it('should keep a failure of the background request away from the error toast', () => {
+            spectator.service.getUnreadCount().subscribe({ error: () => undefined });
+
+            const req = httpController.expectOne('/api/forum/unread-count');
+            expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+            req.flush({ success: false }, { status: 500, statusText: 'Server Error' });
         });
     });
 });

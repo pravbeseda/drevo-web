@@ -1,17 +1,24 @@
 <nav class="sidebar-nav">
-    @for (item of navItems; track item.route) {
+    @for (item of navItems(); track item.route) {
         <a
             class="nav-item"
             data-testid="nav-item"
             [routerLink]="item.route"
             routerLinkActive="active"
-            [attr.aria-label]="item.label"
+            [attr.aria-label]="item.ariaLabel"
         >
             <ui-icon
                 [name]="item.icon"
                 [tooltip]="item.label"
             />
             <span class="nav-label">{{ item.label }}</span>
+            @if (item.badge; as badge) {
+                <ui-badge
+                    class="nav-badge"
+                    data-testid="nav-badge"
+                    [value]="badge"
+                />
+            }
         </a>
     }
 </nav>

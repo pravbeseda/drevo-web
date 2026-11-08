@@ -1,5 +1,6 @@
 import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import {
@@ -51,6 +52,7 @@ import { map, tap } from 'rxjs/operators';
 })
 export class ArticleService {
     private readonly articleApiService = inject(ArticleApiService);
+    private readonly countsInvalidationService = inject(CountsInvalidationService);
     private readonly logger = inject(LoggerService).withContext('ArticleService');
 
     private readonly _renamedSubject = new Subject<RenameArticleResponse>();
@@ -176,6 +178,7 @@ export class ArticleService {
         kind: PageKind = 'articles',
     ): Observable<ModerationResult> {
         return this.articleApiService.moderateVersion({ versionId, approved, comment }, kind).pipe(
+            tap(() => this.countsInvalidationService.invalidate()),
             map(dto => ({
                 versionId: dto.versionId,
                 articleId: dto.articleId,

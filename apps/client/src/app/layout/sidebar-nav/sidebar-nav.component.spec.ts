@@ -1,3 +1,4 @@
+import { CountsService } from '../../services/counts/counts.service';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
@@ -14,6 +15,10 @@ describe('SidebarNavComponent', () => {
             provideRouter([]),
             MockProvider(DrawerService, {
                 isOpen: signal(true),
+            }),
+            MockProvider(CountsService, {
+                pendingTotal: signal(0),
+                forumUnread: signal(0),
             }),
         ],
     });
@@ -74,5 +79,84 @@ describe('SidebarNavComponent', () => {
         });
 
         expect(spectator.element).toHaveClass('compact');
+    });
+
+    describe('badges', () => {
+        const pendingTotal = signal(0);
+        const forumUnread = signal(0);
+
+        function navItem(label: string): HTMLElement {
+            const item = spectator.queryAll<HTMLElement>('[data-testid="nav-item"]').find(element => {
+                return element.textContent?.includes(label);
+            });
+            if (!item) throw new Error(`No nav item ${label}`);
+            return item;
+        }
+
+        function badgeOf(label: string): Element | null {
+            return navItem(label).querySelector('[data-testid="nav-badge"]');
+        }
+
+        beforeEach(() => {
+            pendingTotal.set(0);
+            forumUnread.set(0);
+            spectator = createComponent({
+                providers: [MockProvider(CountsService, { pendingTotal, forumUnread })],
+            });
+        });
+
+        it('should show the pending total on the history item', () => {
+            pendingTotal.set(12);
+            spectator.detectChanges();
+
+            expect(badgeOf('Изменения')).toHaveText('12');
+        });
+
+        it('should show the unread messages on the forum item', () => {
+            forumUnread.set(5);
+            spectator.detectChanges();
+
+            expect(badgeOf('Форум')).toHaveText('5');
+        });
+
+        it('should show no badge at zero', () => {
+            expect(spectator.query('[data-testid="nav-badge"]')).toBeNull();
+        });
+
+        it('should keep the other items without a badge', () => {
+            pendingTotal.set(12);
+            forumUnread.set(5);
+            spectator.detectChanges();
+
+            expect(badgeOf('Иллюстрации')).toBeNull();
+            expect(badgeOf('Календарь')).toBeNull();
+        });
+
+        it('should show the largest count in full', () => {
+            forumUnread.set(99);
+            spectator.detectChanges();
+
+            expect(badgeOf('Форум')?.textContent?.trim()).toBe('99');
+        });
+
+        it('should cap a larger count', () => {
+            forumUnread.set(100);
+            spectator.detectChanges();
+
+            expect(badgeOf('Форум')?.textContent?.trim()).toBe('99+');
+        });
+
+        it('should name the exact count to a screen reader, past the cap too', () => {
+            forumUnread.set(120);
+            pendingTotal.set(3);
+            spectator.detectChanges();
+
+            expect(navItem('Форум')).toHaveAttribute('aria-label', 'Форум: непрочитанных 120');
+            expect(navItem('Изменения')).toHaveAttribute('aria-label', 'Изменения: на модерации 3');
+        });
+
+        it('should keep the plain name at zero', () => {
+            expect(navItem('Форум')).toHaveAttribute('aria-label', 'Форум');
+        });
     });
 });

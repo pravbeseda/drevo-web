@@ -13,6 +13,7 @@ import {
     ForumSectionDto,
     ForumTopicListResponseDto,
     ForumTopicPageDto,
+    ForumUnreadCountDto,
     assertIsDefined,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
@@ -187,6 +188,24 @@ export class ForumApiService {
                     context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
                 },
             )
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * How many messages the reader has not read across the forum. A background
+     * request of the sidebar, so a failure stays away from the error toast.
+     */
+    getUnreadCount(): Observable<ForumUnreadCountDto> {
+        return this.http
+            .get<ApiResponse<ForumUnreadCountDto>>(`${this.apiUrl}/api/forum/unread-count`, {
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

@@ -1,5 +1,6 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import {
     ApprovalStatus,
     ArticleHistoryResponseDto,
@@ -517,6 +518,26 @@ describe('ArticleService', () => {
                 },
                 'articles',
             );
+        });
+
+        it('should invalidate the counts once the version is moderated', () => {
+            const invalidated = jest.fn();
+            spectator.inject(CountsInvalidationService).invalidated$.subscribe(invalidated);
+            articleApiService.moderateVersion.mockReturnValue(of(mockModerationResponse));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved).subscribe();
+
+            expect(invalidated).toHaveBeenCalledTimes(1);
+        });
+
+        it('should leave the counts alone when moderation fails', () => {
+            const invalidated = jest.fn();
+            spectator.inject(CountsInvalidationService).invalidated$.subscribe(invalidated);
+            articleApiService.moderateVersion.mockReturnValue(throwError(() => new Error('offline')));
+
+            spectator.service.moderateVersion(200, ApprovalStatus.Approved).subscribe({ error: () => undefined });
+
+            expect(invalidated).not.toHaveBeenCalled();
         });
 
         it('should map DTO to ModerationResult', done => {
