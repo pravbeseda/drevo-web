@@ -55,8 +55,6 @@ const EXCEPTIONS = {
     'libs/ui/src/lib/constants/breakpoints.ts': 0,
 
     // Untested, and not for a structural reason — tracked in #267.
-    'apps/client/src/app/features/history/pages/forum-history/forum-history.component.ts': 0,
-    'apps/client/src/app/features/history/pages/news-history/news-history.component.ts': 0,
     'apps/client/src/app/features/history/resolvers/diff-title.resolver.ts': 0,
 
     // The IndexedDB layer: jsdom ships no implementation, so a unit test reaches the wrapper

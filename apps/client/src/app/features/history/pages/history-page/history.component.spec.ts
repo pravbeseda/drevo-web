@@ -5,6 +5,7 @@ import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
+import { TabsComponent } from '@drevo-web/ui/tabs';
 import { BehaviorSubject } from 'rxjs';
 import { HistoryComponent } from './history.component';
 
@@ -108,7 +109,7 @@ describe('HistoryComponent', () => {
     });
 
     it('should keep tabs at their content width', () => {
-        expect(spectator.query('nav[mat-tab-nav-bar]')).not.toHaveClass('mat-mdc-tab-nav-bar-stretch-tabs');
+        expect(spectator.query(TabsComponent)?.stretch()).toBe(false);
     });
 
     it('should render router-outlet', () => {
