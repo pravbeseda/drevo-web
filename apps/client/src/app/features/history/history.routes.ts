@@ -43,12 +43,6 @@ export const HISTORY_ROUTES: Route[] = [
                     import('./pages/page-history/page-history.component').then(m => m.PageHistoryComponent),
             },
             {
-                path: 'forum',
-                title: 'История обсуждений',
-                loadComponent: () =>
-                    import('./pages/forum-history/forum-history.component').then(m => m.ForumHistoryComponent),
-            },
-            {
                 path: 'pictures',
                 title: 'История иллюстраций',
                 loadComponent: () =>

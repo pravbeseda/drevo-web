@@ -1,4 +1,7 @@
-<ui-tabs [tabs]="tabs()">
+<ui-tabs
+    [tabs]="tabs()"
+    [stretch]="false"
+>
     <app-sidebar-reserve />
     <div class="history-content">
         <router-outlet />

@@ -19,4 +19,5 @@ export interface TabItem {
 })
 export class TabsComponent {
     tabs = input.required<TabItem[]>();
+    stretch = input<boolean>(true);
 }

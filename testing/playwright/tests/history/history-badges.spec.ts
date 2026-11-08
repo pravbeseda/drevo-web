@@ -14,7 +14,6 @@ test.describe('History tab badges', () => {
 
         await expect(history.badgeFor(history.tabArticles)).toHaveText('5');
         await expect(history.badgeFor(history.tabNews)).toHaveText('2');
-        await expect(history.badgeFor(history.tabForum)).toBeHidden();
         await expect(history.badgeFor(history.tabPictures)).toBeHidden();
     });
 
