@@ -13,6 +13,11 @@ test.describe('History page', () => {
         await expect(page).toHaveURL(/\/history\/articles/);
     });
 
+    test('/history/forum is a not-found page', async ({ authenticatedPage: page }) => {
+        await page.goto('/history/forum');
+        await expect(page).toHaveTitle(/Страница не найдена/);
+    });
+
     test('shows history list on load', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
@@ -42,11 +47,10 @@ test.describe('History page', () => {
         await expect(page).toHaveURL(/\/history\/news/);
     });
 
-    test('clicking forum tab navigates to /history/forum', async ({ authenticatedPage: page }) => {
+    test('tabs keep their content width instead of filling the row', async ({ authenticatedPage: page }) => {
         const history = new HistoryPage(page);
         await history.waitForReady();
-        await history.tabForum.click();
-        await expect(page).toHaveURL(/\/history\/forum/);
+        await expect(history.tabArticles).toHaveCSS('flex-grow', '0');
     });
 
     test('clicking pictures tab navigates to /history/pictures', async ({ authenticatedPage: page }) => {

@@ -1,6 +1,7 @@
 <nav
     mat-tab-nav-bar
     [tabPanel]="tabPanel"
+    [mat-stretch-tabs]="stretch()"
 >
     @for (tab of tabs(); track tab.route) {
         <a

@@ -1,3 +1,4 @@
+import { MatTabNav } from '@angular/material/tabs';
 import { provideRouter } from '@angular/router';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TabItem, TabsComponent } from './tabs.component';
@@ -64,6 +65,15 @@ describe('TabsComponent', () => {
     it('should render mat-tab-nav-panel', () => {
         const panel = spectator.query('mat-tab-nav-panel');
         expect(panel).toBeTruthy();
+    });
+
+    it('should stretch tabs over the full width by default', () => {
+        expect(spectator.query(MatTabNav)?.stretchTabs).toBe(true);
+    });
+
+    it('should keep tabs at their content width when stretch is off', () => {
+        spectator.setInput('stretch', false);
+        expect(spectator.query(MatTabNav)?.stretchTabs).toBe(false);
     });
 
     it('should render data-testid when testId is provided', () => {

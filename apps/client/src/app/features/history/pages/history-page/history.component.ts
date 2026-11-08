@@ -9,7 +9,6 @@ import { TabItem, TabsComponent } from '@drevo-web/ui/tabs';
 const BASE_TABS: readonly TabItem[] = [
     { label: 'Статьи', route: '/history/articles', testId: 'history-tab-articles' },
     { label: 'Новости', route: '/history/news', testId: 'history-tab-news' },
-    { label: 'Сообщения', route: '/history/forum', testId: 'history-tab-forum' },
     { label: 'Иллюстрации', route: '/history/pictures', testId: 'history-tab-pictures' },
 ];
 

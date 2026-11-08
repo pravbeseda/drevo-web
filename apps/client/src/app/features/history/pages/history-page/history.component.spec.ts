@@ -5,13 +5,13 @@ import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
 import { User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
+import { TabsComponent } from '@drevo-web/ui/tabs';
 import { BehaviorSubject } from 'rxjs';
 import { HistoryComponent } from './history.component';
 
 const EXPECTED_TABS = [
     { label: 'Статьи', route: '/history/articles', testId: 'history-tab-articles' },
     { label: 'Новости', route: '/history/news', testId: 'history-tab-news' },
-    { label: 'Сообщения', route: '/history/forum', testId: 'history-tab-forum' },
     { label: 'Иллюстрации', route: '/history/pictures', testId: 'history-tab-pictures' },
 ];
 
@@ -76,7 +76,7 @@ describe('HistoryComponent', () => {
         expect(mockHistoryCountsService.loadCounts).toHaveBeenCalledTimes(1);
     });
 
-    it('should have 4 tabs without badges when counts not loaded', () => {
+    it('should have 3 tabs without badges when counts not loaded', () => {
         expect(spectator.component.tabs()).toEqual(EXPECTED_TABS);
     });
 
@@ -88,7 +88,6 @@ describe('HistoryComponent', () => {
         expect(tabs[0]).toEqual({ ...EXPECTED_TABS[0], badge: 5 });
         expect(tabs[1]).toEqual({ ...EXPECTED_TABS[1], badge: 2 });
         expect(tabs[2]).toEqual(EXPECTED_TABS[2]);
-        expect(tabs[3]).toEqual(EXPECTED_TABS[3]);
     });
 
     it('should not show badges for regular users when counts are loaded', () => {
@@ -107,6 +106,10 @@ describe('HistoryComponent', () => {
 
     it('should render ui-tabs', () => {
         expect(spectator.query('ui-tabs')).toBeTruthy();
+    });
+
+    it('should keep tabs at their content width', () => {
+        expect(spectator.query(TabsComponent)?.stretch()).toBe(false);
     });
 
     it('should render router-outlet', () => {
