@@ -71,9 +71,13 @@ export class LayoutPage extends BasePage {
         await this.expectSidebarExpanded();
     }
 
-    /** Get a nav item by its aria-label */
+    /** Get a nav item by the start of its aria-label: an item with a badge appends the count to it */
     navItem(label: string) {
-        return this.sidebar.locator(`[data-testid="nav-item"][aria-label="${label}"]`);
+        return this.sidebar.locator(`[data-testid="nav-item"][aria-label^="${label}"]`);
+    }
+
+    navBadge(label: string) {
+        return this.navItem(label).getByTestId('nav-badge');
     }
 
     private readonly layoutRoot = this.page.locator('.layout');

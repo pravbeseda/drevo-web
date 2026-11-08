@@ -315,6 +315,17 @@ describe('ForumService', () => {
         });
     });
 
+    describe('getUnreadCount', () => {
+        it('should answer the number the API layer returns', done => {
+            forumApiService.getUnreadCount.mockReturnValue(of({ unreadCount: 12 }));
+
+            spectator.service.getUnreadCount().subscribe(count => {
+                expect(count).toBe(12);
+                done();
+            });
+        });
+    });
+
     describe('posting', () => {
         const messageDto = {
             id: 100,

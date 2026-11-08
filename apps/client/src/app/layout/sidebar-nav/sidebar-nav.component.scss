@@ -7,6 +7,7 @@
 }
 
 .nav-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: rem($sidebar-nav-item-gap);
@@ -37,6 +38,13 @@
     overflow: hidden;
 }
 
+/* Painted like the unread count of a topic row: the tab colours vanish on a hovered or an active item. */
+.nav-badge {
+    margin-left: auto;
+    background-color: var(--themed-forum-topic-label);
+    color: var(--themed-primary-bg);
+}
+
 @media (min-width: $breakpoint-tablet) {
     :host(.compact) {
         .nav-item {
@@ -46,6 +54,13 @@
 
         .nav-label {
             display: none;
+        }
+
+        .nav-badge {
+            position: absolute;
+            top: rem($sidebar-nav-badge-offset);
+            right: rem($sidebar-nav-badge-offset);
+            margin-left: 0;
         }
     }
 }

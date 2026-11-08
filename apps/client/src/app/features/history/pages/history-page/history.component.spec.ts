@@ -1,12 +1,8 @@
-import { AuthService } from '../../../../services/auth/auth.service';
-import { HistoryCounts, HistoryCountsService } from '../../../../services/counts/history-counts.service';
+import { CountsService, HistoryCounts } from '../../../../services/counts/counts.service';
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';
-import { User } from '@drevo-web/shared';
-import { createMockUser } from '@drevo-web/shared/testing';
 import { TabsComponent } from '@drevo-web/ui/tabs';
-import { BehaviorSubject } from 'rxjs';
 import { HistoryComponent } from './history.component';
 
 const EXPECTED_TABS = [
@@ -15,49 +11,20 @@ const EXPECTED_TABS = [
     { label: 'Иллюстрации', route: '/history/pictures', testId: 'history-tab-pictures' },
 ];
 
-const moderatorUser = createMockUser({
-    id: 1,
-    login: 'moderator',
-    name: 'Moderator',
-    email: 'moderator@example.com',
-    role: 'moder',
-    permissions: { canEdit: true, canModerate: true, canAdmin: false },
-});
-
-const regularUser = createMockUser({
-    id: 2,
-    login: 'user',
-    name: 'User',
-    email: 'user@example.com',
-    role: 'user',
-    permissions: { canEdit: true, canModerate: false, canAdmin: false },
-});
-
 describe('HistoryComponent', () => {
     let spectator: Spectator<HistoryComponent>;
-    const userSubject = new BehaviorSubject<User | undefined>(undefined);
     const countsSignal = signal<HistoryCounts | undefined>(undefined);
-    const mockHistoryCountsService = {
-        counts: countsSignal.asReadonly(),
-        loadCounts: jest.fn(),
-    };
-    const mockAuthService = {
-        user$: userSubject.asObservable(),
-    };
 
     const createComponent = createComponentFactory({
         component: HistoryComponent,
         providers: [
             provideRouter([{ path: '**', children: [] }]),
-            { provide: AuthService, useValue: mockAuthService },
-            { provide: HistoryCountsService, useValue: mockHistoryCountsService },
+            { provide: CountsService, useValue: { historyCounts: countsSignal.asReadonly() } },
         ],
     });
 
     beforeEach(() => {
-        userSubject.next(undefined);
         countsSignal.set(undefined);
-        mockHistoryCountsService.loadCounts.mockClear();
         spectator = createComponent();
     });
 
@@ -65,23 +32,11 @@ describe('HistoryComponent', () => {
         expect(spectator.component).toBeTruthy();
     });
 
-    it('should not call loadCounts for guests', () => {
-        expect(mockHistoryCountsService.loadCounts).not.toHaveBeenCalled();
-    });
-
-    it('should call loadCounts for moderators', () => {
-        userSubject.next(moderatorUser);
-        spectator.detectChanges();
-
-        expect(mockHistoryCountsService.loadCounts).toHaveBeenCalledTimes(1);
-    });
-
-    it('should have 3 tabs without badges when counts not loaded', () => {
+    it('should have 3 tabs without badges when there are no counts', () => {
         expect(spectator.component.tabs()).toEqual(EXPECTED_TABS);
     });
 
-    it('should show badges for moderators when counts are loaded', () => {
-        userSubject.next(moderatorUser);
+    it('should show badges when counts are loaded', () => {
         countsSignal.set({ pendingArticles: 5, pendingNews: 2, pendingPictures: 0 });
 
         const tabs = spectator.component.tabs();
@@ -90,15 +45,7 @@ describe('HistoryComponent', () => {
         expect(tabs[2]).toEqual(EXPECTED_TABS[2]);
     });
 
-    it('should not show badges for regular users when counts are loaded', () => {
-        userSubject.next(regularUser);
-        countsSignal.set({ pendingArticles: 5, pendingNews: 2, pendingPictures: 3 });
-
-        expect(spectator.component.tabs()).toEqual(EXPECTED_TABS);
-    });
-
     it('should not show badge when count is zero', () => {
-        userSubject.next(moderatorUser);
         countsSignal.set({ pendingArticles: 0, pendingNews: 0, pendingPictures: 0 });
 
         expect(spectator.component.tabs()).toEqual(EXPECTED_TABS);

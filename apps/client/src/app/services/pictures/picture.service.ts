@@ -1,5 +1,6 @@
 import { PictureApiService } from './picture-api.service';
 import { DEFAULT_PICTURES_PAGE_SIZE } from './picture.constants';
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { Injectable, inject } from '@angular/core';
 import {
     Picture,
@@ -16,7 +17,7 @@ import {
     parseDate,
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 export interface PictureEditResult {
     readonly picture: Picture | undefined;
@@ -32,6 +33,7 @@ export interface PictureEditResult {
 })
 export class PictureService {
     private readonly pictureApiService = inject(PictureApiService);
+    private readonly countsInvalidationService = inject(CountsInvalidationService);
 
     /**
      * Get paginated list of pictures with optional search
@@ -109,15 +111,19 @@ export class PictureService {
     }
 
     approvePending(pendingId: number): Observable<void> {
-        return this.pictureApiService.approvePending(pendingId);
+        return this.invalidatingCounts(this.pictureApiService.approvePending(pendingId));
     }
 
     rejectPending(pendingId: number): Observable<void> {
-        return this.pictureApiService.rejectPending(pendingId);
+        return this.invalidatingCounts(this.pictureApiService.rejectPending(pendingId));
     }
 
     cancelPending(pendingId: number): Observable<void> {
-        return this.pictureApiService.cancelPending(pendingId);
+        return this.invalidatingCounts(this.pictureApiService.cancelPending(pendingId));
+    }
+
+    private invalidatingCounts(decision$: Observable<void>): Observable<void> {
+        return decision$.pipe(tap(() => this.countsInvalidationService.invalidate()));
     }
 
     /**

@@ -88,6 +88,13 @@ export class ForumService {
     }
 
     /**
+     * How many messages the reader has not read across the forum.
+     */
+    getUnreadCount(): Observable<number> {
+        return this.forumApiService.getUnreadCount().pipe(map(dto => dto.unreadCount));
+    }
+
+    /**
      * Start a topic. A post the forum refuses is an outcome the form shows,
      * not a failure; anything else still fails the stream.
      */

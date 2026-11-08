@@ -112,6 +112,11 @@ export interface ForumCreatedTopicDto extends ForumPostedMessageDto {
     readonly topicId: number;
 }
 
+/** How many messages the reader has not read across the whole forum. */
+export interface ForumUnreadCountDto {
+    readonly unreadCount: number;
+}
+
 /** What is left unread in a topic after its read watermark moved. */
 export interface ForumReadStateDto {
     readonly unreadCount: number;

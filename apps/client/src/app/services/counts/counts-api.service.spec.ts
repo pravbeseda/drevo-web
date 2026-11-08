@@ -2,6 +2,7 @@ import { CountsApiService } from './counts-api.service';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
+import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import { HistoryCountsDto } from '@drevo-web/shared';
 
 describe('CountsApiService', () => {
@@ -37,5 +38,13 @@ describe('CountsApiService', () => {
         expect(req.request.method).toBe('GET');
         expect(req.request.withCredentials).toBe(true);
         req.flush({ success: true, data: mockCounts });
+    });
+
+    it('should keep a failure of the background request away from the error toast', () => {
+        spectator.service.getHistoryCounts().subscribe({ error: () => undefined });
+
+        const req = httpController.expectOne('/api/counts');
+        expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+        req.flush({ success: false }, { status: 500, statusText: 'Server Error' });
     });
 });

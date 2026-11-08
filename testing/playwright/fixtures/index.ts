@@ -89,6 +89,7 @@ export {
     mockReviewsSummary,
     mockReviewsSummaryFeatureOff,
     mockHistoryCounts,
+    mockForumUnreadCount,
     mockCalendarYear,
     mockCalendarYearOutOfRange,
     mockCalendarYearError,
