@@ -5,6 +5,7 @@
             data-testid="nav-item"
             [routerLink]="item.route"
             routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.route === '/' }"
             [attr.aria-label]="item.ariaLabel"
         >
             <ui-icon

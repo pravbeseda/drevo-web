@@ -1,6 +1,6 @@
 import { CountsService } from '../../services/counts/counts.service';
 import { signal } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { DrawerService } from '@drevo-web/core';
@@ -12,7 +12,7 @@ describe('SidebarNavComponent', () => {
     const createComponent = createComponentFactory({
         component: SidebarNavComponent,
         providers: [
-            provideRouter([]),
+            provideRouter([{ path: '**', children: [] }]),
             MockProvider(DrawerService, {
                 isOpen: signal(true),
             }),
@@ -35,8 +35,10 @@ describe('SidebarNavComponent', () => {
         const items = spectator.queryAll('.nav-item');
 
         expect(items.length).toBeGreaterThan(0);
-        expect(items[0]).toHaveAttribute('href', '/history/articles');
-        expect(items[0]).toHaveText('Изменения');
+        expect(items[0]).toHaveAttribute('href', '/');
+        expect(items[0]).toHaveText('Главная');
+        expect(items[1]).toHaveAttribute('href', '/history/articles');
+        expect(items[1]).toHaveText('Изменения');
     });
 
     it('should not offer a news section: the news are in the history', () => {
@@ -60,7 +62,39 @@ describe('SidebarNavComponent', () => {
 
         const icon = spectator.query(IconComponent);
 
-        expect(icon?.tooltip()).toBe('Изменения');
+        expect(icon?.tooltip()).toBe('Главная');
+    });
+
+    describe('active item', () => {
+        function activeLabels(): readonly string[] {
+            return spectator
+                .queryAll<HTMLElement>('[data-testid="nav-item"].active')
+                .map(item => item.querySelector('.nav-label')?.textContent ?? '');
+        }
+
+        async function openPage(url: string): Promise<void> {
+            spectator = createComponent();
+            await spectator.inject(Router).navigateByUrl(url);
+            spectator.detectChanges();
+        }
+
+        it('should mark the home item on the home page', async () => {
+            await openPage('/');
+
+            expect(activeLabels()).toEqual(['Главная']);
+        });
+
+        it('should not mark the home item on another page', async () => {
+            await openPage('/pictures');
+
+            expect(activeLabels()).toEqual(['Иллюстрации']);
+        });
+
+        it('should keep marking a section on its nested page', async () => {
+            await openPage('/forum/topic/1');
+
+            expect(activeLabels()).toEqual(['Форум']);
+        });
     });
 
     it('should not have compact class when drawer is open', () => {
