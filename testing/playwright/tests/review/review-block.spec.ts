@@ -1,4 +1,12 @@
-import { test, expect, mockVersionPairs, mockReviewsList, mockAuthApi, bypassSsr } from '../../fixtures';
+import {
+    test,
+    expect,
+    mockVersionPairs,
+    mockReviewsList,
+    mockReviewsListError,
+    mockAuthApi,
+    bypassSsr,
+} from '../../fixtures';
 import { createVersionPairsResponse, mockUsers } from '../../mocks';
 import { ApprovalStatus, ReviewStatus } from '@drevo-web/shared';
 import { Page } from '@playwright/test';
@@ -25,6 +33,21 @@ async function openReviewForm(page: Page): Promise<ReviewBlockPage> {
     await review.waitForReady();
     return review;
 }
+
+test.describe('Review block — load failure', () => {
+    test('says the votes did not load and offers no form to overwrite them', async ({ authenticatedPage: page }) => {
+        await bypassSsr(page, DIFF_URL_PATTERN);
+        await mockAuthApi(page, mockUsers.reviewer);
+        await mockReviewsListError(page);
+        await mockVersionPairs(page, VERSION, createVersionPairsResponse({ approved: ApprovalStatus.Pending }));
+        const review = new ReviewBlockPage(page);
+
+        await page.goto(DIFF_URL);
+
+        await expect(review.loadError).toBeVisible();
+        await expect(review.form).toBeHidden();
+    });
+});
 
 test.describe('Review block — comment field visibility', () => {
     test('hides the comment field and its actions by default', async ({ authenticatedPage: page }) => {

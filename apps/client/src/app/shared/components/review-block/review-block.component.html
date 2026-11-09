@@ -71,7 +71,14 @@
                 </ul>
             }
 
-            @if (canReview()) {
+            @if (loadFailed()) {
+                <p
+                    class="review-load-error"
+                    data-testid="review-load-error"
+                >
+                    Не удалось загрузить отзывы. Обновите страницу.
+                </p>
+            } @else if (canReview()) {
                 <form
                     class="review-form"
                     [formGroup]="form"

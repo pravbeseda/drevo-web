@@ -1,12 +1,14 @@
 import { ReviewBlockComponent } from './review-block.component';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ReviewService } from '../../../services/reviews/review.service';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
+import { LoggerService } from '@drevo-web/core';
+import { MockLogger, MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus, Review, ReviewStatus, User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { ConfirmationService } from '@drevo-web/ui/confirmation';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 
 const AUTHOR = 'Article Author';
 const VERSION_ID = 42;
@@ -60,6 +62,77 @@ describe('ReviewBlockComponent', () => {
         });
         spectator.detectChanges();
     }
+
+    describe('when the reviews fail to load', () => {
+        const failure = new HttpErrorResponse({ status: 500 });
+        const logger = (): MockLogger => (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+
+        it('tells a reviewer instead of offering a form that would overwrite the saved vote', () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            getReviews.mockReturnValue(throwError(() => failure));
+
+            render();
+
+            expect(spectator.query('[data-testid="review-load-error"]')).toBeTruthy();
+            expect(spectator.query('[data-testid="review-form"]')).toBeNull();
+        });
+
+        it('logs the cause', () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            getReviews.mockReturnValue(throwError(() => failure));
+
+            render();
+
+            expect(logger().error).toHaveBeenCalledWith(`Failed to load the reviews of version ${VERSION_ID}`, failure);
+        });
+
+        it('keeps the block hidden from a reader who could not vote anyway', () => {
+            user$.next(createMockUser({ isReviewer: false }));
+            getReviews.mockReturnValue(throwError(() => failure));
+
+            render();
+
+            expect(spectator.query('[data-testid="review-block"]')).toBeNull();
+            expect(logger().error).toHaveBeenCalled();
+        });
+
+        it('treats the feature being off as no reviews, with nothing to report', () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            getReviews.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404, error: { errorCode: 'FEATURE_DISABLED' } })),
+            );
+
+            render();
+
+            expect(spectator.query('[data-testid="review-load-error"]')).toBeNull();
+            expect(spectator.query('[data-testid="review-form"]')).toBeTruthy();
+            expect(logger().error).not.toHaveBeenCalled();
+        });
+
+        it('reports any other 404, which is not the feature being off', () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            getReviews.mockReturnValue(
+                throwError(() => new HttpErrorResponse({ status: 404, error: { errorCode: 'NOT_FOUND' } })),
+            );
+
+            render();
+
+            expect(spectator.query('[data-testid="review-load-error"]')).toBeTruthy();
+        });
+
+        it('offers the form again once another version loads', async () => {
+            user$.next(createMockUser({ isReviewer: true }));
+            getReviews.mockReturnValueOnce(throwError(() => failure)).mockReturnValue(of([]));
+            render();
+
+            spectator.setInput('versionId', VERSION_ID + 1);
+            await spectator.fixture.whenStable();
+            spectator.detectChanges();
+
+            expect(spectator.query('[data-testid="review-load-error"]')).toBeNull();
+            expect(spectator.query('[data-testid="review-form"]')).toBeTruthy();
+        });
+    });
 
     it('hides the block when there are no reviews and the user cannot review', () => {
         user$.next(createMockUser({ isReviewer: false }));

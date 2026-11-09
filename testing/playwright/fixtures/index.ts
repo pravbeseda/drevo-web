@@ -86,6 +86,7 @@ export {
     mockGlobalHistory,
     mockGlobalHistoryError,
     mockReviewsList,
+    mockReviewsListError,
     mockReviewsSummary,
     mockReviewsSummaryFeatureOff,
     mockHistoryCounts,

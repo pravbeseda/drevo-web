@@ -927,6 +927,13 @@ export async function mockReviewsList(page: Page, reviews: readonly ReviewDto[] 
     await page.route('**/api/reviews/list/**', route => route.fulfill({ json: apiSuccess(reviews) }));
 }
 
+/** Mock GET /api/reviews/list/:type/:versionId — a server failure */
+export async function mockReviewsListError(page: Page): Promise<void> {
+    await page.route('**/api/reviews/list/**', route =>
+        route.fulfill({ status: 500, json: apiError('Server error', 'INTERNAL_ERROR') }),
+    );
+}
+
 /** Mock GET /api/reviews/summary/:type — feature flag off (404), client treats it as "no reviews" */
 export async function mockReviewsSummaryFeatureOff(page: Page): Promise<void> {
     await page.route('**/api/reviews/summary/**', route =>

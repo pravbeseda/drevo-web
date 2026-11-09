@@ -1,10 +1,11 @@
 import { CommentSegment, linkifyComment } from './comment-linkify';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ReviewService } from '../../../services/reviews/review.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, readApiErrorBody } from '@drevo-web/core';
 import {
     ApprovalStatus,
     REVIEW_COMMENT_REQUIRED_STATUSES,
@@ -67,6 +68,12 @@ const STATUS_OPTIONS: readonly StatusOption[] = ALL_STATUSES.map(status => ({
     cssClass: REVIEW_STATUS_CLASS[status],
 }));
 
+const FEATURE_DISABLED_ERROR_CODE = 'FEATURE_DISABLED';
+
+function isFeatureDisabled(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && readApiErrorBody(error)?.errorCode === FEATURE_DISABLED_ERROR_CODE;
+}
+
 /** Comment is required for Suggest/Disagree (form-group validator). */
 function commentRequiredValidator(control: AbstractControl): ValidationErrors | null {
     const status = control.get('status')?.value as ReviewStatus | undefined;
@@ -116,6 +123,10 @@ export class ReviewBlockComponent {
 
     /** Loaded votes: reseeded on version change, replaced after set/delete. */
     private readonly _reviews = signal<readonly Review[]>([]);
+
+    /** The votes are unknown, so the form must not offer to overwrite the reviewer's saved one. */
+    private readonly _loadFailed = signal(false);
+    readonly loadFailed = this._loadFailed.asReadonly();
 
     /**
      * Whether the comment field and its action buttons are shown. Hidden on
@@ -238,8 +249,8 @@ export class ReviewBlockComponent {
     });
 
     constructor() {
-        // Load votes on every version change; feature-off/forbidden → empty list
-        // (toast is suppressed at the HTTP layer via SKIP_ERROR_NOTIFICATION).
+        // Load votes on every version change; the toast is suppressed at the HTTP
+        // layer via SKIP_ERROR_NOTIFICATION, so a failure is answered here.
         toObservable(this.versionId)
             .pipe(
                 // Discard any unsaved draft when switching versions so it cannot
@@ -251,9 +262,13 @@ export class ReviewBlockComponent {
                     this._commentExpanded.set(false);
                 }),
                 switchMap(versionId =>
-                    this.reviewService
-                        .getReviews(this.type(), versionId)
-                        .pipe(catchError(() => of<readonly Review[]>([]))),
+                    this.reviewService.getReviews(this.type(), versionId).pipe(
+                        tap(() => this._loadFailed.set(false)),
+                        catchError((error: unknown) => {
+                            this.recordLoadFailure(versionId, error);
+                            return of<readonly Review[]>([]);
+                        }),
+                    ),
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -270,6 +285,15 @@ export class ReviewBlockComponent {
                 });
             }
         });
+    }
+
+    /** The feature being off is the backend's normal answer: an empty list with nothing to report. */
+    private recordLoadFailure(versionId: number, error: unknown): void {
+        const failed = !isFeatureDisabled(error);
+        this._loadFailed.set(failed);
+        if (failed) {
+            this.logger.error(`Failed to load the reviews of version ${versionId}`, error);
+        }
     }
 
     /**
