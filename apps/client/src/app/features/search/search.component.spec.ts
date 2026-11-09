@@ -601,7 +601,7 @@ describe('SearchComponent', () => {
                 totalPages: 2,
             };
 
-            const startLoadMoreThenChangeQuery = (nextPageDelayMs: number): void => {
+            const startLoadMoreThenChangeQuery = (nextPageDelayMs: number, newQuery = 'new'): void => {
                 mockArticleService.searchArticles.mockReset();
                 mockArticleService.searchArticles
                     .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
@@ -614,8 +614,20 @@ describe('SearchComponent', () => {
                 jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
 
                 spectator.component.onLoadMore();
-                spectator.component.onSearchChange('new');
+                spectator.component.onSearchChange(newQuery);
             };
+
+            it('should still add the page when only the surrounding whitespace changed', () => {
+                startLoadMoreThenChangeQuery(100, 'old ');
+
+                jest.advanceTimersByTime(100);
+
+                expect(spectator.component.searchResults()).toEqual([
+                    ...firstPageResponse.items,
+                    ...secondPageResponse.items,
+                ]);
+                expect(spectator.component.isLoadingMore()).toBe(false);
+            });
 
             it('should stop showing the page as loading at once', () => {
                 startLoadMoreThenChangeQuery(1000);

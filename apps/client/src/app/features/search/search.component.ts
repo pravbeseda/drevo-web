@@ -39,6 +39,7 @@ export class SearchComponent implements OnInit {
         optional: true,
     });
     private readonly searchSubject = new Subject<string>();
+    private readonly queryChangedSubject = new Subject<void>();
 
     readonly searchQuery = signal('');
     readonly searchResults = signal<ArticleSearchResult[]>([]);
@@ -71,6 +72,7 @@ export class SearchComponent implements OnInit {
                 tap(() => {
                     this.isLoading.set(true);
                     this.currentPage.set(1);
+                    this.queryChangedSubject.next();
                 }),
                 debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
@@ -118,7 +120,7 @@ export class SearchComponent implements OnInit {
                     this.logger.error('Failed to load more search results', error);
                     return of({ items: [], total: 0 });
                 }),
-                takeUntil(this.searchSubject),
+                takeUntil(this.queryChangedSubject),
                 finalize(() => this.isLoadingMore.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
