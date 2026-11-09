@@ -203,12 +203,15 @@ export class ForumComposerComponent {
         }
 
         const { message, approved } = outcome.result;
-        void this.drafts.save(topicId, '');
+        void this.drafts.discardSent(topicId, sentText);
         this.logger.info('Reply posted', { topicId, messageId: message.id, approved });
         if (!stillHere) {
             return;
         }
-        this.clear();
+        // What the reader wrote while the reply was on its way exists nowhere else.
+        if (this._draft() === sentText) {
+            this.clear();
+        }
         if (approved) {
             this.posted.emit(message);
         } else {

@@ -446,7 +446,29 @@ describe('ForumComposerComponent', () => {
 
             spectator.click(sendButton() as HTMLElement);
 
-            expect(drafts.save).toHaveBeenLastCalledWith(42, '');
+            expect(drafts.discardSent).toHaveBeenCalledWith(42, 'Ответ');
+            expect(content()).toBe('');
+        });
+
+        it('keeps what the reader wrote while the message was on its way', async () => {
+            await spectator.fixture.whenStable();
+            const outcome = new Subject<ForumPostOutcome<ForumPostedMessage>>();
+            forumService.reply.mockReturnValue(outcome);
+            const sent: ForumMessage[] = [];
+            spectator.output<ForumMessage>('posted').subscribe(value => sent.push(value));
+            spectator.component.replyTo(createMessage());
+            type('Ответ');
+            spectator.click(sendButton() as HTMLElement);
+            type('Ответ. P.S.');
+
+            const message = createMessage({ id: 100 });
+            outcome.next({ status: 'posted', result: { message, approved: true } });
+            spectator.detectChanges();
+
+            expect(sent).toEqual([message]);
+            expect(drafts.discardSent).toHaveBeenCalledWith(42, 'Ответ');
+            expect(content()).toBe('Ответ. P.S.');
+            expect(spectator.query('[data-testid="composer-reply"]')).not.toBeNull();
         });
 
         it('tells about a refusal that comes after the reader moved on, leaving the next topic alone', async () => {
@@ -523,7 +545,7 @@ describe('ForumComposerComponent', () => {
             outcome.next({ status: 'posted', result: { message: createMessage({ id: 100 }), approved: true } });
             spectator.detectChanges();
 
-            expect(drafts.save).toHaveBeenLastCalledWith(42, '');
+            expect(drafts.discardSent).toHaveBeenCalledWith(42, 'Ответ');
             expect(sent).toEqual([]);
             expect(content()).toBe('Другой ответ');
         });

@@ -123,6 +123,27 @@ test.describe('Forum posting', () => {
             await expect(topic.message(NEW_MESSAGE_ID)).toBeVisible();
         });
 
+        test('keeps what the reader wrote while the reply was on its way', async ({ authenticatedPage: page }) => {
+            await mockForumReplyApi(page, TOPIC_ID, createForumPostedMessageDto(NEW_MESSAGE));
+            let answer: () => void = () => undefined;
+            const answered = new Promise<void>(resolve => (answer = resolve));
+            await page.route(/\/api\/forum\/topics\/7\/messages$/, async route => {
+                await answered;
+                return route.fallback();
+            });
+            const topic = await openTopic(page);
+
+            await topic.write('Мой ответ');
+            const sent = nextPost(page, /\/api\/forum\/topics\/7\/messages$/);
+            await topic.send.click();
+            await sent;
+            await topic.write(' и ещё');
+            answer();
+
+            await expect(topic.message(NEW_MESSAGE_ID)).toBeVisible();
+            await expect(topic.composerText).toHaveText('Мой ответ и ещё');
+        });
+
         test('writes in a field one line high, with no frame or lint column, that grows with the text', async ({
             authenticatedPage: page,
         }) => {

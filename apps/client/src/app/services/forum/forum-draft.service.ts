@@ -100,6 +100,24 @@ export class ForumDraftService {
         return this.writes;
     }
 
+    /** The reply went out: its draft goes with it, unless the reader has written on since. */
+    discardSent(topicId: number, sentText: string): Promise<void> {
+        if (this.pending?.topicId === topicId) {
+            if (this.pending.text !== sentText) {
+                return this.writes;
+            }
+            this.pending = undefined;
+        }
+        this.writes = this.writes.then(() => this.deleteIfUnchanged(topicId, sentText));
+        return this.writes;
+    }
+
+    private async deleteIfUnchanged(topicId: number, sentText: string): Promise<void> {
+        if ((await this.get(topicId)) === sentText) {
+            await this.write(topicId, '');
+        }
+    }
+
     private async write(topicId: number, text: string): Promise<void> {
         const hasText = text.trim().length > 0;
         // A blank field always deletes: the list of drafts may not have loaded yet to say there is none.
