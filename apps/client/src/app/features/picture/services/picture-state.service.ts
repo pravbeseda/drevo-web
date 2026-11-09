@@ -1,10 +1,22 @@
 import { buildRows, PictureRow } from './picture-row-builder';
 import { PictureService } from '../../../services/pictures';
+import { PicturePreloadService } from '../../../services/pictures/picture-preload.service';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logger, LoggerService } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
-import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
+import {
+    catchError,
+    debounceTime,
+    distinctUntilChanged,
+    finalize,
+    map,
+    of,
+    startWith,
+    Subject,
+    switchMap,
+    takeUntil,
+} from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
 const TARGET_ROW_HEIGHT = 200;
@@ -12,6 +24,7 @@ const TARGET_ROW_HEIGHT = 200;
 @Injectable()
 export class PictureStateService {
     private readonly pictureService = inject(PictureService);
+    private readonly picturePreload = inject(PicturePreloadService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger: Logger = inject(LoggerService).withContext('PicturesStateService');
 
@@ -107,28 +120,25 @@ export class PictureStateService {
         }
 
         const nextPage = this._currentPage() + 1;
-        const queryAtRequest = this._searchQuery();
         this._isLoadingMore.set(true);
 
         this.pictureService
-            .getPictures({ query: queryAtRequest, page: nextPage })
+            .getPictures({ query: this._searchQuery(), page: nextPage })
             .pipe(
                 catchError((error: unknown) => {
                     this.logger.error('Failed to load more pictures', error);
                     return of({ items: [] as Picture[], total: 0 });
                 }),
+                switchMap(response => this.picturePreload.whenThumbnailsLoaded(response)),
+                takeUntil(this.searchSubject),
+                finalize(() => this._isLoadingMore.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
-                if (this._searchQuery() !== queryAtRequest) {
-                    this._isLoadingMore.set(false);
-                    return;
-                }
                 if (response.items.length > 0) {
                     this._pictures.set([...this._pictures(), ...response.items]);
                     this._currentPage.set(nextPage);
                 }
-                this._isLoadingMore.set(false);
             });
     }
 }

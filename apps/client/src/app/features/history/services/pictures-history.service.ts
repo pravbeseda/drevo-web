@@ -1,9 +1,11 @@
+import { PicturePreloadService } from '../../../services/pictures/picture-preload.service';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService } from '@drevo-web/core';
 import { formatDateHeader, Picture, PicturePending } from '@drevo-web/shared';
+import { of, switchMap } from 'rxjs';
 
 const PENDING_PAGE_SIZE = 200;
 const NOT_FOUND_STATUS = 404;
@@ -83,6 +85,7 @@ function groupByPicture(items: readonly PicturePending[]): readonly PendingGroup
 export class PicturesHistoryService {
     private readonly destroyRef = inject(DestroyRef);
     private readonly pictureService = inject(PictureService);
+    private readonly picturePreload = inject(PicturePreloadService);
     private readonly notificationService = inject(NotificationService);
     private readonly logger = inject(LoggerService).withContext('PicturesHistoryService');
 
@@ -224,7 +227,10 @@ export class PicturesHistoryService {
 
         this.pictureService
             .getPictures({ page: this._recentCurrentPage() })
-            .pipe(takeUntilDestroyed(this.destroyRef))
+            .pipe(
+                switchMap(response => (loadMore ? this.picturePreload.whenThumbnailsLoaded(response) : of(response))),
+                takeUntilDestroyed(this.destroyRef),
+            )
             .subscribe({
                 next: response => {
                     if (loadMore) {

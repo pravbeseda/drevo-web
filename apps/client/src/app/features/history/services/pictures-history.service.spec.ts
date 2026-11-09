@@ -1,4 +1,5 @@
 import { PicturesHistoryService, buildDisplayItems, trackByFn } from './pictures-history.service';
+import { PicturePreloadService } from '../../../services/pictures/picture-preload.service';
 import { PictureService } from '../../../services/pictures/picture.service';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -60,6 +61,7 @@ describe('PicturesHistoryService', () => {
         getPictures: jest.Mock;
         rejectPending: jest.Mock;
     };
+    let mockPicturePreload: { whenThumbnailsLoaded: jest.Mock };
 
     const createService = createServiceFactory({
         service: PicturesHistoryService,
@@ -68,6 +70,10 @@ describe('PicturesHistoryService', () => {
             {
                 provide: PictureService,
                 useFactory: () => mockPictureService,
+            },
+            {
+                provide: PicturePreloadService,
+                useFactory: () => mockPicturePreload,
             },
         ],
     });
@@ -78,6 +84,7 @@ describe('PicturesHistoryService', () => {
             getPictures: jest.fn().mockReturnValue(of(EMPTY_RECENT_RESPONSE)),
             rejectPending: jest.fn().mockReturnValue(of(undefined)),
         };
+        mockPicturePreload = { whenThumbnailsLoaded: jest.fn(page => of(page)) };
         spectator = createService();
     });
 
@@ -296,6 +303,30 @@ describe('PicturesHistoryService', () => {
 
             expect(spectator.service.isRecentLoadingMore()).toBe(false);
             expect(spectator.service.hasMoreRecent()).toBe(true);
+        });
+
+        it('should hold the next page and its spinner until the thumbnails are ready', () => {
+            mockPictureService.getPictures.mockReturnValue(
+                of({ items: [createPicture({ id: 1 })], total: 2, page: 1, pageSize: 1, totalPages: 2 }),
+            );
+            spectator.service.init();
+            expect(mockPicturePreload.whenThumbnailsLoaded).not.toHaveBeenCalled();
+
+            const nextPage = { items: [createPicture({ id: 2 })], total: 2, page: 2, pageSize: 1, totalPages: 2 };
+            const thumbnailsLoaded = new Subject<typeof nextPage>();
+            mockPictureService.getPictures.mockReturnValue(of(nextPage));
+            mockPicturePreload.whenThumbnailsLoaded.mockReturnValue(thumbnailsLoaded);
+
+            spectator.service.onLoadMore();
+
+            expect(mockPicturePreload.whenThumbnailsLoaded).toHaveBeenCalledWith(nextPage);
+            expect(spectator.service.isRecentLoadingMore()).toBe(true);
+            expect(spectator.service.hasMoreRecent()).toBe(true);
+
+            thumbnailsLoaded.next(nextPage);
+
+            expect(spectator.service.isRecentLoadingMore()).toBe(false);
+            expect(spectator.service.hasMoreRecent()).toBe(false);
         });
     });
 

@@ -1,6 +1,7 @@
 import {
     test,
     expect,
+    holdPictureImages,
     mockPicturesApi,
     mockPicturesEmpty,
     mockPicturesError,
@@ -110,6 +111,34 @@ test.describe('Picture gallery', () => {
             await expect(gallery.root).toBeVisible();
             // Gallery should not appear (error fallback returns empty)
             await expect(gallery.gallery).toBeHidden();
+        });
+    });
+
+    test.describe('Waiting for the images of the next page', () => {
+        // setupPaginatedGallery numbers the second page after the first page's 50 pictures: folders 51 to 75
+        const SECOND_PAGE_THUMBNAILS = /\/images\/thumbs\/folder(5[1-9]|6\d|7[0-5])\//;
+        const SECOND_PAGE_SIZE = 25;
+        const ROW_HEIGHT_PX = 208;
+
+        test('keeps the spinner on and the page out of the list until they have loaded', async ({
+            authenticatedPage: page,
+        }) => {
+            gallery = await setupPaginatedGallery(page, { firstPageSize: 50 });
+            const thumbnails = await holdPictureImages(page, SECOND_PAGE_THUMBNAILS);
+            const heightWithFirstPage = await gallery.scrollHeight();
+
+            await gallery.scrollToBottom();
+
+            await expect.poll(() => thumbnails.heldCount()).toBe(SECOND_PAGE_SIZE);
+            await expect(gallery.loadingMore).toBeVisible();
+            // The spinner sits in the scrolled area and adds less than a row; a page would add several rows
+            const heightWhileWaiting = await gallery.scrollHeight();
+            expect(heightWhileWaiting).toBeLessThan(heightWithFirstPage + ROW_HEIGHT_PX);
+
+            await thumbnails.release();
+
+            await expect.poll(() => gallery.scrollHeight()).toBeGreaterThan(heightWhileWaiting);
+            await expect(gallery.loadingMore).toBeHidden();
         });
     });
 

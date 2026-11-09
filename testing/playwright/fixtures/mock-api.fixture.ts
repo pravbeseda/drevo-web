@@ -53,7 +53,7 @@ import {
     User,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
-import { Page } from '@playwright/test';
+import { Page, Route } from '@playwright/test';
 
 /**
  * Bypass SSR for a specific route pattern by serving a client-only HTML shell.
@@ -415,7 +415,30 @@ export async function mockPictureImages(page: Page): Promise<void> {
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==',
         'base64',
     );
-    await page.route('**/images/**/*.jpg', route => route.fulfill({ body: pixel, contentType: 'image/png' }));
+    await page.route(/\/images\/.+\.jpg(\?.*)?$/, route => route.fulfill({ body: pixel, contentType: 'image/png' }));
+}
+
+/** Hold back the images matching the pattern until `release`; needs `mockPictureImages` to answer them then */
+export async function holdPictureImages(
+    page: Page,
+    url: RegExp,
+): Promise<{ readonly heldCount: () => number; readonly release: () => Promise<void> }> {
+    const held = new Set<Route>();
+    let released = false;
+    await page.route(url, route => {
+        if (released) {
+            return route.fallback();
+        }
+        held.add(route);
+        return undefined;
+    });
+    return {
+        heldCount: () => held.size,
+        release: async () => {
+            released = true;
+            await Promise.all([...held].map(route => route.fallback()));
+        },
+    };
 }
 
 // ---------------------------------------------------------------------------
