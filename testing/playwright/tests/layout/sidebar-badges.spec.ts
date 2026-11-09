@@ -5,6 +5,15 @@ import { LayoutPage } from '../../pages/layout.page';
 
 /** WCAG 2.1 SC 1.4.11, the minimum for a non-text mark against what surrounds it. */
 const MIN_BADGE_CONTRAST = 3;
+const MIN_COLLAPSED_BADGE_GAP = 6;
+const COLLAPSED_SIDEBAR_WIDTH = '60px';
+
+function edgesOf(locator: Locator): Promise<{ readonly top: number; readonly bottom: number; readonly right: number }> {
+    return locator.evaluate(element => {
+        const { top, bottom, right } = element.getBoundingClientRect();
+        return { top, bottom, right };
+    });
+}
 
 function backgroundOf(locator: Locator): Promise<string> {
     return locator.evaluate(element => getComputedStyle(element).backgroundColor);
@@ -112,5 +121,27 @@ test.describe('Sidebar badges', () => {
         await layout.expectSidebarCollapsed();
 
         await expect(layout.navBadge('Форум')).toBeVisible();
+    });
+
+    test('the collapsed badge keeps clear of the item above and of the sidebar edge', async ({ page, isMobile }) => {
+        test.skip(isMobile, 'On mobile the sidebar is a drawer that starts closed');
+        await mockAuthApi(page, mockUsers.moderator);
+        await mockHistoryCounts(page, { pendingArticles: 34, pendingNews: 0, pendingPictures: 0 });
+
+        await page.goto('/');
+        const layout = new LayoutPage(page);
+        await layout.waitForAuthReady();
+        await layout.hamburgerButton.click();
+        await layout.expectSidebarCollapsed();
+        await expect(layout.sidebar).toHaveCSS('width', COLLAPSED_SIDEBAR_WIDTH);
+        const badge = layout.navBadge('Изменения');
+        await badge.waitFor({ state: 'visible' });
+
+        await expect
+            .poll(async () => (await edgesOf(badge)).top - (await edgesOf(layout.navItem('Главная'))).bottom)
+            .toBeGreaterThanOrEqual(MIN_COLLAPSED_BADGE_GAP);
+        await expect
+            .poll(async () => (await edgesOf(layout.sidebar)).right - (await edgesOf(badge)).right)
+            .toBeGreaterThanOrEqual(0);
     });
 });

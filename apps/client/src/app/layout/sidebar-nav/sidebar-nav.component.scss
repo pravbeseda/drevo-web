@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: column;
     gap: rem($sidebar-nav-gap);
+    transition: gap $sidebar-collapse-duration ease;
 }
 
 .nav-item {
@@ -47,6 +48,10 @@
 
 @media (min-width: $breakpoint-tablet) {
     :host(.compact) {
+        .sidebar-nav {
+            gap: rem($sidebar-nav-gap-compact);
+        }
+
         .nav-item {
             justify-content: center;
             padding: rem($sidebar-nav-item-padding-v);
@@ -58,8 +63,8 @@
 
         .nav-badge {
             position: absolute;
-            top: rem($sidebar-nav-badge-offset);
-            right: rem($sidebar-nav-badge-offset);
+            top: rem($sidebar-nav-badge-top);
+            right: rem($sidebar-nav-badge-right);
             margin-left: 0;
         }
     }
