@@ -32,7 +32,7 @@ describe('SidebarNavComponent', () => {
     it('should render nav items with links', () => {
         spectator = createComponent();
 
-        const items = spectator.queryAll('.nav-item');
+        const items = spectator.queryAll('[data-testid="nav-item"]');
 
         expect(items.length).toBeGreaterThan(0);
         expect(items[0]).toHaveAttribute('href', '/');
@@ -44,7 +44,9 @@ describe('SidebarNavComponent', () => {
     it('should not offer a news section: the news are in the history', () => {
         spectator = createComponent();
 
-        const newsItem = spectator.queryAll('.nav-item').find(item => item.textContent?.includes('Новости'));
+        const newsItem = spectator
+            .queryAll('[data-testid="nav-item"]')
+            .find(item => item.textContent?.includes('Новости'));
 
         expect(newsItem).toBeUndefined();
     });
@@ -52,7 +54,9 @@ describe('SidebarNavComponent', () => {
     it('should link to the forum', () => {
         spectator = createComponent();
 
-        const forumItem = spectator.queryAll('.nav-item').find(item => item.textContent?.includes('Форум'));
+        const forumItem = spectator
+            .queryAll('[data-testid="nav-item"]')
+            .find(item => item.textContent?.includes('Форум'));
 
         expect(forumItem).toHaveAttribute('href', '/forum');
     });
@@ -68,8 +72,9 @@ describe('SidebarNavComponent', () => {
     describe('active item', () => {
         function activeLabels(): readonly string[] {
             return spectator
-                .queryAll<HTMLElement>('[data-testid="nav-item"].active')
-                .map(item => item.querySelector('.nav-label')?.textContent ?? '');
+                .queryAll<HTMLElement>('[data-testid="nav-item"]')
+                .filter(item => item.classList.contains('active'))
+                .map(item => item.getAttribute('aria-label') ?? '');
         }
 
         async function openPage(url: string): Promise<void> {
