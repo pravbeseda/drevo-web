@@ -9,6 +9,7 @@ import { Locator } from '@playwright/test';
 export class ReviewBlockPage extends BasePage {
     readonly block: Locator = this.page.getByTestId('review-block');
     readonly form: Locator = this.page.getByTestId('review-form');
+    readonly loadError: Locator = this.page.getByTestId('review-load-error');
     readonly commentInput: Locator = this.page.getByTestId('review-comment-input');
     readonly saveButton: Locator = this.page.getByTestId('review-save');
     readonly clearButton: Locator = this.page.getByTestId('review-clear');
