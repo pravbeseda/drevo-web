@@ -2,7 +2,10 @@ import { PictureLightboxService } from '../../../../services/pictures/picture-li
 import { PictureStateService } from '../../services/picture-state.service';
 import { PicturePageComponent } from './picture-page.component';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { VirtualScrollerComponent } from '@drevo-web/ui/virtual-scroller';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+
+jest.mock('overlayscrollbars', () => ({ OverlayScrollbars: jest.fn(() => ({ destroy: jest.fn() })) }));
 
 describe('PicturesPageComponent', () => {
     let spectator: Spectator<PicturePageComponent>;
@@ -62,6 +65,29 @@ describe('PicturesPageComponent', () => {
         spectator.detectChanges();
         spectator.component.onLoadMore();
         expect(mockState.loadMore).toHaveBeenCalled();
+    });
+
+    describe('with results on screen', () => {
+        const originalResizeObserver = globalThis.ResizeObserver;
+
+        beforeEach(() => {
+            globalThis.ResizeObserver = jest.fn(() => ({
+                observe: jest.fn(),
+                unobserve: jest.fn(),
+                disconnect: jest.fn(),
+            }));
+        });
+
+        afterEach(() => {
+            globalThis.ResizeObserver = originalResizeObserver;
+        });
+
+        it('should ask for the next page two rows before the end of the gallery', () => {
+            mockState.hasResults.mockReturnValue(true);
+            spectator.detectChanges();
+
+            expect(spectator.query(VirtualScrollerComponent)?.loadMoreThreshold()).toBe(2);
+        });
     });
 
     it('should show spinner when loading', () => {

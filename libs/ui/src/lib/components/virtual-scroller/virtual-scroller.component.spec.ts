@@ -229,6 +229,60 @@ describe('VirtualScrollerComponent', () => {
             expect(loadMoreSpy).toHaveBeenCalled();
         }));
     });
+
+    describe('loadMore while the wheel momentum carries the list', () => {
+        const SAMPLE_INTERVAL_MS = 100;
+        const SETTLE_MS = 150;
+        const FLING_STEP_PX = 1000;
+        const READING_STEP_PX = 100;
+
+        let loadMoreSpy: jest.Mock;
+
+        const scrollBy = (px: number): void => {
+            spectator.element.scrollTop += px;
+            triggerScroll(spectator);
+            tick(SAMPLE_INTERVAL_MS);
+        };
+
+        const startNearTheEnd = (): void => {
+            loadMoreSpy = jest.fn();
+            spectator = createScrollerHost();
+            spectator.detectChanges();
+            spectator.output('loadMore').subscribe(loadMoreSpy);
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
+            scrollBy(0);
+            loadMoreSpy.mockClear();
+        };
+
+        it('should NOT emit loadMore during a fast scroll', fakeAsync(() => {
+            startNearTheEnd();
+
+            scrollBy(FLING_STEP_PX);
+            scrollBy(FLING_STEP_PX);
+
+            expect(loadMoreSpy).not.toHaveBeenCalled();
+            tick(SETTLE_MS);
+        }));
+
+        it('should emit loadMore once when a fast scroll comes to rest', fakeAsync(() => {
+            startNearTheEnd();
+
+            scrollBy(FLING_STEP_PX);
+            scrollBy(FLING_STEP_PX);
+            tick(SETTLE_MS);
+
+            expect(loadMoreSpy).toHaveBeenCalledTimes(1);
+        }));
+
+        it('should keep emitting loadMore during a slow scroll', fakeAsync(() => {
+            startNearTheEnd();
+
+            scrollBy(READING_STEP_PX);
+
+            expect(loadMoreSpy).toHaveBeenCalled();
+            tick(SETTLE_MS);
+        }));
+    });
 });
 
 function createScrollerHost(options: ScrollerHostOptions = {}): SpectatorHost<VirtualScrollerComponent<TestItem>> {

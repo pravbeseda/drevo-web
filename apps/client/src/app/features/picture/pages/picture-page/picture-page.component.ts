@@ -22,6 +22,9 @@ import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import { debounceTime, Subject } from 'rxjs';
 
+/** A page of pictures is only a few rows, so the scroller's default of five items would ask for the next at once. */
+const LOAD_MORE_THRESHOLD_ROWS = 2;
+
 @Component({
     selector: 'app-pictures-page',
     imports: [
@@ -48,6 +51,7 @@ export class PicturePageComponent implements OnInit {
 
     private readonly galleryContainer = viewChild<ElementRef<HTMLElement>>('galleryContainer');
 
+    readonly loadMoreThreshold = LOAD_MORE_THRESHOLD_ROWS;
     readonly isSelectMode = !!this.modalData;
     readonly isLoading = this.state.isLoading;
     readonly isLoadingMore = this.state.isLoadingMore;
