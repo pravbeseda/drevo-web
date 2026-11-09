@@ -43,4 +43,24 @@ export class PictureGalleryPage extends BasePage {
             el.scrollTop = el.scrollHeight;
         });
     }
+
+    /** Scroll the way a wheel flick does: fast, frame after frame, until the end of the list stops it */
+    async flingToEnd(pxPerFrame = 300): Promise<void> {
+        await this.page.getByTestId('pictures-scroller').evaluate(
+            (el, step) =>
+                new Promise<void>(resolve => {
+                    const advance = (): void => {
+                        const before = el.scrollTop;
+                        el.scrollTop += step;
+                        if (el.scrollTop === before) {
+                            resolve();
+                        } else {
+                            requestAnimationFrame(advance);
+                        }
+                    };
+                    advance();
+                }),
+            pxPerFrame,
+        );
+    }
 }

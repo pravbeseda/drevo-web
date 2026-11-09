@@ -173,29 +173,47 @@ test.describe('Picture gallery', () => {
                 expect(totalCount).toBeGreaterThan(25);
             }).toPass({ timeout: 5000 });
         });
+
+        test('a wheel flick stops at the end of the loaded pictures and loads one page after it', async ({
+            authenticatedPage: page,
+        }) => {
+            let lastRequestedPage = 1;
+            gallery = await setupPaginatedGallery(page, {
+                firstPageSize: 50,
+                totalPages: 20,
+                onPageRequest: requested => (lastRequestedPage = Math.max(lastRequestedPage, requested)),
+            });
+
+            await gallery.flingToEnd();
+
+            expect(lastRequestedPage).toBeLessThanOrEqual(2);
+            await expect.poll(() => lastRequestedPage).toBeGreaterThanOrEqual(2);
+        });
     });
 });
 
 async function setupPaginatedGallery(
     page: Page,
-    options: { firstPageSize?: number } = {},
+    options: { firstPageSize?: number; totalPages?: number; onPageRequest?: (page: number) => void } = {},
 ): Promise<PictureGalleryPage> {
     const firstPageSize = options.firstPageSize ?? 25;
-    const page2Count = 25;
-    const total = firstPageSize + page2Count;
+    const totalPages = options.totalPages ?? 2;
+    const nextPageSize = 25;
+    const total = firstPageSize + (totalPages - 1) * nextPageSize;
 
-    const page1Items = createPictureDtoList(firstPageSize, 1);
-    const page1Response = createPicturesListResponse(page1Items, { total, pageSize: firstPageSize });
-
-    const page2Items = createPictureDtoList(page2Count, firstPageSize + 1);
-    const page2Response = createPicturesListResponse(page2Items, { total, page: 2, totalPages: 2 });
+    const firstPageItems = createPictureDtoList(firstPageSize, 1);
+    const firstPageResponse = createPicturesListResponse(firstPageItems, { total, pageSize: firstPageSize });
 
     await mockPictureImages(page);
 
     await page.route(/\/api\/pictures(\?.*)?$/, route => {
-        const url = new URL(route.request().url());
-        const pageParam = url.searchParams.get('page');
-        const response = pageParam === '2' ? page2Response : page1Response;
+        const requested = Number(new URL(route.request().url()).searchParams.get('page') ?? 1);
+        options.onPageRequest?.(requested);
+        if (requested === 1) {
+            return route.fulfill({ json: apiSuccess(firstPageResponse) });
+        }
+        const items = createPictureDtoList(nextPageSize, firstPageSize + (requested - 2) * nextPageSize + 1);
+        const response = createPicturesListResponse(items, { total, page: requested, totalPages });
         return route.fulfill({ json: apiSuccess(response) });
     });
 
