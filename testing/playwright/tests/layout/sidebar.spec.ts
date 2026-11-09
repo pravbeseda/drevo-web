@@ -23,6 +23,19 @@ test.describe('Sidebar', () => {
             await layout.navItem('Иллюстрации').click();
             await expect(page).toHaveURL('/pictures');
         });
+
+        test('returns to the home page from another section', async ({ authenticatedPage: page, isMobile }) => {
+            await layout.navItem('Иллюстрации').click();
+            await expect(page).toHaveURL('/pictures');
+            await layout.openSidebarOnMobile(isMobile);
+            await expect(layout.navItem('Главная')).not.toHaveClass(/active/);
+
+            await layout.navItem('Главная').click();
+
+            await expect(page).toHaveURL('/');
+            await layout.openSidebarOnMobile(isMobile);
+            await expect(layout.navItem('Главная')).toHaveClass(/active/);
+        });
     });
 
     test.describe('Collapsed / Expanded', () => {

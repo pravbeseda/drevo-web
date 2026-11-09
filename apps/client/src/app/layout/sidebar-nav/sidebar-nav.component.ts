@@ -26,6 +26,7 @@ interface NavEntry {
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
+    { label: 'Главная', route: '/', icon: 'home' },
     {
         label: 'Изменения',
         route: '/history/articles',
