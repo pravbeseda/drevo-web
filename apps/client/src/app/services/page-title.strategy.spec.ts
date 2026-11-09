@@ -226,6 +226,15 @@ describe('PageTitleStrategy', () => {
             expect(titleService.setTitle).toHaveBeenCalledWith('Древо');
         });
 
+        it('should warn when a route names a title source with no data behind it', () => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+            const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+
+            spectator.service.updateTitle(makeSnapshot(makeRoute({ titleSource: 'article' })));
+
+            expect(logger.warn).toHaveBeenCalled();
+        });
+
         it.each(['not-found', 'load-error'])('should not warn when the page resolved to %s', failure => {
             jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
             const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
