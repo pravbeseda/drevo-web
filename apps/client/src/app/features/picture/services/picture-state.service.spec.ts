@@ -1,5 +1,5 @@
-import { PictureService } from '../../../services/pictures';
 import { PicturePreloadService } from '../../../services/pictures/picture-preload.service';
+import { PictureService } from '../../../services/pictures/picture.service';
 import { PictureStateService } from './picture-state.service';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { Picture, PictureListResponse } from '@drevo-web/shared';

@@ -1,6 +1,6 @@
 import { buildRows, PictureRow } from './picture-row-builder';
-import { PictureService } from '../../../services/pictures';
 import { PicturePreloadService } from '../../../services/pictures/picture-preload.service';
+import { PictureService } from '../../../services/pictures/picture.service';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logger, LoggerService } from '@drevo-web/core';
