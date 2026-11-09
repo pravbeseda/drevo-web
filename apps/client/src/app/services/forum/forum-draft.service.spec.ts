@@ -210,6 +210,18 @@ describe('ForumDraftService', () => {
             expect(storage.save).not.toHaveBeenCalled();
         });
 
+        it('deletes an older stored copy when the last edit is what went out', async () => {
+            await setUp([createDraft(ROUTE, 'Отв')]);
+            storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Отв'));
+            jest.useFakeTimers();
+
+            spectator.service.edit(7, 'Ответ');
+            await spectator.service.discardSent(7, 'Ответ');
+
+            expect(storage.deleteByRoute).toHaveBeenCalledWith(ROUTE);
+            expect(spectator.service.drafts().has(7)).toBe(false);
+        });
+
         it('lets a newer pending edit reach the storage', async () => {
             await setUp();
             storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Ответ'));

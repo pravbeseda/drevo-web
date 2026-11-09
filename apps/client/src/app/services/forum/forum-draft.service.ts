@@ -103,10 +103,8 @@ export class ForumDraftService {
     /** The reply went out: its draft goes with it, unless the reader has written on since. */
     discardSent(topicId: number, sentText: string): Promise<void> {
         if (this.pending?.topicId === topicId) {
-            if (this.pending.text !== sentText) {
-                return this.writes;
-            }
-            this.pending = undefined;
+            // The stored copy lags behind an unsaved edit, so only the edit tells whether the reader wrote on.
+            return this.pending.text === sentText ? this.save(topicId, '') : this.writes;
         }
         this.writes = this.writes.then(() => this.deleteIfUnchanged(topicId, sentText));
         return this.writes;
