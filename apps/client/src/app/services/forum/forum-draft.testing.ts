@@ -27,6 +27,7 @@ export function mockForumDraftProvider(drafts: ReadonlyMap<number, string> = new
                 get: jest.fn().mockResolvedValue(undefined),
                 edit: jest.fn(),
                 save,
+                discardSent: jest.fn().mockResolvedValue(undefined),
             };
         },
     };

@@ -161,6 +161,91 @@ describe('ForumDraftService', () => {
         });
     });
 
+    describe('discardSent', () => {
+        const ROUTE = '/forum/topic/7';
+
+        it('deletes the draft that still holds the sent text', async () => {
+            await setUp([createDraft(ROUTE, 'Ответ')]);
+            storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Ответ'));
+
+            await spectator.service.discardSent(7, 'Ответ');
+
+            expect(storage.deleteByRoute).toHaveBeenCalledWith(ROUTE);
+            expect(spectator.service.drafts().has(7)).toBe(false);
+        });
+
+        it('keeps a draft the reader has written on since', async () => {
+            await setUp([createDraft(ROUTE, 'Ответ. P.S.')]);
+            storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Ответ. P.S.'));
+
+            await spectator.service.discardSent(7, 'Ответ');
+
+            expect(storage.deleteByRoute).not.toHaveBeenCalled();
+            expect(spectator.service.drafts().get(7)).toBe('Ответ. P.S.');
+        });
+
+        it('compares against a write still queued when the reply went out', async () => {
+            await setUp();
+            storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Ответ'));
+            storage.save.mockImplementation(({ route, text }: Pick<Draft, 'route' | 'text'>) => {
+                storage.getByRoute.mockResolvedValue(createDraft(route, text));
+                return Promise.resolve();
+            });
+
+            void spectator.service.save(7, 'Ответ. P.S.');
+            await spectator.service.discardSent(7, 'Ответ');
+
+            expect(storage.deleteByRoute).not.toHaveBeenCalled();
+        });
+
+        it('drops a pending edit that is the sent text', async () => {
+            await setUp();
+            jest.useFakeTimers();
+
+            spectator.service.edit(7, 'Ответ');
+            await spectator.service.discardSent(7, 'Ответ');
+            jest.advanceTimersByTime(FORUM_DRAFT_SAVE_DEBOUNCE_MS);
+            await flushPromises();
+
+            expect(storage.save).not.toHaveBeenCalled();
+        });
+
+        it('deletes an older stored copy when the last edit is what went out', async () => {
+            await setUp([createDraft(ROUTE, 'Отв')]);
+            storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Отв'));
+            jest.useFakeTimers();
+
+            spectator.service.edit(7, 'Ответ');
+            await spectator.service.discardSent(7, 'Ответ');
+
+            expect(storage.deleteByRoute).toHaveBeenCalledWith(ROUTE);
+            expect(spectator.service.drafts().has(7)).toBe(false);
+        });
+
+        it('lets a newer pending edit reach the storage', async () => {
+            await setUp();
+            storage.getByRoute.mockResolvedValue(createDraft(ROUTE, 'Ответ'));
+            jest.useFakeTimers();
+
+            spectator.service.edit(7, 'Ответ. P.S.');
+            await spectator.service.discardSent(7, 'Ответ');
+            jest.advanceTimersByTime(FORUM_DRAFT_SAVE_DEBOUNCE_MS);
+            await flushPromises();
+
+            expect(storage.deleteByRoute).not.toHaveBeenCalled();
+            expect(storage.save).toHaveBeenCalledWith({ route: ROUTE, title: '', text: 'Ответ. P.S.' });
+        });
+
+        it('leaves the draft in place when it cannot be read', async () => {
+            await setUp();
+            storage.getByRoute.mockRejectedValue(new Error('blocked'));
+
+            await spectator.service.discardSent(7, 'Ответ');
+
+            expect(storage.deleteByRoute).not.toHaveBeenCalled();
+        });
+    });
+
     describe('edit', () => {
         it('stores the text once the reader pauses', async () => {
             await setUp();

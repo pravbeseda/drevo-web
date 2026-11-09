@@ -100,6 +100,22 @@ export class ForumDraftService {
         return this.writes;
     }
 
+    /** The reply went out: its draft goes with it, unless the reader has written on since. */
+    discardSent(topicId: number, sentText: string): Promise<void> {
+        if (this.pending?.topicId === topicId) {
+            // The stored copy lags behind an unsaved edit, so only the edit tells whether the reader wrote on.
+            return this.pending.text === sentText ? this.save(topicId, '') : this.writes;
+        }
+        this.writes = this.writes.then(() => this.deleteIfUnchanged(topicId, sentText));
+        return this.writes;
+    }
+
+    private async deleteIfUnchanged(topicId: number, sentText: string): Promise<void> {
+        if ((await this.get(topicId)) === sentText) {
+            await this.write(topicId, '');
+        }
+    }
+
     private async write(topicId: number, text: string): Promise<void> {
         const hasText = text.trim().length > 0;
         // A blank field always deletes: the list of drafts may not have loaded yet to say there is none.
