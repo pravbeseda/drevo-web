@@ -1,6 +1,8 @@
 import { provideRouter } from '@angular/router';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
 import { delay, of, throwError } from 'rxjs';
+import { LoggerService } from '@drevo-web/core';
+import { MockLogger, MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 import { ArticleService } from '../../services/articles';
 import { SearchComponent } from './search.component';
@@ -24,8 +26,10 @@ describe('SearchComponent', () => {
 
     const createComponent = createComponentFactory({
         component: SearchComponent,
-        providers: [{ provide: ArticleService, useValue: mockArticleService }, provideRouter([])],
+        providers: [{ provide: ArticleService, useValue: mockArticleService }, provideRouter([]), mockLoggerProvider()],
     });
+
+    const logger = (): MockLogger => (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -239,6 +243,17 @@ describe('SearchComponent', () => {
         expect(spectator.component.searchResults()).toEqual([]);
         expect(spectator.component.totalResults()).toBe(0);
         expect(spectator.component.isLoading()).toBe(false);
+    });
+
+    it('should log a failed search', () => {
+        const error = new Error('Search failed');
+        mockArticleService.searchArticles.mockReset();
+        mockArticleService.searchArticles.mockReturnValueOnce(throwError(() => error));
+        spectator = createComponent();
+
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        expect(logger().error).toHaveBeenCalledWith('Failed to search articles', error);
     });
 
     it('should continue accepting new searches after an API error (stream stays alive)', () => {
@@ -572,6 +587,95 @@ describe('SearchComponent', () => {
 
             // Page should remain unchanged
             expect(spectator.component.currentPage()).toBe(1);
+        });
+
+        describe('when the query changes while the next page is loading', () => {
+            const newQueryResponse = {
+                items: [
+                    { id: 5, title: 'New 1' },
+                    { id: 6, title: 'New 2' },
+                ],
+                total: 4,
+                page: 1,
+                pageSize: 2,
+                totalPages: 2,
+            };
+
+            const startLoadMoreThenChangeQuery = (nextPageDelayMs: number, newQuery = 'new'): void => {
+                mockArticleService.searchArticles.mockReset();
+                mockArticleService.searchArticles
+                    .mockReturnValueOnce(of(emptyInitialResponse)) // initial load
+                    .mockReturnValueOnce(of(firstPageResponse)) // search
+                    .mockReturnValueOnce(of(secondPageResponse).pipe(delay(nextPageDelayMs))) // load more
+                    .mockReturnValueOnce(of(newQueryResponse)); // new search
+                spectator = createComponent();
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS); // wait for initial load
+                spectator.component.onSearchChange('old');
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                spectator.component.onLoadMore();
+                spectator.component.onSearchChange(newQuery);
+            };
+
+            it('should still add the page when only the surrounding whitespace changed', () => {
+                startLoadMoreThenChangeQuery(100, 'old ');
+
+                jest.advanceTimersByTime(100);
+
+                expect(spectator.component.searchResults()).toEqual([
+                    ...firstPageResponse.items,
+                    ...secondPageResponse.items,
+                ]);
+                expect(spectator.component.isLoadingMore()).toBe(false);
+            });
+
+            it('should stop showing the page as loading at once', () => {
+                startLoadMoreThenChangeQuery(1000);
+
+                expect(spectator.component.isLoadingMore()).toBe(false);
+            });
+
+            it('should keep the new query on page 1 when the old page arrives during the debounce', () => {
+                startLoadMoreThenChangeQuery(100);
+
+                jest.advanceTimersByTime(100);
+
+                expect(spectator.component.currentPage()).toBe(1);
+            });
+
+            it('should ask for page 2 of the new query after an old page arrived during the debounce', () => {
+                startLoadMoreThenChangeQuery(100);
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                mockArticleService.searchArticles.mockReturnValueOnce(of(secondPageResponse));
+                spectator.component.onLoadMore();
+
+                expect(mockArticleService.searchArticles).toHaveBeenLastCalledWith({ query: 'new', page: 2 });
+            });
+
+            it('should not replace the new results when the old page arrives after them', () => {
+                startLoadMoreThenChangeQuery(1000);
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                jest.advanceTimersByTime(1000);
+
+                expect(spectator.component.searchResults()).toEqual(newQueryResponse.items);
+                expect(spectator.component.currentPage()).toBe(1);
+            });
+        });
+
+        it('should log a failed page request', () => {
+            const error = new Error('Pagination failed');
+            mockArticleService.searchArticles.mockReset();
+            mockArticleService.searchArticles
+                .mockReturnValueOnce(of(firstPageResponse)) // initial load
+                .mockReturnValueOnce(throwError(() => error)); // load more error
+            spectator = createComponent();
+            jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+            spectator.component.onLoadMore();
+
+            expect(logger().error).toHaveBeenCalledWith('Failed to load more search results', error);
         });
 
         it('should reset to page 1 when starting a new search', () => {
