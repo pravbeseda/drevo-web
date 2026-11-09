@@ -2,12 +2,25 @@ import { ArticleService } from '../../services/articles';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { LoggerService } from '@drevo-web/core';
 import { ArticleSearchResult } from '@drevo-web/shared';
 import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { TextInputComponent } from '@drevo-web/ui/text-input';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
-import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import {
+    catchError,
+    debounceTime,
+    distinctUntilChanged,
+    finalize,
+    map,
+    of,
+    startWith,
+    Subject,
+    switchMap,
+    takeUntil,
+    tap,
+} from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
 
@@ -21,6 +34,7 @@ const DEBOUNCE_TIME_MS = 500;
 export class SearchComponent implements OnInit {
     private readonly articleService = inject(ArticleService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly logger = inject(LoggerService).withContext('SearchComponent');
     private readonly modalData = inject<ModalData>(MODAL_DATA, {
         optional: true,
     });
@@ -66,7 +80,8 @@ export class SearchComponent implements OnInit {
                             page: 1,
                         })
                         .pipe(
-                            catchError(() => {
+                            catchError((error: unknown) => {
+                                this.logger.error('Failed to search articles', error);
                                 return of({ items: [], total: 0 });
                             }),
                         );
@@ -88,10 +103,9 @@ export class SearchComponent implements OnInit {
     onLoadMore(): void {
         const query = this.searchQuery();
         const nextPage = this.currentPage() + 1;
-        const currentResults = this.searchResults();
 
         // Check if we already have all results
-        if (currentResults.length >= this.totalResults()) {
+        if (this.searchResults().length >= this.totalResults()) {
             return;
         }
 
@@ -100,17 +114,19 @@ export class SearchComponent implements OnInit {
         this.articleService
             .searchArticles({ query, page: nextPage })
             .pipe(
-                catchError(() => {
+                catchError((error: unknown) => {
+                    this.logger.error('Failed to load more search results', error);
                     return of({ items: [], total: 0 });
                 }),
+                takeUntil(this.searchSubject),
+                finalize(() => this.isLoadingMore.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
                 if (response.items.length > 0) {
-                    this.searchResults.set([...currentResults, ...response.items]);
+                    this.searchResults.set([...this.searchResults(), ...response.items]);
                     this.currentPage.set(nextPage);
                 }
-                this.isLoadingMore.set(false);
             });
     }
 }
