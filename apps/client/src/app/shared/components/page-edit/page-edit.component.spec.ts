@@ -949,7 +949,10 @@ describe('PageEditComponent in create mode', () => {
     });
 });
 
-describe('PageEditComponent with undefined version', () => {
+describe.each([
+    ['not-found', 'Версия не найдена'],
+    ['load-error', 'Ошибка загрузки версии'],
+])('PageEditComponent when the session resolved to %s', (session, message) => {
     const createComponent = createComponentFactory({
         component: PageEditComponent,
         mocks: [ArticleService, Router, ConfirmationService],
@@ -962,18 +965,18 @@ describe('PageEditComponent with undefined version', () => {
             mockLoggerProvider(),
             {
                 provide: ActivatedRoute,
-                useValue: { snapshot: { data: {} } },
+                useValue: { snapshot: { data: { session } } },
             },
         ],
     });
 
-    it('should show error when version is undefined', () => {
+    it('should say what went wrong', () => {
         const spectator = createComponent();
 
-        expect(spectator.component.error()).toBe('Версия не найдена');
+        expect(spectator.component.error()).toBe(message);
     });
 
-    it('should navigate to home on cancel when version is undefined', async () => {
+    it('should navigate to home on cancel', async () => {
         const spectator = createComponent();
         const router = spectator.inject(Router) as jest.Mocked<Router>;
 

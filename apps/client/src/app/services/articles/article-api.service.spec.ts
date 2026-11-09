@@ -1,6 +1,6 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { readApiErrorBody, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
+import { readApiErrorBody, SKIP_ERROR_FOR_STATUSES, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import { ApprovalStatusDto, ModerationRequestDto } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ArticleApiService } from './article-api.service';
@@ -71,6 +71,14 @@ describe('ArticleApiService', () => {
             const req = httpController.expectOne('/api/articles/show/123');
             expect(req.request.method).toBe('GET');
             expect(req.request.withCredentials).toBe(true);
+            req.flush(mockArticleResponse);
+        });
+
+        it('should keep a 404 away from the error toast', () => {
+            spectator.service.getArticle(123).subscribe();
+
+            const req = httpController.expectOne('/api/articles/show/123');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([404]);
             req.flush(mockArticleResponse);
         });
 
@@ -193,6 +201,14 @@ describe('ArticleApiService', () => {
                 comment: 'Editor comment',
             },
         };
+
+        it('should keep a 404 away from the error toast', () => {
+            spectator.service.getArticleVersion(789).subscribe();
+
+            const req = httpController.expectOne('/api/articles/version/789');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([404]);
+            req.flush(mockVersionResponse);
+        });
 
         it('should call HTTP GET with correct URL', () => {
             spectator.service.getArticleVersion(789).subscribe(result => {

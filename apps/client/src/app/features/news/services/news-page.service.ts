@@ -13,9 +13,11 @@ export class NewsPageService implements PageContext {
     private readonly _article = signal<ArticleVersion | undefined>(undefined);
     private readonly _topics = signal<readonly NewsTopic[]>([]);
     private readonly _error = signal<string | undefined>(undefined);
+    private readonly _isNotFound = signal(false);
 
     readonly article = this._article.asReadonly();
     readonly error = this._error.asReadonly();
+    readonly isNotFound = this._isNotFound.asReadonly();
     /** Every news section, for a form that moves the news item to another. */
     readonly topics = this._topics.asReadonly();
     readonly articleId = computed(() => this.article()?.articleId);
@@ -31,13 +33,23 @@ export class NewsPageService implements PageContext {
         this._article.set(news);
         this._topics.set(topics);
         this._error.set(undefined);
+        this._isNotFound.set(false);
         this.logger.info('News item set from resolver', { id: news.articleId, title: news.title });
     }
 
     setError(message: string): void {
         this._article.set(undefined);
         this._error.set(message);
+        this._isNotFound.set(false);
         this.logger.error('News item error', { message });
+    }
+
+    /** The address names no news item: a stale link, not a fault, so it is not logged as an error. */
+    setNotFound(): void {
+        this._article.set(undefined);
+        this._error.set(undefined);
+        this._isNotFound.set(true);
+        this.logger.info('News item not found');
     }
 
     updateApproval(approved: ApprovalStatus, comment: string): void {

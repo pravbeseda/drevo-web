@@ -1,3 +1,4 @@
+import { HttpContext } from '@angular/common/http';
 import {
     PictureArticleDto,
     PictureDto,
@@ -145,7 +146,16 @@ describe('PictureService', () => {
 
             spectator.service.getPicture(123).subscribe();
 
-            expect(pictureApiService.getPicture).toHaveBeenCalledWith(123);
+            expect(pictureApiService.getPicture).toHaveBeenCalledWith(123, undefined);
+        });
+
+        it("should pass the caller's context to the API layer", () => {
+            pictureApiService.getPicture.mockReturnValue(of(mockPictureDto));
+            const context = new HttpContext();
+
+            spectator.service.getPicture(123, context).subscribe();
+
+            expect(pictureApiService.getPicture).toHaveBeenCalledWith(123, context);
         });
 
         it('should map API response to frontend model', done => {

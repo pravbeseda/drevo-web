@@ -1,4 +1,11 @@
-@if (error()) {
+@if (isNotFound()) {
+    <app-error
+        data-testid="news-not-found"
+        title="Новость не найдена"
+        message="Запрашиваемая новость не существует или была удалена."
+        [showHomeButton]="true"
+    />
+} @else if (error()) {
     <app-error
         data-testid="news-error"
         title="Ошибка"

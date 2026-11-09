@@ -112,9 +112,9 @@ export class PageTitleStrategy extends TitleStrategy {
 
     private applyTitleContext(kind: PageKind, pageData: unknown): void {
         if (!this.isTitleContext(pageData)) {
-            // undefined is a normal failure path from the page resolver
-            // (bad id, 404, network error) — don't warn on it.
-            if (pageData !== undefined) {
+            // A string is the page resolver's answer for a page it has no data
+            // for ('not-found', 'load-error') — a normal path, don't warn on it.
+            if (typeof pageData !== 'string') {
                 this.logger.warn('Page route data does not match TitleContext shape', { pageData });
             }
             this._titleContext.set(undefined);

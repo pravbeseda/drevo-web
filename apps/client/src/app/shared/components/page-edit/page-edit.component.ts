@@ -9,6 +9,7 @@ import { pageUrl } from '../../helpers/page-kind';
 import { createPicturePreviewExtension } from '../../helpers/picture-tooltip';
 import { NewsFields } from '../../models/news-fields.model';
 import { PageEditSession } from '../../models/page-edit-session';
+import { PageEditSessionResolveResult } from '../../resolvers/page-edit-session.resolver';
 import { DraftEditorService } from '../../services/draft-editor/draft-editor.service';
 import { DiffViewComponent } from '../diff-view/diff-view.component';
 import { ErrorComponent } from '../error/error.component';
@@ -169,10 +170,10 @@ export class PageEditComponent implements OnInit, OnDestroy {
     ];
 
     ngOnInit(): void {
-        const session = this.route.snapshot.data['session'] as PageEditSession | undefined;
-        if (!session) {
-            this._error.set('Версия не найдена');
-            this.logger.error('Edit session not resolved from route data');
+        const session = this.route.snapshot.data['session'] as PageEditSessionResolveResult;
+        if (session === 'not-found' || session === 'load-error') {
+            this._error.set(session === 'not-found' ? 'Версия не найдена' : 'Ошибка загрузки версии');
+            this.logger.info('Edit session not opened', { reason: session });
             return;
         }
 

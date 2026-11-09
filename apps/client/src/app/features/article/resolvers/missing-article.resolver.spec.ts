@@ -94,12 +94,12 @@ describe('resolveMissingArticle', () => {
         });
     });
 
-    it('should resolve to undefined (error state) when the lookup fails', done => {
+    it('should resolve to load-error when the lookup fails', done => {
         // Existence was never established — must not claim the article is missing.
         articleService.findArticleByTitle.mockReturnValue(throwError(() => new Error('Network error')));
 
         resolve({ title: 'НОВАЯ' }).subscribe(result => {
-            expect(result).toBeUndefined();
+            expect(result).toBe('load-error');
             expect(logger.error).toHaveBeenCalled();
             done();
         });

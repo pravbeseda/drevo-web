@@ -1,15 +1,14 @@
 import { PictureService } from '../../../services/pictures/picture.service';
+import { recoverResolveFailure, ResolveFailure, skipNotFoundToast } from '../../../shared/helpers/resolve-failure';
 import { parsePositiveIntParam, readRouteParam } from '../../../shared/helpers/route-params';
-import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
+import { Logger, LoggerService } from '@drevo-web/core';
 import { Picture } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-const NOT_FOUND_STATUS = 404;
-
-export type PictureResolveResult = Picture | 'not-found' | 'load-error';
+export type PictureResolveResult = Picture | ResolveFailure;
 
 /**
  * Pure function for resolving picture data from route params.
@@ -17,6 +16,7 @@ export type PictureResolveResult = Picture | 'not-found' | 'load-error';
  */
 export function resolvePicture(
     pictureService: PictureService,
+    logger: Logger,
     route: ActivatedRouteSnapshot,
 ): Observable<PictureResolveResult> {
     const id = parsePositiveIntParam(readRouteParam(route, 'id'));
@@ -24,14 +24,10 @@ export function resolvePicture(
         return of('not-found' as const);
     }
 
-    return pictureService.getPicture(id).pipe(
-        catchError((error: unknown) => {
-            if (error instanceof HttpErrorResponse && error.status === NOT_FOUND_STATUS) {
-                return of('not-found' as const);
-            }
-            return of('load-error' as const);
-        }),
-    );
+    return pictureService
+        .getPicture(id, skipNotFoundToast())
+        .pipe(catchError(recoverResolveFailure(logger, `Failed to load the picture ${id}`)));
 }
 
-export const pictureResolver: ResolveFn<PictureResolveResult> = route => resolvePicture(inject(PictureService), route);
+export const pictureResolver: ResolveFn<PictureResolveResult> = route =>
+    resolvePicture(inject(PictureService), inject(LoggerService).withContext('PictureResolver'), route);

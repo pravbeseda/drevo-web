@@ -5,12 +5,13 @@ import { NewsTopicSidebarActionComponent } from '../../../../shared/components/n
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
 import { isPageContentPath, primaryPath } from '../../../../shared/helpers/content-tab';
 import { pageUrl } from '../../../../shared/helpers/page-kind';
+import { PageResolveResult } from '../../../../shared/resolvers/page.resolver';
 import { NewsPageService } from '../../services/news-page.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { LoggerService, NotificationService } from '@drevo-web/core';
-import { ArticleVersion, NewsTopic } from '@drevo-web/shared';
+import { NewsTopic } from '@drevo-web/shared';
 import { TabGroup, TabsGroupComponent } from '@drevo-web/ui/tabs-group';
 import { filter, map } from 'rxjs';
 
@@ -43,12 +44,14 @@ export class NewsComponent {
 
     constructor() {
         this.route.data.pipe(takeUntilDestroyed()).subscribe(data => {
-            const news = data['news'] as ArticleVersion | undefined;
+            const news = data['news'] as PageResolveResult;
             const topics = (data['topics'] as readonly NewsTopic[] | undefined) ?? [];
-            if (news) {
-                this.pageService.setNews(news, topics);
-            } else {
+            if (news === 'not-found') {
+                this.pageService.setNotFound();
+            } else if (news === 'load-error') {
                 this.pageService.setError('Ошибка загрузки новости');
+            } else {
+                this.pageService.setNews(news, topics);
             }
         });
     }
@@ -80,6 +83,7 @@ export class NewsComponent {
 
     readonly news = this.pageService.article;
     readonly error = this.pageService.error;
+    readonly isNotFound = this.pageService.isNotFound;
 
     readonly tabGroups = computed<TabGroup[]>(() => {
         const id = this.pageService.articleId();

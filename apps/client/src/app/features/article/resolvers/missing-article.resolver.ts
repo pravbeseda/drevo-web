@@ -21,7 +21,7 @@ export function resolveMissingArticle(
     router: Router,
     logger: Logger,
     route: ActivatedRouteSnapshot,
-): Observable<MissingArticle | RedirectCommand | undefined> {
+): Observable<MissingArticle | RedirectCommand | 'load-error'> {
     // The router already percent-decodes the param and the segment carries the
     // title verbatim (backend emits rawurlencode), so no transform is needed.
     const title = readRouteParam(route, 'title') ?? '';
@@ -40,15 +40,15 @@ export function resolveMissingArticle(
         }),
         catchError((error: unknown) => {
             // Existence was never established, so we must not render the "does not
-            // exist" placeholder. Resolve to undefined — ArticleComponent then
-            // shows its generic load-error state instead of a false result.
+            // exist" placeholder: ArticleComponent shows its load-error state
+            // instead of a false result.
             logger.error('Failed to resolve article by title', error);
-            return of(undefined);
+            return of('load-error' as const);
         }),
     );
 }
 
-export const missingArticleResolver: ResolveFn<MissingArticle | RedirectCommand | undefined> = route =>
+export const missingArticleResolver: ResolveFn<MissingArticle | RedirectCommand | 'load-error'> = route =>
     resolveMissingArticle(
         inject(ArticleService),
         inject(Router),

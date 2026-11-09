@@ -11,6 +11,7 @@ import {
     mockPictureImages,
     bypassSsr,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import { createPictureDto, createPictureArticleDto } from '../../mocks/pictures';
 import { PictureDetailPage } from '../../pages/picture-detail.page';
 
@@ -145,6 +146,7 @@ test.describe('Picture detail', () => {
             await page.goto('/pictures/999');
 
             await expect(detail.notFoundError).toBeVisible();
+            await expect(getNotification(page, 'error')).toHaveCount(0);
         });
 
         test('shows load error for server failure', async ({ authenticatedPage: page }) => {

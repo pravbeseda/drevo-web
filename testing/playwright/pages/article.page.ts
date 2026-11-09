@@ -4,6 +4,7 @@ import { Locator } from '@playwright/test';
 export class ArticlePage extends BasePage {
     readonly root = this.page.getByTestId('article-page');
     readonly error = this.page.getByTestId('article-error');
+    readonly notFound = this.page.getByTestId('article-not-found');
     readonly content = this.page.getByTestId('article-content');
 
     // Article content is legacy HTML injected via innerHTML — it cannot carry

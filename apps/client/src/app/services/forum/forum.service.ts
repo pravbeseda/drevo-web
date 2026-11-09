@@ -1,5 +1,5 @@
 import { ForumApiService } from './forum-api.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { readApiErrorBody } from '@drevo-web/core';
 import {
@@ -69,8 +69,8 @@ export class ForumService {
     /**
      * Get a topic and a page of its messages.
      */
-    getTopic(id: number, page?: number, anchor?: number): Observable<ForumTopicPage> {
-        return this.forumApiService.getTopic(id, page, anchor).pipe(map(dto => this.mapTopicPage(dto)));
+    getTopic(id: number, page?: number, anchor?: number, context?: HttpContext): Observable<ForumTopicPage> {
+        return this.forumApiService.getTopic(id, page, anchor, context).pipe(map(dto => this.mapTopicPage(dto)));
     }
 
     /**

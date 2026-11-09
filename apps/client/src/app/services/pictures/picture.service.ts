@@ -1,6 +1,7 @@
 import { PictureApiService } from './picture-api.service';
 import { DEFAULT_PICTURES_PAGE_SIZE } from './picture.constants';
 import { CountsInvalidationService } from '../counts/counts-invalidation.service';
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
     Picture,
@@ -49,8 +50,8 @@ export class PictureService {
     /**
      * Get picture by ID
      */
-    getPicture(id: number): Observable<Picture> {
-        return this.pictureApiService.getPicture(id).pipe(map(dto => this.mapPicture(dto)));
+    getPicture(id: number, context?: HttpContext): Observable<Picture> {
+        return this.pictureApiService.getPicture(id, context).pipe(map(dto => this.mapPicture(dto)));
     }
 
     /**

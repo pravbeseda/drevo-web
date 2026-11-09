@@ -7,6 +7,7 @@ import {
     mockArticleVersionShow,
     bypassSsr,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import { createArticleVersionDto, mockArticleViewData } from '../../mocks/articles';
 import { ArticlePage } from '../../pages/article.page';
 
@@ -71,22 +72,24 @@ test.describe('Article view', () => {
             await article.waitForReady();
 
             await article.contentLink('/articles/9;id=5').click();
-            await article.waitForError();
 
-            await expect(article.error).toBeVisible();
+            await expect(article.notFound).toBeVisible();
             await expect(article.root).toBeHidden();
             expect(requestedIds).toEqual(['5']);
         });
 
-        test('shows error for non-existent article (404)', async ({ authenticatedPage: page }) => {
+        test('shows the not-found state, without an error toast, for a non-existent article (404)', async ({
+            authenticatedPage: page,
+        }) => {
             await bypassSsr(page, '**/articles/999');
             await mockArticleShowNotFound(page, 999);
             article = new ArticlePage(page);
             await page.goto('/articles/999');
-            await article.waitForError();
 
-            await expect(article.error).toBeVisible();
+            await expect(article.notFound).toBeVisible();
+            await expect(article.error).toBeHidden();
             await expect(article.root).toBeHidden();
+            await expect(getNotification(page, 'error')).toHaveCount(0);
         });
 
         test('shows error for server failure (500)', async ({ authenticatedPage: page }) => {
@@ -99,13 +102,14 @@ test.describe('Article view', () => {
             await expect(article.error).toBeVisible();
         });
 
-        test('shows error for invalid (non-numeric) article ID', async ({ authenticatedPage: page }) => {
+        test('shows the not-found state for an invalid (non-numeric) article ID', async ({
+            authenticatedPage: page,
+        }) => {
             // Resolver guards isNaN before making HTTP call — no mock needed
             article = new ArticlePage(page);
             await page.goto('/articles/not-a-number');
-            await article.waitForError();
 
-            await expect(article.error).toBeVisible();
+            await expect(article.notFound).toBeVisible();
         });
     });
 
