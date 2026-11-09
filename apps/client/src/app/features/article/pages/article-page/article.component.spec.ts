@@ -23,6 +23,7 @@ function createMockPageService(
         title: string | undefined;
         editUrl: string | undefined;
         isMissing: boolean;
+        isNotFound: boolean;
         basePath: string | undefined;
     }> = {},
 ) {
@@ -35,10 +36,12 @@ function createMockPageService(
         title: signal('title' in overrides ? overrides.title : 'Test Article Title'),
         editUrl: signal('editUrl' in overrides ? overrides.editUrl : '/articles/123/version/456/edit'),
         isMissing: signal(overrides.isMissing ?? false),
+        isNotFound: signal(overrides.isNotFound ?? false),
         basePath: signal('basePath' in overrides ? overrides.basePath : defaultBasePath),
         setArticle: jest.fn(),
         setMissing: jest.fn(),
         setError: jest.fn(),
+        setNotFound: jest.fn(),
     };
 }
 
@@ -49,15 +52,7 @@ describe('ArticleComponent', () => {
 
     const createComponent = createComponentFactory({
         component: ArticleComponent,
-        providers: [
-            provideRouter([{ path: '**', children: [] }]),
-            mockLoggerProvider(),
-            articleServiceProvider,
-            {
-                provide: ArticlePageService,
-                useValue: createMockPageService(),
-            },
-        ],
+        providers: [provideRouter([{ path: '**', children: [] }]), mockLoggerProvider(), articleServiceProvider],
         detectChanges: false,
     });
 
@@ -66,6 +61,7 @@ describe('ArticleComponent', () => {
         dataSubject = new BehaviorSubject<Record<string, unknown>>({ article: mockArticle });
         spectator = createComponent({
             providers: [
+                { provide: ArticlePageService, useValue: createMockPageService() },
                 {
                     provide: ActivatedRoute,
                     useValue: {
@@ -88,11 +84,28 @@ describe('ArticleComponent', () => {
         expect(mockService.setArticle).toHaveBeenCalledWith(mockArticle);
     });
 
-    it('should call setError when route data has no article', () => {
-        dataSubject.next({ article: undefined });
+    it('should call setError when the article failed to load', () => {
+        dataSubject.next({ article: 'load-error' });
         spectator.detectChanges();
 
         expect(mockService.setError).toHaveBeenCalledWith('Ошибка загрузки статьи');
+        expect(mockService.setNotFound).not.toHaveBeenCalled();
+    });
+
+    it('should call setNotFound when the article does not exist', () => {
+        dataSubject.next({ article: 'not-found' });
+        spectator.detectChanges();
+
+        expect(mockService.setNotFound).toHaveBeenCalled();
+        expect(mockService.setError).not.toHaveBeenCalled();
+    });
+
+    it('should show the not-found state instead of the page', () => {
+        mockService.isNotFound.set(true);
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="article-not-found"]')).toBeTruthy();
+        expect(spectator.query('[data-testid="article-page"]')).toBeNull();
     });
 
     it('should call setArticle again when route data changes', () => {
@@ -283,7 +296,7 @@ describe('ArticleComponent error state', () => {
             {
                 provide: ActivatedRoute,
                 useValue: {
-                    data: new BehaviorSubject({ article: undefined }),
+                    data: new BehaviorSubject({ article: 'load-error' }),
                     snapshot: { data: {} },
                 },
             },
@@ -314,7 +327,7 @@ describe('ArticleComponent no article ID', () => {
             {
                 provide: ActivatedRoute,
                 useValue: {
-                    data: new BehaviorSubject({ article: undefined }),
+                    data: new BehaviorSubject({ article: 'load-error' }),
                     snapshot: { data: {} },
                 },
             },

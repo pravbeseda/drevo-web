@@ -1,6 +1,7 @@
 import { NewsPageService } from './news-page.service';
 import { createMockArticle } from '../../../shared/testing/article-testing.helper';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { LoggerService } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
@@ -48,6 +49,32 @@ describe('NewsPageService', () => {
 
         expect(spectator.service.article()).toBeUndefined();
         expect(spectator.service.error()).toBe('Ошибка загрузки новости');
+    });
+
+    it('drops the news item when it is not found, without reporting a stale link as an error', () => {
+        spectator.service.setNews(createMockArticle(), topics);
+        spectator.service.setError('Ошибка загрузки новости');
+
+        spectator.service.setNews(createMockArticle(), topics);
+        const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+        logger.error.mockClear();
+        spectator.service.setNotFound();
+
+        expect(spectator.service.isNotFound()).toBe(true);
+        expect(spectator.service.article()).toBeUndefined();
+        expect(spectator.service.error()).toBeUndefined();
+        expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['setNews', (service: NewsPageService) => service.setNews(createMockArticle(), topics)],
+        ['setError', (service: NewsPageService) => service.setError('Ошибка')],
+    ])('stops being not found on %s', (_name, reset) => {
+        spectator.service.setNotFound();
+
+        reset(spectator.service);
+
+        expect(spectator.service.isNotFound()).toBe(false);
     });
 
     it('reflects a moderation decision on the current version', () => {

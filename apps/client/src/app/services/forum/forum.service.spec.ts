@@ -1,6 +1,6 @@
 import { ForumApiService } from './forum-api.service';
 import { ForumService } from './forum.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import {
     ForumCreatedTopic,
@@ -198,7 +198,16 @@ describe('ForumService', () => {
 
             spectator.service.getTopic(42, 3, 99).subscribe();
 
-            expect(forumApiService.getTopic).toHaveBeenCalledWith(42, 3, 99);
+            expect(forumApiService.getTopic).toHaveBeenCalledWith(42, 3, 99, undefined);
+        });
+
+        it("should pass the caller's context to the API layer", () => {
+            forumApiService.getTopic.mockReturnValue(of(topicPage));
+            const context = new HttpContext();
+
+            spectator.service.getTopic(42, undefined, undefined, context).subscribe();
+
+            expect(forumApiService.getTopic).toHaveBeenCalledWith(42, undefined, undefined, context);
         });
 
         it('should map the topic and its messages', done => {

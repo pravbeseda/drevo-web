@@ -62,9 +62,9 @@ export class PictureApiService {
      *
      * @param id - Picture ID
      */
-    getPicture(id: number): Observable<PictureDto> {
+    getPicture(id: number, context?: HttpContext): Observable<PictureDto> {
         return this.http
-            .get<ApiResponse<PictureDto>>(`${this.apiUrl}/api/pictures/${id}`, { withCredentials: true })
+            .get<ApiResponse<PictureDto>>(`${this.apiUrl}/api/pictures/${id}`, { withCredentials: true, context })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');

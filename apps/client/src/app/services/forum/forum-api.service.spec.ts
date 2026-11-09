@@ -1,5 +1,5 @@
 import { ForumApiService } from './forum-api.service';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpContext, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { SKIP_ERROR_FOR_STATUSES, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
@@ -155,6 +155,24 @@ describe('ForumApiService', () => {
             spectator.service.getTopic(42).subscribe();
 
             const req = httpController.expectOne('/api/forum/topics/42');
+            req.flush({ success: true, data: topicPage });
+        });
+
+        it('should leave the error toast on unless the caller answers the failure itself', () => {
+            spectator.service.getTopic(42).subscribe();
+
+            const req = httpController.expectOne('/api/forum/topics/42');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([]);
+            req.flush({ success: true, data: topicPage });
+        });
+
+        it("should send the caller's context", () => {
+            const context = new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]);
+
+            spectator.service.getTopic(42, undefined, undefined, context).subscribe();
+
+            const req = httpController.expectOne('/api/forum/topics/42');
+            expect(req.request.context).toBe(context);
             req.flush({ success: true, data: topicPage });
         });
 

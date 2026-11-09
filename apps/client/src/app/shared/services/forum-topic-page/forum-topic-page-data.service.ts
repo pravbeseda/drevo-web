@@ -1,7 +1,7 @@
 import { ForumService } from '../../../services/forum/forum.service';
 import { INVALID_ANCHOR, readForumAnchor, readForumPage } from '../../helpers/forum-route-params';
+import { recoverResolveFailure, ResolveFailure, skipNotFoundToast } from '../../helpers/resolve-failure';
 import { parsePositiveIntParam, readRouteParam } from '../../helpers/route-params';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Logger, LoggerService } from '@drevo-web/core';
@@ -9,9 +9,7 @@ import { ForumTopicPage } from '@drevo-web/shared';
 import { Observable, of } from 'rxjs';
 import { catchError, shareReplay, switchMap } from 'rxjs/operators';
 
-const NOT_FOUND_STATUS = 404;
-
-export type ForumTopicResolveResult = ForumTopicPage | 'not-found' | 'load-error';
+export type ForumTopicResolveResult = ForumTopicPage | ResolveFailure;
 
 /**
  * The topic behind `/forum/topic/:id`, loaded once for every reader of the
@@ -71,22 +69,11 @@ export class ForumTopicPageDataService {
 
         const page = readForumPage(route);
 
-        return this.forumService.getTopic(id, page, anchor).pipe(
+        return this.forumService.getTopic(id, page, anchor, skipNotFoundToast()).pipe(
             switchMap(served =>
                 anchor === undefined && page === undefined ? this.fromFirstUnread(id, served) : of(served),
             ),
-            catchError((error: unknown) => {
-                // A topic that is gone is a stale link, not a fault, so it is
-                // answered without a log entry. Anything else is reported:
-                // recovering the stream here is what keeps it from reaching the
-                // global error handler, and so from reaching Sentry.
-                if (error instanceof HttpErrorResponse && error.status === NOT_FOUND_STATUS) {
-                    return of('not-found' as const);
-                }
-
-                this.logger.error(`Failed to load the forum topic ${id}`, error);
-                return of('load-error' as const);
-            }),
+            catchError(recoverResolveFailure(this.logger, `Failed to load the forum topic ${id}`)),
         );
     }
 
@@ -102,6 +89,6 @@ export class ForumTopicPageDataService {
 
         return firstUnreadId === undefined || holdsIt
             ? of(served)
-            : this.forumService.getTopic(id, undefined, firstUnreadId);
+            : this.forumService.getTopic(id, undefined, firstUnreadId, skipNotFoundToast());
     }
 }

@@ -15,6 +15,7 @@ export class ArticlePageService implements PageContext {
     private readonly _article = signal<ArticleVersion | undefined>(undefined);
     private readonly _missing = signal<MissingArticle | undefined>(undefined);
     private readonly _error = signal<string | undefined>(undefined);
+    private readonly _isNotFound = signal(false);
 
     constructor() {
         this.articleService.renamed$.pipe(takeUntilDestroyed()).subscribe(({ articleId, title }) => {
@@ -29,6 +30,7 @@ export class ArticlePageService implements PageContext {
     readonly article = this._article.asReadonly();
     readonly missing = this._missing.asReadonly();
     readonly error = this._error.asReadonly();
+    readonly isNotFound = this._isNotFound.asReadonly();
     readonly articleId = computed(() => this.article()?.articleId);
 
     readonly isMissing = computed(() => !!this._missing());
@@ -58,6 +60,7 @@ export class ArticlePageService implements PageContext {
         this._article.set(article);
         this._missing.set(undefined);
         this._error.set(undefined);
+        this._isNotFound.set(false);
         this.logger.info('Article set from resolver', {
             id: article.articleId,
             title: article.title,
@@ -68,6 +71,7 @@ export class ArticlePageService implements PageContext {
         this._article.set(undefined);
         this._missing.set(missing);
         this._error.set(undefined);
+        this._isNotFound.set(false);
         this.logger.info('Missing article set from resolver', {
             title: missing.title,
             canCreate: missing.canCreate,
@@ -78,7 +82,17 @@ export class ArticlePageService implements PageContext {
         this._article.set(undefined);
         this._missing.set(undefined);
         this._error.set(message);
+        this._isNotFound.set(false);
         this.logger.error('Article error', { message });
+    }
+
+    /** The address names no article: a stale link, not a fault, so it is not logged as an error. */
+    setNotFound(): void {
+        this._article.set(undefined);
+        this._missing.set(undefined);
+        this._error.set(undefined);
+        this._isNotFound.set(true);
+        this.logger.info('Article not found');
     }
 
     updateTopics(topics: ReadonlyArray<number>): void {

@@ -1,11 +1,12 @@
 import { ForumTopicPageDataService, ForumTopicResolveResult } from './forum-topic-page-data.service';
 import { ForumService } from '../../../services/forum/forum.service';
 import { createRouteSnapshot } from '../../testing/route-testing.helper';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Router, UrlSegment } from '@angular/router';
-import { LoggerService } from '@drevo-web/core';
+import { LoggerService, SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import { MockLogger, MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ForumTopicPage } from '@drevo-web/shared';
+import { expectAny } from '@drevo-web/shared/testing';
 import { SpectatorService, createServiceFactory } from '@ngneat/spectator/jest';
 import { of, throwError } from 'rxjs';
 
@@ -58,13 +59,13 @@ describe('ForumTopicPageDataService', () => {
 
     it('loads the topic the address names', () => {
         expect(load({ id: '42' })).toBe(topicPage);
-        expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, undefined);
+        expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, undefined, expectAny(HttpContext));
     });
 
     it('reads the page from the query', () => {
         load({ id: '42' }, { page: '3' });
 
-        expect(forumService.getTopic).toHaveBeenCalledWith(42, 3, undefined);
+        expect(forumService.getTopic).toHaveBeenCalledWith(42, 3, undefined, expectAny(HttpContext));
     });
 
     it.each([
@@ -74,13 +75,13 @@ describe('ForumTopicPageDataService', () => {
     ])('asks for the first page when the query page is %s', (_case, page) => {
         load({ id: '42' }, { page });
 
-        expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, undefined);
+        expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, undefined, expectAny(HttpContext));
     });
 
     it('anchors on the message the address names', () => {
         load({ id: '42', messageId: '7' });
 
-        expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, 7);
+        expect(forumService.getTopic).toHaveBeenCalledWith(42, undefined, 7, expectAny(HttpContext));
     });
 
     describe('a topic with unread messages', () => {
@@ -101,7 +102,7 @@ describe('ForumTopicPageDataService', () => {
             forumService.getTopic.mockReturnValueOnce(of(pageOf([30], 15, 2))).mockReturnValueOnce(of(unreadPage));
 
             expect(load({ id: '42' })).toBe(unreadPage);
-            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, undefined, 15);
+            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, undefined, 15, expectAny(HttpContext));
         });
 
         it('keeps the page served when it holds the first unread message', () => {
@@ -162,6 +163,13 @@ describe('ForumTopicPageDataService', () => {
         expect(forumService.getTopic).not.toHaveBeenCalled();
     });
 
+    it('keeps a 404 away from the error toast, the page answers it itself', () => {
+        load({ id: '42' });
+
+        const [, , , context] = forumService.getTopic.mock.calls[0] as [number, undefined, undefined, HttpContext];
+        expect(context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([404]);
+    });
+
     it('answers not-found when the API answers 404', () => {
         forumService.getTopic.mockReturnValue(
             throwError(() => new HttpErrorResponse({ status: 404, statusText: 'Not Found' })),
@@ -208,7 +216,7 @@ describe('ForumTopicPageDataService', () => {
             load({ id: '43' });
 
             expect(forumService.getTopic).toHaveBeenCalledTimes(2);
-            expect(forumService.getTopic).toHaveBeenLastCalledWith(43, undefined, undefined);
+            expect(forumService.getTopic).toHaveBeenLastCalledWith(43, undefined, undefined, expectAny(HttpContext));
         });
 
         it('loads again when the address anchors on another message', () => {
@@ -216,7 +224,7 @@ describe('ForumTopicPageDataService', () => {
             load({ id: '42', messageId: '8' });
 
             expect(forumService.getTopic).toHaveBeenCalledTimes(2);
-            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, undefined, 8);
+            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, undefined, 8, expectAny(HttpContext));
         });
 
         it('loads again when the query names another page', () => {
@@ -224,7 +232,7 @@ describe('ForumTopicPageDataService', () => {
             load({ id: '42' }, { page: '3' });
 
             expect(forumService.getTopic).toHaveBeenCalledTimes(2);
-            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, 3, undefined);
+            expect(forumService.getTopic).toHaveBeenLastCalledWith(42, 3, undefined, expectAny(HttpContext));
         });
 
         it('keeps a rejected address out of the cache entry of an accepted one', () => {

@@ -30,9 +30,11 @@ describe('NewsComponent', () => {
         article: ReturnType<typeof signal<ArticleVersion | undefined>>;
         articleId: ReturnType<typeof signal<number | undefined>>;
         error: ReturnType<typeof signal<string | undefined>>;
+        isNotFound: ReturnType<typeof signal<boolean>>;
         topics: ReturnType<typeof signal<readonly { id: number; title: string }[]>>;
         setNews: jest.Mock;
         setError: jest.Mock;
+        setNotFound: jest.Mock;
         applyMeta: jest.Mock;
     };
     let user: BehaviorSubject<User | undefined>;
@@ -50,9 +52,11 @@ describe('NewsComponent', () => {
             article: signal<ArticleVersion | undefined>(news),
             articleId: signal<number | undefined>(7),
             error: signal<string | undefined>(undefined),
+            isNotFound: signal(false),
             topics: signal(topics),
             setNews: jest.fn(),
             setError: jest.fn(),
+            setNotFound: jest.fn(),
             applyMeta: jest.fn(),
         };
         user = new BehaviorSubject<User | undefined>(createMockUser());
@@ -75,10 +79,28 @@ describe('NewsComponent', () => {
     });
 
     it('reports a news item that did not load', () => {
-        dataSubject.next({ news: undefined, topics });
+        dataSubject.next({ news: 'load-error', topics });
         spectator.detectChanges();
 
         expect(pageService.setError).toHaveBeenCalledWith('Ошибка загрузки новости');
+        expect(pageService.setNotFound).not.toHaveBeenCalled();
+    });
+
+    it('reports a news item that does not exist', () => {
+        dataSubject.next({ news: 'not-found', topics });
+        spectator.detectChanges();
+
+        expect(pageService.setNotFound).toHaveBeenCalled();
+        expect(pageService.setError).not.toHaveBeenCalled();
+    });
+
+    it('shows the not-found state instead of the page', () => {
+        pageService.isNotFound.set(true);
+        pageService.article.set(undefined);
+        spectator.detectChanges();
+
+        expect(spectator.query('[data-testid="news-not-found"]')).toBeTruthy();
+        expect(spectator.query('[data-testid="news-page"]')).toBeNull();
     });
 
     it('shows the error instead of the page', () => {

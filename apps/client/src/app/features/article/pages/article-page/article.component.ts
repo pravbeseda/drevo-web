@@ -2,13 +2,13 @@ import { ArticleService } from '../../../../services/articles';
 import { ErrorComponent } from '../../../../shared/components/error/error.component';
 import { SidebarReserveComponent } from '../../../../shared/components/sidebar-reserve/sidebar-reserve.component';
 import { isPageContentPath, primaryPath } from '../../../../shared/helpers/content-tab';
+import { PageResolveResult } from '../../../../shared/resolvers/page.resolver';
 import { MissingArticle, isMissingArticle } from '../../models/missing-article';
 import { ArticlePageService } from '../../services/article-page.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ArticleVersion } from '@drevo-web/shared';
 import { TabGroup, TabsGroupComponent } from '@drevo-web/ui/tabs-group';
 import { catchError, filter, map, of, startWith, switchMap } from 'rxjs';
 
@@ -34,11 +34,13 @@ export class ArticleComponent {
     constructor() {
         this.route.data
             .pipe(
-                map(data => data['article'] as ArticleVersion | MissingArticle | undefined),
+                map(data => data['article'] as PageResolveResult | MissingArticle),
                 takeUntilDestroyed(),
             )
             .subscribe(article => {
-                if (!article) {
+                if (article === 'not-found') {
+                    this.pageService.setNotFound();
+                } else if (article === 'load-error') {
                     this.pageService.setError('Ошибка загрузки статьи');
                 } else if (isMissingArticle(article)) {
                     this.pageService.setMissing(article);
@@ -87,6 +89,7 @@ export class ArticleComponent {
     readonly article = this.pageService.article;
     readonly isMissing = this.pageService.isMissing;
     readonly error = this.pageService.error;
+    readonly isNotFound = this.pageService.isNotFound;
 
     readonly tabGroups = computed<TabGroup[]>(() => {
         const base = this.pageService.basePath();

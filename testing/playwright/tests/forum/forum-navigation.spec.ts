@@ -7,6 +7,7 @@ import {
     mockForumTopicsUnknownPart,
     test,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import {
     createForumMessageDto,
     createForumTopicDto,
@@ -367,6 +368,7 @@ test.describe('Forum navigation', () => {
 
         const topic = new ForumTopicPage(page);
         await expect(topic.notFound).toBeVisible();
+        await expect(getNotification(page, 'error')).toHaveCount(0);
         // The list renders beside the panel, so a row here proves the topic
         // address reached the topic route rather than the section's list.
         await expect(new ForumTopicsPage(page).items).toHaveCount(1);

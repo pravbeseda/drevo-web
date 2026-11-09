@@ -1,7 +1,9 @@
 import { ArticlePageService } from './article-page.service';
 import { createMockArticle } from '../../../shared/testing/article-testing.helper';
 import { ArticleService } from '../../../services/articles';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { MISSING_ARTICLE_ID } from '../models/missing-article';
+import { LoggerService } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { ApprovalStatus } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
@@ -69,6 +71,46 @@ describe('ArticlePageService', () => {
             spectator.service.setError('Error');
 
             expect(spectator.service.article()).toBeUndefined();
+        });
+    });
+
+    describe('setNotFound', () => {
+        it('should flag the page and drop what it held', () => {
+            spectator.service.setArticle(mockArticle);
+            spectator.service.setNotFound();
+
+            expect(spectator.service.isNotFound()).toBe(true);
+            expect(spectator.service.article()).toBeUndefined();
+            expect(spectator.service.error()).toBeUndefined();
+        });
+
+        it('should drop an earlier error', () => {
+            spectator.service.setError('Error');
+            spectator.service.setNotFound();
+
+            expect(spectator.service.error()).toBeUndefined();
+        });
+
+        it('should not report a stale link as an error', () => {
+            spectator.service.setNotFound();
+
+            const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+            expect(logger.error).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['setArticle', (service: ArticlePageService) => service.setArticle(mockArticle)],
+            [
+                'setMissing',
+                (service: ArticlePageService) =>
+                    service.setMissing({ articleId: MISSING_ARTICLE_ID, title: 'Новая', canCreate: true }),
+            ],
+            ['setError', (service: ArticlePageService) => service.setError('Error')],
+        ])('should be reset by %s', (_name, reset) => {
+            spectator.service.setNotFound();
+            reset(spectator.service);
+
+            expect(spectator.service.isNotFound()).toBe(false);
         });
     });
 

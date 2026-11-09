@@ -2,7 +2,8 @@ import { PageTitleStrategy } from './page-title.strategy';
 import { ArticleService } from './articles';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { mockLoggerProvider } from '@drevo-web/core/testing';
+import { LoggerService } from '@drevo-web/core';
+import { MockLoggerService, mockLoggerProvider } from '@drevo-web/core/testing';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { MockProvider } from 'ng-mocks';
 import { Subject } from 'rxjs';
@@ -223,6 +224,16 @@ describe('PageTitleStrategy', () => {
 
             expect(spectator.service.pageTitle()).toBe('Древо');
             expect(titleService.setTitle).toHaveBeenCalledWith('Древо');
+        });
+
+        it.each(['not-found', 'load-error'])('should not warn when the page resolved to %s', failure => {
+            jest.spyOn(spectator.service, 'buildTitle').mockReturnValue(undefined);
+            const logger = (spectator.inject(LoggerService) as unknown as MockLoggerService).mockLogger;
+
+            spectator.service.updateTitle(makeSnapshot(makeRoute({ titleSource: 'article', article: failure })));
+
+            expect(spectator.service.pageTitle()).toBe('Древо');
+            expect(logger.warn).not.toHaveBeenCalled();
         });
 
         it('should fall back to default when titleSource points to a title that is not a string', () => {

@@ -3,60 +3,47 @@ import { ArticleService } from '../../services/articles';
 import { toEditSession } from '../models/page-edit-session';
 import { createMockArticle } from '../testing/article-testing.helper';
 import { createRouteSnapshot } from '../testing/route-testing.helper';
-import { UrlSegment } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRouteSnapshot, UrlSegment } from '@angular/router';
+import { Logger } from '@drevo-web/core';
+import { PageKind } from '@drevo-web/shared';
+import { firstValueFrom, of, throwError } from 'rxjs';
 
 const mockArticle = createMockArticle();
 
 describe('resolvePageEditSession', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'getArticleVersion'>>;
+    let logger: jest.Mocked<Pick<Logger, 'error'>>;
+
+    const resolve = (route: ActivatedRouteSnapshot, kind: PageKind = 'articles'): Promise<unknown> =>
+        firstValueFrom(
+            resolvePageEditSession(
+                articleService as unknown as ArticleService,
+                logger as unknown as Logger,
+                route,
+                kind,
+            ),
+        );
 
     beforeEach(() => {
         articleService = { getArticleVersion: jest.fn() };
+        logger = { error: jest.fn() };
     });
 
-    it('should return article version when valid ID is provided', done => {
+    it('should return article version when valid ID is provided', async () => {
         articleService.getArticleVersion.mockReturnValue(of(mockArticle));
-        const route = createRouteSnapshot({ versionId: '456' });
 
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
-            expect(result).toEqual(toEditSession(mockArticle, 'articles'));
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(456, 'articles');
-            done();
-        });
-    });
+        await expect(resolve(createRouteSnapshot({ versionId: '456' }))).resolves.toEqual(
+            toEditSession(mockArticle, 'articles'),
+        );
 
-    it('should return undefined for non-numeric ID', done => {
-        const route = createRouteSnapshot({ versionId: 'abc' });
-
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
-            expect(result).toBeUndefined();
-            expect(articleService.getArticleVersion).not.toHaveBeenCalled();
-            done();
-        });
-    });
-
-    it('should return undefined for zero ID', done => {
-        const route = createRouteSnapshot({ versionId: '0' });
-
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
-            expect(result).toBeUndefined();
-            expect(articleService.getArticleVersion).not.toHaveBeenCalled();
-            done();
-        });
-    });
-
-    it('should return undefined for negative ID', done => {
-        const route = createRouteSnapshot({ versionId: '-5' });
-
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
-            expect(result).toBeUndefined();
-            expect(articleService.getArticleVersion).not.toHaveBeenCalled();
-            done();
-        });
+        expect(articleService.getArticleVersion).toHaveBeenCalledWith(456, 'articles');
     });
 
     it.each([
+        ['non-numeric', 'abc'],
+        ['zero', '0'],
+        ['negative', '-5'],
         // Number() reads every JavaScript literal form, and none of them is an
         // id the URL pattern or the backend names.
         ['hexadecimal', '0x2a'],
@@ -64,62 +51,52 @@ describe('resolvePageEditSession', () => {
         ['signed', '+42'],
         ['padded with spaces', ' 42 '],
         ['padded with a leading zero', '042'],
-    ])('should return undefined for an ID %s, without asking the API', (_case, versionId) => {
-        const route = createRouteSnapshot({ versionId });
-        // A sentinel, so that an observable that never emitted cannot pass as undefined.
-        let result: unknown = 'not resolved';
+    ])('should return not-found for an ID %s, without asking the API', async (_case, versionId) => {
+        await expect(resolve(createRouteSnapshot({ versionId }))).resolves.toBe('not-found');
 
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(
-            value => (result = value),
-        );
-
-        expect(result).toBeUndefined();
         expect(articleService.getArticleVersion).not.toHaveBeenCalled();
     });
 
-    it('should return undefined when a segment carries matrix params, without asking the API', () => {
+    it('should return not-found when a segment carries matrix params, without asking the API', async () => {
         // Angular merges `;versionId=456` over the positional `1`, so the paramMap
         // reads 456 under an address the route pattern never named.
         const route = createRouteSnapshot({ versionId: '456' }, [new UrlSegment('1', { versionId: '456' })]);
-        // A sentinel, so that an observable that never emitted cannot pass as undefined.
-        let result: unknown = 'not resolved';
 
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(
-            value => (result = value),
-        );
+        await expect(resolve(route)).resolves.toBe('not-found');
 
-        expect(result).toBeUndefined();
         expect(articleService.getArticleVersion).not.toHaveBeenCalled();
     });
 
-    it('should return undefined for missing ID param', done => {
-        const route = createRouteSnapshot({});
+    it('should return not-found for missing ID param', async () => {
+        await expect(resolve(createRouteSnapshot({}))).resolves.toBe('not-found');
 
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
-            expect(result).toBeUndefined();
-            expect(articleService.getArticleVersion).not.toHaveBeenCalled();
-            done();
-        });
+        expect(articleService.getArticleVersion).not.toHaveBeenCalled();
     });
 
-    it('should return undefined on HTTP error', done => {
-        articleService.getArticleVersion.mockReturnValue(throwError(() => new Error('Server error')));
-        const route = createRouteSnapshot({ versionId: '456' });
+    it('should return not-found on a 404, without a log entry', async () => {
+        articleService.getArticleVersion.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'articles').subscribe(result => {
-            expect(result).toBeUndefined();
-            done();
-        });
+        await expect(resolve(createRouteSnapshot({ versionId: '456' }))).resolves.toBe('not-found');
+
+        expect(logger.error).not.toHaveBeenCalled();
     });
 
-    it('should open a news version for editing through the news endpoints', done => {
+    it('should return load-error and log its cause on any other failure', async () => {
+        const failure = new HttpErrorResponse({ status: 500 });
+        articleService.getArticleVersion.mockReturnValue(throwError(() => failure));
+
+        await expect(resolve(createRouteSnapshot({ versionId: '456' }))).resolves.toBe('load-error');
+
+        expect(logger.error).toHaveBeenCalledWith('Failed to load the articles version 456', failure);
+    });
+
+    it('should open a news version for editing through the news endpoints', async () => {
         articleService.getArticleVersion.mockReturnValue(of(mockArticle));
-        const route = createRouteSnapshot({ versionId: '70' });
 
-        resolvePageEditSession(articleService as unknown as ArticleService, route, 'news').subscribe(result => {
-            expect(articleService.getArticleVersion).toHaveBeenCalledWith(70, 'news');
-            expect(result?.kind).toBe('news');
-            done();
-        });
+        await expect(resolve(createRouteSnapshot({ versionId: '70' }), 'news')).resolves.toEqual(
+            toEditSession(mockArticle, 'news'),
+        );
+
+        expect(articleService.getArticleVersion).toHaveBeenCalledWith(70, 'news');
     });
 });

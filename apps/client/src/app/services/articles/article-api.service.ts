@@ -2,7 +2,7 @@ import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
+import { SKIP_ERROR_FOR_STATUSES, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';
 import {
     ApiResponse,
     ArticleCountsDto,
@@ -27,6 +27,8 @@ import {
 } from '@drevo-web/shared';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
+const NOT_FOUND_STATUS = 404;
 
 /**
  * Low-level API service for article-related HTTP requests.
@@ -53,7 +55,10 @@ export class ArticleApiService {
      */
     getArticle(id: number, kind: PageKind = 'articles'): Observable<ArticleVersionDto> {
         return this.http
-            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/${kind}/show/${id}`, { withCredentials: true })
+            .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/${kind}/show/${id}`, {
+                withCredentials: true,
+                context: this.answeredNotFoundContext(),
+            })
             .pipe(
                 map(response => {
                     assertIsDefined(response.data, 'Response data is undefined');
@@ -92,6 +97,7 @@ export class ArticleApiService {
         return this.http
             .get<ApiResponse<ArticleVersionDto>>(`${this.apiUrl}/api/${kind}/version/${versionId}`, {
                 withCredentials: true,
+                context: this.answeredNotFoundContext(),
             })
             .pipe(
                 map(response => {
@@ -409,5 +415,10 @@ export class ArticleApiService {
                     return response.data;
                 }),
             );
+    }
+
+    /** For a read whose every caller shows its own state on a 404, which a toast would only repeat. */
+    private answeredNotFoundContext(): HttpContext {
+        return new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [NOT_FOUND_STATUS]);
     }
 }

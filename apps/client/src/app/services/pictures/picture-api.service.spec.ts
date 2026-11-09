@@ -1,4 +1,4 @@
-import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SKIP_ERROR_FOR_STATUSES } from '@drevo-web/core';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
@@ -144,6 +144,22 @@ describe('PictureApiService', () => {
     });
 
     describe('getPicture', () => {
+        it('should leave the error toast on unless the caller answers the failure itself', () => {
+            spectator.service.getPicture(123).subscribe();
+
+            const req = httpController.expectOne('/api/pictures/123');
+            expect(req.request.context.get(SKIP_ERROR_FOR_STATUSES)).toEqual([]);
+        });
+
+        it("should send the caller's context", () => {
+            const context = new HttpContext().set(SKIP_ERROR_FOR_STATUSES, [404]);
+
+            spectator.service.getPicture(123, context).subscribe();
+
+            const req = httpController.expectOne('/api/pictures/123');
+            expect(req.request.context).toBe(context);
+        });
+
         it('should call HTTP GET with correct URL', () => {
             spectator.service.getPicture(123).subscribe(result => {
                 expect(result).toEqual(mockPictureDto);

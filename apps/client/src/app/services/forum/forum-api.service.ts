@@ -99,7 +99,7 @@ export class ForumApiService {
      * @param page - Page number (1-based); omitted means the first
      * @param anchor - Message id to land on; overrides `page` on the server
      */
-    getTopic(id: number, page?: number, anchor?: number): Observable<ForumTopicPageDto> {
+    getTopic(id: number, page?: number, anchor?: number, context?: HttpContext): Observable<ForumTopicPageDto> {
         let params = new HttpParams();
         if (page) {
             params = params.set('page', page);
@@ -112,6 +112,7 @@ export class ForumApiService {
             .get<ApiResponse<ForumTopicPageDto>>(`${this.apiUrl}/api/forum/topics/${id}`, {
                 params,
                 withCredentials: true,
+                context,
             })
             .pipe(
                 map(response => {
