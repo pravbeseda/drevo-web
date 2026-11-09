@@ -9,6 +9,7 @@ export class PictureGalleryPage extends BasePage {
     readonly empty = this.page.getByTestId('pictures-empty');
     readonly cards = this.page.getByTestId('picture-card');
     readonly firstCardImage = this.cards.first().locator('img');
+    readonly loadingMore = this.page.getByTestId('pictures-scroller').locator('ui-spinner');
 
     async waitForReady(): Promise<void> {
         await this.root.waitFor({ state: 'visible' });
@@ -29,6 +30,11 @@ export class PictureGalleryPage extends BasePage {
     /** Type into the search input */
     async search(query: string): Promise<void> {
         await this.searchInput.fill(query);
+    }
+
+    /** Full height of the list, which grows when a page joins it */
+    async scrollHeight(): Promise<number> {
+        return this.page.getByTestId('pictures-scroller').evaluate(el => el.scrollHeight);
     }
 
     /** Scroll virtual scroller to the bottom */

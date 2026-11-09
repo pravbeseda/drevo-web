@@ -32,6 +32,7 @@ export {
     mockPictureApprovePendingNotFound,
     mockPictureRejectPendingNotFound,
     mockPictureImages,
+    holdPictureImages,
     mockArticleRename,
     mockArticleRenameConflict,
     mockArticleRenameValidationError,

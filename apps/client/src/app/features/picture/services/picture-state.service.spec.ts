@@ -1,15 +1,17 @@
-import { PictureService } from '../../../services/pictures';
+import { PicturePreloadService } from '../../../services/pictures/picture-preload.service';
+import { PictureService } from '../../../services/pictures/picture.service';
 import { PictureStateService } from './picture-state.service';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { Picture, PictureListResponse } from '@drevo-web/shared';
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
 
 describe('PicturesStateService', () => {
     let spectator: SpectatorService<PictureStateService>;
     let pictureService: jest.Mocked<PictureService>;
+    let picturePreload: jest.Mocked<PicturePreloadService>;
 
     const makePicture = (id: number): Picture => ({
         id,
@@ -33,7 +35,7 @@ describe('PicturesStateService', () => {
 
     const createService = createServiceFactory({
         service: PictureStateService,
-        mocks: [PictureService],
+        mocks: [PictureService, PicturePreloadService],
         providers: [mockLoggerProvider()],
     });
 
@@ -41,6 +43,8 @@ describe('PicturesStateService', () => {
         jest.useFakeTimers();
         spectator = createService();
         pictureService = spectator.inject(PictureService);
+        picturePreload = spectator.inject(PicturePreloadService);
+        picturePreload.whenThumbnailsLoaded.mockImplementation(page => of(page));
     });
 
     afterEach(() => {
@@ -133,6 +137,61 @@ describe('PicturesStateService', () => {
             spectator.service.loadMore();
 
             expect(pictureService.getPictures).not.toHaveBeenCalled();
+        });
+
+        describe('while the thumbnails of the next page are loading', () => {
+            const nextPage: PictureListResponse = {
+                items: Array.from({ length: 5 }, (_, i) => makePicture(i + 6)),
+                total: 20,
+                page: 2,
+                pageSize: 25,
+                totalPages: 2,
+            };
+            let thumbnailsLoaded: Subject<PictureListResponse>;
+
+            const loadedPictures = (): number =>
+                spectator.service.rows().reduce((sum, row) => sum + row.items.length, 0);
+
+            beforeEach(() => {
+                pictureService.getPictures.mockReturnValue(of(mockResponse));
+                spectator.service.init();
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+                spectator.service.onContainerResize(1000);
+
+                thumbnailsLoaded = new Subject();
+                pictureService.getPictures.mockReturnValue(of(nextPage));
+                picturePreload.whenThumbnailsLoaded.mockReturnValue(thumbnailsLoaded);
+                spectator.service.loadMore();
+            });
+
+            it('should keep the spinner on and the page out of the gallery', () => {
+                expect(picturePreload.whenThumbnailsLoaded).toHaveBeenCalledWith(nextPage);
+                expect(spectator.service.isLoadingMore()).toBe(true);
+                expect(loadedPictures()).toBe(5);
+            });
+
+            it('should not ask for another page', () => {
+                pictureService.getPictures.mockClear();
+
+                spectator.service.loadMore();
+
+                expect(pictureService.getPictures).not.toHaveBeenCalled();
+            });
+
+            it('should add the page once they are ready', () => {
+                thumbnailsLoaded.next(nextPage);
+                thumbnailsLoaded.complete();
+
+                expect(spectator.service.isLoadingMore()).toBe(false);
+                expect(loadedPictures()).toBe(10);
+            });
+
+            it('should drop the page when the search changes', () => {
+                spectator.service.onSearchChange('храм');
+
+                expect(spectator.service.isLoadingMore()).toBe(false);
+                expect(thumbnailsLoaded.observed).toBe(false);
+            });
         });
     });
 
