@@ -25,12 +25,20 @@ import {
     viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, filter, merge, throttleTime } from 'rxjs';
+import { debounceTime, filter, merge, tap, throttleTime } from 'rxjs';
 
 export { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 
 /** Default number of items from the end to trigger loading more */
 const DEFAULT_LOAD_MORE_THRESHOLD = 5;
+
+const SCROLL_SAMPLE_MS = 100;
+
+/** Above this speed a page requested now only moves the end the wheel's momentum would otherwise stop at. */
+const MAX_LOAD_MORE_SCROLL_PX_PER_MS = 1.5;
+
+/** Longer than SCROLL_SAMPLE_MS, so that the trailing sample cannot follow it and report the old speed. */
+const SCROLL_SETTLED_MS = 150;
 
 /**
  * Context provided to the item template
@@ -64,6 +72,9 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     private readonly scrollable = inject(CdkVirtualScrollableElement);
     private readonly scrollStrategy = inject(FlexibleVirtualScrollStrategy);
+
+    private scrollSample = { top: 0, time: 0 };
+    private scrollSpeed = 0;
 
     /** Items to display in the virtual scroll */
     readonly items = input.required<readonly T[]>();
@@ -137,17 +148,27 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     private setupScrollListener(): void {
         const viewport = this.viewport();
 
-        const scroll$ = this.scrollable
-            .elementScrolled()
-            .pipe(throttleTime(100, undefined, { leading: true, trailing: true }));
+        const scrolled$ = this.scrollable.elementScrolled();
+
+        const scroll$ = scrolled$.pipe(
+            throttleTime(SCROLL_SAMPLE_MS, undefined, { leading: true, trailing: true }),
+            tap(() => this.sampleScrollSpeed()),
+        );
+
+        // A scroll stopped at the end of the list emits nothing more, so its rest has to be a signal of its own.
+        const scrollSettled$ = scrolled$.pipe(
+            debounceTime(SCROLL_SETTLED_MS),
+            tap(() => (this.scrollSpeed = 0)),
+        );
 
         // Also check when CDK updates the rendered range — covers the case where
         // all items fit in the viewport without scrolling (e.g. wide screen).
         // debounceTime(0) collapses any synchronous batch of range updates into one emission.
         const rangeChange$ = viewport.renderedRangeStream.pipe(debounceTime(0));
 
-        merge(scroll$, rangeChange$)
+        merge(scroll$, scrollSettled$, rangeChange$)
             .pipe(
+                filter(() => this.scrollSpeed <= MAX_LOAD_MORE_SCROLL_PX_PER_MS),
                 filter(() => !this.isLoading() && !this.allItemsLoaded()),
                 filter(() => this.shouldLoadMore()),
                 takeUntilDestroyed(this.destroyRef),
@@ -155,6 +176,12 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
             .subscribe(() => {
                 this.loadMore.emit();
             });
+    }
+
+    private sampleScrollSpeed(): void {
+        const sample = { top: this.host.scrollTop, time: Date.now() };
+        this.scrollSpeed = Math.abs(sample.top - this.scrollSample.top) / (sample.time - this.scrollSample.time);
+        this.scrollSample = sample;
     }
 
     private shouldLoadMore(): boolean {
