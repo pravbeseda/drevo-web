@@ -20,7 +20,7 @@ The Authentication API provides endpoints for user authentication in the drevo-i
 | Development | No     | Yes      | Lax      |
 | Production  | Yes    | Yes      | None     |
 
-**Note:** Production uses `SameSite=None` because the frontend (`new.drevo-info.ru`) and backend (`drevo-info.ru`) are cross-site for XHR requests.
+**Note:** The frontend (`app.drevo-info.ru`) and the backend (`drevo-info.ru`) are different origins — hence the CORS headers below — but one site: they share the registrable domain `drevo-info.ru`, so `SameSite=Lax` would send the cookie on these requests too. Production sets `None` on the premise that they are cross-site; whether it can move to `Lax` is pravbeseda/drevo-yii#417.
 
 ### CSRF Protection
 
@@ -99,7 +99,7 @@ Authenticate a user with username and password.
 POST /api/auth/login HTTP/1.1
 Content-Type: application/json
 X-CSRF-Token: your-csrf-token
-Origin: https://new.drevo-info.ru
+Origin: https://app.drevo-info.ru
 
 {
   "username": "user@example.com",
@@ -262,7 +262,7 @@ Log out the current user and destroy the session.
 POST /api/auth/logout HTTP/1.1
 Content-Type: application/json
 X-CSRF-Token: your-csrf-token
-Origin: https://new.drevo-info.ru
+Origin: https://app.drevo-info.ru
 ```
 
 **Response 200 OK:**
@@ -324,12 +324,13 @@ CORS headers are applied only in production for cross-origin requests from the f
 
 **Allowed Origins:**
 
-- `https://new.drevo-info.ru`
+- `https://app.drevo-info.ru`
+- `https://beta.drevo-info.ru`
 
 **CORS Headers:**
 
 ```http
-Access-Control-Allow-Origin: https://new.drevo-info.ru
+Access-Control-Allow-Origin: https://app.drevo-info.ru
 Access-Control-Allow-Credentials: true
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
 Access-Control-Allow-Headers: Content-Type, X-CSRF-Token
