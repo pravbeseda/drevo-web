@@ -58,10 +58,17 @@ interface MediaQueryListMock {
     removeEventListener: jest.Mock;
 }
 
-type MockWindow = Window & { matchMedia: jest.Mock<MediaQueryListMock> };
+type MockWindow = Window & { matchMedia: jest.Mock<MediaQueryListMock, [string]> };
 
+const BREAKPOINT_QUERY = `(max-width: ${BREAKPOINT_TABLET - 1}px)`;
+
+// Found by its query, not by call order: ThemeService queries the same injected window first.
 function getMediaQueryList(mockWindow: MockWindow): MediaQueryListMock {
-    const [result] = mockWindow.matchMedia.mock.results;
+    const call = mockWindow.matchMedia.mock.calls.findIndex(([query]) => query === BREAKPOINT_QUERY);
+    if (call < 0) {
+        throw new Error(`matchMedia was not asked for ${BREAKPOINT_QUERY}`);
+    }
+    const result = mockWindow.matchMedia.mock.results[call];
     // A `MockResult` also covers the throwing and in-flight cases, whose `value` is untyped.
     if (result.type !== 'return') {
         throw new Error('matchMedia has not returned a media query list');
