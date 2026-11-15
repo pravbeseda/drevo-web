@@ -26,6 +26,32 @@ const typedParserOptions = {
 // silently reinstate a rule the base block turned off.
 const specFiles = ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'];
 
+// `use-unknown-in-catch-callback-variable` from strict-type-checked covers a native
+// `catch` and `Promise.catch`, and nothing else. RxJS types both of its error entry
+// points `any` — `catchError(selector: (err: any, ...))` and the observer's
+// `error: (err: any) => void` — so an unannotated parameter there silently inherits
+// `any` and carries it into everything derived from it. Annotating the parameter
+// (`unknown`, or a concrete type where the stream really guarantees one) is the fix.
+// Shared by the base and the spec blocks: redeclaring `no-restricted-syntax` replaces the array.
+const rxjsErrorParameterSelectors = [
+    {
+        // Pinned to `params.0`: the selector's other parameter, `caught: Observable<T>`,
+        // is typed honestly by RxJS and is the one that must not be annotated by hand.
+        selector:
+            "CallExpression[callee.name='catchError'] > ArrowFunctionExpression[params.0.type='Identifier']:not([params.0.typeAnnotation])",
+        message: 'Annotate the catchError parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+    },
+    {
+        // Anchored to the observer position — the argument of a `.subscribe()` — rather
+        // than to the property name, which on its own matches any object that happens to
+        // carry an `error` callback. Both function forms are covered: the method
+        // shorthand `error(err) {}` inherits the same `any` as the arrow.
+        selector:
+            "CallExpression[callee.property.name='subscribe'] > ObjectExpression > Property[key.name='error'] > :matches(ArrowFunctionExpression, FunctionExpression)[params.0.type='Identifier']:not([params.0.typeAnnotation])",
+        message: 'Annotate the subscribe error callback parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+    },
+];
+
 export default [
     ...nx.configs['flat/base'],
     ...nx.configs['flat/typescript'],
@@ -39,30 +65,14 @@ export default [
             'import-x': importX,
         },
         rules: {
-            // `use-unknown-in-catch-callback-variable` from strict-type-checked covers a native
-            // `catch` and `Promise.catch`, and nothing else. RxJS types both of its error entry
-            // points `any` — `catchError(selector: (err: any, ...))` and the observer's
-            // `error: (err: any) => void` — so an unannotated parameter there silently inherits
-            // `any` and carries it into everything derived from it. Annotating the parameter
-            // (`unknown`, or a concrete type where the stream really guarantees one) is the fix.
             'no-restricted-syntax': [
                 'error',
+                ...rxjsErrorParameterSelectors,
                 {
-                    // Pinned to `params.0`: the selector's other parameter, `caught: Observable<T>`,
-                    // is typed honestly by RxJS and is the one that must not be annotated by hand.
                     selector:
-                        "CallExpression[callee.name='catchError'] > ArrowFunctionExpression[params.0.type='Identifier']:not([params.0.typeAnnotation])",
-                    message: 'Annotate the catchError parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
-                },
-                {
-                    // Anchored to the observer position — the argument of a `.subscribe()` — rather
-                    // than to the property name, which on its own matches any object that happens to
-                    // carry an `error` callback. Both function forms are covered: the method
-                    // shorthand `error(err) {}` inherits the same `any` as the arrow.
-                    selector:
-                        "CallExpression[callee.property.name='subscribe'] > ObjectExpression > Property[key.name='error'] > :matches(ArrowFunctionExpression, FunctionExpression)[params.0.type='Identifier']:not([params.0.typeAnnotation])",
+                        "PropertyDefinition[value.callee.name=/^(signal|linkedSignal)$/]:not([accessibility='private'], [accessibility='protected'], [key.type='PrivateIdentifier'])",
                     message:
-                        'Annotate the subscribe error callback parameter — RxJS types it `any`. Use `(err: unknown) =>`.',
+                        'A public writable signal breaks Angular rule 2. Declare `private readonly _x = signal(…)` and expose `readonly x = this._x.asReadonly()`, or make it `protected` when only the template reads it.',
                 },
             ],
             'import-x/no-duplicates': 'error',
@@ -140,6 +150,8 @@ export default [
     {
         files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
         rules: {
+            // A test host declares public signals to drive the inputs of the component under test.
+            'no-restricted-syntax': ['error', ...rxjsErrorParameterSelectors],
             '@typescript-eslint/no-empty-function': 'off',
             'import-x/order': 'off',
             // sonarjs rules whose findings are inherent to test code: fixture URLs and

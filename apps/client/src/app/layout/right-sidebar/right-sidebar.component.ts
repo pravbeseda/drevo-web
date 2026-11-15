@@ -14,12 +14,13 @@ export class RightSidebarComponent {
     private readonly sidebarService = inject(SidebarService);
 
     readonly actions = this.sidebarService.actions;
-    readonly menuOpen = signal(false);
+    private readonly _menuOpen = signal(false);
+    readonly menuOpen = this._menuOpen.asReadonly();
 
     constructor() {
         effect(() => {
             this.actions();
-            this.menuOpen.set(false);
+            this._menuOpen.set(false);
         });
     }
 
@@ -34,11 +35,11 @@ export class RightSidebarComponent {
     });
 
     toggleMenu(): void {
-        this.menuOpen.update(open => !open);
+        this._menuOpen.update(open => !open);
     }
 
     handleSpeedDialAction(action: SidebarAction): void {
         action.action?.();
-        this.menuOpen.set(false);
+        this._menuOpen.set(false);
     }
 }

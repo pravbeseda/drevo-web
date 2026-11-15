@@ -21,14 +21,15 @@ export class VersionRedirectComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly logger = inject(LoggerService).withContext('VersionRedirect');
 
-    readonly error = signal<string | undefined>(undefined);
+    private readonly _error = signal<string | undefined>(undefined);
+    readonly error = this._error.asReadonly();
 
     ngOnInit(): void {
         const idParam = readRouteParam(this.route.snapshot, 'versionId');
         const versionId = parsePositiveIntParam(idParam);
 
         if (versionId === undefined) {
-            this.error.set('Неверный ID версии');
+            this._error.set('Неверный ID версии');
             this.logger.error('Invalid version ID for redirect', idParam);
             return;
         }
@@ -51,7 +52,7 @@ export class VersionRedirectComponent implements OnInit {
                         versionId,
                         status: err.status,
                     });
-                    this.error.set(err.status === 404 ? 'Версия не найдена' : 'Ошибка загрузки версии');
+                    this._error.set(err.status === 404 ? 'Версия не найдена' : 'Ошибка загрузки версии');
                 },
             });
     }

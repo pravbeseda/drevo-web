@@ -41,12 +41,18 @@ export class SearchComponent implements OnInit {
     private readonly searchSubject = new Subject<string>();
     private readonly queryChangedSubject = new Subject<void>();
 
-    readonly searchQuery = signal('');
-    readonly searchResults = signal<ArticleSearchResult[]>([]);
-    readonly isLoading = signal(false);
-    readonly isLoadingMore = signal(false);
-    readonly totalResults = signal(0);
-    readonly currentPage = signal(1);
+    private readonly _searchQuery = signal('');
+    private readonly _searchResults = signal<ArticleSearchResult[]>([]);
+    private readonly _isLoading = signal(false);
+    private readonly _isLoadingMore = signal(false);
+    private readonly _totalResults = signal(0);
+    private readonly _currentPage = signal(1);
+    readonly searchQuery = this._searchQuery.asReadonly();
+    readonly searchResults = this._searchResults.asReadonly();
+    readonly isLoading = this._isLoading.asReadonly();
+    readonly isLoadingMore = this._isLoadingMore.asReadonly();
+    readonly totalResults = this._totalResults.asReadonly();
+    readonly currentPage = this._currentPage.asReadonly();
 
     readonly hasResults = computed(() => this.searchResults().length > 0 && !this.isLoading());
     readonly showNoResults = computed(
@@ -70,8 +76,8 @@ export class SearchComponent implements OnInit {
                 map(query => query.trim()),
                 distinctUntilChanged(),
                 tap(() => {
-                    this.isLoading.set(true);
-                    this.currentPage.set(1);
+                    this._isLoading.set(true);
+                    this._currentPage.set(1);
                     this.queryChangedSubject.next();
                 }),
                 debounceTime(DEBOUNCE_TIME_MS),
@@ -91,14 +97,14 @@ export class SearchComponent implements OnInit {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
-                this.searchResults.set([...response.items]);
-                this.totalResults.set(response.total);
-                this.isLoading.set(false);
+                this._searchResults.set([...response.items]);
+                this._totalResults.set(response.total);
+                this._isLoading.set(false);
             });
     }
 
     onSearchChange(value: string): void {
-        this.searchQuery.set(value);
+        this._searchQuery.set(value);
         this.searchSubject.next(value);
     }
 
@@ -111,7 +117,7 @@ export class SearchComponent implements OnInit {
             return;
         }
 
-        this.isLoadingMore.set(true);
+        this._isLoadingMore.set(true);
 
         this.articleService
             .searchArticles({ query, page: nextPage })
@@ -121,13 +127,13 @@ export class SearchComponent implements OnInit {
                     return of({ items: [], total: 0 });
                 }),
                 takeUntil(this.queryChangedSubject),
-                finalize(() => this.isLoadingMore.set(false)),
+                finalize(() => this._isLoadingMore.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
                 if (response.items.length > 0) {
-                    this.searchResults.set([...this.searchResults(), ...response.items]);
-                    this.currentPage.set(nextPage);
+                    this._searchResults.update(results => [...results, ...response.items]);
+                    this._currentPage.set(nextPage);
                 }
             });
     }

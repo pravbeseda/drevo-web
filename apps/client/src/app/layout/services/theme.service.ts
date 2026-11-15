@@ -1,9 +1,11 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Injectable, signal, effect, PLATFORM_ID, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { StorageService, WINDOW } from '@drevo-web/core';
 
 export type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'drevo-theme';
+const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 
 @Injectable({
     providedIn: 'root',
@@ -11,38 +13,37 @@ const THEME_KEY = 'drevo-theme';
 export class ThemeService {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly isBrowser = isPlatformBrowser(this.platformId);
+    private readonly storage = inject(StorageService);
+    private readonly window = inject(WINDOW);
+    private readonly document = inject(DOCUMENT);
 
-    readonly theme = signal<Theme>(this.getInitialTheme());
-    readonly isDark = () => this.theme() === 'dark';
+    private readonly _theme = signal<Theme>(this.getInitialTheme());
+    readonly theme = this._theme.asReadonly();
+    readonly isDark = computed(() => this._theme() === 'dark');
 
     constructor() {
         effect(() => {
-            const currentTheme = this.theme();
+            const currentTheme = this._theme();
             if (this.isBrowser) {
                 this.applyTheme(currentTheme);
-                this.saveTheme(currentTheme);
+                // Raw string, not JSON: themes saved before StorageService must still be read.
+                this.storage.setString(THEME_KEY, currentTheme);
             }
         });
 
-        if (this.isBrowser) {
-            this.listenToSystemThemeChanges();
-        }
+        this.listenToSystemThemeChanges();
     }
 
     toggleTheme(): void {
-        this.theme.update(current => (current === 'light' ? 'dark' : 'light'));
+        this._theme.update(current => (current === 'light' ? 'dark' : 'light'));
     }
 
     setTheme(theme: Theme): void {
-        this.theme.set(theme);
+        this._theme.set(theme);
     }
 
     private getInitialTheme(): Theme {
-        if (!this.isBrowser) {
-            return 'light';
-        }
-
-        const savedTheme = localStorage.getItem(THEME_KEY);
+        const savedTheme = this.storage.getString(THEME_KEY);
         if (savedTheme === 'light' || savedTheme === 'dark') {
             return savedTheme;
         }
@@ -51,14 +52,11 @@ export class ThemeService {
     }
 
     private getSystemTheme(): Theme {
-        if (this.isBrowser && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
-        }
-        return 'light';
+        return this.window?.matchMedia(DARK_SCHEME_QUERY).matches ? 'dark' : 'light';
     }
 
     private applyTheme(theme: Theme): void {
-        const root = document.documentElement;
+        const root = this.document.documentElement;
 
         if (theme === 'dark') {
             root.classList.add('dark-theme');
@@ -71,18 +69,11 @@ export class ThemeService {
         }
     }
 
-    private saveTheme(theme: Theme): void {
-        localStorage.setItem(THEME_KEY, theme);
-    }
-
     private listenToSystemThemeChanges(): void {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-        mediaQuery.addEventListener('change', e => {
+        this.window?.matchMedia(DARK_SCHEME_QUERY).addEventListener('change', e => {
             // Apply system theme only if user hasn't explicitly chosen one
-            const savedTheme = localStorage.getItem(THEME_KEY);
-            if (!savedTheme) {
-                this.theme.set(e.matches ? 'dark' : 'light');
+            if (!this.storage.getString(THEME_KEY)) {
+                this._theme.set(e.matches ? 'dark' : 'light');
             }
         });
     }

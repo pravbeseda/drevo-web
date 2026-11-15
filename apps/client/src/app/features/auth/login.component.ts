@@ -38,8 +38,10 @@ export class LoginComponent implements OnInit {
         rememberMe: new FormControl(false, { nonNullable: true }),
     });
 
-    readonly isSubmitting = signal(false);
-    readonly errorMessage = signal<string | undefined>(undefined);
+    private readonly _isSubmitting = signal(false);
+    private readonly _errorMessage = signal<string | undefined>(undefined);
+    readonly isSubmitting = this._isSubmitting.asReadonly();
+    readonly errorMessage = this._errorMessage.asReadonly();
 
     ngOnInit(): void {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
@@ -58,8 +60,8 @@ export class LoginComponent implements OnInit {
             return;
         }
 
-        this.isSubmitting.set(true);
-        this.errorMessage.set(undefined);
+        this._isSubmitting.set(true);
+        this._errorMessage.set(undefined);
         this.loginForm.disable();
 
         // Capture credentials and clear password immediately
@@ -76,7 +78,7 @@ export class LoginComponent implements OnInit {
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => {
-                    this.isSubmitting.set(false);
+                    this._isSubmitting.set(false);
                     this.loginForm.enable();
                 }),
             )
@@ -86,7 +88,7 @@ export class LoginComponent implements OnInit {
                     void this.router.navigateByUrl(this.returnUrl);
                 },
                 error: (error: LoginError) => {
-                    this.errorMessage.set(this.getErrorMessage(error));
+                    this._errorMessage.set(this.getErrorMessage(error));
                 },
             });
     }
