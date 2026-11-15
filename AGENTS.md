@@ -52,11 +52,10 @@ pnpm nx e2e client-e2e             # API contract tests against a running drevo-
 
 Validate narrowly first, then broaden: in Nx, run against the affected app or lib when the target is known (`pnpm nx affected -t test,lint`).
 
-Scaffolding:
+Scaffolding — a component with its `.scss` and a Spectator spec; add `changeDetection: ChangeDetectionStrategy.OnPush` to what it writes (Angular rule 3). Services are written by hand: `@nx/angular:component` and `@nx/angular:service` write TestBed specs, and the component generator also rewrites `nx.json` without its comments.
 
 ```bash
-nx g @nx/angular:component my-component --project=client --changeDetection=OnPush
-nx g @nx/angular:service services/my-service --project=client
+pnpm nx g @ngneat/spectator:spectator-component my-component --path=apps/client/src/app/features/my-feature --project=client
 ```
 
 ### Quality gates
@@ -108,7 +107,7 @@ libs/
 legacy-drevo-yii/            # PHP app being migrated (proxied via apps/client/proxy.conf.json)
 ```
 
-Entry points: routing `apps/client/src/app/app.routes.ts`, app config `apps/client/src/app/app.config.ts`, proxy `apps/client/proxy.conf.json` (`/api` and `/pictures` → `http://drevo-local.ru`), path aliases `tsconfig.base.json`.
+Entry points: routing `apps/client/src/app/app.routes.ts`, app config `apps/client/src/app/app.config.ts`, proxy `apps/client/proxy.conf.json` (`/api` and `/images` → `http://drevo-local.ru`), path aliases `tsconfig.base.json`.
 
 How a feature is laid out and where a given type belongs: [`docs/architecture.md`](docs/architecture.md).
 
@@ -148,7 +147,7 @@ Never reach across projects with a relative path — always the alias. Library e
 
 ### Legacy backend (Yii1)
 
-Check `apps/client/proxy.conf.json` before creating an API service — the endpoint may still be PHP, and a duplicate service is the usual result of skipping that check. Working in the Yii1 app itself: [`docs/legacy-yii.md`](docs/legacy-yii.md).
+Before creating an API service, look for its endpoint in `legacy-drevo-yii/protected/controllers/api/` and for an existing service in `app/services/` — every `/api` call goes to the Yii backend, and a duplicate service is the usual result of skipping that check. Working in the Yii1 app itself: [`docs/legacy-yii.md`](docs/legacy-yii.md).
 
 ## Design principles
 
