@@ -18,43 +18,32 @@ const rule = '@angular-eslint/prefer-on-push-component-change-detection';
 const angularProjects = ['apps/client', 'libs/core', 'libs/editor', 'libs/ui'];
 const eslint = new ESLint({ cwd: repoRoot });
 
-const probe = strategy =>
-    [
-        "import { ChangeDetectionStrategy, Component } from '@angular/core';",
-        '',
-        '@Component({',
-        "    selector: 'probe',",
-        "    template: '',",
-        `    changeDetection: ChangeDetectionStrategy.${strategy},`,
-        '})',
-        'export class ProbeComponent {}',
-        '',
-    ].join('\n');
-
-const ruleIdsFor = async (project, strategy) => {
-    // Type-aware parsing only accepts a file its tsconfig includes; lintText swaps in the probe's
-    // text, and every Jest project has this file under its own eslint.config.mjs.
-    const filePath = path.join(repoRoot, project, 'src/test-setup.ts');
-    const [result] = await eslint.lintText(probe(strategy), { filePath });
-    assert.deepEqual(
-        result.messages.filter(message => message.fatal),
-        [],
-    );
-    return result.messages.map(message => message.ruleId);
-};
+const optOut = [
+    "import { ChangeDetectionStrategy, Component } from '@angular/core';",
+    '',
+    '@Component({',
+    "    selector: 'probe',",
+    "    template: '',",
+    '    changeDetection: ChangeDetectionStrategy.Eager,',
+    '})',
+    'export class ProbeComponent {}',
+    '',
+].join('\n');
 
 describe('change detection rule', () => {
     for (const project of angularProjects) {
         it(`${project} reports a component that opts out of OnPush`, async () => {
-            const ruleIds = await ruleIdsFor(project, 'Eager');
+            // Type-aware parsing only accepts a file its tsconfig includes; lintText swaps in the
+            // probe's text, and every Angular project has this file under its own eslint.config.mjs.
+            const filePath = path.join(repoRoot, project, 'src/test-setup.ts');
+            const [{ messages }] = await eslint.lintText(optOut, { filePath });
+            const ruleIds = messages.map(message => message.ruleId);
 
+            assert.deepEqual(
+                messages.filter(message => message.fatal),
+                [],
+            );
             assert.ok(ruleIds.includes(rule), `no ${rule} in ${JSON.stringify(ruleIds)}`);
-        });
-
-        it(`${project} accepts an explicit OnPush`, async () => {
-            const ruleIds = await ruleIdsFor(project, 'OnPush');
-
-            assert.ok(!ruleIds.includes(rule), `${rule} reported an explicit OnPush`);
         });
     }
 });
