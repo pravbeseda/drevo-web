@@ -4,35 +4,12 @@ This project uses [Gitleaks](https://github.com/gitleaks/gitleaks) to prevent se
 
 ## Setup
 
-### First Time Setup
+`pnpm install` installs the git hooks (Husky, through the `prepare` script). `.husky/pre-commit` runs `scripts/scan-staged-secrets.sh` first and lint-staged after it; `.husky/commit-msg` runs commitlint.
 
-Run the setup script to configure git hooks:
+The scan needs the gitleaks binary, version 8.19 or newer (the first with the `gitleaks git` command):
 
-```bash
-./scripts/setup-git-hooks.sh
-```
-
-This will:
-- Configure git to use custom hooks from `.githooks/`
-- Install gitleaks (on macOS with Homebrew)
-- Enable pre-commit scanning
-
-### Manual Installation (if needed)
-
-#### macOS
-```bash
-brew install gitleaks
-```
-
-#### Linux
-```bash
-wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
-tar -xzf gitleaks_8.18.0_linux_x64.tar.gz
-sudo mv gitleaks /usr/local/bin/
-```
-
-#### Windows
-Download from [releases page](https://github.com/gitleaks/gitleaks/releases)
+- **macOS** — `brew install gitleaks`
+- **Linux and Windows** — a binary from the [releases page](https://github.com/gitleaks/gitleaks/releases)
 
 ## How It Works
 
@@ -40,6 +17,7 @@ Download from [releases page](https://github.com/gitleaks/gitleaks/releases)
 Before each commit, gitleaks scans staged files for secrets:
 - **Blocks commit** if secrets are detected
 - **Provides details** about what was found
+- **Warns and skips the scan** when gitleaks is not installed — the CI scan below still runs on push
 - **Can be bypassed** with `--no-verify` (not recommended)
 
 ### 2. GitHub Actions (CI/CD)
@@ -59,14 +37,11 @@ The `.gitleaks.toml` file configures:
 Test that the hook works:
 
 ```bash
-# This should pass (empty commit, no secrets)
-git commit --allow-empty -m "test: verify gitleaks hook"
+# Prints .husky/_ — the hooks pnpm install set up
+git config core.hooksPath
 
-# Create a test file with a fake secret (DO NOT COMMIT REAL SECRETS!)
-echo "password=test123" > test-secret.txt
-git add test-secret.txt
-git commit -m "test: should be blocked"
-# This should be BLOCKED by gitleaks
+# Stages a generated token in a throwaway repository and expects the scan to reject it
+node --test scripts/scan-staged-secrets.test.js
 ```
 
 ## Manual Scan
@@ -74,14 +49,14 @@ git commit -m "test: should be blocked"
 Scan the entire repository:
 
 ```bash
-# Scan all files
-gitleaks detect --verbose
+# Scan the whole git history
+gitleaks git --verbose
 
 # Scan only uncommitted changes
-gitleaks protect --verbose
+gitleaks git --pre-commit --verbose
 
-# Scan staged files
-gitleaks protect --staged --verbose
+# Scan staged files — what the pre-commit hook runs
+gitleaks git --staged --verbose
 ```
 
 ## Handling False Positives
@@ -112,6 +87,8 @@ regexes = [
 git commit --no-verify -m "your message"
 ```
 
+It skips lint-staged and commitlint as well.
+
 **Never bypass the check for:**
 - Real passwords
 - API keys or tokens
@@ -122,7 +99,7 @@ git commit --no-verify -m "your message"
 ## Continuous Monitoring
 
 The GitHub Action runs automatically on:
-- Every push to `main`, `iframe`, or `feature/*` branches
+- Every push to any branch
 - Every pull request to `main` or `iframe`
 
 Check results in:

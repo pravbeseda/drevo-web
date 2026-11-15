@@ -65,18 +65,16 @@ legacy-drevo-yii/            # Symlink to legacy Yii1 backend
 - Node.js 26+ (the version in `.nvmrc`)
 - pnpm — any install switches itself to the version pinned in `packageManager` (`npm install -g pnpm`)
 - Playwright (for E2E testing)
+- gitleaks 8.19+ (for the pre-commit secret scan; `brew install gitleaks`)
 
 ### Installation
 
 ```bash
-# Install dependencies
+# Install dependencies and the git hooks (Husky)
 pnpm install
 
 # Install Playwright browsers
 pnpm exec playwright install --with-deps
-
-# Set up git hooks for security scanning
-./scripts/setup-git-hooks.sh
 ```
 
 ### Available Commands
@@ -131,7 +129,7 @@ The project uses GitHub Actions for CI/CD.
 
 Automated security scanning to prevent secrets from being committed:
 
-- **Pre-commit hook** — scans staged files before each commit
+- **Pre-commit hook** — scans staged files before each commit; without gitleaks installed it warns and skips the scan
 - **GitHub Actions** — scans all commits on push and pull requests
 - **Configuration** — see [docs/security-scanning.md](docs/security-scanning.md)
 
