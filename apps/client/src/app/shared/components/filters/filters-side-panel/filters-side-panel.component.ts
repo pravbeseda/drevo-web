@@ -20,15 +20,20 @@ export class FiltersSidePanelComponent<T extends string = string> {
     readonly filterChange = output<T>();
     readonly hideCancelledChange = output<boolean>();
 
-    readonly isSidePanelOpen = signal(false);
+    private readonly _isSidePanelOpen = signal(false);
+    readonly isSidePanelOpen = this._isSidePanelOpen.asReadonly();
 
     openFilters(): void {
-        this.isSidePanelOpen.update(v => !v);
+        this._isSidePanelOpen.update(v => !v);
+    }
+
+    closeFilters(): void {
+        this._isSidePanelOpen.set(false);
     }
 
     onFilterChange(filter: T): void {
         this.filterChange.emit(filter);
-        this.isSidePanelOpen.set(false);
+        this._isSidePanelOpen.set(false);
     }
 
     onHideCancelledChange(value: boolean): void {

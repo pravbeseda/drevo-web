@@ -1,5 +1,6 @@
 import { FiltersSidePanelComponent } from './filters-side-panel.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { SidePanelComponent } from '@drevo-web/ui/side-panel';
 
 describe('FiltersSidePanelComponent', () => {
     let spectator: Spectator<FiltersSidePanelComponent>;
@@ -48,6 +49,14 @@ describe('FiltersSidePanelComponent', () => {
         expect(spectator.component.isSidePanelOpen()).toBe(true);
 
         spectator.component.onFilterChange('unchecked');
+
+        expect(spectator.component.isSidePanelOpen()).toBe(false);
+    });
+
+    it('should close side panel when the panel reports it closed', () => {
+        spectator.component.openFilters();
+
+        spectator.triggerEventHandler(SidePanelComponent, 'closed', undefined);
 
         expect(spectator.component.isSidePanelOpen()).toBe(false);
     });

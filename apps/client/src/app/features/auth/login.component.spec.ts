@@ -178,10 +178,14 @@ describe('LoginComponent', () => {
         });
 
         it('should clear error message on submit', () => {
+            authServiceMock.login.mockReturnValueOnce(throwError(() => ({ code: 'INVALID_CREDENTIALS' })));
             spectator = createComponent();
 
-            spectator.component.errorMessage.set('Previous error');
             spectator.component.loginForm.controls.username.setValue('testuser');
+            spectator.component.loginForm.controls.password.setValue('wrong');
+            spectator.component.onSubmit();
+            expect(spectator.component.errorMessage()).toBeDefined();
+
             spectator.component.loginForm.controls.password.setValue('password123');
             spectator.component.onSubmit();
 
@@ -256,24 +260,25 @@ describe('LoginComponent', () => {
             expect(spectator.component.errorMessage()).toBe(unknownErrorMessage);
         });
 
-        it('should render error alert when errorMessage is set', () => {
+        it('should render error alert after a failed login', () => {
+            authServiceMock.login.mockReturnValue(throwError(() => ({ code: 'INVALID_CREDENTIALS' })));
             spectator = createComponent();
 
-            spectator.component.errorMessage.set('Test error');
+            spectator.component.loginForm.controls.username.setValue('testuser');
+            spectator.component.loginForm.controls.password.setValue('password123');
+            spectator.component.onSubmit();
             spectator.detectChanges();
 
-            const alertElement = spectator.query('[role="alert"]');
+            const alertElement = spectator.query('[data-testid="error-message"]');
             expect(alertElement).toExist();
-            expect(alertElement).toHaveText('Test error');
+            expect(alertElement).toHaveText('Неверный логин или пароль.');
         });
 
-        it('should not render error alert when errorMessage is undefined', () => {
+        it('should not render error alert before a login attempt', () => {
             spectator = createComponent();
-
-            spectator.component.errorMessage.set(undefined);
             spectator.detectChanges();
 
-            expect(spectator.query('[role="alert"]')).not.toExist();
+            expect(spectator.query('[data-testid="error-message"]')).not.toExist();
         });
 
         it('should not navigate on login error', () => {

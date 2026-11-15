@@ -158,7 +158,7 @@ describe('RightSidebarComponent', () => {
         });
 
         it('should close menu after action', () => {
-            spectator.component.menuOpen.set(true);
+            spectator.component.toggleMenu();
             const action = mockActions[1];
 
             spectator.component.handleSpeedDialAction(action);
