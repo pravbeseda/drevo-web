@@ -20,11 +20,10 @@ const tempRoots = [];
 // shortcut: the CI runner has no gitleaks, so the two scan cases run only locally; install it in cd-main-beta.yml if they ever need to gate a PR.
 const hasGitleaks = spawnSync('gitleaks', ['version']).status === 0;
 const needsGitleaks = { skip: !hasGitleaks && 'gitleaks is not installed' };
-const BASE62 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-const GITHUB_TOKEN_BODY_LENGTH = 36;
+// Hex-encoded, these give the 36 characters of a GitHub token body.
+const GITHUB_TOKEN_BODY_BYTES = 18;
 
-const fakeGithubToken = () =>
-    'ghp_' + [...crypto.randomBytes(GITHUB_TOKEN_BODY_LENGTH)].map(byte => BASE62[byte % BASE62.length]).join('');
+const fakeGithubToken = () => 'ghp_' + crypto.randomBytes(GITHUB_TOKEN_BODY_BYTES).toString('hex');
 
 const repoWithStagedFile = content => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scan-staged-secrets-'));
