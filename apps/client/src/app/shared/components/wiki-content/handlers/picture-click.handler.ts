@@ -1,5 +1,5 @@
-import { WikiClickHandler } from './wiki-click-handler';
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
+import { WikiClickHandler } from './wiki-click-handler';
 import { inject, Injectable } from '@angular/core';
 
 @Injectable()

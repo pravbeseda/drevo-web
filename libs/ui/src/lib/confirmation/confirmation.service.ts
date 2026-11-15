@@ -1,5 +1,5 @@
-import { ConfirmationConfig } from './confirmation.types';
 import { ModalService } from '../modal/services/modal.service';
+import { ConfirmationConfig } from './confirmation.types';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 

@@ -1,7 +1,7 @@
+import { LoggerService } from '../logging/logger.service';
 import type { DraftDatabase } from './draft-database';
 import { DRAFT_USER_ID_PROVIDER } from './draft-user-id.token';
 import { Draft, DraftInput } from './draft.model';
-import { LoggerService } from '../logging/logger.service';
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 

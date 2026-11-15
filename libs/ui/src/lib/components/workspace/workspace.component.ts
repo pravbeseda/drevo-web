@@ -1,5 +1,5 @@
-import { WorkspaceTabComponent } from './workspace-tab.component';
 import { IconComponent } from '../icon/icon.component';
+import { WorkspaceTabComponent } from './workspace-tab.component';
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, contentChildren, output, signal } from '@angular/core';
 

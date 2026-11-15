@@ -1,9 +1,9 @@
-import { CustomToolbarAction, TOOLBAR_GROUPS, ToolbarAction } from './editor-toolbar.config';
 import { linksUpdatedEffect } from '../../constants/editor-effects';
 import { insertTagInView } from '../../helpers/insert-tag';
 import { EditorFactoryService } from '../../services/editor-factory/editor-factory.service';
 import { WikiHighlighterService } from '../../services/wiki-highlighter/wiki-highlighter.service';
 import { ValidationResult } from '../../validation/models/validation-result.model';
+import { CustomToolbarAction, TOOLBAR_GROUPS, ToolbarAction } from './editor-toolbar.config';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,

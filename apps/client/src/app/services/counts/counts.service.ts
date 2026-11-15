@@ -1,7 +1,7 @@
-import { CountsApiService } from './counts-api.service';
-import { CountsInvalidationService } from './counts-invalidation.service';
 import { AuthService } from '../auth/auth.service';
 import { ForumService } from '../forum/forum.service';
+import { CountsApiService } from './counts-api.service';
+import { CountsInvalidationService } from './counts-invalidation.service';
 import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';

@@ -1,7 +1,7 @@
-import { FlexibleVirtualScrollStrategy } from './flexible-virtual-scroll-strategy';
-import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 import { ScrollbarDirective } from '../scrollbar/scrollbar.directive';
 import { SpinnerComponent } from '../spinner/spinner.component';
+import { FlexibleVirtualScrollStrategy } from './flexible-virtual-scroll-strategy';
+import { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
 import {
     CdkVirtualForOf,
     CdkVirtualScrollableElement,

@@ -1,4 +1,3 @@
-import { CM_DIFF_CONFIG } from './cm-diff-config';
 import { ProseLine } from '../../services/ai-review/ai-review.model';
 import {
     CheckCounts,
@@ -8,6 +7,7 @@ import {
     CheckVerdict,
     QuoteLocation,
 } from '../models/check-report.model';
+import { CM_DIFF_CONFIG } from './cm-diff-config';
 import { DiffConfig, diff } from '@codemirror/merge';
 import { Text } from '@codemirror/state';
 import { CheckFinding, CheckLevel, checkWikiContent, toProseLines } from '@drevo-web/editor';
