@@ -1,7 +1,7 @@
+import { forumTopicRoutes } from '../../shared/routes/forum-topic.routes';
 import { forumMessageMatcher, forumMessageRedirectGuard } from './guards/forum-message-redirect.guard';
 import { forumSectionsResolver } from './resolvers/forum-sections.resolver';
 import { forumTopicsResolver } from './resolvers/forum-topics.resolver';
-import { forumTopicRoutes } from '../../shared/routes/forum-topic.routes';
 import { Route } from '@angular/router';
 
 /**

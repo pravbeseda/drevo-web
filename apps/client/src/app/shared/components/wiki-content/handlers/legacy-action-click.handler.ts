@@ -1,9 +1,9 @@
-import { WikiClickHandler } from './wiki-click-handler';
 import { BibleToggleAction } from '../actions/bible-toggle.action';
 import { CommentToggleAction } from '../actions/comment-toggle.action';
 import { GroupToggleAction } from '../actions/group-toggle.action';
 import { MapStubAction } from '../actions/map-stub.action';
 import { WikiAction } from '../actions/wiki-action';
+import { WikiClickHandler } from './wiki-click-handler';
 import { inject, Injectable } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 

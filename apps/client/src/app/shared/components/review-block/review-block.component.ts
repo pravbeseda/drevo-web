@@ -1,6 +1,6 @@
-import { CommentSegment, linkifyComment } from './comment-linkify';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ReviewService } from '../../../services/reviews/review.service';
+import { CommentSegment, linkifyComment } from './comment-linkify';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';

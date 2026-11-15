@@ -1,6 +1,6 @@
+import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { ArticleApiService } from './article-api.service';
 import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
-import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import {

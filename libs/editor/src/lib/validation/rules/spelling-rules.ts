@@ -1,8 +1,8 @@
-import { findAll } from './find-all';
 import { MISSPELLINGS } from '../constants/misspellings';
 import { maskNonProse } from '../mask';
 import { findMixedScriptWords, isScriptLetter, MixedScriptWord } from '../mixed-script-words';
 import { RuleMatch, ValidationRule } from '../models/validation-rule.model';
+import { findAll } from './find-all';
 
 const MISSPELLING_REGEXES = MISSPELLINGS.map(entry => ({
     ...entry,

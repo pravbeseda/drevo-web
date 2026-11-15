@@ -1,6 +1,6 @@
-import { ForumService } from './forum.service';
 import { AuthService } from '../auth/auth.service';
 import { CountsInvalidationService } from '../counts/counts-invalidation.service';
+import { ForumService } from './forum.service';
 import { inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoggerService } from '@drevo-web/core';

@@ -1,13 +1,13 @@
-import { articleNewsCreateSessionResolver } from './resolvers/article-news-create-session.resolver';
-import { missingArticleResolver } from './resolvers/missing-article.resolver';
-import { newArticleResolver } from './resolvers/new-article.resolver';
-import { ArticlePageService } from './services/article-page.service';
 import { LinksService } from '../../services/links/links.service';
 import { readRouteParam } from '../../shared/helpers/route-params';
 import { pageResolver } from '../../shared/resolvers/page.resolver';
 import { pageTabRoutes, shouldRerunPageResolver } from '../../shared/routes/page.routes';
 import { DraftEditorService } from '../../shared/services/draft-editor/draft-editor.service';
 import { PageContext } from '../../shared/services/page-context/page-context';
+import { articleNewsCreateSessionResolver } from './resolvers/article-news-create-session.resolver';
+import { missingArticleResolver } from './resolvers/missing-article.resolver';
+import { newArticleResolver } from './resolvers/new-article.resolver';
+import { ArticlePageService } from './services/article-page.service';
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
 
 /**

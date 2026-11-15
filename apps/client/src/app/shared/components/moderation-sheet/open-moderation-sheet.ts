@@ -1,5 +1,5 @@
-import type { ModerationSheetData } from './moderation-sheet.component';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
+import type { ModerationSheetData } from './moderation-sheet.component';
 import { ModerationResult, PageKind } from '@drevo-web/shared';
 import { ModalService } from '@drevo-web/ui/modal';
 import { Observable } from 'rxjs';

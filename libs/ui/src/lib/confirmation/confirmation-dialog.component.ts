@@ -1,7 +1,7 @@
-import { ConfirmationConfig } from './confirmation.types';
 import { ButtonComponent } from '../components/button/button.component';
 import { MODAL_DATA } from '../modal/models/modal.tokens';
 import { ModalData } from '../modal/models/modal.types';
+import { ConfirmationConfig } from './confirmation.types';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 @Component({

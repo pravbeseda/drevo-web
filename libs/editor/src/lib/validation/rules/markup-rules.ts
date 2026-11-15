@@ -1,6 +1,6 @@
-import { findAll } from './find-all';
 import { maskLiteral } from '../mask';
 import { RuleMatch, ValidationRule } from '../models/validation-rule.model';
+import { findAll } from './find-all';
 
 const COMMENT_OPEN = '[*';
 const COMMENT_CLOSE = '*]';

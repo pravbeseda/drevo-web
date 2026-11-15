@@ -1,10 +1,10 @@
-import { AccountDropdownComponent } from './account-dropdown/account-dropdown.component';
-import { FontScaleControlComponent } from './font-scale-control/font-scale-control.component';
-import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { ARTICLE_TITLE_MAX_LENGTH, ArticleService } from '../../services/articles';
 import { AuthService } from '../../services/auth/auth.service';
 import { BackLinkService } from '../../services/back-link/back-link.service';
 import { PageTitleStrategy } from '../../services/page-title.strategy';
+import { AccountDropdownComponent } from './account-dropdown/account-dropdown.component';
+import { FontScaleControlComponent } from './font-scale-control/font-scale-control.component';
+import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     ChangeDetectionStrategy,

@@ -1,5 +1,5 @@
-import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { environment } from '../../../environments/environment';
+import { DEFAULT_ARTICLE_SEARCH_PAGE_SIZE } from './article.constants';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { SKIP_ERROR_FOR_STATUSES, SKIP_ERROR_NOTIFICATION } from '@drevo-web/core';

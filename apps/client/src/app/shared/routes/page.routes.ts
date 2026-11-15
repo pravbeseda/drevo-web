@@ -1,7 +1,7 @@
-import { forumTopicRoutes } from './forum-topic.routes';
 import { LinksService } from '../../services/links/links.service';
 import { readRouteParam } from '../helpers/route-params';
 import { pageEditSessionResolver } from '../resolvers/page-edit-session.resolver';
+import { forumTopicRoutes } from './forum-topic.routes';
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
 import { PageKind } from '@drevo-web/shared';
 

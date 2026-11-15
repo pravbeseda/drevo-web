@@ -1,5 +1,5 @@
-import { CsrfService } from './csrf.service';
 import { environment } from '../../../environments/environment';
+import { CsrfService } from './csrf.service';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';

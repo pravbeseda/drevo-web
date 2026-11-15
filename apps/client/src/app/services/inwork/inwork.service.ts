@@ -1,5 +1,5 @@
-import { InworkApiService } from './inwork-api.service';
 import { AuthService } from '../auth/auth.service';
+import { InworkApiService } from './inwork-api.service';
 import { Injectable, inject } from '@angular/core';
 import { LoggerService } from '@drevo-web/core';
 import { InworkItem, InworkItemDto } from '@drevo-web/shared';

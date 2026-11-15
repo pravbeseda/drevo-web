@@ -1,8 +1,8 @@
-import { NEW_TOPIC_TARGET } from './new-topic-target';
 import { ForumService } from '../../../services/forum/forum.service';
 import { forumEditorExtensions } from '../../helpers/forum-editor-extensions';
 import { TopicListPagesService } from '../../services/topic-list-pages/topic-list-pages.service';
 import { ForumSendBarComponent } from '../forum-send-bar/forum-send-bar.component';
+import { NEW_TOPIC_TARGET } from './new-topic-target';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
