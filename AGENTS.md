@@ -71,7 +71,7 @@ pnpm lint:styles                                # Stylelint — when SCSS was to
 pnpm lint:types                                 # type-coverage on libs/* — implicit `any` the lint cannot see
 pnpm lint:typecheck                             # tsc --noEmit on the projects the build never compiles — specs, test helpers, e2e
 pnpm lint:coverage                              # per-file coverage floor — reads the coverage the test run just wrote
-pnpm test:scripts                               # node:test specs in scripts/ for the gate scripts, the Playwright config, what lint:playwright ignores and that the import rules still run — no jest project there
+pnpm test:scripts                               # node:test specs in scripts/ for the gate scripts, the Playwright config, what lint:playwright ignores and that the import and OnPush rules still run — no jest project there
 pnpm lint:workflows                             # release job graph, @types/node against the engines floor — guards that only fail in a real tag push
 pnpm knip                                       # dead code and unused deps — after refactors and deletions
 pnpm test:playwright                            # integration tests, Chromium (other browsers: test:playwright:* in package.json)
@@ -175,7 +175,7 @@ Before creating an API service, look for its endpoint in `legacy-drevo-yii/prote
 
 1. **Standalone components** — always, but omit `standalone: true` (it is the default)
 2. **Signals** for reactive state, private writable + public readonly. Public writable signals are forbidden — always expose via `asReadonly()`
-3. **`inject()` for DI**, `ChangeDetectionStrategy.OnPush` on components
+3. **`inject()` for DI**, `ChangeDetectionStrategy.OnPush` on components — Angular 22 already defaults to it, so the marker stays for consistency until #559 settles it. An opt-out to `Eager` (or its deprecated alias `Default`) fails lint: `@angular-eslint/prefer-on-push-component-change-detection` comes with `nx.configs['flat/angular']`, and `pnpm test:scripts` checks it still runs
 4. **Naming: `Subject` postfix, `$` only for Observable** — `_eventSubject` for a Subject, `event$` for its public Observable
 5. **`providedIn: 'root'` only for global services** — page/feature-scoped services are provided in the component or route `providers` instead
 6. **`takeUntilDestroyed()`** for subscription cleanup
