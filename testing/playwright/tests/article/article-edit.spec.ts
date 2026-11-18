@@ -12,6 +12,8 @@ import {
     mockInworkMark,
     mockInworkClear,
     mockLoginSuccess,
+    mockAuthApi,
+    mockEditCheck,
 } from '../../fixtures';
 import {
     createArticleVersionDto,
@@ -19,9 +21,10 @@ import {
     mockArticleViewData,
     mockArticleEditData,
 } from '../../mocks/articles';
-import { apiSuccess } from '../../mocks';
+import { apiSuccess, mockUsers } from '../../mocks';
 import { ArticleEditPage } from '../../pages/article-edit.page';
 import { ArticlePage } from '../../pages/article.page';
+import { LayoutPage } from '../../pages/layout.page';
 import { LoginPage } from '../../pages/login.page';
 import { getConfirmationDialogTitle } from '../../helpers/confirmation-dialog';
 import { getNotification } from '../../helpers/notification';
@@ -187,6 +190,44 @@ test.describe('Article edit', () => {
 
             // Fails without a fix: resolver doesn't re-run, old content is shown
             await expect(articlePage.content).toContainText(NEW_CONTENT_TEXT);
+        });
+    });
+
+    test.describe('Opening the editor', () => {
+        test('keeps the reader on the article and says why when the server refuses', async ({
+            authenticatedPage: page,
+        }) => {
+            const reason = 'К сожалению, вы исчерпали свой лимит неподтвержденных редакций (3).';
+            // The server renders no «Редактировать» (it knows no user), so on a phone the main
+            // button swaps while hydrating; a client-only page leaves no such moment to click into.
+            await bypassSsr(page, `**/articles/${ARTICLE_ID}`);
+            await mockArticleShow(page, ARTICLE_ID, ARTICLE);
+            await mockArticleVersion(page, VERSION_ID, VERSION);
+            await mockEditCheck(page, { allowed: false, reason });
+            const articlePage = new ArticlePage(page);
+            await page.goto(`/articles/${ARTICLE_ID}`);
+            await articlePage.waitForReady();
+
+            await articlePage.editAction.click();
+
+            await expect(getNotification(page, 'error')).toContainText(reason);
+            await expect(page).toHaveURL(`/articles/${ARTICLE_ID}`);
+            await expect(new ArticleEditPage(page).root).toHaveCount(0);
+        });
+
+        test('offers no editing to a reader without the right to edit', async ({ page }) => {
+            const reader = {
+                ...mockUsers.authenticated,
+                permissions: { ...mockUsers.authenticated.permissions, canEdit: false },
+            };
+            await mockAuthApi(page, reader);
+            await mockArticleShow(page, ARTICLE_ID, ARTICLE);
+            const articlePage = new ArticlePage(page);
+            await page.goto(`/articles/${ARTICLE_ID}`);
+            await new LayoutPage(page).waitForAuthReady();
+            await articlePage.tableOfContentsActionInAnyLayout.waitFor({ state: 'attached' });
+
+            await expect(articlePage.editActionInAnyLayout).toHaveCount(0);
         });
     });
 });

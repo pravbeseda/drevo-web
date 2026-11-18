@@ -909,6 +909,33 @@ describe('ArticleApiService', () => {
         });
     });
 
+    describe('checkEdit', () => {
+        it('asks whether a version of the kind may be opened for editing, leaving the failure to the caller', done => {
+            spectator.service.checkEdit('news', 70).subscribe(result => {
+                expect(result).toEqual({ allowed: false, reason: 'Лимит исчерпан' });
+                done();
+            });
+
+            const req = httpController.expectOne(request => request.url === '/api/news/edit-check');
+            expect(req.request.method).toBe('GET');
+            expect(req.request.withCredentials).toBe(true);
+            expect(req.request.params.get('versionId')).toBe('70');
+            expect(req.request.context.get(SKIP_ERROR_NOTIFICATION)).toBe(true);
+            req.flush({ success: true, data: { allowed: false, reason: 'Лимит исчерпан' } });
+        });
+
+        it('asks about creating a page of the kind when no version is named', done => {
+            spectator.service.checkEdit('articles').subscribe(result => {
+                expect(result).toEqual({ allowed: true });
+                done();
+            });
+
+            const req = httpController.expectOne(request => request.url === '/api/articles/edit-check');
+            expect(req.request.params.has('versionId')).toBe(false);
+            req.flush({ success: true, data: { allowed: true } });
+        });
+    });
+
     describe('createArticle', () => {
         const mockCreateResponse = {
             success: true,

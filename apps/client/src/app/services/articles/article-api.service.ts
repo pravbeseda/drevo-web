@@ -16,6 +16,7 @@ import {
     ArticleVersionDto,
     CreateArticleRequestDto,
     CreateArticleResponseDto,
+    EditCheckResponseDto,
     ModerationRequestDto,
     ModerationResponseDto,
     PageKind,
@@ -200,6 +201,30 @@ export class ArticleApiService {
 
         return this.http
             .get<ApiResponse<ArticleFindResponseDto>>(`${this.apiUrl}/api/articles/find`, {
+                params,
+                withCredentials: true,
+                context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
+            })
+            .pipe(
+                map(response => {
+                    assertIsDefined(response.data, 'Response data is undefined');
+                    return response.data;
+                }),
+            );
+    }
+
+    /**
+     * Ask whether the current user may open the editor
+     *
+     * @param kind - Page kind
+     * @param versionId - The version to edit; without it, a new page of the kind
+     * @returns Observable with the verdict; a failure is the caller's to report
+     */
+    checkEdit(kind: PageKind, versionId?: number): Observable<EditCheckResponseDto> {
+        const params = versionId === undefined ? undefined : new HttpParams().set('versionId', versionId);
+
+        return this.http
+            .get<ApiResponse<EditCheckResponseDto>>(`${this.apiUrl}/api/${kind}/edit-check`, {
                 params,
                 withCredentials: true,
                 context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),

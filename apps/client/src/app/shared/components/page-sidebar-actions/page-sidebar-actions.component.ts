@@ -1,8 +1,10 @@
+import { AuthService } from '../../../services/auth/auth.service';
 import { VersionForModeration } from '../../models/version-for-moderation.model';
 import { ModerationSidebarActionComponent } from '../moderation-sidebar-action/moderation-sidebar-action.component';
 import { SidebarActionComponent } from '../sidebar-action/sidebar-action.component';
 import { TopicsSidebarActionComponent } from '../topics-sidebar-action/topics-sidebar-action.component';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NotificationService } from '@drevo-web/core';
 import { ApprovalStatus, ModerationResult, PageKind, SidebarActionPriority } from '@drevo-web/shared';
 
@@ -23,6 +25,13 @@ export class PageSidebarActionsComponent {
     readonly topicsChanged = output<ReadonlyArray<number>>();
 
     readonly isArticle = computed(() => this.kind() === 'articles');
+
+    private readonly user = toSignal(inject(AuthService).user$);
+
+    /** Editing is offered by role; the limit and the page's own rights are checked when the editor opens. */
+    protected readonly offeredEditUrl = computed(() =>
+        (this.user()?.permissions.canEdit ?? false) ? this.editUrl() : undefined,
+    );
 
     /** An article is moderated once it has dictionary topics; a news item has no such topics to wait for. */
     private readonly isReadyForModeration = computed(() => {

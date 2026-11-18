@@ -4,6 +4,7 @@ import {
     bypassSsr,
     mockAuthApi,
     mockArticlePreview,
+    mockEditCheck,
     mockNewsCreate,
     mockNewsHistory,
     mockNewsMeta,
@@ -13,6 +14,7 @@ import {
     mockNewsVersion,
     mockNewsVersionShow,
 } from '../../fixtures';
+import { getNotification } from '../../helpers/notification';
 import { createArticleHistoryResponse, mockUsers } from '../../mocks';
 import { createCreateArticleResponseDto, createSaveArticleVersionResponseDto } from '../../mocks/articles';
 import { createNewsVersionDto } from '../../mocks/news';
@@ -75,6 +77,19 @@ test.describe('News editing', () => {
             expect.objectContaining({ title: 'Престольный праздник', newsDate: '2025-01-15', topic: 1 }),
         );
         await expect(page).toHaveURL(`/news/${NEWS_ID}`);
+    });
+
+    test('keeps a reader past the news limit on the news history and says why', async ({ authenticatedPage: page }) => {
+        const reason = 'К сожалению, вы исчерпали свой лимит неподтвержденных редакций (2).';
+        await mockNewsHistory(page, createArticleHistoryResponse([]));
+        await mockEditCheck(page, { allowed: false, reason });
+        await page.goto('/history/news');
+
+        await news.addNewsAction.click();
+
+        await expect(getNotification(page, 'error')).toContainText(reason);
+        await expect(page).toHaveURL('/history/news');
+        await expect(editor.root).toHaveCount(0);
     });
 
     test('the news editor fills the page, not a single line', async ({ authenticatedPage: page }) => {

@@ -2,6 +2,7 @@ export { test } from './auth.fixture';
 export { expect } from '@playwright/test';
 export {
     mockAuthApi,
+    mockEditCheck,
     mockLoginSuccess,
     mockLoginError,
     mockLogoutError,

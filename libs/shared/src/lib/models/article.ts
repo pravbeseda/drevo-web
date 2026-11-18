@@ -74,6 +74,9 @@ export type ArticleFindResult =
     | { readonly found: true; readonly articleId: number }
     | { readonly found: false; readonly canCreate: boolean; readonly reason?: string };
 
+/** Whether the current user may open the editor; a refusal always says why. */
+export type EditCheck = { readonly allowed: true } | { readonly allowed: false; readonly reason: string };
+
 export interface CreateArticleRequest {
     readonly title: string;
     readonly content: string;

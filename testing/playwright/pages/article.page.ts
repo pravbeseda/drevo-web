@@ -40,6 +40,12 @@ export class ArticlePage extends BasePage {
     readonly tabHistory = this.page.getByTestId('tab-history');
     readonly tabLinkedhere = this.page.getByTestId('tab-linkedhere');
 
+    /** «Редактировать» in the sidebar (desktop sidebar or mobile FAB, offered to readers who may edit) */
+    readonly editAction = this.sidebarAction('edit-action');
+    /** «Редактировать» in either layout, shown or not — for asserting it is not offered at all */
+    readonly editActionInAnyLayout = this.page.getByTestId('edit-action');
+    /** «Содержание», which every article offers: once it is in, so are the other sidebar actions */
+    readonly tableOfContentsActionInAnyLayout = this.page.getByTestId('toc-action').first();
     /** Moderation sidebar action button (desktop sidebar or mobile FAB, visible for moderators only) */
     readonly moderationAction = this.sidebarAction('moderation-action');
     /** Approve button inside the moderation panel */
