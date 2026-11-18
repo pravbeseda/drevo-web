@@ -192,6 +192,71 @@ describe('PicturesStateService', () => {
                 expect(spectator.service.isLoadingMore()).toBe(false);
                 expect(thumbnailsLoaded.observed).toBe(false);
             });
+
+            it('should still add the page when the edit leaves the search as it was', () => {
+                spectator.service.onSearchChange(' ');
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                expect(spectator.service.isLoadingMore()).toBe(true);
+
+                thumbnailsLoaded.next(nextPage);
+                thumbnailsLoaded.complete();
+
+                expect(loadedPictures()).toBe(10);
+            });
+        });
+
+        describe('while a changed search waits for its first page', () => {
+            let firstPage: Subject<PictureListResponse>;
+
+            beforeEach(() => {
+                pictureService.getPictures.mockReturnValue(of(mockResponse));
+                spectator.service.init();
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+                spectator.service.loadMore();
+
+                firstPage = new Subject();
+                pictureService.getPictures.mockReturnValue(firstPage);
+                spectator.service.onSearchChange('храм');
+                pictureService.getPictures.mockClear();
+            });
+
+            it('should not ask for a page during the debounce', () => {
+                spectator.service.loadMore();
+
+                expect(pictureService.getPictures).not.toHaveBeenCalled();
+            });
+
+            it('should not ask for a page while the first one is on its way', () => {
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+                pictureService.getPictures.mockClear();
+
+                spectator.service.loadMore();
+
+                expect(pictureService.getPictures).not.toHaveBeenCalled();
+            });
+
+            it('should not ask for a page when the previous search answers during the next debounce', () => {
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+                spectator.service.onSearchChange('храмы');
+                firstPage.next(mockResponse);
+                pictureService.getPictures.mockClear();
+
+                spectator.service.loadMore();
+
+                expect(pictureService.getPictures).not.toHaveBeenCalled();
+            });
+
+            it('should ask for page 2 of the new search once its first page arrives', () => {
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+                firstPage.next(mockResponse);
+                pictureService.getPictures.mockReturnValue(of(mockResponse));
+                pictureService.getPictures.mockClear();
+
+                spectator.service.loadMore();
+
+                expect(pictureService.getPictures).toHaveBeenCalledWith({ query: 'храм', page: 2 });
+            });
         });
     });
 
