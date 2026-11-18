@@ -66,6 +66,7 @@ test.describe('News editing', () => {
         await editor.waitForReady();
         await news.titleInput.fill('Престольный праздник');
         await news.dateInput.fill('2025-01-15');
+        await news.openMobileMenu();
         await news.topicAction.click();
         await news.topicCheckbox(1).check();
         await news.topicOk.click();
@@ -133,6 +134,7 @@ test.describe('News editing', () => {
         await mockNewsVersionShow(page, VERSION_ID, NEWS);
         await page.goto(`/news/${NEWS_ID}/version/${VERSION_ID}`);
         await news.waitForReady();
+        await news.openMobileMenu();
 
         await expect(news.topicAction).toBeVisible();
         await expect(news.tableOfContentsAction).toHaveCount(0);
