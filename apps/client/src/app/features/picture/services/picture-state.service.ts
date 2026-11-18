@@ -16,6 +16,7 @@ import {
     Subject,
     switchMap,
     takeUntil,
+    tap,
 } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
@@ -37,6 +38,7 @@ export class PictureStateService {
     private readonly _searchQuery = signal('');
 
     private readonly searchSubject = new Subject<string>();
+    private readonly queryChangedSubject = new Subject<void>();
 
     readonly isLoading = this._isLoading.asReadonly();
     readonly isLoadingMore = this._isLoadingMore.asReadonly();
@@ -78,6 +80,7 @@ export class PictureStateService {
                 startWith(''),
                 map(query => query.trim()),
                 distinctUntilChanged(),
+                tap(() => this.queryChangedSubject.next()),
                 debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
                     this._isLoading.set(true);
@@ -130,7 +133,7 @@ export class PictureStateService {
                     return of({ items: [] as Picture[], total: 0 });
                 }),
                 switchMap(response => this.picturePreload.whenThumbnailsLoaded(response)),
-                takeUntil(this.searchSubject),
+                takeUntil(this.queryChangedSubject),
                 finalize(() => this._isLoadingMore.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )

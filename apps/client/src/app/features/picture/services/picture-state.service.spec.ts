@@ -192,6 +192,18 @@ describe('PicturesStateService', () => {
                 expect(spectator.service.isLoadingMore()).toBe(false);
                 expect(thumbnailsLoaded.observed).toBe(false);
             });
+
+            it('should still add the page when the edit leaves the search as it was', () => {
+                spectator.service.onSearchChange(' ');
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                expect(spectator.service.isLoadingMore()).toBe(true);
+
+                thumbnailsLoaded.next(nextPage);
+                thumbnailsLoaded.complete();
+
+                expect(loadedPictures()).toBe(10);
+            });
         });
     });
 
