@@ -95,6 +95,7 @@ test.describe('Article news tab', () => {
         await editor.waitForReady();
         await expect(article.tabNews).toBeVisible();
 
+        await editor.openMobileMenu();
         await editor.clickCancel();
         await expect(page).toHaveURL(`/articles/${ARTICLE_ID}/news`);
         await newsTab.waitForReady();

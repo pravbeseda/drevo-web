@@ -89,6 +89,7 @@ test.describe('Article edit', () => {
 
         test('asks before discarding fresh edits on cancel', async ({ authenticatedPage: page }) => {
             await editPage.typeInEditor('Свежая правка');
+            await editPage.openMobileMenu();
             await editPage.clickCancel();
             await expect(getConfirmationDialogTitle(page)).toContainText('Удалить черновик?');
             await expect(page).toHaveURL(`/articles/${ARTICLE_ID}/version/${VERSION_ID}/edit`);
