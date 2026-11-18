@@ -48,7 +48,9 @@ export class ArticleEditPage extends BasePage {
         await this.saveAction.click();
     }
 
+    /** «Отмена» is always a secondary action, so on a phone it sits in the speed-dial. */
     async clickCancel(): Promise<void> {
+        await this.openMobileMenu();
         await this.cancelAction.click();
     }
 
