@@ -236,6 +236,17 @@ describe('PicturesStateService', () => {
                 expect(pictureService.getPictures).not.toHaveBeenCalled();
             });
 
+            it('should not ask for a page when the previous search answers during the next debounce', () => {
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+                spectator.service.onSearchChange('храмы');
+                firstPage.next(mockResponse);
+                pictureService.getPictures.mockClear();
+
+                spectator.service.loadMore();
+
+                expect(pictureService.getPictures).not.toHaveBeenCalled();
+            });
+
             it('should ask for page 2 of the new search once its first page arrives', () => {
                 jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
                 firstPage.next(mockResponse);

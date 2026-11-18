@@ -4,19 +4,20 @@ import { buildRows, PictureRow } from './picture-row-builder';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logger, LoggerService } from '@drevo-web/core';
-import { Picture } from '@drevo-web/shared';
+import { Picture, PictureListResponse } from '@drevo-web/shared';
 import {
     catchError,
-    debounceTime,
     distinctUntilChanged,
     finalize,
     map,
+    Observable,
     of,
     startWith,
     Subject,
     switchMap,
     takeUntil,
     tap,
+    timer,
 } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
@@ -86,18 +87,8 @@ export class PictureStateService {
                     this.awaitingFirstPage = true;
                     this.queryChangedSubject.next();
                 }),
-                debounceTime(DEBOUNCE_TIME_MS),
-                switchMap(query => {
-                    this._isLoading.set(true);
-                    this._currentPage.set(1);
-                    this.logger.info('Searching pictures', { query });
-                    return this.pictureService.getPictures({ query, page: 1 }).pipe(
-                        catchError((error: unknown) => {
-                            this.logger.error('Failed to load pictures', error);
-                            return of({ items: [] as Picture[], total: 0 });
-                        }),
-                    );
-                }),
+                // The pause sits inside switchMap, so a query change drops the previous search before it answers.
+                switchMap(query => timer(DEBOUNCE_TIME_MS).pipe(switchMap(() => this.searchFirstPage(query)))),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
@@ -148,5 +139,17 @@ export class PictureStateService {
                     this._currentPage.set(nextPage);
                 }
             });
+    }
+
+    private searchFirstPage(query: string): Observable<Pick<PictureListResponse, 'items' | 'total'>> {
+        this._isLoading.set(true);
+        this._currentPage.set(1);
+        this.logger.info('Searching pictures', { query });
+        return this.pictureService.getPictures({ query, page: 1 }).pipe(
+            catchError((error: unknown) => {
+                this.logger.error('Failed to load pictures', error);
+                return of({ items: [] as Picture[], total: 0 });
+            }),
+        );
     }
 }
