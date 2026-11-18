@@ -39,6 +39,8 @@ export class PictureStateService {
 
     private readonly searchSubject = new Subject<string>();
     private readonly queryChangedSubject = new Subject<void>();
+    // Set from a real query change until its first page arrives: loadMore would number pages by the old list.
+    private awaitingFirstPage = false;
 
     readonly isLoading = this._isLoading.asReadonly();
     readonly isLoadingMore = this._isLoadingMore.asReadonly();
@@ -80,11 +82,13 @@ export class PictureStateService {
                 startWith(''),
                 map(query => query.trim()),
                 distinctUntilChanged(),
-                tap(() => this.queryChangedSubject.next()),
+                tap(() => {
+                    this.awaitingFirstPage = true;
+                    this.queryChangedSubject.next();
+                }),
                 debounceTime(DEBOUNCE_TIME_MS),
                 switchMap(query => {
                     this._isLoading.set(true);
-                    this._isLoadingMore.set(false);
                     this._currentPage.set(1);
                     this.logger.info('Searching pictures', { query });
                     return this.pictureService.getPictures({ query, page: 1 }).pipe(
@@ -100,6 +104,7 @@ export class PictureStateService {
                 this._pictures.set([...response.items]);
                 this._totalItems.set(response.total);
                 this._isLoading.set(false);
+                this.awaitingFirstPage = false;
             });
     }
 
@@ -113,7 +118,7 @@ export class PictureStateService {
     }
 
     loadMore(): void {
-        if (this._isLoadingMore()) {
+        if (this._isLoadingMore() || this.awaitingFirstPage) {
             return;
         }
 
