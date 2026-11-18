@@ -142,6 +142,16 @@ test.describe('Picture gallery', () => {
         });
     });
 
+    test.describe('Scrolling', () => {
+        test('moves the pictures exactly as far as the list scrolls', async ({ authenticatedPage: page }) => {
+            gallery = await setupPaginatedGallery(page, { firstPageSize: 50, totalPages: 1 });
+
+            const largestJump = await gallery.largestJumpWhileScrolling(2000);
+
+            expect(largestJump).toBeLessThanOrEqual(1);
+        });
+    });
+
     test.describe('Pagination', () => {
         test('loads more pictures when scrolling to the bottom', async ({ authenticatedPage: page }) => {
             // 50 pictures on page 1 (~13 rows at standard viewport) ensures a scrollbar appears

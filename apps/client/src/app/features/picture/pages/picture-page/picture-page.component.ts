@@ -1,6 +1,7 @@
 import { PictureLightboxService } from '../../../../services/pictures/picture-lightbox.service';
 import { PictureRowComponent } from '../../components/picture-row/picture-row.component';
 import { PictureSearchBarComponent } from '../../components/picture-search-bar/picture-search-bar.component';
+import { outerRowHeight } from '../../services/picture-row-builder';
 import { PictureStateService } from '../../services/picture-state.service';
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -60,6 +61,7 @@ export class PicturePageComponent implements OnInit {
     readonly hasResults = this.state.hasResults;
     readonly showNoResults = this.state.showNoResults;
     readonly trackByFn = this.state.trackByFn;
+    readonly rowSize = outerRowHeight;
 
     constructor() {
         this.destroyRef.onDestroy(() => {

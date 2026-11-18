@@ -17,6 +17,7 @@ import {
     computed,
     contentChild,
     DestroyRef,
+    effect,
     ElementRef,
     inject,
     input,
@@ -79,8 +80,11 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     /** Items to display in the virtual scroll */
     readonly items = input.required<readonly T[]>();
 
-    /** Fixed height of each item in pixels. When set, uses fixed-size strategy (better performance). When omitted, uses autosize strategy (variable-height items). */
-    readonly itemSize = input<number | undefined>();
+    /**
+     * Each item's height in pixels, margins included, when the layout knows it before rendering:
+     * the items are then placed by it instead of measured as they render.
+     */
+    readonly itemSize = input<(item: T) => number>();
 
     /** Number of items from the end to trigger loadMore event */
     readonly loadMoreThreshold = input<number>(DEFAULT_LOAD_MORE_THRESHOLD);
@@ -121,10 +125,18 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
 
     constructor() {
         afterNextRender(() => this.watchOwnSize());
+        effect(() => {
+            const itemSize = this.itemSize();
+            if (itemSize) {
+                this.scrollStrategy.setItemSizes(this.items().map(itemSize));
+            }
+        });
     }
 
     ngOnInit(): void {
-        this.scrollStrategy.configure(this.itemSize());
+        if (this.itemSize()) {
+            this.scrollStrategy.useKnownSizes();
+        }
     }
 
     ngAfterViewInit(): void {
