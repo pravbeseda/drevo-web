@@ -5,6 +5,7 @@ import {
     mockArticleNewsApi,
     mockArticleShow,
     mockAuthApi,
+    mockEditCheck,
     mockNewsTopicsApi,
 } from '../../fixtures';
 import { mockUsers } from '../../mocks';
@@ -108,6 +109,7 @@ test.describe('Adding a news item without the right to edit', () => {
 
     test.beforeEach(async ({ page }) => {
         await mockAuthApi(page, reader);
+        await mockEditCheck(page, { allowed: false, reason: 'Недостаточно прав для создания новостей' });
         await mockNewsTopicsApi(page);
     });
 

@@ -1,4 +1,5 @@
 import { ArticleService } from '../../services/articles';
+import { isPageContentPath, primaryPath } from '../helpers/content-tab';
 import { pageUrl } from '../helpers/page-kind';
 import { recoverResolveFailure, ResolveFailure } from '../helpers/resolve-failure';
 import { parsePositiveIntParam, readRouteParam } from '../helpers/route-params';
@@ -9,8 +10,8 @@ import { PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
 import { Logger, LoggerService, NotificationService } from '@drevo-web/core';
 import { PageKind } from '@drevo-web/shared';
-import { Observable, forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { EMPTY, Observable, forkJoin, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 export type PageEditSessionResolveResult = PageEditSession | ResolveFailure;
 
@@ -28,8 +29,9 @@ export interface PageEditSessionDeps {
  * the server allows the user to: the rights and the limit of unapproved edits
  * gate the opening of the editor, not the save.
  *
- * A refusal lands on the page itself, as the legacy editor does; from the page,
- * that is the address the reader already is at, so they stay where they clicked.
+ * A refusal leaves a reader who clicked «Редактировать» on the page or one of its
+ * versions where they are, address unchanged; one who came from anywhere else —
+ * the sign-in, an address typed in — lands on the page, as the legacy editor does.
  * The server knows no user and leaves the check to the browser's navigation.
  */
 export function resolvePageEditSession(
@@ -52,12 +54,17 @@ export function resolvePageEditSession(
     }
 
     return forkJoin([session$, editorRefusal(articleService, kind, id)]).pipe(
-        map(([session, refusal]) => {
+        switchMap(([session, refusal]) => {
             if (typeof session === 'string' || !refusal) {
-                return session;
+                return of(session);
             }
             reportEditorRefusal(notificationService, logger, refusal, { kind, versionId: id });
-            return new RedirectCommand(router.parseUrl(pageUrl(kind, session.articleId)), { replaceUrl: true });
+            const page = pageUrl(kind, session.articleId);
+            const current = primaryPath(router, router.url);
+            // A resolver that completes empty cancels the navigation.
+            return current !== undefined && isPageContentPath(current, page)
+                ? EMPTY
+                : of(new RedirectCommand(router.parseUrl(page)));
         }),
     );
 }

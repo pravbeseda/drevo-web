@@ -140,17 +140,20 @@ test.describe('News editing', () => {
 });
 
 test.describe('News creation without the right to edit', () => {
-    test('the address of the news editor lands on the news history', async ({ page }) => {
+    test('the address of the news editor lands on the news history with the reason', async ({ page }) => {
         const reader = {
             ...mockUsers.authenticated,
             permissions: { ...mockUsers.authenticated.permissions, canEdit: false },
         };
+        const reason = 'Недостаточно прав для создания новостей';
         await mockAuthApi(page, reader);
+        await mockEditCheck(page, { allowed: false, reason });
         await mockNewsTopicsApi(page);
         await mockNewsHistory(page, createArticleHistoryResponse([]));
 
         await page.goto('/news/new');
 
         await expect(page).toHaveURL('/history/news');
+        await expect(getNotification(page, 'error')).toContainText(reason);
     });
 });

@@ -7,7 +7,7 @@ import { catchError, map } from 'rxjs/operators';
 const CHECK_FAILED_REASON = 'Не удалось проверить права на редактирование';
 
 /** Why the editor does not open; `error` is set when the check itself failed. */
-export interface EditorRefusal {
+interface EditorRefusal {
     readonly reason: string;
     readonly error?: unknown;
 }

@@ -4,7 +4,14 @@ import { toEditSession } from '../models/page-edit-session';
 import { createMockArticle } from '../testing/article-testing.helper';
 import { createRouteSnapshot } from '../testing/route-testing.helper';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, RedirectCommand, Router, UrlSegment, UrlTree } from '@angular/router';
+import {
+    ActivatedRouteSnapshot,
+    DefaultUrlSerializer,
+    RedirectCommand,
+    Router,
+    UrlSegment,
+    UrlTree,
+} from '@angular/router';
 import { NotificationService } from '@drevo-web/core';
 import { createMockLogger, MockLogger } from '@drevo-web/core/testing';
 import { PageKind } from '@drevo-web/shared';
@@ -15,10 +22,11 @@ const mockArticle = createMockArticle();
 describe('resolvePageEditSession', () => {
     let articleService: jest.Mocked<Pick<ArticleService, 'getArticleVersion' | 'checkEdit'>>;
     let notificationService: jest.Mocked<Pick<NotificationService, 'error'>>;
-    let router: jest.Mocked<Pick<Router, 'parseUrl'>>;
+    let router: { url: string; parseUrl: (url: string) => UrlTree };
     let logger: MockLogger;
     let isBrowser: boolean;
-    const pageTree = new UrlTree();
+    const serializer = new DefaultUrlSerializer();
+    const CANCELLED = 'navigation cancelled';
 
     const resolve = (route: ActivatedRouteSnapshot, kind: PageKind = 'articles'): Promise<unknown> => {
         const deps: PageEditSessionDeps = {
@@ -28,13 +36,13 @@ describe('resolvePageEditSession', () => {
             logger,
             isBrowser,
         };
-        return firstValueFrom(resolvePageEditSession(deps, route, kind));
+        return firstValueFrom(resolvePageEditSession(deps, route, kind), { defaultValue: CANCELLED });
     };
 
     beforeEach(() => {
         articleService = { getArticleVersion: jest.fn(), checkEdit: jest.fn().mockReturnValue(of({ allowed: true })) };
         notificationService = { error: jest.fn() };
-        router = { parseUrl: jest.fn().mockReturnValue(pageTree) };
+        router = { url: '/articles/123', parseUrl: url => serializer.parse(url) };
         logger = createMockLogger();
         isBrowser = true;
     });
@@ -51,19 +59,15 @@ describe('resolvePageEditSession', () => {
         expect(notificationService.error).not.toHaveBeenCalled();
     });
 
-    function expectSentToThePage(result: unknown): void {
-        expect(result).toBeInstanceOf(RedirectCommand);
-        const redirect = result as RedirectCommand;
-        expect(redirect.redirectTo).toBe(pageTree);
-        expect(redirect.navigationBehaviorOptions).toEqual({ replaceUrl: true });
-        expect(router.parseUrl).toHaveBeenCalledWith('/articles/123');
-    }
-
-    it('should send the reader to the page and tell them why when the check refuses', async () => {
+    it.each([
+        ['the page', '/articles/123'],
+        ['a version of the page', '/articles/123/version/99'],
+    ])('should keep the reader on %s, telling them why, when the check refuses', async (_case, url) => {
+        router.url = url;
         articleService.getArticleVersion.mockReturnValue(of(mockArticle));
         articleService.checkEdit.mockReturnValue(of({ allowed: false, reason: 'Лимит исчерпан' }));
 
-        expectSentToThePage(await resolve(createRouteSnapshot({ versionId: '456' })));
+        await expect(resolve(createRouteSnapshot({ versionId: '456' }))).resolves.toBe(CANCELLED);
 
         expect(notificationService.error).toHaveBeenCalledWith('Лимит исчерпан');
         expect(logger.warn).toHaveBeenCalledWith('Editor refused', {
@@ -73,12 +77,31 @@ describe('resolvePageEditSession', () => {
         });
     });
 
+    it.each([
+        ['the sign-in the editor was asked from', '/login?returnUrl=%2Farticles%2F123%2Fversion%2F456%2Fedit'],
+        ['another article, whose number starts the same', '/articles/1234'],
+        ['nothing yet, on an address typed in', '/'],
+    ])('should send a refused reader on %s to the page', async (_case, url) => {
+        router.url = url;
+        articleService.getArticleVersion.mockReturnValue(of(mockArticle));
+        articleService.checkEdit.mockReturnValue(of({ allowed: false, reason: 'Лимит исчерпан' }));
+
+        const result = await resolve(createRouteSnapshot({ versionId: '456' }));
+
+        expect(result).toBeInstanceOf(RedirectCommand);
+        const redirect = result as RedirectCommand;
+        expect(serializer.serialize(redirect.redirectTo)).toBe('/articles/123');
+        // The router picks replace for an address typed in and push for a click on its own.
+        expect(redirect.navigationBehaviorOptions).toBeUndefined();
+        expect(notificationService.error).toHaveBeenCalledWith('Лимит исчерпан');
+    });
+
     it('should refuse and log the cause when the check itself fails', async () => {
         const failure = new HttpErrorResponse({ status: 500 });
         articleService.getArticleVersion.mockReturnValue(of(mockArticle));
         articleService.checkEdit.mockReturnValue(throwError(() => failure));
 
-        expectSentToThePage(await resolve(createRouteSnapshot({ versionId: '456' })));
+        await expect(resolve(createRouteSnapshot({ versionId: '456' }))).resolves.toBe(CANCELLED);
 
         expect(notificationService.error).toHaveBeenCalledWith('Не удалось проверить права на редактирование');
         expect(logger.error).toHaveBeenCalledWith('Editor access check failed', failure);

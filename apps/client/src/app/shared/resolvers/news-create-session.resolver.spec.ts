@@ -1,18 +1,15 @@
 import { resolveNewsCreateSession, NewsCreateDeps } from './news-create-session.resolver';
 import { ArticleService } from '../../services/articles';
-import { AuthService } from '../../services/auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RedirectCommand, Router, UrlTree } from '@angular/router';
 import { NotificationService } from '@drevo-web/core';
 import { MockLoggerService } from '@drevo-web/core/testing';
-import { createMockUser } from '@drevo-web/shared/testing';
-import { defer, firstValueFrom, of, throwError } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
 
 describe('resolveNewsCreateSession', () => {
     const origin = { exitUrl: '/articles/42/news', draftKey: '/articles/42/news/new' };
     const topics = [{ id: 3, title: 'Церковь' }];
     const exitTree = new UrlTree();
-    const editor = createMockUser({ permissions: { canEdit: true } });
 
     let logger: ReturnType<MockLoggerService['withContext']>;
     let router: jest.Mocked<Pick<Router, 'parseUrl'>>;
@@ -26,9 +23,8 @@ describe('resolveNewsCreateSession', () => {
         notificationService = { error: jest.fn() };
     });
 
-    function deps(currentUser: AuthService['currentUser'], isBrowser = true): NewsCreateDeps {
+    function deps(isBrowser = true): NewsCreateDeps {
         return {
-            authService: { currentUser } as AuthService,
             articleService: articleService as unknown as ArticleService,
             notificationService: notificationService as unknown as NotificationService,
             isBrowser,
@@ -41,12 +37,13 @@ describe('resolveNewsCreateSession', () => {
         expect(result).toBeInstanceOf(RedirectCommand);
         const redirect = result as RedirectCommand;
         expect(redirect.redirectTo).toBe(exitTree);
-        expect(redirect.navigationBehaviorOptions).toEqual({ replaceUrl: true });
+        // The router picks replace for an address typed in and push for a click on its own.
+        expect(redirect.navigationBehaviorOptions).toBeUndefined();
         expect(router.parseUrl).toHaveBeenCalledWith('/articles/42/news');
     }
 
     it('opens an empty news item that leaves to where it was asked for', async () => {
-        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps(editor)));
+        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps()));
 
         expect(result).toEqual({
             kind: 'news',
@@ -62,47 +59,32 @@ describe('resolveNewsCreateSession', () => {
         expect(articleService.checkEdit).toHaveBeenCalledWith('news', undefined);
     });
 
-    it('sends a reader past the news limit back to where the news was asked for, telling them why', async () => {
-        articleService.checkEdit.mockReturnValue(of({ allowed: false, reason: 'Лимит исчерпан' }));
+    it.each([
+        ['without the right to edit', 'Недостаточно прав для создания новостей'],
+        ['past the news limit', 'Лимит исчерпан'],
+    ])('sends a reader %s back to where the news was asked for, telling them why', async (_case, reason) => {
+        articleService.checkEdit.mockReturnValue(of({ allowed: false, reason }));
 
-        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps(editor)));
+        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps()));
 
         expectSentBack(result);
-        expect(notificationService.error).toHaveBeenCalledWith('Лимит исчерпан');
-        expect(logger.warn).toHaveBeenCalledWith('Editor refused', { kind: 'news', reason: 'Лимит исчерпан' });
+        expect(notificationService.error).toHaveBeenCalledWith(reason);
+        expect(logger.warn).toHaveBeenCalledWith('Editor refused', { kind: 'news', reason });
     });
 
     it('sends the reader back when the check itself fails, and logs the cause', async () => {
         const failure = new HttpErrorResponse({ status: 500 });
         articleService.checkEdit.mockReturnValue(throwError(() => failure));
 
-        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps(editor)));
+        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps()));
 
         expectSentBack(result);
         expect(notificationService.error).toHaveBeenCalledWith('Не удалось проверить права на редактирование');
         expect(logger.error).toHaveBeenCalledWith('Editor access check failed', failure);
     });
 
-    it('sends a reader who may not edit back to where the news was asked for', async () => {
-        const user = createMockUser({ permissions: { canEdit: false } });
-        const requestTopics = jest.fn(() => of(topics));
-
-        const result = await firstValueFrom(resolveNewsCreateSession(origin, defer(requestTopics), deps(user)));
-
-        expectSentBack(result);
-        expect(logger.warn).toHaveBeenCalledWith('News creation denied: no right to edit', origin);
-        expect(requestTopics).not.toHaveBeenCalled();
-        expect(articleService.checkEdit).not.toHaveBeenCalled();
-    });
-
-    it('sends back a reader the browser knows no user for', async () => {
-        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps(undefined)));
-
-        expect(result).toBeInstanceOf(RedirectCommand);
-    });
-
     it('opens the editor on the server, which knows no user and leaves the check to the browser', async () => {
-        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps(undefined, false)));
+        const result = await firstValueFrom(resolveNewsCreateSession(origin, of(topics), deps(false)));
 
         expect(result).toEqual(expect.objectContaining({ mode: 'create', exitUrl: '/articles/42/news' }));
         expect(articleService.checkEdit).not.toHaveBeenCalled();

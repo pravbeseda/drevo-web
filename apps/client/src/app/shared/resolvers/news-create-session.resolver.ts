@@ -1,5 +1,4 @@
 import { ArticleService } from '../../services/articles';
-import { AuthService } from '../../services/auth/auth.service';
 import { PageEditSession } from '../models/page-edit-session';
 import { editorRefusal, reportEditorRefusal } from './editor-access';
 import { isPlatformBrowser } from '@angular/common';
@@ -17,7 +16,6 @@ export interface NewsCreateOrigin {
 }
 
 export interface NewsCreateDeps {
-    readonly authService: AuthService;
     readonly articleService: ArticleService;
     readonly notificationService: NotificationService;
     readonly isBrowser: boolean;
@@ -27,7 +25,6 @@ export interface NewsCreateDeps {
 
 export function injectNewsCreateDeps(): NewsCreateDeps {
     return {
-        authService: inject(AuthService),
         articleService: inject(ArticleService),
         notificationService: inject(NotificationService),
         isBrowser: isPlatformBrowser(inject(PLATFORM_ID)),
@@ -37,33 +34,26 @@ export function injectNewsCreateDeps(): NewsCreateDeps {
 }
 
 /**
- * The edit session of a news item not created yet. A reader without the right
- * to edit, which /api/news/create requires, or past the limit of unapproved
- * news, is sent back to the origin rather than to an editor whose save would
- * fail; the limit is the server's to judge, and a refusal says why.
+ * The edit session of a news item not created yet. A reader the server will not
+ * let create one — without the right to edit, or past the limit of unapproved
+ * news — is sent back to the origin with the server's reason, rather than to an
+ * editor whose save would fail.
  *
- * `authGuard` has waited for the user before any resolver runs. The server
- * knows no user and lets every route through, so the browser's own navigation
- * makes the check.
+ * The server render knows no user and leaves the check to the browser's own
+ * navigation.
  */
 export function resolveNewsCreateSession(
     origin: NewsCreateOrigin,
     newsTopics$: Observable<readonly NewsTopic[]>,
     deps: NewsCreateDeps,
 ): Observable<PageEditSession | RedirectCommand> {
-    const { authService, articleService, notificationService, isBrowser, router, logger } = deps;
-    const sendBack = () => new RedirectCommand(router.parseUrl(origin.exitUrl), { replaceUrl: true });
-    const mayCreate = !isBrowser || (authService.currentUser?.permissions.canEdit ?? false);
-    if (!mayCreate) {
-        logger.warn('News creation denied: no right to edit', origin);
-        return of(sendBack());
-    }
+    const { articleService, notificationService, isBrowser, router, logger } = deps;
     const refusal$ = isBrowser ? editorRefusal(articleService, 'news') : of(undefined);
     return forkJoin([newsTopics$, refusal$]).pipe(
         map(([newsTopics, refusal]): PageEditSession | RedirectCommand => {
             if (refusal) {
                 reportEditorRefusal(notificationService, logger, refusal, { kind: 'news' });
-                return sendBack();
+                return new RedirectCommand(router.parseUrl(origin.exitUrl));
             }
             return {
                 kind: 'news',
