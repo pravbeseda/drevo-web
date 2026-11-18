@@ -30,6 +30,7 @@ import {
     ArticleVersionDto,
     CalendarYearDto,
     CreateArticleResponseDto,
+    EditCheckResponseDto,
     ForumCreatedTopicDto,
     ForumPostedMessageDto,
     ForumReadStateDto,
@@ -89,6 +90,15 @@ export async function mockAuthApi(page: Page, user: User = mockUsers.authenticat
     await page.route('**/api/auth/logout', route => route.fulfill({ json: apiSuccess(undefined) }));
 
     await mockSidebarCounts(page);
+    await mockEditCheck(page);
+}
+
+/**
+ * Mock GET /api/{kind}/edit-check — what every editor route asks before it opens.
+ * A later call overrides the default a signed-in page starts with.
+ */
+export async function mockEditCheck(page: Page, verdict: EditCheckResponseDto = { allowed: true }): Promise<void> {
+    await page.route('**/api/*/edit-check**', route => route.fulfill({ json: apiSuccess(verdict) }));
 }
 
 /** The sidebar loads these for a signed-in user on every page; a 401 from the real backend would log them out. */

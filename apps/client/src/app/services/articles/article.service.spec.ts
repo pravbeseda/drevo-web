@@ -862,6 +862,36 @@ describe('ArticleService', () => {
         });
     });
 
+    describe('checkEdit', () => {
+        it('passes the kind and the version on and answers an allowed check', done => {
+            articleApiService.checkEdit.mockReturnValue(of({ allowed: true }));
+
+            spectator.service.checkEdit('news', 70).subscribe(result => {
+                expect(articleApiService.checkEdit).toHaveBeenCalledWith('news', 70);
+                expect(result).toEqual({ allowed: true });
+                done();
+            });
+        });
+
+        it('carries the reason of a refusal', done => {
+            articleApiService.checkEdit.mockReturnValue(of({ allowed: false, reason: 'Лимит исчерпан' }));
+
+            spectator.service.checkEdit('articles', 5).subscribe(result => {
+                expect(result).toEqual({ allowed: false, reason: 'Лимит исчерпан' });
+                done();
+            });
+        });
+
+        it('gives a refusal without a reason a generic one', done => {
+            articleApiService.checkEdit.mockReturnValue(of({ allowed: false }));
+
+            spectator.service.checkEdit('articles').subscribe(result => {
+                expect(result).toEqual({ allowed: false, reason: 'Редактирование недоступно' });
+                done();
+            });
+        });
+    });
+
     describe('createArticle', () => {
         const mockCreateResponse = {
             articleId: 555,

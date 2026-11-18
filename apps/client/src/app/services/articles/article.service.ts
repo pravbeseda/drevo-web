@@ -24,6 +24,7 @@ import {
     ArticleVersion,
     ArticleVersionDto,
     CreateArticleRequest,
+    EditCheck,
     ModerationResult,
     PageKind,
     RenameArticleResponse,
@@ -39,6 +40,8 @@ import {
 } from '@drevo-web/shared';
 import { Observable, Subject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+
+const EDIT_REFUSED_REASON = 'Редактирование недоступно';
 
 /**
  * Main service for article-related operations.
@@ -136,6 +139,25 @@ export class ArticleService {
      */
     findArticleByTitle(title: string): Observable<ArticleFindResult> {
         return this.articleApiService.findArticleByTitle(title).pipe(map(response => this.mapFindResponse(response)));
+    }
+
+    /**
+     * Ask whether the current user may open the editor
+     *
+     * @param kind - Page kind
+     * @param versionId - The version to edit; without it, a new page of the kind
+     * @returns Observable with the verdict, a refusal carrying the reason to show
+     */
+    checkEdit(kind: PageKind, versionId?: number): Observable<EditCheck> {
+        return this.articleApiService
+            .checkEdit(kind, versionId)
+            .pipe(
+                map((response): EditCheck =>
+                    response.allowed
+                        ? { allowed: true }
+                        : { allowed: false, reason: response.reason ?? EDIT_REFUSED_REASON },
+                ),
+            );
     }
 
     /**

@@ -6,9 +6,9 @@ import { VersionForModeration } from '../../models/version-for-moderation.model'
 import { PageSidebarActionsComponent } from './page-sidebar-actions.component';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { NotificationService, SidebarService } from '@drevo-web/core';
-import { ApprovalStatus, ModerationResult } from '@drevo-web/shared';
+import { ApprovalStatus, ModerationResult, User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
-import { of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 const mockVersion: VersionForModeration = {
     versionId: 200,
@@ -28,6 +28,7 @@ const mockModeratorUser = createMockUser({
 
 describe('PageSidebarActionsComponent', () => {
     let spectator: Spectator<PageSidebarActionsComponent>;
+    const userSubject = new BehaviorSubject<User | undefined>(mockModeratorUser);
 
     const createComponent = createComponentFactory({
         component: PageSidebarActionsComponent,
@@ -36,13 +37,14 @@ describe('PageSidebarActionsComponent', () => {
             mockProvider(NotificationService),
             {
                 provide: AuthService,
-                useValue: { user$: of(mockModeratorUser) },
+                useValue: { user$: userSubject },
             },
         ],
         detectChanges: false,
     });
 
     beforeEach(() => {
+        userSubject.next(mockModeratorUser);
         spectator = createComponent();
     });
 
@@ -75,6 +77,14 @@ describe('PageSidebarActionsComponent', () => {
             expect(editAction).toBeTruthy();
             expect(editAction?.label()).toBe('Редактировать');
             expect(editAction?.link()).toBe('/articles/123/version/456/edit');
+        });
+
+        it('should not offer editing to a reader without the right to edit', () => {
+            userSubject.next(createMockUser({ permissions: { canEdit: false } }));
+            spectator.setInput('editUrl', '/articles/123/version/456/edit');
+            spectator.detectChanges();
+            const actions = spectator.queryAll(SidebarActionComponent);
+            expect(actions.find(a => a.icon() === 'edit')).toBeFalsy();
         });
     });
 

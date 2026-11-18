@@ -4,17 +4,19 @@
         icon="toc"
         label="Содержание"
         priority="secondary"
+        testId="toc-action"
         (activated)="openTableOfContents()"
     />
 }
 
-@if (editUrl(); as url) {
+@if (offeredEditUrl(); as url) {
     <app-sidebar-action
         [order]="30"
         icon="edit"
         label="Редактировать"
         priority="primary"
         [link]="url"
+        testId="edit-action"
     />
 }
 

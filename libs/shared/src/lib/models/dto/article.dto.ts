@@ -102,6 +102,15 @@ export interface ArticleFindResponseDto {
 }
 
 /**
+ * Response from GET /api/{kind}/edit-check: whether the current user may open
+ * the editor — on a version, or on a new page of the kind — and why not.
+ */
+export interface EditCheckResponseDto {
+    readonly allowed: boolean;
+    readonly reason?: string;
+}
+
+/**
  * Request body for creating a new article
  */
 export interface CreateArticleRequestDto {

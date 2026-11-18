@@ -1,11 +1,11 @@
 import { resolveArticleNewsCreateSession } from './article-news-create-session.resolver';
-import { AuthService } from '../../../services/auth/auth.service';
+import { ArticleService } from '../../../services/articles';
 import { NewsService } from '../../../services/news/news.service';
 import { NewsCreateDeps } from '../../../shared/resolvers/news-create-session.resolver';
 import { createRouteSnapshot } from '../../../shared/testing/route-testing.helper';
 import { RedirectCommand, Router, UrlTree } from '@angular/router';
+import { NotificationService } from '@drevo-web/core';
 import { MockLoggerService } from '@drevo-web/core/testing';
-import { createMockUser } from '@drevo-web/shared/testing';
 import { firstValueFrom, of } from 'rxjs';
 
 describe('resolveArticleNewsCreateSession', () => {
@@ -18,7 +18,8 @@ describe('resolveArticleNewsCreateSession', () => {
     beforeEach(() => {
         newsService = { getTopics: jest.fn().mockReturnValue(of(topics)) };
         deps = {
-            authService: { currentUser: createMockUser({ permissions: { canEdit: true } }) } as AuthService,
+            articleService: { checkEdit: () => of({ allowed: true }) } as unknown as ArticleService,
+            notificationService: { error: jest.fn() } as unknown as NotificationService,
             isBrowser: true,
             router: { parseUrl: jest.fn().mockReturnValue(historyTree) } as unknown as Router,
             logger: new MockLoggerService().withContext('test'),

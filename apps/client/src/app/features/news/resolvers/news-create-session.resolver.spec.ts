@@ -1,17 +1,18 @@
 import { resolveHistoryNewsCreateSession } from './news-create-session.resolver';
-import { AuthService } from '../../../services/auth/auth.service';
+import { ArticleService } from '../../../services/articles';
 import { NewsCreateDeps } from '../../../shared/resolvers/news-create-session.resolver';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
+import { NotificationService } from '@drevo-web/core';
 import { MockLoggerService } from '@drevo-web/core/testing';
-import { createMockUser } from '@drevo-web/shared/testing';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 
 describe('resolveHistoryNewsCreateSession', () => {
     const routeUnder = (parentData: Record<string, unknown>): ActivatedRouteSnapshot =>
         ({ parent: { data: parentData } }) as unknown as ActivatedRouteSnapshot;
 
     const deps: NewsCreateDeps = {
-        authService: { currentUser: createMockUser({ permissions: { canEdit: true } }) } as AuthService,
+        articleService: { checkEdit: () => of({ allowed: true }) } as unknown as ArticleService,
+        notificationService: { error: jest.fn() } as unknown as NotificationService,
         isBrowser: true,
         router: {} as Router,
         logger: new MockLoggerService().withContext('test'),
