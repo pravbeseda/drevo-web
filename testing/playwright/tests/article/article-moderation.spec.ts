@@ -107,9 +107,10 @@ test.describe('Article moderation', () => {
             await article.moderationAction.click();
             await sheet.waitForReady();
 
-            await expect(sheet.editor).toBeVisible();
             await sheet.checkWholeText.click();
             await expect(sheet.findings).toHaveCount(1);
+            await sheet.showText();
+            await expect(sheet.editor).toBeVisible();
         });
     });
 

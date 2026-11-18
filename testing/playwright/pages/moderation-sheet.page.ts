@@ -66,6 +66,13 @@ export class ModerationSheetPage extends BasePage {
         return this.page.getByTestId('ai-locate-fragment').nth(index);
     }
 
+    /** Open the text tab on a narrow screen. No-op on a wide one, where the text is always beside the decision. */
+    async showText(): Promise<void> {
+        if (await this.textTab.isVisible()) {
+            await this.textTab.click();
+        }
+    }
+
     async connectAi(key: string): Promise<void> {
         await this.aiToggle.click();
         await this.aiKey.fill(key);

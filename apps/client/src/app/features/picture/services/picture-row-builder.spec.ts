@@ -1,5 +1,5 @@
 import { Picture } from '@drevo-web/shared';
-import { buildRows } from './picture-row-builder';
+import { buildRows, outerRowHeight } from './picture-row-builder';
 
 const makePicture = (id: number, width?: number, height?: number): Picture => ({
     id,
@@ -215,5 +215,13 @@ describe('buildRows', () => {
         const totalWidth =
             firstRow.items.reduce((sum, item) => sum + item.width, 0) + (firstRow.items.length - 1) * gap;
         expect(Math.abs(totalWidth - containerWidth)).toBeLessThanOrEqual(firstRow.items.length);
+    });
+});
+
+describe('outerRowHeight', () => {
+    it('should add the gap below a row to its height, as the list lays the rows out', () => {
+        const [row] = buildRows([makePicture(1, 800, 600)], 379, 200);
+
+        expect(outerRowHeight(row)).toBe(row.height + 8);
     });
 });

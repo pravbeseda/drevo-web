@@ -16,7 +16,7 @@ interface ScrollerHostOptions {
     readonly totalItems?: number;
     readonly isLoading?: boolean;
     readonly threshold?: number;
-    readonly itemSize?: number;
+    readonly itemSize?: (item: TestItem) => number;
     readonly footer?: string;
 }
 
@@ -78,7 +78,7 @@ describe('VirtualScrollerComponent', () => {
         };
 
         it('should expose the rendered rows as items of the whole collection', async () => {
-            spectator = createScrollerHost({ itemSize: 40 });
+            spectator = createScrollerHost({ itemSize: () => 40 });
             await renderRows();
 
             const rows = spectator.queryAll('[role="listitem"]');
@@ -90,10 +90,24 @@ describe('VirtualScrollerComponent', () => {
         });
 
         it('should count the loaded rows while the total is unknown', async () => {
-            spectator = createScrollerHost({ itemSize: 40, totalItems: 0 });
+            spectator = createScrollerHost({ itemSize: () => 40, totalItems: 0 });
             await renderRows();
 
             expect(spectator.query('[role="listitem"]')).toHaveAttribute('aria-setsize', '10');
+        });
+
+        it('should make the scrolled area as tall as the heights the items declare, again when they change', async () => {
+            spectator = createScrollerHost({ itemSize: item => 40 + item.id });
+            await renderRows();
+            // CDK draws the spacer; nothing of ours reaches it.
+            const spacer = spectator.query('[data-testid="scroller"] .cdk-virtual-scroll-spacer');
+
+            expect(spacer).toHaveStyle({ height: '445px' });
+
+            spectator.setHostInput({ items: createItems(5) });
+            await renderRows();
+
+            expect(spacer).toHaveStyle({ height: '210px' });
         });
     });
 
@@ -287,10 +301,11 @@ describe('VirtualScrollerComponent', () => {
 
 function createScrollerHost(options: ScrollerHostOptions = {}): SpectatorHost<VirtualScrollerComponent<TestItem>> {
     const { itemCount = 10, totalItems = 100, isLoading = false, threshold = 5, itemSize, footer = '' } = options;
-    const items = Array.from({ length: itemCount }, (_, i) => ({ id: i, name: `Item ${i}` }));
+    const items = createItems(itemCount);
 
     return createHost(
         `<ui-virtual-scroller
+            data-testid="scroller"
             style="height: 200px; display: block"
             [items]="items"
             [totalItems]="totalItems"
@@ -304,6 +319,10 @@ function createScrollerHost(options: ScrollerHostOptions = {}): SpectatorHost<Vi
         </ui-virtual-scroller>`,
         { hostProps: { items, totalItems, isLoading, threshold, itemSize } },
     );
+}
+
+function createItems(count: number): TestItem[] {
+    return Array.from({ length: count }, (_, i) => ({ id: i, name: `Item ${i}` }));
 }
 
 /** The host is what scrolls; the viewport inside only lays the rows out. */

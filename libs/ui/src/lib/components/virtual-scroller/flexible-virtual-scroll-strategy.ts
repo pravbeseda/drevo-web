@@ -1,8 +1,5 @@
-import {
-    CdkVirtualScrollViewport,
-    FixedSizeVirtualScrollStrategy,
-    VirtualScrollStrategy,
-} from '@angular/cdk/scrolling';
+import { KnownSizeVirtualScrollStrategy } from './known-size-virtual-scroll-strategy';
+import { CdkVirtualScrollViewport, VirtualScrollStrategy } from '@angular/cdk/scrolling';
 import { AutoSizeVirtualScrollStrategy } from '@angular/cdk-experimental/scrolling';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -11,23 +8,27 @@ const MIN_BUFFER_PX = 200;
 const MAX_BUFFER_PX = 400;
 
 /**
- * Delegating scroll strategy that switches between fixed-size and autosize
- * based on configuration. Must be configured before the viewport's ngOnInit.
+ * Delegating scroll strategy: measures the items as they render, or places
+ * them by heights it is given. The choice must be made before the viewport's
+ * ngOnInit.
  */
 @Injectable()
 export class FlexibleVirtualScrollStrategy implements VirtualScrollStrategy {
+    // Always there, so heights handed over before the switch are not lost.
+    private readonly knownSizes = new KnownSizeVirtualScrollStrategy(MAX_BUFFER_PX);
     private delegate: VirtualScrollStrategy = new AutoSizeVirtualScrollStrategy(MIN_BUFFER_PX, MAX_BUFFER_PX);
 
     get scrolledIndexChange(): Observable<number> {
         return this.delegate.scrolledIndexChange;
     }
 
-    configure(itemSize: number | undefined): void {
-        if (itemSize !== undefined) {
-            this.delegate = new FixedSizeVirtualScrollStrategy(itemSize, MIN_BUFFER_PX, MAX_BUFFER_PX);
-        } else {
-            this.delegate = new AutoSizeVirtualScrollStrategy(MIN_BUFFER_PX, MAX_BUFFER_PX);
-        }
+    /** Places the items by the heights `setItemSizes` hands over instead of measuring them. */
+    useKnownSizes(): void {
+        this.delegate = this.knownSizes;
+    }
+
+    setItemSizes(sizes: readonly number[]): void {
+        this.knownSizes.setSizes(sizes);
     }
 
     attach(viewport: CdkVirtualScrollViewport): void {

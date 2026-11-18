@@ -16,7 +16,7 @@ export class ArticleNewsTabPage extends BasePage {
 
     /** Scroll the list to its end, where the next page is asked for. */
     async scrollToEnd(): Promise<void> {
-        await this.list.getByRole('list').evaluate(viewport => viewport.scrollTo({ top: viewport.scrollHeight }));
+        await this.list.evaluate(scroller => scroller.scrollTo({ top: scroller.scrollHeight }));
     }
 
     async waitForReady(): Promise<void> {

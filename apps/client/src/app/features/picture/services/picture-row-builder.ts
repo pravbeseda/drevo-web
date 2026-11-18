@@ -81,6 +81,11 @@ export function buildRows(
     return rows;
 }
 
+/** The height a row takes in the list: its own and the gap below it. */
+export function outerRowHeight(row: PictureRow): number {
+    return row.height + GAP;
+}
+
 /**
  * Max display height for a picture without exceeding its thumbnail resolution.
  * Thumbnails are generated at max THUMB_MAX_WIDTH × THUMB_MAX_HEIGHT (legacy ImageHelper).

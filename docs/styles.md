@@ -47,7 +47,7 @@ What the export names alone do not tell you:
 | `ui-status-icon` | Input: `ApprovalStatus` (`-1`/`0`/`1`) |
 | `ui-tabs-group` | Ships the `TabGroup` and `TabGroupItem` interfaces |
 | `ui-dropdown-menu` | Ships `uiDropdownMenuTrigger` and `ui-dropdown-menu-item` |
-| `ui-virtual-scroller` | Ships the `uiVirtualScrollerItem` directive. The host is the scroll container, with the app scrollbar: give it a height and scroll it, not an ancestor. Content projected beside the item template follows the rows — a footer such as a retry. Rows of one fixed height go through `itemSize`, and that value must match the CSS height. It re-measures itself on its own resize, so a list shown again after `display: none` fills its height. A fast scroll asks for the next page only once it comes to rest, so wheel momentum stops at the end of what is loaded |
+| `ui-virtual-scroller` | Ships the `uiVirtualScrollerItem` directive. The host is the scroll container, with the app scrollbar: give it a height and scroll it, not an ancestor. Content projected beside the item template follows the rows — a footer such as a retry. Rows whose heights the layout knows before rendering go through `itemSize`, a function of the item that must return its full height, margins included — the rows are then placed by it rather than measured; without it the list measures the rows as they render. It re-measures itself on its own resize, so a list shown again after `display: none` fills its height. A fast scroll asks for the next page only once it comes to rest, so wheel momentum stops at the end of what is loaded |
 | Modal | No selector — opened through `ModalService` |
 | `formatDate` pipe | Date and time: "15 января 2025, 14:30" |
 
