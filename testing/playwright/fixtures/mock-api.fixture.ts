@@ -54,7 +54,7 @@ import {
     User,
     VersionPairsResponseDto,
 } from '@drevo-web/shared';
-import { Page, Route } from '@playwright/test';
+import { Page, Request, Route } from '@playwright/test';
 
 /**
  * Bypass SSR for a specific route pattern by serving a client-only HTML shell.
@@ -571,6 +571,27 @@ export async function mockLinkedHereApi(
         const body = typeof response === 'function' ? response(query, pageNumber) : response;
         return route.fulfill({ json: apiSuccess(body) });
     });
+}
+
+function isLinkedHerePage(url: string, query: string, pageNumber: number): boolean {
+    const { pathname, searchParams } = new URL(url);
+    return (
+        pathname.endsWith('/api/articles/linkedhere') &&
+        (searchParams.get('q') ?? '') === query &&
+        Number(searchParams.get('page') ?? '1') === pageNumber
+    );
+}
+
+/** Leave one «linked here» page unanswered, so it stays loading for the rest of the test; register after `mockLinkedHereApi` */
+export async function holdLinkedHerePage(page: Page, query: string, pageNumber: number): Promise<void> {
+    await page.route('**/api/articles/linkedhere**', route =>
+        isLinkedHerePage(route.request().url(), query, pageNumber) ? undefined : route.fallback(),
+    );
+}
+
+/** Resolves once the tab asks for the given page of the given filter */
+export function waitForLinkedHerePage(page: Page, query: string, pageNumber: number): Promise<Request> {
+    return page.waitForRequest(request => isLinkedHerePage(request.url(), query, pageNumber));
 }
 
 /** Matches GET /api/forum/topics (with or without query params), but NOT /api/forum/topics/:id */

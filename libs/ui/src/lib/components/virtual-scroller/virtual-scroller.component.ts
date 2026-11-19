@@ -25,7 +25,7 @@ import {
     output,
     viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, filter, merge, tap, throttleTime } from 'rxjs';
 
 export { VirtualScrollerItemDirective } from './virtual-scroller-item.directive';
@@ -123,6 +123,9 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
     /** Whether the loading indicator should be shown */
     readonly showLoadingIndicator = computed(() => this.isLoading() && this.items().length > 0);
 
+    // Not isLoading: after a failed page the list stays as it was, and checking then would ask for it again at once.
+    private readonly itemsChange$ = toObservable(this.items);
+
     constructor() {
         afterNextRender(() => this.watchOwnSize());
         effect(() => {
@@ -174,11 +177,12 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
         );
 
         // Also check when CDK updates the rendered range — covers the case where
-        // all items fit in the viewport without scrolling (e.g. wide screen).
-        // debounceTime(0) collapses any synchronous batch of range updates into one emission.
-        const rangeChange$ = viewport.renderedRangeStream.pipe(debounceTime(0));
+        // all items fit in the viewport without scrolling (e.g. wide screen) — and when
+        // the items change: CDK keeps the range for a list replaced by one of the same length.
+        // debounceTime(0) collapses any synchronous batch of updates into one emission.
+        const listChange$ = merge(viewport.renderedRangeStream, this.itemsChange$).pipe(debounceTime(0));
 
-        merge(scroll$, scrollSettled$, rangeChange$)
+        merge(scroll$, scrollSettled$, listChange$)
             .pipe(
                 filter(() => this.scrollSpeed <= MAX_LOAD_MORE_SCROLL_PX_PER_MS),
                 filter(() => !this.isLoading() && !this.allItemsLoaded()),
@@ -203,6 +207,10 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
 
         const renderedRange = viewport.getRenderedRange();
         const lastRenderedIndex = renderedRange.end;
+        // No row drawn, no reader at the end yet: the range stream checks again once rows are drawn.
+        if (lastRenderedIndex === 0) {
+            return false;
+        }
         const itemsRemaining = items.length - lastRenderedIndex;
 
         return itemsRemaining <= threshold;
