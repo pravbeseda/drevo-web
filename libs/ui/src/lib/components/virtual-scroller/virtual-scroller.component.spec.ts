@@ -279,6 +279,18 @@ describe('VirtualScrollerComponent', () => {
             expect(loadMoreSpy).not.toHaveBeenCalled();
         }));
 
+        it('should not ask for more once destroyed with a check still pending', fakeAsync(() => {
+            showEndOf({});
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+            spectator.setHostInput({ items: createItems(10) });
+            spectator.fixture.destroy();
+            tick(0);
+
+            expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('NG0953'));
+            warn.mockRestore();
+        }));
+
         it('should not ask again when only the loading stops, as after a failed page', fakeAsync(() => {
             showEndOf({ isLoading: true });
 

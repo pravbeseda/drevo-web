@@ -184,6 +184,8 @@ export class VirtualScrollerComponent<T> implements OnInit, AfterViewInit {
 
         merge(scroll$, scrollSettled$, listChange$)
             .pipe(
+                // Teardown completes itemsChange$ before this subscription ends, and debounceTime flushes on completion.
+                filter(() => !this.destroyRef.destroyed),
                 filter(() => this.scrollSpeed <= MAX_LOAD_MORE_SCROLL_PX_PER_MS),
                 filter(() => !this.isLoading() && !this.allItemsLoaded()),
                 filter(() => this.shouldLoadMore()),
