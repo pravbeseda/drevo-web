@@ -99,7 +99,7 @@ export class ArticleLinkedHereTabComponent implements OnInit {
         );
 
         const loadMore$ = this.loadMoreSubject.pipe(
-            // A page asked for while a search waits would drop that search and be numbered by the old list.
+            // A page asked for while a search waits would drop that search and land on the old list.
             filter(() => !this.isLoading() && this.items().length < this.total()),
             tap(() => this._isLoadingMore.set(true)),
             map((): PageRequest => ({
