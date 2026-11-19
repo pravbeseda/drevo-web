@@ -7,7 +7,7 @@ import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { mockLoggerProvider } from '@drevo-web/core/testing';
 import { Spectator, createComponentFactory } from '@ngneat/spectator/jest';
-import { of, throwError } from 'rxjs';
+import { delay, of, Subject, throwError } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
 
@@ -267,6 +267,89 @@ describe('ArticleLinkedHereTabComponent', () => {
             expect(spectator.component.items()).toEqual(before);
             expect(spectator.component.currentPage()).toBe(1);
             expect(spectator.component.isLoadingMore()).toBe(false);
+        });
+
+        describe('when the filter changes', () => {
+            const newFirstPage = {
+                items: [
+                    { id: 5, title: 'E' },
+                    { id: 6, title: 'F' },
+                ],
+                total: 4,
+                page: 1,
+                pageSize: 2,
+                totalPages: 2,
+            };
+
+            it('should drop a page that arrives during the debounce and ask for page 2 of the new filter', () => {
+                mockArticleService.getLinkedHere
+                    .mockReturnValueOnce(of(firstPage))
+                    .mockReturnValueOnce(of(secondPage).pipe(delay(100)))
+                    .mockReturnValueOnce(of(newFirstPage))
+                    .mockReturnValueOnce(of(secondPage));
+                spectator = createComponent();
+                spectator.component.onLoadMore();
+                spectator.component.onSearchChange('new');
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                spectator.component.onLoadMore();
+
+                expect(mockArticleService.getLinkedHere).toHaveBeenLastCalledWith({
+                    title: 'Target',
+                    query: 'new',
+                    page: 2,
+                });
+            });
+
+            it('should not ask for a page while the new filter waits for its first page', () => {
+                mockArticleService.getLinkedHere.mockReturnValueOnce(of(firstPage)).mockReturnValue(of(newFirstPage));
+                spectator = createComponent();
+                spectator.component.onSearchChange('new');
+                mockArticleService.getLinkedHere.mockClear();
+
+                spectator.component.onLoadMore();
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                expect(mockArticleService.getLinkedHere).toHaveBeenCalledTimes(1);
+                expect(mockArticleService.getLinkedHere).toHaveBeenCalledWith({
+                    title: 'Target',
+                    query: 'new',
+                    page: 1,
+                });
+                expect(spectator.component.items()).toEqual(newFirstPage.items);
+            });
+
+            it('should not drop the new filter when asked for a page while it loads', () => {
+                const newSearch = new Subject<typeof newFirstPage>();
+                mockArticleService.getLinkedHere
+                    .mockReturnValueOnce(of(firstPage))
+                    .mockReturnValueOnce(newSearch)
+                    .mockReturnValue(of(secondPage));
+                spectator = createComponent();
+                spectator.component.onSearchChange('new');
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                spectator.component.onLoadMore();
+                newSearch.next(newFirstPage);
+
+                expect(spectator.component.items()).toEqual(newFirstPage.items);
+                expect(spectator.component.isLoading()).toBe(false);
+            });
+
+            it('should not show the previous filter when it answers during the next debounce', () => {
+                mockArticleService.getLinkedHere
+                    .mockReturnValueOnce(of(firstPage))
+                    .mockReturnValueOnce(of(newFirstPage).pipe(delay(100)));
+                spectator = createComponent();
+                spectator.component.onSearchChange('a');
+                jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+                spectator.component.onSearchChange('ab');
+                jest.advanceTimersByTime(100);
+
+                expect(spectator.component.items()).toEqual(firstPage.items);
+                expect(spectator.component.isLoading()).toBe(true);
+            });
         });
     });
 });
