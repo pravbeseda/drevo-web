@@ -10,10 +10,19 @@ import { ArticleLinkedHereItem, ArticleLinkedHereResponse } from '@drevo-web/sha
 import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { TextInputComponent } from '@drevo-web/ui/text-input';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
-import { Observable, Subject, merge, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, merge, of, timer } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 const DEBOUNCE_TIME_MS = 500;
+
+interface PageRequest {
+    readonly query: string;
+    readonly page: number;
+    /** Added to the list on screen rather than replacing it. */
+    readonly append: boolean;
+    /** Waits out the typing pause before it is sent. */
+    readonly debounced: boolean;
+}
 
 const EMPTY_RESPONSE: ArticleLinkedHereResponse = {
     items: [],
@@ -74,27 +83,38 @@ export class ArticleLinkedHereTabComponent implements OnInit {
         // Initial load fires immediately; user input is debounced.
         markSearchStart();
 
+        const firstPage = (query: string, debounced: boolean): PageRequest => ({
+            query,
+            page: 1,
+            append: false,
+            debounced,
+        });
         const search$ = merge(
-            of(''),
-            this.searchSubject.pipe(distinctUntilChanged(), tap(markSearchStart), debounceTime(DEBOUNCE_TIME_MS)),
-        ).pipe(map(query => ({ query, page: 1, append: false })));
+            of(firstPage('', false)),
+            this.searchSubject.pipe(
+                distinctUntilChanged(),
+                tap(markSearchStart),
+                map(query => firstPage(query, true)),
+            ),
+        );
 
         const loadMore$ = this.loadMoreSubject.pipe(
-            filter(() => this.items().length < this.total()),
+            // A page asked for while a search waits would drop that search and be numbered by the old list.
+            filter(() => !this.isLoading() && this.items().length < this.total()),
             tap(() => this._isLoadingMore.set(true)),
-            map(() => ({ query: this.searchQuery(), page: this.currentPage() + 1, append: true })),
+            map((): PageRequest => ({
+                query: this.searchQuery(),
+                page: this.currentPage() + 1,
+                append: true,
+                debounced: false,
+            })),
         );
 
         merge(search$, loadMore$)
             .pipe(
+                // The pause sits inside switchMap, so a filter change drops whatever is still loading before it answers.
                 switchMap(action =>
-                    this.fetchPage(action.query, action.page).pipe(
-                        map(response => ({ response, action })),
-                        catchError((error: unknown) => {
-                            this.logger.error('Failed to load linked-here', error);
-                            return of({ response: EMPTY_RESPONSE, action });
-                        }),
-                    ),
+                    (action.debounced ? timer(DEBOUNCE_TIME_MS) : of(0)).pipe(switchMap(() => this.loadPage(action))),
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -121,6 +141,16 @@ export class ArticleLinkedHereTabComponent implements OnInit {
 
     onLoadMore(): void {
         this.loadMoreSubject.next();
+    }
+
+    private loadPage(action: PageRequest): Observable<{ response: ArticleLinkedHereResponse; action: PageRequest }> {
+        return this.fetchPage(action.query, action.page).pipe(
+            map(response => ({ response, action })),
+            catchError((error: unknown) => {
+                this.logger.error('Failed to load linked-here', error);
+                return of({ response: EMPTY_RESPONSE, action });
+            }),
+        );
     }
 
     private fetchPage(query: string, page: number): Observable<ArticleLinkedHereResponse> {
