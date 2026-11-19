@@ -3,23 +3,24 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnIni
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LoggerService } from '@drevo-web/core';
-import { ArticleSearchResult } from '@drevo-web/shared';
+import { ArticleSearchResponse, ArticleSearchResult } from '@drevo-web/shared';
 import { MODAL_DATA, ModalData } from '@drevo-web/ui/modal';
 import { SpinnerComponent } from '@drevo-web/ui/spinner';
 import { TextInputComponent } from '@drevo-web/ui/text-input';
 import { VirtualScrollerComponent, VirtualScrollerItemDirective } from '@drevo-web/ui/virtual-scroller';
 import {
     catchError,
-    debounceTime,
     distinctUntilChanged,
     finalize,
     map,
+    Observable,
     of,
     startWith,
     Subject,
     switchMap,
     takeUntil,
     tap,
+    timer,
 } from 'rxjs';
 
 const DEBOUNCE_TIME_MS = 500;
@@ -80,20 +81,8 @@ export class SearchComponent implements OnInit {
                     this._currentPage.set(1);
                     this.queryChangedSubject.next();
                 }),
-                debounceTime(DEBOUNCE_TIME_MS),
-                switchMap(query => {
-                    return this.articleService
-                        .searchArticles({
-                            query,
-                            page: 1,
-                        })
-                        .pipe(
-                            catchError((error: unknown) => {
-                                this.logger.error('Failed to search articles', error);
-                                return of({ items: [], total: 0 });
-                            }),
-                        );
-                }),
+                // The pause sits inside switchMap, so a query change drops the previous search before it answers.
+                switchMap(query => timer(DEBOUNCE_TIME_MS).pipe(switchMap(() => this.searchFirstPage(query)))),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(response => {
@@ -136,5 +125,14 @@ export class SearchComponent implements OnInit {
                     this._currentPage.set(nextPage);
                 }
             });
+    }
+
+    private searchFirstPage(query: string): Observable<Pick<ArticleSearchResponse, 'items' | 'total'>> {
+        return this.articleService.searchArticles({ query, page: 1 }).pipe(
+            catchError((error: unknown) => {
+                this.logger.error('Failed to search articles', error);
+                return of({ items: [], total: 0 });
+            }),
+        );
     }
 }

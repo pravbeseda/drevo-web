@@ -426,6 +426,30 @@ describe('SearchComponent', () => {
         expect(spectator.component.searchResults()).toEqual(freshResponse.items);
     });
 
+    it('should keep loading when the previous query answers during the next debounce', () => {
+        const staleResponse = {
+            items: [{ id: 1, title: 'Stale Result for "a"' }],
+            total: 50,
+            page: 1,
+            pageSize: 25,
+            totalPages: 2,
+        };
+        mockArticleService.searchArticles.mockReset();
+        mockArticleService.searchArticles
+            .mockReturnValueOnce(of({ items: [], total: 0, page: 1, pageSize: 25, totalPages: 0 })) // initial load
+            .mockReturnValueOnce(of(staleResponse).pipe(delay(100))); // search 'a'
+        spectator = createComponent();
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+        spectator.component.onSearchChange('a');
+        jest.advanceTimersByTime(DEBOUNCE_TIME_MS);
+
+        spectator.component.onSearchChange('ab');
+        jest.advanceTimersByTime(100);
+
+        expect(spectator.component.isLoading()).toBe(true);
+        expect(spectator.component.searchResults()).toEqual([]);
+    });
+
     describe('onLoadMore', () => {
         const firstPageResponse = {
             items: [
