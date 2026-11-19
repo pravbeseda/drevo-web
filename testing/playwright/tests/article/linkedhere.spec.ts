@@ -1,4 +1,11 @@
-import { test, expect, mockArticleShow, mockLinkedHereApi } from '../../fixtures';
+import {
+    test,
+    expect,
+    holdLinkedHerePage,
+    mockArticleShow,
+    mockLinkedHereApi,
+    waitForLinkedHerePage,
+} from '../../fixtures';
 import {
     createLinkedHereItemDto,
     createLinkedHereItemDtoList,
@@ -78,6 +85,36 @@ test.describe('LinkedHere tab', () => {
 
         await expect(linkedhere.items).toHaveCount(1);
         await expect(linkedhere.highlights).toHaveText('Drevo');
+    });
+
+    test('asks for the next page of a filter whose first page replaces a list of the same length', async ({
+        authenticatedPage: page,
+    }) => {
+        const PAGE_SIZE = 25;
+        const TOTAL = 40;
+        await mockLinkedHereApi(page, (query, pageNumber) =>
+            createLinkedHereResponse(
+                createLinkedHereItemDtoList(
+                    pageNumber === 1 ? PAGE_SIZE : TOTAL - PAGE_SIZE,
+                    (query ? 100 : 0) + (pageNumber - 1) * PAGE_SIZE + 1,
+                ),
+                { total: TOTAL, page: pageNumber },
+            ),
+        );
+        // The unfiltered page 2 stays loading, so the filter drops it while the reader sits at the end.
+        await holdLinkedHerePage(page, '', 2);
+        const unfilteredPage2 = waitForLinkedHerePage(page, '', 2);
+
+        await page.goto(`/articles/${ARTICLE_ID}/linkedhere`);
+        await article.waitForReady();
+        await linkedhere.waitForReady();
+        await linkedhere.scrollToEnd();
+        await unfilteredPage2;
+
+        const filteredPage2 = waitForLinkedHerePage(page, 'x', 2);
+        await linkedhere.filter('x');
+
+        await expect(filteredPage2).resolves.toBeTruthy();
     });
 
     test('clicking an item navigates to the corresponding article', async ({ authenticatedPage: page }) => {

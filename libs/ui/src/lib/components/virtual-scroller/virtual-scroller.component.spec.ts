@@ -177,7 +177,7 @@ describe('VirtualScrollerComponent', () => {
 
     describe('loadMore emission guards', () => {
         // These tests exercise the scroll$ path (native scroll events → throttleTime).
-        // The rangeChange$ path (viewport.renderedRangeStream → debounceTime(0)), which fixes
+        // The renderedRangeStream half of listChange$ (→ debounceTime(0)), which fixes
         // the wide-screen case where all items fit without scrolling, is not unit-testable here:
         // JSDOM has no layout engine, so renderedRangeStream never emits in Jest.
         // Wide-screen auto-load is covered by the Playwright test
@@ -239,8 +239,65 @@ describe('VirtualScrollerComponent', () => {
             triggerScroll(spectator);
             tick(150); // past throttleTime(100)
 
-            // both scroll$ (leading+trailing) and rangeChange$ may fire — at least one emission is expected
+            // both scroll$ (leading+trailing) and listChange$ may fire — at least one emission is expected
             expect(loadMoreSpy).toHaveBeenCalled();
+        }));
+    });
+
+    describe('loadMore when the list changes under a reader at its end', () => {
+        let loadMoreSpy: jest.Mock;
+
+        const showEndOf = (options: ScrollerHostOptions): void => {
+            spectator = createScrollerHost(options);
+            spectator.detectChanges();
+            // 8 of 10 rendered = 2 remaining < threshold 5
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 8 });
+            tick(0);
+            loadMoreSpy = jest.fn();
+            spectator.output('loadMore').subscribe(loadMoreSpy);
+        };
+
+        it('should check again when a list of the same length replaces it', fakeAsync(() => {
+            showEndOf({});
+
+            spectator.setHostInput({ items: createItems(10) });
+            tick(0);
+
+            expect(loadMoreSpy).toHaveBeenCalledTimes(1);
+        }));
+
+        it('should not ask for more while no row is drawn yet', fakeAsync(() => {
+            spectator = createScrollerHost({ itemCount: 0 });
+            spectator.detectChanges();
+            jest.spyOn(spectator.component.viewport(), 'getRenderedRange').mockReturnValue({ start: 0, end: 0 });
+            loadMoreSpy = jest.fn();
+            spectator.output('loadMore').subscribe(loadMoreSpy);
+
+            spectator.setHostInput({ items: createItems(3) });
+            tick(0);
+
+            expect(loadMoreSpy).not.toHaveBeenCalled();
+        }));
+
+        it('should not ask for more once destroyed with a check still pending', fakeAsync(() => {
+            showEndOf({});
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+            spectator.setHostInput({ items: createItems(10) });
+            spectator.fixture.destroy();
+            tick(0);
+
+            expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('NG0953'));
+            warn.mockRestore();
+        }));
+
+        it('should not ask again when only the loading stops, as after a failed page', fakeAsync(() => {
+            showEndOf({ isLoading: true });
+
+            spectator.setHostInput({ isLoading: false });
+            tick(0);
+
+            expect(loadMoreSpy).not.toHaveBeenCalled();
         }));
     });
 

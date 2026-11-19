@@ -56,6 +56,8 @@ export {
     mockArticleHistory,
     mockArticleHistoryError,
     mockLinkedHereApi,
+    holdLinkedHerePage,
+    waitForLinkedHerePage,
     mockForumTopicsApi,
     mockForumTopicsUnknownPart,
     mockForumSectionsApi,
