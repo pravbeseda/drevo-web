@@ -9,6 +9,9 @@ import { FormatTimePipe } from '@drevo-web/ui/format-time';
 import { IconComponent } from '@drevo-web/ui/icon';
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { StatusIconComponent } from '@drevo-web/ui/status-icon';
+import { TooltipDirective } from '@drevo-web/ui/tooltip';
+
+const CHAR_COUNT_FORMAT = new Intl.NumberFormat('ru-RU');
 
 @Component({
     selector: 'app-articles-history-item',
@@ -20,6 +23,7 @@ import { StatusIconComponent } from '@drevo-web/ui/status-icon';
         IconComponent,
         ButtonComponent,
         ReviewBadgeComponent,
+        TooltipDirective,
     ],
     templateUrl: './articles-history-item.component.html',
     styleUrl: './articles-history-item.component.scss',
@@ -49,6 +53,15 @@ export class ArticlesHistoryItemComponent {
     readonly showReviewBadge = computed(
         () => this.reviewSummary() !== undefined && this.item().approved === ApprovalStatus.Pending,
     );
+
+    /** Like the review pill, the size of an edit only helps while the edit awaits moderation. */
+    protected readonly editSize = computed(() => {
+        const { approved, editSize } = this.item();
+        if (approved !== ApprovalStatus.Pending || !editSize) return undefined;
+        const added = CHAR_COUNT_FORMAT.format(editSize.added);
+        const removed = CHAR_COUNT_FORMAT.format(editSize.removed);
+        return { added, removed, tooltip: `Символов добавлено: ${added}, удалено: ${removed}` };
+    });
 
     readonly diffLink = computed(() => diffUrl(this.kind(), this.item().versionId));
 

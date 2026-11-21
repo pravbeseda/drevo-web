@@ -246,12 +246,15 @@ export class ArticleHistoryService {
             });
     }
 
-    private patchItems(updates: readonly Pick<ArticleHistoryItem, 'versionId' | 'approved' | 'comment'>[]): void {
+    /** A moderation result brings the decision only; a re-read row also brings its recounted edit size. */
+    private patchItems(
+        updates: readonly (Pick<ArticleHistoryItem, 'versionId'> & Partial<ArticleHistoryItem>)[],
+    ): void {
         const byId = new Map(updates.map(update => [update.versionId, update]));
         this._historyItems.update(items =>
             items.map(item => {
                 const update = byId.get(item.versionId);
-                return update ? { ...item, approved: update.approved, comment: update.comment } : item;
+                return update ? { ...item, ...update } : item;
             }),
         );
     }

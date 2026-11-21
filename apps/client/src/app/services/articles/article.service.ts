@@ -361,6 +361,10 @@ export class ArticleService {
             isNew: item.new,
             info: item.info,
             comment: item.comment,
+            editSize:
+                item.addedChars !== undefined && item.removedChars !== undefined
+                    ? { added: item.addedChars, removed: item.removedChars }
+                    : undefined,
         };
     }
 

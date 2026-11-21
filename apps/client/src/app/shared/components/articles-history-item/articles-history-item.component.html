@@ -57,6 +57,26 @@
             >
                 {{ item().title }}
             </a>
+            @if (editSize(); as size) {
+                <span
+                    class="edit-size"
+                    data-testid="edit-size"
+                    [uiTooltip]="size.tooltip"
+                >
+                    <span
+                        class="edit-size-added"
+                        data-testid="edit-size-added"
+                    >
+                        +{{ size.added }}
+                    </span>
+                    <span
+                        class="edit-size-removed"
+                        data-testid="edit-size-removed"
+                    >
+                        &minus;{{ size.removed }}
+                    </span>
+                </span>
+            }
             @if (showReviewBadge() && reviewSummary(); as summary) {
                 <a
                     class="review-badge-link"

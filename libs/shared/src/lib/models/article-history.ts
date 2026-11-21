@@ -17,6 +17,14 @@ export interface ArticleHistoryItem {
     readonly isNew: boolean;
     readonly info: string;
     readonly comment: string;
+    /** Absent unless the API measured the edit: pending versions only. */
+    readonly editSize?: EditSize;
+}
+
+/** Characters an edit added and removed against the version its diff compares with. */
+export interface EditSize {
+    readonly added: number;
+    readonly removed: number;
 }
 
 /**
