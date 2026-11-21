@@ -129,39 +129,59 @@ describe('ArticlesHistoryItemComponent', () => {
         const pendingWithSize = (added: number, removed: number) =>
             createMockItem({ approved: ApprovalStatus.Pending, editSize: { added, removed } });
 
+        const showToModerator = (item: ArticleHistoryItem) =>
+            (spectator = createComponent({ props: { item, canModerate: true } }));
+        const getTooltip = () => spectator.query('[data-testid="edit-size"]', { read: MatTooltip })?.message;
+
         it('shows the characters added and removed by a pending version, grouped the Russian way', () => {
-            spectator = createComponent({ props: { item: pendingWithSize(1840, 112) } });
+            showToModerator(pendingWithSize(1840, 112));
 
             expect(getEditSizeAdded()).toHaveExactTrimmedText('+1 840');
             expect(getEditSizeRemoved()).toHaveExactTrimmedText('−112');
         });
 
-        it('shows an edit that changed nothing as zeros', () => {
-            spectator = createComponent({ props: { item: pendingWithSize(0, 0) } });
+        it('spells the numbers out in a tooltip', () => {
+            showToModerator(pendingWithSize(1840, 112));
 
-            expect(getEditSizeAdded()).toHaveExactTrimmedText('+0');
-            expect(getEditSizeRemoved()).toHaveExactTrimmedText('−0');
+            expect(getTooltip()).toBe('Символов добавлено: 1 840, удалено: 112');
         });
 
-        it('spells the numbers out in a tooltip', () => {
+        it('leaves out the removed count when the edit removed nothing', () => {
+            showToModerator(pendingWithSize(1840, 0));
+
+            expect(getEditSizeAdded()).toHaveExactTrimmedText('+1 840');
+            expect(getEditSizeRemoved()).toBeFalsy();
+            expect(getTooltip()).toBe('Символов добавлено: 1 840');
+        });
+
+        it('leaves out the added count when the edit added nothing', () => {
+            showToModerator(pendingWithSize(0, 112));
+
+            expect(getEditSizeAdded()).toBeFalsy();
+            expect(getEditSizeRemoved()).toHaveExactTrimmedText('−112');
+            expect(getTooltip()).toBe('Символов удалено: 112');
+        });
+
+        it('shows nothing for an edit that changed nothing', () => {
+            showToModerator(pendingWithSize(0, 0));
+
+            expect(getEditSize()).toBeFalsy();
+        });
+
+        it('shows nothing to a user who cannot moderate', () => {
             spectator = createComponent({ props: { item: pendingWithSize(1840, 112) } });
 
-            const tooltip = spectator.query('[data-testid="edit-size"]', { read: MatTooltip });
-            expect(tooltip?.message).toBe('Символов добавлено: 1 840, удалено: 112');
+            expect(getEditSize()).toBeFalsy();
         });
 
         it('hides the size once the version has left moderation', () => {
-            spectator = createComponent({
-                props: {
-                    item: createMockItem({ approved: ApprovalStatus.Approved, editSize: { added: 5, removed: 1 } }),
-                },
-            });
+            showToModerator(createMockItem({ approved: ApprovalStatus.Approved, editSize: { added: 5, removed: 1 } }));
 
             expect(getEditSize()).toBeFalsy();
         });
 
         it('shows nothing for a pending version the API sent no size for', () => {
-            spectator = createComponent({ props: { item: createMockItem({ approved: ApprovalStatus.Pending }) } });
+            showToModerator(createMockItem({ approved: ApprovalStatus.Pending }));
 
             expect(getEditSize()).toBeFalsy();
         });

@@ -13,6 +13,11 @@ import { TooltipDirective } from '@drevo-web/ui/tooltip';
 
 const CHAR_COUNT_FORMAT = new Intl.NumberFormat('ru-RU');
 
+/** A zero count says nothing to a moderator, so it is left out. */
+function formatCharCount(count: number): string | undefined {
+    return count > 0 ? CHAR_COUNT_FORMAT.format(count) : undefined;
+}
+
 @Component({
     selector: 'app-articles-history-item',
     imports: [
@@ -54,13 +59,15 @@ export class ArticlesHistoryItemComponent {
         () => this.reviewSummary() !== undefined && this.item().approved === ApprovalStatus.Pending,
     );
 
-    /** Like the review pill, the size of an edit only helps while the edit awaits moderation. */
+    /** The size of an edit is a moderator's hint, so it shows only to them and only while the edit awaits them. */
     protected readonly editSize = computed(() => {
         const { approved, editSize } = this.item();
-        if (approved !== ApprovalStatus.Pending || !editSize) return undefined;
-        const added = CHAR_COUNT_FORMAT.format(editSize.added);
-        const removed = CHAR_COUNT_FORMAT.format(editSize.removed);
-        return { added, removed, tooltip: `Символов добавлено: ${added}, удалено: ${removed}` };
+        if (!this.canModerate() || approved !== ApprovalStatus.Pending || !editSize) return undefined;
+        const added = formatCharCount(editSize.added);
+        const removed = formatCharCount(editSize.removed);
+        if (!added && !removed) return undefined;
+        const parts = [added && `добавлено: ${added}`, removed && `удалено: ${removed}`].filter(Boolean);
+        return { added, removed, tooltip: `Символов ${parts.join(', ')}` };
     });
 
     readonly diffLink = computed(() => diffUrl(this.kind(), this.item().versionId));
