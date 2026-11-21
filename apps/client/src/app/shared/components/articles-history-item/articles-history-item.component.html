@@ -63,18 +63,22 @@
                     data-testid="edit-size"
                     [uiTooltip]="size.tooltip"
                 >
-                    <span
-                        class="edit-size-added"
-                        data-testid="edit-size-added"
-                    >
-                        +{{ size.added }}
-                    </span>
-                    <span
-                        class="edit-size-removed"
-                        data-testid="edit-size-removed"
-                    >
-                        &minus;{{ size.removed }}
-                    </span>
+                    @if (size.added; as added) {
+                        <span
+                            class="edit-size-added"
+                            data-testid="edit-size-added"
+                        >
+                            +{{ added }}
+                        </span>
+                    }
+                    @if (size.removed; as removed) {
+                        <span
+                            class="edit-size-removed"
+                            data-testid="edit-size-removed"
+                        >
+                            &minus;{{ removed }}
+                        </span>
+                    }
                 </span>
             }
             @if (showReviewBadge() && reviewSummary(); as summary) {
