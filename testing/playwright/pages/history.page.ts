@@ -57,6 +57,21 @@ export class HistoryPage extends BasePage {
         return row.getByTestId('review-badge-vote');
     }
 
+    /** The `+N −M` edit size of a pending history row, both numbers. */
+    editSize(row: Locator): Locator {
+        return row.getByTestId('edit-size');
+    }
+
+    /** Characters the edit added, `+N`, within a history row. */
+    editSizeAdded(row: Locator): Locator {
+        return row.getByTestId('edit-size-added');
+    }
+
+    /** Characters the edit removed, `−M`, within a history row. */
+    editSizeRemoved(row: Locator): Locator {
+        return row.getByTestId('edit-size-removed');
+    }
+
     async gotoArticles(): Promise<void> {
         await this.page.goto('/history/articles');
     }

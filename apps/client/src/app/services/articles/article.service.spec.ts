@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 import { CountsInvalidationService } from '../counts/counts-invalidation.service';
 import {
     ApprovalStatus,
+    ArticleHistoryItemDto,
     ArticleHistoryResponseDto,
     ArticleLinkedHereResponseDto,
     ArticlePreviewResponseDto,
@@ -813,6 +814,54 @@ describe('ArticleService', () => {
                 expect(result.items[0].approved).toBe(1);
                 expect(result.items[1].approved).toBe(0);
                 done();
+            });
+        });
+
+        describe('edit size', () => {
+            const responseWith = (sizes: Partial<ArticleHistoryItemDto>): ArticleHistoryResponseDto => ({
+                ...mockApiResponse,
+                items: [{ ...mockApiResponse.items[1], ...sizes }],
+            });
+
+            it('maps the characters added and removed into the edit size', done => {
+                articleApiService.getArticlesHistory.mockReturnValue(
+                    of(responseWith({ addedChars: 1840, removedChars: 112 })),
+                );
+
+                spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                    expect(result.items[0].editSize).toEqual({ added: 1840, removed: 112 });
+                    done();
+                });
+            });
+
+            it('keeps an edit that changed nothing as zeros', done => {
+                articleApiService.getArticlesHistory.mockReturnValue(
+                    of(responseWith({ addedChars: 0, removedChars: 0 })),
+                );
+
+                spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                    expect(result.items[0].editSize).toEqual({ added: 0, removed: 0 });
+                    done();
+                });
+            });
+
+            it('leaves the edit size out when the API sends neither number', done => {
+                articleApiService.getArticlesHistory.mockReturnValue(of(mockApiResponse));
+
+                spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                    expect(result.items[0].editSize).toBeUndefined();
+                    expect(result.items[1].editSize).toBeUndefined();
+                    done();
+                });
+            });
+
+            it('leaves the edit size out when the API sends only one number', done => {
+                articleApiService.getArticlesHistory.mockReturnValue(of(responseWith({ addedChars: 5 })));
+
+                spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                    expect(result.items[0].editSize).toBeUndefined();
+                    done();
+                });
             });
         });
     });

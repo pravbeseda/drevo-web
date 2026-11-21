@@ -118,6 +118,23 @@
     }
 }
 
+.edit-size {
+    flex: none;
+    display: inline-flex;
+    gap: 4px;
+    font-size: $font-size-md;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.edit-size-added {
+    color: var(--themed-diff-insert-text);
+}
+
+.edit-size-removed {
+    color: var(--themed-diff-delete-text);
+}
+
 .inwork-marker {
     flex: none;
     color: var(--themed-text-secondary);

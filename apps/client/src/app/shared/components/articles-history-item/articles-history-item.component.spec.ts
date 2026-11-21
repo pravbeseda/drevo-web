@@ -4,6 +4,7 @@ import { ApprovalStatus, ArticleHistoryItem, ReviewStatus } from '@drevo-web/sha
 import { IconButtonComponent } from '@drevo-web/ui/icon-button';
 import { StatusIconComponent } from '@drevo-web/ui/status-icon';
 import { provideRouter } from '@angular/router';
+import { MatTooltip } from '@angular/material/tooltip';
 
 function createMockItem(overrides: Partial<ArticleHistoryItem> = {}): ArticleHistoryItem {
     return {
@@ -38,6 +39,9 @@ describe('ArticlesHistoryItemComponent', () => {
     const getCompareButton = () => spectator.query('[data-testid="compare-button"]');
     const getSelectionHint = () => spectator.query('[data-testid="selection-hint"]');
     const getInworkMarker = () => spectator.query('[data-testid="inwork-marker"]');
+    const getEditSize = () => spectator.query('[data-testid="edit-size"]');
+    const getEditSizeAdded = () => spectator.query('[data-testid="edit-size-added"]');
+    const getEditSizeRemoved = () => spectator.query('[data-testid="edit-size-removed"]');
 
     it('should create', () => {
         spectator = createComponent({
@@ -118,6 +122,48 @@ describe('ArticlesHistoryItemComponent', () => {
             });
 
             expect(getInworkMarker()).toBeFalsy();
+        });
+    });
+
+    describe('edit size', () => {
+        const pendingWithSize = (added: number, removed: number) =>
+            createMockItem({ approved: ApprovalStatus.Pending, editSize: { added, removed } });
+
+        it('shows the characters added and removed by a pending version, grouped the Russian way', () => {
+            spectator = createComponent({ props: { item: pendingWithSize(1840, 112) } });
+
+            expect(getEditSizeAdded()).toHaveExactTrimmedText('+1 840');
+            expect(getEditSizeRemoved()).toHaveExactTrimmedText('−112');
+        });
+
+        it('shows an edit that changed nothing as zeros', () => {
+            spectator = createComponent({ props: { item: pendingWithSize(0, 0) } });
+
+            expect(getEditSizeAdded()).toHaveExactTrimmedText('+0');
+            expect(getEditSizeRemoved()).toHaveExactTrimmedText('−0');
+        });
+
+        it('spells the numbers out in a tooltip', () => {
+            spectator = createComponent({ props: { item: pendingWithSize(1840, 112) } });
+
+            const tooltip = spectator.query('[data-testid="edit-size"]', { read: MatTooltip });
+            expect(tooltip?.message).toBe('Символов добавлено: 1 840, удалено: 112');
+        });
+
+        it('hides the size once the version has left moderation', () => {
+            spectator = createComponent({
+                props: {
+                    item: createMockItem({ approved: ApprovalStatus.Approved, editSize: { added: 5, removed: 1 } }),
+                },
+            });
+
+            expect(getEditSize()).toBeFalsy();
+        });
+
+        it('shows nothing for a pending version the API sent no size for', () => {
+            spectator = createComponent({ props: { item: createMockItem({ approved: ApprovalStatus.Pending }) } });
+
+            expect(getEditSize()).toBeFalsy();
         });
     });
 

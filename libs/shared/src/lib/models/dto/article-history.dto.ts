@@ -30,6 +30,10 @@ export interface ArticleHistoryItemDto {
     readonly new: boolean;
     readonly info: string;
     readonly comment: string;
+    /** Characters added against the diff base; sent for pending versions only. */
+    readonly addedChars?: number;
+    /** Characters removed against the diff base; sent for pending versions only. */
+    readonly removedChars?: number;
 }
 
 /**
