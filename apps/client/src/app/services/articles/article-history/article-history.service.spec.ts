@@ -691,6 +691,68 @@ describe('ArticleHistoryService', () => {
                 error,
             );
         });
+
+        describe('edit size', () => {
+            const rewriteSized = { added: 900, removed: 40 };
+
+            beforeEach(() => {
+                articleService.getArticlesHistory.mockReturnValue(
+                    of(
+                        createMockResponse(
+                            [
+                                createMockHistoryItem({
+                                    versionId: 2,
+                                    approved: ApprovalStatus.Pending,
+                                    editSize: rewriteSized,
+                                }),
+                                createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Pending }),
+                            ],
+                            2,
+                        ),
+                    ),
+                );
+                spectator.service.onFilterChange('unchecked');
+            });
+
+            it('takes the size the server recounted once an earlier version is approved', () => {
+                articleService.getArticlesHistory.mockReturnValue(
+                    of(
+                        createMockResponse([
+                            createMockHistoryItem({
+                                versionId: 2,
+                                approved: ApprovalStatus.Pending,
+                                editSize: { added: 1, removed: 1 },
+                            }),
+                            createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Approved }),
+                        ]),
+                    ),
+                );
+
+                spectator.service.applyModeration({ ...approval, versionId: 1 });
+
+                expect(versionsOf()[0]).toEqual(
+                    expectObjectLike<ArticleHistoryItem>({ versionId: 2, editSize: { added: 1, removed: 1 } }),
+                );
+            });
+
+            it('keeps the size of a version the moderation left pending while the refresh is on its way', () => {
+                articleService.getArticlesHistory.mockReturnValue(NEVER);
+
+                spectator.service.applyModeration({
+                    ...approval,
+                    approved: ApprovalStatus.Pending,
+                    comment: 'Уточните источник',
+                });
+
+                expect(versionsOf()[0]).toEqual(
+                    expectObjectLike<ArticleHistoryItem>({
+                        versionId: 2,
+                        comment: 'Уточните источник',
+                        editSize: rewriteSized,
+                    }),
+                );
+            });
+        });
     });
 
     describe('infinite scroll', () => {
