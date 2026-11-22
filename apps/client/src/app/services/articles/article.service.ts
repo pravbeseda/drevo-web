@@ -363,7 +363,7 @@ export class ArticleService {
             comment: item.comment,
             editSize:
                 item.addedChars !== undefined && item.removedChars !== undefined
-                    ? { added: item.addedChars, removed: item.removedChars }
+                    ? { added: item.addedChars, removed: item.removedChars, newPage: item.newPage ?? false }
                     : undefined,
         };
     }

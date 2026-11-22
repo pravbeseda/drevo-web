@@ -25,6 +25,8 @@ export interface ArticleHistoryItem {
 export interface EditSize {
     readonly added: number;
     readonly removed: number;
+    /** No approved version to compare with: `added` is the length of the whole text. */
+    readonly newPage: boolean;
 }
 
 /**

@@ -825,22 +825,44 @@ describe('ArticleService', () => {
 
             it('maps the characters added and removed into the edit size', done => {
                 articleApiService.getArticlesHistory.mockReturnValue(
+                    of(responseWith({ addedChars: 1840, removedChars: 112, newPage: false })),
+                );
+
+                spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                    expect(result.items[0].editSize).toEqual({ added: 1840, removed: 112, newPage: false });
+                    done();
+                });
+            });
+
+            it('marks the size of a page that has no approved version yet', done => {
+                articleApiService.getArticlesHistory.mockReturnValue(
+                    of(responseWith({ addedChars: 1840, removedChars: 0, newPage: true })),
+                );
+
+                spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
+                    expect(result.items[0].editSize).toEqual({ added: 1840, removed: 0, newPage: true });
+                    done();
+                });
+            });
+
+            it('takes a size the API sent without the new-page flag for an edit of an approved page', done => {
+                articleApiService.getArticlesHistory.mockReturnValue(
                     of(responseWith({ addedChars: 1840, removedChars: 112 })),
                 );
 
                 spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
-                    expect(result.items[0].editSize).toEqual({ added: 1840, removed: 112 });
+                    expect(result.items[0].editSize).toEqual({ added: 1840, removed: 112, newPage: false });
                     done();
                 });
             });
 
             it('keeps an edit that changed nothing as zeros', done => {
                 articleApiService.getArticlesHistory.mockReturnValue(
-                    of(responseWith({ addedChars: 0, removedChars: 0 })),
+                    of(responseWith({ addedChars: 0, removedChars: 0, newPage: false })),
                 );
 
                 spectator.service.getArticlesHistory({ page: 1 }).subscribe(result => {
-                    expect(result.items[0].editSize).toEqual({ added: 0, removed: 0 });
+                    expect(result.items[0].editSize).toEqual({ added: 0, removed: 0, newPage: false });
                     done();
                 });
             });

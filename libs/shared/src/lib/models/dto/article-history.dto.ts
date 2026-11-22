@@ -34,6 +34,8 @@ export interface ArticleHistoryItemDto {
     readonly addedChars?: number;
     /** Characters removed against the diff base; sent for pending versions only. */
     readonly removedChars?: number;
+    /** The page has no approved version before this one: addedChars is the length of its whole text. */
+    readonly newPage?: boolean;
 }
 
 /**

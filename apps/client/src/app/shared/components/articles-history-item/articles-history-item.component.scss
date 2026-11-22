@@ -135,6 +135,10 @@
     color: var(--themed-diff-delete-text);
 }
 
+.edit-size-length {
+    color: var(--themed-text-secondary);
+}
+
 .inwork-marker {
     flex: none;
     color: var(--themed-text-secondary);

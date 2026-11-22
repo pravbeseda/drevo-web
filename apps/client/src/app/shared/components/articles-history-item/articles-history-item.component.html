@@ -63,6 +63,14 @@
                     data-testid="edit-size"
                     [uiTooltip]="size.tooltip"
                 >
+                    @if (size.length; as length) {
+                        <span
+                            class="edit-size-length"
+                            data-testid="edit-size-length"
+                        >
+                            {{ length }} симв.
+                        </span>
+                    }
                     @if (size.added; as added) {
                         <span
                             class="edit-size-added"

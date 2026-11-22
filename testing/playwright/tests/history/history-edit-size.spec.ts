@@ -12,6 +12,17 @@ async function openHistory(page: Page): Promise<HistoryPage> {
                 1,
             ),
             createArticleHistoryItemDto({ title: 'Подтверждённая правка', approved: 1 }, 2),
+            createArticleHistoryItemDto(
+                {
+                    title: 'Новая страница на модерации',
+                    approved: 0,
+                    new: true,
+                    addedChars: 1840,
+                    removedChars: 0,
+                    newPage: true,
+                },
+                3,
+            ),
         ]),
     );
     await page.goto('/history/articles');
@@ -31,6 +42,18 @@ test.describe('History edit size', () => {
         await expect(history.editSizeAdded(pending)).toHaveText('+1 840');
         await expect(history.editSizeRemoved(pending)).toHaveText('−112');
         await expect(history.editSize(history.historyItemByTitle('Подтверждённая правка'))).toBeHidden();
+    });
+
+    test('a moderator sees the size of a page with no approved version yet as its character count', async ({
+        page,
+    }) => {
+        await mockAuthApi(page, mockUsers.moderator);
+        const history = await openHistory(page);
+
+        const newPage = history.historyItemByTitle('Новая страница на модерации');
+        await expect(history.editSizeLength(newPage)).toHaveText('1 840 симв.');
+        await expect(history.editSizeAdded(newPage)).toBeHidden();
+        await expect(history.editSizeRemoved(newPage)).toBeHidden();
     });
 
     test('a user who cannot moderate sees no edit size', async ({ authenticatedPage: page }) => {

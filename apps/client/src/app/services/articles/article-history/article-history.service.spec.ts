@@ -693,7 +693,7 @@ describe('ArticleHistoryService', () => {
         });
 
         describe('edit size', () => {
-            const rewriteSized = { added: 900, removed: 40 };
+            const rewriteSized = { added: 900, removed: 40, newPage: false };
 
             beforeEach(() => {
                 articleService.getArticlesHistory.mockReturnValue(
@@ -721,7 +721,7 @@ describe('ArticleHistoryService', () => {
                             createMockHistoryItem({
                                 versionId: 2,
                                 approved: ApprovalStatus.Pending,
-                                editSize: { added: 1, removed: 1 },
+                                editSize: { added: 1, removed: 1, newPage: false },
                             }),
                             createMockHistoryItem({ versionId: 1, approved: ApprovalStatus.Approved }),
                         ]),
@@ -731,7 +731,10 @@ describe('ArticleHistoryService', () => {
                 spectator.service.applyModeration({ ...approval, versionId: 1 });
 
                 expect(versionsOf()[0]).toEqual(
-                    expectObjectLike<ArticleHistoryItem>({ versionId: 2, editSize: { added: 1, removed: 1 } }),
+                    expectObjectLike<ArticleHistoryItem>({
+                        versionId: 2,
+                        editSize: { added: 1, removed: 1, newPage: false },
+                    }),
                 );
             });
 

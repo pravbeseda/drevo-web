@@ -18,6 +18,14 @@ function formatCharCount(count: number): string | undefined {
     return count > 0 ? CHAR_COUNT_FORMAT.format(count) : undefined;
 }
 
+/** A new page has nothing to compare with, so its marker shows the text's length instead of `+N −M`. */
+interface EditSizeView {
+    readonly length?: string;
+    readonly added?: string;
+    readonly removed?: string;
+    readonly tooltip: string;
+}
+
 @Component({
     selector: 'app-articles-history-item',
     imports: [
@@ -60,10 +68,13 @@ export class ArticlesHistoryItemComponent {
     );
 
     /** The size of an edit is a moderator's hint, so it shows only to them and only while the edit awaits them. */
-    protected readonly editSize = computed(() => {
+    protected readonly editSize = computed((): EditSizeView | undefined => {
         const { approved, editSize } = this.item();
         if (!this.canModerate() || approved !== ApprovalStatus.Pending || !editSize) return undefined;
         const added = formatCharCount(editSize.added);
+        if (editSize.newPage) {
+            return added ? { length: added, tooltip: `Символов в тексте новой страницы: ${added}` } : undefined;
+        }
         const removed = formatCharCount(editSize.removed);
         if (!added && !removed) return undefined;
         const parts = [added && `добавлено: ${added}`, removed && `удалено: ${removed}`].filter(Boolean);

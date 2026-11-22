@@ -57,7 +57,7 @@ export class HistoryPage extends BasePage {
         return row.getByTestId('review-badge-vote');
     }
 
-    /** The `+N −M` edit size of a pending history row, both numbers. */
+    /** The edit size of a pending history row: `+N −M`, or a new page's `N симв.` */
     editSize(row: Locator): Locator {
         return row.getByTestId('edit-size');
     }
@@ -70,6 +70,11 @@ export class HistoryPage extends BasePage {
     /** Characters the edit removed, `−M`, within a history row. */
     editSizeRemoved(row: Locator): Locator {
         return row.getByTestId('edit-size-removed');
+    }
+
+    /** Length of a new page's text, `N симв.`, within a history row. */
+    editSizeLength(row: Locator): Locator {
+        return row.getByTestId('edit-size-length');
     }
 
     async gotoArticles(): Promise<void> {

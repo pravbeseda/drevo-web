@@ -42,6 +42,7 @@ describe('ArticlesHistoryItemComponent', () => {
     const getEditSize = () => spectator.query('[data-testid="edit-size"]');
     const getEditSizeAdded = () => spectator.query('[data-testid="edit-size-added"]');
     const getEditSizeRemoved = () => spectator.query('[data-testid="edit-size-removed"]');
+    const getEditSizeLength = () => spectator.query('[data-testid="edit-size-length"]');
 
     it('should create', () => {
         spectator = createComponent({
@@ -126,8 +127,8 @@ describe('ArticlesHistoryItemComponent', () => {
     });
 
     describe('edit size', () => {
-        const pendingWithSize = (added: number, removed: number) =>
-            createMockItem({ approved: ApprovalStatus.Pending, editSize: { added, removed } });
+        const pendingWithSize = (added: number, removed: number, newPage = false) =>
+            createMockItem({ approved: ApprovalStatus.Pending, editSize: { added, removed, newPage } });
 
         const showToModerator = (item: ArticleHistoryItem) =>
             (spectator = createComponent({ props: { item, canModerate: true } }));
@@ -138,6 +139,27 @@ describe('ArticlesHistoryItemComponent', () => {
 
             expect(getEditSizeAdded()).toHaveExactTrimmedText('+1 840');
             expect(getEditSizeRemoved()).toHaveExactTrimmedText('−112');
+            expect(getEditSizeLength()).toBeFalsy();
+        });
+
+        it('shows the size of a page with no approved version yet as its character count, without signs', () => {
+            showToModerator(pendingWithSize(1840, 0, true));
+
+            expect(getEditSizeLength()).toHaveExactTrimmedText('1 840 симв.');
+            expect(getEditSizeAdded()).toBeFalsy();
+            expect(getEditSizeRemoved()).toBeFalsy();
+        });
+
+        it('says in the tooltip that the count is the length of a new page', () => {
+            showToModerator(pendingWithSize(1840, 0, true));
+
+            expect(getTooltip()).toBe('Символов в тексте новой страницы: 1 840');
+        });
+
+        it('shows nothing for a new page with no text', () => {
+            showToModerator(pendingWithSize(0, 0, true));
+
+            expect(getEditSize()).toBeFalsy();
         });
 
         it('spells the numbers out in a tooltip', () => {
@@ -175,7 +197,12 @@ describe('ArticlesHistoryItemComponent', () => {
         });
 
         it('hides the size once the version has left moderation', () => {
-            showToModerator(createMockItem({ approved: ApprovalStatus.Approved, editSize: { added: 5, removed: 1 } }));
+            showToModerator(
+                createMockItem({
+                    approved: ApprovalStatus.Approved,
+                    editSize: { added: 5, removed: 1, newPage: false },
+                }),
+            );
 
             expect(getEditSize()).toBeFalsy();
         });
