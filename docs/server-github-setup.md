@@ -32,28 +32,32 @@ id github-deploy
 sudo mkdir -p /home/github-deploy/.ssh
 sudo chmod 700 /home/github-deploy/.ssh
 
-# Create the releases directory; deploy.sh creates everything below it, and ~/logs, itself
+# Create the releases directory; each deploy creates everything below it, and ~/logs
 sudo mkdir -p /home/github-deploy/releases
 
 # Set proper ownership
 sudo chown -R github-deploy:github-deploy /home/github-deploy
 
-# nginx reads the static assets: new releases inherit the www-data group through setgid
+# nginx (www-data) reads the static assets: group r-x, and setgid so new releases inherit the group;
+# deploy.sh's umask 027 keeps the files it writes group-readable
 sudo chgrp www-data /home/github-deploy/releases
-sudo chmod g+s /home/github-deploy/releases
+sudo chmod 2750 /home/github-deploy/releases
+
+# useradd may create the home as 0750; let nginx pass through it without listing it
+sudo chmod o+x /home/github-deploy
 
 # Verify directory structure
 sudo ls -la /home/github-deploy/
 # Expected output:
 # drwx------  2 github-deploy github-deploy 4096 ... .ssh
-# drwxr-sr-x  2 github-deploy www-data      4096 ... releases
+# drwxr-s---  2 github-deploy www-data      4096 ... releases
 ```
 
 The layout `deploy.sh` builds under `releases/`, and how to roll back, is in the Server Runbook section of [SCRIPTS-GUIDE.md](../SCRIPTS-GUIDE.md).
 
 ### Step 3: Install Node.js and PM2
 
-Install Node.js for `github-deploy` (via nvm — `deploy.sh` loads `~/.nvm/nvm.sh` in non-interactive sessions) and PM2, then set up PM2 startup: [pm2-setup.md](pm2-setup.md).
+Install Node.js for `github-deploy` (via nvm — `deploy.sh` loads `~/.nvm/nvm.sh` in non-interactive sessions) and PM2, and run `pm2 startup`: steps 1–3 of [pm2-setup.md](pm2-setup.md). Skip its `pm2 start`: `~/ecosystem.config.js` arrives with the first deploy, whose `pm2 reload` starts an app that is not running yet and then runs `pm2 save`.
 
 ## Part 2: SSH Key Generation and Configuration
 
@@ -189,7 +193,7 @@ echo "<h1>Test Deployment</h1>" | ssh -i ~/.ssh/github_deploy_key github-deploy@
 
 # Test 3: Test rsync (similar to what GitHub Actions will use)
 echo "<h1>Rsync Test</h1>" > local-test.html
-rsync -avz --delete -e "ssh -i ~/.ssh/github_deploy_key" local-test.html github-deploy@drevo-info.ru:releases/
+rsync -avz -e "ssh -i ~/.ssh/github_deploy_key" local-test.html github-deploy@drevo-info.ru:releases/
 rm local-test.html
 
 # Test 4: Verify rsync worked

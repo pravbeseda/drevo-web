@@ -112,11 +112,11 @@ All three apps run on one server under `github-deploy`. `<env>` is `beta`, `rele
 ~/releases/<env>/<version>/          # one build per deploy: yymmdd-HHMM (beta), X.Y.Z (release, production)
 ~/releases/<env>-current             # active release, the PM2 cwd
 ~/releases/<env>-previous            # the release before it, for rollback
-~/releases/<env>-prev-1 … prev-4     # older builds kept so nginx serves their hashed assets to open tabs
+~/releases/<env>-prev-1 … prev-4     # beta, release: older builds kept so nginx serves their hashed assets to open tabs
 ~/logs/<env>-{combined,out,error}.log
 ```
 
-A deploy keeps the five newest releases per environment, plus any that a symlink above points at.
+A beta or release deploy keeps the five newest releases, plus any that a symlink above points at. Production deploys run the `iframe` branch's own `deploy.sh`: no `prev-N` ring, and it keeps the five newest releases by modification time only — after a rollback to an older production release, the next production deploy can delete it, and `production-previous` with it.
 
 ### Rollback
 
