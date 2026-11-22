@@ -160,10 +160,4 @@ Atomic deployment via symlink switching, managed by PM2.
 
 ### Manual Deployment
 
-```bash
-# Build for production
-pnpm build
-
-# Deploy using deploy script
-./scripts/deploy.sh <version> <pm2-app-name> <symlink-path> <environment>
-```
+`deploy.sh` runs on the server, from `~`, against a build already in `~/releases/<env>/<version>/`. Usage, the server layout and rollback: the Server Runbook in [SCRIPTS-GUIDE.md](./SCRIPTS-GUIDE.md).
