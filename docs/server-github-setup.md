@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide walks you through setting up your server and GitHub account to enable automated CI/CD deployments. Complete this setup **before** implementing the CI/CD migration plan.
+This guide sets up the server and the GitHub repository so that the deploy workflows can run: `cd-main-beta.yml` and `cd-main-release.yml` on `main`, `cd-iframe-release.yml` on `iframe`. All three deploy to one server, as one user, with one SSH key.
 
 ## Prerequisites
 
@@ -25,52 +25,35 @@ id github-deploy
 # Expected output: uid=1001(github-deploy) gid=1001(github-deploy) groups=1001(github-deploy)
 ```
 
-### Step 2: Set Up SSH Directory Structure
+### Step 2: Set Up the Directory Structure
 
 ```bash
 # Create SSH directory for github-deploy user
 sudo mkdir -p /home/github-deploy/.ssh
 sudo chmod 700 /home/github-deploy/.ssh
 
-# Create deployment directories
-sudo mkdir -p /home/github-deploy/staging
-sudo mkdir -p /home/github-deploy/production
+# Create the releases directory; deploy.sh creates everything below it, and ~/logs, itself
+sudo mkdir -p /home/github-deploy/releases
 
 # Set proper ownership
 sudo chown -R github-deploy:github-deploy /home/github-deploy
 
-# Set directory permissions
-sudo chmod 755 /home/github-deploy/staging
-sudo chmod 755 /home/github-deploy/production
+# nginx reads the static assets: new releases inherit the www-data group through setgid
+sudo chgrp www-data /home/github-deploy/releases
+sudo chmod g+s /home/github-deploy/releases
 
 # Verify directory structure
 sudo ls -la /home/github-deploy/
 # Expected output:
-# drwx------ 2 github-deploy github-deploy 4096 ... .ssh
-# drwxr-xr-x 2 github-deploy github-deploy 4096 ... staging
-# drwxr-xr-x 2 github-deploy github-deploy 4096 ... production
+# drwx------  2 github-deploy github-deploy 4096 ... .ssh
+# drwxr-sr-x  2 github-deploy www-data      4096 ... releases
 ```
 
-### Step 3: Test Deployment Directories
+The layout `deploy.sh` builds under `releases/`, and how to roll back, is in the Server Runbook section of [SCRIPTS-GUIDE.md](../SCRIPTS-GUIDE.md).
 
-```bash
-# Switch to github-deploy user
-sudo su - github-deploy
+### Step 3: Install Node.js and PM2
 
-# Test write permissions
-echo "test staging" > staging/test.txt
-echo "test production" > production/test.txt
-
-# Verify files were created
-ls -la staging/ production/
-# Expected: test.txt files in both directories
-
-# Clean up test files
-rm staging/test.txt production/test.txt
-
-# Exit back to your admin user
-exit
-```
+Install Node.js for `github-deploy` (via nvm — `deploy.sh` loads `~/.nvm/nvm.sh` in non-interactive sessions) and PM2, then set up PM2 startup: [pm2-setup.md](pm2-setup.md).
 
 ## Part 2: SSH Key Generation and Configuration
 
@@ -118,18 +101,18 @@ ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "echo 'SSH connectio
 # Expected: SSH connection successful
 
 # Test file operations
-ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "touch staging/ssh_test.txt"
-ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "ls -la staging/"
+ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "touch releases/ssh_test.txt"
+ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "ls -la releases/"
 # Expected: ssh_test.txt should be listed
 
 # Clean up test file
-ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "rm staging/ssh_test.txt"
+ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "rm releases/ssh_test.txt"
 ```
 
-### Step 6: Get Server Fingerprint
+### Step 7: Get Server Fingerprint
 
 ```bash
-# Get server fingerprint for GitHub Actions
+# Get server fingerprint for GitHub Actions; add -p <port> when SSH is not on 22
 ssh-keyscan drevo-info.ru > known_hosts
 
 # Display fingerprint (copy this for GitHub secrets)
@@ -139,11 +122,11 @@ cat known_hosts
 
 ## Part 3: GitHub Repository Configuration
 
-### Step 7: Configure GitHub Secrets
+### Step 8: Configure GitHub Secrets
 
 Navigate to: **Settings → Secrets and variables → Actions**
 
-Click **"New repository secret"** and add the following secrets:
+Click **"New repository secret"** and add the following secrets. They are repository secrets, not environment secrets: every deploy job reads them, whatever its environment.
 
 #### Required Secrets:
 
@@ -176,45 +159,22 @@ Click **"New repository secret"** and add the following secrets:
    2222
    ```
 
-### Step 8: Configure GitHub Variables
+#### Optional Secrets (Sentry):
 
-Navigate to: **Settings → Secrets and variables → Actions → Variables tab**
-
-Click **"New repository variable"** and add:
-
-1. **STAGING_URL**
-   ```
-   https://beta.drevo-info.ru
-   ```
-
-2. **PRODUCTION_URL**
-   ```
-   https://drevo-info.ru
-   ```
+- **SENTRY_DSN** — written into the production build; without it Sentry is disabled
+- **SENTRY_AUTH_TOKEN**, **SENTRY_ORG**, **SENTRY_PROJECT** — source-map upload; skipped when any is unset
 
 ### Step 9: Set Up GitHub Environments
 
 Navigate to: **Settings → Environments**
 
-#### Create Beta Environment:
-1. Click **"New environment"**
-2. Name: `beta`
-3. **Protection rules**: None (leave empty)
-4. **Deployment branches**: `main` only
+| Environment | Used by | Variable |
+|-------------|---------|----------|
+| `beta` | `deploy` job, `cd-main-beta.yml` | `BETA_URL` = `https://beta.drevo-info.ru` |
+| `release` | `release` job, `cd-main-release.yml` | `RELEASE_URL` = `https://app.drevo-info.ru` |
+| `production` | `deploy` job, `cd-iframe-release.yml` on `iframe` | — |
 
-#### Create Release Environment:
-1. Click **"New environment"**
-2. Name: `release`
-3. **Protection rules**: None (leave empty)
-4. **Deployment branches**: Selected branches and tags — add rule: `X.Y.Z` (semver tags)
-
-#### Create Production Environment (iframe legacy):
-1. Click **"New environment"**
-2. Name: `production`
-3. **Protection rules**:
-   - ✅ **Required reviewers**: Add yourself
-   - ✅ **Deployment branches**: `iframe` only
-4. Click **"Save protection rules"**
+Each environment holds only its URL variable, which goes into the run summary or the GitHub Release body. None has protection rules. If you add deployment branch rules, `release` must allow both the `main` branch (the `workflow_dispatch` run) and tags matching `[0-9]*` (a pushed tag), and `production` must allow the `iframe` branch — GitHub refuses a job whose ref the rules leave out.
 
 ## Part 4: Verification Tests
 
@@ -225,19 +185,19 @@ Navigate to: **Settings → Environments**
 ssh -i ~/.ssh/github_deploy_key -o StrictHostKeyChecking=no github-deploy@drevo-info.ru "echo 'GitHub Actions SSH test successful'"
 
 # Test 2: File deployment simulation
-echo "<h1>Test Deployment</h1>" | ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "cat > staging/test-deploy.html"
+echo "<h1>Test Deployment</h1>" | ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "cat > releases/test-deploy.html"
 
 # Test 3: Test rsync (similar to what GitHub Actions will use)
 echo "<h1>Rsync Test</h1>" > local-test.html
-rsync -avz --delete -e "ssh -i ~/.ssh/github_deploy_key" local-test.html github-deploy@drevo-info.ru:staging/
+rsync -avz --delete -e "ssh -i ~/.ssh/github_deploy_key" local-test.html github-deploy@drevo-info.ru:releases/
 rm local-test.html
 
-# Test 4: Verify rsync worked  
-ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "cat staging/local-test.html"
+# Test 4: Verify rsync worked
+ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "cat releases/local-test.html"
 # Expected: <h1>Rsync Test</h1>
 
 # Clean up test files
-ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "rm staging/test-deploy.html staging/local-test.html"
+ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "rm releases/test-deploy.html releases/local-test.html"
 ```
 
 ### Step 11: Final Security Check
@@ -273,7 +233,7 @@ ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "touch /tmp/test" 2>
    - This is not related to CI/CD setup - configure your web server separately
 
 3. **SSH connection works but file operations fail**
-   - Check directory ownership: `chown -R github-deploy:github-deploy /home/github-deploy`
+   - Check directory ownership: `chown -R github-deploy /home/github-deploy` — owner only, so `releases/` keeps its `www-data` group
    - Verify user is in correct group: `groups github-deploy`
 
 4. **Domain not accessible**
@@ -293,10 +253,7 @@ ssh -i ~/.ssh/github_deploy_key github-deploy@drevo-info.ru "touch /tmp/test" 2>
 After completing this setup successfully:
 
 1. ✅ **All tests in Step 10 pass**
-2. ✅ **GitHub secrets and variables configured**
-3. ✅ **GitHub environments created**
-4. ✅ **SSH key authentication works**
+2. ✅ **GitHub secrets and environments configured**
+3. ✅ **SSH key authentication works**
 
-**You are now ready to implement the CI/CD Migration Plan!**
-
-Proceed with the main CI/CD migration document to create the actual workflow files.
+The next push to `main` deploys beta. Cutting a release: [release-workflow.md](release-workflow.md). Operating the server afterwards: the Server Runbook section of [SCRIPTS-GUIDE.md](../SCRIPTS-GUIDE.md).
