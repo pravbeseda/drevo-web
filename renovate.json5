@@ -51,5 +51,12 @@
             matchUpdateTypes: ['major'],
             groupName: 'codemirror',
         },
+        {
+            // A stylelint major removes rules its config still references, and a config major references
+            // rules only the new stylelint has: apart, each PR fails lint:styles with "Unknown rule".
+            matchPackageNames: ['stylelint', 'stylelint-config-*'],
+            matchUpdateTypes: ['major'],
+            groupName: 'stylelint',
+        },
     ],
 }
