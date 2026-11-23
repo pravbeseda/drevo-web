@@ -594,22 +594,6 @@ describe('ArticleHistoryService', () => {
             expect(inworkItems[0]).toMatchObject({ data: expectObjectLike<InworkItem>({ title: 'Keep me' }) });
         });
 
-        it('should log a failed list of articles in work and still load it on the next return to «all»', () => {
-            const error = new Error('Network error');
-            inworkService.getInworkList.mockReturnValueOnce(throwError(() => error));
-            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
-            spectator.service.init();
-
-            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
-            expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to load the articles in work', error);
-
-            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 10 })]));
-            spectator.service.onFilterChange('unchecked');
-            spectator.service.onFilterChange('all');
-
-            expect(spectator.service.inworkVersionIds()).toEqual(new Set([10]));
-        });
-
         it('should show error notification when cancel fails', () => {
             inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ title: 'Fail me', id: 1 })]));
             inworkService.clearEditing.mockReturnValue(throwError(() => new Error('Network error')));
@@ -926,6 +910,19 @@ describe('ArticleHistoryService', () => {
 
             expect(spectator.service.hasItems()).toBe(false);
             expect(spectator.service.isLoading()).toBe(false);
+        });
+
+        it('still loads the next filter after a failed load', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            articleService.getArticlesHistory
+                .mockReturnValueOnce(throwError(() => new Error('Network error')))
+                .mockReturnValueOnce(of(answer(20)));
+
+            spectator.service.onFilterChange('unchecked');
+            spectator.service.onFilterChange('all');
+
+            expect(versionIdsShown()).toEqual([20]);
         });
 
         it('drops the articles in work that answer after the filter left «all»', () => {

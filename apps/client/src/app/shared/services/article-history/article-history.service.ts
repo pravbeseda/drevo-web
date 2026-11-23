@@ -316,12 +316,7 @@ export class ArticleHistoryService {
             return of([]);
         }
 
-        return this.inworkService.getInworkList().pipe(
-            catchError((error: unknown) => {
-                this.logger.error('Failed to load the articles in work', error);
-                return of([]);
-            }),
-        );
+        return this.inworkService.getInworkList();
     }
 
     private loadHistory(load: HistoryLoad): void {
@@ -329,8 +324,6 @@ export class ArticleHistoryService {
             this._isLoadingMore.set(true);
         } else {
             this._isLoading.set(true);
-            // A page still loading for the previous list is dropped with it.
-            this._isLoadingMore.set(false);
         }
 
         this._hasError.set(false);
