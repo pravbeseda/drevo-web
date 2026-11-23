@@ -594,6 +594,22 @@ describe('ArticleHistoryService', () => {
             expect(inworkItems[0]).toMatchObject({ data: expectObjectLike<InworkItem>({ title: 'Keep me' }) });
         });
 
+        it('should log a failed list of articles in work and still load it on the next return to «all»', () => {
+            const error = new Error('Network error');
+            inworkService.getInworkList.mockReturnValueOnce(throwError(() => error));
+            articleService.getArticlesHistory.mockReturnValue(of(createMockResponse()));
+            spectator.service.init();
+
+            const loggerService = spectator.inject(LoggerService) as unknown as MockLoggerService;
+            expect(loggerService.mockLogger.error).toHaveBeenCalledWith('Failed to load the articles in work', error);
+
+            inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ id: 10 })]));
+            spectator.service.onFilterChange('unchecked');
+            spectator.service.onFilterChange('all');
+
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set([10]));
+        });
+
         it('should show error notification when cancel fails', () => {
             inworkService.getInworkList.mockReturnValue(of([createMockInworkItem({ title: 'Fail me', id: 1 })]));
             inworkService.clearEditing.mockReturnValue(throwError(() => new Error('Network error')));
@@ -823,6 +839,105 @@ describe('ArticleHistoryService', () => {
             spectator.service.onLoadMore();
 
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('when a newer load replaces one still in flight', () => {
+        const versionIdsShown = () =>
+            spectator.service.displayItems().flatMap(item => (item.type === 'version' ? [item.data.versionId] : []));
+        const answer = (versionId: number, total = 1) =>
+            createMockResponse([createMockHistoryItem({ versionId })], total);
+
+        it('shows the current filter when the previous filter answers last', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            const unchecked = new Subject<ArticleHistoryResponse>();
+            const all = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(unchecked).mockReturnValueOnce(all);
+
+            spectator.service.onFilterChange('unchecked');
+            spectator.service.onFilterChange('all');
+            unchecked.next(answer(10));
+
+            expect(versionIdsShown()).toEqual([]);
+            expect(spectator.service.isLoading()).toBe(true);
+
+            all.next(answer(20));
+
+            expect(versionIdsShown()).toEqual([20]);
+            expect(spectator.service.isLoading()).toBe(false);
+        });
+
+        it('shows the current hide-cancelled setting when the previous one answers last', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            const hiding = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(hiding).mockReturnValueOnce(of(answer(20)));
+
+            spectator.service.onHideCancelledChange(true);
+            spectator.service.onHideCancelledChange(false);
+            hiding.next(answer(10));
+
+            expect(versionIdsShown()).toEqual([20]);
+        });
+
+        it('drops a load-more page of the previous filter', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1, 50)));
+            spectator.service.init();
+            const nextPage = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(nextPage).mockReturnValueOnce(of(answer(10)));
+
+            spectator.service.onLoadMore();
+            spectator.service.onFilterChange('unchecked');
+            nextPage.next(answer(2, 50));
+
+            expect(versionIdsShown()).toEqual([10]);
+            expect(spectator.service.displayTotalItems()).toBe(2);
+            expect(spectator.service.isLoadingMore()).toBe(false);
+        });
+
+        it('asks for page 2 of the new filter after dropping a load-more page', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1, 50)));
+            spectator.service.init();
+            articleService.getArticlesHistory.mockReturnValueOnce(NEVER).mockReturnValueOnce(of(answer(10, 50)));
+            spectator.service.onLoadMore();
+            spectator.service.onFilterChange('unchecked');
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(NEVER);
+
+            spectator.service.onLoadMore();
+
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                { page: 2, approved: ApprovalStatus.Pending },
+                'articles',
+            );
+        });
+
+        it('drops the previous answer when the new filter cannot be loaded', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            const unchecked = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(unchecked);
+            spectator.service.onFilterChange('unchecked');
+            userSubject.next(undefined);
+
+            spectator.service.onFilterChange('my');
+            unchecked.next(answer(10));
+
+            expect(spectator.service.hasItems()).toBe(false);
+            expect(spectator.service.isLoading()).toBe(false);
+        });
+
+        it('drops the articles in work that answer after the filter left «all»', () => {
+            const inwork = new Subject<InworkItem[]>();
+            inworkService.getInworkList.mockReturnValue(inwork);
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+
+            spectator.service.onFilterChange('unchecked');
+            inwork.next([createMockInworkItem({ id: 10 })]);
+
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set());
         });
     });
 

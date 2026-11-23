@@ -9,6 +9,7 @@ import {
     ApprovalStatus,
     ArticleHistoryItem,
     ArticleHistoryParams,
+    ArticleHistoryResponse,
     formatDateHeader,
     InworkItem,
     ModerationResult,
@@ -16,7 +17,7 @@ import {
     REVIEW_TARGET,
     ReviewSummary,
 } from '@drevo-web/shared';
-import { catchError, mergeMap, of, startWith, Subject, switchMap } from 'rxjs';
+import { catchError, EMPTY, map, mergeMap, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 export type HistoryFilter =
     'all' | 'unchecked' | 'unfinished' | 'unmarked' | 'outside_dictionaries' | 'required' | 'my';
@@ -62,6 +63,14 @@ export const trackByFn = (_index: number, item: HistoryDisplayItem): string => {
     return `version-${item.data.versionId}`;
 };
 
+/** Whether a loaded page replaces the list on screen or extends it. */
+type HistoryLoad = 'replace' | 'append';
+
+interface HistoryPage {
+    readonly load: HistoryLoad;
+    readonly response: ArticleHistoryResponse;
+}
+
 const HIDE_CANCELLED_STORAGE_KEY = 'history.hideCancelled';
 // shortcut: re-reads only the article's latest 100 versions (the backend's max page); page further if a pending version can sit deeper.
 const ARTICLE_REFRESH_PAGE_SIZE = 100;
@@ -96,6 +105,8 @@ export class ArticleHistoryService {
     private readonly _reviewSummaries = signal<ReadonlyMap<number, ReviewSummary>>(new Map());
     private readonly _loadSummariesSubject = new Subject<readonly number[]>();
     private readonly _resetSummariesSubject = new Subject<void>();
+    private readonly _historyLoadSubject = new Subject<HistoryLoad>();
+    private readonly _inworkLoadSubject = new Subject<void>();
     private readonly _kind = signal<PageKind>('articles');
 
     private articleId?: Signal<number | undefined>;
@@ -173,6 +184,21 @@ export class ArticleHistoryService {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(summaries => this.mergeReviewSummaries(summaries));
+
+        // switchMap drops the answer of whatever was loading when a newer load starts.
+        this._historyLoadSubject
+            .pipe(
+                switchMap(load => this.fetchHistory(load)),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(page => this.applyHistoryPage(page));
+
+        this._inworkLoadSubject
+            .pipe(
+                switchMap(() => this.fetchInwork()),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(items => this._inworkItems.set(items));
     }
 
     init(config?: ArticleHistoryConfig): void {
@@ -180,7 +206,7 @@ export class ArticleHistoryService {
         this._kind.set(config?.kind ?? 'articles');
         this._hideCancelled.set(this.storageService.get<boolean>(HIDE_CANCELLED_STORAGE_KEY) ?? false);
         this.loadInworkIfNeeded();
-        this.loadHistory();
+        this.loadHistory('replace');
     }
 
     onFilterChange(filter: HistoryFilter): void {
@@ -192,7 +218,7 @@ export class ArticleHistoryService {
         this.resetReviewSummaries();
         this.logger.info('Filter changed', { filter });
         this.loadInworkIfNeeded();
-        this.loadHistory();
+        this.loadHistory('replace');
     }
 
     onHideCancelledChange(value: boolean): void {
@@ -203,7 +229,7 @@ export class ArticleHistoryService {
         this._totalItems.set(0);
         this.resetReviewSummaries();
         this.logger.info('Hide cancelled changed', { hideCancelled: value });
-        this.loadHistory();
+        this.loadHistory('replace');
     }
 
     onLoadMore(): void {
@@ -211,7 +237,7 @@ export class ArticleHistoryService {
         if (this._historyItems().length >= this._totalItems()) return;
 
         this._currentPage.update(p => p + 1);
-        this.loadHistory(true);
+        this.loadHistory('append');
     }
 
     onCancelInwork(title: string): void {
@@ -281,61 +307,71 @@ export class ArticleHistoryService {
     }
 
     private loadInworkIfNeeded(): void {
-        // The editing marks are kept for articles only.
-        if (this.articleId || this._kind() !== 'articles' || this._activeFilter() !== 'all') {
-            this._inworkItems.set([]);
-            return;
-        }
-
-        this.inworkService
-            .getInworkList()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(items => this._inworkItems.set(items));
+        this._inworkLoadSubject.next();
     }
 
-    private loadHistory(loadMore = false): void {
-        if (loadMore) {
+    private fetchInwork(): Observable<readonly InworkItem[]> {
+        // The editing marks are kept for articles only.
+        if (this.articleId || this._kind() !== 'articles' || this._activeFilter() !== 'all') {
+            return of([]);
+        }
+
+        return this.inworkService.getInworkList().pipe(
+            catchError((error: unknown) => {
+                this.logger.error('Failed to load the articles in work', error);
+                return of([]);
+            }),
+        );
+    }
+
+    private loadHistory(load: HistoryLoad): void {
+        if (load === 'append') {
             this._isLoadingMore.set(true);
         } else {
             this._isLoading.set(true);
+            // A page still loading for the previous list is dropped with it.
+            this._isLoadingMore.set(false);
         }
 
         this._hasError.set(false);
+        this._historyLoadSubject.next(load);
+    }
 
+    private fetchHistory(load: HistoryLoad): Observable<HistoryPage> {
         const params = this.buildParams();
         if (!params) {
             this._isLoading.set(false);
             this._isLoadingMore.set(false);
-            return;
+            return EMPTY;
         }
 
-        this.articleService
-            .getArticlesHistory(params, this._kind())
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: response => {
-                    if (loadMore) {
-                        this._historyItems.update(items => [...items, ...response.items]);
-                    } else {
-                        this._historyItems.set(response.items);
-                        this._referenceDate.set(new Date());
-                    }
-                    this._totalItems.set(response.total);
-                    this._isLoading.set(false);
+        return this.articleService.getArticlesHistory(params, this._kind()).pipe(
+            map(response => ({ load, response })),
+            catchError((error: unknown) => {
+                this.logger.error('Failed to load article history', error);
+                if (load === 'append') {
                     this._isLoadingMore.set(false);
-                    this.loadReviewSummaries(response.items.map(item => item.versionId));
-                },
-                error: (error: unknown) => {
-                    this.logger.error('Failed to load article history', error);
-                    if (loadMore) {
-                        this._isLoadingMore.set(false);
-                        this._currentPage.update(p => p - 1);
-                    } else {
-                        this._isLoading.set(false);
-                        this._hasError.set(true);
-                    }
-                },
-            });
+                    this._currentPage.update(p => p - 1);
+                } else {
+                    this._isLoading.set(false);
+                    this._hasError.set(true);
+                }
+                return EMPTY;
+            }),
+        );
+    }
+
+    private applyHistoryPage({ load, response }: HistoryPage): void {
+        if (load === 'append') {
+            this._historyItems.update(items => [...items, ...response.items]);
+        } else {
+            this._historyItems.set(response.items);
+            this._referenceDate.set(new Date());
+        }
+        this._totalItems.set(response.total);
+        this._isLoading.set(false);
+        this._isLoadingMore.set(false);
+        this.loadReviewSummaries(response.items.map(item => item.versionId));
     }
 
     private buildParams(): ArticleHistoryParams | undefined {
