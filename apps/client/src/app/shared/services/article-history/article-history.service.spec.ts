@@ -1,8 +1,8 @@
 import { ArticleHistoryService, buildDisplayItems } from './article-history.service';
-import { ArticleService } from '../article.service';
-import { AuthService } from '../../auth/auth.service';
-import { InworkService } from '../../inwork/inwork.service';
-import { ReviewService } from '../../reviews/review.service';
+import { ArticleService } from '../../../services/articles/article.service';
+import { AuthService } from '../../../services/auth/auth.service';
+import { InworkService } from '../../../services/inwork/inwork.service';
+import { ReviewService } from '../../../services/reviews/review.service';
 import { mockLoggerProvider, MockLoggerService } from '@drevo-web/core/testing';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';
 import {
@@ -823,6 +823,118 @@ describe('ArticleHistoryService', () => {
             spectator.service.onLoadMore();
 
             expect(articleService.getArticlesHistory).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('when a newer load replaces one still in flight', () => {
+        const versionIdsShown = () =>
+            spectator.service.displayItems().flatMap(item => (item.type === 'version' ? [item.data.versionId] : []));
+        const answer = (versionId: number, total = 1) =>
+            createMockResponse([createMockHistoryItem({ versionId })], total);
+
+        it('shows the current filter when the previous filter answers last', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            const unchecked = new Subject<ArticleHistoryResponse>();
+            const all = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(unchecked).mockReturnValueOnce(all);
+
+            spectator.service.onFilterChange('unchecked');
+            spectator.service.onFilterChange('all');
+            unchecked.next(answer(10));
+
+            expect(versionIdsShown()).toEqual([]);
+            expect(spectator.service.isLoading()).toBe(true);
+
+            all.next(answer(20));
+
+            expect(versionIdsShown()).toEqual([20]);
+            expect(spectator.service.isLoading()).toBe(false);
+        });
+
+        it('shows the current hide-cancelled setting when the previous one answers last', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            const hiding = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(hiding).mockReturnValueOnce(of(answer(20)));
+
+            spectator.service.onHideCancelledChange(true);
+            spectator.service.onHideCancelledChange(false);
+            hiding.next(answer(10));
+
+            expect(versionIdsShown()).toEqual([20]);
+        });
+
+        it('drops a load-more page of the previous filter', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1, 50)));
+            spectator.service.init();
+            const nextPage = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(nextPage).mockReturnValueOnce(of(answer(10)));
+
+            spectator.service.onLoadMore();
+            spectator.service.onFilterChange('unchecked');
+            nextPage.next(answer(2, 50));
+
+            expect(versionIdsShown()).toEqual([10]);
+            expect(spectator.service.displayTotalItems()).toBe(2);
+            expect(spectator.service.isLoadingMore()).toBe(false);
+        });
+
+        it('asks for page 2 of the new filter after dropping a load-more page', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1, 50)));
+            spectator.service.init();
+            articleService.getArticlesHistory.mockReturnValueOnce(NEVER).mockReturnValueOnce(of(answer(10, 50)));
+            spectator.service.onLoadMore();
+            spectator.service.onFilterChange('unchecked');
+            articleService.getArticlesHistory.mockClear();
+            articleService.getArticlesHistory.mockReturnValue(NEVER);
+
+            spectator.service.onLoadMore();
+
+            expect(articleService.getArticlesHistory).toHaveBeenCalledWith(
+                { page: 2, approved: ApprovalStatus.Pending },
+                'articles',
+            );
+        });
+
+        it('drops the previous answer when the new filter cannot be loaded', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            const unchecked = new Subject<ArticleHistoryResponse>();
+            articleService.getArticlesHistory.mockReturnValueOnce(unchecked);
+            spectator.service.onFilterChange('unchecked');
+            userSubject.next(undefined);
+
+            spectator.service.onFilterChange('my');
+            unchecked.next(answer(10));
+
+            expect(spectator.service.hasItems()).toBe(false);
+            expect(spectator.service.isLoading()).toBe(false);
+        });
+
+        it('still loads the next filter after a failed load', () => {
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+            articleService.getArticlesHistory
+                .mockReturnValueOnce(throwError(() => new Error('Network error')))
+                .mockReturnValueOnce(of(answer(20)));
+
+            spectator.service.onFilterChange('unchecked');
+            spectator.service.onFilterChange('all');
+
+            expect(versionIdsShown()).toEqual([20]);
+        });
+
+        it('drops the articles in work that answer after the filter left «all»', () => {
+            const inwork = new Subject<InworkItem[]>();
+            inworkService.getInworkList.mockReturnValue(inwork);
+            articleService.getArticlesHistory.mockReturnValue(of(answer(1)));
+            spectator.service.init();
+
+            spectator.service.onFilterChange('unchecked');
+            inwork.next([createMockInworkItem({ id: 10 })]);
+
+            expect(spectator.service.inworkVersionIds()).toEqual(new Set());
         });
     });
 

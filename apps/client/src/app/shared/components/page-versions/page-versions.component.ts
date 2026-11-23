@@ -1,9 +1,6 @@
-import {
-    ArticleHistoryService,
-    HistoryFilter,
-} from '../../../services/articles/article-history/article-history.service';
 import { diffUrl } from '../../helpers/page-kind';
 import { FilterEntry } from '../../models/filter.model';
+import { ArticleHistoryService, HistoryFilter } from '../../services/article-history/article-history.service';
 import { PageContext } from '../../services/page-context/page-context';
 import { ArticleHistoryListComponent } from '../article-history-list/article-history-list.component';
 import { FiltersSidePanelComponent } from '../filters/filters-side-panel/filters-side-panel.component';

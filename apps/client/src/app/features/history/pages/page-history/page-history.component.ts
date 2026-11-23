@@ -1,12 +1,12 @@
-import {
-    ArticleHistoryService,
-    HistoryFilter,
-} from '../../../../services/articles/article-history/article-history.service';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { ArticleHistoryListComponent } from '../../../../shared/components/article-history-list/article-history-list.component';
 import { FiltersSidePanelComponent } from '../../../../shared/components/filters/filters-side-panel/filters-side-panel.component';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
 import { FilterEntry } from '../../../../shared/models/filter.model';
+import {
+    ArticleHistoryService,
+    HistoryFilter,
+} from '../../../../shared/services/article-history/article-history.service';
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { PageKind } from '@drevo-web/shared';
