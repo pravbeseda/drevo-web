@@ -1,4 +1,4 @@
-import { ArticleHistoryService } from '../../../services/articles/article-history/article-history.service';
+import { ArticleHistoryService } from '../../services/article-history/article-history.service';
 import { PageContext } from '../../services/page-context/page-context';
 import { PageVersionsComponent } from './page-versions.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';

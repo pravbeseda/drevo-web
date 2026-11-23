@@ -3,7 +3,7 @@ import { User } from '@drevo-web/shared';
 import { createMockUser } from '@drevo-web/shared/testing';
 import { BehaviorSubject } from 'rxjs';
 import { SidebarActionComponent } from '../../../../shared/components/sidebar-action/sidebar-action.component';
-import { ArticleHistoryService } from '../../../../services/articles/article-history/article-history.service';
+import { ArticleHistoryService } from '../../../../shared/services/article-history/article-history.service';
 import { PageHistoryComponent } from './page-history.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { signal } from '@angular/core';

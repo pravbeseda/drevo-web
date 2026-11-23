@@ -2,7 +2,7 @@ import {
     ArticleHistoryService,
     HistoryDisplayItem,
     HistoryFilter,
-} from '../../../services/articles/article-history/article-history.service';
+} from '../../services/article-history/article-history.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ModerationSheetComponent } from '../moderation-sheet/moderation-sheet.component';
 import { ArticleHistoryListComponent } from './article-history-list.component';

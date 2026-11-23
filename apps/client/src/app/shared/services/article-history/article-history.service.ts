@@ -1,7 +1,7 @@
-import { AuthService } from '../../auth/auth.service';
-import { InworkService } from '../../inwork/inwork.service';
-import { ReviewService } from '../../reviews/review.service';
-import { ArticleService } from '../article.service';
+import { ArticleService } from '../../../services/articles/article.service';
+import { AuthService } from '../../../services/auth/auth.service';
+import { InworkService } from '../../../services/inwork/inwork.service';
+import { ReviewService } from '../../../services/reviews/review.service';
 import { computed, DestroyRef, inject, Injectable, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { LoggerService, NotificationService, StorageService } from '@drevo-web/core';

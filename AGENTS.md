@@ -113,7 +113,7 @@ How a feature is laid out and where a given type belongs: [`docs/architecture.md
 
 ### Import direction rules
 
-Each line is the complete set of what its folder may import — an arrow that is not here is an import that does not happen. A feature reaching for another feature, for `layout/`, `guards/` or `interceptors/` is the case this table exists to catch: extract the shared part to `app/shared/` (components, models) or `app/services/` (services) and both sides import that.
+Each line is the complete set of what its folder may import — an arrow that is not here is an import that does not happen. A feature reaching for another feature, for `layout/`, `guards/` or `interceptors/` is the case this table exists to catch: extract the shared part to `app/shared/` (components, models, page-scoped services) or `app/services/` (`providedIn: 'root'` services) and both sides import that.
 
 ```
 features/X/      →  app/services/, app/shared/, @drevo-web/*

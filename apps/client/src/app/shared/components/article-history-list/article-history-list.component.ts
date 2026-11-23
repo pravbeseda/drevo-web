@@ -1,5 +1,5 @@
-import { ArticleHistoryService, trackByFn } from '../../../services/articles/article-history/article-history.service';
 import { AuthService } from '../../../services/auth/auth.service';
+import { ArticleHistoryService, trackByFn } from '../../services/article-history/article-history.service';
 import { ArticlesHistoryItemComponent } from '../articles-history-item/articles-history-item.component';
 import { InworkItemComponent } from '../inwork-item/inwork-item.component';
 import { openModerationSheet } from '../moderation-sheet/open-moderation-sheet';
