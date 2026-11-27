@@ -324,6 +324,28 @@ test.describe('Forum topic feed', () => {
         await expect(date).toHaveText('1 ч назад');
     });
 
+    test('puts the date under a picture that ends a message, not beside it', async ({ authenticatedPage: page }) => {
+        await page.route(`**${HELD_PICTURE_URL}`, route =>
+            route.fulfill({ body: HELD_PICTURE_SVG, contentType: 'image/svg+xml' }),
+        );
+        await mockForumTopicApi(
+            page,
+            TOPIC_ID,
+            createForumTopicPage(TOPIC, [createForumMessageDto({ html: `${MESSAGE_HTML}${PICTURE_MESSAGE_HTML}` }, 1)]),
+        );
+        const topic = new ForumTopicPage(page);
+
+        await page.goto(`/forum/topic/${TOPIC_ID}`);
+        await topic.waitForReady();
+        await expect(topic.messagePicture(1)).toHaveJSProperty('naturalHeight', HELD_PICTURE_HEIGHT_PX);
+
+        const [picture, date] = await Promise.all([
+            topic.messagePicture(1).boundingBox(),
+            topic.messageDate(1).boundingBox(),
+        ]);
+        expect(date?.y).toBeGreaterThanOrEqual((picture?.y ?? Number.NaN) + (picture?.height ?? Number.NaN));
+    });
+
     test('draws the tail of a bubble beside it, not over its translucent fill', async ({ authenticatedPage: page }) => {
         await mockForumTopicApi(
             page,
