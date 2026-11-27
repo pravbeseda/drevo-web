@@ -101,8 +101,10 @@ ui-avatar {
     white-space: nowrap;
 }
 
+// A wiki picture floats; the date closes the message below it, not beside it.
 .message-card__time {
     display: block;
+    clear: both;
     color: var(--themed-text-muted);
     font-size: $font-size-xs;
     line-height: 1;
