@@ -1,12 +1,13 @@
 // A forum message is wiki HTML from the API, so the card's encapsulated styles
 // cannot reach its paragraphs. Inside a chat bubble the outer margins of the
-// first and last block only pad the bubble twice.
+// first and last block only pad the bubble twice. A floated picture keeps its
+// own: the date clears it, so that margin is the space above the date.
 app-message-card app-wiki-content > div {
     > :first-child {
         margin-top: 0;
     }
 
-    > :last-child {
+    > :last-child:not(.pic) {
         margin-bottom: 0;
     }
 }

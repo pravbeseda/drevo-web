@@ -44,6 +44,11 @@ export class ForumTopicPage extends BasePage {
         return this.message(id).locator('img');
     }
 
+    /** The frame the wiki markup draws around a picture and its caption. */
+    messagePictureFrame(id: number): Locator {
+        return this.message(id).locator('.pic');
+    }
+
     /** A paragraph of the message's own text, outside any quote. */
     messageParagraph(id: number): Locator {
         return this.message(id).locator('app-wiki-content p').first();
