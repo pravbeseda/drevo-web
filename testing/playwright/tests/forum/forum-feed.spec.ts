@@ -60,6 +60,8 @@ const HELD_PICTURE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="250" he
 const PICTURE_MESSAGE_HTML = `<div class="pic"><img class="noborder" src="${HELD_PICTURE_URL}" alt="Иллюстрация"></div>`;
 /** A scroll short of any card's height, so hiding a card still leaves the reader past the new end. */
 const READER_NUDGE_PX = 20;
+/** The least space between a picture's frame and the date under it, so the two do not touch. */
+const DATE_GAP_BELOW_PICTURE_PX = 4;
 /** Enough plain messages under the picture that the topic overflows the feed. */
 const MESSAGES_UNDER_PICTURE = 6;
 
@@ -324,7 +326,9 @@ test.describe('Forum topic feed', () => {
         await expect(date).toHaveText('1 ч назад');
     });
 
-    test('puts the date under a picture that ends a message, not beside it', async ({ authenticatedPage: page }) => {
+    test('puts the date under a picture that ends a message, set apart from its frame', async ({
+        authenticatedPage: page,
+    }) => {
         await page.route(`**${HELD_PICTURE_URL}`, route =>
             route.fulfill({ body: HELD_PICTURE_SVG, contentType: 'image/svg+xml' }),
         );
@@ -339,11 +343,12 @@ test.describe('Forum topic feed', () => {
         await topic.waitForReady();
         await expect(topic.messagePicture(1)).toHaveJSProperty('naturalHeight', HELD_PICTURE_HEIGHT_PX);
 
-        const [picture, date] = await Promise.all([
-            topic.messagePicture(1).boundingBox(),
+        const [frame, date] = await Promise.all([
+            topic.messagePictureFrame(1).boundingBox(),
             topic.messageDate(1).boundingBox(),
         ]);
-        expect(date?.y).toBeGreaterThanOrEqual((picture?.y ?? Number.NaN) + (picture?.height ?? Number.NaN));
+        const gap = (date?.y ?? Number.NaN) - ((frame?.y ?? Number.NaN) + (frame?.height ?? Number.NaN));
+        expect(gap).toBeGreaterThanOrEqual(DATE_GAP_BELOW_PICTURE_PX);
     });
 
     test('draws the tail of a bubble beside it, not over its translucent fill', async ({ authenticatedPage: page }) => {
