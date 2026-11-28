@@ -43,21 +43,10 @@
                 "{workspaceRoot}/.eslintignore",
                 "{workspaceRoot}/eslint.config.mjs"
             ],
+            // The inferred target runs `eslint .` and appends each option as a flag verbatim,
+            // so it takes the CLI spelling — `maxWarnings` reaches ESLint as an unknown flag.
             "options": {
-                "maxWarnings": 0
-            }
-        },
-        "@nx/jest:jest": {
-            "cache": true,
-            "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
-            "options": {
-                "passWithNoTests": true
-            },
-            "configurations": {
-                "ci": {
-                    "ci": true,
-                    "codeCoverage": true
-                }
+                "max-warnings": 0
             }
         },
         "e2e-ci--**/*": {
@@ -67,7 +56,23 @@
             "cache": true,
             "dependsOn": ["^build"],
             "inputs": ["production", "^production"]
-        }
+        },
+        "test": [
+            {
+                "filter": {
+                    "plugin": "@nx/jest/plugin"
+                },
+                "configurations": {
+                    "ci": {
+                        "ci": true,
+                        "coverage": true
+                    }
+                },
+                "options": {
+                    "passWithNoTests": true
+                }
+            }
+        ]
     },
     "plugins": [
         {
@@ -80,6 +85,12 @@
             "plugin": "@nx/eslint/plugin",
             "options": {
                 "targetName": "lint"
+            }
+        },
+        {
+            "plugin": "@nx/jest/plugin",
+            "options": {
+                "targetName": "test"
             }
         }
     ],
@@ -118,12 +129,6 @@
         "@schematics/angular:service": {
             "type": "service"
         },
-        "@nx/angular:scam": {
-            "type": "component"
-        },
-        "@nx/angular:scam-directive": {
-            "type": "directive"
-        },
         "@nx/angular:guard": {
             "typeSeparator": "."
         },
@@ -155,5 +160,8 @@
             "typeSeparator": "."
         }
     },
-    "analytics": false
+    "analytics": false,
+    "affected": {
+        "legacy": true
+    }
 }
