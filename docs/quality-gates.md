@@ -4,7 +4,7 @@ Detail behind the "Quality gates" block in [`AGENTS.md`](../AGENTS.md). The cano
 
 ## Coverage thresholds only ratchet up
 
-`coverageThreshold` lives per project in its `jest.config.ts` (`libs/core/jest.config.cts`). When a change drops coverage below the threshold, write the missing tests.
+`coverageThreshold` lives per project in its `jest.config.ts` (`jest.config.cts` in `libs/core` and `libs/shared`). When a change drops coverage below the threshold, write the missing tests.
 
 Never lower a threshold to make the run pass without explicit approval, and never widen the `collectCoverageFrom` excludes in `jest.preset.js` to hide code from the denominator.
 
