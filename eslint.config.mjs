@@ -223,6 +223,12 @@ export default [
             // so it reports `output<void>()`, `StateEffect.define<void>()` and
             // `open<void, R>()` — the only void usages here, all legitimate.
             '@typescript-eslint/no-invalid-void-type': 'off',
+            // Angular types its contracts as classes the code never constructs: DI tokens
+            // (`HttpHandler`, `Router`), holders of defaults the library spreads into a plain
+            // object (`MatDialogConfig`, `MatSnackBarConfig`), snapshots only the router builds
+            // (`ActivatedRouteSnapshot`). A literal is the intended value for each, and the
+            // codebase's own shapes are interfaces, so the rule reports nothing but those.
+            '@typescript-eslint/no-unsafe-class-instance-assignment': 'off',
         },
     },
     // Must follow the typed block above — flat config applies the last matching entry,
