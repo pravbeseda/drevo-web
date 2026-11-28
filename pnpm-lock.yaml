@@ -6314,8 +6314,8 @@ packages:
   jquery@3.8.0:
     resolution: {integrity: sha512-AOYt0viqPysMUTq45O8gF9DuOnBT3Il/8WtM/TT8z/2QeGsZ70ImwSJtNFxznn2R71v8yIgaEunOGo82OY/f0g==}
 
-  js-tokens@10.0.0:
-    resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
+  js-tokens@10.0.1:
+    resolution: {integrity: sha512-XMt+uh+yEs6srFvEb/pEe4IMvbtoXVdNxF7lZFU+I9sdWI641L97L+gXQMTGm1x3RjPUVizNVjHueclXr0U7sw==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -9055,7 +9055,7 @@ snapshots:
   '@babel/code-frame@8.0.6':
     dependencies:
       '@babel/helper-validator-identifier': 8.0.6
-      js-tokens: 10.0.0
+      js-tokens: 10.0.1
 
   '@babel/compat-data@7.29.7': {}
 
@@ -15131,7 +15131,7 @@ snapshots:
 
   jquery@3.8.0: {}
 
-  js-tokens@10.0.0: {}
+  js-tokens@10.0.1: {}
 
   js-tokens@4.0.0: {}
 
