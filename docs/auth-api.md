@@ -403,7 +403,7 @@ Located in `apps/client-e2e/src/api/`:
 Run API tests:
 
 ```bash
-npx nx e2e client-e2e --project=api
+pnpm nx e2e client-e2e --project=api
 ```
 
 ### Unit Tests
@@ -417,7 +417,7 @@ Located in `apps/client/src/app/services/auth/`:
 Run unit tests:
 
 ```bash
-npx nx test client --testPathPattern=auth
+pnpm nx test client --testPathPatterns=auth
 ```
 
 ---
