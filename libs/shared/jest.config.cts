@@ -1,4 +1,4 @@
-export default {
+export = {
     displayName: 'shared',
     preset: '../../jest.preset.js',
     testEnvironment: 'node',
